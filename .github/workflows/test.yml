@@ -1,0 +1,72 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  RELAYER_VERSION: v0.2.0
+
+jobs:
+  teleporter-integration-test:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 30
+    steps:
+    - name: Checkout repositories and submodules
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Download awm-relayer image
+      run: |
+        docker pull avaplatform/awm-relayer:${RELAYER_VERSION}
+
+    - name: Teleporter Integration Tests
+      run: |
+        ./scripts/local/test.sh
+
+    - name: Run Snyk on Docker image
+      # TODO: Once we address the sarif upload issue below, we can re-enable
+      # continue-on-error to then upload the results to github.
+      # Snyk can be used to break the build when it detects vulnerabilities.
+      # In this case we want to upload the issues to GitHub Code Scanning
+      # continue-on-error: true
+      uses: snyk/actions/docker@master
+      env:
+        # In order to use the Snyk Action you will need to have a Snyk API token.
+        # More details in https://github.com/snyk/actions#getting-your-snyk-token
+        # or you can signup for free at https://snyk.io/login
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        image: local-network-image
+        args: --file=docker/Dockerfile --severity-threshold=high
+
+    # TODO: Investigate how to limit the snyk.sarif file to only have a maximum of 20 "runs" so the upload succeeds here.
+    # See: https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#validating-your-sarif-file
+    # - name: Upload results to GitHub Code Scanning
+    #   uses: github/codeql-action/upload-sarif@v2
+    #   with:
+    #     sarif_file: snyk.sarif
+
+  solidity-unit-tests:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    steps:
+    - name: Checkout repository and submodules
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Install Forge and Run the Forge tests
+      # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
+      run: |
+        BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
+        curl -L https://foundry.paradigm.xyz | bash
+        source $HOME/.bashrc
+        $BASE_DIR/.foundry/bin/foundryup
+        cd contracts/
+        $BASE_DIR/.foundry/bin/forge test -vvv
