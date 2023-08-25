@@ -1,0 +1,32 @@
+name: Snyk Golang
+on:
+  push:
+    branches-ignore:
+      - "dependabot/**"
+  pull_request:
+    branches:
+      - "dependabot/**"
+jobs:
+  golang-snyk:
+    runs-on: ubuntu-20.04
+    steps:
+      # TODO: Update this to the master branch once the Teleporter/Warp changes are merged
+      - name: Checkout subnet-evm warp-contract branch
+        uses: actions/checkout@v3
+        with:
+          repository: ava-labs/subnet-evm
+          path: subnet-evm
+          ref: 9f21235c17b33257190d2e66225f3aadaca3e1df
+
+      - name: Run Snyk
+        uses: snyk/actions/golang@master
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --sarif-file-output=snyk.sarif --all-projects --detection-depth=4
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.sarif

@@ -1,0 +1,14 @@
+[submodule "contracts/lib/forge-std"]
+	path = contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "lib/forge-std"]
+	branch = v1.3.0
+[submodule "contracts/lib/openzeppelin-contracts"]
+	path = contracts/lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "subnet-evm"]
+	path = subnet-evm
+	url = git@github.com:ava-labs/subnet-evm.git
+	branch = master
+[submodule "lib/openzeppelin-contracts"]
+	branch = v4.8.1

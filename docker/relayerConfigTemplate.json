@@ -1,0 +1,109 @@
+{
+    "network-id": 1337,
+    "p-chain-api-url": "http://127.0.0.1:9650",
+    "encrypt-connection": false,
+    "source-subnets": [
+        {
+            "subnet-id": "11111111111111111111111111111111LpoYY",
+            "chain-id": "<C_CHAIN_CHAIN_ID>",
+            "vm": "evm",
+            "api-node-host": "127.0.0.1",
+            "api-node-port": 9650,
+            "encrypt-connection": false,
+            "message-contracts": {
+                "<TELEPORTER_CONTRACT_ADDRESS>": {
+                    "message-format": "teleporter",
+                    "settings": {
+                        "reward-address": "<REWARD_ADDRESS>"
+                    }
+                }
+            }
+        },
+        {
+            "subnet-id": "<SUBNET_A_SUBNET_ID>",
+            "chain-id": "<SUBNET_A_CHAIN_ID>",
+            "vm": "evm",
+            "api-node-host": "127.0.0.1",
+            "api-node-port": 9650,
+            "encrypt-connection": false,
+            "message-contracts": {
+                "<TELEPORTER_CONTRACT_ADDRESS>": {
+                    "message-format": "teleporter",
+                    "settings": {
+                        "reward-address": "<REWARD_ADDRESS>"
+                    }
+                }
+            }
+        },
+        {
+            "subnet-id": "<SUBNET_B_SUBNET_ID>",
+            "chain-id": "<SUBNET_B_CHAIN_ID>",
+            "vm": "evm",
+            "api-node-host": "127.0.0.1",
+            "api-node-port": 9650,
+            "encrypt-connection": false,
+            "message-contracts": {
+                "<TELEPORTER_CONTRACT_ADDRESS>": {
+                    "message-format": "teleporter",
+                    "settings": {
+                        "reward-address": "<REWARD_ADDRESS>"
+                    }
+                }
+            }
+        },
+        {
+            "subnet-id": "<SUBNET_C_SUBNET_ID>",
+            "chain-id": "<SUBNET_C_CHAIN_ID>",
+            "vm": "evm",
+            "api-node-host": "127.0.0.1",
+            "api-node-port": 9650,
+            "encrypt-connection": false,
+            "message-contracts": {
+                "<TELEPORTER_CONTRACT_ADDRESS>": {
+                    "message-format": "teleporter",
+                    "settings": {
+                        "reward-address": "<REWARD_ADDRESS>"
+                    }
+                }
+            }
+        }
+    ],
+    "destination-subnets": [
+        {
+            "subnet-id": "11111111111111111111111111111111LpoYY",
+            "chain-id": "<C_CHAIN_CHAIN_ID>",
+            "vm": "evm",
+            "api-node-host": "127.0.0.1",
+            "api-node-port": 9650,
+            "encrypt-connection": false,
+            "account-private-key": "<ACCOUNT_PRIVATE_KEY>"
+        },
+        {
+            "subnet-id": "<SUBNET_A_SUBNET_ID>",
+            "chain-id": "<SUBNET_A_CHAIN_ID>",
+            "vm": "evm",
+            "api-node-host": "127.0.0.1",
+            "api-node-port": 9650,
+            "encrypt-connection": false,
+            "account-private-key": "<ACCOUNT_PRIVATE_KEY>"
+        },
+        {
+            "subnet-id": "<SUBNET_B_SUBNET_ID>",
+            "chain-id": "<SUBNET_B_CHAIN_ID>",
+            "vm": "evm",
+            "api-node-host": "127.0.0.1",
+            "api-node-port": 9650,
+            "encrypt-connection": false,
+            "account-private-key": "<ACCOUNT_PRIVATE_KEY>"
+        },
+        {
+            "subnet-id": "<SUBNET_C_SUBNET_ID>",
+            "chain-id": "<SUBNET_C_CHAIN_ID>",
+            "vm": "evm",
+            "api-node-host": "127.0.0.1",
+            "api-node-port": 9650,
+            "encrypt-connection": false,
+            "account-private-key": "<ACCOUNT_PRIVATE_KEY>"
+        }
+    ]
+}
