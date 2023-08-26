@@ -14,6 +14,7 @@ import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../../Teleporter/TeleporterRegistry.sol";
 
 struct TokenID {
     bytes32 chainID;
@@ -45,7 +46,9 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     bytes32 public immutable currentChainID;
 
     // Used for sending an receiving Teleporter messages.
-    ITeleporterMessenger public immutable teleporterMessenger;
+    ITeleporterMessenger public teleporterMessenger;
+    TeleporterReigstry public immutable teleporterRegistry;
+    uint256 public constant TELEPORTER_VERSION;
 
     // Tracks which bridge tokens have been submitted to be created other bridge instances.
     // (destinationChainID, destinationBridgeAddress) -> nativeTokenContract -> tokenCreationSubmitted
@@ -77,14 +80,26 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
      * @dev Initializes the Teleporter messenger used for sending and receiving messages,
      * and initializes the current chain ID.
      */
-    constructor(address teleporterMessengerAddress) {
+    constructor(address teleporterRegistryAddress) {
         require(
-            teleporterMessengerAddress != address(0),
-            "Invalid teleporter messenger address"
+            teleporterRegistryAddress != address(0),
+            "Invalid teleporter registry address"
         );
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
+        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
+        teleporterMessenger = teleporterRegistry.getTeleporterVersion(
+            TELEPORTER_VERSION
+        );
+        teleporterRegistry.setAllowedVersions([TELEPORTER_VERSION]);
         currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
+    }
+
+    function setTeleporterVersion(uint256 version) external {
+        teleporterMessenger = teleporterRegistry.getTeleporterVersion(version);
+    }
+
+    function setAllowedTeleporterVersions(uint256[] versions) external {
+        teleporterRegistry.setAllowedVersions(versions);
     }
 
     /**
@@ -268,7 +283,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         bytes calldata message
     ) external {
         // Only allow the Teleporter messenger to deliver messages.
-        require(msg.sender == address(teleporterMessenger), "Unauthorized.");
+        require(
+            teleporterRegistry.isAllowedTeleporterSender(msg.msg.sender),
+            "Unauthorized."
+        );
 
         // Decode the payload to recover the action and corresponding function parameters
         (BridgeAction action, bytes memory actionData) = abi.decode(
@@ -451,9 +469,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         address recipient,
         uint256 amount
     ) private nonReentrant {
-        // Only allow the Teleporter messenger to deliver messages.
-        require(msg.sender == address(teleporterMessenger), "Unauthorized.");
-
         // The recipient cannot be the zero address.
         require(
             recipient != address(0),
@@ -491,9 +506,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         uint256 totalAmount,
         uint256 secondaryFeeAmount
     ) private nonReentrant {
-        // Only allow the teleporter messenger to deliver messages.
-        require(msg.sender == address(teleporterMessenger), "Unauthorized.");
-
         // Neither the recipient nor the destination bridge can be the zero address.
         require(
             recipient != address(0),
