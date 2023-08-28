@@ -1,32 +1,28 @@
-# Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
-# See the file LICENSE for licensing terms.
-
 version: "3.9"
 services:
   local_network:
     build:
-      context: ./
+      context: ../
       dockerfile: ./docker/Dockerfile
-      args:
-        ARCH: ${ARCH} # set by run.sh
-    container_name: local_network_run
+    container_name: local_network_run # CONTAINER NAME HAD TO BE CHANGED
     init: true
     working_dir: /code
-    entrypoint: [ "/code/docker/run_setup.sh" ]
+    entrypoint: [ "./docker/run_setup.sh" ]
+    command: ["set -a", "source vars.sh"]
     network_mode: "host"
     volumes:
       - type: bind
-        source: ./
+        source: ../
         target: /code/
-  relayer:
-    image: avaplatform/awm-relayer:v0.2.0
+  relayer: # USE THE LOCAL IMAGE
+    image: awm-relayer:main
     container_name: relayer_run
     init: true
     working_dir: /code
-    entrypoint: /code/docker/run_relayer.sh
+    entrypoint: ./docker/run_relayer.sh
     network_mode: "host"
     user: "root"
     volumes:
       - type: bind
-        source: ./
+        source: ../
         target: /code/

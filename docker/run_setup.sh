@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
-# See the file LICENSE for licensing terms.
-
 
 set -e # Stop on first error
 
@@ -13,8 +10,6 @@ else
     dir_prefix=/code
 fi
 
-source $dir_prefix/scripts/utils.sh
-
 # Signifies container is ready
 rm -f $dir_prefix/NETWORK_READY
 
@@ -22,7 +17,19 @@ rm -f $dir_prefix/NETWORK_READY
 if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     rm -f $dir_prefix/vars.sh
 
-    cd subnet-evm
+    # Check if SubnetEVM files are present
+    # If not, then pull from commit
+    folder="./subnet-evm"
+
+    if [ -z "$(ls -A $folder)" ]; then {
+        git clone https://github.com/ava-labs/subnet-evm.git
+        cd ./subnet-evm
+        git checkout 86d757d905b4ae06afc2a59ed8769d16c12838b2
+    } else {
+        echo "SUBNET-EVM ALREADY EXISTS!"
+        cd ./subnet-evm
+    }
+    fi
 
     # Source $AVALANCHEGO_VERSION from versions.sh
     source ./scripts/versions.sh
@@ -79,9 +86,9 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     echo "Subnet C chain ID: $subnet_c_chain_id"
     echo "C-Chain chain ID: $c_chain_chain_id"
 
-    user_private_key=0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027
-    user_address_bytes=8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC
-    user_address=0x$user_address_bytes # Address corresponding to the user_private_key
+    private_key=0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027
+    default_address_bytes=8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC
+    default_address=0x$default_address_bytes # Address corresponding to the private_key
 
     export PATH="$PATH:$HOME/.foundry/bin"
 
@@ -101,10 +108,10 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     echo $teleporter_deploy_address $teleporter_contract_address
     echo "Finished reading universal deploy address and transaction"
 
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_a_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_b_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_c_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $c_chain_url
+    cast send --private-key $private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_a_url
+    cast send --private-key $private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_b_url
+    cast send --private-key $private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_c_url
+    cast send --private-key $private_key --value 50ether $teleporter_deploy_address --rpc-url $c_chain_url
     echo "Sent ether to teleporter deployer on each subnet."
 
     # Verify that the transaction status was successful for the deployments
@@ -131,11 +138,16 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     relayer_private_key=C2CE4E001B7585F543982A01FBC537CFF261A672FA8BD1FAFC08A207098FE2DE
     relayer_address=0xA100fF48a37cab9f87c8b5Da933DA46ea1a5fb80
 
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_a_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_b_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_c_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $c_chain_url
+    cast send --private-key $private_key --value 500ether $relayer_address --rpc-url $subnet_a_url
+    cast send --private-key $private_key --value 500ether $relayer_address --rpc-url $subnet_b_url
+    cast send --private-key $private_key --value 500ether $relayer_address --rpc-url $subnet_c_url
+    cast send --private-key $private_key --value 500ether $relayer_address --rpc-url $c_chain_url
     echo "Sent ether to relayer account on each subnet."
+
+    # Get the destination blockchain ID in hex
+    function getBlockChainIDHex() {
+        python3 -c "import base58,sys; sys.stdout.write(base58.b58decode(b'$1').hex()[:-8])";
+    }
 
     subnet_a_chain_id_hex=$(getBlockChainIDHex $subnet_a_chain_id)
     subnet_b_chain_id_hex=$(getBlockChainIDHex $subnet_b_chain_id)

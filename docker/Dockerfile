@@ -7,7 +7,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # defaults to amd64. needs to be arm64 for Macos M1
 # configured using either docker --build-arg flag or docker composer yaml service.build.args
-ARG ARCH=amd64
+ARG ARCH=arm64
 
 # defaults to grep running in a container.
 ENV grepcmd=grep
