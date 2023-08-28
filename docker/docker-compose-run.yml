@@ -4,7 +4,7 @@ services:
     build:
       context: ../
       dockerfile: ./docker/Dockerfile
-    container_name: local_network_run # CONTAINER NAME HAD TO BE CHANGED
+    container_name: local_network_run
     init: true
     working_dir: /code
     entrypoint: [ "./docker/run_setup.sh" ]
@@ -14,8 +14,8 @@ services:
       - type: bind
         source: ../
         target: /code/
-  relayer: # USE THE LOCAL IMAGE
-    image: awm-relayer:main
+  relayer:
+    image: avaplatform/awm-relayer:v0.2.0
     container_name: relayer_run
     init: true
     working_dir: /code
