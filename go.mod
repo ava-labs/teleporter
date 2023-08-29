@@ -8,7 +8,7 @@ require (
 )
 
 require (
-	github.com/ava-labs/subnet-evm v0.5.4
+	github.com/ava-labs/subnet-evm v0.5.5
 	github.com/ethereum/go-ethereum v1.12.0
 )
 
