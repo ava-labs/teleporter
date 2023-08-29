@@ -9,6 +9,5 @@
 [submodule "subnet-evm"]
 	path = subnet-evm
 	url = git@github.com:ava-labs/subnet-evm.git
-	branch = master
 [submodule "lib/openzeppelin-contracts"]
 	branch = v4.8.1
