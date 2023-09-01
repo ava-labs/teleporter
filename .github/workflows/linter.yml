@@ -23,4 +23,4 @@ jobs:
             - name: Run Lint
               run: |
                   cd contracts/src
-                  solhint **/*.sol --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
+                  solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
