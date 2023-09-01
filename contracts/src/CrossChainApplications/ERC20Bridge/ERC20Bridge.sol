@@ -383,6 +383,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     ) public pure returns (bytes memory) {
         // ABI encode the Transfer action and corresponding parameters for the transferBridgeToken
         // call to to be decoded and executed on the destination.
+        // solhint-disable-next-line func-named-parameters
         bytes memory paramsData = abi.encode(
             destinationChainID,
             destinationBridgeAddress,
