@@ -17,10 +17,10 @@ jobs:
 
             - name: Install solhint
               run: |
-                  npm install solhint -g
+                  npm install solhint
                   solhint --version
 
             - name: Run Lint
               run: |
                   cd contracts/src
-                  solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
+                  npx solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
