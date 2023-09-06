@@ -30,10 +30,10 @@ set -e # Stop on first error
 
 # Deploy a test ERC20 to be used in the E2E test.
 cd contracts
-erc20_deploy_result=$(forge create --private-key $user_private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_a_url)
+erc20_deploy_result=$(forge create --private-key $user_private_key --rpc-url $subnet_a_url src/Mocks/ExampleERC20.sol:ExampleERC20)
 erc20_contract_address_a=$(parseContractAddress "$erc20_deploy_result")
 echo "Test ERC20 contract deployed to $erc20_contract_address_a on subnet A"
-erc20_deploy_result=$(forge create --private-key $user_private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_b_url)
+erc20_deploy_result=$(forge create --private-key $user_private_key --rpc-url $subnet_b_url src/Mocks/ExampleERC20.sol:ExampleERC20)
 erc20_contract_address_b=$(parseContractAddress "$erc20_deploy_result")
 echo "Test ERC20 contract deployed to $erc20_contract_address_b on subnet B"
 

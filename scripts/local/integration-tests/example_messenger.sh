@@ -25,7 +25,7 @@ set -e # Stop on first error
 
 # Deploy a test ERC20 on subnet A.
 cd contracts
-erc20_deploy_result=$(forge create --private-key $user_private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_a_url)
+erc20_deploy_result=$(forge create --private-key $user_private_key --rpc-url $subnet_a_url src/Mocks/ExampleERC20.sol:ExampleERC20)
 erc20_contract_address=$(parseContractAddress "$erc20_deploy_result")
 echo "Test ERC20 contract deployed to $erc20_contract_address on Subnet A"
 
