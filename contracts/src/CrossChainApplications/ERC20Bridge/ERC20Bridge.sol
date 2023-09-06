@@ -1,7 +1,7 @@
 // (c) 2023, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: Ecosystem
 
 pragma solidity 0.8.18;
 
@@ -383,6 +383,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     ) public pure returns (bytes memory) {
         // ABI encode the Transfer action and corresponding parameters for the transferBridgeToken
         // call to to be decoded and executed on the destination.
+        // solhint-disable-next-line func-named-parameters
         bytes memory paramsData = abi.encode(
             destinationChainID,
             destinationBridgeAddress,
