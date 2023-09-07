@@ -50,12 +50,15 @@ abstract contract WarpProtocolRegistry {
             "WarpProtocolRegistry: invalid destination address"
         );
 
-        (uint256 nonce, address protocolAddress) = abi.decode(
+        (uint256 version, address protocolAddress) = abi.decode(
             message.payload,
             (uint256, address)
         );
 
-        require(nonce == _latestVersion, "WarpProtocolRegistry: invalid nonce");
+        require(
+            version == _latestVersion,
+            "WarpProtocolRegistry: invalid nonce"
+        );
         _latestVersion++;
 
         require(

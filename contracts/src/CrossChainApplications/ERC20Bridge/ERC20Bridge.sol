@@ -284,7 +284,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     ) external {
         // Only allow the Teleporter messenger to deliver messages.
         require(
-            teleporterRegistry.isAllowedTeleporterSender(msg.msg.sender),
+            teleporterRegistry.isAllowedTeleporterSender(msg.sender),
             "Unauthorized."
         );
 
