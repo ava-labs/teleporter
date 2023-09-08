@@ -77,12 +77,12 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         );
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ()),
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0)),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ())
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
         );
 
         // Receive the mock message.
@@ -152,12 +152,12 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         );
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ()),
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0)),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ())
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
         );
 
         // Receive the mock message.
@@ -217,12 +217,12 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         );
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ()),
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0)),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ())
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
         );
 
         // Receive the mock message.

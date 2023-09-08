@@ -55,7 +55,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
     function testNoValidMessage() public {
         // Mock the call to the warp precompile to get the message failing.
         WarpMessage memory emptyMessage = WarpMessage({
-            originChainID: bytes32(0),
+            sourceChainID: bytes32(0),
             originSenderAddress: address(0),
             destinationChainID: bytes32(0),
             destinationAddress: address(0),
@@ -63,12 +63,12 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         });
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ()),
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0)),
             abi.encode(emptyMessage, false)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ())
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
         );
 
         vm.expectRevert("Failed to verify or parse cross chain message.");

@@ -135,12 +135,12 @@ contract TeleporterMessengerTest is Test {
     ) internal {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ()),
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0)),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ())
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
         );
     }
 
@@ -242,7 +242,7 @@ contract TeleporterMessengerTest is Test {
     ) internal view returns (WarpMessage memory) {
         return
             WarpMessage({
-                originChainID: originChainID,
+                sourceChainID: originChainID,
                 originSenderAddress: address(teleporterMessenger),
                 destinationChainID: MOCK_BLOCK_CHAIN_ID,
                 destinationAddress: address(teleporterMessenger),

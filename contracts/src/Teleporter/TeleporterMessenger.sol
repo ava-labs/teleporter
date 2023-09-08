@@ -251,7 +251,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Verify and parse the cross chain message included in the transaction access list
         // using the warp message precompile.
         (WarpMessage memory warpMessage, bool success) = WARP_MESSENGER
-            .getVerifiedWarpMessage();
+            .getVerifiedWarpMessage(0);
         require(success, "Failed to verify or parse cross chain message.");
 
         // Only allow for messages to be received from the same address as this teleporter contract.
@@ -282,7 +282,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Check the message has not been delivered before by checking that there is no relayer reward
         // address stored for it already.
         require(
-            relayerRewardAddresses[warpMessage.originChainID][
+            relayerRewardAddresses[warpMessage.sourceChainID][
                 teleporterMessage.messageID
             ] == address(0),
             "Teleporter message previously delivered."
@@ -298,14 +298,14 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         );
 
         // Store the relayer reward address provided, effectively marking the message as received.
-        relayerRewardAddresses[warpMessage.originChainID][
+        relayerRewardAddresses[warpMessage.sourceChainID][
             teleporterMessage.messageID
         ] = relayerRewardAddress;
 
         // Execute the message.
         if (teleporterMessage.message.length > 0) {
             _handleInitialMessageExecution(
-                warpMessage.originChainID,
+                warpMessage.sourceChainID,
                 teleporterMessage
             );
         }
@@ -317,7 +317,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             TeleporterMessageReceipt memory receipt = teleporterMessage
                 .receipts[i];
             _markReceipt(
-                warpMessage.originChainID,
+                warpMessage.sourceChainID,
                 receipt.receivedMessageID,
                 receipt.relayerRewardAddress
             );
@@ -327,11 +327,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // to the origin of this message, we will clean up the receipt state.
         // If the receipts queue contract for this chain doesn't exist yet, create it now.
         ReceiptQueue receiptsQueue = outstandingReceipts[
-            warpMessage.originChainID
+            warpMessage.sourceChainID
         ];
         if (address(receiptsQueue) == address(0)) {
             receiptsQueue = new ReceiptQueue();
-            outstandingReceipts[warpMessage.originChainID] = receiptsQueue;
+            outstandingReceipts[warpMessage.sourceChainID] = receiptsQueue;
         }
         receiptsQueue.enqueue(
             TeleporterMessageReceipt({
@@ -341,7 +341,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         );
 
         emit ReceiveCrossChainMessage(
-            warpMessage.originChainID,
+            warpMessage.sourceChainID,
             teleporterMessage.messageID,
             teleporterMessage
         );
