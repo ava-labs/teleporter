@@ -200,7 +200,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        vm.expectRevert("Invalid fee asset contract address.");
+        vm.expectRevert(TeleporterMessenger.InvalidFeeAssetContractAddress.selector);
         teleporterMessenger.sendCrossChainMessage(messageInput);
     }
 }

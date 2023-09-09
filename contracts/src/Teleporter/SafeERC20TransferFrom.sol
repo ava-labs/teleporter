@@ -21,6 +21,9 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 library SafeERC20TransferFrom {
     using SafeERC20 for IERC20;
 
+    // Errors
+    error BalanceUnchanged();
+
     function safeTransferFrom(
         IERC20 erc20,
         uint256 amount
@@ -29,10 +32,9 @@ library SafeERC20TransferFrom {
         erc20.safeTransferFrom(msg.sender, address(this), amount);
         uint256 balanceAfter = erc20.balanceOf(address(this));
 
-        require(
-            balanceAfter > balanceBefore,
-            "Balanced unchanged after safe transfer."
-        );
+        if (balanceAfter <= balanceBefore) {
+            revert BalanceUnchanged();
+        }
 
         return balanceAfter - balanceBefore;
     }

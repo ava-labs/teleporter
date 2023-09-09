@@ -8,6 +8,10 @@ pragma solidity 0.8.18;
 import "forge-std/Test.sol";
 import "../ReentrancyGuards.sol";
 
+// Errors
+error SendFailed();
+error ReceiveFailed();
+
 contract ReentrancyGuardsTests is Test {
     SampleMessenger internal _sampleMessenger;
 
@@ -32,7 +36,7 @@ contract ReentrancyGuardsTests is Test {
     function testRecursiveSendFails() public {
         // First we check when a send function calls another send function, which should fail.
         bytes memory sendMsg = abi.encodeCall(SampleMessenger.sendMessage, ());
-        vm.expectRevert("Sending failed");
+        vm.expectRevert(SendFailed.selector);
         _sampleMessenger.sendAndCall(sendMsg);
 
         // We also need to check that we fail if a send function calls a receive function,
@@ -41,7 +45,7 @@ contract ReentrancyGuardsTests is Test {
             SampleMessenger.receiveAndCall,
             (sendMsg)
         );
-        vm.expectRevert("Sending failed");
+        vm.expectRevert(SendFailed.selector);
         _sampleMessenger.sendAndCall(receiveMsg);
     }
 
@@ -51,7 +55,7 @@ contract ReentrancyGuardsTests is Test {
             SampleMessenger.receiveMessage,
             ()
         );
-        vm.expectRevert("Receiving failed");
+        vm.expectRevert(ReceiveFailed.selector);
         _sampleMessenger.receiveAndCall(receiveMsg);
 
         // We also need to check that we fail if a receive function calls a send function,
@@ -60,7 +64,7 @@ contract ReentrancyGuardsTests is Test {
             SampleMessenger.sendAndCall,
             (receiveMsg)
         );
-        vm.expectRevert("Receiving failed");
+        vm.expectRevert(ReceiveFailed.selector);
         _sampleMessenger.receiveAndCall(sendMsg);
     }
 
@@ -81,7 +85,7 @@ contract ReentrancyGuardsTests is Test {
 
     function testRecursiveDirectSendFails() public {
         // We want to check sending recursively by directly making a function call and not low level call also fails.
-        vm.expectRevert("Sender reentrancy");
+        vm.expectRevert(ReentrancyGuards.SenderReentrancy.selector);
         _sampleMessenger.sendRecursive();
 
         assertEq(_sampleMessenger.nonce(), 0);
@@ -89,7 +93,7 @@ contract ReentrancyGuardsTests is Test {
 
     function testRecursiveDirectReceiveFails() public {
         // We want to check receiving recursively by directly making a function call and not low level call also fails.
-        vm.expectRevert("Receiver reentrancy");
+        vm.expectRevert(ReentrancyGuards.ReceiverReentrancy.selector);
         _sampleMessenger.receiveRecursive();
 
         assertEq(_sampleMessenger.nonce(), 0);
@@ -108,7 +112,9 @@ contract SampleMessenger is ReentrancyGuards {
         if (message.length > 0) {
             // solhint-disable-next-line avoid-low-level-calls
             (bool success, ) = address(this).call(message);
-            require(success, "Sending failed");
+            if (!success) {
+                revert SendFailed();
+            }
         }
     }
 
@@ -126,7 +132,9 @@ contract SampleMessenger is ReentrancyGuards {
         if (message.length > 0) {
             // solhint-disable-next-line avoid-low-level-calls
             (bool success, ) = address(this).call(message);
-            require(success, "Receiving failed");
+            if (!success) {
+                revert ReceiveFailed();
+            }
         }
     }
 
