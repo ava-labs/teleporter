@@ -91,7 +91,7 @@ contract ERC20BridgeTest is Test {
             address(mockERC20)
         );
         vm.expectRevert(abi.encodePacked(
-            ERC20Bridge.FeeAmountMoreThanAdjustedAmount.selector,
+            ERC20Bridge.InsufficientAdjustedAmount.selector,
             uint256(130), uint256(130)));
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
@@ -116,7 +116,7 @@ contract ERC20BridgeTest is Test {
         });
 
         vm.expectRevert(abi.encodePacked(
-            ERC20Bridge.FeeAmountsMoreThanTotal.selector,
+            ERC20Bridge.InsufficientTotalAmount.selector,
             uint256(130), uint256(130)));
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
@@ -495,7 +495,7 @@ contract ERC20BridgeTest is Test {
         );
 
         vm.expectRevert(abi.encodePacked(
-            ERC20Bridge.FeeAmountMoreThanAdjustedAmount.selector,
+            ERC20Bridge.InsufficientAdjustedAmount.selector,
             uint256(totalAmount - tokenFeeOnTransferAmount), uint256(bridgeFeeAmount)));
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,

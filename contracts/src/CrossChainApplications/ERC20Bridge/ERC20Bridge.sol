@@ -78,14 +78,14 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     error BridgeTokenWithinSameChain();
     error InvalidRecipientAddress();
     error InvalidDestinationBridgeAddress();
-    error FeeAmountsMoreThanTotal(uint256 totalAmount, uint256 feeAmount);
     error InvalidBridgeTokenAddress();
-    error FeeAmountMoreThanAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
+    error InsufficientTotalAmount(uint256 totalAmount, uint256 feeAmount);
+    error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
     error Unauthorized();
     error InvalidAction();
     error BridgeTokenAlreadyExists(address bridgeTokenAddress);
     error InsufficientWrappedTokenBalance(uint256 currentBalance, uint256 requestAmount);
-    error WrappedTokenDoesNotExist(address nativeTokenAddress);
+    error CannotBridgeWrappedToken(address nativeTokenAddress);
 
     /**
      * @dev Initializes the Teleporter messenger used for sending and receiving messages,
@@ -144,7 +144,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
             // is not a "fee/burn on transfer" token, since it was deployed by this
             // contract itself.
             if (totalAmount <= primaryFeeAmount + secondaryFeeAmount) {
-                revert FeeAmountsMoreThanTotal(totalAmount, primaryFeeAmount + secondaryFeeAmount);
+                revert InsufficientTotalAmount(totalAmount, primaryFeeAmount + secondaryFeeAmount);
             }
 
             return
@@ -180,7 +180,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         // The secondary fee amount is not used in this case (and can assumed to be 0) since bridging
         // a native token to another chain only ever involves a single cross-chain message.
         if (adjustedAmount <= primaryFeeAmount) {
-            revert FeeAmountMoreThanAdjustedAmount(adjustedAmount, primaryFeeAmount);
+            revert InsufficientAdjustedAmount(adjustedAmount, primaryFeeAmount);
         }
 
         return
@@ -582,7 +582,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     ) private {
         // Do not allow nested bridging of wrapped tokens.
         if (wrappedTokenContracts[nativeContractAddress]) {
-            revert WrappedTokenDoesNotExist(nativeContractAddress);
+            revert CannotBridgeWrappedToken(nativeContractAddress);
         }
 
         // Bridging tokens within a single chain is not allowed.

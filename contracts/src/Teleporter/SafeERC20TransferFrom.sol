@@ -32,7 +32,7 @@ library SafeERC20TransferFrom {
         erc20.safeTransferFrom(msg.sender, address(this), amount);
         uint256 balanceAfter = erc20.balanceOf(address(this));
 
-        if (balanceAfter <= balanceBefore) {
+        if (balanceAfter == balanceBefore) {
             revert BalanceUnchanged();
         }
 
