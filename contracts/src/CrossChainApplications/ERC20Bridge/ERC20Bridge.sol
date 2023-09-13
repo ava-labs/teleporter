@@ -75,7 +75,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
 
     // Errors
     error InvalidTeleporterMessengerAddress();
-    error BridgeTokenWithinSameChain();
+    error CannotBridgeTokenWithinSameChain();
     error InvalidRecipientAddress();
     error InvalidDestinationBridgeAddress();
     error InvalidBridgeTokenAddress();
@@ -121,7 +121,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     ) external nonReentrant {
         // Bridging tokens within a single chain is not allowed.
         if (destinationChainID == currentChainID) {
-            revert BridgeTokenWithinSameChain();
+            revert CannotBridgeTokenWithinSameChain();
         }
 
         // Neither the recipient nor the destination bridge can be the zero address.
@@ -589,7 +589,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         // This function is called by bridgeTokens and transferBridgeTokens which both already make this check,
         // so this check is redundant but left in for clarity.
         if (destinationChainID == currentChainID) {
-            revert BridgeTokenWithinSameChain();
+            revert CannotBridgeTokenWithinSameChain();
         }
 
         // Allow the Teleporter messenger to spend the fee amount.

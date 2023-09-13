@@ -21,7 +21,7 @@ contract BridgeToken is ERC20Burnable {
 
     // Errors
     error Unauthorized();
-    error InvalidChainID();
+    error InvalidSourceChainID();
     error InvalidSourceBridgeAddress();
     error InvalidSourceAsset();
 
@@ -37,7 +37,7 @@ contract BridgeToken is ERC20Burnable {
         uint8 tokenDecimals
     ) ERC20(tokenName, tokenSymbol) {
         if (sourceChainID == bytes32(0)) {
-            revert InvalidChainID();
+            revert InvalidSourceChainID();
         }
         if (sourceBridge == address(0)) {
             revert InvalidSourceBridgeAddress();

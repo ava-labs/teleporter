@@ -11,6 +11,8 @@ contract ExampleERC20 is ERC20Burnable {
     string private constant _TOKEN_NAME = "Mock Token";
     string private constant _TOKEN_SYMBOL = "EXMP";
 
+    uint256 private constant _MAX_MINT = 10_000_000_000_000_000;
+
     // Errors
     error MaxAmountExceeded(uint256 maxAmount, uint256 mintAmount);
 
@@ -19,8 +21,9 @@ contract ExampleERC20 is ERC20Burnable {
     }
 
     function mint(uint256 amount) public {
-        if (amount > 10_000_000_000_000_000) {
-            revert MaxAmountExceeded(10_000_000_000_000_000, amount);
+        // Can only mint 10 at a time.
+        if (amount > _MAX_MINT) {
+            revert MaxAmountExceeded(_MAX_MINT, amount);
         }
 
         _mint(msg.sender, amount);

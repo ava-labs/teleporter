@@ -71,7 +71,7 @@ contract ERC20BridgeTest is Test {
     }
 
     function testSameChainID() public {
-        vm.expectRevert(ERC20Bridge.BridgeTokenWithinSameChain.selector);
+        vm.expectRevert(ERC20Bridge.CannotBridgeTokenWithinSameChain.selector);
         erc20Bridge.bridgeTokens({
             destinationChainID: _MOCK_BLOCKCHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
