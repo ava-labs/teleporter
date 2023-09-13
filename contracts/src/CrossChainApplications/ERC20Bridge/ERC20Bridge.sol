@@ -74,18 +74,18 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     uint256 public constant TRANSFER_BRIDGE_TOKENS_REQUIRED_GAS = 300_000;
 
     // Errors
-    error InvalidTeleporterMessengerAddress();
-    error CannotBridgeTokenWithinSameChain();
-    error InvalidRecipientAddress();
-    error InvalidDestinationBridgeAddress();
-    error InvalidBridgeTokenAddress();
-    error InsufficientTotalAmount(uint256 totalAmount, uint256 feeAmount);
-    error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
-    error Unauthorized();
-    error InvalidAction();
     error BridgeTokenAlreadyExists(address bridgeTokenAddress);
-    error InsufficientWrappedTokenBalance(uint256 currentBalance, uint256 requestAmount);
+    error CannotBridgeTokenWithinSameChain();
     error CannotBridgeWrappedToken(address nativeTokenAddress);
+    error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
+    error InsufficientTotalAmount(uint256 totalAmount, uint256 feeAmount);
+    error InsufficientWrappedTokenBalance(uint256 currentBalance, uint256 requestAmount);
+    error InvalidAction();
+    error InvalidBridgeTokenAddress();
+    error InvalidDestinationBridgeAddress();
+    error InvalidRecipientAddress();
+    error InvalidTeleporterMessengerAddress();
+    error Unauthorized();
 
     /**
      * @dev Initializes the Teleporter messenger used for sending and receiving messages,

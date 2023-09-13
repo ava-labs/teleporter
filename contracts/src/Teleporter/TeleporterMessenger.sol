@@ -81,21 +81,21 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     bytes32 public immutable blockchainID;
 
     // Errors
-    error MessageNotFound();
-    error MessageAlreadyDelivered();
-    error InvalidMessageHash();
+    error InsufficientGas();
     error InvalidAdditionalFeeAmount();
+    error InvalidDestinationAddress();
+    error InvalidDestinationChainID();
     error InvalidFeeAssetContractAddress();
+    error InvalidMessageHash();
+    error InvalidOriginSenderAddress();
     error InvalidRelayerRewardAddress();
     error InvalidWarpMessage();
-    error InvalidOriginSenderAddress();
-    error InvalidDestinationChainID();
-    error InvalidDestinationAddress();
-    error UnauthorizedRelayer();
+    error MessageAlreadyDelivered();
+    error MessageNotFound();
     error MessageRetryExecutionFailed();
     error NoRelayerRewardToRedeem();
-    error InsufficientGas();
     error ReceiptNotFound();
+    error UnauthorizedRelayer();
 
     /**
      * @dev Sets the value of `blockchainID` to the value determined by the warp messenger precompile.

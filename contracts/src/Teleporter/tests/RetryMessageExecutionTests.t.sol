@@ -23,9 +23,9 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
     address public latestMessageSenderAddress;
 
     // Errors
-    error Unauthorized();
-    error InvalidAction();
     error EvenBlockNumber();
+    error InvalidAction();
+    error Unauthorized();
 
     constructor(address teleporterContractAddress) {
         teleporterContract = teleporterContractAddress;

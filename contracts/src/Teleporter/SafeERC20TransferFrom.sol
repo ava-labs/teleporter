@@ -22,7 +22,7 @@ library SafeERC20TransferFrom {
     using SafeERC20 for IERC20;
 
     // Errors
-    error BalanceUnchanged();
+    error BalanceNotIncreased();
 
     function safeTransferFrom(
         IERC20 erc20,
@@ -33,7 +33,7 @@ library SafeERC20TransferFrom {
         uint256 balanceAfter = erc20.balanceOf(address(this));
 
         if (balanceAfter <= balanceBefore) {
-            revert BalanceUnchanged();
+            revert BalanceNotIncreased();
         }
 
         return balanceAfter - balanceBefore;

@@ -9,8 +9,8 @@ import "forge-std/Test.sol";
 import "../ReentrancyGuards.sol";
 
 // Errors
-error SendFailed();
 error ReceiveFailed();
+error SendFailed();
 
 contract ReentrancyGuardsTests is Test {
     SampleMessenger internal _sampleMessenger;

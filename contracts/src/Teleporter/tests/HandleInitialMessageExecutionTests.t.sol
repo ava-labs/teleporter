@@ -20,9 +20,9 @@ contract SampleMessageReceiver is ITeleporterReceiver {
     address public latestMessageSenderAddress;
 
     // Errors
-    error Unauthorized();
-    error InvalidAction();
     error IntendedToFail();
+    error InvalidAction();
+    error Unauthorized();
 
     constructor(address teleporterContractAddress) {
         teleporterContract = teleporterContractAddress;

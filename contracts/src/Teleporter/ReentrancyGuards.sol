@@ -22,8 +22,8 @@ abstract contract ReentrancyGuards {
     uint256 internal _receiveEntered;
 
     // Errors
-    error SenderReentrancy();
     error ReceiverReentrancy();
+    error SenderReentrancy();
 
     // senderNonReentrant modifier makes sure we can not reenter between sender calls.
     // This modifier should be used for messenger sender functions that have external calls and do not want to allow

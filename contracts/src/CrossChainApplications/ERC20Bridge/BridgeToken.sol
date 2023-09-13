@@ -20,10 +20,10 @@ contract BridgeToken is ERC20Burnable {
     uint8 private immutable _decimals;
 
     // Errors
-    error Unauthorized();
-    error InvalidSourceChainID();
-    error InvalidSourceBridgeAddress();
     error InvalidSourceAsset();
+    error InvalidSourceBridgeAddress();
+    error InvalidSourceChainID();
+    error Unauthorized();
 
     /**
      * @dev Initializes a BridgeToken instance.
