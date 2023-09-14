@@ -44,7 +44,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         0x0200000000000000000000000000000000000005;
     bytes32 public immutable currentChainID;
 
-    // Used for sending an receiving Teleporter messages.
+    // Used for sending and receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
 
     // Tracks which bridge tokens have been submitted to be created other bridge instances.

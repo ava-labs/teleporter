@@ -11,20 +11,10 @@ set -e # Stop on first error
 #   user_address
 #   relayer_address
 #   subnet_a_chain_id
-#   subnet_b_chain_id
-#   subnet_c_chain_id
 #   subnet_a_subnet_id
-#   subnet_b_subnet_id
-#   subnet_c_subnet_id
 #   subnet_a_url
-#   subnet_b_url
-#   subnet_c_url
 #   subnet_a_chain_id_hex
-#   subnet_b_chain_id_hex
-#   subnet_c_chain_id_hex
 #   subnet_a_subnet_id_hex
-#   subnet_b_subnet_id_hex
-#   subnet_c_subnet_id_hex
 #   teleporter_contract_address
 
 # Test covers:
@@ -33,68 +23,38 @@ set -e # Stop on first error
 # - Bridging a wrapped token of one subnet to another subnet's bridged token of the same native token asset, through unwrapping then wrapping.
 # - Unwrap bridged token back to origin subnet with native token asset.
 
-# Deploy an ERC20 to subnet A.
-cd contracts
-native_erc20_deploy_result=$(forge create --private-key $user_private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_a_url)
-native_erc20_contract_address=$(parseContractAddress "$native_erc20_deploy_result")
-echo "Test ERC20 contract deployed to $native_erc20_contract_address on Subnet A"
-
-# Deploy the ERC20 bridge contract to all chains.
+# Deploy the ERC20 bridge contract to both chains.
 bridge_a_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
     --rpc-url $subnet_a_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge)
-bridge_a_address=$(parseContractAddress "$bridge_a_deploy_result")
-echo "ERC20 bridge contract deployed to subnet A at $bridge_a_address."
+ntm_a_address=$(parseContractAddress "$bridge_a_deploy_result")
+echo "Native token minting contract deployed to subnet A at $ntm_a_address."
 
-bridge_b_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
-    --rpc-url $subnet_b_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge)
-bridge_b_address=$(parseContractAddress "$bridge_b_deploy_result")
-echo "ERC20 bridge contract deployed to subnet B at $bridge_b_address."
-
-bridge_c_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
-    --rpc-url $subnet_c_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge)
-bridge_c_address=$(parseContractAddress "$bridge_c_deploy_result")
-echo "ERC20 bridge contract deployed to subnet C at $bridge_c_address."
+c_chain_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
+    --rpc-url $c_chain_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge)
+c_chain_ntr_address=$(parseContractAddress "$c_chain_deploy_result")
+echo ""Native token bridge contract deployed to C Chain at $c_chain_ntr_address."
 
 cd ..
 
-# Approve the bridge contract on subnet A to spend ERC20 tokens from the user account we're using to send transactions
-cast send $native_erc20_contract_address "approve(address,uint256)(bool)" $bridge_a_address 000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF \
-    --private-key $user_private_key --rpc-url $subnet_a_url
-result=$(cast call $native_erc20_contract_address "allowance(address,address)(uint256)" $user_address $bridge_a_address --rpc-url $subnet_a_url)
-if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
-    echo $result
-    echo "Error approving bridge contract on subnet A to spend ERC20 from user account."
-    exit 1
-fi
-echo "Approved the subnet A bridge contract to spend the test ERC20 token from the user account."
-
-# Send a transaction that initiates the ERC20 token being added to be bridged to subnet B and C
+# Send a transaction that initiates the ERC20 token being added to be bridged to subnet B
 # Function signature for submitCreateBridgeToken includes an ERC20 type parameter, but we can pass in address
 # since the contract solidity type gets mapped to address abi type https://docs.soliditylang.org/en/latest/abi-spec.html#mapping-solidity-to-abi-types.
 create_bridge_token_message_fee=1000000000000000000
 cast send $bridge_a_address "submitCreateBridgeToken(bytes32,address,address,address,uint256)" \
     $subnet_b_chain_id_hex \
-    $bridge_b_address \
+    $ntm_b_address \
     $native_erc20_contract_address \
     $native_erc20_contract_address \
     $create_bridge_token_message_fee \
     --private-key $user_private_key --rpc-url $subnet_a_url
 echo "Sent a transaction on Subnet A to add support for the the ERC20 token to the bridge on Subnet B."
-cast send $bridge_a_address "submitCreateBridgeToken(bytes32,address,address,address,uint256)" \
-    $subnet_c_chain_id_hex \
-    $bridge_c_address \
-    $native_erc20_contract_address \
-    $native_erc20_contract_address \
-    $create_bridge_token_message_fee \
-    --private-key $user_private_key --rpc-url $subnet_a_url
-echo "Sent a transaction on Subnet A to add support for the the ERC20 token to the bridge on Subnet C."
 
 
 # Wait for the cross chain message to be delivered by a relayer.
 sleep 10
 
-# Check that the bridge token was added on Subnet B and Subnet C
-bridge_token_subnet_b_contract_address=$(cast call $bridge_b_address "nativeToWrappedTokens(bytes32,address,address)(address)" \
+# Check that the bridge token was added on Subnet B
+bridge_token_subnet_b_contract_address=$(cast call $ntm_b_address "nativeToWrappedTokens(bytes32,address,address)(address)" \
     $subnet_a_chain_id_hex \
     $bridge_a_address \
     $native_erc20_contract_address \
@@ -102,16 +62,6 @@ bridge_token_subnet_b_contract_address=$(cast call $bridge_b_address "nativeToWr
 echo "The bridge token contract address on Subnet B is $bridge_token_subnet_b_contract_address"
 if [[ "$bridge_token_subnet_b_contract_address" == "0x0000000000000000000000000000000000000000" ]]; then
     echo "Bridge token contract was not created on Subnet B."
-    exit 1
-fi
-bridge_token_subnet_c_contract_address=$(cast call $bridge_c_address "nativeToWrappedTokens(bytes32,address,address)(address)" \
-    $subnet_a_chain_id_hex \
-    $bridge_a_address \
-    $native_erc20_contract_address \
-    --rpc-url $subnet_c_url)
-echo "The bridge token contract address on Subnet C is $bridge_token_subnet_c_contract_address"
-if [[ "$bridge_token_subnet_c_contract_address" == "0x0000000000000000000000000000000000000000" ]]; then
-    echo "Bridge token contract was not created on Subnet C."
     exit 1
 fi
 
@@ -183,31 +133,23 @@ if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF i
 fi
 echo "Approved the subnet B bridge contract to spend the bridged ERC20 token from the user account."
 
-# Unwrap bridged tokens back to subnet A, then wrap tokens to final destination on subnet C.
+# Unwrap bridged tokens back to subnet A.
 total_amount=11000000000000000000
 primary_fee_amount=1000000000000000000
 secondary_fee_amount=1000000000000000000
 cast send $bridge_b_address "bridgeTokens(bytes32,address,address,address,uint256,uint256,uint256)" \
-    $subnet_c_chain_id_hex \
-    $bridge_c_address \
+    $subnet_a_chain_id_hex \
+    $bridge_a_address \
     $bridge_token_subnet_b_contract_address \
     $user_address \
     $total_amount \
     $primary_fee_amount \
     $secondary_fee_amount \
     --private-key $user_private_key --rpc-url $subnet_b_url
-echo "Sent a transaction to bridge tokens from Subnet B to Subnet C (via Subnet A)."
-# Check the balance of the native token after the unwrap
-sleep 10
-actual_bridge_token_balance=$(cast call $bridge_token_subnet_c_contract_address "balanceOf(address)(uint256)" $user_address --rpc-url $subnet_c_url)
-echo "Bridge token balance on Subnet C is $actual_bridge_token_balance"
+echo "Sent a transaction to bridge tokens from Subnet B to Subnet A."
 
-if [[ "$actual_bridge_token_balance" != "9000000000000000000" ]]; then
-    echo "Bridge token balance for $user_address on Subnet C did not match expected."
-    echo "Actual balance: $actual_bridge_token_balance, Expected: 9000000000000000000"
-    exit 1
-fi
-echo "Bridge token balance matches expected on Subnet C."
+# Wait for the cross chain message to be delivered by a relayer.
+sleep 10
 
 # Check the redeemable reward balance of the relayer if the relayer address was set.
 if [ ! -z "$relayer_address" ]; then
@@ -221,37 +163,12 @@ if [ ! -z "$relayer_address" ]; then
     echo "Redeemable rewards balance matches expected for relayer on Subnet A."
 fi
 
-# Approve the bridge contract on Subnet C to spend the bridge tokens from the user account
-cast send $bridge_token_subnet_c_contract_address "approve(address,uint256)(bool)" $bridge_c_address 000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF --private-key $user_private_key --rpc-url $subnet_c_url
-result=$(cast call $bridge_token_subnet_c_contract_address "allowance(address,address)(uint256)" $user_address $bridge_c_address --rpc-url $subnet_c_url)
-if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
-    echo $result
-    echo "Error approving bridge contract on subnet C to spend bridged ERC20 from user account."
-    exit 1
-fi
-echo "Approved the subnet C bridge contract to spend the bridged ERC20 token from the user account."
-
-total_amount=8000000000000000000
-primary_fee_amount=1000000000000000000
-secondary_fee_amount=0
-cast send $bridge_c_address "bridgeTokens(bytes32,address,address,address,uint256,uint256,uint256)" \
-    $subnet_a_chain_id_hex \
-    $bridge_a_address \
-    $bridge_token_subnet_c_contract_address \
-    $user_address \
-    $total_amount \
-    $primary_fee_amount \
-    $secondary_fee_amount \
-    --private-key $user_private_key --rpc-url $subnet_c_url
-echo "Sent a transaction to unwrap tokens from Subnet C back to Subnet A."
-sleep 10
-
 # Check the balance of the native token after the unwrap
 actual_native_token_default_account_balance=$(cast call $native_erc20_contract_address "balanceOf(address)(uint256)" $user_address --rpc-url $subnet_a_url)
 echo "Native ERC20 token balance for user account is $actual_native_token_default_account_balance"
-if [[ "$actual_native_token_default_account_balance" != "9999999992000000000000000000" ]]; then
+if [[ "$actual_native_token_default_account_balance" != "9999999996000000000000000000" ]]; then
     echo "Native token balance for $user_address did not match expected."
-    echo "Actual balance: $actual_native_token_default_account_balance, Expected: 9999999992000000000000000000"
+    echo "Actual balance: $actual_native_token_default_account_balance, Expected: 9999999996000000000000000000"
     exit 1
 fi
 echo "Native token balance matches expected for user account."
@@ -260,9 +177,9 @@ echo "Native token balance matches expected for user account."
 if [ ! -z "$relayer_address" ]; then
     actual_relayer_redeemable_balance=$(cast call $teleporter_contract_address "checkRelayerRewardAmount(address,address)(uint256)" $relayer_address $native_erc20_contract_address --rpc-url $subnet_a_url)
     echo "Redeemable ERC20 token reward balance for relayer account is $actual_relayer_redeemable_balance"
-    if [[ "$actual_relayer_redeemable_balance" != "4000000000000000000" ]]; then
+    if [[ "$actual_relayer_redeemable_balance" != "2000000000000000000" ]]; then
         echo "Redeemable reward balance for relayer account ($relayer_address) did not match expected."
-        echo "Actual balance: $actual_relayer_redeemable_balance, Expected: 4000000000000000000"
+        echo "Actual balance: $actual_relayer_redeemable_balance, Expected: 2000000000000000000"
         exit 1
     fi
     echo "Redeemable rewards balance matches expected for relayer on Subnet A."

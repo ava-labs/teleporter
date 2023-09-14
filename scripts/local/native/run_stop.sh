@@ -26,4 +26,4 @@ then
     rm -f NETWORK_RUNNING
 fi
 
-docker compose -f docker/docker-compose-run.yml --project-directory ./ stop
+docker compose -f scripts/local/native/docker-compose-run.yml --project-directory ./ stop
