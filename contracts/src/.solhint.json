@@ -25,7 +25,6 @@
             }
         ],
         "func-named-parameters": ["warn", 5],
-        "custom-errors": "off",
         "no-global-import": "off",
         "one-contract-per-file": "off"
     }
