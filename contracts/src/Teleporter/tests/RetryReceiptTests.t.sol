@@ -168,7 +168,7 @@ contract RetryReceiptTest is TeleporterMessengerTest {
         missingIDs[0] = 21;
 
         // Try to retry a receipt for an unreceived message from that chain - should fail.
-        vm.expectRevert("Receipt not found.");
+        vm.expectRevert(TeleporterMessenger.ReceiptNotFound.selector);
         _retryTestReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, missingIDs);
     }
 

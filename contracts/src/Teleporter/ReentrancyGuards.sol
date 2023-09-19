@@ -21,11 +21,17 @@ abstract contract ReentrancyGuards {
     uint256 internal _sendEntered;
     uint256 internal _receiveEntered;
 
+    // Errors
+    error ReceiverReentrancy();
+    error SenderReentrancy();
+
     // senderNonReentrant modifier makes sure we can not reenter between sender calls.
     // This modifier should be used for messenger sender functions that have external calls and do not want to allow
     // recursive calls with other sender functions.
     modifier senderNonReentrant() {
-        require(_sendEntered == _NOT_ENTERED, "Sender reentrancy");
+        if (_sendEntered != _NOT_ENTERED) {
+            revert SenderReentrancy();
+        }
         _sendEntered = _ENTERED;
         _;
         _sendEntered = _NOT_ENTERED;
@@ -35,7 +41,9 @@ abstract contract ReentrancyGuards {
     // This modifier should be used for messenger receiver functions that have external calls and do not want to allow
     // recursive calls with other receiver functions.
     modifier receiverNonReentrant() {
-        require(_receiveEntered == _NOT_ENTERED, "Receiver reentrancy");
+        if (_receiveEntered != _NOT_ENTERED) {
+            revert ReceiverReentrancy();
+        }
         _receiveEntered = _ENTERED;
         _;
         _receiveEntered = _NOT_ENTERED;

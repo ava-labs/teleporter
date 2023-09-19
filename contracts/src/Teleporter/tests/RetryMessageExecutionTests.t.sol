@@ -22,6 +22,11 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
     bytes32 public latestMessageSenderSubnetID;
     address public latestMessageSenderAddress;
 
+    // Errors
+    error EvenBlockNumber();
+    error InvalidAction();
+    error Unauthorized();
+
     constructor(address teleporterContractAddress) {
         teleporterContract = teleporterContractAddress;
     }
@@ -31,7 +36,9 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         bytes calldata messageBytes
     ) external {
-        require(msg.sender == teleporterContract, "Unauthorized.");
+        if (msg.sender != teleporterContract) {
+            revert Unauthorized();
+        }
         // Decode the payload to recover the action and corresponding function parameters
         (FlakyMessageReceiverAction action, bytes memory actionData) = abi
             .decode(messageBytes, (FlakyMessageReceiverAction, bytes));
@@ -42,7 +49,7 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
             string memory message = abi.decode(actionData, (string));
             _retryReceive(originChainID, originSenderAddress, message);
         } else {
-            revert("Invalid action.");
+            revert InvalidAction();
         }
     }
 
@@ -52,8 +59,12 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         string memory message
     ) internal {
-        require(msg.sender == teleporterContract, "Unauthorized.");
-        require(block.number % 2 != 0, "Even block number.");
+        if (msg.sender != teleporterContract) {
+            revert Unauthorized();
+        }
+        if (block.number % 2 == 0) {
+            revert EvenBlockNumber();
+        }
         latestMessage = message;
         latestMessageSenderSubnetID = originChainID;
         latestMessageSenderAddress = originSenderAddress;
@@ -65,8 +76,12 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         string memory message
     ) internal {
-        require(msg.sender == teleporterContract, "Unauthorized.");
-        require(block.number % 2 != 0, "Even block number.");
+        if (msg.sender != teleporterContract) {
+            revert Unauthorized();
+        }
+        if (block.number % 2 == 0) {
+            revert EvenBlockNumber();
+        }
 
         ITeleporterMessenger messenger = ITeleporterMessenger(
             teleporterContract
@@ -104,7 +119,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         ) = _receiveFailedMessage(false);
 
         // Now retry it in another block with an even timestamp so that it fails again.
-        vm.expectRevert("Message retry execution attempt failed.");
+        vm.expectRevert(TeleporterMessenger.MessageRetryExecutionFailed.selector);
         teleporterMessenger.retryMessageExecution(originChainID, message);
     }
 
@@ -120,7 +135,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        vm.expectRevert("Message execution to retry not found.");
+        vm.expectRevert(TeleporterMessenger.MessageNotFound.selector);
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             fakeMessage
@@ -137,7 +152,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
         // Alter the message before retrying it.
         message.message = "altered message";
-        vm.expectRevert("Invalid payload hash to retry.");
+        vm.expectRevert(TeleporterMessenger.InvalidMessageHash.selector);
         teleporterMessenger.retryMessageExecution(originChainID, message);
     }
 
@@ -149,7 +164,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         ) = _successfullyRetryMessage();
 
         // Now try again and make sure it's been cleared from state
-        vm.expectRevert("Message execution to retry not found.");
+        vm.expectRevert(TeleporterMessenger.MessageNotFound.selector);
         teleporterMessenger.retryMessageExecution(originChainID, message);
     }
 
@@ -191,7 +206,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
         // Retrying the message execution should revert since there is still no contract deployed
         // to the destination address.
-        vm.expectRevert("Destination address not a contract.");
+        vm.expectRevert(TeleporterMessenger.InvalidDestinationAddress.selector);
         teleporterMessenger.retryMessageExecution(originChainID, message);
     }
 
