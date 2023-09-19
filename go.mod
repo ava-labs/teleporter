@@ -9,7 +9,7 @@ require (
 
 require (
 	github.com/ava-labs/avalanche-network-runner v1.7.2-0.20230825150237-723bc7b31724
-	github.com/ava-labs/awm-relayer v0.2.0
+	github.com/ava-labs/awm-relayer v0.2.1-0.20230915205322-c997e81650b1
 	github.com/ava-labs/coreth v0.12.5-rc.3
 	github.com/ava-labs/subnet-evm v0.5.4
 	github.com/ethereum/go-ethereum v1.12.0

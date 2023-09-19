@@ -126,3 +126,13 @@ func packTeleporterMessage(destinationChainID common.Hash, message teleporter.Te
 	_, hashes, err := teleporter.EVMTeleporterContractABI.PackEvent("SendCrossChainMessage", destinationChainID, message.MessageID, message)
 	return hashes, err
 }
+
+func packMessageReceivedMessage(inputStruct teleporter.MessageReceivedInput) ([]byte, error) {
+	return teleporter.EVMTeleporterContractABI.Pack("messageReceived", inputStruct.OriginChainID, inputStruct.MessageID)
+}
+
+func unpackMessageReceivedResult(result []byte) (bool, error) {
+	var success bool
+	err := teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&success, "messageReceived", result)
+	return success, err
+}

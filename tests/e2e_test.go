@@ -364,21 +364,12 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		signedTx, err := types.SignTx(tx, txSigner, fundedKey)
 		Expect(err).Should(BeNil())
 
-		// Sleep for some time to make sure relayer has started up and subscribed.
-		time.Sleep(15 * time.Second)
-		log.Info("Subscribing to new heads on destination chain")
-
-		newHeadsB := make(chan *types.Header, 10)
-		subB, err := chainBWSClient.SubscribeNewHead(ctx, newHeadsB)
-		Expect(err).Should(BeNil())
-		defer subB.Unsubscribe()
-
 		newHeadsA := make(chan *types.Header, 10)
 		subA, err := chainAWSClient.SubscribeNewHead(ctx, newHeadsA)
 		gomega.Expect(err).Should(gomega.BeNil())
 		defer subA.Unsubscribe()
 
-		log.Info("Sending sendWarpMessage transaction", "destinationChainID", blockchainIDB, "txHash", signedTx.Hash())
+		log.Info("Sending Teleporter transaction on source chain", "destinationChainID", blockchainIDB, "txHash", signedTx.Hash())
 		err = chainARPCClient.SendTransaction(ctx, signedTx)
 		Expect(err).Should(BeNil())
 
@@ -434,11 +425,13 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 
 		// TODONOW: Get aggregate signature and deliver the message to the destination
 		// Verify that the signature aggregation matches the results of manually constructing the warp message
+		log.Info("Fetching aggregate signature from the source chain validators")
 		warpClient, err := warpBackend.NewWarpClient(chainANodeURIs[0], blockchainIDA.String())
 		gomega.Expect(err).Should(gomega.BeNil())
 		signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
 		gomega.Expect(err).Should(gomega.BeNil())
 
+		log.Info("Constructing transaction for the destination chain")
 		signedMessage, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
 		Expect(err).Should(BeNil())
 
@@ -457,7 +450,6 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		Expect(err).Should(BeNil())
 
 		// Get the suggested gas tip cap of the network
-		// TODO: Add a configurable ceiling to this value
 		gasTipCap, err := chainBRPCClient.SuggestGasTipCap(ctx)
 		Expect(err).Should(BeNil())
 
@@ -484,6 +476,13 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		signedTxB, err := types.SignTx(destinationTx, signer, fundedKey)
 		Expect(err).Should(BeNil())
 
+		log.Info("Subscribing to new heads on destination chain")
+		newHeadsB := make(chan *types.Header, 10)
+		subB, err := chainBWSClient.SubscribeNewHead(ctx, newHeadsB)
+		Expect(err).Should(BeNil())
+		defer subB.Unsubscribe()
+
+		log.Info("Sending transaction to destination chain")
 		err = chainBRPCClient.SendTransaction(context.Background(), signedTxB)
 		Expect(err).Should(BeNil())
 
@@ -541,6 +540,25 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		receivedTeleporterMessage, err := unpackTeleporterMessage(addressedPayload.Payload)
 		Expect(err).Should(BeNil())
 		Expect(*receivedTeleporterMessage).Should(Equal(teleporterMessage))
+	})
+
+	ginkgo.It("Check Teleporter Message Received", ginkgo.Label("Teleporter", "Message Received"), func() {
+		data, err := packMessageReceivedMessage(teleporter.MessageReceivedInput{
+			OriginChainID: blockchainIDA,
+			MessageID:     big.NewInt(1), // TODONOW: make this dynamic
+		})
+		Expect(err).Should(BeNil())
+		callMessage := interfaces.CallMsg{
+			To:   &teleporterContractAddress,
+			Data: data,
+		}
+		result, err := chainBRPCClient.CallContract(context.Background(), callMessage, nil)
+		Expect(err).Should(BeNil())
+
+		// check the contract call result
+		delivered, err := unpackMessageReceivedResult(result)
+		Expect(err).Should(BeNil())
+		Expect(delivered).Should(BeTrue())
 	})
 
 })

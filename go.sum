@@ -65,6 +65,8 @@ github.com/ava-labs/avalanchego v1.10.9 h1:qxhp3YoD2Wm/iIKP6Wb1isbkUPWmIrJxWgivD
 github.com/ava-labs/avalanchego v1.10.9/go.mod h1:C8R5uiltpc8MQ62ixxgODR+15mesWF0aAw3H+Qrl9Iw=
 github.com/ava-labs/awm-relayer v0.2.0 h1:cj5roMKyfCsm32ot54TmtE85cbPlbvRjFq57D19q9S8=
 github.com/ava-labs/awm-relayer v0.2.0/go.mod h1:0fS2iFDiqigt/G6rxuiIz6fEN0Frpne99AVdzDoj2IE=
+github.com/ava-labs/awm-relayer v0.2.1-0.20230915205322-c997e81650b1 h1:ecjd0Tdro0uRxL345HdqVqiOnj5P1ZoJwRUmT/4tCtI=
+github.com/ava-labs/awm-relayer v0.2.1-0.20230915205322-c997e81650b1/go.mod h1:7nsp5vYgvcoc+UCtWvTTRGORYQFL3HRjQiVRXtLuAXg=
 github.com/ava-labs/coreth v0.12.5-rc.3 h1:cpmC+fSZMsO4gaFWqXHzAHrJACf05u5HPAYmwh7nmkU=
 github.com/ava-labs/coreth v0.12.5-rc.3/go.mod h1:HI+jTIflnDFBd0bledgkgid1Uurwr8q1h7zb3LsFsSo=
 github.com/ava-labs/subnet-evm v0.5.4 h1:4+UHva8rhGlvH4gDYpI0Lt6/J5ie1DqQa6kEmbebArI=
