@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -56,26 +57,29 @@ func DeriveEVMContractAddress(sender common.Address, nonce uint64) common.Addres
 	return common.HexToAddress(fmt.Sprintf("0x%x", hash.Bytes()[12:]))
 }
 
-func ConstructKeylessTransaction(byteCodeFileName string) {
+// Constructs a keyless transaction using Nick's method
+// Optionally writes the transaction, deployer address, and contract address to file
+// Returns the transaction bytes, deployer address, and contract address
+func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byte, common.Address, common.Address, error) {
 	// Convert the R and S values (which must be the same) from hex.
 	rsValue, ok := new(big.Int).SetString(rsValueHex, 16)
 	if !ok {
-		log.Panic("Failed to convert R and S value to big.Int.")
+		return nil, common.Address{}, common.Address{}, errors.New("Failed to convert R and S value to big.Int.")
 	}
 
 	log.Println("Using bytecode file at", byteCodeFileName)
 	byteCodeFileContents, err := os.ReadFile(byteCodeFileName)
 	if err != nil {
-		log.Panic("Failed to read bytecode file contents", err)
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to read bytecode file contents")
 	}
 	var byteCodeJSON byteCodeFile
 	err = json.Unmarshal(byteCodeFileContents, &byteCodeJSON)
 	if err != nil {
-		log.Panic("Failed to unmarshal bytecode file contents as JSON", err)
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to unmarshal bytecode file contents as JSON")
 	}
 	byteCodeString := byteCodeJSON.ByteCode.Object
 	if len(byteCodeString) < 2 {
-		log.Panic("Invalid byte code length.")
+		return nil, common.Address{}, common.Address{}, errors.New("Invalid byte code length.")
 	}
 	// Strip off leading 0x if present
 	if byteCodeString[:2] == "0x" || byteCodeString[:2] == "0X" {
@@ -83,7 +87,7 @@ func ConstructKeylessTransaction(byteCodeFileName string) {
 	}
 	byteCode, err := hex.DecodeString(byteCodeString)
 	if err != nil {
-		log.Panic("Failed to decode bytecode string as hexadecimal.", err)
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to decode bytecode string as hexadecimal.")
 	}
 
 	// Construct the legacy transaction with pre-determined signature values.
@@ -102,13 +106,13 @@ func ConstructKeylessTransaction(byteCodeFileName string) {
 	// Recover the "sender" address of the transaction.
 	senderAddress, err := types.HomesteadSigner{}.Sender(contractCreationTx)
 	if err != nil {
-		log.Panic("Failed to recover the sender address of transaction", err)
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to recover the sender address of transaction")
 	}
 
 	// Serialize the raw transaction and sender address.
 	contractCreationTxBytes, err := contractCreationTx.MarshalBinary()
 	if err != nil {
-		log.Panic("Failed to serialize raw transaction", err)
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to serialize raw transaction")
 	}
 	contractCreationTxString := "0x" + hex.EncodeToString(contractCreationTxBytes)
 	senderAddressString := senderAddress.Hex() // "0x" prepended by Hex() already.
@@ -121,18 +125,19 @@ func ConstructKeylessTransaction(byteCodeFileName string) {
 	log.Println(contractCreationTxString)
 	err = os.WriteFile(contractCreationTxFileName, []byte(contractCreationTxString), fs.ModePerm)
 	if err != nil {
-		log.Panic("Failed to write to contract creation tx file", err)
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract creation tx file")
 	}
 
 	log.Println("Teleporter Contract Keyless Deployer Address: ", senderAddressString)
 	err = os.WriteFile(contractCreationAddrFileName, []byte(senderAddressString), fs.ModePerm)
 	if err != nil {
-		log.Panic("Failed to write to deployer address file", err)
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to deployer address file")
 	}
 
 	log.Println("Teleporter Messenger Universal Contract Address: ", contractAddressString)
 	err = os.WriteFile(universalContractAddressFileName, []byte(contractAddressString), fs.ModePerm)
 	if err != nil {
-		log.Panic("Failed to write to contract address", err)
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract address")
 	}
+	return contractCreationTxBytes, senderAddress, contractAddress, nil
 }

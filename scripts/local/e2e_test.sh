@@ -13,6 +13,12 @@ source "$TELEPORTER_PATH"/scripts/local/constants.sh
 
 source "$TELEPORTER_PATH"/scripts/local/versions.sh
 
+# Build the teleporter and cross chain apps smart contracts
+cwd=$(pwd)
+cd $TELEPORTER_PATH/contracts
+forge build
+cd $cwd
+
 # Build ginkgo
 # to install the ginkgo binary (required for test build and run)
 go install -v github.com/onsi/ginkgo/v2/ginkgo@${GINKGO_VERSION}

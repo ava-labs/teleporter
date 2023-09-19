@@ -40,8 +40,9 @@ import (
 )
 
 const (
-	fundedKeyStr    = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
-	warpGenesisFile = "./tests/warp-genesis.json"
+	fundedKeyStr           = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	warpGenesisFile        = "./tests/warp-genesis.json"
+	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 )
 
 var (
@@ -234,11 +235,14 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 	ginkgo.It("Deploy Teleporter Contract", ginkgo.Label("Relayer", "Deploy Teleporter"), func() {
 		ctx := context.Background()
 
-		// Read in the Teleporter contract information
-		// TODONOW: generate these dynamicallt
-		teleporterContractAddress = common.BytesToAddress(readHexTextFile("./UniversalTeleporterMessengerContractAddress.txt"))
-		teleporterDeployerAddress := common.BytesToAddress(readHexTextFile("./UniversalTeleporterDeployerAddress.txt"))
-		teleporterDeployerTransaction := readHexTextFile("./UniversalTeleporterDeployerTransaction.txt")
+		// Generate the Teleporter deployment values
+		var (
+			teleporterDeployerAddress     common.Address
+			teleporterDeployerTransaction []byte
+		)
+
+		teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err = ConstructKeylessTransaction(teleporterByteCodeFile, false)
+		Expect(err).Should(BeNil())
 
 		nonceA, err := chainARPCClient.NonceAt(ctx, fundedAddress, nil)
 		Expect(err).Should(BeNil())

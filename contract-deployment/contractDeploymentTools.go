@@ -25,7 +25,10 @@ func main() {
 		if len(os.Args) != 3 {
 			log.Panic("Invalid argument count. Must provide JSON file containing contract bytecode.")
 		}
-		tests.ConstructKeylessTransaction(os.Args[2])
+		_, _, _, err := tests.ConstructKeylessTransaction(os.Args[2], true)
+		if err != nil {
+			log.Panic("Failed to construct keyless transaction.", err)
+		}
 	case "deriveContractAddress":
 		// Get the byte code of the teleporter contract to be deployed.
 		if len(os.Args) != 4 {
