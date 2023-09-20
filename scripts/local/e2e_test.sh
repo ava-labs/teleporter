@@ -33,9 +33,7 @@ ginkgo build ./tests/
 
 # Run the tests
 echo "Running e2e tests $RUN_E2E"
-RUN_E2E=true ./tests/tests.test \
-  --ginkgo.vv \
-  --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""}
+RUN_E2E=true REPO_ROOT=$TELEPORTER_PATH ginkgo -p tests/tests.test -vv
 
 echo "e2e tests passed"
 exit 0
