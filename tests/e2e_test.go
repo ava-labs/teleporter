@@ -23,7 +23,6 @@ import (
 	"github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/params"
 	"github.com/ava-labs/subnet-evm/plugin/evm"
-	"github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	predicateutils "github.com/ava-labs/subnet-evm/utils/predicate"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
@@ -83,12 +82,15 @@ var _ = ginkgo.BeforeSuite(func() {
 	// Name 10 new validators (which should have BLS key registered)
 	subnetANodeNames := []string{}
 	subnetBNodeNames := []string{}
-	for i := 1; i <= 10; i++ {
+	subnetCNodeNames := []string{}
+	for i := 1; i <= 15; i++ {
 		n := fmt.Sprintf("node%d-bls", i)
 		if i <= 5 {
 			subnetANodeNames = append(subnetANodeNames, n)
-		} else {
+		} else if i <= 10 {
 			subnetBNodeNames = append(subnetBNodeNames, n)
+		} else {
+			subnetCNodeNames = append(subnetCNodeNames, n)
 		}
 	}
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
@@ -126,28 +128,25 @@ var _ = ginkgo.BeforeSuite(func() {
 					Participants: subnetBNodeNames,
 				},
 			},
+			{
+				VmName:      evm.IDStr,
+				Genesis:     warpGenesisFile,
+				ChainConfig: warpChainConfigPath,
+				SubnetSpec: &rpcpb.SubnetSpec{
+					SubnetConfig: "",
+					Participants: subnetCNodeNames,
+				},
+			},
 		},
 	)
 	Expect(err).Should(BeNil())
 
-	// TODONOW: set this up on the source chain as well
 	// Issue transactions to activate the proposerVM fork on the receiving chain
 	fundedKey, err := crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
-	subnetB := manager.GetSubnets()[1]
-	subnetBDetails, ok := manager.GetSubnet(subnetB)
-	Expect(ok).Should(BeTrue())
-
-	chainBID := subnetBDetails.BlockchainID
-	uri := httpToWebsocketURI(subnetBDetails.ValidatorURIs[0], chainBID.String())
-
-	client, err := ethclient.Dial(uri)
-	Expect(err).Should(BeNil())
-	chainBIDInt, err := client.ChainID(ctx)
-	Expect(err).Should(BeNil())
-
-	err = utils.IssueTxsToActivateProposerVMFork(ctx, chainBIDInt, fundedKey, client)
-	Expect(err).Should(BeNil())
+	setUpProposerVm(ctx, fundedKey, manager, 0)
+	setUpProposerVm(ctx, fundedKey, manager, 1)
+	setUpProposerVm(ctx, fundedKey, manager, 2)
 
 	log.Info("Set up ginkgo before suite")
 })
@@ -167,20 +166,19 @@ var _ = ginkgo.AfterSuite(func() {
 // on the destination subnet and verify that the Warp message was received and unpacked correctly.
 var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 	var (
-		subnetIDs                        []ids.ID
-		subnetA, subnetB                 ids.ID
-		blockchainIDA, blockchainIDB     ids.ID
-		chainANodeURIs, chainBNodeURIs   []string
-		fundedKey                        *ecdsa.PrivateKey
-		err                              error
-		receivedWarpMessage              *avalancheWarp.Message
-		chainAWSClient, chainBWSClient   ethclient.Client
-		chainARPCClient, chainBRPCClient ethclient.Client
-		chainARPCURI, chainBRPCURI       string
-		chainAIDInt                      *big.Int
-		chainBIDInt                      *big.Int
-		payload                          []byte
-		teleporterMessageID              *big.Int
+		subnetIDs                                         []ids.ID
+		subnetA, subnetB, subnetC                         ids.ID
+		blockchainIDA, blockchainIDB, blockchainIDC       ids.ID
+		chainANodeURIs, chainBNodeURIs, chainCNodeURIs    []string
+		fundedKey                                         *ecdsa.PrivateKey
+		err                                               error
+		receivedWarpMessage                               *avalancheWarp.Message
+		chainAWSClient, chainBWSClient, chainCWSClient    ethclient.Client
+		chainARPCClient, chainBRPCClient, chainCRPCClient ethclient.Client
+		chainARPCURI, chainBRPCURI, chainCRPCURI          string
+		chainAIDInt, chainBIDInt, chainCIDInt             *big.Int
+		payload                                           []byte
+		teleporterMessageID                               *big.Int
 	)
 
 	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
@@ -206,7 +204,22 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		blockchainIDB = subnetBDetails.BlockchainID
 		chainBNodeURIs = append(chainBNodeURIs, subnetBDetails.ValidatorURIs...)
 
-		log.Info("Created URIs for both subnets", "ChainAURIs", chainANodeURIs, "ChainBURIs", chainBNodeURIs, "blockchainIDA", blockchainIDA, "blockchainIDB", blockchainIDB)
+		subnetC = subnetIDs[2]
+		subnetCDetails, ok := manager.GetSubnet(subnetC)
+		Expect(ok).Should(BeTrue())
+		Expect(len(subnetCDetails.ValidatorURIs)).Should(Equal(5))
+		blockchainIDC = subnetCDetails.BlockchainID
+		chainCNodeURIs = append(chainCNodeURIs, subnetCDetails.ValidatorURIs...)
+
+		log.Info(
+			"Created URIs for subnets",
+			"ChainAURIs", chainANodeURIs,
+			"ChainBURIs", chainBNodeURIs,
+			"ChainCURIs", chainCNodeURIs,
+			"blockchainIDA", blockchainIDA,
+			"blockchainIDB", blockchainIDB,
+			"blockchainIDC", blockchainIDC,
+		)
 
 		chainAWSURI := httpToWebsocketURI(chainANodeURIs[0], blockchainIDA.String())
 		chainARPCURI = httpToRPCURI(chainANodeURIs[0], blockchainIDA.String())
@@ -229,6 +242,22 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 
 		chainBIDInt, err = chainBRPCClient.ChainID(context.Background())
 		Expect(err).Should(BeNil())
+
+		chainCWSURI := httpToWebsocketURI(chainCNodeURIs[0], blockchainIDC.String())
+		chainCRPCURI = httpToRPCURI(chainCNodeURIs[0], blockchainIDC.String())
+		log.Info("Creating ethclient for blockchainB", "wsURI", chainCWSURI)
+		chainCWSClient, err = ethclient.Dial(chainCWSURI)
+		Expect(err).Should(BeNil())
+		chainCRPCClient, err = ethclient.Dial(chainCRPCURI)
+		Expect(err).Should(BeNil())
+
+		chainCIDInt, err = chainCRPCClient.ChainID(context.Background())
+		Expect(err).Should(BeNil())
+
+		// TODO: remove this once tests that use all three subnets are implemented.
+		// Suppress compiler errors for unused variables. These will be used in future tests.
+		chainCIDInt.Uint64()
+		chainCWSClient.Close()
 
 		log.Info("Finished setting up e2e test subnet variables")
 	})

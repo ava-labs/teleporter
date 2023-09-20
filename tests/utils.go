@@ -4,6 +4,8 @@
 package tests
 
 import (
+	"context"
+	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -12,11 +14,14 @@ import (
 	"strings"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/awm-relayer/utils"
+	relayerUtils "github.com/ava-labs/awm-relayer/utils"
 	"github.com/ava-labs/subnet-evm/core/types"
+	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/params"
+	"github.com/ava-labs/subnet-evm/tests/utils"
+	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 )
 
 var (
@@ -51,7 +56,7 @@ func httpToRPCURI(uri string, blockchainID string) string {
 
 func getURIHostAndPort(uri string) (string, uint32, error) {
 	// At a minimum uri should have http:// of 7 characters
-	gomega.Expect(len(uri)).Should(gomega.BeNumerically(">", 7))
+	Expect(len(uri)).Should(BeNumerically(">", 7))
 	if uri[:7] == "http://" {
 		uri = uri[7:]
 	} else if uri[:8] == "https://" {
@@ -62,7 +67,7 @@ func getURIHostAndPort(uri string) (string, uint32, error) {
 
 	// Split the uri into host and port
 	hostAndPort := strings.Split(uri, ":")
-	gomega.Expect(len(hostAndPort)).Should(gomega.Equal(2))
+	Expect(len(hostAndPort)).Should(Equal(2))
 
 	// Parse the port
 	port, err := strconv.ParseUint(hostAndPort[1], 10, 32)
@@ -88,9 +93,26 @@ func newTestTeleporterMessage(chainIDInt *big.Int, teleporterAddress common.Addr
 
 func readHexTextFile(filename string) []byte {
 	fileData, err := os.ReadFile(filename)
-	gomega.Expect(err).Should(gomega.BeNil())
-	hexString := utils.SanitizeHexString(string(fileData))
+	Expect(err).Should(BeNil())
+	hexString := relayerUtils.SanitizeHexString(string(fileData))
 	data, err := hex.DecodeString(hexString)
-	gomega.Expect(err).Should(gomega.BeNil())
+	Expect(err).Should(BeNil())
 	return data
+}
+
+func setUpProposerVm(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
+	subnet := manager.GetSubnets()[index]
+	subnetDetails, ok := manager.GetSubnet(subnet)
+	Expect(ok).Should(BeTrue())
+
+	chainID := subnetDetails.BlockchainID
+	uri := httpToWebsocketURI(subnetDetails.ValidatorURIs[0], chainID.String())
+
+	client, err := ethclient.Dial(uri)
+	Expect(err).Should(BeNil())
+	chainIDInt, err := client.ChainID(ctx)
+	Expect(err).Should(BeNil())
+
+	err = utils.IssueTxsToActivateProposerVMFork(ctx, chainIDInt, fundedKey, client)
+	Expect(err).Should(BeNil())
 }
