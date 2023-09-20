@@ -16,7 +16,11 @@ source "$TELEPORTER_PATH"/scripts/local/versions.sh
 # Build the teleporter and cross chain apps smart contracts
 cwd=$(pwd)
 cd $TELEPORTER_PATH/contracts
-forge build
+if [[ ":$PATH:" == *".foundry/bin"* ]]; then
+  forge build
+else
+  echo "Foundry not found in PATH, attempting to use from HOME"
+  $HOME/.foundry/bin/forge build
 cd $cwd
 
 # Build ginkgo
