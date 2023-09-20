@@ -21,9 +21,9 @@ jobs:
 
     steps:
       - name: Checkout repositories and submodules
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Go
         uses: actions/setup-go@v4
