@@ -71,7 +71,7 @@ contract ERC20BridgeTest is Test {
     }
 
     function testSameChainID() public {
-        vm.expectRevert("Cannot bridge token within same chain.");
+        vm.expectRevert(ERC20Bridge.CannotBridgeTokenWithinSameChain.selector);
         erc20Bridge.bridgeTokens({
             destinationChainID: _MOCK_BLOCKCHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -90,7 +90,9 @@ contract ERC20BridgeTest is Test {
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
         );
-        vm.expectRevert("Fee amount more than adjusted transfer amount.");
+        vm.expectRevert(abi.encodePacked(
+            ERC20Bridge.InsufficientAdjustedAmount.selector,
+            uint256(130), uint256(130)));
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -113,7 +115,9 @@ contract ERC20BridgeTest is Test {
             contractNonce: 1
         });
 
-        vm.expectRevert("Fee amounts more than total.");
+        vm.expectRevert(abi.encodePacked(
+            ERC20Bridge.InsufficientTotalAmount.selector,
+            uint256(130), uint256(130)));
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -490,7 +494,9 @@ contract ERC20BridgeTest is Test {
             address(mockERC20)
         );
 
-        vm.expectRevert("Fee amount more than adjusted transfer amount.");
+        vm.expectRevert(abi.encodePacked(
+            ERC20Bridge.InsufficientAdjustedAmount.selector,
+            uint256(totalAmount - tokenFeeOnTransferAmount), uint256(bridgeFeeAmount)));
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,

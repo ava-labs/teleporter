@@ -32,6 +32,11 @@ contract BlockHashReceiver is ITeleporterReceiver {
         bytes32 blockHash
     );
 
+    // Errors
+    error Unauthorized();
+    error InvalidSourceChainID();
+    error InvalidSourceChainPublisher();
+
     constructor(
         address teleporterMessengerAddress,
         bytes32 publisherChainID,
@@ -58,15 +63,17 @@ contract BlockHashReceiver is ITeleporterReceiver {
         address originSenderAddress,
         bytes calldata message
     ) external {
-        require(
-            msg.sender == address(teleporterMessenger),
-            "Unauthorized caller."
-        );
-        require(originChainID == sourceChainID, "Invalid source chain ID.");
-        require(
-            originSenderAddress == sourcePublisherContractAddress,
-            "Unauthorized source chain publisher"
-        );
+        if (msg.sender != address(teleporterMessenger)) {
+            revert Unauthorized();
+        }
+
+        if (originChainID != sourceChainID) {
+            revert InvalidSourceChainID();
+        }
+
+        if (originSenderAddress != sourcePublisherContractAddress) {
+            revert InvalidSourceChainPublisher();
+        }
 
         (uint256 blockHeight, bytes32 blockHash) = abi.decode(
             message,

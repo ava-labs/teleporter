@@ -33,6 +33,10 @@ contract ReceiptQueue {
         address indexed relayerRewardAddress
     );
 
+    // Errors
+    error Unauthorized();
+    error EmptyQueue();
+
     constructor() {
         owner = msg.sender;
     }
@@ -45,7 +49,10 @@ contract ReceiptQueue {
      * - `msg.sender` must be the owner.
      */
     function enqueue(TeleporterMessageReceipt calldata receipt) external {
-        require(msg.sender == owner, "Unauthorized.");
+        if (msg.sender != owner) {
+            revert Unauthorized();
+        }
+
         queue[last++] = receipt;
 
         emit Enqueue(receipt.receivedMessageID, receipt.relayerRewardAddress);
@@ -63,9 +70,15 @@ contract ReceiptQueue {
         external
         returns (TeleporterMessageReceipt memory result)
     {
-        require(msg.sender == owner, "Unauthorized.");
+        if (msg.sender != owner) {
+            revert Unauthorized();
+        }
+
         uint256 first_ = first;
-        require(last > first_, "Empty queue."); // non-empty queue
+
+        if (last == first_) {
+            revert EmptyQueue(); // empty queue
+        }
 
         result = queue[first_];
 
