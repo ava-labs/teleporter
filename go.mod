@@ -9,12 +9,12 @@ require (
 
 require (
 	github.com/ava-labs/avalanche-network-runner v1.7.2-0.20230825150237-723bc7b31724
-	github.com/ava-labs/awm-relayer v0.2.1-0.20230915205322-c997e81650b1
+	github.com/ava-labs/awm-relayer v0.2.1-0.20230920144616-f30e222a506a
 	github.com/ava-labs/coreth v0.12.5-rc.3
 	github.com/ava-labs/subnet-evm v0.5.4
 	github.com/ethereum/go-ethereum v1.12.0
-	github.com/onsi/ginkgo/v2 v2.8.1
-	github.com/onsi/gomega v1.26.0
+	github.com/onsi/ginkgo/v2 v2.12.0
+	github.com/onsi/gomega v1.27.10
 )
 
 require (
@@ -42,7 +42,7 @@ require (
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
 	github.com/getsentry/sentry-go v0.18.0 // indirect
 	github.com/go-cmd/cmd v1.4.1 // indirect
-	github.com/go-logr/logr v1.2.3 // indirect
+	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
@@ -122,14 +122,14 @@ require (
 	go.uber.org/mock v0.2.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.25.0 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
-	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/term v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/term v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gonum.org/v1/gonum v0.11.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect

@@ -342,7 +342,7 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		Expect(err).Should(BeNil())
 
 		log.Info("Packing teleporter message", "nonceA", nonceA, "nonceB", nonceB)
-		payload, err = packTeleporterMessage(common.Hash(blockchainIDB), teleporterMessage)
+		payload, err = teleporter.PackSendCrossChainMessageEvent(common.Hash(blockchainIDB), teleporterMessage)
 		Expect(err).Should(BeNil())
 
 		data, err := teleporter.EVMTeleporterContractABI.Pack(
@@ -382,7 +382,7 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		Expect(err).Should(BeNil())
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-		// Begin awm-relayer mocking code (TODONOW: remove this comment)
+		// Get the latest block from Subnet A, and retrieve the warp message from the logs
 		log.Info("Waiting for new block confirmation")
 		newHeadA := <-newHeadsA
 		blockHashA := newHeadA.Hash()
@@ -427,14 +427,14 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 			}
 		}
 
-		// TODONOW: Get aggregate signature and deliver the message to the destination
-		// Verify that the signature aggregation matches the results of manually constructing the warp message
+		// Get the aggregate signature for the Warp message
 		log.Info("Fetching aggregate signature from the source chain validators")
 		warpClient, err := warpBackend.NewWarpClient(chainANodeURIs[0], blockchainIDA.String())
 		gomega.Expect(err).Should(gomega.BeNil())
 		signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
 		gomega.Expect(err).Should(gomega.BeNil())
 
+		// Construct the transaction to send the Warp message to the destination chain
 		log.Info("Constructing transaction for the destination chain")
 		signedMessage, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
 		Expect(err).Should(BeNil())
@@ -448,12 +448,9 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		callData, err := teleporter.EVMTeleporterContractABI.Pack("receiveCrossChainMessage", fundedAddress)
 		Expect(err).Should(BeNil())
 
-		// Construct the actual transaction to broadcast on the destination chain
-		// Get the current base fee estimation, which is based on the previous blocks gas usage.
 		baseFee, err := chainBRPCClient.EstimateBaseFee(ctx)
 		Expect(err).Should(BeNil())
 
-		// Get the suggested gas tip cap of the network
 		gasTipCap, err := chainBRPCClient.SuggestGasTipCap(ctx)
 		Expect(err).Should(BeNil())
 
@@ -475,6 +472,7 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 			warp.ContractAddress,
 			signedMessage.Bytes(),
 		)
+
 		// Sign and send the transaction on the destination chain
 		signer := types.LatestSignerForChainID(chainBIDInt)
 		signedTxB, err := types.SignTx(destinationTx, signer, fundedKey)
@@ -489,8 +487,6 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		log.Info("Sending transaction to destination chain")
 		err = chainBRPCClient.SendTransaction(context.Background(), signedTxB)
 		Expect(err).Should(BeNil())
-
-		// End awm-relayer mocking code (TODONOW: remove this comment)
 
 		// Get the latest block from Subnet B
 		log.Info("Waiting for new block confirmation")
@@ -541,13 +537,13 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		Expect(addressedPayload.Payload).Should(Equal(payload))
 
 		// Check that the teleporter message is correct
-		receivedTeleporterMessage, err := unpackTeleporterMessage(addressedPayload.Payload)
+		receivedTeleporterMessage, err := teleporter.UnpackTeleporterMessage(addressedPayload.Payload)
 		Expect(err).Should(BeNil())
 		Expect(*receivedTeleporterMessage).Should(Equal(teleporterMessage))
 	})
 
 	ginkgo.It("Check Teleporter Message Received", ginkgo.Label("Teleporter", "Message Received"), func() {
-		data, err := packMessageReceivedMessage(teleporter.MessageReceivedInput{
+		data, err := teleporter.PackMessageReceivedMessage(teleporter.MessageReceivedInput{
 			OriginChainID: blockchainIDA,
 			MessageID:     big.NewInt(1), // TODONOW: make this dynamic
 		})
@@ -560,7 +556,7 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		Expect(err).Should(BeNil())
 
 		// check the contract call result
-		delivered, err := unpackMessageReceivedResult(result)
+		delivered, err := teleporter.UnpackMessageReceivedResult(result)
 		Expect(err).Should(BeNil())
 		Expect(delivered).Should(BeTrue())
 	})

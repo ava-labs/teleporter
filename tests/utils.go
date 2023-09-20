@@ -12,9 +12,7 @@ import (
 	"strings"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/awm-relayer/utils"
-	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/params"
 	"github.com/ethereum/go-ethereum/common"
@@ -91,48 +89,8 @@ func newTestTeleporterMessage(chainIDInt *big.Int, teleporterAddress common.Addr
 func readHexTextFile(filename string) []byte {
 	fileData, err := os.ReadFile(filename)
 	gomega.Expect(err).Should(gomega.BeNil())
-	hexString := utils.SanitizeHashString(string(fileData))
+	hexString := utils.SanitizeHexString(string(fileData))
 	data, err := hex.DecodeString(hexString)
 	gomega.Expect(err).Should(gomega.BeNil())
 	return data
-}
-
-// TODONOW: remove these once awm-relayer e2e tests merged
-// unpack Teleporter message bytes according to EVM ABI encoding rules
-func unpackTeleporterMessage(messageBytes []byte) (*teleporter.TeleporterMessage, error) {
-	args := abi.Arguments{
-		{
-			Name: "teleporterMessage",
-			Type: teleporter.TeleporterMessageABI,
-		},
-	}
-	unpacked, err := args.Unpack(messageBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unpack to teleporter message with err: %v", err)
-	}
-	type teleporterMessageArg struct {
-		TeleporterMessage teleporter.TeleporterMessage `json:"teleporterMessage"`
-	}
-	var teleporterMessage teleporterMessageArg
-	err = args.Copy(&teleporterMessage, unpacked)
-	if err != nil {
-		return nil, err
-	}
-	return &teleporterMessage.TeleporterMessage, nil
-}
-
-// TODONOW: this should be named packSendCrossChainMessageEvent in awm-relayer
-func packTeleporterMessage(destinationChainID common.Hash, message teleporter.TeleporterMessage) ([]byte, error) {
-	_, hashes, err := teleporter.EVMTeleporterContractABI.PackEvent("SendCrossChainMessage", destinationChainID, message.MessageID, message)
-	return hashes, err
-}
-
-func packMessageReceivedMessage(inputStruct teleporter.MessageReceivedInput) ([]byte, error) {
-	return teleporter.EVMTeleporterContractABI.Pack("messageReceived", inputStruct.OriginChainID, inputStruct.MessageID)
-}
-
-func unpackMessageReceivedResult(result []byte) (bool, error) {
-	var success bool
-	err := teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&success, "messageReceived", result)
-	return success, err
 }
