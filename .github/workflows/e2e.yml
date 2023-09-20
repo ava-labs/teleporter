@@ -49,7 +49,7 @@ jobs:
           BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
           curl -L https://foundry.paradigm.xyz | bash
           source $HOME/.bashrc
-          $BASE_DIR/.foundry/bin/foundryup
+          foundryup
 
       - name: Run E2E Tests
         run: AVALANCHEGO_BUILD_PATH=/tmp/e2e-test/avalanchego DATA_DIR=/tmp/e2e-test/data ./scripts/local/e2e_test.sh
