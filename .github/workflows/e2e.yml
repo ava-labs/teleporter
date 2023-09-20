@@ -36,7 +36,9 @@ jobs:
           BASEDIR=/tmp/e2e-test AVALANCHEGO_BUILD_PATH=/tmp/e2e-test/avalanchego ./scripts/install_avalanchego_release.sh
 
       - name: Build Subnet-EVM Plugin Binary
-        run: ./scripts/build.sh /tmp/e2e-test/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
+        run: |
+          cd subnet-evm
+          ./scripts/build.sh /tmp/e2e-test/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
 
       - name: Checkout teleporter repository
         uses: actions/checkout@v4
