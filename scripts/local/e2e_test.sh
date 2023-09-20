@@ -21,6 +21,8 @@ if [[ ":$PATH:" == *".foundry/bin"* ]]; then
 else
   echo "Foundry not found in PATH, attempting to use from HOME"
   $HOME/.foundry/bin/forge build
+fi
+
 cd $cwd
 
 # Build ginkgo
