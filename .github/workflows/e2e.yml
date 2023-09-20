@@ -52,5 +52,4 @@ jobs:
           $BASE_DIR/.foundry/bin/foundryup
           export PATH="$PATH:$BASE_DIR/.foundry/bin"
           export PATH="$PATH:$GOPATH/bin"
-          echo $GOPATH
           AVALANCHEGO_BUILD_PATH=/tmp/e2e-test/avalanchego DATA_DIR=/tmp/e2e-test/data ./scripts/local/e2e_test.sh
