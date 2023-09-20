@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	genesisFundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
 )
 
 var (
@@ -56,6 +56,7 @@ var (
 	// Vars used in the tests. Any variables that are set in the process1 function of SynchronizedBeforeSuite should
 	// be set again in the allProcesses function of SynchronizedAfterSuite so that the tests can access them in their
 	// respective parallel process
+	// TODONOW: provide each suite with its own funded address
 	fundedAddress             = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
 	teleporterContractAddress common.Address
 	teleporterMessage         = teleporter.TeleporterMessage{
@@ -70,6 +71,7 @@ var (
 	blockchainIDA, blockchainIDB     ids.ID
 	chainANodeURIs, chainBNodeURIs   []string
 	fundedKey                        *ecdsa.PrivateKey
+	fundedKeyStr                     string
 	chainAWSClient, chainBWSClient   ethclient.Client
 	chainARPCClient, chainBRPCClient ethclient.Client
 	chainAIDInt, chainBIDInt         *big.Int
@@ -154,10 +156,10 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 	Expect(err).Should(BeNil())
 
 	// Issue transactions to activate the proposerVM fork on the receiving chain
-	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
+	genesisFundedKey, err := crypto.HexToECDSA(genesisFundedKeyStr)
 	Expect(err).Should(BeNil())
-	setUpProposerVm(ctx, fundedKey, manager, 0)
-	setUpProposerVm(ctx, fundedKey, manager, 1)
+	setUpProposerVm(ctx, genesisFundedKey, manager, 0)
+	setUpProposerVm(ctx, genesisFundedKey, manager, 1)
 
 	// Set up subnet URIs
 	subnetIDs = manager.GetSubnets()
@@ -256,7 +258,7 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 			Value:     value,
 		})
 		txSignerA := types.LatestSignerForChainID(chainAIDInt)
-		triggerTxA, err := types.SignTx(txA, txSignerA, fundedKey)
+		triggerTxA, err := types.SignTx(txA, txSignerA, genesisFundedKey)
 		Expect(err).Should(BeNil())
 		err = chainARPCClient.SendTransaction(ctx, triggerTxA)
 		Expect(err).Should(BeNil())
@@ -277,7 +279,7 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 			Value:     value,
 		})
 		txSignerB := types.LatestSignerForChainID(chainBIDInt)
-		triggerTxB, err := types.SignTx(txB, txSignerB, fundedKey)
+		triggerTxB, err := types.SignTx(txB, txSignerB, genesisFundedKey)
 		Expect(err).Should(BeNil())
 		err = chainBRPCClient.SendTransaction(ctx, triggerTxB)
 		Expect(err).Should(BeNil())
@@ -335,9 +337,6 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 		var setupStruct SetupStruct
 		err := json.Unmarshal(setupBytes, &setupStruct)
 
-		fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
-		Expect(err).Should(BeNil())
-
 		_, _, teleporterContractAddress, err = ConstructKeylessTransaction(teleporterByteCodeFile, false)
 		Expect(err).Should(BeNil())
 
@@ -376,6 +375,16 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 
 		newHeadsA = make(chan *types.Header, 10)
 		newHeadsB = make(chan *types.Header, 10)
+
+		// Create and fund the address to be used by the suite
+		// TODONOW:
+		// How do we do this? We cant generate the key on the fly, since we need to fund it using the genesis key,
+		// which we can't do without the nonce.
+		// Instead, we could cap the number of parallel runners (this is reasonable) and fund that number of addresses
+		// in the genesis. We just need a way to uniquely assign addresses to each test. We have to do that here, since
+		// the test suites don't necessarily map one-to-one with parallel runners. This is an issue if the number of tests
+		// exceeds the number of parallel runners
+
 	})
 
 var _ = ginkgo.SynchronizedAfterSuite(
@@ -646,6 +655,8 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 
 })
 
+// Replica test
+// TODONOW: remove this
 var _ = ginkgo.Describe("[Teleporter one way send replica]", ginkgo.Ordered, func() {
 	var (
 		receivedWarpMessage *avalancheWarp.Message
