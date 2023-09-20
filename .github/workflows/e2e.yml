@@ -50,4 +50,6 @@ jobs:
           curl -L https://foundry.paradigm.xyz | bash
           source $HOME/.bashrc
           $BASE_DIR/.foundry/bin/foundryup
-          HOME=$BASE_DIR AVALANCHEGO_BUILD_PATH=/tmp/e2e-test/avalanchego DATA_DIR=/tmp/e2e-test/data ./scripts/local/e2e_test.sh
+          export PATH="$PATH:$BASE_DIR/.foundry/bin"
+          export PATH="$PATH:$GOPATH/bin"
+          AVALANCHEGO_BUILD_PATH=/tmp/e2e-test/avalanchego DATA_DIR=/tmp/e2e-test/data ./scripts/local/e2e_test.sh
