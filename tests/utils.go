@@ -6,15 +6,12 @@ package tests
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/hex"
 	"fmt"
 	"math/big"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/ava-labs/avalanchego/ids"
-	relayerUtils "github.com/ava-labs/awm-relayer/utils"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/params"
@@ -89,15 +86,6 @@ func newTestTeleporterMessage(chainIDInt *big.Int, teleporterAddress common.Addr
 		Value:     defaultTeleporterMessageValue,
 		Data:      data,
 	})
-}
-
-func readHexTextFile(filename string) []byte {
-	fileData, err := os.ReadFile(filename)
-	Expect(err).Should(BeNil())
-	hexString := relayerUtils.SanitizeHexString(string(fileData))
-	data, err := hex.DecodeString(hexString)
-	Expect(err).Should(BeNil())
-	return data
 }
 
 func setUpProposerVm(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
