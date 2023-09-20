@@ -180,6 +180,7 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		chainAIDInt                      *big.Int
 		chainBIDInt                      *big.Int
 		payload                          []byte
+		teleporterMessageID              *big.Int
 	)
 
 	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
@@ -540,12 +541,14 @@ var _ = ginkgo.Describe("[Relayer E2E]", ginkgo.Ordered, func() {
 		receivedTeleporterMessage, err := teleporter.UnpackTeleporterMessage(addressedPayload.Payload)
 		Expect(err).Should(BeNil())
 		Expect(*receivedTeleporterMessage).Should(Equal(teleporterMessage))
+
+		teleporterMessageID = receivedTeleporterMessage.MessageID
 	})
 
 	ginkgo.It("Check Teleporter Message Received", ginkgo.Label("Teleporter", "Message Received"), func() {
 		data, err := teleporter.PackMessageReceivedMessage(teleporter.MessageReceivedInput{
 			OriginChainID: blockchainIDA,
-			MessageID:     big.NewInt(1), // TODONOW: make this dynamic
+			MessageID:     teleporterMessageID,
 		})
 		Expect(err).Should(BeNil())
 		callMessage := interfaces.CallMsg{
