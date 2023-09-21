@@ -10,6 +10,8 @@ else
     dir_prefix=/code
 fi
 
+source $dir_prefix/scripts/utils.sh
+
 # Signifies container is ready
 rm -f $dir_prefix/NETWORK_READY
 
@@ -88,7 +90,7 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
 
     user_private_key=0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027
     user_address_bytes=8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC
-    user_address=0x$user_address_bytes # Address corresponding to the private_key
+    user_address=0x$user_address_bytes # Address corresponding to the user_private_key
 
     export PATH="$PATH:$HOME/.foundry/bin"
 
