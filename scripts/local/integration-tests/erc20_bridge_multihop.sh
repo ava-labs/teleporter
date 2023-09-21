@@ -33,6 +33,51 @@ set -e # Stop on first error
 # - Bridging a wrapped token of one subnet to another subnet's bridged token of the same native token asset, through unwrapping then wrapping.
 # - Unwrap bridged token back to origin subnet with native token asset.
 
+#Catch errors for undefined environment variables necessary for this script
+# Define an array of variable names to check
+variables_to_check=(
+   "c_chain_url"
+   "user_private_key"
+   "user_address_bytes"
+   "user_address"
+   "relayer_address"
+   "subnet_a_chain_id"
+   "subnet_b_chain_id"
+   "subnet_c_chain_id"
+   "subnet_a_subnet_id"
+   "subnet_b_subnet_id"
+   "subnet_c_subnet_id"
+   "subnet_a_url"
+   "subnet_b_url"
+   "subnet_c_url"
+   "subnet_a_chain_id_hex"
+   "subnet_b_chain_id_hex"
+   "subnet_c_chain_id_hex"
+   "subnet_a_subnet_id_hex"
+   "subnet_b_subnet_id_hex"
+   "subnet_c_subnet_id_hex"
+   "teleporter_contract_address"
+)
+
+# Initialize an empty array to store missing variables
+missing_variables=()
+
+# Iterate through the array and check if each variable is defined
+for var_name in "${variables_to_check[@]}"; do
+    if [ -z "${!var_name}" ]; then
+        missing_variables+=("$var_name")
+    fi
+done
+
+# Check if there are missing variables and display an error message
+if [ ${#missing_variables[@]} -gt 0 ]; then
+    # Format the error message with ANSI escape codes
+    echo -e "\e[1;31mError:\e[0m The following variables are not defined: ${missing_variables[*]}"
+    echo
+    echo -e "Before running this script, please wait until the network setup finishes and run \e[1mset -a\e[0m and \e[1msource vars.sh\e[0m to ensure the necessary variables are set."
+    exit 1  # Exit with an error code
+fi
+
 # Deploy an ERC20 to subnet A.
 cd contracts
 native_erc20_deploy_result=$(forge create --private-key $user_private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_a_url)

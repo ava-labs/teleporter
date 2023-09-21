@@ -26,6 +26,44 @@ set -e # Stop on first error
 # - Deploying block hash publisher smart contract, which is built on top of teleporter.
 # - Publish block hash information cross chain through teleporter, and checking its delivery on destination chain.
 
+#Catch errors for undefined environment variables necessary for this script
+# Variable names to check
+variables_to_check=(
+   "c_chain_url"
+   "user_private_key"
+   "user_address_bytes"
+   "user_address"
+   "relayer_address"
+   "subnet_a_chain_id"
+   "subnet_b_chain_id"
+   "subnet_a_subnet_id"
+   "subnet_b_subnet_id"
+   "subnet_a_url"
+   "subnet_b_url"
+   "subnet_a_chain_id_hex"
+   "subnet_b_chain_id_hex"
+   "subnet_a_subnet_id_hex"
+   "subnet_b_subnet_id_hex"
+   "teleporter_contract_address"
+)
+
+missing_variables=()
+
+# Iterate through the array and check if each variable is defined
+for var_name in "${variables_to_check[@]}"; do
+    if [ -z "${!var_name}" ]; then
+        missing_variables+=("$var_name")
+    fi
+done
+
+# Check if there are missing variables and display an error message
+if [ ${#missing_variables[@]} -gt 0 ]; then
+    echo -e "\e[1;31mError:\e[0m The following variables are not defined: ${missing_variables[*]}"
+    echo
+    echo -e "Before running this script, please wait until the network setup finishes and run \e[1mset -a\e[0m and \e[1msource vars.sh\e[0m to ensure the necessary variables are set."
+    exit 1  # Exit with an error code
+fi
+
 # Deploy the block hash publisher to subnet A
 cd contracts
 block_hash_publisher_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address  \
