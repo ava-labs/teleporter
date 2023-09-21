@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
+# Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
+# See the file LICENSE for licensing terms.
 
 set -e # Stop on first error
 
 # Variables provided by run_setup.sh:
 #   c_chain_url
-#   private_key
-#   default_address_bytes
-#   default_address
+#   user_private_key
+#   user_address_bytes
+#   user_address
 #   relayer_address
 #   subnet_a_chain_id
 #   subnet_b_chain_id
@@ -28,12 +30,11 @@ set -e # Stop on first error
 
 # Deploy a test ERC20 to be used in the E2E test.
 cd contracts
-echo $subnet_a_url
-erc20_deploy_result=$(forge create --private-key $private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_a_url)
-erc20_contract_address_a=$(echo $erc20_deploy_result | grep -o -P 'Deployed to: .{42}' | sed 's/^.\{13\}//')
+erc20_deploy_result=$(forge create --private-key $user_private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_a_url)
+erc20_contract_address_a=$(parseContractAddress "$erc20_deploy_result")
 echo "Test ERC20 contract deployed to $erc20_contract_address_a on subnet A"
-erc20_deploy_result=$(forge create --private-key $private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_b_url)
-erc20_contract_address_b=$(echo $erc20_deploy_result | grep -o -P 'Deployed to: .{42}' | sed 's/^.\{13\}//')
+erc20_deploy_result=$(forge create --private-key $user_private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_b_url)
+erc20_contract_address_b=$(parseContractAddress "$erc20_deploy_result")
 echo "Test ERC20 contract deployed to $erc20_contract_address_b on subnet B"
 
 ###
@@ -55,23 +56,23 @@ send_cross_subnet_message_fee_amount=0000000000000000000000000000000000000000000
 send_cross_subnet_message_required_gas_limit=0000000000000000000000000000000000000000000000000000000000001000
 send_cross_subnet_message_message_data=cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafe
 
-# Approve the Teleporter contract to some ERC20 tokens from the default account we're using to send transactions
+# Approve the Teleporter contract to some ERC20 tokens from the user account we're using to send transactions
 cast send $erc20_contract_address_a "approve(address,uint256)(bool)" $teleporter_contract_address \
     000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF \
-    --private-key $private_key --rpc-url $subnet_a_url
-result=$(cast call $erc20_contract_address_a "allowance(address,address)(uint256)" $default_address $teleporter_contract_address --rpc-url $subnet_a_url)
+    --private-key $user_private_key --rpc-url $subnet_a_url
+result=$(cast call $erc20_contract_address_a "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_a_url)
 if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
     echo $result
-    echo "Error approving Teleporter contract to spend ERC20 from default account."
+    echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
 fi
 
-echo "Approved the Teleporter contract to spend the test ERC20 token from the default account."
+echo "Approved the Teleporter contract to spend the test ERC20 token from the user account."
 
-startID=$(cast call $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_a,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --from $default_address --rpc-url $subnet_a_url)
+startID=$(cast call $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_a,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --from $user_address --rpc-url $subnet_a_url)
 echo "Got starting ID $startID to teleport address $teleporter_contract_address"
 echo "Got Ids $subnet_a_chain_id_hex $subnet_b_chain_id_hex $subnet_a_subnet_id $subnet_b_subnet_id"
-cast send $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_a,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --private-key $private_key --rpc-url $subnet_a_url
+cast send $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_a,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --private-key $user_private_key --rpc-url $subnet_a_url
 
 retry_count=0
 received=$(cast call $teleporter_contract_address "messageReceived(bytes32,uint256)(bool)" $subnet_a_chain_id_hex $startID --rpc-url $subnet_b_url)
@@ -110,21 +111,21 @@ send_cross_subnet_message_fee_amount=0000000000000000000000000000000000000000000
 send_cross_subnet_message_required_gas_limit=0000000000000000000000000000000000000000000000000000000000001000
 send_cross_subnet_message_message_data=cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafe
 
-# Approve the teleporter contract to some ERC20 tokens from the default account we're using to send transactions
-cast send $erc20_contract_address_b "approve(address,uint256)(bool)" $teleporter_contract_address 000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF --private-key $private_key --rpc-url $subnet_b_url
-result=$(cast call $erc20_contract_address_b "allowance(address,address)(uint256)" $default_address $teleporter_contract_address --rpc-url $subnet_b_url)
+# Approve the teleporter contract to some ERC20 tokens from the user account we're using to send transactions
+cast send $erc20_contract_address_b "approve(address,uint256)(bool)" $teleporter_contract_address 000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF --private-key $user_private_key --rpc-url $subnet_b_url
+result=$(cast call $erc20_contract_address_b "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_b_url)
 if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
     echo $result
-    echo "Error approving Teleporter contract to spend ERC20 from default account."
+    echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
 fi
 
-echo "Approved the Teleporter contract to spend the test ERC20 token from the default account."
+echo "Approved the Teleporter contract to spend the test ERC20 token from the user account."
 
-startID=$(cast call $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_b,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --from $default_address --rpc-url $subnet_b_url)
+startID=$(cast call $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_b,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --from $user_address --rpc-url $subnet_b_url)
 echo "Got starting ID $startID to teleport address $teleporter_contract_address"
 echo "Got Ids $subnet_b_chain_id_hex $subnet_a_chain_id_hex $subnet_b_subnet_id $subnet_a_subnet_id"
-cast send $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_b,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --private-key $private_key --rpc-url $subnet_b_url
+cast send $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_b,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --private-key $user_private_key --rpc-url $subnet_b_url
 
 retry_count=0
 received=$(cast call $teleporter_contract_address "messageReceived(bytes32,uint256)(bool)" $subnet_b_chain_id_hex $startID --rpc-url $subnet_a_url)
