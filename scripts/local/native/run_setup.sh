@@ -41,24 +41,12 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     # Avoid using sed -i due to docker + macos m1 issues
     rm -f ./subnetGenesis_*.json
     sed "s/\"<EVM_CHAIN_ID>\"/68430/g" ./docker/genesisTemplate.json > subnetGenesis_A.json
-    sed "s/\"<EVM_CHAIN_ID>\"/68431/g" ./docker/genesisTemplate.json > subnetGenesis_B.json
-    sed "s/\"<EVM_CHAIN_ID>\"/68432/g" ./docker/genesisTemplate.json > subnetGenesis_C.json
 
-    # Deploy three test subnets to the local network.
+    # Deploy a test subnets to the local network.
     echo "Creating new subnet A..."
     avalanche subnet create subneta --force --custom --genesis ./subnetGenesis_A.json --config ./docker/defaultNodeConfig.json --vm $VM_BUILD_PATH/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy --log-level info --skip-update-check
     avalanche subnet configure subneta --config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
     avalanche subnet deploy subneta --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
-
-    echo "Creating new subnet B..."
-    avalanche subnet create subnetb --force --custom --genesis ./subnetGenesis_B.json --config ./docker/defaultNodeConfig.json --vm $VM_BUILD_PATH/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy --log-level info --skip-update-check
-    avalanche subnet configure subnetb --config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
-    avalanche subnet deploy subnetb --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
-
-    echo "Creating new subnet C..."
-    avalanche subnet create subnetc --force --custom --genesis ./subnetGenesis_C.json --config ./docker/defaultNodeConfig.json --vm $VM_BUILD_PATH/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy --log-level info --skip-update-check
-    avalanche subnet configure subnetc --config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
-    avalanche subnet deploy subnetc --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 
     # Find the proper Avalanche CLI log directory
     function getJsonVal () {
@@ -67,16 +55,10 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
 
     subnet_a_chain_id=$(cat $HOME/.avalanche-cli/subnets/subneta/sidecar.json |  getJsonVal "['Networks']['Local Network']['BlockchainID']")
     subnet_a_subnet_id=$(cat $HOME/.avalanche-cli/subnets/subneta/sidecar.json |  getJsonVal "['Networks']['Local Network']['SubnetID']")
-    subnet_b_chain_id=$(cat $HOME/.avalanche-cli/subnets/subnetb/sidecar.json |  getJsonVal "['Networks']['Local Network']['BlockchainID']")
-    subnet_b_subnet_id=$(cat $HOME/.avalanche-cli/subnets/subnetb/sidecar.json |  getJsonVal "['Networks']['Local Network']['SubnetID']")
-    subnet_c_chain_id=$(cat $HOME/.avalanche-cli/subnets/subnetc/sidecar.json |  getJsonVal "['Networks']['Local Network']['BlockchainID']")
-    subnet_c_subnet_id=$(cat $HOME/.avalanche-cli/subnets/subnetc/sidecar.json |  getJsonVal "['Networks']['Local Network']['SubnetID']")
     c_chain_subnet_id=11111111111111111111111111111111LpoYY # hardcoded primary subnet ID
     c_chain_chain_id=$(curl -X POST --data '{"jsonrpc": "2.0","method": "platform.getBlockchains","params": {},"id": 1}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/P | getJsonVal "['result']['blockchains']" | python3 docker/getBlockChainId.py C-Chain)
 
     echo "Subnet A chain ID: $subnet_a_chain_id"
-    echo "Subnet B chain ID: $subnet_b_chain_id"
-    echo "Subnet C chain ID: $subnet_c_chain_id"
     echo "C-Chain chain ID: $c_chain_chain_id"
 
     user_private_key=0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027
@@ -86,8 +68,6 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     export PATH="$PATH:$HOME/.foundry/bin"
 
     subnet_a_url="http://127.0.0.1:9650/ext/bc/$subnet_a_chain_id/rpc"
-    subnet_b_url="http://127.0.0.1:9650/ext/bc/$subnet_b_chain_id/rpc"
-    subnet_c_url="http://127.0.0.1:9650/ext/bc/$subnet_c_chain_id/rpc"
     c_chain_url="http://127.0.0.1:9650/ext/bc/C/rpc"
 
     # Deploy TeleporterMessenger contract to each chain.
@@ -102,8 +82,6 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     echo "Finished reading universal deploy address and transaction"
 
     cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_a_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_b_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_c_url
     cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $c_chain_url
     echo "Sent ether to teleporter deployer on each subnet."
 
@@ -114,35 +92,23 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
         exit 1
     fi
     echo "Deployed TeleporterMessenger to Subnet A"
-    status=$(cast publish --rpc-url $subnet_b_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    status=$(cast publish --rpc-url $c_chain_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
-        echo "Error deploying Teleporter Messenger transaction on subnet B."
+        echo "Error deploying Teleporter Messenger transaction on C Chain."
         exit 1
     fi
-    echo "Deployed TeleporterMessenger to Subnet B"
-    status=$(cast publish --rpc-url $subnet_c_url $teleporter_deploy_tx |  getJsonVal "['status']")
-    if [[ $status != "0x1" ]]; then
-        echo "Error deploying Teleporter Messenger transaction on subnet C."
-        exit 1
-    fi
-    echo "Deployed TeleporterMessenger to Subnet C"
+    echo "Deployed TeleporterMessenger to C Chain"
 
     # Send tokens to cover gas costs for the relayers.
     relayer_private_key=C2CE4E001B7585F543982A01FBC537CFF261A672FA8BD1FAFC08A207098FE2DE
     relayer_address=0xA100fF48a37cab9f87c8b5Da933DA46ea1a5fb80
 
     cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_a_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_b_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_c_url
     cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $c_chain_url
     echo "Sent ether to relayer account on each subnet."
 
     subnet_a_chain_id_hex=$(getBlockChainIDHex $subnet_a_chain_id)
-    subnet_b_chain_id_hex=$(getBlockChainIDHex $subnet_b_chain_id)
-    subnet_c_chain_id_hex=$(getBlockChainIDHex $subnet_c_chain_id)
     subnet_a_subnet_id_hex=$(getBlockChainIDHex $subnet_a_subnet_id)
-    subnet_b_subnet_id_hex=$(getBlockChainIDHex $subnet_b_subnet_id)
-    subnet_c_subnet_id_hex=$(getBlockChainIDHex $subnet_c_subnet_id)
     c_chain_chain_id_hex=$(getBlockChainIDHex $c_chain_chain_id)
     c_chain_subnet_id_hex=$(getBlockChainIDHex $c_chain_subnet_id)
     warp_messenger_precompile_addr=0x0200000000000000000000000000000000000005
@@ -174,15 +140,9 @@ trap cleanup EXIT
 # Stream the subnet logs
 network_runner_dir=$(python3 docker/findCliLogDirectory.py $restart)
 subnet_a_log_file=$HOME/.avalanche-cli/runs/$network_runner_dir/node1/logs/$subnet_a_chain_id.log
-subnet_b_log_file=$HOME/.avalanche-cli/runs/$network_runner_dir/node1/logs/$subnet_b_chain_id.log
-subnet_c_log_file=$HOME/.avalanche-cli/runs/$network_runner_dir/node1/logs/$subnet_c_chain_id.log
 
 echo "Streaming subnet A log file at $subnet_a_log_file"
-echo "Streaming subnet B log file at $subnet_b_log_file"
-echo "Streaming subnet C log file at $subnet_c_log_file"
 
 tail -f $subnet_a_log_file &
-tail -f $subnet_b_log_file &
-tail -f $subnet_c_log_file &
 
 wait $!

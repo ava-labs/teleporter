@@ -39,7 +39,7 @@ native_erc20_deploy_result=$(forge create --private-key $user_private_key src/Mo
 native_erc20_contract_address=$(parseContractAddress "$native_erc20_deploy_result")
 echo "Test ERC20 contract deployed to $native_erc20_contract_address on Subnet A"
 
-# Deploy the ERC20 bridge contract to both chains.
+# Deploy the ERC20 bridge contract to all chains.
 bridge_a_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
     --rpc-url $subnet_a_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge)
 bridge_a_address=$(parseContractAddress "$bridge_a_deploy_result")
@@ -79,7 +79,7 @@ cast send $bridge_a_address "submitCreateBridgeToken(bytes32,address,address,add
     $native_erc20_contract_address \
     $create_bridge_token_message_fee \
     --private-key $user_private_key --rpc-url $subnet_a_url
-echo "Sent a transaction on Subnet A to add support for the the ERC20 token to the bridge."
+echo "Sent a transaction on Subnet A to add support for the the ERC20 token to the bridge on Subnet B."
 cast send $bridge_a_address "submitCreateBridgeToken(bytes32,address,address,address,uint256)" \
     $subnet_c_chain_id_hex \
     $bridge_c_address \

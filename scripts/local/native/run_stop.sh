@@ -5,11 +5,6 @@
 set -e # Stop on first error
 source ./scripts/utils.sh
 
-# Set ARCH env so as a container executes without issues in a portable way
-# Should be amd64 for linux/macos x86 hosts, and arm64 for macos M1
-# It is referenced in the docker composer yaml, and then passed as a Dockerfile ARG
-setARCH
-
 if [[ $# -gt 1 ]]; then
     echo "Invalid number of arguments. Usage:"
     echo "   ./scripts/local/run_stop.sh             # stop the running containers and preserve the network for subsequent runs"

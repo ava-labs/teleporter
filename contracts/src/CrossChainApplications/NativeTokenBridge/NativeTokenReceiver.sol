@@ -5,8 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./IERC20Bridge.sol";
-import "./BridgeToken.sol";
+import "./INativeTokenReceiver.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
@@ -15,22 +14,14 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-struct TokenID {
-    bytes32 chainID;
-    address bridgeContract;
-    address asset;
-}
-
 /**
  * @dev Implementation of the {IERC20Bridge} interface.
  *
  * This implementation uses the {BridgeToken} contract to represent tokens on this chain, and uses
  * {ITeleporterMessenger} to send and receive messages to other chains.
  */
-contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
-    using SafeERC20 for IERC20;
-
-    struct WrappedTokenTransferInfo {
+contract NativeTokenReceiver is INativeTokenReceiver, ITeleporterReceiver, ReentrancyGuard {
+    struct NativeTokenTransferInfo {
         bytes32 destinationChainID;
         address destinationBridgeAddress;
         address wrappedContractAddress;
@@ -44,7 +35,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         0x0200000000000000000000000000000000000005;
     bytes32 public immutable currentChainID;
 
-    // Used for sending and receiving Teleporter messages.
+    // Used for sending an receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
 
     // Tracks which bridge tokens have been submitted to be created other bridge instances.
@@ -113,7 +104,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     function bridgeTokens(
         bytes32 destinationChainID,
         address destinationBridgeAddress,
-        address tokenContractAddress,
         address recipient,
         uint256 totalAmount,
         uint256 primaryFeeAmount,
@@ -149,7 +139,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
 
             return
                 _processWrappedTokenTransfer(
-                    WrappedTokenTransferInfo({
+                    NativeTokenTransferInfo({
                         destinationChainID: destinationChainID,
                         destinationBridgeAddress: destinationBridgeAddress,
                         wrappedContractAddress: tokenContractAddress,
@@ -192,76 +182,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
                 totalAmount: adjustedAmount,
                 feeAmount: primaryFeeAmount
             });
-    }
-
-    /**
-     * @dev See {IERC20Bridge-submitCreateBridgeToken}.
-     *
-     * We allow for `submitCreateBridgeToken` to be called multiple times with the same bridge and token
-     * information because a previous message may have been dropped or otherwise selectively not delivered.
-     * If the bridge token already exists on the destination, we are sending a message that will
-     * simply have no effect on the destination.
-     *
-     * Emits a {SubmitCreateBridgeToken} event.
-     */
-    function submitCreateBridgeToken(
-        bytes32 destinationChainID,
-        address destinationBridgeAddress,
-        ERC20 nativeToken,
-        address messageFeeAsset,
-        uint256 messageFeeAmount
-    ) external nonReentrant {
-        if (destinationBridgeAddress == address(0)) {
-            revert InvalidDestinationBridgeAddress();
-        }
-
-        // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
-        // allow the Teleporter contract to spend it.
-        uint256 adjustedFeeAmount = 0;
-        if (messageFeeAmount > 0) {
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(messageFeeAsset),
-                messageFeeAmount
-            );
-            IERC20(messageFeeAsset).safeIncreaseAllowance(
-                address(teleporterMessenger),
-                adjustedFeeAmount
-            );
-        }
-
-        // Create the calldata to create the bridge token on the destination chain.
-        bytes memory messageData = encodeCreateBridgeTokenData(
-            address(nativeToken),
-            nativeToken.name(),
-            nativeToken.symbol(),
-            nativeToken.decimals()
-        );
-
-        // Send Teleporter message.
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
-            TeleporterMessageInput({
-                destinationChainID: destinationChainID,
-                destinationAddress: destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({
-                    contractAddress: messageFeeAsset,
-                    amount: adjustedFeeAmount
-                }),
-                requiredGasLimit: CREATE_BRIDGE_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: new address[](0),
-                message: messageData
-            })
-        );
-
-        submittedBridgeTokenCreations[destinationChainID][
-            destinationBridgeAddress
-        ][address(nativeToken)] = true;
-
-        emit SubmitCreateBridgeToken(
-            destinationChainID,
-            destinationBridgeAddress,
-            address(nativeToken),
-            messageID
-        );
     }
 
     /**
@@ -342,26 +262,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     }
 
     /**
-     * @dev Encodes the parameters for the Create action to be decoded and executed on the destination.
-     */
-    function encodeCreateBridgeTokenData(
-        address nativeContractAddress,
-        string memory nativeName,
-        string memory nativeSymbol,
-        uint8 nativeDecimals
-    ) public pure returns (bytes memory) {
-        // ABI encode the Create action and corresponding parameters for the createBridgeToken
-        // call to to be decoded and executed on the destination.
-        bytes memory paramsData = abi.encode(
-            nativeContractAddress,
-            nativeName,
-            nativeSymbol,
-            nativeDecimals
-        );
-        return abi.encode(BridgeAction.Create, paramsData);
-    }
-
-    /**
      * @dev Encodes the parameters for the Mint action to be decoded and executed on the destination.
      */
     function encodeMintBridgeTokensData(
@@ -385,7 +285,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     function encodeTransferBridgeTokensData(
         bytes32 destinationChainID,
         address destinationBridgeAddress,
-        address nativeContractAddress,
         address recipient,
         uint256 amount,
         uint256 feeAmount
@@ -396,60 +295,11 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         bytes memory paramsData = abi.encode(
             destinationChainID,
             destinationBridgeAddress,
-            nativeContractAddress,
             recipient,
             amount,
             feeAmount
         );
         return abi.encode(BridgeAction.Transfer, paramsData);
-    }
-
-    /**
-     * @dev Teleporter message receiver for creating a new bridge token on this chain.
-     *
-     * Emits a {CreateBridgeToken} event.
-     */
-    function _createBridgeToken(
-        bytes32 nativeChainID,
-        address nativeBridgeAddress,
-        address nativeContractAddress,
-        string memory nativeName,
-        string memory nativeSymbol,
-        uint8 nativeDecimals
-    ) private {
-        // Check that the bridge token doesn't already exist.
-        if (nativeToWrappedTokens[nativeChainID][nativeBridgeAddress][
-            nativeContractAddress
-        ] != address(0)) {
-            revert BridgeTokenAlreadyExists(
-                nativeToWrappedTokens[nativeChainID][nativeBridgeAddress][
-                    nativeContractAddress
-                ]
-            );
-        }
-
-        address bridgeTokenAddress = address(
-            new BridgeToken({
-                sourceChainID: nativeChainID,
-                sourceBridge: nativeBridgeAddress,
-                sourceAsset: nativeContractAddress,
-                tokenName: nativeName,
-                tokenSymbol: nativeSymbol,
-                tokenDecimals: nativeDecimals
-            })
-        );
-
-        wrappedTokenContracts[bridgeTokenAddress] = true;
-        nativeToWrappedTokens[nativeChainID][nativeBridgeAddress][
-            nativeContractAddress
-        ] = bridgeTokenAddress;
-
-        emit CreateBridgeToken(
-            nativeChainID,
-            nativeBridgeAddress,
-            nativeContractAddress,
-            bridgeTokenAddress
-        );
     }
 
     /**
@@ -645,7 +495,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
      * Emits a {BridgeTokens} event.
      */
     function _processWrappedTokenTransfer(
-        WrappedTokenTransferInfo memory wrappedTransferInfo
+        NativeTokenTransferInfo memory wrappedTransferInfo
     ) private {
         // If necessary, transfer the primary fee amount to this contract and approve the
         // Teleporter messenger to spend it when the first message back to the native subnet

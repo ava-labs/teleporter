@@ -49,7 +49,7 @@ setARCH
 
 if [ -z "$LOCAL_RELAYER_IMAGE" ]; then
     echo "Using published awm-relayer image"
-    docker compose -f scripts/local/native/docker-compose-test.yml --project-directory ./ up --build &
+    docker compose -f scripts/local/native/docker-compose-test.yml --project-directory ./ up --exit-code-from test_runner --build &
 else
     echo "Using local awm-relayer image: $LOCAL_RELAYER_IMAGE"
     if [[ "$(docker images -q awm-relayer:$LOCAL_RELAYER_IMAGE 2> /dev/null)" == "" ]]; then

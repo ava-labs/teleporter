@@ -23,7 +23,7 @@ services:
     image: avaplatform/awm-relayer:v0.2.0
     init: true
     working_dir: /code
-    entrypoint: /code/docker/run_relayer.sh
+    entrypoint: /code/scripts/local/native/run_relayer.sh
     network_mode: "host"
     user: "root"
     volumes:
