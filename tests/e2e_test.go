@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	genesisFundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
 )
 
 var (
@@ -71,7 +71,6 @@ var (
 	blockchainIDA, blockchainIDB     ids.ID
 	chainANodeURIs, chainBNodeURIs   []string
 	fundedKey                        *ecdsa.PrivateKey
-	fundedKeyStr                     string
 	chainAWSClient, chainBWSClient   ethclient.Client
 	chainARPCClient, chainBRPCClient ethclient.Client
 	chainAIDInt, chainBIDInt         *big.Int
@@ -102,6 +101,7 @@ func TestE2E(t *testing.T) {
 // Adds two disjoint sets of 5 of the new validator nodes to validate two new subnets with a
 // a single Subnet-EVM blockchain.
 var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
+	log.Info("Running ginkgo before suite")
 	ctx := context.Background()
 	var err error
 
@@ -156,10 +156,10 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 	Expect(err).Should(BeNil())
 
 	// Issue transactions to activate the proposerVM fork on the receiving chain
-	genesisFundedKey, err := crypto.HexToECDSA(genesisFundedKeyStr)
+	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
-	setUpProposerVm(ctx, genesisFundedKey, manager, 0)
-	setUpProposerVm(ctx, genesisFundedKey, manager, 1)
+	setUpProposerVm(ctx, fundedKey, manager, 0)
+	setUpProposerVm(ctx, fundedKey, manager, 1)
 
 	// Set up subnet URIs
 	subnetIDs = manager.GetSubnets()
@@ -258,7 +258,7 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 			Value:     value,
 		})
 		txSignerA := types.LatestSignerForChainID(chainAIDInt)
-		triggerTxA, err := types.SignTx(txA, txSignerA, genesisFundedKey)
+		triggerTxA, err := types.SignTx(txA, txSignerA, fundedKey)
 		Expect(err).Should(BeNil())
 		err = chainARPCClient.SendTransaction(ctx, triggerTxA)
 		Expect(err).Should(BeNil())
@@ -279,7 +279,7 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 			Value:     value,
 		})
 		txSignerB := types.LatestSignerForChainID(chainBIDInt)
-		triggerTxB, err := types.SignTx(txB, txSignerB, genesisFundedKey)
+		triggerTxB, err := types.SignTx(txB, txSignerB, fundedKey)
 		Expect(err).Should(BeNil())
 		err = chainBRPCClient.SendTransaction(ctx, triggerTxB)
 		Expect(err).Should(BeNil())
@@ -381,9 +381,11 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 		// How do we do this? We cant generate the key on the fly, since we need to fund it using the genesis key,
 		// which we can't do without the nonce.
 		// Instead, we could cap the number of parallel runners (this is reasonable) and fund that number of addresses
-		// in the genesis. We just need a way to uniquely assign addresses to each test. We have to do that here, since
+		// in the genesis. We just need a way to uniquely assign addresses to each runner. We have to do that here, since
 		// the test suites don't necessarily map one-to-one with parallel runners. This is an issue if the number of tests
 		// exceeds the number of parallel runners
+		fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
+		Expect(err).Should(BeNil())
 
 	})
 
