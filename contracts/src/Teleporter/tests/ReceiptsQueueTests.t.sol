@@ -9,13 +9,14 @@ import "forge-std/Test.sol";
 import "../ReceiptQueue.sol";
 
 contract ReceiptQueueTest is Test {
+    using ReceiptQueue for ReceiptQueue.TeleporterMessageReceiptQueue;
     // The state of the contract gets reset before each
     // test is run, with the `setUp()` function being called
     // each time after deployment.
-    ReceiptQueue public queue;
+    ReceiptQueue.TeleporterMessageReceiptQueue public queue;
 
     function setUp() public virtual {
-        queue = new ReceiptQueue();
+        queue.owner = msg.sender;
     }
 
     function testReceiptQueue() public {

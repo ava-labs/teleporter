@@ -11,11 +11,13 @@ import "./ITeleporterMessenger.sol";
  * @dev ReceiptQueue is a convenience contract that creates a queue-like interface of
  * TeleporterMessageReceipt structs. It provides FIFO properties.
  */
-contract ReceiptQueue {
-    address public immutable owner;
-    mapping(uint256 => TeleporterMessageReceipt) public queue;
-    uint256 public first = 0;
-    uint256 public last = 0;
+library ReceiptQueue {
+    struct TeleporterMessageReceiptQueue {
+        address owner;
+        uint256 begin;
+        uint256 end;
+        mapping(uint256 index => TeleporterMessageReceipt) data;
+    }
 
     /**
      * @dev Emitted when a new receipt is added to the queue.
@@ -37,10 +39,6 @@ contract ReceiptQueue {
     error Unauthorized();
     error EmptyQueue();
 
-    constructor() {
-        owner = msg.sender;
-    }
-
     /**
      * @dev Adds a receipt to the queue.
      *
@@ -48,14 +46,18 @@ contract ReceiptQueue {
      *
      * - `msg.sender` must be the owner.
      */
-    function enqueue(TeleporterMessageReceipt calldata receipt) external {
-        if (msg.sender != owner) {
-            revert Unauthorized();
+    function enqueue(TeleporterMessageReceiptQueue storage queue, TeleporterMessageReceipt memory receipt) internal {
+        unchecked {
+            if (queue.owner != msg.sender) {
+                revert Unauthorized();
+            }
+
+            uint256 backIndex = queue.end;
+            queue.data[backIndex] = receipt;
+            queue.end = backIndex + 1;
+
+            emit Enqueue(receipt.receivedMessageID, receipt.relayerRewardAddress);
         }
-
-        queue[last++] = receipt;
-
-        emit Enqueue(receipt.receivedMessageID, receipt.relayerRewardAddress);
     }
 
     /**
@@ -66,32 +68,26 @@ contract ReceiptQueue {
      * - `msg.sender` must be the owner.
      * - The queue must be non-empty.
      */
-    function dequeue()
-        external
-        returns (TeleporterMessageReceipt memory result)
-    {
-        if (msg.sender != owner) {
-            revert Unauthorized();
+    function dequeue(TeleporterMessageReceiptQueue storage queue) internal returns (TeleporterMessageReceipt memory result) {
+        unchecked {
+            if (queue.owner != msg.sender) {
+                revert Unauthorized();
+            }
+
+            uint256 frontIndex = queue.begin;
+            if (frontIndex == queue.end) revert EmptyQueue();
+            result = queue.data[frontIndex];
+            delete queue.data[frontIndex];
+            queue.begin = frontIndex + 1;
+
+            emit Dequeue(result.receivedMessageID, result.relayerRewardAddress);
         }
-
-        uint256 first_ = first;
-
-        if (last == first_) {
-            revert EmptyQueue(); // empty queue
-        }
-
-        result = queue[first_];
-
-        delete queue[first_];
-        first = first_ + 1;
-
-        emit Dequeue(result.receivedMessageID, result.relayerRewardAddress);
     }
 
     /**
      * @dev Returns the number of open receipts in the queue.
      */
-    function size() external view returns (uint256) {
-        return last - first;
+    function size(TeleporterMessageReceiptQueue storage queue) internal view returns (uint256) {
+        return queue.end - queue.begin;
     }
 }

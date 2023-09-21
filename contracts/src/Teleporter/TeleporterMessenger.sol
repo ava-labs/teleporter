@@ -23,6 +23,7 @@ import "./ReentrancyGuards.sol";
  */
 contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     using SafeERC20 for IERC20;
+    using ReceiptQueue for ReceiptQueue.TeleporterMessageReceiptQueue;
 
     struct SentMessageInfo {
         bytes32 messageHash;
@@ -40,7 +41,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // Tracks the outstanding receipts to send back to a given subnet in subsequent messages sent to it.
     // Key is the subnet ID of the other subnet, and the value is a queue of pending receipts for messages
     // we have received from that subnet.
-    mapping(bytes32 => ReceiptQueue) public outstandingReceipts;
+    mapping(bytes32 => ReceiptQueue.TeleporterMessageReceiptQueue) public outstandingReceipts;
 
     // Tracks the message hash and fee information for each message sent that we have not yet received
     // a receipt for. The messages are tracked per subnet and keyed by message ID.
@@ -350,12 +351,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Store the receipt of this message delivery. When a subsquent message is sent back
         // to the origin of this message, we will clean up the receipt state.
         // If the receipts queue contract for this chain doesn't exist yet, create it now.
-        ReceiptQueue receiptsQueue = outstandingReceipts[
+        ReceiptQueue.TeleporterMessageReceiptQueue storage receiptsQueue = outstandingReceipts[
             warpMessage.originChainID
         ];
-        if (address(receiptsQueue) == address(0)) {
-            receiptsQueue = new ReceiptQueue();
-            outstandingReceipts[warpMessage.originChainID] = receiptsQueue;
+        if (receiptsQueue.owner == address(0)) {
+            receiptsQueue.owner = msg.sender;
         }
         receiptsQueue.enqueue(
             TeleporterMessageReceipt({
@@ -771,10 +771,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     ) private returns (TeleporterMessageReceipt[] memory result) {
         // Get the current outstanding receipts for the given chain ID.
         // If the queue contract doesn't exist, there are not outstanding receipts to send.
-        ReceiptQueue outstandingReceiptForDestination = outstandingReceipts[
+        ReceiptQueue.TeleporterMessageReceiptQueue storage outstandingReceiptForDestination = outstandingReceipts[
             chainID
         ];
-        if (address(outstandingReceiptForDestination) == address(0)) {
+        if (outstandingReceiptForDestination.owner == address(0)) {
             return new TeleporterMessageReceipt[](0);
         }
 
