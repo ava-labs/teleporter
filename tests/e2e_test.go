@@ -27,7 +27,6 @@ import (
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	predicateutils "github.com/ava-labs/subnet-evm/utils/predicate"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	warpPayload "github.com/ava-labs/subnet-evm/warp/payload"
 
 	"github.com/ava-labs/subnet-evm/x/warp"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,10 +35,6 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-)
-
-const (
-	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
 )
 
 var (
@@ -53,16 +48,26 @@ var (
 	subnetA, subnetB           ids.ID
 	chainARPCURI, chainBRPCURI string
 
+	// Pre-funded key-address pairs. Each parallel process needs to use a unique key, so we can have no more than 8 parallel processes
+	fundedKeyStrs = map[int][]string{
+		1: {"56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027", "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"},
+		2: {"7b4198529994b0dc604278c99d153cfd069d594753d471171a1d102a10438e07", "0x9632a79656af553F58738B0FB750320158495942"},
+		3: {"15614556be13730e9e8d6eacc1603143e7b96987429df8726384c2ec4502ef6e", "0x55ee05dF718f1a5C1441e76190EB1a19eE2C9430"},
+		4: {"31b571bf6894a248831ff937bb49f7754509fe93bbd2517c9c73c4144c0e97dc", "0x4Cf2eD3665F6bFA95cE6A11CFDb7A2EF5FC1C7E4"},
+		5: {"6934bef917e01692b789da754a0eae31a8536eb465e7bff752ea291dad88c675", "0x0B891dB1901D4875056896f28B6665083935C7A8"},
+		6: {"e700bdbdbc279b808b1ec45f8c2370e4616d3a02c336e68d85d4668e08f53cff", "0x01F253bE2EBF0bd64649FA468bF7b95ca933BDe2"},
+		7: {"bbc2865b76ba28016bc2255c7504d000e046ae01934b04c694592a6276988630", "0x78A23300E04FB5d5D2820E23cc679738982e1fd5"},
+		8: {"cdbfd34f687ced8c6968854f8a99ae47712c4f4183b78dcc4a903d1bfe8cbf60", "0x3C7daE394BBf8e9EE1359ad14C1C47003bD06293"},
+	}
+
 	// Vars used in the tests. Any variables that are set in the process1 function of SynchronizedBeforeSuite should
 	// be set again in the allProcesses function of SynchronizedAfterSuite so that the tests can access them in their
 	// respective parallel process
-	// TODONOW: provide each suite with its own funded address
-	fundedAddress             = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
 	teleporterContractAddress common.Address
-	teleporterMessage         = teleporter.TeleporterMessage{
+	defaultTeleporterMessage  = teleporter.TeleporterMessage{
 		MessageID:               big.NewInt(1),
-		SenderAddress:           fundedAddress,
-		DestinationAddress:      fundedAddress,
+		SenderAddress:           common.HexToAddress(fundedKeyStrs[1][1]),
+		DestinationAddress:      common.HexToAddress(fundedKeyStrs[1][1]),
 		RequiredGasLimit:        big.NewInt(1),
 		AllowedRelayerAddresses: []common.Address{},
 		Receipts:                []teleporter.TeleporterMessageReceipt{},
@@ -74,7 +79,7 @@ var (
 	chainAWSClient, chainBWSClient   ethclient.Client
 	chainARPCClient, chainBRPCClient ethclient.Client
 	chainAIDInt, chainBIDInt         *big.Int
-	newHeadsA, newHeadsB             chan *types.Header
+	newHeadsA                        = make(chan *types.Header, 10)
 )
 
 type SubnetStruct struct {
@@ -156,8 +161,10 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 	Expect(err).Should(BeNil())
 
 	// Issue transactions to activate the proposerVM fork on the receiving chain
-	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
+	fundedKey, err = crypto.HexToECDSA(fundedKeyStrs[1][0])
 	Expect(err).Should(BeNil())
+	fundedAddress := common.HexToAddress(fundedKeyStrs[1][1])
+
 	setUpProposerVm(ctx, fundedKey, manager, 0)
 	setUpProposerVm(ctx, fundedKey, manager, 1)
 
@@ -208,9 +215,6 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 
 	chainBIDInt, err = chainBRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
-
-	newHeadsA = make(chan *types.Header, 10)
-	newHeadsB = make(chan *types.Header, 10)
 
 	log.Info("Finished setting up e2e test subnet variables")
 
@@ -311,6 +315,121 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 	}
 	log.Info("Finished deploying Teleporter contracts")
 
+	log.Info("Starting relayer goroutine A->B")
+	go func() {
+		ctx := context.Background()
+		subA, err := chainAWSClient.SubscribeNewHead(ctx, newHeadsA)
+		Expect(err).Should(BeNil())
+		defer subA.Unsubscribe()
+
+		// Get the latest block from Subnet A, and retrieve the warp message from the logs
+		log.Info("Waiting for new block confirmation")
+		for newHeadA := range newHeadsA {
+			blockHashA := newHeadA.Hash()
+
+			log.Info("Fetching relevant warp logs from the newly produced block")
+			logs, err := chainARPCClient.FilterLogs(ctx, interfaces.FilterQuery{
+				BlockHash: &blockHashA,
+				Addresses: []common.Address{warp.Module.Address},
+			})
+			Expect(err).Should(BeNil())
+			Expect(len(logs)).Should(Equal(1))
+
+			// Check for relevant warp log from subscription and ensure that it matches
+			// the log extracted from the last block.
+			txLog := logs[0]
+			log.Info("Parsing logData as unsigned warp message")
+			unsignedMsg, err := avalancheWarp.ParseUnsignedMessage(txLog.Data)
+			Expect(err).Should(BeNil())
+
+			// Set local variables for the duration of the test
+			unsignedWarpMessageID := unsignedMsg.ID()
+			unsignedWarpMsg := unsignedMsg
+			log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
+
+			// Loop over each client on chain A to ensure they all have time to accept the block.
+			// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
+			// has accepted the block.
+			for i, uri := range chainANodeURIs {
+				chainAWSURI := httpToWebsocketURI(uri, blockchainIDA.String())
+				log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI)
+				client, err := ethclient.Dial(chainAWSURI)
+				Expect(err).Should(BeNil())
+
+				// Loop until each node has advanced to >= the height of the block that emitted the warp log
+				for {
+					block, err := client.BlockByNumber(ctx, nil)
+					Expect(err).Should(BeNil())
+					if block.NumberU64() >= newHeadA.Number.Uint64() {
+						log.Info("client accepted the block containing SendWarpMessage", "client", i, "height", block.NumberU64())
+						break
+					}
+				}
+			}
+
+			// Get the aggregate signature for the Warp message
+			log.Info("Fetching aggregate signature from the source chain validators")
+			warpClient, err := warpBackend.NewWarpClient(chainANodeURIs[0], blockchainIDA.String())
+			Expect(err).Should(BeNil())
+			signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
+			Expect(err).Should(BeNil())
+
+			// Construct the transaction to send the Warp message to the destination chain
+			log.Info("Constructing transaction for the destination chain")
+			signedMessage, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
+			Expect(err).Should(BeNil())
+
+			numSigners, err := signedMessage.Signature.NumSigners()
+			Expect(err).Should(BeNil())
+
+			gasLimit, err := teleporter.CalculateReceiveMessageGasLimit(numSigners, defaultTeleporterMessage.RequiredGasLimit)
+			Expect(err).Should(BeNil())
+
+			callData, err := teleporter.EVMTeleporterContractABI.Pack("receiveCrossChainMessage", fundedAddress)
+			Expect(err).Should(BeNil())
+
+			baseFee, err := chainBRPCClient.EstimateBaseFee(ctx)
+			Expect(err).Should(BeNil())
+
+			gasTipCap, err := chainBRPCClient.SuggestGasTipCap(ctx)
+			Expect(err).Should(BeNil())
+
+			nonce, err := chainBRPCClient.NonceAt(ctx, fundedAddress, nil)
+			Expect(err).Should(BeNil())
+
+			gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))
+			gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
+			destinationTx := predicateutils.NewPredicateTx(
+				chainBIDInt,
+				nonce,
+				&teleporterContractAddress,
+				gasLimit,
+				gasFeeCap,
+				gasTipCap,
+				big.NewInt(0),
+				callData,
+				types.AccessList{},
+				warp.ContractAddress,
+				signedMessage.Bytes(),
+			)
+
+			// Sign and send the transaction on the destination chain
+			signer := types.LatestSignerForChainID(chainBIDInt)
+			signedTxB, err := types.SignTx(destinationTx, signer, fundedKey)
+			Expect(err).Should(BeNil())
+
+			log.Info("Sending transaction to destination chain")
+			err = chainBRPCClient.SendTransaction(context.Background(), signedTxB)
+			Expect(err).Should(BeNil())
+
+			// Sleep to ensure the new block is published to the subscriber
+			time.Sleep(5 * time.Second)
+			receipt, err := chainBRPCClient.TransactionReceipt(ctx, signedTxB.Hash())
+			Expect(err).Should(BeNil())
+			Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		}
+	}()
+
 	log.Info("Set up ginkgo before suite")
 
 	setupStruct := SetupStruct{
@@ -373,9 +492,6 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 		chainBIDInt, err = chainBRPCClient.ChainID(context.Background())
 		Expect(err).Should(BeNil())
 
-		newHeadsA = make(chan *types.Header, 10)
-		newHeadsB = make(chan *types.Header, 10)
-
 		// Create and fund the address to be used by the suite
 		// TODONOW:
 		// How do we do this? We cant generate the key on the fly, since we need to fund it using the genesis key,
@@ -384,7 +500,7 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 		// in the genesis. We just need a way to uniquely assign addresses to each runner. We have to do that here, since
 		// the test suites don't necessarily map one-to-one with parallel runners. This is an issue if the number of tests
 		// exceeds the number of parallel runners
-		fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
+		fundedKey, err = crypto.HexToECDSA(fundedKeyStrs[ginkgo.GinkgoParallelProcess()][0])
 		Expect(err).Should(BeNil())
 
 	})
@@ -405,9 +521,8 @@ var _ = ginkgo.SynchronizedAfterSuite(
 // 3. Verify receipt of the message on Subnet B
 var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 	var (
-		receivedWarpMessage *avalancheWarp.Message
-		payload             []byte
 		teleporterMessageID *big.Int
+		fundedAddress       = common.HexToAddress(fundedKeyStrs[ginkgo.GinkgoParallelProcess()][1])
 	)
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -415,13 +530,6 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		ctx := context.Background()
 
 		nonceA, err := chainARPCClient.NonceAt(ctx, fundedAddress, nil)
-		Expect(err).Should(BeNil())
-
-		nonceB, err := chainBRPCClient.NonceAt(ctx, fundedAddress, nil)
-		Expect(err).Should(BeNil())
-
-		log.Info("Packing teleporter message", "nonceA", nonceA, "nonceB", nonceB)
-		payload, err = teleporter.PackSendCrossChainMessageEvent(common.Hash(blockchainIDB), teleporterMessage)
 		Expect(err).Should(BeNil())
 
 		data, err := teleporter.EVMTeleporterContractABI.Pack(
@@ -447,10 +555,6 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		signedTx, err := types.SignTx(tx, txSigner, fundedKey)
 		Expect(err).Should(BeNil())
 
-		subA, err := chainAWSClient.SubscribeNewHead(ctx, newHeadsA)
-		Expect(err).Should(BeNil())
-		defer subA.Unsubscribe()
-
 		log.Info("Sending Teleporter transaction on source chain", "destinationChainID", blockchainIDB, "txHash", signedTx.Hash())
 		err = chainARPCClient.SendTransaction(ctx, signedTx)
 		Expect(err).Should(BeNil())
@@ -460,183 +564,14 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		receipt, err := chainARPCClient.TransactionReceipt(ctx, signedTx.Hash())
 		Expect(err).Should(BeNil())
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	})
 
-	ginkgo.It("Relay message to destination", ginkgo.Label("Teleporter", "RelayMessage"), func() {
-		ctx := context.Background()
-
-		// Get the latest block from Subnet A, and retrieve the warp message from the logs
-		log.Info("Waiting for new block confirmation")
-		newHeadA := <-newHeadsA
-		blockHashA := newHeadA.Hash()
-
-		log.Info("Fetching relevant warp logs from the newly produced block")
-		logs, err := chainARPCClient.FilterLogs(ctx, interfaces.FilterQuery{
-			BlockHash: &blockHashA,
-			Addresses: []common.Address{warp.Module.Address},
-		})
+		sendCrossChainMessageLog := receipt.Logs[0]
+		err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&teleporterMessageID, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
 		Expect(err).Should(BeNil())
-		Expect(len(logs)).Should(Equal(1))
-
-		// Check for relevant warp log from subscription and ensure that it matches
-		// the log extracted from the last block.
-		txLog := logs[0]
-		log.Info("Parsing logData as unsigned warp message")
-		unsignedMsg, err := avalancheWarp.ParseUnsignedMessage(txLog.Data)
-		Expect(err).Should(BeNil())
-
-		// Set local variables for the duration of the test
-		unsignedWarpMessageID := unsignedMsg.ID()
-		unsignedWarpMsg := unsignedMsg
-		log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
-
-		// Loop over each client on chain A to ensure they all have time to accept the block.
-		// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
-		// has accepted the block.
-		for i, uri := range chainANodeURIs {
-			chainAWSURI := httpToWebsocketURI(uri, blockchainIDA.String())
-			log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI)
-			client, err := ethclient.Dial(chainAWSURI)
-			Expect(err).Should(BeNil())
-
-			// Loop until each node has advanced to >= the height of the block that emitted the warp log
-			for {
-				block, err := client.BlockByNumber(ctx, nil)
-				Expect(err).Should(BeNil())
-				if block.NumberU64() >= newHeadA.Number.Uint64() {
-					log.Info("client accepted the block containing SendWarpMessage", "client", i, "height", block.NumberU64())
-					break
-				}
-			}
-		}
-
-		// Get the aggregate signature for the Warp message
-		log.Info("Fetching aggregate signature from the source chain validators")
-		warpClient, err := warpBackend.NewWarpClient(chainANodeURIs[0], blockchainIDA.String())
-		Expect(err).Should(BeNil())
-		signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
-		Expect(err).Should(BeNil())
-
-		// Construct the transaction to send the Warp message to the destination chain
-		log.Info("Constructing transaction for the destination chain")
-		signedMessage, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
-		Expect(err).Should(BeNil())
-
-		numSigners, err := signedMessage.Signature.NumSigners()
-		Expect(err).Should(BeNil())
-
-		gasLimit, err := teleporter.CalculateReceiveMessageGasLimit(numSigners, teleporterMessage.RequiredGasLimit)
-		Expect(err).Should(BeNil())
-
-		callData, err := teleporter.EVMTeleporterContractABI.Pack("receiveCrossChainMessage", fundedAddress)
-		Expect(err).Should(BeNil())
-
-		baseFee, err := chainBRPCClient.EstimateBaseFee(ctx)
-		Expect(err).Should(BeNil())
-
-		gasTipCap, err := chainBRPCClient.SuggestGasTipCap(ctx)
-		Expect(err).Should(BeNil())
-
-		nonce, err := chainBRPCClient.NonceAt(ctx, fundedAddress, nil)
-		Expect(err).Should(BeNil())
-
-		gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))
-		gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
-		destinationTx := predicateutils.NewPredicateTx(
-			chainBIDInt,
-			nonce,
-			&teleporterContractAddress,
-			gasLimit,
-			gasFeeCap,
-			gasTipCap,
-			big.NewInt(0),
-			callData,
-			types.AccessList{},
-			warp.ContractAddress,
-			signedMessage.Bytes(),
-		)
-
-		// Sign and send the transaction on the destination chain
-		signer := types.LatestSignerForChainID(chainBIDInt)
-		signedTxB, err := types.SignTx(destinationTx, signer, fundedKey)
-		Expect(err).Should(BeNil())
-
-		log.Info("Subscribing to new heads on destination chain")
-		subB, err := chainBWSClient.SubscribeNewHead(ctx, newHeadsB)
-		Expect(err).Should(BeNil())
-		defer subB.Unsubscribe()
-
-		log.Info("Sending transaction to destination chain")
-		err = chainBRPCClient.SendTransaction(context.Background(), signedTxB)
-		Expect(err).Should(BeNil())
-
-		// Sleep to ensure the new block is published to the subscriber
-		time.Sleep(5 * time.Second)
-		receipt, err := chainBRPCClient.TransactionReceipt(ctx, signedTxB.Hash())
-		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	})
-
-	ginkgo.It("Receive message on Subnet B", ginkgo.Label("Teleporter", "ReceiveTeleporter"), func() {
-		ctx := context.Background()
-
-		// Get the latest block from Subnet B
-		log.Info("Waiting for new block confirmation")
-		newHeadB := <-newHeadsB
-		log.Info("Received new head", "height", newHeadB.Number.Uint64())
-		blockHashB := newHeadB.Hash()
-		block, err := chainBRPCClient.BlockByHash(ctx, blockHashB)
-		Expect(err).Should(BeNil())
-		log.Info(
-			"Got block",
-			"blockHash", blockHashB,
-			"blockNumber", block.NumberU64(),
-			"transactions", block.Transactions(),
-			"numTransactions", len(block.Transactions()),
-			"block", block,
-		)
-		accessLists := block.Transactions()[0].AccessList()
-		Expect(len(accessLists)).Should(Equal(1))
-		Expect(accessLists[0].Address).Should(Equal(warp.Module.Address))
-
-		// Check the transaction storage key has warp message we're expecting
-		storageKeyHashes := accessLists[0].StorageKeys
-		packedPredicate := predicateutils.HashSliceToBytes(storageKeyHashes)
-		predicateBytes, err := predicateutils.UnpackPredicate(packedPredicate)
-		Expect(err).Should(BeNil())
-		receivedWarpMessage, err = avalancheWarp.ParseMessage(predicateBytes)
-		Expect(err).Should(BeNil())
-
-		// Check that the transaction has successful receipt status
-		txHash := block.Transactions()[0].Hash()
-		receipt, err := chainBRPCClient.TransactionReceipt(ctx, txHash)
-		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-
-		log.Info("Finished sending warp message, closing down output channel")
-
-	})
-
-	ginkgo.It("Validate Received Warp Message Values", ginkgo.Label("Teleporter", "VerifyWarp"), func() {
-		Expect(receivedWarpMessage.SourceChainID).Should(Equal(blockchainIDA))
-		addressedPayload, err := warpPayload.ParseAddressedPayload(receivedWarpMessage.Payload)
-		Expect(err).Should(BeNil())
-
-		receivedDestinationID, err := ids.ToID(addressedPayload.DestinationChainID.Bytes())
-		Expect(err).Should(BeNil())
-		Expect(receivedDestinationID).Should(Equal(blockchainIDB))
-		Expect(addressedPayload.DestinationAddress).Should(Equal(teleporterContractAddress))
-		Expect(addressedPayload.Payload).Should(Equal(payload))
-
-		// Check that the teleporter message is correct
-		receivedTeleporterMessage, err := teleporter.UnpackTeleporterMessage(addressedPayload.Payload)
-		Expect(err).Should(BeNil())
-		Expect(*receivedTeleporterMessage).Should(Equal(teleporterMessage))
-
-		teleporterMessageID = receivedTeleporterMessage.MessageID
 	})
 
 	ginkgo.It("Check Teleporter Message Received", ginkgo.Label("Teleporter", "TeleporterMessageReceived"), func() {
+		log.Info("DEBUG VALUES", blockchainIDA.Hex(), teleporterMessageID.String())
 		data, err := teleporter.PackMessageReceivedMessage(teleporter.MessageReceivedInput{
 			OriginChainID: blockchainIDA,
 			MessageID:     teleporterMessageID,
@@ -653,6 +588,7 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		delivered, err := teleporter.UnpackMessageReceivedResult(result)
 		Expect(err).Should(BeNil())
 		Expect(delivered).Should(BeTrue())
+		log.Info("Verified Teleporter message delivery")
 	})
 
 })
@@ -661,9 +597,8 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 // TODONOW: remove this
 var _ = ginkgo.Describe("[Teleporter one way send replica]", ginkgo.Ordered, func() {
 	var (
-		receivedWarpMessage *avalancheWarp.Message
-		payload             []byte
 		teleporterMessageID *big.Int
+		fundedAddress       = common.HexToAddress(fundedKeyStrs[ginkgo.GinkgoParallelProcess()][1])
 	)
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -671,13 +606,6 @@ var _ = ginkgo.Describe("[Teleporter one way send replica]", ginkgo.Ordered, fun
 		ctx := context.Background()
 
 		nonceA, err := chainARPCClient.NonceAt(ctx, fundedAddress, nil)
-		Expect(err).Should(BeNil())
-
-		nonceB, err := chainBRPCClient.NonceAt(ctx, fundedAddress, nil)
-		Expect(err).Should(BeNil())
-
-		log.Info("Packing teleporter message", "nonceA", nonceA, "nonceB", nonceB)
-		payload, err = teleporter.PackSendCrossChainMessageEvent(common.Hash(blockchainIDB), teleporterMessage)
 		Expect(err).Should(BeNil())
 
 		data, err := teleporter.EVMTeleporterContractABI.Pack(
@@ -703,10 +631,6 @@ var _ = ginkgo.Describe("[Teleporter one way send replica]", ginkgo.Ordered, fun
 		signedTx, err := types.SignTx(tx, txSigner, fundedKey)
 		Expect(err).Should(BeNil())
 
-		subA, err := chainAWSClient.SubscribeNewHead(ctx, newHeadsA)
-		Expect(err).Should(BeNil())
-		defer subA.Unsubscribe()
-
 		log.Info("Sending Teleporter transaction on source chain", "destinationChainID", blockchainIDB, "txHash", signedTx.Hash())
 		err = chainARPCClient.SendTransaction(ctx, signedTx)
 		Expect(err).Should(BeNil())
@@ -716,183 +640,14 @@ var _ = ginkgo.Describe("[Teleporter one way send replica]", ginkgo.Ordered, fun
 		receipt, err := chainARPCClient.TransactionReceipt(ctx, signedTx.Hash())
 		Expect(err).Should(BeNil())
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	})
 
-	ginkgo.It("Relay message to destination", ginkgo.Label("Teleporter", "RelayMessage"), func() {
-		ctx := context.Background()
-
-		// Get the latest block from Subnet A, and retrieve the warp message from the logs
-		log.Info("Waiting for new block confirmation")
-		newHeadA := <-newHeadsA
-		blockHashA := newHeadA.Hash()
-
-		log.Info("Fetching relevant warp logs from the newly produced block")
-		logs, err := chainARPCClient.FilterLogs(ctx, interfaces.FilterQuery{
-			BlockHash: &blockHashA,
-			Addresses: []common.Address{warp.Module.Address},
-		})
+		sendCrossChainMessageLog := receipt.Logs[0]
+		err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&teleporterMessageID, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
 		Expect(err).Should(BeNil())
-		Expect(len(logs)).Should(Equal(1))
-
-		// Check for relevant warp log from subscription and ensure that it matches
-		// the log extracted from the last block.
-		txLog := logs[0]
-		log.Info("Parsing logData as unsigned warp message")
-		unsignedMsg, err := avalancheWarp.ParseUnsignedMessage(txLog.Data)
-		Expect(err).Should(BeNil())
-
-		// Set local variables for the duration of the test
-		unsignedWarpMessageID := unsignedMsg.ID()
-		unsignedWarpMsg := unsignedMsg
-		log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
-
-		// Loop over each client on chain A to ensure they all have time to accept the block.
-		// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
-		// has accepted the block.
-		for i, uri := range chainANodeURIs {
-			chainAWSURI := httpToWebsocketURI(uri, blockchainIDA.String())
-			log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI)
-			client, err := ethclient.Dial(chainAWSURI)
-			Expect(err).Should(BeNil())
-
-			// Loop until each node has advanced to >= the height of the block that emitted the warp log
-			for {
-				block, err := client.BlockByNumber(ctx, nil)
-				Expect(err).Should(BeNil())
-				if block.NumberU64() >= newHeadA.Number.Uint64() {
-					log.Info("client accepted the block containing SendWarpMessage", "client", i, "height", block.NumberU64())
-					break
-				}
-			}
-		}
-
-		// Get the aggregate signature for the Warp message
-		log.Info("Fetching aggregate signature from the source chain validators")
-		warpClient, err := warpBackend.NewWarpClient(chainANodeURIs[0], blockchainIDA.String())
-		Expect(err).Should(BeNil())
-		signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
-		Expect(err).Should(BeNil())
-
-		// Construct the transaction to send the Warp message to the destination chain
-		log.Info("Constructing transaction for the destination chain")
-		signedMessage, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
-		Expect(err).Should(BeNil())
-
-		numSigners, err := signedMessage.Signature.NumSigners()
-		Expect(err).Should(BeNil())
-
-		gasLimit, err := teleporter.CalculateReceiveMessageGasLimit(numSigners, teleporterMessage.RequiredGasLimit)
-		Expect(err).Should(BeNil())
-
-		callData, err := teleporter.EVMTeleporterContractABI.Pack("receiveCrossChainMessage", fundedAddress)
-		Expect(err).Should(BeNil())
-
-		baseFee, err := chainBRPCClient.EstimateBaseFee(ctx)
-		Expect(err).Should(BeNil())
-
-		gasTipCap, err := chainBRPCClient.SuggestGasTipCap(ctx)
-		Expect(err).Should(BeNil())
-
-		nonce, err := chainBRPCClient.NonceAt(ctx, fundedAddress, nil)
-		Expect(err).Should(BeNil())
-
-		gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))
-		gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
-		destinationTx := predicateutils.NewPredicateTx(
-			chainBIDInt,
-			nonce,
-			&teleporterContractAddress,
-			gasLimit,
-			gasFeeCap,
-			gasTipCap,
-			big.NewInt(0),
-			callData,
-			types.AccessList{},
-			warp.ContractAddress,
-			signedMessage.Bytes(),
-		)
-
-		// Sign and send the transaction on the destination chain
-		signer := types.LatestSignerForChainID(chainBIDInt)
-		signedTxB, err := types.SignTx(destinationTx, signer, fundedKey)
-		Expect(err).Should(BeNil())
-
-		log.Info("Subscribing to new heads on destination chain")
-		subB, err := chainBWSClient.SubscribeNewHead(ctx, newHeadsB)
-		Expect(err).Should(BeNil())
-		defer subB.Unsubscribe()
-
-		log.Info("Sending transaction to destination chain")
-		err = chainBRPCClient.SendTransaction(context.Background(), signedTxB)
-		Expect(err).Should(BeNil())
-
-		// Sleep to ensure the new block is published to the subscriber
-		time.Sleep(5 * time.Second)
-		receipt, err := chainBRPCClient.TransactionReceipt(ctx, signedTxB.Hash())
-		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	})
-
-	ginkgo.It("Receive message on Subnet B", ginkgo.Label("Teleporter", "ReceiveTeleporter"), func() {
-		ctx := context.Background()
-
-		// Get the latest block from Subnet B
-		log.Info("Waiting for new block confirmation")
-		newHeadB := <-newHeadsB
-		log.Info("Received new head", "height", newHeadB.Number.Uint64())
-		blockHashB := newHeadB.Hash()
-		block, err := chainBRPCClient.BlockByHash(ctx, blockHashB)
-		Expect(err).Should(BeNil())
-		log.Info(
-			"Got block",
-			"blockHash", blockHashB,
-			"blockNumber", block.NumberU64(),
-			"transactions", block.Transactions(),
-			"numTransactions", len(block.Transactions()),
-			"block", block,
-		)
-		accessLists := block.Transactions()[0].AccessList()
-		Expect(len(accessLists)).Should(Equal(1))
-		Expect(accessLists[0].Address).Should(Equal(warp.Module.Address))
-
-		// Check the transaction storage key has warp message we're expecting
-		storageKeyHashes := accessLists[0].StorageKeys
-		packedPredicate := predicateutils.HashSliceToBytes(storageKeyHashes)
-		predicateBytes, err := predicateutils.UnpackPredicate(packedPredicate)
-		Expect(err).Should(BeNil())
-		receivedWarpMessage, err = avalancheWarp.ParseMessage(predicateBytes)
-		Expect(err).Should(BeNil())
-
-		// Check that the transaction has successful receipt status
-		txHash := block.Transactions()[0].Hash()
-		receipt, err := chainBRPCClient.TransactionReceipt(ctx, txHash)
-		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-
-		log.Info("Finished sending warp message, closing down output channel")
-
-	})
-
-	ginkgo.It("Validate Received Warp Message Values", ginkgo.Label("Teleporter", "VerifyWarp"), func() {
-		Expect(receivedWarpMessage.SourceChainID).Should(Equal(blockchainIDA))
-		addressedPayload, err := warpPayload.ParseAddressedPayload(receivedWarpMessage.Payload)
-		Expect(err).Should(BeNil())
-
-		receivedDestinationID, err := ids.ToID(addressedPayload.DestinationChainID.Bytes())
-		Expect(err).Should(BeNil())
-		Expect(receivedDestinationID).Should(Equal(blockchainIDB))
-		Expect(addressedPayload.DestinationAddress).Should(Equal(teleporterContractAddress))
-		Expect(addressedPayload.Payload).Should(Equal(payload))
-
-		// Check that the teleporter message is correct
-		receivedTeleporterMessage, err := teleporter.UnpackTeleporterMessage(addressedPayload.Payload)
-		Expect(err).Should(BeNil())
-		Expect(*receivedTeleporterMessage).Should(Equal(teleporterMessage))
-
-		teleporterMessageID = receivedTeleporterMessage.MessageID
 	})
 
 	ginkgo.It("Check Teleporter Message Received", ginkgo.Label("Teleporter", "TeleporterMessageReceived"), func() {
+		log.Info("DEBUG VALUES", blockchainIDA.Hex(), teleporterMessageID.String())
 		data, err := teleporter.PackMessageReceivedMessage(teleporter.MessageReceivedInput{
 			OriginChainID: blockchainIDA,
 			MessageID:     teleporterMessageID,
@@ -909,6 +664,7 @@ var _ = ginkgo.Describe("[Teleporter one way send replica]", ginkgo.Ordered, fun
 		delivered, err := teleporter.UnpackMessageReceivedResult(result)
 		Expect(err).Should(BeNil())
 		Expect(delivered).Should(BeTrue())
+		log.Info("Verified Teleporter message delivery2")
 	})
 
 })
