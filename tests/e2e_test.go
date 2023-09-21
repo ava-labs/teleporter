@@ -430,6 +430,7 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 		}
 	}()
 
+	time.Sleep(5 * time.Second) // Give the relayer goroutine a chance to subscribe
 	log.Info("Set up ginkgo before suite")
 
 	setupStruct := SetupStruct{
@@ -566,12 +567,14 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 		sendCrossChainMessageLog := receipt.Logs[0]
-		err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&teleporterMessageID, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
+		var event SendCrossChainMessageEvent
+		err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
 		Expect(err).Should(BeNil())
+		teleporterMessageID = event.Message.MessageID
 	})
 
 	ginkgo.It("Check Teleporter Message Received", ginkgo.Label("Teleporter", "TeleporterMessageReceived"), func() {
-		log.Info("DEBUG VALUES", blockchainIDA.Hex(), teleporterMessageID.String())
+		time.Sleep(5 * time.Second) // Give the relayer a chance to deliver the message to the destination chain
 		data, err := teleporter.PackMessageReceivedMessage(teleporter.MessageReceivedInput{
 			OriginChainID: blockchainIDA,
 			MessageID:     teleporterMessageID,
@@ -642,12 +645,14 @@ var _ = ginkgo.Describe("[Teleporter one way send replica]", ginkgo.Ordered, fun
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 		sendCrossChainMessageLog := receipt.Logs[0]
-		err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&teleporterMessageID, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
+		var event SendCrossChainMessageEvent
+		err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
 		Expect(err).Should(BeNil())
+		teleporterMessageID = event.Message.MessageID
 	})
 
 	ginkgo.It("Check Teleporter Message Received", ginkgo.Label("Teleporter", "TeleporterMessageReceived"), func() {
-		log.Info("DEBUG VALUES", blockchainIDA.Hex(), teleporterMessageID.String())
+		time.Sleep(5 * time.Second) // Give the relayer a chance to deliver the message to the destination chain
 		data, err := teleporter.PackMessageReceivedMessage(teleporter.MessageReceivedInput{
 			OriginChainID: blockchainIDA,
 			MessageID:     teleporterMessageID,

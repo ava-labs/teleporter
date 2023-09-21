@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/params"
@@ -36,6 +37,12 @@ type TeleporterMessageInput struct {
 	RequiredGasLimit        *big.Int
 	Message                 []byte
 	AllowedRelayerAddresses []common.Address
+}
+
+type SendCrossChainMessageEvent struct {
+	DestinationChainID ids.ID
+	MessageID          *big.Int
+	Message            teleporter.TeleporterMessage
 }
 
 type FeeInfo struct {
