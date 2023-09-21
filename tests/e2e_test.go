@@ -27,6 +27,7 @@ import (
 	predicateutils "github.com/ava-labs/subnet-evm/utils/predicate"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	warpPayload "github.com/ava-labs/subnet-evm/warp/payload"
+	deployment_utils "github.com/ava-labs/teleporter/contract-deployment/deployment-utils"
 
 	"github.com/ava-labs/subnet-evm/x/warp"
 	"github.com/ethereum/go-ethereum/common"
@@ -204,7 +205,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		teleporterDeployerTransaction []byte
 	)
 
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err = ConstructKeylessTransaction(teleporterByteCodeFile, false)
+	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err = deployment_utils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
 
 	nonceA, err := chainARPCClient.NonceAt(ctx, fundedAddress, nil)

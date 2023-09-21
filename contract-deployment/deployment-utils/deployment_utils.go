@@ -1,4 +1,4 @@
-package tests
+package deployment_utils
 
 import (
 	"encoding/hex"
