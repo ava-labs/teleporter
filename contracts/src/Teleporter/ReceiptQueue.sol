@@ -14,8 +14,8 @@ import "./ITeleporterMessenger.sol";
 library ReceiptQueue {
     struct TeleporterMessageReceiptQueue {
         address owner;
-        uint256 begin;
-        uint256 end;
+        uint256 first;
+        uint256 last;
         mapping(uint256 index => TeleporterMessageReceipt) data;
     }
 
@@ -46,15 +46,16 @@ library ReceiptQueue {
      *
      * - `msg.sender` must be the owner.
      */
-    function enqueue(TeleporterMessageReceiptQueue storage queue, TeleporterMessageReceipt memory receipt) internal {
+    function enqueue(
+        TeleporterMessageReceiptQueue storage queue,
+        TeleporterMessageReceipt memory receipt
+    ) internal {
         unchecked {
             if (queue.owner != msg.sender) {
                 revert Unauthorized();
             }
 
-            uint256 backIndex = queue.end;
-            queue.data[backIndex] = receipt;
-            queue.end = backIndex + 1;
+            queue.data[queue.last++] = receipt;
 
             emit Enqueue(receipt.receivedMessageID, receipt.relayerRewardAddress);
         }
@@ -68,17 +69,22 @@ library ReceiptQueue {
      * - `msg.sender` must be the owner.
      * - The queue must be non-empty.
      */
-    function dequeue(TeleporterMessageReceiptQueue storage queue) internal returns (TeleporterMessageReceipt memory result) {
+    function dequeue(
+        TeleporterMessageReceiptQueue storage queue
+    )
+        internal
+        returns (TeleporterMessageReceipt memory result)
+    {
         unchecked {
             if (queue.owner != msg.sender) {
                 revert Unauthorized();
             }
 
-            uint256 frontIndex = queue.begin;
-            if (frontIndex == queue.end) revert EmptyQueue();
-            result = queue.data[frontIndex];
-            delete queue.data[frontIndex];
-            queue.begin = frontIndex + 1;
+            uint256 first_ = queue.first;
+            if (queue.last == first_) revert EmptyQueue();
+            result = queue.data[first_];
+            delete queue.data[first_];
+            queue.first = first_ + 1;
 
             emit Dequeue(result.receivedMessageID, result.relayerRewardAddress);
         }
@@ -88,6 +94,6 @@ library ReceiptQueue {
      * @dev Returns the number of open receipts in the queue.
      */
     function size(TeleporterMessageReceiptQueue storage queue) internal view returns (uint256) {
-        return queue.end - queue.begin;
+        return queue.last - queue.first;
     }
 }
