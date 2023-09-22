@@ -22,15 +22,15 @@ contract AllowList is Ownable {
   error NotEnabled();
   error CannotRevokeOwnRule();
 
-  constructor(address precompileAddr) Ownable() {
-    _allowList = IAllowList(precompileAddr);
-  }
-
   modifier onlyEnabled() {
     if (!isEnabled(msg.sender)) {
       revert NotEnabled();
     }
     _;
+  }
+
+  constructor(address precompileAddr) Ownable() {
+    _allowList = IAllowList(precompileAddr);
   }
 
   function isAdmin(address addr) public view returns (bool) {
