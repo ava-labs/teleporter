@@ -12,15 +12,15 @@ contract AllowList is Ownable {
     Admin
   }
 
-  error NotEnabled();
-  error CannotRevokeOwnRule();
-
   // Precompiled Allow List Contract Address
   IAllowList private _allowList;
 
   uint256 public constant STATUS_NONE = 0;
   uint256 public constant STATUS_ENABLED = 1;
   uint256 public constant STATUS_ADMIN = 2;
+
+  error NotEnabled();
+  error CannotRevokeOwnRule();
 
   constructor(address precompileAddr) Ownable() {
     _allowList = IAllowList(precompileAddr);
