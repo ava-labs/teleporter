@@ -131,16 +131,17 @@ contract TeleporterMessengerTest is Test {
     }
 
     function _setUpSuccessGetVerifiedWarpMessageMock(
-        WarpMessage memory warpMessage
+        WarpMessage memory warpMessage,
+        uint32 index
     ) internal {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0)),
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (index)),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (index))
         );
     }
 
@@ -166,10 +167,10 @@ contract TeleporterMessengerTest is Test {
         );
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
 
         // Receive the message.
-        teleporterMessenger.receiveCrossChainMessage(relayerRewardAddress);
+        teleporterMessenger.receiveCrossChainMessage(relayerRewardAddress, 0);
     }
 
     function _receiveMessageSentToEOA()
@@ -193,7 +194,7 @@ contract TeleporterMessengerTest is Test {
         );
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
 
         // Mock there being no code at the destination address which will be called
         // when the message is executed. This mimics the default destination address being an EOA.
@@ -207,7 +208,8 @@ contract TeleporterMessengerTest is Test {
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            0
         );
 
         return (

@@ -126,20 +126,14 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
             address(teleporterMessenger),
             abi.encode(messageToReceive)
         );
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0)),
-            abi.encode(warpMessage, true)
-        );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
-        );
+
+        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
 
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x93753a9eA4C9D6eeed9f64eA92E97ce1f5FBAeDe;
         teleporterMessenger.receiveCrossChainMessage(
-            expectedRelayerRewardAddress
+            expectedRelayerRewardAddress,
+            0
         );
 
         // Check that the relayer has redeemable balance

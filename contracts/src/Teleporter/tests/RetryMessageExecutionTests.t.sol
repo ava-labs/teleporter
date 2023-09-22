@@ -86,7 +86,7 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
         ITeleporterMessenger messenger = ITeleporterMessenger(
             teleporterContract
         );
-        messenger.receiveCrossChainMessage(address(42));
+        messenger.receiveCrossChainMessage(address(42), 0);
         latestMessage = message;
         latestMessageSenderSubnetID = originChainID;
         latestMessageSenderAddress = originSenderAddress;
@@ -119,7 +119,9 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         ) = _receiveFailedMessage(false);
 
         // Now retry it in another block with an even timestamp so that it fails again.
-        vm.expectRevert(TeleporterMessenger.MessageRetryExecutionFailed.selector);
+        vm.expectRevert(
+            TeleporterMessenger.MessageRetryExecutionFailed.selector
+        );
         teleporterMessenger.retryMessageExecution(originChainID, message);
     }
 
@@ -236,7 +238,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         );
 
         // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
 
         // Receive the message in a block with an even height.
         // The message should be successfully received, but its execution should fail.
@@ -248,7 +250,8 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            0
         );
 
         // Check that the message execution didn't have any effect, but

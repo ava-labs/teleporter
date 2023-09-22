@@ -249,10 +249,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * @dev See {ITeleporterMessenger-receiveCrossChainMessage}
      *
      * Emits {ReceiveCrossChainMessage} event.
-     * Re-entrancy is explicitly disallowed. One message is not able to receive another message.
+     * Re-entrancy is explicitly disallowed between receiving functions. One message is not able to receive another message.
      * Requirements:
      *
      * - `relayerRewardAddress` must not be the zero address.
+     * - `index` must specify a valid warp message in transaction's storage slots.
      * - Valid warp message provided in storage slots, and sender address matches the address of this contract.
      * - Warp message `destinationChainID` must match the `blockchainID` of this contract.
      * - Warp message `destinationAddress` must match the address of this contract.
@@ -260,7 +261,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - Transaction was sent by an allowed relayer for corresponding teleporter message.
      */
     function receiveCrossChainMessage(
-        address relayerRewardAddress
+        address relayerRewardAddress,
+        uint32 index
     ) external receiverNonReentrant {
         // The relayer reward address is not allowed to be the zero address because it is how we track
         // whether or not a message has been delivered.
@@ -271,7 +273,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Verify and parse the cross chain message included in the transaction access list
         // using the warp message precompile.
         (WarpMessage memory warpMessage, bool success) = WARP_MESSENGER
-            .getVerifiedWarpMessage(0);
+            .getVerifiedWarpMessage(index);
 
         if (!success) {
             revert InvalidWarpMessage();

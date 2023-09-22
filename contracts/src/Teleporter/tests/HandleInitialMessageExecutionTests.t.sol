@@ -93,7 +93,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         ITeleporterMessenger messenger = ITeleporterMessenger(
             teleporterContract
         );
-        messenger.receiveCrossChainMessage(address(42));
+        messenger.receiveCrossChainMessage(address(42), 0);
         latestMessage = message;
         latestMessageSenderSubnetID = originChainID;
         latestMessageSenderAddress = originSenderAddress;
@@ -134,11 +134,12 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         );
 
         // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
 
         // Receive the message.
         teleporterMessenger.receiveCrossChainMessage(
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            0
         );
 
         // Check that the message had the proper affect on the destination contract.
@@ -185,12 +186,13 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         );
 
         // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
 
         // Receive the message.
         vm.expectRevert(TeleporterMessenger.InsufficientGas.selector);
         teleporterMessenger.receiveCrossChainMessage(
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            0
         );
     }
 
@@ -215,7 +217,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         );
 
         // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
 
         // Receive the message - this does not revert because the recursive call
         // is considered a failed message execution, but the message itself is
@@ -227,7 +229,8 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            0
         );
 
         // Check that the message hash was stored in state and the message did not have any affect on the destination.
@@ -241,7 +244,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
-        vm.expectRevert(TeleporterMessenger.MessageRetryExecutionFailed.selector);
+        vm.expectRevert(
+            TeleporterMessenger.MessageRetryExecutionFailed.selector
+        );
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive
@@ -269,7 +274,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         );
 
         // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
 
         // Receive the message.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
@@ -279,7 +284,8 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            0
         );
 
         // Check that the message hash was stored in state and the message did not have any affect on the destination.
@@ -293,7 +299,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
-        vm.expectRevert(TeleporterMessenger.MessageRetryExecutionFailed.selector);
+        vm.expectRevert(
+            TeleporterMessenger.MessageRetryExecutionFailed.selector
+        );
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive
