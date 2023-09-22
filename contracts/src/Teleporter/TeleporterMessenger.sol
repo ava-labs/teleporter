@@ -69,9 +69,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // and the value is the amount of the asset owed to the relayer.
     mapping(address => mapping(address => uint256)) public relayerRewardAmounts;
 
-    // The maximum number of receipts to include in a single message.
-    uint256 public constant MAXIMUM_RECEIPT_COUNT = 5;
-
     // Teleporter delivers message by invoking functions of the form: funcName(bytes32 originChainID, address originSenderAddress, ...)
     // where "..." can represent arbitrary additional parameters. Accounting for the 4 byte function selector and two 32 byte parameters,
     // there is a minimum valid message length of 68 bytes.
@@ -127,9 +124,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 requiredGasLimit: messageInput.requiredGasLimit,
                 allowedRelayerAddresses: messageInput.allowedRelayerAddresses,
                 message: messageInput.message,
-                receipts: _getOutstandingReceiptsToSend(
-                    messageInput.destinationChainID
-                )
+                receipts: outstandingReceipts[messageInput.destinationChainID].getOutstandingReceiptsToSend()
             });
     }
 
@@ -759,31 +754,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Emit a failed execution event for anyone monitoring unsuccessful messages to retry.
         emit FailedMessageExecution(originChainID, message.messageID, message);
-    }
-
-    /**
-     * @dev Returns the outstanding receipts for the given chain ID that should be included in the next message sent.
-     */
-    function _getOutstandingReceiptsToSend(
-        bytes32 chainID
-    ) private returns (TeleporterMessageReceipt[] memory result) {
-        // Get the current outstanding receipts for the given chain ID.
-        // If the queue contract doesn't exist, there are not outstanding receipts to send.
-        uint256 outstandingReceiptsSize = outstandingReceipts[chainID].size();
-        if (outstandingReceiptsSize == 0) {
-            return new TeleporterMessageReceipt[](0);
-        }
-
-        // Calculate the result size as the minimum of the number of receipts and maximum batch size.
-        uint256 resultSize = MAXIMUM_RECEIPT_COUNT;
-        if (outstandingReceiptsSize < MAXIMUM_RECEIPT_COUNT) {
-            resultSize = outstandingReceiptsSize;
-        }
-
-        result = new TeleporterMessageReceipt[](resultSize);
-        for (uint256 i = 0; i < resultSize; ++i) {
-            result[i] = outstandingReceipts[chainID].dequeue();
-        }
     }
 
     /**
