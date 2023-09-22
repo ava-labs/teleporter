@@ -37,27 +37,12 @@ contract AllowList is Ownable {
     _setAdmin(addr);
   }
 
-  function _setAdmin(address addr) private {
-    _allowList.setAdmin(addr);
-  }
-
   function setEnabled(address addr) public virtual onlyOwner {
     _setEnabled(addr);
   }
 
-  function _setEnabled(address addr) private {
-    _allowList.setEnabled(addr);
-  }
-
   function revoke(address addr) public virtual onlyOwner {
     _revoke(addr);
-  }
-
-  function _revoke(address addr) private {
-    if (msg.sender == addr) {
-      revert CannotRevokeOwnRule();
-    }
-    _allowList.setNone(addr);
   }
 
   function isAdmin(address addr) public view returns (bool) {
@@ -70,5 +55,20 @@ contract AllowList is Ownable {
     // if address is ENABLED or ADMIN it can deploy
     // in other words, if it's not NONE it can deploy.
     return result != STATUS_NONE;
+  }
+
+  function _setAdmin(address addr) private {
+    _allowList.setAdmin(addr);
+  }
+
+  function _setEnabled(address addr) private {
+    _allowList.setEnabled(addr);
+  }
+
+  function _revoke(address addr) private {
+    if (msg.sender == addr) {
+      revert CannotRevokeOwnRule();
+    }
+    _allowList.setNone(addr);
   }
 }
