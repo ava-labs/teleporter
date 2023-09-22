@@ -13,27 +13,44 @@ address constant MINTER_ADDRESS = 0x0200000000000000000000000000000000000001;
 // Designated Blackhole Address
 address constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000000;
 
-contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, AllowList {
+contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, AllowList, ReentrancyGuard {
   INativeTokenMinter _nativeMinter = INativeTokenMinter(MINTER_ADDRESS);
 
   address public constant WARP_PRECOMPILE_ADDRESS =
       0x0200000000000000000000000000000000000005;
+
+  uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 300_000;
   bytes32 public immutable currentChainID;
+  bytes32 public immutable partnerChainID;
+  address public immutable partnerContractAddress;
 
   // Used for sending an receiving Teleporter messages.
   ITeleporterMessenger public immutable teleporterMessenger;
 
   error InvalidTeleporterMessengerAddress();
+  error InvalidSourceChain();
+  error InvalidPartnerContractAddress();
+  error CannotBridgeTokenWithinSameChain();
   error Unauthorized();
+  error InsufficientPayment();
 
-  constructor(address teleporterMessengerAddress) AllowList(MINTER_ADDRESS) {
+  constructor(address teleporterMessengerAddress, bytes32 partnerChainID_, address partnerContractAddress_) AllowList(MINTER_ADDRESS) {
     if (teleporterMessengerAddress == address(0)) {
         revert InvalidTeleporterMessengerAddress();
     }
-
     teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
     currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
         .getBlockchainID();
+
+    if (partnerContractAddress_ == address(0)) {
+        revert InvalidTeleporterMessengerAddress();
+    }
+    partnerContractAddress = partnerContractAddress_;
+
+    if (partnerChainID_ == currentChainID) {
+        revert CannotBridgeTokenWithinSameChain();
+    }
+    partnerChainID = partnerChainID_;
   }
 
   /**
@@ -42,90 +59,89 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, AllowList
     * Receives a Teleporter message and routes to the appropriate internal function call.
     */
   function receiveTeleporterMessage(
-      bytes32 nativeChainID,
-      address nativeBridgeAddress,
-      bytes calldata message
-  ) external {
-      // Only allow the Teleporter messenger to deliver messages.
-      if (msg.sender != address(teleporterMessenger)) {
-          revert Unauthorized();
-      }
+    bytes32 nativeChainID,
+    address nativeBridgeAddress,
+    bytes calldata message
+  ) external nonReentrant() {
 
-      // Decode the payload to recover the action and corresponding function parameters
-      (BridgeAction action, bytes memory actionData) = abi.decode(
-          message,
-          (BridgeAction, bytes)
-      );
+    // Only allow the Teleporter messenger to deliver messages.
+    if (msg.sender != address(teleporterMessenger)) {
+      revert Unauthorized();
+    }
+    // Only allow messages from the partner chain.
+    if (nativeChainID != partnerChainID) {
+      revert InvalidSourceChain();
+    }
+    // Only allow the partner contract to send messages.
+    if (nativeBridgeAddress != partnerContractAddress) {
+      revert InvalidPartnerContractAddress();
+    }
 
-      // Route to the appropriate function.
-      if (action == BridgeAction.Create) {
-          (
-              address nativeContractAddress,
-              string memory nativeName,
-              string memory nativeSymbol,
-              uint8 nativeDecimals
-          ) = abi.decode(actionData, (address, string, string, uint8));
-          _createBridgeToken({
-              nativeChainID: nativeChainID,
-              nativeBridgeAddress: nativeBridgeAddress,
-              nativeContractAddress: nativeContractAddress,
-              nativeName: nativeName,
-              nativeSymbol: nativeSymbol,
-              nativeDecimals: nativeDecimals
-          });
-      } else if (action == BridgeAction.Mint) {
-          (
-              address nativeContractAddress,
-              address recipient,
-              uint256 amount
-          ) = abi.decode(actionData, (address, address, uint256));
-          _mintBridgeTokens(
-              nativeChainID,
-              nativeBridgeAddress,
-              nativeContractAddress,
-              recipient,
-              amount
-          );
-      } else if (action == BridgeAction.Transfer) {
-          (
-              bytes32 destinationChainID,
-              address destinationBridgeAddress,
-              address nativeContractAddress,
-              address recipient,
-              uint256 totalAmount,
-              uint256 secondaryFeeAmount
-          ) = abi.decode(
-                  actionData,
-                  (bytes32, address, address, address, uint256, uint256)
-              );
-          _transferBridgeTokens({
-              sourceChainID: nativeChainID,
-              sourceBridgeAddress: nativeBridgeAddress,
-              destinationChainID: destinationChainID,
-              destinationBridgeAddress: destinationBridgeAddress,
-              nativeContractAddress: nativeContractAddress,
-              recipient: recipient,
-              totalAmount: totalAmount,
-              secondaryFeeAmount: secondaryFeeAmount
-          });
-      } else {
-          revert InvalidAction();
-      }
-  }
+    (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
 
-  // Mints [amount] number of ERC20 token to [to] address.
-  function mint(address to, uint256 amount) external onlyOwner {
-    // Mints [amount] number of native coins (gas coin) to [msg.sender] address.
     // Calls NativeMinter precompile through INativeMinter interface.
-    _nativeMinter.mintNativeCoin(to, amount);
-    emit Mintdrawal(_msgSender(), amount);
+    _nativeMinter.mintNativeCoin(recipient, amount);
+    emit MintNativeTokens(recipient, amount);
   }
 
-  // Burns [amount] number of ERC20 token from [from] address.
-  function burn(address from, uint256 amount) external onlyOwner {
-    // Burn native token by sending to BLACKHOLE_ADDRESS
-    payable(BLACKHOLE_ADDRESS).transfer(msg.value);
-    // Mint ERC20 token.
-    emit Deposit(_msgSender(), msg.value);
-  }
+    /**
+    * @dev See {INativeTokenMinter-bridgeTokens}.
+    *
+    * Requirements:
+    *
+    * - `msg.value` must be greater than the fee amount.
+    */
+    function bridgeTokens(
+        address recipient,
+        address feeTokenContractAddress,
+        uint256 feeAmount
+    ) external payable nonReentrant {
+        // The recipient cannot be the zero address.
+        if (recipient == address(0)) {
+            revert InvalidRecipientAddress();
+        }
+
+        // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
+        // implementations by only bridging the actual balance increase reflected by the call
+        // to transferFrom.
+        uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
+            IERC20(feeTokenContractAddress),
+            feeAmount
+        );
+
+        // Ensure that the adjusted amount is greater than the fee to be paid.
+        if (adjustedAmount <= feeAmount) {
+            revert InsufficientAdjustedAmount(adjustedAmount, feeAmount);
+        }
+
+        // Burn native token by sending to BLACKHOLE_ADDRESS
+        payable(BLACKHOLE_ADDRESS).transfer(msg.value);
+
+        // Send Teleporter message.
+        bytes memory messageData = abi.encode(recipient, msg.value);
+
+        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+            TeleporterMessageInput({
+                destinationChainID: partnerChainID,
+                destinationAddress: partnerContractAddress,
+                feeInfo: TeleporterFeeInfo({
+                    contractAddress: feeTokenContractAddress,
+                    amount: feeAmount
+                }),
+                requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
+                allowedRelayerAddresses: new address[](0),
+                message: messageData
+            })
+        );
+
+        emit BridgeTokens({
+            tokenContractAddress: feeTokenContractAddress,
+            teleporterMessageID: messageID,
+            destinationChainID: partnerChainID,
+            destinationBridgeAddress: partnerBridgeAddress,
+            recipient: recipient,
+            transferAmount: msg.value,
+            feeAmount: feeAmount
+        });
+    }
 }

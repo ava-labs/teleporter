@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity ^0.8.0;
 
 /**
  * @dev Interface that describes functionalities for a cross-chain ERC20 bridge.
@@ -15,11 +15,12 @@ interface INativeTokenMinter {
      */
     event BridgeTokens(
         address indexed tokenContractAddress,
-        bytes32 indexed destinationChainID,
         uint256 indexed teleporterMessageID,
+        bytes32 destinationChainID,
         address destinationBridgeAddress,
         address recipient,
-        uint256 amount
+        uint256 transferAmount,
+        uint256 feeAmount
     );
 
     /**
@@ -36,12 +37,8 @@ interface INativeTokenMinter {
      * This can be wrapping, unwrapping, and transferring a wrapped token between two non-native chains.
      */
     function bridgeTokens(
-        bytes32 destinationChainID,
-        address destinationBridgeAddress,
-        address tokenContractAddress,
         address recipient,
-        uint256 totalAmount,
-        uint256 primaryFeeAmount,
-        uint256 secondaryFeeAmount
-    ) external;
+        address feeTokenContractAddress,
+        uint256 feeAmount
+    ) external payable;
 }
