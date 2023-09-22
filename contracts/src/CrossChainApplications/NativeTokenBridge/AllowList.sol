@@ -33,18 +33,6 @@ contract AllowList is Ownable {
     _allowList = IAllowList(precompileAddr);
   }
 
-  function isAdmin(address addr) public view returns (bool) {
-    uint256 result = _allowList.readAllowList(addr);
-    return result == STATUS_ADMIN;
-  }
-
-  function isEnabled(address addr) public view returns (bool) {
-    uint256 result = _allowList.readAllowList(addr);
-    // if address is ENABLED or ADMIN it can deploy
-    // in other words, if it's not NONE it can deploy.
-    return result != STATUS_NONE;
-  }
-
   function setAdmin(address addr) public virtual onlyOwner {
     _setAdmin(addr);
   }
@@ -70,5 +58,17 @@ contract AllowList is Ownable {
       revert CannotRevokeOwnRule();
     }
     _allowList.setNone(addr);
+  }
+
+  function isAdmin(address addr) public view returns (bool) {
+    uint256 result = _allowList.readAllowList(addr);
+    return result == STATUS_ADMIN;
+  }
+
+  function isEnabled(address addr) public view returns (bool) {
+    uint256 result = _allowList.readAllowList(addr);
+    // if address is ENABLED or ADMIN it can deploy
+    // in other words, if it's not NONE it can deploy.
+    return result != STATUS_NONE;
   }
 }
