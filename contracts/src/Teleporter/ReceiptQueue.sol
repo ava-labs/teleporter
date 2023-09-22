@@ -52,11 +52,9 @@ library ReceiptQueue {
         TeleporterMessageReceiptQueue storage queue,
         TeleporterMessageReceipt memory receipt
     ) internal {
-        unchecked {
-            queue.data[queue.last++] = receipt;
+        queue.data[queue.last++] = receipt;
 
-            emit Enqueue(receipt.receivedMessageID, receipt.relayerRewardAddress);
-        }
+        emit Enqueue(receipt.receivedMessageID, receipt.relayerRewardAddress);
     }
 
     /**
@@ -73,15 +71,13 @@ library ReceiptQueue {
         internal
         returns (TeleporterMessageReceipt memory result)
     {
-        unchecked {
-            uint256 first_ = queue.first;
-            if (queue.last == first_) revert EmptyQueue();
-            result = queue.data[first_];
-            delete queue.data[first_];
-            queue.first = first_ + 1;
+        uint256 first_ = queue.first;
+        if (queue.last == first_) revert EmptyQueue();
+        result = queue.data[first_];
+        delete queue.data[first_];
+        queue.first = first_ + 1;
 
-            emit Dequeue(result.receivedMessageID, result.relayerRewardAddress);
-        }
+        emit Dequeue(result.receivedMessageID, result.relayerRewardAddress);
     }
 
     /**
