@@ -63,7 +63,15 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             payload: new bytes(0)
         });
 
-        _setUpSuccessGetVerifiedWarpMessageMock(emptyMessage, 0);
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0)),
+            abi.encode(emptyMessage, false)
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
+        );
 
         vm.expectRevert(TeleporterMessenger.InvalidWarpMessage.selector);
         teleporterMessenger.receiveCrossChainMessage(address(1), 0);
