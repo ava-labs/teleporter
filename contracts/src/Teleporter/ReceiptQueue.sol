@@ -13,7 +13,6 @@ import "./ITeleporterMessenger.sol";
  */
 library ReceiptQueue {
     struct TeleporterMessageReceiptQueue {
-        address owner;
         uint256 first;
         uint256 last;
         mapping(uint256 index => TeleporterMessageReceipt) data;
@@ -51,10 +50,6 @@ library ReceiptQueue {
         TeleporterMessageReceipt memory receipt
     ) internal {
         unchecked {
-            if (queue.owner != msg.sender) {
-                revert Unauthorized();
-            }
-
             queue.data[queue.last++] = receipt;
 
             emit Enqueue(receipt.receivedMessageID, receipt.relayerRewardAddress);
@@ -76,10 +71,6 @@ library ReceiptQueue {
         returns (TeleporterMessageReceipt memory result)
     {
         unchecked {
-            if (queue.owner != msg.sender) {
-                revert Unauthorized();
-            }
-
             uint256 first_ = queue.first;
             if (queue.last == first_) revert EmptyQueue();
             result = queue.data[first_];

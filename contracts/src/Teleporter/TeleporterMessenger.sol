@@ -354,9 +354,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         ReceiptQueue.TeleporterMessageReceiptQueue storage receiptsQueue = outstandingReceipts[
             warpMessage.originChainID
         ];
-        if (receiptsQueue.owner == address(0)) {
-            receiptsQueue.owner = msg.sender;
-        }
+
         receiptsQueue.enqueue(
             TeleporterMessageReceipt({
                 receivedMessageID: teleporterMessage.messageID,
@@ -771,24 +769,20 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     ) private returns (TeleporterMessageReceipt[] memory result) {
         // Get the current outstanding receipts for the given chain ID.
         // If the queue contract doesn't exist, there are not outstanding receipts to send.
-        ReceiptQueue.TeleporterMessageReceiptQueue storage outstandingReceiptForDestination = outstandingReceipts[
-            chainID
-        ];
-        if (outstandingReceiptForDestination.owner == address(0)) {
+        uint256 outstandingReceiptsSize = outstandingReceipts[chainID].size();
+        if (outstandingReceiptsSize == 0) {
             return new TeleporterMessageReceipt[](0);
         }
 
         // Calculate the result size as the minimum of the number of receipts and maximum batch size.
         uint256 resultSize = MAXIMUM_RECEIPT_COUNT;
-        uint256 outstandingReceiptsSize = outstandingReceiptForDestination
-            .size();
         if (outstandingReceiptsSize < MAXIMUM_RECEIPT_COUNT) {
             resultSize = outstandingReceiptsSize;
         }
 
         result = new TeleporterMessageReceipt[](resultSize);
         for (uint256 i = 0; i < resultSize; ++i) {
-            result[i] = outstandingReceiptForDestination.dequeue();
+            result[i] = outstandingReceipts[chainID].dequeue();
         }
     }
 

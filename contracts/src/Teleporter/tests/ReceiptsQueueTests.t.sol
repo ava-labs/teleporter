@@ -15,10 +15,6 @@ contract ReceiptQueueTest is Test {
     // each time after deployment.
     ReceiptQueue.TeleporterMessageReceiptQueue public queue;
 
-    function setUp() public virtual {
-        queue.owner = msg.sender;
-    }
-
     function testReceiptQueue() public {
         // Check the initial size is zero.
         assertEq(queue.size(), 0);
@@ -69,15 +65,6 @@ contract ReceiptQueueTest is Test {
 
         // Check the size again.
         assertEq(queue.size(), 4);
-
-        // Make sure a non-queue owner can't call any of the methods.
-        address badCaller = 0x31a817802EE183eb8B13167fFE24bD28DcC6f30c;
-        vm.startPrank(badCaller);
-        vm.expectRevert(ReceiptQueue.Unauthorized.selector);
-        queue.enqueue(receipt1);
-        vm.expectRevert(ReceiptQueue.Unauthorized.selector);
-        result = queue.dequeue();
-        vm.stopPrank();
 
         // Finally dequeue the elements and once again check they are returned in the correct order.
         result = queue.dequeue();
