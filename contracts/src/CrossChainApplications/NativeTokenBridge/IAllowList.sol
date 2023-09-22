@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.18;
 
 interface IAllowList {
   // Set [addr] to have the admin role over the precompile contract.
