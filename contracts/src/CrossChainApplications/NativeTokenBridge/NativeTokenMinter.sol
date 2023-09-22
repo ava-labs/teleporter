@@ -1,9 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.18;
 
-import "@subnet-evm-contracts/AllowList.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "@subnet-evm-contracts/interfaces/INativeMinter.sol";
+import "./INativeMinter.sol";
+import "./AllowList.sol";
 import "./INativeTokenMinter.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
@@ -16,7 +16,7 @@ address constant MINTER_ADDRESS = 0x0200000000000000000000000000000000000001;
 address constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000000;
 
 contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, AllowList, ReentrancyGuard {
-  INativeMinter _nativeMinter = INativeMinter(MINTER_ADDRESS);
+  INativeMinter private _nativeMinter = INativeMinter(MINTER_ADDRESS);
 
   address public constant WARP_PRECOMPILE_ADDRESS =
       0x0200000000000000000000000000000000000005;

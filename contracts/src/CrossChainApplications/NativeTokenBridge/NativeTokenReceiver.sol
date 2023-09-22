@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.18;
 
-import "@subnet-evm-contracts/AllowList.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import "./INativeTokenReceiver.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
