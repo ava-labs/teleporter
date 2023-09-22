@@ -1,11 +1,12 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.18;
 
 import "@subnet-evm-contracts/AllowList.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import "./INativeTokenReceiver.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
+import "../../Teleporter/SafeERC20TransferFrom.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, ReentrancyGuard {
@@ -21,12 +22,13 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, Reentra
   ITeleporterMessenger public immutable teleporterMessenger;
 
   error InvalidTeleporterMessengerAddress();
+  error InvalidRecipientAddress();
   error InvalidSourceChain();
   error InvalidPartnerContractAddress();
   error CannotBridgeTokenWithinSameChain();
   error Unauthorized();
-  error UndercollateralizedBridge();
   error InsufficientPayment();
+  error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
 
   constructor(address teleporterMessengerAddress, bytes32 partnerChainID_, address partnerContractAddress_) {
     if (teleporterMessengerAddress == address(0)) {
@@ -134,7 +136,7 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, Reentra
             tokenContractAddress: feeTokenContractAddress,
             teleporterMessageID: messageID,
             destinationChainID: partnerChainID,
-            destinationBridgeAddress: partnerBridgeAddress,
+            destinationBridgeAddress: partnerContractAddress,
             recipient: recipient,
             transferAmount: msg.value,
             feeAmount: feeAmount

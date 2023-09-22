@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.18;
 
 /**
  * @dev Interface that describes functionalities for a cross-chain ERC20 bridge.

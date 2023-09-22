@@ -1,11 +1,13 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.18;
 
 import "@subnet-evm-contracts/AllowList.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
+import "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 import "./INativeTokenMinter.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
+import "../../Teleporter/SafeERC20TransferFrom.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // Precompiled Native Minter Contract Address
@@ -14,7 +16,7 @@ address constant MINTER_ADDRESS = 0x0200000000000000000000000000000000000001;
 address constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000000;
 
 contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, AllowList, ReentrancyGuard {
-  INativeTokenMinter _nativeMinter = INativeTokenMinter(MINTER_ADDRESS);
+  INativeMinter _nativeMinter = INativeMinter(MINTER_ADDRESS);
 
   address public constant WARP_PRECOMPILE_ADDRESS =
       0x0200000000000000000000000000000000000005;
@@ -28,11 +30,13 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, AllowList
   ITeleporterMessenger public immutable teleporterMessenger;
 
   error InvalidTeleporterMessengerAddress();
+  error InvalidRecipientAddress();
   error InvalidSourceChain();
   error InvalidPartnerContractAddress();
   error CannotBridgeTokenWithinSameChain();
   error Unauthorized();
   error InsufficientPayment();
+  error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
 
   constructor(address teleporterMessengerAddress, bytes32 partnerChainID_, address partnerContractAddress_) AllowList(MINTER_ADDRESS) {
     if (teleporterMessengerAddress == address(0)) {
@@ -138,7 +142,7 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, AllowList
             tokenContractAddress: feeTokenContractAddress,
             teleporterMessageID: messageID,
             destinationChainID: partnerChainID,
-            destinationBridgeAddress: partnerBridgeAddress,
+            destinationBridgeAddress: partnerContractAddress,
             recipient: recipient,
             transferAmount: msg.value,
             feeAmount: feeAmount
