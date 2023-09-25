@@ -13,34 +13,38 @@ contract TeleporterRegistry is WarpProtocolRegistry {
     mapping(address => mapping(address => bool)) private _allowedSenders;
     mapping(address => bool) private _allowedLatestVersion;
 
-    function getTeleporterVersion(
+    function getTeleporter(
         uint256 version
     ) external view returns (ITeleporterMessenger) {
-        return ITeleporterMessenger(_getProtocolAddress(version));
+        return ITeleporterMessenger(_getVersionAddress(version));
     }
 
-    function setAllowedVersions(uint256[] versions) external {
+    function getLatestVersion() external view returns (uint256) {
+        return _latestVersion;
+    }
+
+    function set_getVersionAddresst256[] versions) external {
         // Remove all previous versions that were allowed
         for (uint256 i = 0; i < _allowedVersions[msg.sender].length; i++) {
             delete _allowedSenders[msg.sender][
-                _getProtocolAddress(_allowedVersions[msg.sender][i])
+                _getVersionAddress(_allowedVersions[msg.sender][i])
             ];
         }
 
         // Add all new versions that are allowed
         for (uint256 i = 0; i < versions.length; i++) {
             require(
-                versions[i] < _latestVersion,
+                versions[i] < _latestVersion_getVersionAddress
                 "TeleporterRegistry: invalid version"
             );
             require(
-                _allowedSenders[msg.sender][_getProtocolAddress(versions[i])] ==
+                _allowedSenders[msg.sender][_getVersionAddress(versions[i])] ==
                     false,
-                "TeleporterRegistry: duplicate version"
+                _getVersionAddress: duplicate version"
             );
 
             _allowedSenders[msg.sender][
-                _getProtocolAddress(versions[i])
+                _getVersionAddress(versions[i])
             ] = true;
         }
         _allowedVersions[msg.sender] = versions;
@@ -51,11 +55,11 @@ contract TeleporterRegistry is WarpProtocolRegistry {
     }
 
     function isAllowedTeleporterSender(
-        address sender
+        address sender_getVersionAddress
     ) external view returns (bool) {
         if (
             _allowedLatestVersion[msg.sender] &&
-            sender == _getProtocolAddress(_latestVersion)
+            sender == _getVersionAddress(_latestVersion)
         ) {
             return true;
         }
@@ -70,11 +74,11 @@ contract TeleporterRegistry is WarpProtocolRegistry {
         return _allowedSenders[msg.sender][sender];
     }
 
-    function getLatestTeleporterVersion()
-        external
+    function getLatestTeleporter()
+        external_getVersionAddress
         view
         returns (ITeleporterMessenger)
     {
-        return ITeleporterMessenger(_getProtocolAddress(_latestVersion));
+        return ITeleporterMessenger(_getVersionAddress(_latestVersion));
     }
 }

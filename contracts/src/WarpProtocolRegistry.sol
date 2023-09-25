@@ -22,7 +22,7 @@ abstract contract WarpProtocolRegistry {
 
     uint256 private _latestVersion;
 
-    mapping(uint256 version => address) private _protocolAddresses;
+    mapping(uint256 version => address) private _versionToAddress;
 
     constructor() {
         _latestVersion = 0;
@@ -66,22 +66,22 @@ abstract contract WarpProtocolRegistry {
             "WarpProtocolRegistry: not a contract"
         );
 
-        _protocolAddresses[_latestVersion] = protocolAddress;
+        _versionToAddress[_latestVersion] = protocolAddress;
     }
 
-    function getProtocolAddress(
+    function getVersionAddress(
         uint256 version
     ) external view virtual returns (address) {
-        return _getProtocolAddress(version);
+        return _getVersionAddress(version);
     }
 
-    function _getProtocolAddress(
+    function _getVersionAddress(
         uint256 version
     ) internal view returns (address) {
         require(
             0 < version <= _latestVersion,
             "WarpProtocolRegistry: invalid version"
         );
-        return _protocolAddresses[version];
+        return _versionToAddress[version];
     }
 }
