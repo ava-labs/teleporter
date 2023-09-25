@@ -27,7 +27,7 @@ import (
 	predicateutils "github.com/ava-labs/subnet-evm/utils/predicate"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	warpPayload "github.com/ava-labs/subnet-evm/warp/payload"
-	deployment_utils "github.com/ava-labs/teleporter/contract-deployment/deployment-utils"
+	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
 
 	"github.com/ava-labs/subnet-evm/x/warp"
 	"github.com/ethereum/go-ethereum/common"
@@ -139,7 +139,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	)
 	Expect(err).Should(BeNil())
 
-	// Issue transactions to activate the proposerVM fork on the receiving chain
+	// Issue transactions to activate the proposerVM fork on the chains
 	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
 	setUpProposerVm(ctx, fundedKey, manager, 0)
@@ -205,7 +205,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		teleporterDeployerTransaction []byte
 	)
 
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err = deployment_utils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
+	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err = deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
 
 	nonceA, err := chainARPCClient.NonceAt(ctx, fundedAddress, nil)
@@ -348,7 +348,7 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		Expect(err).Should(BeNil())
 
 		// Send a transaction to the Teleporter contract
-		tx := newTestTeleporterMessage(chainAIDInt, teleporterContractAddress, nonceA, data)
+		tx := newTestTeleporterTransaction(chainAIDInt, teleporterContractAddress, nonceA, data)
 
 		txSigner := types.LatestSignerForChainID(chainAIDInt)
 		signedTx, err := types.SignTx(tx, txSigner, fundedKey)

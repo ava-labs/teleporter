@@ -22,10 +22,10 @@ import (
 )
 
 var (
-	defaultTeleporterMessageGas       uint64 = 200_000
-	defaultTeleporterMessageGasFeeCap        = big.NewInt(225 * params.GWei)
-	defaultTeleporterMessageGasTipCap        = big.NewInt(params.GWei)
-	defaultTeleporterMessageValue            = common.Big0
+	defaultTeleporterTransactionGas       uint64 = 200_000
+	defaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
+	defaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
+	defaultTeleporterTransactionValue            = common.Big0
 )
 
 // Teleporter contract sendCrossChainMessage input type
@@ -75,15 +75,15 @@ func getURIHostAndPort(uri string) (string, uint32, error) {
 	return hostAndPort[0], uint32(port), nil
 }
 
-func newTestTeleporterMessage(chainIDInt *big.Int, teleporterAddress common.Address, nonce uint64, data []byte) *types.Transaction {
+func newTestTeleporterTransaction(chainIDInt *big.Int, teleporterAddress common.Address, nonce uint64, data []byte) *types.Transaction {
 	return types.NewTx(&types.DynamicFeeTx{
 		ChainID:   chainIDInt,
 		Nonce:     nonce,
 		To:        &teleporterAddress,
-		Gas:       defaultTeleporterMessageGas,
-		GasFeeCap: defaultTeleporterMessageGasFeeCap,
-		GasTipCap: defaultTeleporterMessageGasTipCap,
-		Value:     defaultTeleporterMessageValue,
+		Gas:       defaultTeleporterTransactionGas,
+		GasFeeCap: defaultTeleporterTransactionGasFeeCap,
+		GasTipCap: defaultTeleporterTransactionGasTipCap,
+		Value:     defaultTeleporterTransactionValue,
 		Data:      data,
 	})
 }

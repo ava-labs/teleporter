@@ -9,7 +9,7 @@ import (
 	"os"
 	"strconv"
 
-	deployment_utils "github.com/ava-labs/teleporter/contract-deployment/deployment-utils"
+	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -25,7 +25,7 @@ func main() {
 		if len(os.Args) != 3 {
 			log.Panic("Invalid argument count. Must provide JSON file containing contract bytecode.")
 		}
-		_, _, _, err := deployment_utils.ConstructKeylessTransaction(os.Args[2], true)
+		_, _, _, err := deploymentUtils.ConstructKeylessTransaction(os.Args[2], true)
 		if err != nil {
 			log.Panic("Failed to construct keyless transaction.", err)
 		}
@@ -41,7 +41,10 @@ func main() {
 			log.Panic("Failed to parse nonce as uint", err)
 		}
 
-		resultAddress := deployment_utils.DeriveEVMContractAddress(deployerAddress, nonce)
+		resultAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, nonce)
+		if err != nil {
+			log.Panic("Failed to derive contract address.", err)
+		}
 		fmt.Println(resultAddress.Hex())
 	default:
 		log.Panic("Invalid command type. Supported options are \"constructKeylessTx\" and \"deriveContractAddress\".")
