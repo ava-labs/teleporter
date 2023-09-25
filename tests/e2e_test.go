@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	testUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -22,5 +23,5 @@ func TestE2E(t *testing.T) {
 
 // Define the Teleporter before and after suite functions. The functions themselves may be called by
 // other packages to set up and tear down a set of warp-enabled subnets with Teleporter deployed.
-var _ = ginkgo.BeforeSuite(SetupNetwork)
-var _ = ginkgo.AfterSuite(TearDownNetwork)
+var _ = ginkgo.BeforeSuite(testUtils.SetupNetwork)
+var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)

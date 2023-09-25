@@ -8,6 +8,7 @@ import (
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/utils/predicate"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
+	. "github.com/ava-labs/teleporter/tests/utils"
 
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -19,6 +20,18 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+)
+
+var (
+	teleporterMessage = teleporter.TeleporterMessage{
+		MessageID:               big.NewInt(1),
+		SenderAddress:           FundedAddress,
+		DestinationAddress:      FundedAddress,
+		RequiredGasLimit:        big.NewInt(1),
+		AllowedRelayerAddresses: []common.Address{},
+		Receipts:                []teleporter.TeleporterMessageReceipt{},
+		Message:                 []byte{1, 2, 3, 4},
+	}
 )
 
 // Ginkgo describe node that acts as a container for the teleporter e2e tests. This test suite

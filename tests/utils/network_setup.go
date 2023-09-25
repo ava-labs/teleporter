@@ -1,4 +1,4 @@
-package tests
+package utils
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	relayerEvm "github.com/ava-labs/awm-relayer/vms/evm"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -26,28 +25,15 @@ import (
 )
 
 const (
-	FundedKeyStr           = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	FundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+
+	// Internal vars only used to set up the local network
 	warpGenesisFile        = "./tests/warp-genesis.json"
 	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 )
 
 var (
-	// Internal vars only used to set up the local network
-	anrConfig           = runner.NewDefaultANRConfig()
-	manager             = runner.NewNetworkManager(anrConfig)
-	FundedAddress       = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
-	warpChainConfigPath string
-
-	TeleporterContractAddress common.Address
-	teleporterMessage         = teleporter.TeleporterMessage{
-		MessageID:               big.NewInt(1),
-		SenderAddress:           FundedAddress,
-		DestinationAddress:      FundedAddress,
-		RequiredGasLimit:        big.NewInt(1),
-		AllowedRelayerAddresses: []common.Address{},
-		Receipts:                []teleporter.TeleporterMessageReceipt{},
-		Message:                 []byte{1, 2, 3, 4},
-	}
+	TeleporterContractAddress        common.Address
 	SubnetIDs                        []ids.ID
 	SubnetA, SubnetB                 ids.ID
 	BlockchainIDA, BlockchainIDB     ids.ID
@@ -58,6 +44,12 @@ var (
 	ChainARPCURI, ChainBRPCURI       string
 	ChainAIDInt, ChainBIDInt         *big.Int
 	NewHeadsA                        chan *types.Header
+
+	// Internal vars only used to set up the local network
+	anrConfig           = runner.NewDefaultANRConfig()
+	manager             = runner.NewNetworkManager(anrConfig)
+	FundedAddress       = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
+	warpChainConfigPath string
 )
 
 // setupNetwork starts the default network and adds 10 new nodes as validators with BLS keys
