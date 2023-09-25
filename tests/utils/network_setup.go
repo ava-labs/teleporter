@@ -25,9 +25,6 @@ import (
 
 const (
 	FundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
-
-	// Internal vars only used to set up the local network
-	warpGenesisFile = "./tests/warp-genesis.json"
 )
 
 var (
@@ -36,6 +33,7 @@ var (
 	SubnetA, SubnetB                 ids.ID
 	BlockchainIDA, BlockchainIDB     ids.ID
 	ChainANodeURIs, ChainBNodeURIs   []string
+	FundedAddress                    = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
 	FundedKey                        *ecdsa.PrivateKey
 	ChainAWSClient, ChainBWSClient   ethclient.Client
 	ChainARPCClient, ChainBRPCClient ethclient.Client
@@ -46,7 +44,6 @@ var (
 	// Internal vars only used to set up the local network
 	anrConfig           = runner.NewDefaultANRConfig()
 	manager             = runner.NewNetworkManager(anrConfig)
-	FundedAddress       = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
 	warpChainConfigPath string
 )
 
@@ -54,7 +51,7 @@ var (
 // registered on the P-Chain.
 // Adds two disjoint sets of 5 of the new validator nodes to validate two new subnets with a
 // a single Subnet-EVM blockchain.
-func SetupNetwork() {
+func SetupNetwork(warpGenesisFile string) {
 	ctx := context.Background()
 	var err error
 

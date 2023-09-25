@@ -15,6 +15,7 @@ import (
 
 const (
 	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
+	warpGenesisFile        = "./tests/utils/warp-genesis.json"
 )
 
 func TestE2E(t *testing.T) {
@@ -28,7 +29,7 @@ func TestE2E(t *testing.T) {
 
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
-	testUtils.SetupNetwork()
+	testUtils.SetupNetwork(warpGenesisFile)
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
