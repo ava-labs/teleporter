@@ -23,10 +23,10 @@ import (
 )
 
 var (
-	defaultTeleporterTransactionGas       uint64 = 200_000
-	defaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
-	defaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
-	defaultTeleporterTransactionValue            = common.Big0
+	DefaultTeleporterTransactionGas       uint64 = 200_000
+	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
+	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
+	DefaultTeleporterTransactionValue            = common.Big0
 )
 
 type SendCrossChainMessageEvent struct {
@@ -50,15 +50,15 @@ type FeeInfo struct {
 	Amount          *big.Int
 }
 
-func httpToWebsocketURI(uri string, blockchainID string) string {
+func HttpToWebsocketURI(uri string, blockchainID string) string {
 	return fmt.Sprintf("ws://%s/ext/bc/%s/ws", strings.TrimPrefix(uri, "http://"), blockchainID)
 }
 
-func httpToRPCURI(uri string, blockchainID string) string {
+func HttpToRPCURI(uri string, blockchainID string) string {
 	return fmt.Sprintf("http://%s/ext/bc/%s/rpc", strings.TrimPrefix(uri, "http://"), blockchainID)
 }
 
-func getURIHostAndPort(uri string) (string, uint32, error) {
+func GetURIHostAndPort(uri string) (string, uint32, error) {
 	// At a minimum uri should have http:// of 7 characters
 	Expect(len(uri)).Should(BeNumerically(">", 7))
 	if uri[:7] == "http://" {
@@ -82,26 +82,26 @@ func getURIHostAndPort(uri string) (string, uint32, error) {
 	return hostAndPort[0], uint32(port), nil
 }
 
-func newTestTeleporterTransaction(chainIDInt *big.Int, teleporterAddress common.Address, nonce uint64, data []byte) *types.Transaction {
+func NewTestTeleporterTransaction(chainIDInt *big.Int, teleporterAddress common.Address, nonce uint64, data []byte) *types.Transaction {
 	return types.NewTx(&types.DynamicFeeTx{
 		ChainID:   chainIDInt,
 		Nonce:     nonce,
 		To:        &teleporterAddress,
-		Gas:       defaultTeleporterTransactionGas,
-		GasFeeCap: defaultTeleporterTransactionGasFeeCap,
-		GasTipCap: defaultTeleporterTransactionGasTipCap,
-		Value:     defaultTeleporterTransactionValue,
+		Gas:       DefaultTeleporterTransactionGas,
+		GasFeeCap: DefaultTeleporterTransactionGasFeeCap,
+		GasTipCap: DefaultTeleporterTransactionGasTipCap,
+		Value:     DefaultTeleporterTransactionValue,
 		Data:      data,
 	})
 }
 
-func setUpProposerVm(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
+func SetUpProposerVm(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
 	subnet := manager.GetSubnets()[index]
 	subnetDetails, ok := manager.GetSubnet(subnet)
 	Expect(ok).Should(BeTrue())
 
 	chainID := subnetDetails.BlockchainID
-	uri := httpToWebsocketURI(subnetDetails.ValidatorURIs[0], chainID.String())
+	uri := HttpToWebsocketURI(subnetDetails.ValidatorURIs[0], chainID.String())
 
 	client, err := ethclient.Dial(uri)
 	Expect(err).Should(BeNil())
