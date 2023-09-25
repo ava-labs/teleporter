@@ -57,7 +57,7 @@ contract ReceiptQueueTest is Test {
         assertEq(queue.size(), 0);
 
         // Check that you can't dequeue anything else.
-        vm.expectRevert("Empty queue.");
+        vm.expectRevert(ReceiptQueue.EmptyQueue.selector);
         result = queue.dequeue();
 
         // Enqueue two more of the same item to check you can have duplicates, followed by the second and third.
@@ -72,9 +72,9 @@ contract ReceiptQueueTest is Test {
         // Make sure a non-queue owner can't call any of the methods.
         address badCaller = 0x31a817802EE183eb8B13167fFE24bD28DcC6f30c;
         vm.startPrank(badCaller);
-        vm.expectRevert("Unauthorized.");
+        vm.expectRevert(ReceiptQueue.Unauthorized.selector);
         queue.enqueue(receipt1);
-        vm.expectRevert("Unauthorized.");
+        vm.expectRevert(ReceiptQueue.Unauthorized.selector);
         result = queue.dequeue();
         vm.stopPrank();
 

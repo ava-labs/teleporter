@@ -80,6 +80,23 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // The blockchain ID of the chain the contract is deployed on. Determined by warp messenger precompile.
     bytes32 public immutable blockchainID;
 
+    // Errors
+    error InsufficientGas();
+    error InvalidAdditionalFeeAmount();
+    error InvalidDestinationAddress();
+    error InvalidDestinationChainID();
+    error InvalidFeeAssetContractAddress();
+    error InvalidMessageHash();
+    error InvalidOriginSenderAddress();
+    error InvalidRelayerRewardAddress();
+    error InvalidWarpMessage();
+    error MessageAlreadyDelivered();
+    error MessageNotFound();
+    error MessageRetryExecutionFailed();
+    error NoRelayerRewardToRedeem();
+    error ReceiptNotFound();
+    error UnauthorizedRelayer();
+
     /**
      * @dev Sets the value of `blockchainID` to the value determined by the warp messenger precompile.
      */
@@ -132,14 +149,16 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 messageHash = sentMessageInfo[destinationChainID][
             message.messageID
         ].messageHash;
-        require(messageHash != bytes32(0), "Message to be retried not found.");
+        if (messageHash == bytes32(0)) {
+            // If the message hash is zero, the message was never sent.
+            revert MessageNotFound();
+        }
 
         // Check that the hash of the provided message matches the one that was originally submitted.
         bytes memory messageBytes = abi.encode(message);
-        require(
-            keccak256(messageBytes) == messageHash,
-            "Invalid message hash."
-        );
+        if (keccak256(messageBytes) != messageHash) {
+            revert InvalidMessageHash();
+        }
 
         // Emit and make state variable changes before external calls when possible,
         // though this function is protected by sender reentrancy guard.
@@ -149,7 +168,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             message
         );
 
-        // Resubmit the message to the warp message precompile know that we know the exact message was
+        // Resubmit the message to the warp message precompile now that we know the exact message was
         // already submitted in the past.
         WARP_MESSENGER.sendWarpMessage(
             destinationChainID,
@@ -175,35 +194,37 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         uint256 additionalFeeAmount
     ) external senderNonReentrant {
         // The additional fee amount must be non-zero.
-        require(additionalFeeAmount > 0, "Invalid additional fee amount.");
+        if (additionalFeeAmount == 0) {
+            revert InvalidAdditionalFeeAmount();
+        }
 
         // Do not allow adding a fee asset with contract address zero.
-        require(
-            feeContractAddress != address(0),
-            "Invalid fee asset contract address."
-        );
+        if (feeContractAddress == address(0)) {
+            revert InvalidFeeAssetContractAddress();
+        }
 
         // If we have received the delivery receipt for this message, its hash and fee information
         // will be cleared from state. At this point, you can not add to its fee. This is also the
         // case if the given message never existed.
-        require(
-            sentMessageInfo[destinationChainID][messageID].messageHash !=
-                bytes32(0),
-            "Message not found or already delivered."
-        );
+        if (
+            sentMessageInfo[destinationChainID][messageID].messageHash ==
+            bytes32(0)
+        ) {
+            revert MessageAlreadyDelivered();
+        }
 
         // Check that the fee contract address matches the one that was originally used. Only a single
         // fee asset can be used to incentivize the delivery of a given message.
         // We require users to explicitly pass the same fee asset contract address here rather than just using
         // the previously submitted asset type as a defensive measure to avoid having users accidentally confuse
         // which asset they are paying.
-        require(
-            feeContractAddress ==
-                sentMessageInfo[destinationChainID][messageID]
-                    .feeInfo
-                    .contractAddress,
-            "Mismatched fee asset contract address."
-        );
+        if (
+            sentMessageInfo[destinationChainID][messageID]
+                .feeInfo
+                .contractAddress != feeContractAddress
+        ) {
+            revert InvalidFeeAssetContractAddress();
+        }
 
         // Transfer the additional fee amount to this Teleporter instance.
         uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
@@ -211,8 +232,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             additionalFeeAmount
         );
 
-        // Calculate and store the update fee amount, and emit it as an event.
-        // currentMessageInfo.feeInfo.amount += adjustedAmount;
+        // Store the updated fee amount, and emit it as an event.
         sentMessageInfo[destinationChainID][messageID]
             .feeInfo
             .amount += adjustedAmount;
@@ -243,35 +263,35 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     ) external receiverNonReentrant {
         // The relayer reward address is not allowed to be the zero address because it is how we track
         // whether or not a message has been delivered.
-        require(
-            relayerRewardAddress != address(0),
-            "Invalid relayer reward address."
-        );
+        if (relayerRewardAddress == address(0)) {
+            revert InvalidRelayerRewardAddress();
+        }
 
         // Verify and parse the cross chain message included in the transaction access list
         // using the warp message precompile.
         (WarpMessage memory warpMessage, bool success) = WARP_MESSENGER
             .getVerifiedWarpMessage();
-        require(success, "Failed to verify or parse cross chain message.");
+
+        if (!success) {
+            revert InvalidWarpMessage();
+        }
 
         // Only allow for messages to be received from the same address as this teleporter contract.
         // The contract should be deployed using the universal deployer pattern, such that it knows messages
         // received from the same address on other chains were constructed using the same bytecode of this contract.
         // This allows for trusting the message format and uniqueness as specified by sendCrossChainMessage.
-        require(
-            warpMessage.originSenderAddress == address(this),
-            "Invalid cross chain message sender address."
-        );
+        if (warpMessage.originSenderAddress != address(this)) {
+            revert InvalidOriginSenderAddress();
+        }
 
         // Require that the message was intended for this blockchain and teleporter contract.
-        require(
-            warpMessage.destinationChainID == blockchainID,
-            "Invalid destination chain ID."
-        );
-        require(
-            warpMessage.destinationAddress == address(this),
-            "Invalid destination address of cross chain message."
-        );
+        if (warpMessage.destinationChainID != blockchainID) {
+            revert InvalidDestinationChainID();
+        }
+
+        if (warpMessage.destinationAddress != address(this)) {
+            revert InvalidDestinationAddress();
+        }
 
         // Parse the payload of the message.
         TeleporterMessage memory teleporterMessage = abi.decode(
@@ -281,21 +301,23 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Check the message has not been delivered before by checking that there is no relayer reward
         // address stored for it already.
-        require(
+        if (
             relayerRewardAddresses[warpMessage.originChainID][
                 teleporterMessage.messageID
-            ] == address(0),
-            "Teleporter message previously delivered."
-        );
+            ] != address(0)
+        ) {
+            revert MessageAlreadyDelivered();
+        }
 
         // Check that the caller is allowed to deliver this message.
-        require(
-            _checkIsAllowedRelayer(
+        if (
+            !_checkIsAllowedRelayer(
                 msg.sender,
                 teleporterMessage.allowedRelayerAddresses
-            ),
-            "Unauthorized relayer."
-        );
+            )
+        ) {
+            revert UnauthorizedRelayer();
+        }
 
         // Store the relayer reward address provided, effectively marking the message as received.
         relayerRewardAddresses[warpMessage.originChainID][
@@ -363,22 +385,20 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 failedMessageHash = receivedFailedMessageHashes[originChainID][
             message.messageID
         ];
-        require(
-            failedMessageHash != bytes32(0),
-            "Message execution to retry not found."
-        );
-        require(
-            keccak256(abi.encode(message)) == failedMessageHash,
-            "Invalid payload hash to retry."
-        );
+        if (failedMessageHash == bytes32(0)) {
+            revert MessageNotFound();
+        }
+
+        if (keccak256(abi.encode(message)) != failedMessageHash) {
+            revert InvalidMessageHash();
+        }
 
         // Check that the target address has fully initialized contract code prior to calling it.
         // If the target address does not have code, the execution automatically fails because
         // we disallow calling EOA addresses.
-        require(
-            message.destinationAddress.code.length > 0,
-            "Destination address not a contract."
-        );
+        if (message.destinationAddress.code.length == 0) {
+            revert InvalidDestinationAddress();
+        }
 
         // Clear the failed message hash from state prior to retrying its execution to redundantly prevent
         // reentrance attacks (on top of the nonReentrant guard).
@@ -398,7 +418,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 (originChainID, message.senderAddress, message.message)
             )
         );
-        require(success, "Message retry execution attempt failed.");
+        if (!success) {
+            revert MessageRetryExecutionFailed();
+        }
     }
 
     /**
@@ -435,7 +457,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             address relayerRewardAddress = relayerRewardAddresses[
                 originChainID
             ][receivedMessageID];
-            require(relayerRewardAddress != address(0), "Receipt not found.");
+            if (relayerRewardAddress == address(0)) {
+                revert ReceiptNotFound();
+            }
 
             receiptsToSend[i] = TeleporterMessageReceipt({
                 receivedMessageID: receivedMessageID,
@@ -464,7 +488,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      */
     function redeemRelayerRewards(address feeAsset) external {
         uint256 rewardAmount = relayerRewardAmounts[msg.sender][feeAsset];
-        require(rewardAmount > 0, "No relayer reward to redeem.");
+        if (rewardAmount == 0) {
+            revert NoRelayerRewardToRedeem();
+        }
 
         // Zero the reward balance before calling the external ERC20 to transfer the
         // reward to prevent any possible re-entrancy.
@@ -589,10 +615,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         uint256 adjustedFeeAmount = 0;
         if (feeInfo.amount > 0) {
             // If the fee amount is non-zero, check that the contract address is not address(0)
-            require(
-                feeInfo.contractAddress != address(0),
-                "Invalid fee asset contract address."
-            );
+            if (feeInfo.contractAddress == address(0)) {
+                revert InvalidFeeAssetContractAddress();
+            }
 
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
                 IERC20(feeInfo.contractAddress),
@@ -684,10 +709,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // its execution succeeds, such that the relayer can claim their fee reward. However, if the message
         // execution fails, the message hash will be stored in state such that anyone can try to provide more
         // gas to successfully execute the message.
-        require(
-            gasleft() >= message.requiredGasLimit,
-            "Insufficient gas provided to execute message."
-        );
+        if (gasleft() < message.requiredGasLimit) {
+            revert InsufficientGas();
+        }
 
         // The destination address must have fully initialized contract code in order for the message
         // to call it. If the destination address does not have code, we store the message as a failed

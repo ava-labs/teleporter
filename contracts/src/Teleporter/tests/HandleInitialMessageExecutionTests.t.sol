@@ -19,6 +19,11 @@ contract SampleMessageReceiver is ITeleporterReceiver {
     bytes32 public latestMessageSenderSubnetID;
     address public latestMessageSenderAddress;
 
+    // Errors
+    error IntendedToFail();
+    error InvalidAction();
+    error Unauthorized();
+
     constructor(address teleporterContractAddress) {
         teleporterContract = teleporterContractAddress;
     }
@@ -28,7 +33,9 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         bytes calldata message
     ) external {
-        require(msg.sender == teleporterContract, "Unauthorized.");
+        if (msg.sender != teleporterContract) {
+            revert Unauthorized();
+        }
         // Decode the payload to recover the action and corresponding function parameters
         (SampleMessageReceiverAction action, bytes memory actionData) = abi
             .decode(message, (SampleMessageReceiverAction, bytes));
@@ -51,7 +58,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
                 messageString
             );
         } else {
-            revert("Invalid action.");
+            revert InvalidAction();
         }
     }
 
@@ -62,8 +69,13 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         string memory message,
         bool succeed
     ) internal {
-        require(msg.sender == teleporterContract, "Unauthorized.");
-        require(succeed, "Intended to fail.");
+        if (msg.sender != teleporterContract) {
+            revert Unauthorized();
+        }
+
+        if (!succeed) {
+            revert IntendedToFail();
+        }
         latestMessage = message;
         latestMessageSenderSubnetID = originChainID;
         latestMessageSenderAddress = originSenderAddress;
@@ -75,7 +87,9 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         string memory message
     ) internal {
-        require(msg.sender == teleporterContract, "Unauthorized.");
+        if (msg.sender != teleporterContract) {
+            revert Unauthorized();
+        }
         ITeleporterMessenger messenger = ITeleporterMessenger(
             teleporterContract
         );
@@ -174,7 +188,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
 
         // Receive the message.
-        vm.expectRevert("Insufficient gas provided to execute message.");
+        vm.expectRevert(TeleporterMessenger.InsufficientGas.selector);
         teleporterMessenger.receiveCrossChainMessage(
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
@@ -227,7 +241,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
-        vm.expectRevert("Message retry execution attempt failed.");
+        vm.expectRevert(TeleporterMessenger.MessageRetryExecutionFailed.selector);
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive
@@ -279,7 +293,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
-        vm.expectRevert("Message retry execution attempt failed.");
+        vm.expectRevert(TeleporterMessenger.MessageRetryExecutionFailed.selector);
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive
