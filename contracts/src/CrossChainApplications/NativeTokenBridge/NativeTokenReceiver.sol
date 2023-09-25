@@ -12,10 +12,9 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, Reentra
   address public constant WARP_PRECOMPILE_ADDRESS =
       0x0200000000000000000000000000000000000005;
 
-  uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 200_000;
+  uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 200_000; // TODO this is a placeholder
   bytes32 public immutable currentChainID;
   bytes32 public immutable partnerChainID;
-  address public immutable partnerContractAddress;
 
   // Used for sending an receiving Teleporter messages.
   ITeleporterMessenger public immutable teleporterMessenger;
@@ -29,18 +28,13 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, Reentra
   error InsufficientPayment();
   error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
 
-  constructor(address teleporterMessengerAddress, bytes32 partnerChainID_, address partnerContractAddress_) {
+  constructor(address teleporterMessengerAddress, bytes32 partnerChainID_) {
     if (teleporterMessengerAddress == address(0)) {
         revert InvalidTeleporterMessengerAddress();
     }
     teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
     currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
         .getBlockchainID();
-
-    if (partnerContractAddress_ == address(0)) {
-        revert InvalidTeleporterMessengerAddress();
-    }
-    partnerContractAddress = partnerContractAddress_;
 
     if (partnerChainID_ == currentChainID) {
         revert CannotBridgeTokenWithinSameChain();
@@ -68,7 +62,7 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, Reentra
       revert InvalidSourceChain();
     }
     // Only allow the partner contract to send messages.
-    if (nativeBridgeAddress != partnerContractAddress) {
+    if (nativeBridgeAddress != address(this)) {
       revert InvalidPartnerContractAddress();
     }
 
@@ -120,7 +114,7 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, Reentra
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationChainID: partnerChainID,
-                destinationAddress: partnerContractAddress,
+                destinationAddress: address(this),
                 feeInfo: TeleporterFeeInfo({
                     contractAddress: feeTokenContractAddress,
                     amount: feeAmount
@@ -135,7 +129,7 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, Reentra
             tokenContractAddress: feeTokenContractAddress,
             teleporterMessageID: messageID,
             destinationChainID: partnerChainID,
-            destinationBridgeAddress: partnerContractAddress,
+            destinationBridgeAddress: address(this),
             recipient: recipient,
             transferAmount: msg.value,
             feeAmount: feeAmount
