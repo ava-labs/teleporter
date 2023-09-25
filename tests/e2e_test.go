@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -40,6 +41,7 @@ import (
 
 const (
 	fundedKeyStr           = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	bridgeDeployerKeyStr   = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
 	warpGenesisFile        = "./tests/warp-genesis.json"
 	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 )
@@ -59,6 +61,9 @@ var (
 		Receipts:                []teleporter.TeleporterMessageReceipt{},
 		Message:                 []byte{1, 2, 3, 4},
 	}
+	nativeTokenBridgeContractAddress common.Address
+	nativeTokenBridgeDeployer        = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
+	nativeTokenBridgeDeployerPK      *ecdsa.PrivateKey
 	storageLocation                  = fmt.Sprintf("%s/.awm-relayer-storage", os.TempDir())
 	subnetIDs                        []ids.ID
 	subnetA, subnetB                 ids.ID
@@ -294,6 +299,43 @@ var _ = ginkgo.BeforeSuite(func() {
 		Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 	}
 	log.Info("Finished deploying Teleporter contracts")
+
+	// Deploy Native Token bridge on the two subnets
+	{
+		nativeTokenBridgeDeployerPK, err = crypto.HexToECDSA(bridgeDeployerKeyStr)
+		Expect(err).Should(BeNil())
+
+		cmd := exec.Command(
+			"forge",
+			"create",
+			"src/CrossChainApplications/NativeTokenBridge/NativeTokenMinter.sol:NativeTokenMinter",
+			"--rpc-url", chainARPCURI,
+			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
+			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainBIDInt.Bytes()))
+
+		cmd.Dir = "./contracts"
+		fmt.Println(cmd.Args)
+		// time.Sleep(10000 * time.Second)
+		output, err := cmd.Output()
+		fmt.Println(output)
+		Expect(err).Should(BeNil())
+	}
+	{
+		cmd := exec.Command(
+			"forge",
+			"create",
+			"src/CrossChainApplications/NativeTokenBridge/NativeTokenMinter.sol:NativeTokenMinter",
+			"--rpc-url", chainBRPCURI,
+			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
+			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainAIDInt.Bytes()))
+
+			
+		cmd.Dir = "./contracts"
+		output, err := cmd.Output()
+		fmt.Println(output)
+		Expect(err).Should(BeNil())
+	}
+	log.Info("Finished deploying Bridge contracts")
 
 	log.Info("Set up ginkgo before suite")
 })
