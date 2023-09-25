@@ -16,7 +16,6 @@ import (
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
-	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -28,8 +27,7 @@ const (
 	FundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
 
 	// Internal vars only used to set up the local network
-	warpGenesisFile        = "./tests/warp-genesis.json"
-	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
+	warpGenesisFile = "./tests/warp-genesis.json"
 )
 
 var (
@@ -169,15 +167,17 @@ func SetupNetwork() {
 	log.Info("Finished setting up e2e test subnet variables")
 
 	log.Info("Deploying Teleporter contract to subnets")
-	// Generate the Teleporter deployment values
-	var (
-		teleporterDeployerAddress     common.Address
-		teleporterDeployerTransaction []byte
-	)
 
-	teleporterDeployerTransaction, teleporterDeployerAddress, TeleporterContractAddress, err = deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
-	Expect(err).Should(BeNil())
+	log.Info("Set up ginkgo before suite")
+}
 
+// DeployTeleporterContract deploys the Teleporter contract to the two subnets. The caller is responsible for generating the
+// deployment transaction information
+func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Address, contractAddress common.Address) {
+	// Set the package level TeleporterContractAddress
+	TeleporterContractAddress = contractAddress
+
+	ctx := context.Background()
 	nonceA, err := ChainARPCClient.NonceAt(ctx, FundedAddress, nil)
 	Expect(err).Should(BeNil())
 
@@ -205,7 +205,7 @@ func SetupNetwork() {
 		txA := types.NewTx(&types.DynamicFeeTx{
 			ChainID:   ChainAIDInt,
 			Nonce:     nonceA,
-			To:        &teleporterDeployerAddress,
+			To:        &deployerAddress,
 			Gas:       DefaultTeleporterTransactionGas,
 			GasFeeCap: gasFeeCapA,
 			GasTipCap: gasTipCapA,
@@ -226,7 +226,7 @@ func SetupNetwork() {
 		txB := types.NewTx(&types.DynamicFeeTx{
 			ChainID:   ChainBIDInt,
 			Nonce:     nonceB,
-			To:        &teleporterDeployerAddress,
+			To:        &deployerAddress,
 			Gas:       DefaultTeleporterTransactionGas,
 			GasFeeCap: gasFeeCapB,
 			GasTipCap: gasTipCapB,
@@ -246,7 +246,7 @@ func SetupNetwork() {
 	{
 		rpcClient, err := rpc.DialContext(ctx, ChainARPCURI)
 		Expect(err).Should(BeNil())
-		err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(teleporterDeployerTransaction))
+		err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
 		Expect(err).Should(BeNil())
 		time.Sleep(5 * time.Second)
 		teleporterCode, err := ChainARPCClient.CodeAt(ctx, TeleporterContractAddress, nil)
@@ -256,7 +256,7 @@ func SetupNetwork() {
 	{
 		rpcClient, err := rpc.DialContext(ctx, ChainBRPCURI)
 		Expect(err).Should(BeNil())
-		err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(teleporterDeployerTransaction))
+		err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
 		Expect(err).Should(BeNil())
 		time.Sleep(5 * time.Second)
 		teleporterCode, err := ChainBRPCClient.CodeAt(ctx, TeleporterContractAddress, nil)
@@ -264,8 +264,6 @@ func SetupNetwork() {
 		Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 	}
 	log.Info("Finished deploying Teleporter contracts")
-
-	log.Info("Set up ginkgo before suite")
 }
 
 func TearDownNetwork() {

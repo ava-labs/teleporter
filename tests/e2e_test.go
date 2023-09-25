@@ -7,9 +7,14 @@ import (
 	"os"
 	"testing"
 
+	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
 	testUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+)
+
+const (
+	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 )
 
 func TestE2E(t *testing.T) {
@@ -21,7 +26,13 @@ func TestE2E(t *testing.T) {
 	ginkgo.RunSpecs(t, "Teleporter e2e test")
 }
 
-// Define the Teleporter before and after suite functions. The functions themselves may be called by
-// other packages to set up and tear down a set of warp-enabled subnets with Teleporter deployed.
-var _ = ginkgo.BeforeSuite(testUtils.SetupNetwork)
+// Define the Teleporter before and after suite functions.
+var _ = ginkgo.BeforeSuite(func() {
+	testUtils.SetupNetwork()
+	// Generate the Teleporter deployment values
+	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
+	Expect(err).Should(BeNil())
+
+	testUtils.DeployTeleporterContract(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
+})
 var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)
