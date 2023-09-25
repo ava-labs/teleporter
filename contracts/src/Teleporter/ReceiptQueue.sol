@@ -11,7 +11,7 @@ import "./ITeleporterMessenger.sol";
 uint256 constant MAXIMUM_RECEIPT_COUNT = 5;
 
 /**
- * @dev ReceiptQueue is a convenience contract that creates a queue-like interface of
+ * @dev ReceiptQueue is a convenience library that creates a queue-like interface of
  * TeleporterMessageReceipt structs. It provides FIFO properties.
  */
 library ReceiptQueue {
@@ -38,15 +38,10 @@ library ReceiptQueue {
     );
 
     // Errors
-    error Unauthorized();
     error EmptyQueue();
 
     /**
      * @dev Adds a receipt to the queue.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be the owner.
      */
     function enqueue(
         TeleporterMessageReceiptQueue storage queue,
@@ -61,8 +56,6 @@ library ReceiptQueue {
      * @dev Removes the oldest open receipt from the queue.
      *
      * Requirements:
-     *
-     * - `msg.sender` must be the owner.
      * - The queue must be non-empty.
      */
     function dequeue(
@@ -90,7 +83,7 @@ library ReceiptQueue {
         returns (TeleporterMessageReceipt[] memory result)
     {
         // Get the current outstanding receipts for the given chain ID.
-        // If the queue contract doesn't exist, there are not outstanding receipts to send.
+        // If the queue contract doesn't exist, there are no outstanding receipts to send.
         uint256 outstandingReceiptsSize = size(queue);
         if (outstandingReceiptsSize == 0) {
             return new TeleporterMessageReceipt[](0);
