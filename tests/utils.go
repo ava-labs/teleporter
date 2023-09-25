@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/params"
@@ -27,6 +28,12 @@ var (
 	defaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
 	defaultTeleporterTransactionValue            = common.Big0
 )
+
+type SendCrossChainMessageEvent struct {
+	DestinationChainID ids.ID
+	MessageID          *big.Int
+	Message            teleporter.TeleporterMessage
+}
 
 // Teleporter contract sendCrossChainMessage input type
 type TeleporterMessageInput struct {
