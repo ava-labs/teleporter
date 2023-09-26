@@ -30,7 +30,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: 42,
+            messageID: 1,
             senderAddress: address(this),
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -50,6 +50,20 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         teleporterMessenger.receiveCrossChainMessage(
             DEFAULT_RELAYER_REWARD_ADDRESS,
             0
+        );
+
+        // Receive at a different index
+        messageToReceive.messageID = 2;
+        warpMessage = _createDefaultWarpMessage(
+            DEFAULT_ORIGIN_CHAIN_ID,
+            abi.encode(messageToReceive)
+        );
+        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 3);
+
+        // Receive the message.
+        teleporterMessenger.receiveCrossChainMessage(
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            3
         );
     }
 
@@ -75,6 +89,20 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         vm.expectRevert(TeleporterMessenger.InvalidWarpMessage.selector);
         teleporterMessenger.receiveCrossChainMessage(address(1), 0);
+
+        // Receive invalid message at index 3
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (3)),
+            abi.encode(emptyMessage, false)
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (3))
+        );
+
+        vm.expectRevert(TeleporterMessenger.InvalidWarpMessage.selector);
+        teleporterMessenger.receiveCrossChainMessage(address(1), 3);
     }
 
     function testInvalidOriginSenderAddress() public {
