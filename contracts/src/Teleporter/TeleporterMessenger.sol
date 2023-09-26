@@ -221,7 +221,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         if (
             sentMessageInfo[destinationChainID][messageID]
                 .feeInfo
-                .contractAddress != feeContractAddress
+                .contractAddress !=
+            feeContractAddress
         ) {
             revert InvalidFeeAssetContractAddress();
         }
