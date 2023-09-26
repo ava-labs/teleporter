@@ -45,8 +45,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         0x0200000000000000000000000000000000000005;
     bytes32 public immutable currentChainID;
 
-    // Used for sending an receiving Teleporter messages.
-    ITeleporterMessenger public teleporterMessenger;
+    // Used for sending and receiving Teleporter messages.
     TeleporterRegistry public immutable teleporterRegistry;
     uint256 private minTeleporterVersion;
 
@@ -90,7 +89,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     error InvalidBridgeTokenAddress();
     error InvalidDestinationBridgeAddress();
     error InvalidRecipientAddress();
-    error InvalidTeleporterMessengerAddress();
+    error InvalidTeleporterRegistryAddress();
     error Unauthorized();
 
     /**
@@ -99,7 +98,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
      */
     constructor(address teleporterRegistryAddress) {
         if (teleporterRegistryAddress == address(0)) {
-            revert InvalidTeleporterMessengerAddress();
+            revert InvalidTeleporterRegistryAddress();
         }
 
         teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
@@ -225,6 +224,8 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         if (destinationBridgeAddress == address(0)) {
             revert InvalidDestinationBridgeAddress();
         }
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry
+            .getLatestTeleporter();
 
         // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
         // allow the Teleporter contract to spend it.
@@ -484,11 +485,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         address recipient,
         uint256 amount
     ) private nonReentrant {
-        // Only allow the Teleporter messenger to deliver messages.
-        if (msg.sender != address(teleporterMessenger)) {
-            revert Unauthorized();
-        }
-
         // The recipient cannot be the zero address.
         if (recipient == address(0)) {
             revert InvalidRecipientAddress();
@@ -524,11 +520,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         uint256 totalAmount,
         uint256 secondaryFeeAmount
     ) private nonReentrant {
-        // Only allow the teleporter messenger to deliver messages.
-        if (msg.sender != address(teleporterMessenger)) {
-            revert Unauthorized();
-        }
-
         // Neither the recipient nor the destination bridge can be the zero address.
         if (recipient == address(0)) {
             revert InvalidRecipientAddress();
@@ -611,6 +602,8 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         if (destinationChainID == currentChainID) {
             revert CannotBridgeTokenWithinSameChain();
         }
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry
+            .getLatestTeleporter();
 
         // Allow the Teleporter messenger to spend the fee amount.
         if (feeAmount > 0) {
@@ -667,6 +660,9 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     function _processWrappedTokenTransfer(
         WrappedTokenTransferInfo memory wrappedTransferInfo
     ) private {
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry
+            .getLatestTeleporter();
+
         // If necessary, transfer the primary fee amount to this contract and approve the
         // Teleporter messenger to spend it when the first message back to the native subnet
         // is submitted. The secondary fee amount is then handled by the native subnet when
