@@ -39,12 +39,12 @@ jobs:
           submodules: recursive
 
       - name: Install Forge
-      # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
-      run: |
-        BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
-        curl -L https://foundry.paradigm.xyz | bash
-        source $HOME/.bashrc
-        $BASE_DIR/.foundry/bin/foundryup
+        # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
+        run: |
+          BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
+          curl -L https://foundry.paradigm.xyz | bash
+          source $HOME/.bashrc
+          $BASE_DIR/.foundry/bin/foundryup
 
       - name: Create ABI Go bindings
         run: |
