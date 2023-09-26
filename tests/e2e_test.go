@@ -36,4 +36,5 @@ var _ = ginkgo.BeforeSuite(func() {
 
 	testUtils.DeployTeleporterContract(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
 })
+
 var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)

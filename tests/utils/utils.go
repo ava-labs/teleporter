@@ -35,6 +35,12 @@ type SendCrossChainMessageEvent struct {
 	Message            teleporter.TeleporterMessage
 }
 
+type ReceiveCrossChainMessageEvent struct {
+	OriginChainID ids.ID
+	MessageID     *big.Int
+	Message       teleporter.TeleporterMessage
+}
+
 // Teleporter contract sendCrossChainMessage input type
 type TeleporterMessageInput struct {
 	DestinationChainID      ids.ID
