@@ -2,8 +2,6 @@
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
 
-# set -e
-
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
@@ -12,7 +10,7 @@ TELEPORTER_PATH=$(
 BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
 if ! command -v forge &> /dev/null; then
     echo "forge not found, installing"
-    curl -L https://foundry.paradigm.xyz | bash &&
+    curl -L https://foundry.paradigm.xyz | bash
     source $HOME/.bashrc
     $BASE_DIR/.foundry/bin/foundryup
 fi
