@@ -322,7 +322,7 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 
 		data, err := teleporter.EVMTeleporterContractABI.Pack(
 			"sendCrossChainMessage",
-			TeleporterMessageInput{
+			SendCrossChainMessageInput{
 				DestinationChainID: blockchainIDB,
 				DestinationAddress: fundedAddress,
 				FeeInfo: FeeInfo{

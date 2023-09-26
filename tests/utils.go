@@ -36,7 +36,7 @@ type SendCrossChainMessageEvent struct {
 }
 
 // Teleporter contract sendCrossChainMessage input type
-type TeleporterMessageInput struct {
+type SendCrossChainMessageInput struct {
 	DestinationChainID      ids.ID
 	DestinationAddress      common.Address
 	FeeInfo                 FeeInfo
