@@ -197,4 +197,6 @@ func constructAndSendTransaction(
 	log.Info("Sending transaction to destination chain")
 	err = client.SendTransaction(context.Background(), signedTx)
 	Expect(err).Should(BeNil())
+
+	return signedTx
 }
