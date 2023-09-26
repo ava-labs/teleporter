@@ -47,8 +47,8 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
 
     // Used for sending an receiving Teleporter messages.
     ITeleporterMessenger public teleporterMessenger;
-    TeleporterReigstry public immutable teleporterRegistry;
-    uint256 public constant TELEPORTER_VERSION;
+    TeleporterRegistry public immutable teleporterRegistry;
+    uint256 private minTeleporterVersion;
 
     // Tracks which bridge tokens have been submitted to be created other bridge instances.
     // (destinationChainID, destinationBridgeAddress) -> nativeTokenContract -> tokenCreationSubmitted
@@ -97,22 +97,14 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
      * @dev Initializes the Teleporter messenger used for sending and receiving messages,
      * and initializes the current chain ID.
      */
-    constructor(address teleporterMessengerAddress) {
-        if (teleporterMessengerAddress == address(0)) {
+    constructor(address teleporterRegistryAddress) {
+        if (teleporterRegistryAddress == address(0)) {
             revert InvalidTeleporterMessengerAddress();
         }
 
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
+        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
         currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
-    }
-
-    function setTeleporterVersion(uint256 version) external {
-        teleporterMessenger = teleporterRegistry.getTeleporterVersion(version);
-    }
-
-    function setAllowedTeleporterVersions(uint256[] versions) external {
-        teleporterRegistry.setAllowedVersions(versions);
     }
 
     /**
@@ -283,6 +275,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         );
     }
 
+    function updateMinTeleporterVersion() external {
+        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+    }
+
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
      *
@@ -294,7 +290,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         bytes calldata message
     ) external {
         // Only allow the Teleporter messenger to deliver messages.
-        if (msg.sender != address(teleporterMessenger)) {
+        if (
+            teleporterRegistry.getAddressToVersion(msg.sender) <
+            minTeleporterVersion
+        ) {
             revert Unauthorized();
         }
 
