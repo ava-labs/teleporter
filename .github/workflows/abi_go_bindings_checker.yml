@@ -38,7 +38,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Check ABI Go bindings
+      - name: Generate ABI Go bindings
         run: |
+          BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
+          curl -L https://foundry.paradigm.xyz | bash
+          source $HOME/.bashrc
+          $BASE_DIR/.foundry/bin/foundryup
           ./scripts/abi_go_bindings.sh
+
+      - name: Check for clean branch
           .github/workflows/check_clean_branch.sh

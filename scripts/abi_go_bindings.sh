@@ -9,16 +9,17 @@ TELEPORTER_PATH=$(
   cd .. && pwd
 )
 
+BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
 if ! command -v forge &> /dev/null; then
     echo "forge not found, installing"
     curl -L https://foundry.paradigm.xyz | bash &&
     source $HOME/.bashrc
-    $HOME/.foundry/bin/foundryup
+    $BASE_DIR/.foundry/bin/foundryup
 fi
 
 echo "Building Contracts"
 cd $TELEPORTER_PATH/contracts
-$HOME/.foundry/bin/forge build
+$BASE_DIR/.foundry/bin/forge build
 python3 -c "import json; json.dump(json.load(open('out/TeleporterMessenger.sol/TeleporterMessenger.json'))['abi'], open('$TELEPORTER_PATH/abis/TeleporterMessenger.json', 'w'), indent=4)"
 
 echo "Generating TeleporterMessenger Go bindings"
