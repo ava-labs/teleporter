@@ -126,21 +126,24 @@ func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byt
 
 	log.Println("Raw Teleporter Contract Creation Transaction:")
 	log.Println(contractCreationTxString)
-	err = os.WriteFile(contractCreationTxFileName, []byte(contractCreationTxString), fs.ModePerm)
-	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract creation tx file")
-	}
-
 	log.Println("Teleporter Contract Keyless Deployer Address: ", senderAddressString)
-	err = os.WriteFile(contractCreationAddrFileName, []byte(senderAddressString), fs.ModePerm)
-	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to deployer address file")
-	}
-
 	log.Println("Teleporter Messenger Universal Contract Address: ", contractAddressString)
-	err = os.WriteFile(universalContractAddressFileName, []byte(contractAddressString), fs.ModePerm)
-	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract address")
+
+	if writeFile {
+		err = os.WriteFile(contractCreationTxFileName, []byte(contractCreationTxString), fs.ModePerm)
+		if err != nil {
+			return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract creation tx file")
+		}
+
+		err = os.WriteFile(contractCreationAddrFileName, []byte(senderAddressString), fs.ModePerm)
+		if err != nil {
+			return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to deployer address file")
+		}
+
+		err = os.WriteFile(universalContractAddressFileName, []byte(contractAddressString), fs.ModePerm)
+		if err != nil {
+			return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract address")
+		}
 	}
 	return contractCreationTxBytes, senderAddress, contractAddress, nil
 }
