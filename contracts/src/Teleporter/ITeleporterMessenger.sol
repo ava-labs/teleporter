@@ -125,12 +125,12 @@ interface ITeleporterMessenger {
     /**
      * @dev Receives a cross chain message, and marks the `relayerRewardAddress` for fee reward for a successful delivery.
      *
-     * The message specified by `index` must be provided in the access list storage slots of the transaction,
+     * The message specified by `messageIndex` must be provided in the access list storage slots of the transaction,
      * and is verified in the precompile predicate.
      */
     function receiveCrossChainMessage(
-        address relayerRewardAddress,
-        uint32 index
+        uint32 messageIndex,
+        address relayerRewardAddress
     ) external;
 
     /**

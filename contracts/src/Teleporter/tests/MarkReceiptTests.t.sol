@@ -76,13 +76,13 @@ contract MarkReceiptTest is TeleporterMessengerTest {
             abi.encode(messageToReceive)
         );
 
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x93753a9eA4C9D6eeed9f64eA92E97ce1f5FBAeDe;
         teleporterMessenger.receiveCrossChainMessage(
-            expectedRelayerRewardAddress,
-            0
+            0,
+            expectedRelayerRewardAddress
         );
 
         // Check that the relayers have redeemable balances
@@ -145,13 +145,13 @@ contract MarkReceiptTest is TeleporterMessengerTest {
             abi.encode(messageToReceive)
         );
 
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x2F20537C2F5c57231866DE9D0CE33d0681a200D4;
         teleporterMessenger.receiveCrossChainMessage(
-            expectedRelayerRewardAddress,
-            0
+            0,
+            expectedRelayerRewardAddress
         );
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
@@ -204,13 +204,13 @@ contract MarkReceiptTest is TeleporterMessengerTest {
             abi.encode(messageToReceive)
         );
 
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x6DAEF0D63ea44C801b655Fd97fe3804B9bFCC097;
         teleporterMessenger.receiveCrossChainMessage(
-            expectedRelayerRewardAddress,
-            0
+            0,
+            expectedRelayerRewardAddress
         );
 
         // Check that the relayer redeemable balances was only added once.

@@ -131,8 +131,8 @@ contract TeleporterMessengerTest is Test {
     }
 
     function _setUpSuccessGetVerifiedWarpMessageMock(
-        WarpMessage memory warpMessage,
-        uint32 index
+        uint32 index,
+        WarpMessage memory warpMessage
     ) internal {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -167,10 +167,10 @@ contract TeleporterMessengerTest is Test {
         );
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
-        teleporterMessenger.receiveCrossChainMessage(relayerRewardAddress, 0);
+        teleporterMessenger.receiveCrossChainMessage(0, relayerRewardAddress);
     }
 
     function _receiveMessageSentToEOA()
@@ -194,7 +194,7 @@ contract TeleporterMessengerTest is Test {
         );
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage, 0);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Mock there being no code at the destination address which will be called
         // when the message is executed. This mimics the default destination address being an EOA.
@@ -208,8 +208,8 @@ contract TeleporterMessengerTest is Test {
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
-            DEFAULT_RELAYER_REWARD_ADDRESS,
-            0
+            0,
+            DEFAULT_RELAYER_REWARD_ADDRESS
         );
 
         return (
