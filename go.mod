@@ -10,7 +10,6 @@ require (
 require (
 	github.com/ava-labs/avalanche-network-runner v1.7.2-0.20230825150237-723bc7b31724
 	github.com/ava-labs/awm-relayer v0.2.1-0.20230920145222-b8571020bdaa
-	github.com/ava-labs/coreth v0.12.5-rc.3
 	github.com/ava-labs/subnet-evm v0.5.4
 	github.com/ethereum/go-ethereum v1.12.0
 	github.com/onsi/ginkgo/v2 v2.12.0
@@ -23,6 +22,7 @@ require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.10.0 // indirect
+	github.com/ava-labs/coreth v0.12.5-rc.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.3 // indirect
