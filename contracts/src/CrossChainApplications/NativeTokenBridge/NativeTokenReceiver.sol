@@ -8,7 +8,7 @@ import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
 
-contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, ReentrancyGuard {
+contract NativeTokenReceiver is ITeleporterReceiver, INativeTokenReceiver, ReentrancyGuard {
   address public constant WARP_PRECOMPILE_ADDRESS =
       0x0200000000000000000000000000000000000005;
 
