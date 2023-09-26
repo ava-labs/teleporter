@@ -103,14 +103,16 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, Reentranc
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
-        uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
-            IERC20(feeTokenContractAddress),
-            feeAmount
-        );
+        if (feeAmount > 0) {
+          uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
+              IERC20(feeTokenContractAddress),
+              feeAmount
+          );
 
-        // Ensure that the adjusted amount is greater than the fee to be paid.
-        if (adjustedAmount <= feeAmount) {
-            revert InsufficientAdjustedAmount(adjustedAmount, feeAmount);
+          // Ensure that the adjusted amount is greater than the fee to be paid.
+          if (adjustedAmount <= feeAmount) {
+              revert InsufficientAdjustedAmount(adjustedAmount, feeAmount);
+          }
         }
 
         // Burn native token by sending to BLACKHOLE_ADDRESS

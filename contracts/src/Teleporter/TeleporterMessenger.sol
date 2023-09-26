@@ -233,6 +233,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         );
 
         // Store the updated fee amount, and emit it as an event.
+        // currentMessageInfo.feeInfo.amount += adjustedAmount;
         sentMessageInfo[destinationChainID][messageID]
             .feeInfo
             .amount += adjustedAmount;
