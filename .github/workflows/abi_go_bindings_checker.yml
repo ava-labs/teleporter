@@ -1,6 +1,3 @@
-# Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
-# See the file LICENSE for licensing terms.
-
 name: ABI Go Binding
 
 on:
@@ -38,8 +35,18 @@ jobs:
 
       - name: Checkout Teleporter repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Forge
+      # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
+      run: |
+        BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
+        curl -L https://foundry.paradigm.xyz | bash
+        source $HOME/.bashrc
+        $BASE_DIR/.foundry/bin/foundryup
 
       - name: Create ABI Go bindings
         run: |
-          mkdir -p abis/go/teleport-messenger
-          abigen --abi abis/TeleporterMessenger.json --pkg teleport_messenger --out abis/go/teleport-messenger/teleport_messenger.go
+          ./scripts/abi_go_bindings.sh
+          .github/workflows/check_clean_branch.sh
