@@ -12,13 +12,17 @@ import (
 	"strings"
 
 	"github.com/ava-labs/avalanchego/ids"
+	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/params"
 	"github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
+	predicateutils "github.com/ava-labs/subnet-evm/utils/predicate"
+	"github.com/ava-labs/subnet-evm/x/warp"
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
@@ -132,4 +136,65 @@ func waitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 			}
 		}
 	}
+}
+
+// Constructs and sends a transaction containing a warp message for the destination chain.
+// Returns the signed transaction.
+func constructAndSendTransaction(
+	ctx context.Context,
+	warpMessageBytes []byte,
+	teleporterMessage teleporter.TeleporterMessage,
+	teleporterContractAddress common.Address,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	client ethclient.Client,
+	chainID *big.Int,
+) *types.Transaction {
+	// Construct the transaction to send the Warp message to the destination chain
+	log.Info("Constructing transaction for the destination chain")
+	signedMessage, err := avalancheWarp.ParseMessage(warpMessageBytes)
+	Expect(err).Should(BeNil())
+
+	numSigners, err := signedMessage.Signature.NumSigners()
+	Expect(err).Should(BeNil())
+
+	gasLimit, err := teleporter.CalculateReceiveMessageGasLimit(numSigners, teleporterMessage.RequiredGasLimit)
+	Expect(err).Should(BeNil())
+
+	callData, err := teleporter.EVMTeleporterContractABI.Pack("receiveCrossChainMessage", fundedAddress)
+	Expect(err).Should(BeNil())
+
+	baseFee, err := client.EstimateBaseFee(ctx)
+	Expect(err).Should(BeNil())
+
+	gasTipCap, err := client.SuggestGasTipCap(ctx)
+	Expect(err).Should(BeNil())
+
+	nonce, err := client.NonceAt(ctx, fundedAddress, nil)
+	Expect(err).Should(BeNil())
+
+	gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))
+	gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
+	destinationTx := predicateutils.NewPredicateTx(
+		chainID,
+		nonce,
+		&teleporterContractAddress,
+		gasLimit,
+		gasFeeCap,
+		gasTipCap,
+		big.NewInt(0),
+		callData,
+		types.AccessList{},
+		warp.ContractAddress,
+		signedMessage.Bytes(),
+	)
+
+	// Sign and send the transaction on the destination chain
+	signer := types.LatestSignerForChainID(chainID)
+	signedTx, err := types.SignTx(destinationTx, signer, fundedKey)
+	Expect(err).Should(BeNil())
+
+	log.Info("Sending transaction to destination chain")
+	err = client.SendTransaction(context.Background(), signedTx)
+	Expect(err).Should(BeNil())
 }

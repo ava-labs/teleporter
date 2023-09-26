@@ -24,7 +24,6 @@ import (
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
-	predicateutils "github.com/ava-labs/subnet-evm/utils/predicate"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
 
@@ -398,53 +397,16 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
 		Expect(err).Should(BeNil())
 
-		// Construct the transaction to send the Warp message to the destination chain
-		log.Info("Constructing transaction for the destination chain")
-		signedMessage, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
-		Expect(err).Should(BeNil())
-
-		numSigners, err := signedMessage.Signature.NumSigners()
-		Expect(err).Should(BeNil())
-
-		gasLimit, err := teleporter.CalculateReceiveMessageGasLimit(numSigners, teleporterMessage.RequiredGasLimit)
-		Expect(err).Should(BeNil())
-
-		callData, err := teleporter.EVMTeleporterContractABI.Pack("receiveCrossChainMessage", fundedAddress)
-		Expect(err).Should(BeNil())
-
-		baseFee, err := chainBRPCClient.EstimateBaseFee(ctx)
-		Expect(err).Should(BeNil())
-
-		gasTipCap, err := chainBRPCClient.SuggestGasTipCap(ctx)
-		Expect(err).Should(BeNil())
-
-		nonce, err := chainBRPCClient.NonceAt(ctx, fundedAddress, nil)
-		Expect(err).Should(BeNil())
-
-		gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))
-		gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
-		destinationTx := predicateutils.NewPredicateTx(
+		signedTxB := constructAndSendTransaction(
+			ctx,
+			signedWarpMessageBytes,
+			teleporterMessage,
+			teleporterContractAddress,
+			fundedAddress,
+			fundedKey,
+			chainBRPCClient,
 			chainBIDInt,
-			nonce,
-			&teleporterContractAddress,
-			gasLimit,
-			gasFeeCap,
-			gasTipCap,
-			big.NewInt(0),
-			callData,
-			types.AccessList{},
-			warp.ContractAddress,
-			signedMessage.Bytes(),
 		)
-
-		// Sign and send the transaction on the destination chain
-		signer := types.LatestSignerForChainID(chainBIDInt)
-		signedTxB, err := types.SignTx(destinationTx, signer, fundedKey)
-		Expect(err).Should(BeNil())
-
-		log.Info("Sending transaction to destination chain")
-		err = chainBRPCClient.SendTransaction(context.Background(), signedTxB)
-		Expect(err).Should(BeNil())
 
 		// Sleep to ensure the new block is published to the subscriber
 		time.Sleep(5 * time.Second)
