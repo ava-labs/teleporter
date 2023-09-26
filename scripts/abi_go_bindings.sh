@@ -13,12 +13,12 @@ if ! command -v forge &> /dev/null; then
     echo "forge not found, installing"
     curl -L https://foundry.paradigm.xyz | bash &&
     source $HOME/.bashrc
-    foundryup
+    $HOME/.foundry/bin/foundryup
 fi
 
 echo "Building Contracts"
 cd $TELEPORTER_PATH/contracts
-forge build
+$HOME/.foundry/bin/forge build
 python3 -c "import json; json.dump(json.load(open('out/TeleporterMessenger.sol/TeleporterMessenger.json'))['abi'], open('$TELEPORTER_PATH/abis/TeleporterMessenger.json', 'w'), indent=4)"
 
 echo "Generating TeleporterMessenger Go bindings"
