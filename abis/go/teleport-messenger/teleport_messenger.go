@@ -16,10 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 )
 
-
-
-// TeleportMessengerABI is the input ABI used to generate the binding from.
-
 // Reference imports to suppress errors if they are not otherwise used.
 var (
 	_ = errors.New
