@@ -2,12 +2,19 @@
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
 
-set -e
+# set -e
 
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
+
+if ! command -v forge &> /dev/null; then
+    echo "forge not found, installing"
+    curl -L https://foundry.paradigm.xyz | bash &&
+    source $HOME/.bashrc
+    foundryup
+fi
 
 echo "Building Contracts"
 cd $TELEPORTER_PATH/contracts
