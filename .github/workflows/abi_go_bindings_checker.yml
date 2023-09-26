@@ -47,4 +47,4 @@ jobs:
           ./scripts/abi_go_bindings.sh
 
       - name: Check for clean branch
-          .github/workflows/check_clean_branch.sh
+        run: .github/workflows/check_clean_branch.sh
