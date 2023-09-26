@@ -168,7 +168,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             message
         );
 
-        // Resubmit the message to the warp message precompile now that we know the exact message was
+        // Resubmit the message to the warp message precompile know that we know the exact message was
         // already submitted in the past.
         WARP_MESSENGER.sendWarpMessage(
             destinationChainID,
@@ -232,7 +232,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             additionalFeeAmount
         );
 
-        // Store the updated fee amount, and emit it as an event.
+        // Calculate and store the update fee amount, and emit it as an event.
         // currentMessageInfo.feeInfo.amount += adjustedAmount;
         sentMessageInfo[destinationChainID][messageID]
             .feeInfo
