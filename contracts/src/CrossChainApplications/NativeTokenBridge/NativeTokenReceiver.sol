@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.18;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import "./INativeTokenReceiver.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract NativeTokenMinter is ITeleporterReceiver, INativeTokenReceiver, ReentrancyGuard {
   address public constant WARP_PRECOMPILE_ADDRESS =
