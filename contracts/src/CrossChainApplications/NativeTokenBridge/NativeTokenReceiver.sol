@@ -22,6 +22,7 @@ contract NativeTokenReceiver is ITeleporterReceiver, INativeTokenReceiver, Reent
   error InvalidTeleporterMessengerAddress();
   error InvalidRecipientAddress();
   error InvalidSourceChain();
+  error InvalidRecipient();
   error InvalidPartnerContractAddress();
   error CannotBridgeTokenWithinSameChain();
   error Unauthorized();
@@ -51,7 +52,7 @@ contract NativeTokenReceiver is ITeleporterReceiver, INativeTokenReceiver, Reent
     bytes32 nativeChainID,
     address nativeBridgeAddress,
     bytes calldata message
-  ) external nonReentrant() {
+  ) external nonReentrant {
 
     // Only allow the Teleporter messenger to deliver messages.
     if (msg.sender != address(teleporterMessenger)) {
@@ -67,6 +68,9 @@ contract NativeTokenReceiver is ITeleporterReceiver, INativeTokenReceiver, Reent
     }
 
     (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
+    if (address == address(0)) {
+      revert InvalidRecipient();
+    }
 
     // TODO set up starting threshold.
 

@@ -16,7 +16,7 @@ address constant MINTER_ADDRESS = 0x0200000000000000000000000000000000000001;
 address constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000000;
 
 contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, ReentrancyGuard {
-  INativeMinter private _nativeMinter = INativeMinter(MINTER_ADDRESS);
+  INativeMinter private immutable _nativeMinter = INativeMinter(MINTER_ADDRESS);
 
   address public constant WARP_PRECOMPILE_ADDRESS =
       0x0200000000000000000000000000000000000005;
