@@ -253,7 +253,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * Requirements:
      *
      * - `relayerRewardAddress` must not be the zero address.
-     * - `index` must specify a valid warp message in transaction's storage slots.
+     * - `index` must specify a valid warp message in the transaction's storage slots.
      * - Valid warp message provided in storage slots, and sender address matches the address of this contract.
      * - Warp message `destinationChainID` must match the `blockchainID` of this contract.
      * - Warp message `destinationAddress` must match the address of this contract.
