@@ -141,8 +141,8 @@ var _ = ginkgo.BeforeSuite(func() {
 	// Issue transactions to activate the proposerVM fork on the chains
 	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
-	setUpProposerVm(ctx, fundedKey, manager, 0)
-	setUpProposerVm(ctx, fundedKey, manager, 1)
+	setUpProposerVM(ctx, fundedKey, manager, 0)
+	setUpProposerVM(ctx, fundedKey, manager, 1)
 
 	// Set up subnet URIs
 	subnetIDs = manager.GetSubnets()
@@ -389,22 +389,7 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		// Loop over each client on chain A to ensure they all have time to accept the block.
 		// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
 		// has accepted the block.
-		for i, uri := range chainANodeURIs {
-			chainAWSURI := httpToWebsocketURI(uri, blockchainIDA.String())
-			log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI)
-			client, err := ethclient.Dial(chainAWSURI)
-			Expect(err).Should(BeNil())
-
-			// Loop until each node has advanced to >= the height of the block that emitted the warp log
-			for {
-				block, err := client.BlockByNumber(ctx, nil)
-				Expect(err).Should(BeNil())
-				if block.NumberU64() >= newHeadA.Number.Uint64() {
-					log.Info("client accepted the block containing SendWarpMessage", "client", i, "height", block.NumberU64())
-					break
-				}
-			}
-		}
+		waitForAllValidatorsToAcceptBlock(ctx, chainANodeURIs, blockchainIDA, newHeadA.Number.Uint64())
 
 		// Get the aggregate signature for the Warp message
 		log.Info("Fetching aggregate signature from the source chain validators")

@@ -19,6 +19,7 @@ import (
 	"github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
@@ -95,7 +96,8 @@ func newTestTeleporterTransaction(chainIDInt *big.Int, teleporterAddress common.
 	})
 }
 
-func setUpProposerVm(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
+// Issues txs to activate the proposer VM fork on the specified subnet index in the manager
+func setUpProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
 	subnet := manager.GetSubnets()[index]
 	subnetDetails, ok := manager.GetSubnet(subnet)
 	Expect(ok).Should(BeTrue())
@@ -110,4 +112,24 @@ func setUpProposerVm(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *
 
 	err = utils.IssueTxsToActivateProposerVMFork(ctx, chainIDInt, fundedKey, client)
 	Expect(err).Should(BeNil())
+}
+
+// Blocks until all validators specified in nodeURIs have reached the specified block height
+func waitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, blockchainID ids.ID, height uint64) {
+	for i, uri := range nodeURIs {
+		chainAWSURI := httpToWebsocketURI(uri, blockchainID.String())
+		log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI)
+		client, err := ethclient.Dial(chainAWSURI)
+		Expect(err).Should(BeNil())
+
+		// Loop until each node has advanced to >= the height of the block that emitted the warp log
+		for {
+			block, err := client.BlockByNumber(ctx, nil)
+			Expect(err).Should(BeNil())
+			if block.NumberU64() >= height {
+				log.Info("client accepted the block containing SendWarpMessage", "client", i, "height", block.NumberU64())
+				break
+			}
+		}
+	}
 }
