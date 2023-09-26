@@ -21,8 +21,7 @@ abstract contract WarpProtocolRegistry {
 
     uint256 internal _latestVersion;
 
-    mapping(uint256 version => address) internal _versionToAddress;
-    mapping(address => uint256 version) internal _addressToVersion;
+    mapping(uint256 => address) internal _versionToAddress;
 
     // Errors
     error InvalidWarpMessage();
@@ -46,12 +45,6 @@ abstract contract WarpProtocolRegistry {
         uint256 version
     ) external view returns (address) {
         return _getVersionToAddress(version);
-    }
-
-    function getAddressToVersion(
-        address protocolAddress
-    ) external view returns (uint256) {
-        return _getAddressToVersion(protocolAddress);
     }
 
     function getLatestVersion() external view returns (uint256) {
@@ -91,7 +84,6 @@ abstract contract WarpProtocolRegistry {
 
         _latestVersion++;
         _versionToAddress[_latestVersion] = protocolAddress;
-        _addressToVersion[protocolAddress] = _latestVersion;
     }
 
     function _getVersionToAddress(
@@ -101,14 +93,5 @@ abstract contract WarpProtocolRegistry {
             revert InvalidProtocolVersion();
         }
         return _versionToAddress[version];
-    }
-
-    function _getAddressToVersion(
-        address protocolAddress
-    ) internal view virtual returns (uint256) {
-        if (_addressToVersion[protocolAddress] == 0) {
-            revert InvalidProtocolAddress();
-        }
-        return _addressToVersion[protocolAddress];
     }
 }
