@@ -68,7 +68,7 @@ contract NativeTokenReceiver is ITeleporterReceiver, INativeTokenReceiver, Reent
     }
 
     (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
-    if (address == address(0)) {
+    if (recipient == address(0)) {
       revert InvalidRecipient();
     }
 
