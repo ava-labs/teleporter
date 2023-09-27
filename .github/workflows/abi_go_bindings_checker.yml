@@ -1,4 +1,4 @@
-name: ABI Go Binding
+name: ABI Go Bindings Checker
 
 on:
   push:
