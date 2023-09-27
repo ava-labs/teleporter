@@ -15,8 +15,10 @@ import "./BlockHashReceiver.sol";
  */
 contract BlockHashPublisher {
     TeleporterRegistry public immutable teleporterRegistry;
-    uint256 private immutable _minTeleporterVersion;
+    uint256 internal _minTeleporterVersion;
     uint256 public constant RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT = 1.5e5;
+
+    error InvalidTeleporterRegistryAddress();
 
     /**
      * @dev Emitted when a block hash is submitted to be published to another chain.

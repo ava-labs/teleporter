@@ -14,7 +14,7 @@ import "../../Teleporter/TeleporterRegistry.sol";
  */
 contract BlockHashReceiver is ITeleporterReceiver {
     TeleporterRegistry public immutable teleporterRegistry;
-    uint256 private immutable _minTeleporterVersion;
+    uint256 internal _minTeleporterVersion;
 
     // Source chain information
     bytes32 public immutable sourceChainID;

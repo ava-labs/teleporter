@@ -39,19 +39,31 @@ abstract contract WarpProtocolRegistry {
 
     // Errors
     error InvalidWarpMessage();
-    error InvalidOriginChainID();
+    error InvalidSourceChainID();
     error InvalidOriginSenderAddress();
     error InvalidDestinationChainID();
     error InvalidDestinationAddress();
     error InvalidProtocolAddress();
     error InvalidProtocolVersion();
+    error InvalidRegistryInitialization();
 
     /**
      * @dev Initializes the contract by setting a `chainID` and `latestVersion`.
      */
-    constructor() {
+    constructor(
+        uint256[] memory initialVersions,
+        address[] memory initialProtocolAddresses
+    ) {
         _latestVersion = 0;
         _chainID = WARP_MESSENGER.getBlockchainID();
+        uint256 _numVersions = initialVersions.length;
+        if (initialProtocolAddresses.length != _numVersions) {
+            revert InvalidRegistryInitialization();
+        }
+
+        for (uint256 i = 0; i < _numVersions; i++) {
+            _addToRegistry(initialVersions[i], initialProtocolAddresses[i]);
+        }
     }
 
     /**
@@ -65,8 +77,8 @@ abstract contract WarpProtocolRegistry {
      * - the version must be the increment of the latest version.
      * - the protocol address must be a contract address.
      */
-    function addProtocolVersion() external {
-        _addProtocolVersion();
+    function addProtocolVersion(uint32 messageIndex) external {
+        _addProtocolVersion(messageIndex);
     }
 
     /**
@@ -88,14 +100,15 @@ abstract contract WarpProtocolRegistry {
         return _latestVersion;
     }
 
-    function _addProtocolVersion() internal virtual {
+    function _addProtocolVersion(uint32 messageIndex) internal virtual {
+        // Get and verify a valid warp out of band message.
         (WarpMessage memory message, bool valid) = WARP_MESSENGER
-            .getVerifiedWarpMessage();
+            .getVerifiedWarpMessage(messageIndex);
         if (!valid) {
             revert InvalidWarpMessage();
         }
-        if (message.originChainID != _chainID) {
-            revert InvalidOriginChainID();
+        if (message.sourceChainID != _chainID) {
+            revert InvalidSourceChainID();
         }
         if (message.originSenderAddress != VALIDATORS_SOURCE_ADDRESS) {
             revert InvalidOriginSenderAddress();
@@ -112,9 +125,18 @@ abstract contract WarpProtocolRegistry {
             (uint256, address)
         );
 
-        if (version != _latestVersion) {
+        _addToRegistry(version, protocolAddress);
+    }
+
+    function _addToRegistry(
+        uint256 version,
+        address protocolAddress
+    ) internal virtual {
+        // Check that the version is the increment of the latest version.
+        if (version != _latestVersion + 1) {
             revert InvalidProtocolVersion();
         }
+        // Check that the protocol address is a contract address.
         if (!Address.isContract(protocolAddress)) {
             revert InvalidProtocolAddress();
         }
@@ -127,6 +149,7 @@ abstract contract WarpProtocolRegistry {
     function _getVersionToAddress(
         uint256 version
     ) internal view virtual returns (address) {
+        // Check that the version provided is a valid version.
         if (!(0 < version && version < _latestVersion)) {
             revert InvalidProtocolVersion();
         }

@@ -26,7 +26,7 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
     }
 
     TeleporterRegistry public immutable teleporterRegistry;
-    uint256 private immutable _minTeleporterVersion;
+    uint256 internal _minTeleporterVersion;
 
     mapping(bytes32 => Message) private _messages;
 

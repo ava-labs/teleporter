@@ -15,6 +15,11 @@ import "./ITeleporterMessenger.sol";
 contract TeleporterRegistry is WarpProtocolRegistry {
     mapping(address => uint256) internal _addressToVersion;
 
+    constructor(
+        uint256[] memory initialVersions,
+        address[] memory initialProtocolAddresses
+    ) WarpProtocolRegistry(initialVersions, initialProtocolAddresses) {}
+
     /**
      * @dev Gets the {ITeleporterMessenger} contract of the given `version`.
      */
@@ -51,8 +56,8 @@ contract TeleporterRegistry is WarpProtocolRegistry {
      * Adds the new protocol version address to the `_addressToVersion` mapping
      * so that the registry can be queried for the version of a given protocol address.
      */
-    function _addProtocolVersion() internal override {
-        super._addProtocolVersion();
+    function _addProtocolVersion(uint32 messageIndex) internal override {
+        super._addProtocolVersion(messageIndex);
         _addressToVersion[
             _getVersionToAddress(_latestVersion)
         ] = _latestVersion;

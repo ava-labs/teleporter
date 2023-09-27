@@ -47,7 +47,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
 
     // Used for sending and receiving Teleporter messages.
     TeleporterRegistry public immutable teleporterRegistry;
-    uint256 private _minTeleporterVersion;;
+    uint256 internal _minTeleporterVersion;
 
     // Tracks which bridge tokens have been submitted to be created other bridge instances.
     // (destinationChainID, destinationBridgeAddress) -> nativeTokenContract -> tokenCreationSubmitted
@@ -290,7 +290,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         // Only allow Teleporter messengers above the minimum version to deliver messages.
         if (
             teleporterRegistry.getAddressToVersion(msg.sender) <
-            _minTeleporterVersion;
+            _minTeleporterVersion
         ) {
             revert Unauthorized();
         }
