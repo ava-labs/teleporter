@@ -12,6 +12,8 @@ import "../../../Mocks/UnitTestMockERC20.sol";
 contract ERC20BridgeTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
+    address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS =
+        0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
     address public constant WARP_PRECOMPILE_ADDRESS =
         address(0x0200000000000000000000000000000000000005);
     bytes32 private constant _MOCK_BLOCKCHAIN_ID = bytes32(uint256(123456));
@@ -65,9 +67,58 @@ contract ERC20BridgeTest is Test {
             abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector),
             abi.encode(_MOCK_BLOCKCHAIN_ID)
         );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector)
+        );
 
-        erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        initMockTeleporterRegistry();
+
+        vm.expectCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getLatestVersion.selector
+            )
+        );
+
+        erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS);
         mockERC20 = new UnitTestMockERC20();
+    }
+
+    function initMockTeleporterRegistry() internal {
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getLatestVersion.selector
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getAddressToVersion.selector,
+                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getVersionToAddress.selector,
+                (1)
+            ),
+            abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getLatestTeleporter.selector
+            ),
+            abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
+        );
     }
 
     function testSameChainID() public {
@@ -90,9 +141,13 @@ contract ERC20BridgeTest is Test {
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
         );
-        vm.expectRevert(abi.encodePacked(
-            ERC20Bridge.InsufficientAdjustedAmount.selector,
-            uint256(130), uint256(130)));
+        vm.expectRevert(
+            abi.encodePacked(
+                ERC20Bridge.InsufficientAdjustedAmount.selector,
+                uint256(130),
+                uint256(130)
+            )
+        );
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -115,9 +170,13 @@ contract ERC20BridgeTest is Test {
             contractNonce: 1
         });
 
-        vm.expectRevert(abi.encodePacked(
-            ERC20Bridge.InsufficientTotalAmount.selector,
-            uint256(130), uint256(130)));
+        vm.expectRevert(
+            abi.encodePacked(
+                ERC20Bridge.InsufficientTotalAmount.selector,
+                uint256(130),
+                uint256(130)
+            )
+        );
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -494,9 +553,13 @@ contract ERC20BridgeTest is Test {
             address(mockERC20)
         );
 
-        vm.expectRevert(abi.encodePacked(
-            ERC20Bridge.InsufficientAdjustedAmount.selector,
-            uint256(totalAmount - tokenFeeOnTransferAmount), uint256(bridgeFeeAmount)));
+        vm.expectRevert(
+            abi.encodePacked(
+                ERC20Bridge.InsufficientAdjustedAmount.selector,
+                uint256(totalAmount - tokenFeeOnTransferAmount),
+                uint256(bridgeFeeAmount)
+            )
+        );
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
