@@ -18,8 +18,6 @@ contract BlockHashPublisher {
     uint256 internal _minTeleporterVersion;
     uint256 public constant RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT = 1.5e5;
 
-    error InvalidTeleporterRegistryAddress();
-
     /**
      * @dev Emitted when a block hash is submitted to be published to another chain.
      */
@@ -29,6 +27,8 @@ contract BlockHashPublisher {
         uint256 indexed blockHeight,
         bytes32 blockHash
     );
+
+    error InvalidTeleporterRegistryAddress();
 
     constructor(address teleporterRegistryAddress) {
         if (teleporterRegistryAddress == address(0)) {

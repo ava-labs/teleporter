@@ -15,14 +15,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
  * build on top of Warp. It allows the protocol to be upgraded through a warp out of band message.
  */
 abstract contract WarpProtocolRegistry {
-    /**
-     * @dev Emitted when a new protocol version is added to the registry.
-     */
-    event AddProtocolVersion(
-        uint256 indexed version,
-        address indexed protocolAddress
-    );
-
     // Address that the out-of-band warp message sets as the "source" address.
     // The address is obviously not owned by any EOA or smart contract account, so it
     // can not possibly be the source address of any other warp message emitted by the VM.
@@ -36,6 +28,14 @@ abstract contract WarpProtocolRegistry {
     uint256 internal _latestVersion;
 
     mapping(uint256 => address) internal _versionToAddress;
+
+    /**
+     * @dev Emitted when a new protocol version is added to the registry.
+     */
+    event AddProtocolVersion(
+        uint256 indexed version,
+        address indexed protocolAddress
+    );
 
     // Errors
     error InvalidWarpMessage();
@@ -56,12 +56,12 @@ abstract contract WarpProtocolRegistry {
     ) {
         _latestVersion = 0;
         _chainID = WARP_MESSENGER.getBlockchainID();
-        uint256 _numVersions = initialVersions.length;
-        if (initialProtocolAddresses.length != _numVersions) {
+        uint256 numVersions_ = initialVersions.length;
+        if (initialProtocolAddresses.length != numVersions_) {
             revert InvalidRegistryInitialization();
         }
 
-        for (uint256 i = 0; i < _numVersions; i++) {
+        for (uint256 i = 0; i < numVersions_; i++) {
             _addToRegistry(initialVersions[i], initialProtocolAddresses[i]);
         }
     }

@@ -16,7 +16,6 @@
                 "strict": true
             }
         ],
-        "reason-string": ["off"],
         "ordering": "warn",
         "immutable-vars-naming": [
             "warn",
