@@ -15,9 +15,8 @@ if ! command -v forge &> /dev/null; then
     $BASE_DIR/.foundry/bin/foundryup
 fi
 
-echo "Building subnet-evm abi"
-cd $TELEPORTER_PATH/subnet-evm/cmd/abigen
-go install
+echo "Building subnet-evm abigen"
+go install $TELEPORTER_PATH/subnet-evm/cmd/abigen
 
 echo "Building Contracts"
 cd $TELEPORTER_PATH/contracts
@@ -28,7 +27,7 @@ echo "Generating TeleporterMessenger Go bindings"
 gen_file_path=$TELEPORTER_PATH/abis/go/teleport-messenger/teleport_messenger.go
 cd $TELEPORTER_PATH
 mkdir -p abis/go/teleport-messenger
-$GOPATH/bin/abigen --abi abis/TeleporterMessenger.abi.json --pkg teleport_messenger --out $gen_file_path
+$GOBIN/abigen --abi abis/TeleporterMessenger.abi.json --pkg teleport_messenger --out $gen_file_path
 
 echo "TeleporterMessenger Go bindings generated at $gen_file_path"
 
