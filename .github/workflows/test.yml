@@ -9,7 +9,7 @@ on:
       - "*"
 
 env:
-  RELAYER_VERSION: v0.2.2-beta
+  RELAYER_VERSION: v0.2.2
 
 jobs:
   teleporter-integration-test:
