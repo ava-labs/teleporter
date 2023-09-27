@@ -13,14 +13,14 @@ services:
     container_name: local_network_test
     init: true
     working_dir: /code
-    entrypoint: [ "/code/docker/run_setup.sh" ]
+    entrypoint: ["/code/docker/run_setup.sh"]
     network_mode: "host"
     volumes:
       - type: bind
         source: ./
         target: /code/
   relayer:
-    image: avaplatform/awm-relayer:v0.2.0
+    image: avaplatform/awm-relayer:v0.2.2
     init: true
     working_dir: /code
     entrypoint: /code/docker/run_relayer.sh
