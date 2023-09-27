@@ -8,6 +8,7 @@ pragma solidity 0.8.18;
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
+import "../../Teleporter/TeleporterRegistry.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -24,7 +25,8 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         string message;
     }
 
-    ITeleporterMessenger public immutable teleporterMessenger;
+    TeleporterRegistry public immutable teleporterRegistry;
+    uint256 private immutable _minTeleporterVersion;
 
     mapping(bytes32 => Message) private _messages;
 
@@ -50,10 +52,16 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
     );
 
     // Errors
+    error InvalidTeleporterRegistryAddress();
     error Unauthorized();
 
-    constructor(address teleporterMessengerAddress) {
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
+    constructor(address teleporterRegistryAddress) {
+        if (teleporterRegistryAddress == address(0)) {
+            revert InvalidTeleporterRegistryAddress();
+        }
+
+        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
+        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**
@@ -67,7 +75,10 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         bytes calldata message
     ) external {
         // Only the Teleporter receiver can deliver a message.
-        if (msg.sender != address(teleporterMessenger)) {
+        if (
+            teleporterRegistry.getAddressToVersion(msg.sender) <
+            _minTeleporterVersion
+        ) {
             revert Unauthorized();
         }
 
@@ -88,6 +99,8 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         uint256 requiredGasLimit,
         string calldata message
     ) external nonReentrant returns (uint256 messageID) {
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry
+            .getLatestTeleporter();
         // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
         // allow the Teleporter contract to spend it.
         uint256 adjustedFeeAmount = 0;
@@ -124,6 +137,10 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
                     message: abi.encode(message)
                 })
             );
+    }
+
+    function updateMinTeleporterVersion() external {
+        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**

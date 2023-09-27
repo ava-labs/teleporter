@@ -47,7 +47,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
 
     // Used for sending and receiving Teleporter messages.
     TeleporterRegistry public immutable teleporterRegistry;
-    uint256 private minTeleporterVersion;
+    uint256 private _minTeleporterVersion;;
 
     // Tracks which bridge tokens have been submitted to be created other bridge instances.
     // (destinationChainID, destinationBridgeAddress) -> nativeTokenContract -> tokenCreationSubmitted
@@ -102,6 +102,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         }
 
         teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
+        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
         currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
@@ -276,10 +277,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         );
     }
 
-    function updateMinTeleporterVersion() external {
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
-    }
-
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
      *
@@ -290,10 +287,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         address nativeBridgeAddress,
         bytes calldata message
     ) external {
-        // Only allow the Teleporter messenger to deliver messages.
+        // Only allow Teleporter messengers above the minimum version to deliver messages.
         if (
             teleporterRegistry.getAddressToVersion(msg.sender) <
-            minTeleporterVersion
+            _minTeleporterVersion;
         ) {
             revert Unauthorized();
         }
@@ -358,6 +355,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         } else {
             revert InvalidAction();
         }
+    }
+
+    function updateMinTeleporterVersion() external {
+        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**
@@ -427,6 +428,9 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
      * @dev Teleporter message receiver for creating a new bridge token on this chain.
      *
      * Emits a {CreateBridgeToken} event.
+     *
+     * Note: This function is only called within `receiveTeleporterMessage`, which can only be
+     * called by the Teleporter messenger.
      */
     function _createBridgeToken(
         bytes32 nativeChainID,
@@ -477,6 +481,9 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
      * @dev Teleporter message receiver for minting of an existing bridge token on this chain.
      *
      * Emits a {MintBridgeTokens} event.
+     *
+     * Note: This function is only called within `receiveTeleporterMessage`, which can only be
+     * called by the Teleporter messenger.
      */
     function _mintBridgeTokens(
         bytes32 nativeChainID,
@@ -509,6 +516,9 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     /**
      * @dev Teleporter message receiver for handling bridge tokens transfers back from another chain
      * and optionally routing them to a different third chain.
+     *
+     * Note: This function is only called within `receiveTeleporterMessage`, which can only be
+     * called by the Teleporter messenger.
      */
     function _transferBridgeTokens(
         bytes32 sourceChainID,

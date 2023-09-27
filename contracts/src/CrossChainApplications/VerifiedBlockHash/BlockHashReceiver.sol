@@ -7,12 +7,14 @@ pragma solidity 0.8.18;
 
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
+import "../../Teleporter/TeleporterRegistry.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.
  */
 contract BlockHashReceiver is ITeleporterReceiver {
-    ITeleporterMessenger public immutable teleporterMessenger;
+    TeleporterRegistry public immutable teleporterRegistry;
+    uint256 private immutable _minTeleporterVersion;
 
     // Source chain information
     bytes32 public immutable sourceChainID;
@@ -36,13 +38,19 @@ contract BlockHashReceiver is ITeleporterReceiver {
     error Unauthorized();
     error InvalidSourceChainID();
     error InvalidSourceChainPublisher();
+    error InvalidTeleporterRegistryAddress();
 
     constructor(
-        address teleporterMessengerAddress,
+        address teleporterRegistryAddress,
         bytes32 publisherChainID,
         address publisherContractAddress
     ) {
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
+        if (teleporterRegistryAddress == address(0)) {
+            revert InvalidTeleporterRegistryAddress();
+        }
+
+        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
+        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
         sourceChainID = publisherChainID;
         sourcePublisherContractAddress = publisherContractAddress;
     }
@@ -63,7 +71,10 @@ contract BlockHashReceiver is ITeleporterReceiver {
         address originSenderAddress,
         bytes calldata message
     ) external {
-        if (msg.sender != address(teleporterMessenger)) {
+        if (
+            teleporterRegistry.getAddressToVersion(msg.sender) <
+            _minTeleporterVersion
+        ) {
             revert Unauthorized();
         }
 
@@ -90,6 +101,10 @@ contract BlockHashReceiver is ITeleporterReceiver {
                 blockHash
             );
         }
+    }
+
+    function updateMinTeleporterVersion() external {
+        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**
