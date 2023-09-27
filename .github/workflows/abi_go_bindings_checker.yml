@@ -34,8 +34,7 @@ jobs:
           submodules: recursive
 
       - name: Generate ABI Go bindings
-        run: |
-          ./scripts/abi_go_bindings.sh
+        run: GOPATH=${GOPATH} ./scripts/abi_go_bindings.sh
 
       - name: Check for clean branch
         run: .github/workflows/check_clean_branch.sh

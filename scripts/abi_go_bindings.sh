@@ -27,7 +27,7 @@ echo "Generating TeleporterMessenger Go bindings"
 gen_file_path=$TELEPORTER_PATH/abis/go/teleport-messenger/teleport_messenger.go
 cd $TELEPORTER_PATH
 mkdir -p abis/go/teleport-messenger
-$GOBIN/abigen --abi abis/TeleporterMessenger.abi.json --pkg teleport_messenger --out $gen_file_path
+$GOPATH/bin/abigen --abi abis/TeleporterMessenger.abi.json --pkg teleport_messenger --out $gen_file_path
 
 echo "TeleporterMessenger Go bindings generated at $gen_file_path"
 
