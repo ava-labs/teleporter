@@ -131,16 +131,17 @@ contract TeleporterMessengerTest is Test {
     }
 
     function _setUpSuccessGetVerifiedWarpMessageMock(
+        uint32 index,
         WarpMessage memory warpMessage
     ) internal {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ()),
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (index)),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, ())
+            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (index))
         );
     }
 
@@ -166,10 +167,10 @@ contract TeleporterMessengerTest is Test {
         );
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
-        teleporterMessenger.receiveCrossChainMessage(relayerRewardAddress);
+        teleporterMessenger.receiveCrossChainMessage(0, relayerRewardAddress);
     }
 
     function _receiveMessageSentToEOA()
@@ -193,7 +194,7 @@ contract TeleporterMessengerTest is Test {
         );
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Mock there being no code at the destination address which will be called
         // when the message is executed. This mimics the default destination address being an EOA.
@@ -207,6 +208,7 @@ contract TeleporterMessengerTest is Test {
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
+            0,
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
 
@@ -242,7 +244,7 @@ contract TeleporterMessengerTest is Test {
     ) internal view returns (WarpMessage memory) {
         return
             WarpMessage({
-                originChainID: originChainID,
+                sourceChainID: originChainID,
                 originSenderAddress: address(teleporterMessenger),
                 destinationChainID: MOCK_BLOCK_CHAIN_ID,
                 destinationAddress: address(teleporterMessenger),
