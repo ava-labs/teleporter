@@ -22,8 +22,8 @@ RUN apt-get install -y wget curl git python3 make gcc build-essential
 
 # Install Golang
 RUN apt-get install -y bison
-RUN wget https://go.dev/dl/go1.20.7.linux-${ARCH}.tar.gz
-RUN rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.7.linux-${ARCH}.tar.gz
+RUN wget https://go.dev/dl/go1.20.8.linux-${ARCH}.tar.gz
+RUN rm -rf /usr/local/go && tar -C /usr/local -xzf go1.20.8.linux-${ARCH}.tar.gz
 ENV PATH $PATH:/usr/local/go/bin
 ENV GOPATH $HOME/go
 ENV GOROOT /usr/local/go
