@@ -674,6 +674,11 @@
   {
     "inputs": [
       {
+        "internalType": "uint32",
+        "name": "messageIndex",
+        "type": "uint32"
+      },
+      {
         "internalType": "address",
         "name": "relayerRewardAddress",
         "type": "address"
