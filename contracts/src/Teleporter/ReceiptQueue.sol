@@ -7,14 +7,14 @@ pragma solidity 0.8.18;
 
 import "./ITeleporterMessenger.sol";
 
-// The maximum number of receipts to include in a single message.
-uint256 constant MAXIMUM_RECEIPT_COUNT = 5;
-
 /**
  * @dev ReceiptQueue is a convenience library that creates a queue-like interface of
  * TeleporterMessageReceipt structs. It provides FIFO properties.
  */
 library ReceiptQueue {
+    // The maximum number of receipts to include in a single message.
+    uint256 constant MAXIMUM_RECEIPT_COUNT = 5;
+
     struct TeleporterMessageReceiptQueue {
         uint256 first;
         uint256 last;
