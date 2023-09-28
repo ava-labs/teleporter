@@ -237,6 +237,7 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 		Expect(err).Should(BeNil())
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	}
+	log.Info("Finished funding Teleporter deployers")
 	// Deploy Teleporter on the two subnets
 	{
 		rpcClient, err := rpc.DialContext(ctx, ChainARPCURI)
@@ -262,7 +263,7 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 }
 
 func TearDownNetwork() {
-	log.Info("Running ginkgo after suite")
+	log.Info("Tearing down network")
 	Expect(manager).ShouldNot(BeNil())
 	Expect(manager.TeardownNetwork()).Should(BeNil())
 	Expect(os.Remove(warpChainConfigPath)).Should(BeNil())
