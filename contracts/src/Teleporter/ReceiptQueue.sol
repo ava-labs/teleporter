@@ -21,22 +21,6 @@ library ReceiptQueue {
     // The maximum number of receipts to include in a single message.
     uint256 private constant _MAXIMUM_RECEIPT_COUNT = 5;
 
-    /**
-     * @dev Emitted when a new receipt is added to the queue.
-     */
-    event Enqueue(
-        uint256 indexed messageID,
-        address indexed relayerRewardAddress
-    );
-
-    /**
-     * @dev Emitted when a receipt is taken off the front of the queue.
-     */
-    event Dequeue(
-        uint256 indexed messageID,
-        address indexed relayerRewardAddress
-    );
-
     // Errors
     error EmptyQueue();
 
@@ -48,8 +32,6 @@ library ReceiptQueue {
         TeleporterMessageReceipt memory receipt
     ) internal {
         queue.data[queue.last++] = receipt;
-
-        emit Enqueue(receipt.receivedMessageID, receipt.relayerRewardAddress);
     }
 
     /**
@@ -69,8 +51,6 @@ library ReceiptQueue {
         result = queue.data[first_];
         delete queue.data[first_];
         queue.first = first_ + 1;
-
-        emit Dequeue(result.receivedMessageID, result.relayerRewardAddress);
     }
 
     /**
