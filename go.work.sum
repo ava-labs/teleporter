@@ -749,6 +749,8 @@ github.com/armon/go-radix v1.0.0/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgI
 github.com/ava-labs/avalanche-network-runner v1.7.2-0.20230825150237-723bc7b31724/go.mod h1:euKHwZ77sGvGfhVj4v9WPM4jD2b5N80ldE2XHqO7lwA=
 github.com/ava-labs/avalanche-network-runner-sdk v0.3.0/go.mod h1:SgKJvtqvgo/Bl/c8fxEHCLaSxEbzimYfBopcfrajxQk=
 github.com/ava-labs/avalanchego v1.10.10-rc.4/go.mod h1:BN97sZppDSvIMIfEjrLTjdPTFkGLkb0ISJHEcoxMMNk=
+github.com/ava-labs/awm-relayer v0.2.2 h1:TW/cJr13bVMHL5NjBF9aTTJQTyjpwbRMH6ffX78DFmo=
+github.com/ava-labs/awm-relayer v0.2.2/go.mod h1:UIc0Nl/ZIRVm5fBmUWDxWahNsQWZoSfJb3ei25q5ZlQ=
 github.com/ava-labs/coreth v0.12.5-rc.3/go.mod h1:HI+jTIflnDFBd0bledgkgid1Uurwr8q1h7zb3LsFsSo=
 github.com/ava-labs/ledger-avalanche/go v0.0.0-20230105152938-00a24d05a8c7/go.mod h1:XhiXSrh90sHUbkERzaxEftCmUz53eCijshDLZ4fByVM=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
@@ -927,6 +929,7 @@ go.uber.org/multierr v1.10.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN8
 go.uber.org/zap v1.10.0/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=
 go.uber.org/zap v1.21.0/go.mod h1:wjWOCqI0f2ZZrJF/UufIOkiC8ii6tm1iqIsLo76RfJw=
 go.uber.org/zap v1.26.0 h1:sI7k6L95XOKS281NhVKOFCUNIvv9e0w4BF8N3u+tCRo=
+go.uber.org/zap v1.26.0/go.mod h1:dtElttAiwGvoJ/vj4IwHBS/gXsEu/pZ50mUIRWuG0so=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392/go.mod h1:/lpIB1dKB+9EgE3H3cr1v9wB50oz8l4C4h62xy7jSTY=
 golang.org/x/crypto v0.0.0-20220314234659-1baeb1ce4c0b/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
