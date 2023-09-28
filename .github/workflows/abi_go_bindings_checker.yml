@@ -27,6 +27,8 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+        run:
+          echo ${GOPATH}
 
       - name: Checkout Teleporter repository
         uses: actions/checkout@v4
@@ -34,7 +36,10 @@ jobs:
           submodules: recursive
 
       - name: Generate ABI Go bindings
-        run: GOPATH=${GOPATH} ./scripts/abi_go_bindings.sh
+        run: |
+          echo ${GOPATH}
+          echo $HOME/go
+          GOPATH=${GOPATH} ./scripts/abi_go_bindings.sh
 
       - name: Check for clean branch
         run: .github/workflows/check_clean_branch.sh
