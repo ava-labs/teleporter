@@ -9,6 +9,7 @@ import (
 
 	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
 	testUtils "github.com/ava-labs/teleporter/tests/utils"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -35,6 +36,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	Expect(err).Should(BeNil())
 
 	testUtils.DeployTeleporterContract(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
+	log.Info("Set up ginkgo before suite")
 })
 
 var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)

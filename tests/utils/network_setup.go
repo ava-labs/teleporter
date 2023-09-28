@@ -108,8 +108,8 @@ func SetupNetwork(warpGenesisFile string) {
 	// Issue transactions to activate the proposerVM fork on the chains
 	FundedKey, err = crypto.HexToECDSA(FundedKeyStr)
 	Expect(err).Should(BeNil())
-	SetUpProposerVm(ctx, FundedKey, manager, 0)
-	SetUpProposerVm(ctx, FundedKey, manager, 1)
+	SetUpProposerVM(ctx, FundedKey, manager, 0)
+	SetUpProposerVM(ctx, FundedKey, manager, 1)
 
 	// Set up subnet URIs
 	SubnetIDs = manager.GetSubnets()
@@ -162,15 +162,13 @@ func SetupNetwork(warpGenesisFile string) {
 	NewHeadsA = make(chan *types.Header, 10)
 
 	log.Info("Finished setting up e2e test subnet variables")
-
-	log.Info("Deploying Teleporter contract to subnets")
-
-	log.Info("Set up ginkgo before suite")
 }
 
 // DeployTeleporterContract deploys the Teleporter contract to the two subnets. The caller is responsible for generating the
 // deployment transaction information
 func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Address, contractAddress common.Address) {
+	log.Info("Deploying Teleporter contract to subnets")
+
 	// Set the package level TeleporterContractAddress
 	TeleporterContractAddress = contractAddress
 
