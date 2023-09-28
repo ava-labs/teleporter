@@ -100,16 +100,18 @@ contract NativeTokenReceiver is ITeleporterReceiver, INativeTokenReceiver, Reent
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
-        uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
-            IERC20(feeTokenContractAddress),
-            feeAmount
-        );
+        if (feeAmount > 0) {
+          uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
+              IERC20(feeTokenContractAddress),
+              feeAmount
+          );
 
-        // Ensure that the adjusted amount is greater than the fee to be paid.
-        // The secondary fee amount is not used in this case (and can assumed to be 0) since bridging
-        // a native token to another chain only ever involves a single cross-chain message.
-        if (adjustedAmount <= feeAmount) {
-            revert InsufficientAdjustedAmount(adjustedAmount, feeAmount);
+          // Ensure that the adjusted amount is greater than the fee to be paid.
+          // The secondary fee amount is not used in this case (and can assumed to be 0) since bridging
+          // a native token to another chain only ever involves a single cross-chain message.
+          if (adjustedAmount <= feeAmount) {
+              revert InsufficientAdjustedAmount(adjustedAmount, feeAmount);
+          }
         }
 
         // Send Teleporter message.

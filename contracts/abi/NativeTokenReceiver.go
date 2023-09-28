@@ -8,11 +8,11 @@ import (
 	"math/big"
 	"strings"
 
-	ethereum "github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ava-labs/subnet-evm/accounts/abi"
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	"github.com/ava-labs/subnet-evm/core/types"
+	"github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -21,7 +21,7 @@ var (
 	_ = errors.New
 	_ = big.NewInt
 	_ = strings.NewReader
-	_ = ethereum.NotFound
+	_ = interfaces.NotFound
 	_ = bind.Bind
 	_ = common.Big1
 	_ = types.BloomLookup
@@ -99,7 +99,7 @@ type NativeTokenReceiverTransactorRaw struct {
 
 // NewNativeTokenReceiver creates a new instance of NativeTokenReceiver, bound to a specific deployed contract.
 func NewNativeTokenReceiver(address common.Address, backend bind.ContractBackend) (*NativeTokenReceiver, error) {
-	contract, err := bindNativeTokenReceiver(address, backend, backend, backend)
+	contract, err := BindNativeTokenReceiver(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func NewNativeTokenReceiver(address common.Address, backend bind.ContractBackend
 
 // NewNativeTokenReceiverCaller creates a new read-only instance of NativeTokenReceiver, bound to a specific deployed contract.
 func NewNativeTokenReceiverCaller(address common.Address, caller bind.ContractCaller) (*NativeTokenReceiverCaller, error) {
-	contract, err := bindNativeTokenReceiver(address, caller, nil, nil)
+	contract, err := BindNativeTokenReceiver(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func NewNativeTokenReceiverCaller(address common.Address, caller bind.ContractCa
 
 // NewNativeTokenReceiverTransactor creates a new write-only instance of NativeTokenReceiver, bound to a specific deployed contract.
 func NewNativeTokenReceiverTransactor(address common.Address, transactor bind.ContractTransactor) (*NativeTokenReceiverTransactor, error) {
-	contract, err := bindNativeTokenReceiver(address, nil, transactor, nil)
+	contract, err := BindNativeTokenReceiver(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func NewNativeTokenReceiverTransactor(address common.Address, transactor bind.Co
 
 // NewNativeTokenReceiverFilterer creates a new log filterer instance of NativeTokenReceiver, bound to a specific deployed contract.
 func NewNativeTokenReceiverFilterer(address common.Address, filterer bind.ContractFilterer) (*NativeTokenReceiverFilterer, error) {
-	contract, err := bindNativeTokenReceiver(address, nil, nil, filterer)
+	contract, err := BindNativeTokenReceiver(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func NewNativeTokenReceiverFilterer(address common.Address, filterer bind.Contra
 }
 
 // bindNativeTokenReceiver binds a generic wrapper to an already deployed contract.
-func bindNativeTokenReceiver(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+func BindNativeTokenReceiver(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := NativeTokenReceiverMetaData.GetAbi()
 	if err != nil {
 		return nil, err
@@ -384,10 +384,10 @@ type NativeTokenReceiverBridgeTokensIterator struct {
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -542,10 +542,10 @@ type NativeTokenReceiverUnlockTokensIterator struct {
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
