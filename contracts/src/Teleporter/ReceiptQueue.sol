@@ -87,4 +87,15 @@ library ReceiptQueue {
     function size(TeleporterMessageReceiptQueue storage queue) internal view returns (uint256) {
         return queue.last - queue.first;
     }
+
+    /**
+     * @dev Returns the receipt at the given index in the queue.
+     */
+    function getReceiptAtIndex(TeleporterMessageReceiptQueue storage queue, uint256 index)
+        internal
+        view
+        returns (TeleporterMessageReceipt memory)
+    {
+        return queue.data[index];
+    }
 }
