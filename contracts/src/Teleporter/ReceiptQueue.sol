@@ -12,14 +12,14 @@ import "./ITeleporterMessenger.sol";
  * TeleporterMessageReceipt structs. It provides FIFO properties.
  */
 library ReceiptQueue {
-    // The maximum number of receipts to include in a single message.
-    uint256 constant MAXIMUM_RECEIPT_COUNT = 5;
-
     struct TeleporterMessageReceiptQueue {
         uint256 first;
         uint256 last;
         mapping(uint256 index => TeleporterMessageReceipt) data;
     }
+
+    // The maximum number of receipts to include in a single message.
+    uint256 private constant _MAXIMUM_RECEIPT_COUNT = 5;
 
     /**
      * @dev Emitted when a new receipt is added to the queue.
@@ -90,8 +90,8 @@ library ReceiptQueue {
         }
 
         // Calculate the result size as the minimum of the number of receipts and maximum batch size.
-        uint256 resultSize = MAXIMUM_RECEIPT_COUNT;
-        if (outstandingReceiptsSize < MAXIMUM_RECEIPT_COUNT) {
+        uint256 resultSize = _MAXIMUM_RECEIPT_COUNT;
+        if (outstandingReceiptsSize < _MAXIMUM_RECEIPT_COUNT) {
             resultSize = outstandingReceiptsSize;
         }
 
