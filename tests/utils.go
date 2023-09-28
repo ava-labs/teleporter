@@ -161,7 +161,10 @@ func constructAndSendTransaction(
 	gasLimit, err := teleporter.CalculateReceiveMessageGasLimit(numSigners, teleporterMessage.RequiredGasLimit)
 	Expect(err).Should(BeNil())
 
-	callData, err := teleporter.EVMTeleporterContractABI.Pack("receiveCrossChainMessage", fundedAddress)
+	callData, err := teleporter.PackReceiveCrossChainMessage(teleporter.ReceiveCrossChainMessageInput{
+		MessageIndex:         0,
+		RelayerRewardAddress: fundedAddress,
+	})
 	Expect(err).Should(BeNil())
 
 	baseFee, err := client.EstimateBaseFee(ctx)

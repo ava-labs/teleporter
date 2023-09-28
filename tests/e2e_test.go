@@ -392,7 +392,7 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 
 		// Get the aggregate signature for the Warp message
 		log.Info("Fetching aggregate signature from the source chain validators")
-		warpClient, err := warpBackend.NewWarpClient(chainANodeURIs[0], blockchainIDA.String())
+		warpClient, err := warpBackend.NewClient(chainANodeURIs[0], blockchainIDA.String())
 		Expect(err).Should(BeNil())
 		signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
 		Expect(err).Should(BeNil())
@@ -423,7 +423,7 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 
 	ginkgo.It("Check Teleporter Message Received", ginkgo.Label("Teleporter", "TeleporterMessageReceived"), func() {
 		time.Sleep(5 * time.Second) // Give the relayer a chance to deliver the message to the destination chain
-		data, err := teleporter.PackMessageReceivedMessage(teleporter.MessageReceivedInput{
+		data, err := teleporter.PackMessageReceived(teleporter.MessageReceivedInput{
 			OriginChainID: blockchainIDA,
 			MessageID:     teleporterMessageID,
 		})
