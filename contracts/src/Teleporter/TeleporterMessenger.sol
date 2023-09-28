@@ -221,8 +221,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         if (
             sentMessageInfo[destinationChainID][messageID]
                 .feeInfo
-                .contractAddress !=
-            feeContractAddress
+                .contractAddress != feeContractAddress
         ) {
             revert InvalidFeeAssetContractAddress();
         }
@@ -233,8 +232,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             additionalFeeAmount
         );
 
-        // Calculate and store the update fee amount, and emit it as an event.
-        // currentMessageInfo.feeInfo.amount += adjustedAmount;
+        // Store the updated fee amount, and emit it as an event.
         sentMessageInfo[destinationChainID][messageID]
             .feeInfo
             .amount += adjustedAmount;
