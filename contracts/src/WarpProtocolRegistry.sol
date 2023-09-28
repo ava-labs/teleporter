@@ -25,6 +25,7 @@ abstract contract WarpProtocolRegistry {
 
     bytes32 internal immutable _chainID;
 
+    // The latest protocol version. 0 means no protocol version has been added, and isn't a valid version.
     uint256 internal _latestVersion;
 
     mapping(uint256 => address) internal _versionToAddress;
@@ -56,12 +57,11 @@ abstract contract WarpProtocolRegistry {
     ) {
         _latestVersion = 0;
         _chainID = WARP_MESSENGER.getBlockchainID();
-        uint256 numVersions_ = initialVersions.length;
-        if (initialProtocolAddresses.length != numVersions_) {
+        if (initialProtocolAddresses.length != initialVersions.length) {
             revert InvalidRegistryInitialization();
         }
 
-        for (uint256 i = 0; i < numVersions_; i++) {
+        for (uint256 i = 0; i < initialVersions.length; i++) {
             _addToRegistry(initialVersions[i], initialProtocolAddresses[i]);
         }
     }
@@ -150,7 +150,7 @@ abstract contract WarpProtocolRegistry {
         uint256 version
     ) internal view virtual returns (address) {
         // Check that the version provided is a valid version.
-        if (!(0 < version && version < _latestVersion)) {
+        if (!(0 < version && version <= _latestVersion)) {
             revert InvalidProtocolVersion();
         }
         return _versionToAddress[version];
