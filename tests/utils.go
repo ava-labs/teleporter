@@ -143,7 +143,7 @@ func waitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 func constructAndSendTransaction(
 	ctx context.Context,
 	warpMessageBytes []byte,
-	teleporterMessage teleporter.TeleporterMessage,
+	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
@@ -158,7 +158,7 @@ func constructAndSendTransaction(
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := teleporter.CalculateReceiveMessageGasLimit(numSigners, teleporterMessage.RequiredGasLimit)
+	gasLimit, err := teleporter.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
 	Expect(err).Should(BeNil())
 
 	callData, err := teleporter.PackReceiveCrossChainMessage(teleporter.ReceiveCrossChainMessageInput{

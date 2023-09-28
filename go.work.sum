@@ -749,7 +749,7 @@ github.com/armon/go-radix v1.0.0/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgI
 github.com/ava-labs/avalanche-network-runner v1.7.2-0.20230825150237-723bc7b31724/go.mod h1:euKHwZ77sGvGfhVj4v9WPM4jD2b5N80ldE2XHqO7lwA=
 github.com/ava-labs/avalanche-network-runner-sdk v0.3.0/go.mod h1:SgKJvtqvgo/Bl/c8fxEHCLaSxEbzimYfBopcfrajxQk=
 github.com/ava-labs/avalanchego v1.10.10-rc.4/go.mod h1:BN97sZppDSvIMIfEjrLTjdPTFkGLkb0ISJHEcoxMMNk=
-github.com/ava-labs/awm-relayer v0.2.2 h1:TW/cJr13bVMHL5NjBF9aTTJQTyjpwbRMH6ffX78DFmo=
+github.com/ava-labs/awm-relayer v0.2.2 h1:X7HAINnW6f71gCN96W9vVrSk2Ri+euOpI/zDJkLEeMY=
 github.com/ava-labs/awm-relayer v0.2.2/go.mod h1:UIc0Nl/ZIRVm5fBmUWDxWahNsQWZoSfJb3ei25q5ZlQ=
 github.com/ava-labs/coreth v0.12.5-rc.3/go.mod h1:HI+jTIflnDFBd0bledgkgid1Uurwr8q1h7zb3LsFsSo=
 github.com/ava-labs/ledger-avalanche/go v0.0.0-20230105152938-00a24d05a8c7/go.mod h1:XhiXSrh90sHUbkERzaxEftCmUz53eCijshDLZ4fByVM=
