@@ -158,11 +158,11 @@ source .env
 
 ### E2E tests
 
-E2E tests are ran as part of CI, but can also be ran locally using the helper script `e2e_test_manual.sh`. To run the E2E tests locally, you'll need to install Gingko following the intructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo)
+E2E tests are ran as part of CI, but can also be ran locally with the `--local` flag. To run the E2E tests locally, you'll need to install Gingko following the intructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo)
 
 Next, provide the path to the `subnet-evm` repository and the path to a writeable data directory (here we use the `subnet-evm` submodule and `~/tmp/e2e-test`) to use for the tests:
 ```bash
-SUBNET_EVM_PATH=./subnet-evm DATA_DIRECTORY=~/tmp/e2e-test ./scripts/local/e2e_test_manual.sh
+./scripts/local/e2e_test.sh --local --subnet-evm ./subnet-evm --data-dir ~/tmp/e2e-test
 ```
 ## Docs
 
