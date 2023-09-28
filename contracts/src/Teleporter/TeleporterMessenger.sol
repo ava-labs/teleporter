@@ -347,7 +347,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // to the origin of this message, we will clean up the receipt state.
         // If the receipts queue contract for this chain doesn't exist yet, create it now.
         ReceiptQueue.TeleporterMessageReceiptQueue storage receiptsQueue = outstandingReceipts[
-            warpMessage.originChainID
+            warpMessage.sourceChainID
         ];
 
         receiptsQueue.enqueue(
