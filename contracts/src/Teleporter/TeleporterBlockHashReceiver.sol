@@ -26,7 +26,7 @@ contract TeleporterBlockHashReceiver is ITeleporterBlockHashReceiver, Reentrancy
      *
      * Emits a {ReceiveBlockHash} event when a block hash is verified..
      */
-    function receiveCrossChainMessage(
+    function receiveBlockHash(
         uint32 messageIndex,
         bytes32 sourceChainID
     ) external receiverNonReentrant {

@@ -23,7 +23,7 @@ interface ITeleporterBlockHashReceiver {
      * The message specified by `messageIndex` must be provided at that index in the access list storage slots of the transaction,
      * and is verified in the precompile predicate.
      */
-    function receiveCrossChainMessage(
+    function receiveBlockHash(
         uint32 messageIndex,
         bytes32 sourceChainID
     ) external;
