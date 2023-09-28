@@ -34,7 +34,7 @@ jobs:
           submodules: recursive
 
       - name: Generate ABI Go bindings
-        run: GOPATH=$HOME/go CGO_CFLAGS="-O -D__BLST_PORTABLE__" CGO_CFLAGS_ALLOW="-O -D__BLST_PORTABLE__" ./scripts/abi_go_bindings.sh
+        run: GOPATH=$HOME/go ./scripts/abi_go_bindings.sh
 
       - name: Check for clean branch
         run: .github/workflows/check_clean_branch.sh
