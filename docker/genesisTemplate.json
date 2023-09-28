@@ -12,6 +12,7 @@
     "istanbulBlock": 0,
     "muirGlacierBlock": 0,
     "subnetEVMTimestamp": 0,
+    "dUpgradeTimestamp": 0,
     "feeConfig": {
       "gasLimit": 20000000,
       "minBaseFee": 1000000000,
@@ -21,12 +22,6 @@
       "maxBlockGasCost": 10000000,
       "targetBlockRate": 2,
       "blockGasCostStep": 500000
-    },
-    "rewardManagerConfig": {
-      "blockTimestamp": 0,
-      "adminAddresses": [
-        "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
-      ]
     },
     "warpConfig": {
       "blockTimestamp": 0
@@ -38,7 +33,7 @@
     }
   },
   "nonce": "0x0",
-  "timestamp": "0x638F7000",
+  "timestamp": "0x0",
   "extraData": "0x00",
   "gasLimit": "0x1312D00",
   "difficulty": "0x0",
