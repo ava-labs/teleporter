@@ -37,7 +37,7 @@ jobs:
         run: |
           echo ${GOPATH}
           echo $HOME/go
-          GOPATH=${GOPATH} ./scripts/abi_go_bindings.sh
+          GOPATH=$HOME/go ./scripts/abi_go_bindings.sh
 
       - name: Check for clean branch
         run: .github/workflows/check_clean_branch.sh
