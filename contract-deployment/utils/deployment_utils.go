@@ -1,4 +1,4 @@
-package deployment_utils
+package utils
 
 import (
 	"encoding/hex"
@@ -43,7 +43,7 @@ type byteCodeFile struct {
 	ByteCode byteCodeObj `json:"bytecode"`
 }
 
-func DeriveEVMContractAddress(sender common.Address, nonce uint64) common.Address {
+func DeriveEVMContractAddress(sender common.Address, nonce uint64) (common.Address, error) {
 	type AddressNonce struct {
 		Address common.Address
 		Nonce   uint64
@@ -51,10 +51,10 @@ func DeriveEVMContractAddress(sender common.Address, nonce uint64) common.Addres
 	addressNonce := AddressNonce{sender, nonce}
 	rlpEncoded, err := rlp.EncodeToBytes(addressNonce)
 	if err != nil {
-		log.Panic("Failed to RLP encode address and nonce value.", err)
+		return common.Address{}, errors.Wrap(err, "Failed to RLP encode address and nonce value.")
 	}
 	hash := crypto.Keccak256Hash(rlpEncoded)
-	return common.HexToAddress(fmt.Sprintf("0x%x", hash.Bytes()[12:]))
+	return common.HexToAddress(fmt.Sprintf("0x%x", hash.Bytes()[12:])), nil
 }
 
 // Constructs a keyless transaction using Nick's method
@@ -118,26 +118,32 @@ func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byt
 	senderAddressString := senderAddress.Hex() // "0x" prepended by Hex() already.
 
 	// Derive the resulting contract address given that it will be deployed from the sender address using the nonce of 0.
-	contractAddress := DeriveEVMContractAddress(senderAddress, 0)
+	contractAddress, err := DeriveEVMContractAddress(senderAddress, 0)
+	if err != nil {
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to derive contract address")
+	}
 	contractAddressString := contractAddress.Hex() // "0x" prepended by Hex() already.
 
 	log.Println("Raw Teleporter Contract Creation Transaction:")
 	log.Println(contractCreationTxString)
-	err = os.WriteFile(contractCreationTxFileName, []byte(contractCreationTxString), fs.ModePerm)
-	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract creation tx file")
-	}
-
 	log.Println("Teleporter Contract Keyless Deployer Address: ", senderAddressString)
-	err = os.WriteFile(contractCreationAddrFileName, []byte(senderAddressString), fs.ModePerm)
-	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to deployer address file")
-	}
-
 	log.Println("Teleporter Messenger Universal Contract Address: ", contractAddressString)
-	err = os.WriteFile(universalContractAddressFileName, []byte(contractAddressString), fs.ModePerm)
-	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract address")
+
+	if writeFile {
+		err = os.WriteFile(contractCreationTxFileName, []byte(contractCreationTxString), fs.ModePerm)
+		if err != nil {
+			return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract creation tx file")
+		}
+
+		err = os.WriteFile(contractCreationAddrFileName, []byte(senderAddressString), fs.ModePerm)
+		if err != nil {
+			return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to deployer address file")
+		}
+
+		err = os.WriteFile(universalContractAddressFileName, []byte(contractAddressString), fs.ModePerm)
+		if err != nil {
+			return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract address")
+		}
 	}
 	return contractCreationTxBytes, senderAddress, contractAddress, nil
 }
