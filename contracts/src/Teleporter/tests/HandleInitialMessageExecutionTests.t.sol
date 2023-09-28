@@ -93,7 +93,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         ITeleporterMessenger messenger = ITeleporterMessenger(
             teleporterContract
         );
-        messenger.receiveCrossChainMessage(address(42));
+        messenger.receiveCrossChainMessage(0, address(42));
         latestMessage = message;
         latestMessageSenderSubnetID = originChainID;
         latestMessageSenderAddress = originSenderAddress;
@@ -134,10 +134,11 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         );
 
         // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
         teleporterMessenger.receiveCrossChainMessage(
+            0,
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
 
@@ -185,11 +186,12 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         );
 
         // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
         vm.expectRevert(TeleporterMessenger.InsufficientGas.selector);
         teleporterMessenger.receiveCrossChainMessage(
+            0,
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
     }
@@ -215,7 +217,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         );
 
         // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message - this does not revert because the recursive call
         // is considered a failed message execution, but the message itself is
@@ -227,6 +229,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
+            0,
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
 
@@ -241,7 +244,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
-        vm.expectRevert(TeleporterMessenger.MessageRetryExecutionFailed.selector);
+        vm.expectRevert(
+            TeleporterMessenger.MessageRetryExecutionFailed.selector
+        );
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive
@@ -269,7 +274,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         );
 
         // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(warpMessage);
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
@@ -279,6 +284,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
+            0,
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
 
@@ -293,7 +299,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
-        vm.expectRevert(TeleporterMessenger.MessageRetryExecutionFailed.selector);
+        vm.expectRevert(
+            TeleporterMessenger.MessageRetryExecutionFailed.selector
+        );
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive
