@@ -31,3 +31,8 @@ docker-compose-test-local.yml
 docker-compose-run-local.yml
 
 .env
+
+# Ginkgo
+main.log
+server.log
+tests.test
