@@ -150,7 +150,11 @@ abstract contract WarpProtocolRegistry {
         uint256 version
     ) internal view virtual returns (address) {
         // Check that the version provided is a valid version.
-        if (!(0 < version && version <= _latestVersion)) {
+        if (version == 0) {
+            revert InvalidProtocolVersion(;
+        }
+
+        if (version > _latestVersion) {
             revert InvalidProtocolVersion();
         }
         return _versionToAddress[version];

@@ -18,7 +18,11 @@ contract TeleporterRegistry is WarpProtocolRegistry {
     constructor(
         uint256[] memory initialVersions,
         address[] memory initialProtocolAddresses
-    ) WarpProtocolRegistry(initialVersions, initialProtocolAddresses) {}
+    ) WarpProtocolRegistry(initialVersions, initialProtocolAddresses) {
+        for (uint256 i = 0; i < initialVersions.length; i++) {
+            _addressToVersion[initialProtocolAddresses[i]] = initialVersions[i];
+        }
+    }
 
     /**
      * @dev Gets the {ITeleporterMessenger} contract of the given `version`.

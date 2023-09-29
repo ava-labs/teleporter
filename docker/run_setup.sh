@@ -127,6 +127,24 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     fi
     echo "Deployed TeleporterMessenger to Subnet C"
 
+    # Deploy TeleporterRegistry to each chain.
+    cd contracts
+    registry_deploy_result_a=$(forge create --private-key $user_private_key --constructor-args [1] "[$teleporter_contract_address]" \
+        --rpc-url $subnet_a_url src/Teleporter/TeleporterRegistry.sol:TeleporterRegistry)
+    registry_address_a=$(parseContractAddress "$registry_deploy_result_a")
+    echo "TeleporterRegistry contract deployed to subnet A at $registry_address_a."
+
+    registry_deploy_result_b=$(forge create --private-key $user_private_key --constructor-args [1] "[$teleporter_contract_address]" \
+        --rpc-url $subnet_b_url src/Teleporter/TeleporterRegistry.sol:TeleporterRegistry)
+    registry_address_b=$(parseContractAddress "$registry_deploy_result_b")
+    echo "TeleporterRegistry contract deployed to subnet A at $registry_address_b."
+
+    registry_deploy_result_c=$(forge create --private-key $user_private_key --constructor-args [1] "[$teleporter_contract_address]" \
+        --rpc-url $subnet_c_url src/Teleporter/TeleporterRegistry.sol:TeleporterRegistry)
+    registry_address_c=$(parseContractAddress "$registry_deploy_result_c")
+    echo "TeleporterRegistry contract deployed to subnet A at $registry_address_c."
+    cd ..
+
     # Send tokens to cover gas costs for the relayers.
     relayer_private_key=C2CE4E001B7585F543982A01FBC537CFF261A672FA8BD1FAFC08A207098FE2DE
     relayer_address=0xA100fF48a37cab9f87c8b5Da933DA46ea1a5fb80
