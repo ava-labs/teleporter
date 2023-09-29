@@ -66,6 +66,15 @@ contract ReceiptQueueTest is Test {
         // Check the size again.
         assertEq(queue.size(), 4);
 
+        // Check that you can get receipts at specific indexes.
+        result = queue.getReceiptAtIndex(2);
+        assertEq(result.receivedMessageID, receipt2.receivedMessageID);
+        assertEq(result.relayerRewardAddress, receipt2.relayerRewardAddress);
+
+        // Check  can't get an out of index element.
+        vm.expectRevert(ReceiptQueue.OutofIndex.selector);
+        result = queue.getReceiptAtIndex(4);
+
         // Finally dequeue the elements and once again check they are returned in the correct order.
         result = queue.dequeue();
         assertEq(result.receivedMessageID, receipt1.receivedMessageID);

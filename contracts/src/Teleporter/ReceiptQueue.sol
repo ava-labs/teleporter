@@ -23,6 +23,7 @@ library ReceiptQueue {
 
     // Errors
     error EmptyQueue();
+    error OutofIndex();
 
     /**
      * @dev Adds a receipt to the queue.
@@ -96,6 +97,7 @@ library ReceiptQueue {
         view
         returns (TeleporterMessageReceipt memory)
     {
-        return queue.data[index];
+        if (index >= size(queue)) revert OutofIndex();
+        return queue.data[queue.first + index];
     }
 }
