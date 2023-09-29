@@ -26,7 +26,7 @@ contract NativeTokenDestination is
     address public constant WARP_PRECOMPILE_ADDRESS =
         0x0200000000000000000000000000000000000005;
 
-    uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 3000_000; // TODO this is a placeholder
+    uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 10_000_000; // TODO this is a placeholder
     bytes32 public immutable currentChainID;
     bytes32 public immutable sourceChainID;
     address public immutable sourceContractAddress;

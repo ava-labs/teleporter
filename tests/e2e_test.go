@@ -475,7 +475,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		cmd := exec.Command(
 			"forge",
 			"create",
-			"src/CrossChainApplications/NativeTokenBridge/NativeTokenReceiver.sol:NativeTokenReceiver",
+			"src/CrossChainApplications/NativeTokenBridge/NativeTokenSource.sol:NativeTokenSource",
 			"--rpc-url", chainARPCURI,
 			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
 			"--constructor-args", teleporterContractAddress.Hex(), nativeTokenBridgeContractAddress.Hex(), hexutil.Encode(chainBIDInt.Bytes()))
@@ -487,7 +487,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		cmd = exec.Command(
 			"forge",
 			"create",
-			"src/CrossChainApplications/NativeTokenBridge/NativeTokenMinter.sol:NativeTokenMinter",
+			"src/CrossChainApplications/NativeTokenBridge/NativeTokenDestination.sol:NativeTokenDestination",
 			"--rpc-url", chainBRPCURI,
 			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
 			"--constructor-args", teleporterContractAddress.Hex(), nativeTokenBridgeContractAddress.Hex(), hexutil.Encode(chainAIDInt.Bytes()))
@@ -588,26 +588,6 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		time.Sleep(5 * time.Second)
 		receipt, err := chainBRPCClient.TransactionReceipt(ctx, signedTxB.Hash())
 		Expect(err).Should(BeNil())
-
-
-
-		cmd := exec.Command(
-			"cast",
-			"run",
-			"--rpc-url", chainBRPCURI,
-			"--verbose",
-			signedTxB.Hash().Hex())
-
-		fmt.Println(cmd.String())
-
-		time.Sleep(5000 * time.Second)
-
-		fmt.Printf("IT'S A ME, LOGIO\n %+v\n", receipt)
-
-		output, err := cmd.Output()
-		fmt.Printf("OUTPUT %v\n", hex.EncodeToString(output))
-		Expect(err).Should(BeNil())
-
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 		sendCrossChainMessageLog := receipt.Logs[0]
