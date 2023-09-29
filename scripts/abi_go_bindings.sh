@@ -7,12 +7,11 @@ TELEPORTER_PATH=$(
   cd .. && pwd
 )
 
-BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
 if ! command -v forge &> /dev/null; then
     echo "forge not found, installing"
     curl -L https://foundry.paradigm.xyz | bash
     source $HOME/.bashrc
-    $BASE_DIR/.foundry/bin/foundryup
+    foundryup
 fi
 
 echo "Building subnet-evm abigen"
@@ -20,7 +19,7 @@ go install $TELEPORTER_PATH/subnet-evm/cmd/abigen
 
 echo "Building Contracts"
 cd $TELEPORTER_PATH/contracts
-$BASE_DIR/.foundry/bin/forge build --extra-output-files abi
+forge build --extra-output-files abi
 cp $TELEPORTER_PATH/contracts/out/TeleporterMessenger.sol/TeleporterMessenger.abi.json $TELEPORTER_PATH/abis/
 
 echo "Generating TeleporterMessenger Go bindings"
