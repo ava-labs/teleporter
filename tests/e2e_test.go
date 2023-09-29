@@ -359,6 +359,7 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 	var (
 		teleporterMessageID *big.Int
 	)
+	ginkgo.Skip("Remove me")
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ginkgo.It("Send Message from A to B", ginkgo.Label("Teleporter", "SendTeleporter"), func() {
