@@ -28,3 +28,11 @@ function setARCH() {
     [ $ARCH = x86_64 ] && ARCH=amd64
     echo "ARCH set to $ARCH"
 }
+
+function convertToSnakeCase() {
+    if [ "$ARCH" = 'arm64' ]; then
+        echo $1 | perl -pe 's/([A-Z])/_\L\1/g' | sed 's/^_//'
+    else
+        echo $1 | sed -r 's/([A-Z])/_\L\1/g' | sed 's/^_//'
+    fi
+}
