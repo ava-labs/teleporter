@@ -6,11 +6,11 @@
 pragma solidity 0.8.18;
 
 /**
- * @dev Interface that describes functionalities for a cross-chain ERC20 bridge.
+ * @dev Interface that describes functionalities for a cross-chain native token bridge.
  */
 interface INativeTokenDestination {
     /**
-     * @dev Emitted when tokens are locked in this bridge contract to be bridged to another chain.
+     * @dev Emitted when tokens are burned in this bridge contract to be bridged to the source chain.
      */
     event TransferToSource(
         address indexed tokenContractAddress,
@@ -28,9 +28,8 @@ interface INativeTokenDestination {
     event MintNativeTokens(address recipient, uint256 amount);
 
     /**
-     * @dev Transfers ERC20 tokens to another chain.
-     *
-     * This can be wrapping, unwrapping, and transferring a wrapped token between two non-native chains.
+     * @dev This burns native tokens on this chain, and sends a message to the source
+     * chain to mint unlock tokens there.
      */
     function transferToSource(
         address recipient,
