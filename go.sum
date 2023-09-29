@@ -61,8 +61,8 @@ github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kd
 github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5doyWs3UAsr3K4I6qtAmlQcZDesFNEHPZAzj8=
 github.com/ava-labs/avalanche-network-runner v1.7.2 h1:XFad/wZfYzDnqbLzPAPPRYU3a1Zc8QT8x5dtLTS3lUo=
 github.com/ava-labs/avalanche-network-runner v1.7.2/go.mod h1:naLveusSrP7YgTAqRykD1SyLOAUilCp9jGjk3MDxoPI=
-github.com/ava-labs/avalanchego v1.10.10 h1:EYX4LVotcfdtIQ0nJSBTcoisubx/Bzk2tM1aP3yiYiw=
-github.com/ava-labs/avalanchego v1.10.10/go.mod h1:6UA0nxxTvvpyuCbP2DSzx9+7uWQfQx9DPApK8JptLiE=
+github.com/ava-labs/avalanchego v1.10.11 h1:efyC/fYXqHNwjj56xgb0yFFxAr/y7Kyxi4DPYUz5HH4=
+github.com/ava-labs/avalanchego v1.10.11/go.mod h1:a6dQT2+V+qZ8Y9Kj69Ahh3dH+IT+9KzF318T4QEyrh8=
 github.com/ava-labs/awm-relayer v0.2.2 h1:TW/cJr13bVMHL5NjBF9aTTJQTyjpwbRMH6ffX78DFmo=
 github.com/ava-labs/awm-relayer v0.2.2/go.mod h1:UIc0Nl/ZIRVm5fBmUWDxWahNsQWZoSfJb3ei25q5ZlQ=
 github.com/ava-labs/coreth v0.12.5-rc.6 h1:OajGUyKkO5Q82XSuMa8T5UD6QywtCHUiZ4Tv3RFmRBU=
@@ -301,6 +301,8 @@ github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38/go.mod h1:kpwsk12EmLe
 github.com/google/pprof v0.0.0-20230207041349-798e818bf904 h1:4/hN5RUoecvl+RmJRE2YxKWtnnQls6rQjjW5oV7qg2U=
 github.com/google/pprof v0.0.0-20230207041349-798e818bf904/go.mod h1:uglQLonpP8qtYCYyzA+8c/9qtqgA3qsXGYqCPKARAFg=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
+github.com/google/renameio/v2 v2.0.0 h1:UifI23ZTGY8Tt29JbYFiuyIU3eX+RNFtUwefq9qAhxg=
+github.com/google/renameio/v2 v2.0.0/go.mod h1:BtmJXm5YlszgC+TD4HOEEUFgkJP3nLxehU6hfe7jRt4=
 github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=

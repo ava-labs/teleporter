@@ -3,7 +3,7 @@ module github.com/ava-labs/teleporter
 go 1.20
 
 require (
-	github.com/ava-labs/avalanchego v1.10.10
+	github.com/ava-labs/avalanchego v1.10.11
 	github.com/supranational/blst v0.3.11 // indirect
 )
 
@@ -56,6 +56,7 @@ require (
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/pprof v0.0.0-20230207041349-798e818bf904 // indirect
+	github.com/google/renameio/v2 v2.0.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/rpc v1.2.0 // indirect
