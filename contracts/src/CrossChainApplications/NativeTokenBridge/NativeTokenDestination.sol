@@ -21,9 +21,10 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
   address public constant WARP_PRECOMPILE_ADDRESS =
       0x0200000000000000000000000000000000000005;
 
-  uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 300_000; // TODO this is a placeholder
+  uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 3000_000; // TODO this is a placeholder
   bytes32 public immutable currentChainID;
-  bytes32 public immutable partnerChainID;
+  bytes32 public immutable sourceChainID;
+  address public immutable sourceContractAddress;
 
   // Used for sending an receiving Teleporter messages.
   ITeleporterMessenger public immutable teleporterMessenger;
@@ -35,21 +36,28 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
   error CannotBridgeTokenWithinSameChain();
   error Unauthorized();
   error InsufficientPayment();
+  error InvalidSourceContractAddress();
   error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
 
   // TODO we probably want to add the original token supply from this chain to the constructor.
-  constructor(address teleporterMessengerAddress, bytes32 partnerChainID_) {
+  constructor(address teleporterMessengerAddress, address sourceContractAddress_, bytes32 sourceChainID_) {
+    currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
+        .getBlockchainID();
+
     if (teleporterMessengerAddress == address(0)) {
         revert InvalidTeleporterMessengerAddress();
     }
     teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
-    currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
-        .getBlockchainID();
 
-    if (partnerChainID_ == currentChainID) {
+    if (sourceContractAddress_ == address(0)) {
+        revert InvalidSourceContractAddress();
+    }
+    sourceContractAddress = sourceContractAddress_;
+
+    if (sourceChainID_ == currentChainID) {
         revert CannotBridgeTokenWithinSameChain();
     }
-    partnerChainID = partnerChainID_;
+    sourceChainID = sourceChainID_;
   }
 
   /**
@@ -68,7 +76,7 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
       revert Unauthorized();
     }
     // Only allow messages from the partner chain.
-    if (nativeChainID != partnerChainID) {
+    if (nativeChainID != sourceChainID) {
       revert InvalidSourceChain();
     }
     // Only allow the partner contract to send messages.
@@ -123,8 +131,8 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
-                destinationChainID: partnerChainID,
-                destinationAddress: address(this),
+                destinationChainID: sourceChainID,
+                destinationAddress: sourceContractAddress,
                 feeInfo: TeleporterFeeInfo({
                     contractAddress: feeTokenContractAddress,
                     amount: feeAmount
@@ -138,8 +146,8 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
         emit TransferToSource({
             tokenContractAddress: feeTokenContractAddress,
             teleporterMessageID: messageID,
-            destinationChainID: partnerChainID,
-            destinationBridgeAddress: address(this),
+            destinationChainID: sourceChainID,
+            destinationBridgeAddress: sourceContractAddress,
             recipient: recipient,
             transferAmount: msg.value,
             feeAmount: feeAmount
