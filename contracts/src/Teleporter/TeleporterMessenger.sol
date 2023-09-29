@@ -560,16 +560,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Checks whether `delivererAddress` is allowed to deliver the message.
-     */
-    function checkIsAllowedRelayer(
-        address delivererAddress,
-        address[] calldata allowedRelayers
-    ) external pure returns (bool) {
-        return _checkIsAllowedRelayer(delivererAddress, allowedRelayers);
-    }
-
-    /**
      * @dev Returns the number of outstanding receipts that have been received from the given chain ID.
      */
     function getOutstandingReceiptQueueSize(bytes32 chainID)
@@ -589,6 +579,16 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         returns (TeleporterMessageReceipt memory)
     {
         return outstandingReceipts[chainID].getReceiptAtIndex(index);
+    }
+
+    /**
+     * @dev Checks whether `delivererAddress` is allowed to deliver the message.
+     */
+    function checkIsAllowedRelayer(
+        address delivererAddress,
+        address[] calldata allowedRelayers
+    ) external pure returns (bool) {
+        return _checkIsAllowedRelayer(delivererAddress, allowedRelayers);
     }
 
     /**
