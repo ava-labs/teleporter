@@ -8,7 +8,7 @@ pragma solidity 0.8.18;
 /**
  * @dev Interface that describes functionalities for a cross-chain ERC20 bridge.
  */
-interface INativeTokenReceiver {
+interface INativeTokenDestination {
 
     /**
      * @dev Emitted when tokens are locked in this bridge contract to be bridged to another chain.
@@ -24,15 +24,17 @@ interface INativeTokenReceiver {
     );
 
     /**
-     * @dev Emitted when tokens are unlocked on this chain.
+     * @dev Emitted when minting bridge tokens.
      */
-    event UnlockTokens(
+    event MintNativeTokens(
         address recipient,
         uint256 amount
     );
 
     /**
-     * @dev Transfers native tokens to another chain as that chain's native token.
+     * @dev Transfers ERC20 tokens to another chain.
+     *
+     * This can be wrapping, unwrapping, and transferring a wrapped token between two non-native chains.
      */
     function bridgeTokens(
         address recipient,

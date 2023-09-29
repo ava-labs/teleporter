@@ -3,25 +3,16 @@ pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "@subnet-evm-contracts/interfaces/IAllowList.sol";
-import "@subnet-evm-contracts/interfaces/INativeMinter.sol";
-import "./INativeTokenMinter.sol";
+import "./INativeTokenSource.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
 
-// Precompiled Native Minter Contract Address
-address constant MINTER_ADDRESS = 0x0200000000000000000000000000000000000001;
-// Designated Blackhole Address
-address constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000000;
-
-contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, ReentrancyGuard {
-  INativeMinter private immutable _nativeMinter = INativeMinter(MINTER_ADDRESS);
-
+contract NativeTokenSource is ITeleporterReceiver, INativeTokenSource, ReentrancyGuard {
   address public constant WARP_PRECOMPILE_ADDRESS =
       0x0200000000000000000000000000000000000005;
 
-  uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 300_000; // TODO this is a placeholder
+  uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 200_000; // TODO this is a placeholder
   bytes32 public immutable currentChainID;
   bytes32 public immutable partnerChainID;
 
@@ -31,13 +22,13 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, Reentranc
   error InvalidTeleporterMessengerAddress();
   error InvalidRecipientAddress();
   error InvalidSourceChain();
+  error InvalidRecipient();
   error InvalidPartnerContractAddress();
   error CannotBridgeTokenWithinSameChain();
   error Unauthorized();
   error InsufficientPayment();
   error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
 
-  // TODO we probably want to add the original token supply from this chain to the constructor.
   constructor(address teleporterMessengerAddress, bytes32 partnerChainID_) {
     if (teleporterMessengerAddress == address(0)) {
         revert InvalidTeleporterMessengerAddress();
@@ -61,7 +52,7 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, Reentranc
     bytes32 nativeChainID,
     address nativeBridgeAddress,
     bytes calldata message
-  ) external nonReentrant() {
+  ) external nonReentrant {
 
     // Only allow the Teleporter messenger to deliver messages.
     if (msg.sender != address(teleporterMessenger)) {
@@ -77,14 +68,20 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, Reentranc
     }
 
     (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
+    if (recipient == address(0)) {
+      revert InvalidRecipient();
+    }
 
-    // Calls NativeMinter precompile through INativeMinter interface.
-    _nativeMinter.mintNativeCoin(recipient, amount);
-    emit MintNativeTokens(recipient, amount);
+    // TODO set up starting threshold.
+
+    // Send to recipient
+    payable(recipient).transfer(amount);
+
+    emit UnlockTokens(recipient, amount);
   }
 
     /**
-    * @dev See {INativeTokenMinter-bridgeTokens}.
+    * @dev See {IERC20Bridge-bridgeTokens}.
     *
     * Requirements:
     *
@@ -110,13 +107,12 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, Reentranc
           );
 
           // Ensure that the adjusted amount is greater than the fee to be paid.
+          // The secondary fee amount is not used in this case (and can assumed to be 0) since bridging
+          // a native token to another chain only ever involves a single cross-chain message.
           if (adjustedAmount <= feeAmount) {
               revert InsufficientAdjustedAmount(adjustedAmount, feeAmount);
           }
         }
-
-        // Burn native token by sending to BLACKHOLE_ADDRESS
-        payable(BLACKHOLE_ADDRESS).transfer(msg.value);
 
         // Send Teleporter message.
         bytes memory messageData = abi.encode(recipient, msg.value);
@@ -129,7 +125,7 @@ contract NativeTokenMinter is ITeleporterReceiver, INativeTokenMinter, Reentranc
                     contractAddress: feeTokenContractAddress,
                     amount: feeAmount
                 }),
-                requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
+                requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: messageData
             })
