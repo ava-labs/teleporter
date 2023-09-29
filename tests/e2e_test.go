@@ -6,6 +6,7 @@ package tests
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"os"
@@ -455,6 +456,9 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 })
 
 var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() {
+	var (
+		teleporterMessageID *big.Int
+	)
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ginkgo.It("Deploy Contracts on chains A and B", ginkgo.Label("NativeTransfer", "DeployContracs"), func() {
@@ -504,7 +508,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		log.Info("Finished deploying Bridge contracts")
 	})
 
-	ginkgo.It("Transfer tokens from A to B", ginkgo.Label("NativeTransfer", "Mint Tokens on Destination"), func() {
+	ginkgo.It("Transfer tokens from A to B", ginkgo.Label("NativeTransfer", "Send Teleporter mint message"), func() {
 		ctx := context.Background()
 		var err error
 
@@ -528,4 +532,90 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		Expect(err).Should(BeNil())
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	})
+
+	// ginkgo.It("Relay message to destination", ginkgo.Label("NativeTransfer", "RelayMessage"), func() {
+	// 	ctx := context.Background()
+
+	// 	// Get the latest block from Subnet A, and retrieve the warp message from the logs
+	// 	log.Info("Waiting for new block confirmation")
+	// 	newHeadA := <-newHeadsA
+	// 	blockHashA := newHeadA.Hash()
+
+	// 	log.Info("Fetching relevant warp logs from the newly produced block")
+	// 	logs, err := chainARPCClient.FilterLogs(ctx, interfaces.FilterQuery{
+	// 		BlockHash: &blockHashA,
+	// 		Addresses: []common.Address{warp.Module.Address},
+	// 	})
+	// 	Expect(err).Should(BeNil())
+	// 	Expect(len(logs)).Should(Equal(1))
+
+	// 	// Check for relevant warp log from subscription and ensure that it matches
+	// 	// the log extracted from the last block.
+	// 	txLog := logs[0]
+	// 	log.Info("Parsing logData as unsigned warp message")
+	// 	unsignedMsg, err := avalancheWarp.ParseUnsignedMessage(txLog.Data)
+	// 	Expect(err).Should(BeNil())
+
+	// 	// Set local variables for the duration of the test
+	// 	unsignedWarpMessageID := unsignedMsg.ID()
+	// 	unsignedWarpMsg := unsignedMsg
+	// 	log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
+
+	// 	// Loop over each client on chain A to ensure they all have time to accept the block.
+	// 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
+	// 	// has accepted the block.
+	// 	waitForAllValidatorsToAcceptBlock(ctx, chainANodeURIs, blockchainIDA, newHeadA.Number.Uint64())
+
+	// 	// Get the aggregate signature for the Warp message
+	// 	log.Info("Fetching aggregate signature from the source chain validators")
+	// 	warpClient, err := warpBackend.NewClient(chainANodeURIs[0], blockchainIDA.String())
+	// 	Expect(err).Should(BeNil())
+	// 	signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
+	// 	Expect(err).Should(BeNil())
+
+	// 	signedTxB := constructAndSendTransaction(
+	// 		ctx,
+	// 		signedWarpMessageBytes,
+	// 		big.NewInt(1),
+	// 		teleporterContractAddress,
+	// 		fundedAddress,
+	// 		fundedKey,
+	// 		chainBRPCClient,
+	// 		chainBIDInt,
+	// 	)
+
+	// 	// Sleep to ensure the new block is published to the subscriber
+	// 	time.Sleep(5 * time.Second)
+	// 	receipt, err := chainBRPCClient.TransactionReceipt(ctx, signedTxB.Hash())
+	// 	Expect(err).Should(BeNil())
+
+
+
+	// 	cmd := exec.Command(
+	// 		"cast",
+	// 		"run",
+	// 		"--rpc-url", chainBRPCURI,
+	// 		"--verbose",
+	// 		signedTxB.Hash().Hex())
+
+	// 	fmt.Println(cmd.String())
+
+	// 	time.Sleep(5000 * time.Second)
+
+	// 	fmt.Printf("IT'S A ME, LOGIO\n %+v\n", receipt)
+
+	// 	output, err := cmd.Output()
+	// 	fmt.Printf("OUTPUT %v\n", hex.EncodeToString(output))
+	// 	Expect(err).Should(BeNil())
+
+	// 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	// 	sendCrossChainMessageLog := receipt.Logs[0]
+	// 	var event SendCrossChainMessageEvent
+	// 	err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
+	// 	Expect(err).Should(BeNil())
+	// 	teleporterMessageID = event.Message.MessageID
+	// 	teleporterMessageID.Uint64() // TODO remove
+	// })
+
 })
