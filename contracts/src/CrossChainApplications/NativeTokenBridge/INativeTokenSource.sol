@@ -13,7 +13,7 @@ interface INativeTokenSource {
     /**
      * @dev Emitted when tokens are locked in this bridge contract to be bridged to another chain.
      */
-    event BridgeTokens(
+    event TransferToDestination(
         address indexed tokenContractAddress,
         uint256 indexed teleporterMessageID,
         bytes32 destinationChainID,
@@ -34,7 +34,7 @@ interface INativeTokenSource {
     /**
      * @dev Transfers native tokens to another chain as that chain's native token.
      */
-    function bridgeTokens(
+    function transferToDestination(
         address recipient,
         address feeTokenContractAddress,
         uint256 feeAmount

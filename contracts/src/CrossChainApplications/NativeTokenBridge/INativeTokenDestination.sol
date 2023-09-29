@@ -13,7 +13,7 @@ interface INativeTokenDestination {
     /**
      * @dev Emitted when tokens are locked in this bridge contract to be bridged to another chain.
      */
-    event BridgeTokens(
+    event TransferToSource(
         address indexed tokenContractAddress,
         uint256 indexed teleporterMessageID,
         bytes32 destinationChainID,
@@ -36,7 +36,7 @@ interface INativeTokenDestination {
      *
      * This can be wrapping, unwrapping, and transferring a wrapped token between two non-native chains.
      */
-    function bridgeTokens(
+    function transferToSource(
         address recipient,
         address feeTokenContractAddress,
         uint256 feeAmount
