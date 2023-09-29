@@ -33,7 +33,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Generate ABI Go bindings
+      - name: Install forge and generate ABI Go bindings
         run: |
           BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
           curl -L https://foundry.paradigm.xyz | bash
