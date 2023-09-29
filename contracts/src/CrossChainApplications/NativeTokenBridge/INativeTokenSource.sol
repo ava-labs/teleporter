@@ -9,7 +9,6 @@ pragma solidity 0.8.18;
  * @dev Interface that describes functionalities for a cross-chain ERC20 bridge.
  */
 interface INativeTokenSource {
-
     /**
      * @dev Emitted when tokens are locked in this bridge contract to be bridged to another chain.
      */
@@ -26,10 +25,7 @@ interface INativeTokenSource {
     /**
      * @dev Emitted when tokens are unlocked on this chain.
      */
-    event UnlockTokens(
-        address recipient,
-        uint256 amount
-    );
+    event UnlockTokens(address recipient, uint256 amount);
 
     /**
      * @dev Transfers native tokens to another chain as that chain's native token.
