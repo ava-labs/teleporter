@@ -459,9 +459,10 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ginkgo.It("Deploy Contracts on chains A and B", ginkgo.Label("NativeTransfer", "DeployContracs"), func() {
 		ctx := context.Background()
+		var err error
 
 	// Deploy Native Token bridge on the two subnets
-		nativeTokenBridgeDeployerPK, err := crypto.HexToECDSA(bridgeDeployerKeyStr)
+		nativeTokenBridgeDeployerPK, err = crypto.HexToECDSA(bridgeDeployerKeyStr)
 		Expect(err).Should(BeNil())
 		nativeTokenBridgeContractAddress, err = deploymentUtils.DeriveEVMContractAddress(nativeTokenBridgeDeployer, 0)
 		Expect(err).Should(BeNil())
@@ -505,6 +506,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 
 	ginkgo.It("Transfer tokens from A to B", ginkgo.Label("NativeTransfer", "Mint Tokens on Destination"), func() {
 		ctx := context.Background()
+		var err error
 
 		nativeTokenReceiver, err := abi.NewNativeTokenReceiver(nativeTokenBridgeContractAddress, chainARPCClient)
 		Expect(err).Should(BeNil())
@@ -518,10 +520,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 
 		tx, err := nativeTokenReceiver.BridgeTokens(transactor, tokenReceiverAddress, tokenReceiverAddress, big.NewInt(0))
 		Expect(err).Should(BeNil())
-
-		log.Info("Sending NativeTokenTransfer transaction on source chain", "destinationChainID", blockchainIDB, "txHash", tx.Hash())
-		err = chainARPCClient.SendTransaction(ctx, tx)
-		Expect(err).Should(BeNil())
+		log.Info("Sent NativeTokenTransfer transaction on source chain", "destinationChainID", blockchainIDB, "txHash", tx.Hash())
 
 		// Sleep to ensure the new block is published to the subscriber
 		time.Sleep(5 * time.Second)
