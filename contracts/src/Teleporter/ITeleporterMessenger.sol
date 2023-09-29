@@ -204,4 +204,17 @@ interface ITeleporterMessenger {
         bytes32 destinationChainID,
         uint256 messageID
     ) external view returns (address feeAsset, uint256 feeAmount);
+
+    /**
+     * @dev Gets the number of outstanding receipts that have been sent to the given destination chain ID.
+     */
+    function getOutstandingReceiptQueueSize(bytes32 chainID) external view returns (uint256 size);
+
+    /**
+     * @dev Gets the outstanding receipt at the given index in the queue for the given chain ID.
+     */
+    function getOutstandingReceiptAtIndex(
+        bytes32 chainID,
+        uint256 index
+    ) external view returns (TeleporterMessageReceipt memory receipt);
 }
