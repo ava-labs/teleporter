@@ -9,16 +9,24 @@ pragma solidity 0.8.18;
  * @dev Interface that describes functionalities for a cross-chain native token bridge.
  */
 interface INativeTokenDestination {
+    error InvalidTeleporterMessengerAddress();
+    error InvalidRecipientAddress();
+    error InvalidSourceChain();
+    error InvalidPartnerContractAddress();
+    error CannotBridgeTokenWithinSameChain();
+    error Unauthorized();
+    error InsufficientPayment();
+    error InvalidSourceContractAddress();
+    error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
+
     /**
      * @dev Emitted when tokens are burned in this bridge contract to be bridged to the source chain.
      */
     event TransferToSource(
-        address indexed tokenContractAddress,
         uint256 indexed teleporterMessageID,
-        bytes32 destinationChainID,
-        address destinationBridgeAddress,
         address recipient,
         uint256 transferAmount,
+        address feeContractAddress,
         uint256 feeAmount
     );
 
@@ -33,7 +41,7 @@ interface INativeTokenDestination {
      */
     function transferToSource(
         address recipient,
-        address feeTokenContractAddress,
+        address feeContractAddress,
         uint256 feeAmount
     ) external payable;
 }

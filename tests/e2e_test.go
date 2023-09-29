@@ -6,7 +6,6 @@ package tests
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"os"
@@ -20,9 +19,9 @@ import (
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	relayerEvm "github.com/ava-labs/awm-relayer/vms/evm"
 
-	// "github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
+	// "github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/interfaces"
 
@@ -33,8 +32,6 @@ import (
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 
-	// warpPayload "github.com/ava-labs/subnet-evm/warp/payload"
-	// "github.com/ava-labs/teleporter/contracts/abi"
 	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
 	"github.com/ava-labs/teleporter/contracts/abi"
 
@@ -478,7 +475,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 			"src/CrossChainApplications/NativeTokenBridge/NativeTokenSource.sol:NativeTokenSource",
 			"--rpc-url", chainARPCURI,
 			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
-			"--constructor-args", teleporterContractAddress.Hex(), nativeTokenBridgeContractAddress.Hex(), hexutil.Encode(chainBIDInt.Bytes()))
+			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainBIDInt.Bytes()), nativeTokenBridgeContractAddress.Hex())
 
 		cmd.Dir = "./contracts"
 		err = cmd.Run()
@@ -490,7 +487,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 			"src/CrossChainApplications/NativeTokenBridge/NativeTokenDestination.sol:NativeTokenDestination",
 			"--rpc-url", chainBRPCURI,
 			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
-			"--constructor-args", teleporterContractAddress.Hex(), nativeTokenBridgeContractAddress.Hex(), hexutil.Encode(chainAIDInt.Bytes()))
+			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainAIDInt.Bytes()), nativeTokenBridgeContractAddress.Hex())
 
 		cmd.Dir = "./contracts"
 		err = cmd.Run()
