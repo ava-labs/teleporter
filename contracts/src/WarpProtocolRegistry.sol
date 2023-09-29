@@ -151,7 +151,7 @@ abstract contract WarpProtocolRegistry {
     ) internal view virtual returns (address) {
         // Check that the version provided is a valid version.
         if (version == 0) {
-            revert InvalidProtocolVersion(;
+            revert InvalidProtocolVersion();
         }
 
         if (version > _latestVersion) {

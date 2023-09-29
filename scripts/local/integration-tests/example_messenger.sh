@@ -22,6 +22,9 @@ set -e # Stop on first error
 #   subnet_b_subnet_id_hex
 #   teleporter_contract_address
 #   warp_messenger_precompile_addr
+#   registry_address_a
+#   registry_address_b
+#   registry_address_c
 
 # Deploy a test ERC20 on subnet A.
 cd contracts
@@ -30,13 +33,13 @@ erc20_contract_address=$(parseContractAddress "$erc20_deploy_result")
 echo "Test ERC20 contract deployed to $erc20_contract_address on Subnet A"
 
 # Deploy the example messenger application on subnet A
-example_messenger_a_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
+example_messenger_a_deploy_result=$(forge create --private-key $user_private_key --constructor-args $registry_address_a \
     --rpc-url $subnet_a_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger)
 example_messenger_a_contract_address=$(parseContractAddress "$example_messenger_a_deploy_result")
 echo "Example Messenger contract deployed to subnet A at $example_messenger_a_contract_address"
 
 # Deploy the example messenger application on subnet B
-example_messenger_b_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
+example_messenger_b_deploy_result=$(forge create --private-key $user_private_key --constructor-args $registry_address_b \
     --rpc-url $subnet_b_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger)
 example_messenger_b_contract_address=$(parseContractAddress "$example_messenger_b_deploy_result")
 echo "Example Messenger contract deployed to subnet B at $example_messenger_b_contract_address"
