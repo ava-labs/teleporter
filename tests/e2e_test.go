@@ -18,7 +18,9 @@ import (
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	relayerEvm "github.com/ava-labs/awm-relayer/vms/evm"
+
 	// "github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/interfaces"
@@ -33,6 +35,7 @@ import (
 	// warpPayload "github.com/ava-labs/subnet-evm/warp/payload"
 	// "github.com/ava-labs/teleporter/contracts/abi"
 	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
+	"github.com/ava-labs/teleporter/contracts/abi"
 
 	"github.com/ava-labs/subnet-evm/x/warp"
 	"github.com/ethereum/go-ethereum/common"
@@ -297,49 +300,6 @@ var _ = ginkgo.BeforeSuite(func() {
 	}
 	log.Info("Finished deploying Teleporter contracts")
 
-	// Deploy Native Token bridge on the two subnets
-	{
-		nativeTokenBridgeDeployerPK, err = crypto.HexToECDSA(bridgeDeployerKeyStr)
-		Expect(err).Should(BeNil())
-		nativeTokenBridgeContractAddress, err = deploymentUtils.DeriveEVMContractAddress(nativeTokenBridgeDeployer, 0)
-		Expect(err).Should(BeNil())
-		fmt.Println("Native Token Bridge Contract Address: ", nativeTokenBridgeContractAddress.Hex())
-
-		cmd := exec.Command(
-			"forge",
-			"create",
-			"src/CrossChainApplications/NativeTokenBridge/NativeTokenReceiver.sol:NativeTokenReceiver",
-			"--rpc-url", chainARPCURI,
-			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
-			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainBIDInt.Bytes()))
-
-		cmd.Dir = "./contracts"
-		err := cmd.Run()
-		Expect(err).Should(BeNil())
-
-		cmd = exec.Command(
-			"forge",
-			"create",
-			"src/CrossChainApplications/NativeTokenBridge/NativeTokenMinter.sol:NativeTokenMinter",
-			"--rpc-url", chainBRPCURI,
-			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
-			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainAIDInt.Bytes()))
-
-		cmd.Dir = "./contracts"
-		err = cmd.Run()
-		Expect(err).Should(BeNil())
-
-		time.Sleep(5 * time.Second)
-		bridgeCodeA, err := chainARPCClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(bridgeCodeA)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-
-		bridgeCodeB, err := chainBRPCClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(bridgeCodeB)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-	}
-	log.Info("Finished deploying Bridge contracts")
-
 	log.Info("Set up ginkgo before suite")
 })
 
@@ -359,7 +319,9 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 	var (
 		teleporterMessageID *big.Int
 	)
-	ginkgo.Skip("Remove me")
+	ginkgo.BeforeEach(func(){
+		ginkgo.Skip("Remove me")
+	})
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ginkgo.It("Send Message from A to B", ginkgo.Label("Teleporter", "SendTeleporter"), func() {
@@ -390,14 +352,6 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		txSigner := types.LatestSignerForChainID(chainAIDInt)
 		signedTx, err := types.SignTx(tx, txSigner, fundedKey)
 		Expect(err).Should(BeNil())
-
-		// nativeTokenReceiver, err := abi.NewNativeTokenReceiver(nativeTokenBridgeContractAddress, chainARPCClient)
-		// Expect(err).Should(BeNil())
-		// transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, chainAIDInt)
-
-
-		// transactor.Value = big.NewInt(1000_000_000_000_000_000)
-		// bridgetx, err := nativeTokenReceiver.BridgeTokens(transactor, tokenReceiverAddress, tokenReceiverAddress, big.NewInt(0))
 
 		subA, err := chainAWSClient.SubscribeNewHead(ctx, newHeadsA)
 		Expect(err).Should(BeNil())
@@ -498,4 +452,81 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		Expect(delivered).Should(BeTrue())
 	})
 
+})
+
+var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() {
+
+	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
+	ginkgo.It("Deploy Contracts on chains A and B", ginkgo.Label("NativeTransfer", "DeployContracs"), func() {
+		ctx := context.Background()
+
+	// Deploy Native Token bridge on the two subnets
+		nativeTokenBridgeDeployerPK, err := crypto.HexToECDSA(bridgeDeployerKeyStr)
+		Expect(err).Should(BeNil())
+		nativeTokenBridgeContractAddress, err = deploymentUtils.DeriveEVMContractAddress(nativeTokenBridgeDeployer, 0)
+		Expect(err).Should(BeNil())
+		fmt.Println("Native Token Bridge Contract Address: ", nativeTokenBridgeContractAddress.Hex())
+
+		cmd := exec.Command(
+			"forge",
+			"create",
+			"src/CrossChainApplications/NativeTokenBridge/NativeTokenReceiver.sol:NativeTokenReceiver",
+			"--rpc-url", chainARPCURI,
+			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
+			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainBIDInt.Bytes()))
+
+		cmd.Dir = "./contracts"
+		err = cmd.Run()
+		Expect(err).Should(BeNil())
+
+		cmd = exec.Command(
+			"forge",
+			"create",
+			"src/CrossChainApplications/NativeTokenBridge/NativeTokenMinter.sol:NativeTokenMinter",
+			"--rpc-url", chainBRPCURI,
+			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
+			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainAIDInt.Bytes()))
+
+		cmd.Dir = "./contracts"
+		err = cmd.Run()
+		Expect(err).Should(BeNil())
+
+		time.Sleep(5 * time.Second)
+		bridgeCodeA, err := chainARPCClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
+		Expect(err).Should(BeNil())
+		Expect(len(bridgeCodeA)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+
+		bridgeCodeB, err := chainBRPCClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
+		Expect(err).Should(BeNil())
+		Expect(len(bridgeCodeB)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+
+		log.Info("Finished deploying Bridge contracts")
+	})
+
+	ginkgo.It("Transfer tokens from A to B", ginkgo.Label("NativeTransfer", "Mint Tokens on Destination"), func() {
+		ctx := context.Background()
+
+		nativeTokenReceiver, err := abi.NewNativeTokenReceiver(nativeTokenBridgeContractAddress, chainARPCClient)
+		Expect(err).Should(BeNil())
+		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, chainAIDInt)
+		Expect(err).Should(BeNil())
+		transactor.Value = big.NewInt(1000_000_000_000_000_000)
+
+		subA, err := chainAWSClient.SubscribeNewHead(ctx, newHeadsA)
+		Expect(err).Should(BeNil())
+		defer subA.Unsubscribe()
+
+		tx, err := nativeTokenReceiver.BridgeTokens(transactor, tokenReceiverAddress, tokenReceiverAddress, big.NewInt(0))
+		Expect(err).Should(BeNil())
+
+		log.Info("Sending NativeTokenTransfer transaction on source chain", "destinationChainID", blockchainIDB, "txHash", tx.Hash())
+		err = chainARPCClient.SendTransaction(ctx, tx)
+		Expect(err).Should(BeNil())
+
+		// Sleep to ensure the new block is published to the subscriber
+		time.Sleep(5 * time.Second)
+		receipt, err := chainARPCClient.TransactionReceipt(ctx, tx.Hash())
+		Expect(err).Should(BeNil())
+		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	})
 })
