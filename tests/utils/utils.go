@@ -69,7 +69,6 @@ type FeeInfo struct {
 // Returns the new head
 func SendAndWaitForTransaction(
 	ctx context.Context,
-	rpcClient ethclient.Client,
 	wsClient ethclient.Client,
 	tx *types.Transaction) *types.Header {
 
@@ -78,7 +77,7 @@ func SendAndWaitForTransaction(
 	Expect(err).Should(BeNil())
 	defer subA.Unsubscribe()
 
-	err = rpcClient.SendTransaction(ctx, tx)
+	err = wsClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
 	newHead := <-newHeads
 
@@ -176,7 +175,6 @@ func ConstructAndSendTransaction(
 	teleporterContractAddress common.Address,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	rpcClient ethclient.Client,
 	wsClient ethclient.Client,
 	chainID *big.Int,
 ) *types.Transaction {
@@ -197,13 +195,13 @@ func ConstructAndSendTransaction(
 	})
 	Expect(err).Should(BeNil())
 
-	baseFee, err := rpcClient.EstimateBaseFee(ctx)
+	baseFee, err := wsClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
 
-	gasTipCap, err := rpcClient.SuggestGasTipCap(ctx)
+	gasTipCap, err := wsClient.SuggestGasTipCap(ctx)
 	Expect(err).Should(BeNil())
 
-	nonce, err := rpcClient.NonceAt(ctx, fundedAddress, nil)
+	nonce, err := wsClient.NonceAt(ctx, fundedAddress, nil)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))
@@ -228,7 +226,7 @@ func ConstructAndSendTransaction(
 	Expect(err).Should(BeNil())
 
 	log.Info("Sending transaction to destination chain")
-	SendAndWaitForTransaction(ctx, rpcClient, wsClient, signedTx)
+	SendAndWaitForTransaction(ctx, wsClient, signedTx)
 
 	return signedTx
 }

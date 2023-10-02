@@ -27,16 +27,15 @@ const (
 )
 
 var (
-	teleporterContractAddress        common.Address
-	subnetA, subnetB                 ids.ID
-	blockchainIDA, blockchainIDB     ids.ID
-	chainANodeURIs, chainBNodeURIs   []string
-	fundedAddress                    = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
-	fundedKey                        *ecdsa.PrivateKey
-	chainAWSClient, chainBWSClient   ethclient.Client
-	chainARPCClient, chainBRPCClient ethclient.Client
-	chainARPCURI, chainBRPCURI       string
-	chainAIDInt, chainBIDInt         *big.Int
+	teleporterContractAddress      common.Address
+	subnetA, subnetB               ids.ID
+	blockchainIDA, blockchainIDB   ids.ID
+	chainANodeURIs, chainBNodeURIs []string
+	fundedAddress                  = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
+	fundedKey                      *ecdsa.PrivateKey
+	chainAWSClient, chainBWSClient ethclient.Client
+	chainAWSURI, chainBWSURI       string
+	chainAIDInt, chainBIDInt       *big.Int
 
 	// Internal vars only used to set up the local network
 	anrConfig           = runner.NewDefaultANRConfig()
@@ -49,13 +48,12 @@ var (
 //
 
 type SubnetTestInfo struct {
-	SubnetID       ids.ID
-	BlockchainID   ids.ID
-	ChainNodeURIs  []string
-	ChainWSClient  ethclient.Client
-	ChainRPCClient ethclient.Client
-	ChainRPCURI    string
-	ChainIDInt     *big.Int
+	SubnetID      ids.ID
+	BlockchainID  ids.ID
+	ChainNodeURIs []string
+	ChainWSClient ethclient.Client
+	ChainWSURI    string
+	ChainIDInt    *big.Int
 }
 
 func GetSubnetsInfo() []SubnetTestInfo {
@@ -67,24 +65,22 @@ func GetSubnetsInfo() []SubnetTestInfo {
 
 func GetSubnetATestInfo() SubnetTestInfo {
 	return SubnetTestInfo{
-		SubnetID:       subnetA,
-		BlockchainID:   blockchainIDA,
-		ChainNodeURIs:  chainANodeURIs,
-		ChainWSClient:  chainAWSClient,
-		ChainRPCClient: chainARPCClient,
-		ChainRPCURI:    chainARPCURI,
-		ChainIDInt:     chainAIDInt,
+		SubnetID:      subnetA,
+		BlockchainID:  blockchainIDA,
+		ChainNodeURIs: chainANodeURIs,
+		ChainWSClient: chainAWSClient,
+		ChainWSURI:    chainAWSURI,
+		ChainIDInt:    chainAIDInt,
 	}
 }
 func GetSubnetBTestInfo() SubnetTestInfo {
 	return SubnetTestInfo{
-		SubnetID:       subnetB,
-		BlockchainID:   blockchainIDB,
-		ChainNodeURIs:  chainBNodeURIs,
-		ChainWSClient:  chainBWSClient,
-		ChainRPCClient: chainBRPCClient,
-		ChainRPCURI:    chainBRPCURI,
-		ChainIDInt:     chainBIDInt,
+		SubnetID:      subnetB,
+		BlockchainID:  blockchainIDB,
+		ChainNodeURIs: chainBNodeURIs,
+		ChainWSClient: chainBWSClient,
+		ChainWSURI:    chainBWSURI,
+		ChainIDInt:    chainBIDInt,
 	}
 }
 func GetTeleporterContractAddress() common.Address {
@@ -185,25 +181,19 @@ func SetupNetwork(warpGenesisFile string) {
 	)
 
 	chainAWSURI := HttpToWebsocketURI(chainANodeURIs[0], blockchainIDA.String())
-	chainARPCURI = HttpToRPCURI(chainANodeURIs[0], blockchainIDA.String())
-	log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI, "rpcURL", chainARPCURI)
+	log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI)
 	chainAWSClient, err = ethclient.Dial(chainAWSURI)
 	Expect(err).Should(BeNil())
-	chainARPCClient, err = ethclient.Dial(chainARPCURI)
-	Expect(err).Should(BeNil())
 
-	chainAIDInt, err = chainARPCClient.ChainID(context.Background())
+	chainAIDInt, err = chainAWSClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
 	chainBWSURI := HttpToWebsocketURI(chainBNodeURIs[0], blockchainIDB.String())
-	chainBRPCURI = HttpToRPCURI(chainBNodeURIs[0], blockchainIDB.String())
-	log.Info("Creating ethclient for blockchainB", "wsURI", chainBWSURI, "rpcURL", chainBRPCURI)
+	log.Info("Creating ethclient for blockchainB", "wsURI", chainBWSURI)
 	chainBWSClient, err = ethclient.Dial(chainBWSURI)
 	Expect(err).Should(BeNil())
-	chainBRPCClient, err = ethclient.Dial(chainBRPCURI)
-	Expect(err).Should(BeNil())
 
-	chainBIDInt, err = chainBRPCClient.ChainID(context.Background())
+	chainBIDInt, err = chainBWSClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
 	log.Info("Finished setting up e2e test subnet variables")
@@ -222,7 +212,7 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 	ctx := context.Background()
 
 	for _, subnetInfo := range subnetsInfo {
-		client := subnetInfo.ChainRPCClient
+		client := subnetInfo.ChainWSClient
 
 		chainID, err := client.ChainID(ctx)
 		Expect(err).Should(BeNil())
@@ -249,7 +239,7 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 			txSigner := types.LatestSignerForChainID(chainID)
 			triggerTx, err := types.SignTx(txA, txSigner, fundedKey)
 
-			SendAndWaitForTransaction(ctx, client, subnetInfo.ChainWSClient, triggerTx)
+			SendAndWaitForTransaction(ctx, subnetInfo.ChainWSClient, triggerTx)
 			receipt, err := client.TransactionReceipt(ctx, triggerTx.Hash())
 			Expect(err).Should(BeNil())
 			Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
@@ -258,7 +248,7 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 
 		// Deploy Teleporter
 		{
-			rpcClient, err := rpc.DialContext(ctx, subnetInfo.ChainRPCURI)
+			rpcClient, err := rpc.DialContext(ctx, HttpToRPCURI(subnetInfo.ChainNodeURIs[0], subnetInfo.BlockchainID.String()))
 			Expect(err).Should(BeNil())
 
 			newHeads := make(chan *types.Header, 10)

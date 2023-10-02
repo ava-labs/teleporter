@@ -39,7 +39,7 @@ func BasicOneWaySend() {
 	//
 	ctx := context.Background()
 
-	nonceA, err := subnetAInfo.ChainRPCClient.NonceAt(ctx, fundedAddress, nil)
+	nonceA, err := subnetAInfo.ChainWSClient.NonceAt(ctx, fundedAddress, nil)
 	Expect(err).Should(BeNil())
 
 	data, err := teleporter.EVMTeleporterContractABI.Pack(
@@ -66,9 +66,9 @@ func BasicOneWaySend() {
 	Expect(err).Should(BeNil())
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
-	newHeadA := SendAndWaitForTransaction(ctx, subnetAInfo.ChainRPCClient, subnetAInfo.ChainWSClient, signedTx)
+	newHeadA := SendAndWaitForTransaction(ctx, subnetAInfo.ChainWSClient, signedTx)
 
-	receipt, err := subnetAInfo.ChainRPCClient.TransactionReceipt(ctx, signedTx.Hash())
+	receipt, err := subnetAInfo.ChainWSClient.TransactionReceipt(ctx, signedTx.Hash())
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -81,7 +81,7 @@ func BasicOneWaySend() {
 	blockHashA := newHeadA.Hash()
 
 	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := subnetAInfo.ChainRPCClient.FilterLogs(ctx, interfaces.FilterQuery{
+	logs, err := subnetAInfo.ChainWSClient.FilterLogs(ctx, interfaces.FilterQuery{
 		BlockHash: &blockHashA,
 		Addresses: []common.Address{warp.Module.Address},
 	})
@@ -120,12 +120,11 @@ func BasicOneWaySend() {
 		teleporterContractAddress,
 		fundedAddress,
 		fundedKey,
-		subnetBInfo.ChainRPCClient,
 		subnetBInfo.ChainWSClient,
 		subnetBInfo.ChainIDInt,
 	)
 
-	receipt, err = subnetBInfo.ChainRPCClient.TransactionReceipt(ctx, signedTxB.Hash())
+	receipt, err = subnetBInfo.ChainWSClient.TransactionReceipt(ctx, signedTxB.Hash())
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -147,7 +146,7 @@ func BasicOneWaySend() {
 		To:   &teleporterContractAddress,
 		Data: data,
 	}
-	result, err := subnetBInfo.ChainRPCClient.CallContract(context.Background(), callMessage, nil)
+	result, err := subnetBInfo.ChainWSClient.CallContract(context.Background(), callMessage, nil)
 	Expect(err).Should(BeNil())
 
 	// check the contract call result
