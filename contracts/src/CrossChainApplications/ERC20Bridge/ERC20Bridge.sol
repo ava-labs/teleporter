@@ -89,7 +89,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     error InvalidBridgeTokenAddress();
     error InvalidDestinationBridgeAddress();
     error InvalidRecipientAddress();
-    error InvalidTeleporterRegistryAddress();
     error Unauthorized();
 
     /**
