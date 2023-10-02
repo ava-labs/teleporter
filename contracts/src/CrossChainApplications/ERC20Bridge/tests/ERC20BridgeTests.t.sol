@@ -72,7 +72,7 @@ contract ERC20BridgeTest is Test {
             abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector)
         );
 
-        initMockTeleporterRegistry();
+        _initMockTeleporterRegistry();
 
         vm.expectCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -83,42 +83,6 @@ contract ERC20BridgeTest is Test {
 
         erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS);
         mockERC20 = new UnitTestMockERC20();
-    }
-
-    function initMockTeleporterRegistry() internal {
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
-            ),
-            abi.encode(1)
-        );
-
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry.getAddressToVersion.selector,
-                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
-            ),
-            abi.encode(1)
-        );
-
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getVersionToAddress.selector,
-                (1)
-            ),
-            abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
-        );
-
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry.getLatestTeleporter.selector
-            ),
-            abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
-        );
     }
 
     function testSameChainID() public {
@@ -668,6 +632,42 @@ contract ERC20BridgeTest is Test {
         assertEq(_DEFAULT_OTHER_CHAIN_ID, newBridgeToken.nativeChainID());
         assertEq(_DEFAULT_OTHER_BRIDGE_ADDRESS, newBridgeToken.nativeBridge());
         assertEq(address(mockERC20), newBridgeToken.nativeAsset());
+    }
+
+    function _initMockTeleporterRegistry() internal {
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getLatestVersion.selector
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getAddressToVersion.selector,
+                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getVersionToAddress.selector,
+                (1)
+            ),
+            abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getLatestTeleporter.selector
+            ),
+            abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
+        );
     }
 
     function _setUpExpectedTransferFromCall(

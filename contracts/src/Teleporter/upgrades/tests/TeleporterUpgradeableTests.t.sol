@@ -14,6 +14,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
         address teleporterRegistryAddress
     ) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
+    // solhint-disable-next-line no-empty-blocks
     function teleporterCall() external onlyAllowedTeleporter {}
 }
 

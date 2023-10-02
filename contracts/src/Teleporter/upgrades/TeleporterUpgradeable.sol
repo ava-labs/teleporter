@@ -19,19 +19,6 @@ abstract contract TeleporterUpgradeable {
     error InvalidTeleporterSender();
 
     /**
-     * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
-     * instance and setting `_minTeleporterVersion`.
-     */
-    constructor(address teleporterRegistryAddress) {
-        if (teleporterRegistryAddress == address(0)) {
-            revert InvalidTeleporterRegistryAddress();
-        }
-
-        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
-    }
-
-    /**
      * @dev Throws if called by a `msg.sender` that is not an allowed Telepoter version.
      * Checks that `msg.sender` matches a Teleporter version greater than or equal to `_minTeleporterVersion`.
      */
@@ -43,6 +30,19 @@ abstract contract TeleporterUpgradeable {
             revert InvalidTeleporterSender();
         }
         _;
+    }
+
+    /**
+     * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
+     * instance and setting `_minTeleporterVersion`.
+     */
+    constructor(address teleporterRegistryAddress) {
+        if (teleporterRegistryAddress == address(0)) {
+            revert InvalidTeleporterRegistryAddress();
+        }
+
+        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
+        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**
