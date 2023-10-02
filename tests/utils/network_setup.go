@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/big"
 	"os"
-	"time"
 
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
 	"github.com/ava-labs/avalanchego/ids"
@@ -38,7 +37,6 @@ var (
 	chainARPCClient, chainBRPCClient ethclient.Client
 	chainARPCURI, chainBRPCURI       string
 	chainAIDInt, chainBIDInt         *big.Int
-	newHeadsA, newHeadsB             chan *types.Header
 
 	// Internal vars only used to set up the local network
 	anrConfig           = runner.NewDefaultANRConfig()
@@ -58,7 +56,6 @@ type SubnetTestInfo struct {
 	ChainRPCClient ethclient.Client
 	ChainRPCURI    string
 	ChainIDInt     *big.Int
-	NewHeads       chan *types.Header
 }
 
 func GetSubnetsInfo() []SubnetTestInfo {
@@ -77,7 +74,6 @@ func GetSubnetATestInfo() SubnetTestInfo {
 		ChainRPCClient: chainARPCClient,
 		ChainRPCURI:    chainARPCURI,
 		ChainIDInt:     chainAIDInt,
-		NewHeads:       newHeadsA,
 	}
 }
 func GetSubnetBTestInfo() SubnetTestInfo {
@@ -89,7 +85,6 @@ func GetSubnetBTestInfo() SubnetTestInfo {
 		ChainRPCClient: chainBRPCClient,
 		ChainRPCURI:    chainBRPCURI,
 		ChainIDInt:     chainBIDInt,
-		NewHeads:       newHeadsB,
 	}
 }
 func GetTeleporterContractAddress() common.Address {
@@ -191,7 +186,7 @@ func SetupNetwork(warpGenesisFile string) {
 
 	chainAWSURI := HttpToWebsocketURI(chainANodeURIs[0], blockchainIDA.String())
 	chainARPCURI = HttpToRPCURI(chainANodeURIs[0], blockchainIDA.String())
-	log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI, "rpcURL, chainARPCURI")
+	log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI, "rpcURL", chainARPCURI)
 	chainAWSClient, err = ethclient.Dial(chainAWSURI)
 	Expect(err).Should(BeNil())
 	chainARPCClient, err = ethclient.Dial(chainARPCURI)
@@ -202,7 +197,7 @@ func SetupNetwork(warpGenesisFile string) {
 
 	chainBWSURI := HttpToWebsocketURI(chainBNodeURIs[0], blockchainIDB.String())
 	chainBRPCURI = HttpToRPCURI(chainBNodeURIs[0], blockchainIDB.String())
-	log.Info("Creating ethclient for blockchainB", "wsURI", chainBWSURI)
+	log.Info("Creating ethclient for blockchainB", "wsURI", chainBWSURI, "rpcURL", chainBRPCURI)
 	chainBWSClient, err = ethclient.Dial(chainBWSURI)
 	Expect(err).Should(BeNil())
 	chainBRPCClient, err = ethclient.Dial(chainBRPCURI)
@@ -210,9 +205,6 @@ func SetupNetwork(warpGenesisFile string) {
 
 	chainBIDInt, err = chainBRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
-
-	newHeadsA = make(chan *types.Header, 10)
-	newHeadsB = make(chan *types.Header, 10)
 
 	log.Info("Finished setting up e2e test subnet variables")
 }
@@ -256,10 +248,8 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 			})
 			txSigner := types.LatestSignerForChainID(chainID)
 			triggerTx, err := types.SignTx(txA, txSigner, fundedKey)
-			Expect(err).Should(BeNil())
-			err = client.SendTransaction(ctx, triggerTx)
-			Expect(err).Should(BeNil())
-			time.Sleep(5 * time.Second)
+
+			SendAndWaitForTransaction(ctx, client, subnetInfo.ChainWSClient, triggerTx)
 			receipt, err := client.TransactionReceipt(ctx, triggerTx.Hash())
 			Expect(err).Should(BeNil())
 			Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
@@ -270,9 +260,16 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 		{
 			rpcClient, err := rpc.DialContext(ctx, subnetInfo.ChainRPCURI)
 			Expect(err).Should(BeNil())
+
+			newHeads := make(chan *types.Header, 10)
+			subA, err := subnetInfo.ChainWSClient.SubscribeNewHead(ctx, newHeads)
+			Expect(err).Should(BeNil())
+			defer subA.Unsubscribe()
+
 			err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
 			Expect(err).Should(BeNil())
-			time.Sleep(5 * time.Second)
+
+			<-newHeads
 			teleporterCode, err := client.CodeAt(ctx, teleporterContractAddress, nil)
 			Expect(err).Should(BeNil())
 			Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode

@@ -65,6 +65,26 @@ type FeeInfo struct {
 // Test utility functions
 //
 
+// Subscribes to new heads, sends a tx, and waits for the new head to appear
+// Returns the new head
+func SendAndWaitForTransaction(
+	ctx context.Context,
+	rpcClient ethclient.Client,
+	wsClient ethclient.Client,
+	tx *types.Transaction) *types.Header {
+
+	newHeads := make(chan *types.Header, 1)
+	subA, err := wsClient.SubscribeNewHead(ctx, newHeads)
+	Expect(err).Should(BeNil())
+	defer subA.Unsubscribe()
+
+	err = rpcClient.SendTransaction(ctx, tx)
+	Expect(err).Should(BeNil())
+	newHead := <-newHeads
+
+	return newHead
+}
+
 func HttpToWebsocketURI(uri string, blockchainID string) string {
 	return fmt.Sprintf("ws://%s/ext/bc/%s/ws", strings.TrimPrefix(uri, "http://"), blockchainID)
 }
@@ -156,7 +176,8 @@ func ConstructAndSendTransaction(
 	teleporterContractAddress common.Address,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	client ethclient.Client,
+	rpcClient ethclient.Client,
+	wsClient ethclient.Client,
 	chainID *big.Int,
 ) *types.Transaction {
 	// Construct the transaction to send the Warp message to the destination chain
@@ -176,13 +197,13 @@ func ConstructAndSendTransaction(
 	})
 	Expect(err).Should(BeNil())
 
-	baseFee, err := client.EstimateBaseFee(ctx)
+	baseFee, err := rpcClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
 
-	gasTipCap, err := client.SuggestGasTipCap(ctx)
+	gasTipCap, err := rpcClient.SuggestGasTipCap(ctx)
 	Expect(err).Should(BeNil())
 
-	nonce, err := client.NonceAt(ctx, fundedAddress, nil)
+	nonce, err := rpcClient.NonceAt(ctx, fundedAddress, nil)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))
@@ -207,8 +228,7 @@ func ConstructAndSendTransaction(
 	Expect(err).Should(BeNil())
 
 	log.Info("Sending transaction to destination chain")
-	err = client.SendTransaction(context.Background(), signedTx)
-	Expect(err).Should(BeNil())
+	SendAndWaitForTransaction(ctx, rpcClient, wsClient, signedTx)
 
 	return signedTx
 }

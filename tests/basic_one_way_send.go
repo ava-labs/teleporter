@@ -3,10 +3,10 @@ package tests
 import (
 	"context"
 	"math/big"
-	"time"
 
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
+	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/ava-labs/teleporter/tests/utils"
 
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
@@ -28,6 +28,11 @@ func BasicOneWaySend() {
 	var (
 		teleporterMessageID *big.Int
 	)
+
+	subnetAInfo := utils.GetSubnetATestInfo()
+	subnetBInfo := utils.GetSubnetATestInfo()
+	teleporterContractAddress := utils.GetTeleporterContractAddress()
+	fundedAddress, fundedKey := utils.GetFundedAccountInfo()
 
 	//
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -60,16 +65,9 @@ func BasicOneWaySend() {
 	signedTx, err := types.SignTx(tx, txSigner, fundedKey)
 	Expect(err).Should(BeNil())
 
-	subA, err := subnetAInfo.ChainWSClient.SubscribeNewHead(ctx, subnetAInfo.NewHeads)
-	Expect(err).Should(BeNil())
-	defer subA.Unsubscribe()
-
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
-	err = subnetAInfo.ChainRPCClient.SendTransaction(ctx, signedTx)
-	Expect(err).Should(BeNil())
+	newHeadA := SendAndWaitForTransaction(ctx, subnetAInfo.ChainRPCClient, subnetAInfo.ChainWSClient, signedTx)
 
-	// Sleep to ensure the new block is published to the subscriber
-	time.Sleep(5 * time.Second)
 	receipt, err := subnetAInfo.ChainRPCClient.TransactionReceipt(ctx, signedTx.Hash())
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
@@ -80,7 +78,6 @@ func BasicOneWaySend() {
 
 	// Get the latest block from Subnet A, and retrieve the warp message from the logs
 	log.Info("Waiting for new block confirmation")
-	newHeadA := <-subnetAInfo.NewHeads
 	blockHashA := newHeadA.Hash()
 
 	log.Info("Fetching relevant warp logs from the newly produced block")
@@ -124,11 +121,10 @@ func BasicOneWaySend() {
 		fundedAddress,
 		fundedKey,
 		subnetBInfo.ChainRPCClient,
+		subnetBInfo.ChainWSClient,
 		subnetBInfo.ChainIDInt,
 	)
 
-	// Sleep to ensure the new block is published to the subscriber
-	time.Sleep(5 * time.Second)
 	receipt, err = subnetBInfo.ChainRPCClient.TransactionReceipt(ctx, signedTxB.Hash())
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
@@ -142,7 +138,6 @@ func BasicOneWaySend() {
 	//
 	// Check Teleporter message received on the destination
 	//
-	time.Sleep(5 * time.Second) // Give the relayer a chance to deliver the message to the destination chain
 	data, err = teleporter.PackMessageReceived(teleporter.MessageReceivedInput{
 		OriginChainID: subnetAInfo.BlockchainID,
 		MessageID:     teleporterMessageID,
