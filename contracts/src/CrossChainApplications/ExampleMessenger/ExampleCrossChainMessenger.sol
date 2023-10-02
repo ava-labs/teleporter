@@ -9,6 +9,7 @@ import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/TeleporterRegistry.sol";
+import "../../Teleporter/TeleporterUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -16,7 +17,11 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  * @dev ExampleCrossChainMessenger is an example contract that demonstrates how to send and receive
  * messages cross chain.
  */
-contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
+contract ExampleCrossChainMessenger is
+    ITeleporterReceiver,
+    ReentrancyGuard,
+    TeleporterUpgradeable
+{
     using SafeERC20 for IERC20;
 
     // Messages sent to this contract.
@@ -24,9 +29,6 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         address sender;
         string message;
     }
-
-    TeleporterRegistry public immutable teleporterRegistry;
-    uint256 internal _minTeleporterVersion;
 
     mapping(bytes32 => Message) private _messages;
 
@@ -51,18 +53,9 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         string message
     );
 
-    // Errors
-    error InvalidTeleporterRegistryAddress();
-    error Unauthorized();
-
-    constructor(address teleporterRegistryAddress) {
-        if (teleporterRegistryAddress == address(0)) {
-            revert InvalidTeleporterRegistryAddress();
-        }
-
-        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
-    }
+    constructor(
+        address teleporterRegistryAddress
+    ) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
@@ -73,15 +66,7 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         bytes32 originChainID,
         address originSenderAddress,
         bytes calldata message
-    ) external {
-        // Only the Teleporter receiver can deliver a message.
-        if (
-            teleporterRegistry.getAddressToVersion(msg.sender) <
-            _minTeleporterVersion
-        ) {
-            revert Unauthorized();
-        }
-
+    ) external onlyAllowedTeleporter {
         // Store the message.
         string memory messageString = abi.decode(message, (string));
         _messages[originChainID] = Message(originSenderAddress, messageString);
@@ -137,10 +122,6 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
                     message: abi.encode(message)
                 })
             );
-    }
-
-    function updateMinTeleporterVersion() external {
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**

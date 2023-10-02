@@ -10,11 +10,12 @@ import "./BridgeToken.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
+import "../../Teleporter/TeleporterRegistry.sol";
+import "../../Teleporter/TeleporterUpgradeable.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "../../Teleporter/TeleporterRegistry.sol";
 
 struct TokenID {
     bytes32 chainID;
@@ -28,7 +29,12 @@ struct TokenID {
  * This implementation uses the {BridgeToken} contract to represent tokens on this chain, and uses
  * {ITeleporterMessenger} to send and receive messages to other chains.
  */
-contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
+contract ERC20Bridge is
+    IERC20Bridge,
+    ITeleporterReceiver,
+    ReentrancyGuard,
+    TeleporterUpgradeable
+{
     using SafeERC20 for IERC20;
 
     struct WrappedTokenTransferInfo {
@@ -44,10 +50,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     address public constant WARP_PRECOMPILE_ADDRESS =
         0x0200000000000000000000000000000000000005;
     bytes32 public immutable currentChainID;
-
-    // Used for sending and receiving Teleporter messages.
-    TeleporterRegistry public immutable teleporterRegistry;
-    uint256 internal _minTeleporterVersion;
 
     // Tracks which bridge tokens have been submitted to be created other bridge instances.
     // (destinationChainID, destinationBridgeAddress) -> nativeTokenContract -> tokenCreationSubmitted
@@ -89,19 +91,14 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     error InvalidBridgeTokenAddress();
     error InvalidDestinationBridgeAddress();
     error InvalidRecipientAddress();
-    error Unauthorized();
 
     /**
      * @dev Initializes the Teleporter messenger used for sending and receiving messages,
      * and initializes the current chain ID.
      */
-    constructor(address teleporterRegistryAddress) {
-        if (teleporterRegistryAddress == address(0)) {
-            revert InvalidTeleporterRegistryAddress();
-        }
-
-        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
+    constructor(
+        address teleporterRegistryAddress
+    ) TeleporterUpgradeable(teleporterRegistryAddress) {
         currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
@@ -285,15 +282,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         bytes32 nativeChainID,
         address nativeBridgeAddress,
         bytes calldata message
-    ) external {
-        // Only allow Teleporter messengers above the minimum version to deliver messages.
-        if (
-            teleporterRegistry.getAddressToVersion(msg.sender) <
-            _minTeleporterVersion
-        ) {
-            revert Unauthorized();
-        }
-
+    ) external onlyAllowedTeleporter {
         // Decode the payload to recover the action and corresponding function parameters
         (BridgeAction action, bytes memory actionData) = abi.decode(
             message,
@@ -354,10 +343,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         } else {
             revert InvalidAction();
         }
-    }
-
-    function updateMinTeleporterVersion() external {
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**
@@ -490,7 +475,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         address nativeContractAddress,
         address recipient,
         uint256 amount
-    ) private nonReentrant {
+    ) private nonReentrant onlyAllowedTeleporter {
         // The recipient cannot be the zero address.
         if (recipient == address(0)) {
             revert InvalidRecipientAddress();
@@ -528,7 +513,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         address recipient,
         uint256 totalAmount,
         uint256 secondaryFeeAmount
-    ) private nonReentrant {
+    ) private nonReentrant onlyAllowedTeleporter {
         // Neither the recipient nor the destination bridge can be the zero address.
         if (recipient == address(0)) {
             revert InvalidRecipientAddress();

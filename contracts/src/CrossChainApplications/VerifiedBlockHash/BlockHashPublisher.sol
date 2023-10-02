@@ -7,15 +7,14 @@ pragma solidity 0.8.18;
 
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/TeleporterRegistry.sol";
+import "../../Teleporter/TeleporterUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./BlockHashReceiver.sol";
 
 /**
  * Contract that publishes the latest block hash of current chain to another chain.
  */
-contract BlockHashPublisher {
-    TeleporterRegistry public immutable teleporterRegistry;
-    uint256 internal _minTeleporterVersion;
+contract BlockHashPublisher is TeleporterUpgradeable {
     uint256 public constant RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT = 1.5e5;
 
     /**
@@ -28,16 +27,9 @@ contract BlockHashPublisher {
         bytes32 blockHash
     );
 
-    error InvalidTeleporterRegistryAddress();
-
-    constructor(address teleporterRegistryAddress) {
-        if (teleporterRegistryAddress == address(0)) {
-            revert InvalidTeleporterRegistryAddress();
-        }
-
-        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
-    }
+    constructor(
+        address teleporterRegistryAddress
+    ) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
     /**
      * @dev Publishes the latest block hash to another chain.
@@ -76,9 +68,5 @@ contract BlockHashPublisher {
                     message: messageData
                 })
             );
-    }
-
-    function updateMinTeleporterVersion() external {
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 }

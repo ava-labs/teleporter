@@ -8,14 +8,12 @@ pragma solidity 0.8.18;
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/TeleporterRegistry.sol";
+import "../../Teleporter/TeleporterUpgradeable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.
  */
-contract BlockHashReceiver is ITeleporterReceiver {
-    TeleporterRegistry public immutable teleporterRegistry;
-    uint256 internal _minTeleporterVersion;
-
+contract BlockHashReceiver is ITeleporterReceiver, TeleporterUpgradeable {
     // Source chain information
     bytes32 public immutable sourceChainID;
     address public immutable sourcePublisherContractAddress;
@@ -35,22 +33,14 @@ contract BlockHashReceiver is ITeleporterReceiver {
     );
 
     // Errors
-    error Unauthorized();
     error InvalidSourceChainID();
     error InvalidSourceChainPublisher();
-    error InvalidTeleporterRegistryAddress();
 
     constructor(
         address teleporterRegistryAddress,
         bytes32 publisherChainID,
         address publisherContractAddress
-    ) {
-        if (teleporterRegistryAddress == address(0)) {
-            revert InvalidTeleporterRegistryAddress();
-        }
-
-        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
+    ) TeleporterUpgradeable(teleporterRegistryAddress) {
         sourceChainID = publisherChainID;
         sourcePublisherContractAddress = publisherContractAddress;
     }
@@ -70,14 +60,7 @@ contract BlockHashReceiver is ITeleporterReceiver {
         bytes32 originChainID,
         address originSenderAddress,
         bytes calldata message
-    ) external {
-        if (
-            teleporterRegistry.getAddressToVersion(msg.sender) <
-            _minTeleporterVersion
-        ) {
-            revert Unauthorized();
-        }
-
+    ) external onlyAllowedTeleporter {
         if (originChainID != sourceChainID) {
             revert InvalidSourceChainID();
         }
@@ -101,10 +84,6 @@ contract BlockHashReceiver is ITeleporterReceiver {
                 blockHash
             );
         }
-    }
-
-    function updateMinTeleporterVersion() external {
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**

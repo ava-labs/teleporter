@@ -32,7 +32,7 @@ abstract contract TeleporterUpgradeable {
         _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
-    function _checkTeleporterMinVersion() view virtual interal {
+    function _checkTeleporterMinVersion() internal view virtual {
         if (
             teleporterRegistry.getAddressToVersion(msg.sender) <
             _minTeleporterVersion
