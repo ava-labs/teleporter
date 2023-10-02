@@ -100,6 +100,10 @@ abstract contract WarpProtocolRegistry {
         return _latestVersion;
     }
 
+    /**
+     * @dev Gets and verifies for a warp out of band message, and adds the new protocol version
+     * addres to the registry.
+     */
     function _addProtocolVersion(uint32 messageIndex) internal virtual {
         // Get and verify a valid warp out of band message.
         (WarpMessage memory message, bool valid) = WARP_MESSENGER
@@ -128,6 +132,15 @@ abstract contract WarpProtocolRegistry {
         _addToRegistry(version, protocolAddress);
     }
 
+    /**
+     * @dev Adds the new protocol version address to the registry.
+     *
+     * Emits a {AddProtocolVersion} event when successful.
+     * Requirements:
+     *
+     * - `version` must be the increment of the latest version.
+     * - `protocolAddress` must be a contract address.
+     */
     function _addToRegistry(
         uint256 version,
         address protocolAddress
@@ -146,6 +159,12 @@ abstract contract WarpProtocolRegistry {
         emit AddProtocolVersion(_latestVersion, protocolAddress);
     }
 
+    /**
+     * @dev Gets the address of a protocol version.
+     * Requirements:
+     *
+     * - `version` must be a valid version, i.e. greater than 0 and not greater than the latest version.
+     */
     function _getVersionToAddress(
         uint256 version
     ) internal view virtual returns (address) {

@@ -130,17 +130,17 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     # Deploy TeleporterRegistry to each chain.
     cd contracts
     registry_deploy_result_a=$(forge create --private-key $user_private_key --constructor-args [1] "[$teleporter_contract_address]" \
-        --rpc-url $subnet_a_url src/Teleporter/TeleporterRegistry.sol:TeleporterRegistry)
+        --rpc-url $subnet_a_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry)
     registry_address_a=$(parseContractAddress "$registry_deploy_result_a")
     echo "TeleporterRegistry contract deployed to subnet A at $registry_address_a."
 
     registry_deploy_result_b=$(forge create --private-key $user_private_key --constructor-args [1] "[$teleporter_contract_address]" \
-        --rpc-url $subnet_b_url src/Teleporter/TeleporterRegistry.sol:TeleporterRegistry)
+        --rpc-url $subnet_b_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry)
     registry_address_b=$(parseContractAddress "$registry_deploy_result_b")
     echo "TeleporterRegistry contract deployed to subnet A at $registry_address_b."
 
     registry_deploy_result_c=$(forge create --private-key $user_private_key --constructor-args [1] "[$teleporter_contract_address]" \
-        --rpc-url $subnet_c_url src/Teleporter/TeleporterRegistry.sol:TeleporterRegistry)
+        --rpc-url $subnet_c_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry)
     registry_address_c=$(parseContractAddress "$registry_deploy_result_c")
     echo "TeleporterRegistry contract deployed to subnet A at $registry_address_c."
     cd ..

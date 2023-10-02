@@ -33,9 +33,15 @@ abstract contract TeleporterUpgradeable {
 
     /**
      * @dev Throws if called by a `msg.sender` that is not an allowed Telepoter version.
+     * Checks that `msg.sender` matches a Teleporter version greater than or equal to `_minTeleporterVersion`.
      */
     modifier onlyAllowedTeleporter() {
-        _checkTeleporterMinVersion();
+        if (
+            teleporterRegistry.getAddressToVersion(msg.sender) <
+            _minTeleporterVersion
+        ) {
+            revert InvalidTeleporterSender();
+        }
         _;
     }
 
@@ -47,14 +53,9 @@ abstract contract TeleporterUpgradeable {
     }
 
     /**
-     * @dev Checks that `msg.sender` matches a Teleporter version greater than or equal to `_minTeleporterVersion`.
+     * @dev Gets the minimum Teleporter version that is allowed to call this contract.
      */
-    function _checkTeleporterMinVersion() internal view virtual {
-        if (
-            teleporterRegistry.getAddressToVersion(msg.sender) <
-            _minTeleporterVersion
-        ) {
-            revert InvalidTeleporterSender();
-        }
+    function getMinTeleporterVersion() external view returns (uint256) {
+        return _minTeleporterVersion;
     }
 }

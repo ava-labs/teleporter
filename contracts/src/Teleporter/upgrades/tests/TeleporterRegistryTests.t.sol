@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import "forge-std/Test.sol";
 import "../TeleporterRegistry.sol";
-import "../TeleporterMessenger.sol";
+import "../../TeleporterMessenger.sol";
 
 contract TeleporterRegistryTest is Test {
     TeleporterRegistry public teleporterRegistry;
@@ -37,7 +37,7 @@ contract TeleporterRegistryTest is Test {
         teleporterAddress = address(new TeleporterMessenger());
     }
 
-    function testRegistryInitializationFails() public {
+    function testRegistryInitializationMismatchFails() public {
         uint256[] memory initialVersions = new uint256[](1);
         initialVersions[0] = 1;
         address[] memory initialProtocolAddresses = new address[](0);
@@ -50,6 +50,18 @@ contract TeleporterRegistryTest is Test {
         vm.expectRevert(
             WarpProtocolRegistry.InvalidRegistryInitialization.selector
         );
+        new TeleporterRegistry(initialVersions, initialProtocolAddresses);
+    }
+
+    function testRegistryInitializationDuplicateFails() public {
+        uint256[] memory initialVersions = new uint256[](2);
+        initialVersions[0] = 1;
+        initialVersions[1] = 2;
+        address[] memory initialProtocolAddresses = new address[](2);
+        initialProtocolAddresses[0] = teleporterAddress;
+        initialProtocolAddresses[1] = teleporterAddress;
+
+        vm.expectRevert(TeleporterRegistry.DuplicateProtocolAddress.selector);
         new TeleporterRegistry(initialVersions, initialProtocolAddresses);
     }
 
@@ -133,6 +145,31 @@ contract TeleporterRegistryTest is Test {
         );
 
         vm.expectRevert(WarpProtocolRegistry.InvalidProtocolAddress.selector);
+        teleporterRegistry.addProtocolVersion(messageIndex);
+    }
+
+    function testAddToRegistryDuplicateFails() public {
+        _addProtocolVersion(teleporterRegistry);
+        uint256 latestVersion = teleporterRegistry.getLatestVersion();
+        uint32 messageIndex = 0;
+
+        // Check that adding a protocol address that is already registered fails
+        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+            latestVersion + 1,
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                WarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        vm.expectRevert(TeleporterRegistry.DuplicateProtocolAddress.selector);
         teleporterRegistry.addProtocolVersion(messageIndex);
     }
 

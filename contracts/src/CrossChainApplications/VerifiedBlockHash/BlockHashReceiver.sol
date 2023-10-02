@@ -7,8 +7,8 @@ pragma solidity 0.8.18;
 
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
-import "../../Teleporter/TeleporterRegistry.sol";
-import "../../Teleporter/TeleporterUpgradeable.sol";
+import "../../Teleporter/upgrades/TeleporterRegistry.sol";
+import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.

@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "../WarpProtocolRegistry.sol";
-import "./ITeleporterMessenger.sol";
+import "../../WarpProtocolRegistry.sol";
+import "../ITeleporterMessenger.sol";
 
 /**
  * @dev TeleporterRegistry contract is a {WarpProtocolRegistry} and provides an upgrade
@@ -15,14 +15,12 @@ import "./ITeleporterMessenger.sol";
 contract TeleporterRegistry is WarpProtocolRegistry {
     mapping(address => uint256) internal _addressToVersion;
 
+    error DuplicateProtocolAddress();
+
     constructor(
         uint256[] memory initialVersions,
         address[] memory initialProtocolAddresses
-    ) WarpProtocolRegistry(initialVersions, initialProtocolAddresses) {
-        for (uint256 i = 0; i < initialVersions.length; i++) {
-            _addressToVersion[initialProtocolAddresses[i]] = initialVersions[i];
-        }
-    }
+    ) WarpProtocolRegistry(initialVersions, initialProtocolAddresses) {}
 
     /**
      * @dev Gets the {ITeleporterMessenger} contract of the given `version`.
@@ -55,15 +53,22 @@ contract TeleporterRegistry is WarpProtocolRegistry {
     }
 
     /**
-     * @dev See {WarpProtocolRegistry-addProtocolVersion}
+     * @dev See {WarpProtocolRegistry-_addToRegistry}
      *
      * Adds the new protocol version address to the `_addressToVersion` mapping
      * so that the registry can be queried for the version of a given protocol address.
+     * Requirements:
+     *
+     * - `protocolAddress` must not have been previously registered.
      */
-    function _addProtocolVersion(uint32 messageIndex) internal override {
-        super._addProtocolVersion(messageIndex);
-        _addressToVersion[
-            _getVersionToAddress(_latestVersion)
-        ] = _latestVersion;
+    function _addToRegistry(
+        uint256 version,
+        address protocolAddress
+    ) internal override {
+        WarpProtocolRegistry._addToRegistry(version, protocolAddress);
+        if (_addressToVersion[protocolAddress] != 0) {
+            revert DuplicateProtocolAddress();
+        }
+        _addressToVersion[protocolAddress] = version;
     }
 }

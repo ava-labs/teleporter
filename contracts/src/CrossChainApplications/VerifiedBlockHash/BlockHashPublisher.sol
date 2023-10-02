@@ -6,8 +6,8 @@
 pragma solidity 0.8.18;
 
 import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/TeleporterRegistry.sol";
-import "../../Teleporter/TeleporterUpgradeable.sol";
+import "../../Teleporter/upgrades/TeleporterRegistry.sol";
+import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./BlockHashReceiver.sol";
 
