@@ -20,18 +20,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var (
-	teleporterMessage = teleporter.TeleporterMessage{
-		MessageID:               big.NewInt(1),
-		SenderAddress:           FundedAddress,
-		DestinationAddress:      FundedAddress,
-		RequiredGasLimit:        big.NewInt(1),
-		AllowedRelayerAddresses: []common.Address{},
-		Receipts:                []teleporter.TeleporterMessageReceipt{},
-		Message:                 []byte{1, 2, 3, 4},
-	}
-)
-
 // Ginkgo describe node that acts as a container for the teleporter e2e tests. This test suite
 // will run through the following steps in order:
 // 1. Send a transaction to the Teleporter contract on Subnet A
@@ -131,7 +119,7 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 		signedTxB := ConstructAndSendTransaction(
 			ctx,
 			signedWarpMessageBytes,
-			teleporterMessage,
+			big.NewInt(1),
 			TeleporterContractAddress,
 			FundedAddress,
 			FundedKey,
