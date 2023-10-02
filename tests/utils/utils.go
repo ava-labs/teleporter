@@ -61,6 +61,10 @@ type FeeInfo struct {
 	Amount          *big.Int
 }
 
+//
+// Test utility functions
+//
+
 func HttpToWebsocketURI(uri string, blockchainID string) string {
 	return fmt.Sprintf("ws://%s/ext/bc/%s/ws", strings.TrimPrefix(uri, "http://"), blockchainID)
 }

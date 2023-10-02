@@ -24,28 +24,80 @@ import (
 )
 
 const (
-	FundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
 )
 
 var (
-	TeleporterContractAddress        common.Address
-	SubnetIDs                        []ids.ID
-	SubnetA, SubnetB                 ids.ID
-	BlockchainIDA, BlockchainIDB     ids.ID
-	ChainANodeURIs, ChainBNodeURIs   []string
-	FundedAddress                    = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
-	FundedKey                        *ecdsa.PrivateKey
-	ChainAWSClient, ChainBWSClient   ethclient.Client
-	ChainARPCClient, ChainBRPCClient ethclient.Client
-	ChainARPCURI, ChainBRPCURI       string
-	ChainAIDInt, ChainBIDInt         *big.Int
-	NewHeadsA                        chan *types.Header
+	teleporterContractAddress        common.Address
+	subnetA, subnetB                 ids.ID
+	blockchainIDA, blockchainIDB     ids.ID
+	chainANodeURIs, chainBNodeURIs   []string
+	fundedAddress                    = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
+	fundedKey                        *ecdsa.PrivateKey
+	chainAWSClient, chainBWSClient   ethclient.Client
+	chainARPCClient, chainBRPCClient ethclient.Client
+	chainARPCURI, chainBRPCURI       string
+	chainAIDInt, chainBIDInt         *big.Int
+	newHeadsA, newHeadsB             chan *types.Header
 
 	// Internal vars only used to set up the local network
 	anrConfig           = runner.NewDefaultANRConfig()
 	manager             = runner.NewNetworkManager(anrConfig)
 	warpChainConfigPath string
 )
+
+//
+// Global test state getters. Should be called within a test spec, after SetupNetwork has been called
+//
+
+type SubnetTestInfo struct {
+	SubnetID       ids.ID
+	BlockchainID   ids.ID
+	ChainNodeURIs  []string
+	ChainWSClient  ethclient.Client
+	ChainRPCClient ethclient.Client
+	ChainRPCURI    string
+	ChainIDInt     *big.Int
+	NewHeads       chan *types.Header
+}
+
+func GetSubnetsInfo() []SubnetTestInfo {
+	return []SubnetTestInfo{
+		GetSubnetATestInfo(),
+		GetSubnetBTestInfo(),
+	}
+}
+
+func GetSubnetATestInfo() SubnetTestInfo {
+	return SubnetTestInfo{
+		SubnetID:       subnetA,
+		BlockchainID:   blockchainIDA,
+		ChainNodeURIs:  chainANodeURIs,
+		ChainWSClient:  chainAWSClient,
+		ChainRPCClient: chainARPCClient,
+		ChainRPCURI:    chainARPCURI,
+		ChainIDInt:     chainAIDInt,
+		NewHeads:       newHeadsA,
+	}
+}
+func GetSubnetBTestInfo() SubnetTestInfo {
+	return SubnetTestInfo{
+		SubnetID:       subnetB,
+		BlockchainID:   blockchainIDB,
+		ChainNodeURIs:  chainBNodeURIs,
+		ChainWSClient:  chainBWSClient,
+		ChainRPCClient: chainBRPCClient,
+		ChainRPCURI:    chainBRPCURI,
+		ChainIDInt:     chainBIDInt,
+		NewHeads:       newHeadsB,
+	}
+}
+func GetTeleporterContractAddress() common.Address {
+	return teleporterContractAddress
+}
+func GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
+	return fundedAddress, fundedKey
+}
 
 // setupNetwork starts the default network and adds 10 new nodes as validators with BLS keys
 // registered on the P-Chain.
@@ -56,14 +108,14 @@ func SetupNetwork(warpGenesisFile string) {
 	var err error
 
 	// Name 10 new validators (which should have BLS key registered)
-	SubnetANodeNames := []string{}
-	SubnetBNodeNames := []string{}
+	subnetANodeNames := []string{}
+	subnetBNodeNames := []string{}
 	for i := 1; i <= 10; i++ {
 		n := fmt.Sprintf("node%d-bls", i)
 		if i <= 5 {
-			SubnetANodeNames = append(SubnetANodeNames, n)
+			subnetANodeNames = append(subnetANodeNames, n)
 		} else {
-			SubnetBNodeNames = append(SubnetBNodeNames, n)
+			subnetBNodeNames = append(subnetBNodeNames, n)
 		}
 	}
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
@@ -89,7 +141,7 @@ func SetupNetwork(warpGenesisFile string) {
 				ChainConfig: warpChainConfigPath,
 				SubnetSpec: &rpcpb.SubnetSpec{
 					SubnetConfig: "",
-					Participants: SubnetANodeNames,
+					Participants: subnetANodeNames,
 				},
 			},
 			{
@@ -98,7 +150,7 @@ func SetupNetwork(warpGenesisFile string) {
 				ChainConfig: warpChainConfigPath,
 				SubnetSpec: &rpcpb.SubnetSpec{
 					SubnetConfig: "",
-					Participants: SubnetBNodeNames,
+					Participants: subnetBNodeNames,
 				},
 			},
 		},
@@ -106,60 +158,61 @@ func SetupNetwork(warpGenesisFile string) {
 	Expect(err).Should(BeNil())
 
 	// Issue transactions to activate the proposerVM fork on the chains
-	FundedKey, err = crypto.HexToECDSA(FundedKeyStr)
+	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
-	SetUpProposerVM(ctx, FundedKey, manager, 0)
-	SetUpProposerVM(ctx, FundedKey, manager, 1)
+	SetUpProposerVM(ctx, fundedKey, manager, 0)
+	SetUpProposerVM(ctx, fundedKey, manager, 1)
 
 	// Set up subnet URIs
-	SubnetIDs = manager.GetSubnets()
-	Expect(len(SubnetIDs)).Should(Equal(2))
+	subnetIDs := manager.GetSubnets()
+	Expect(len(subnetIDs)).Should(Equal(2))
 
-	SubnetA = SubnetIDs[0]
-	SubnetADetails, ok := manager.GetSubnet(SubnetA)
+	subnetA = subnetIDs[0]
+	subnetADetails, ok := manager.GetSubnet(subnetA)
 	Expect(ok).Should(BeTrue())
-	Expect(len(SubnetADetails.ValidatorURIs)).Should(Equal(5))
-	BlockchainIDA = SubnetADetails.BlockchainID
-	ChainANodeURIs = append(ChainANodeURIs, SubnetADetails.ValidatorURIs...)
+	Expect(len(subnetADetails.ValidatorURIs)).Should(Equal(5))
+	blockchainIDA = subnetADetails.BlockchainID
+	chainANodeURIs = append(chainANodeURIs, subnetADetails.ValidatorURIs...)
 
-	SubnetB = SubnetIDs[1]
-	SubnetBDetails, ok := manager.GetSubnet(SubnetB)
+	subnetB = subnetIDs[1]
+	subnetBDetails, ok := manager.GetSubnet(subnetB)
 	Expect(ok).Should(BeTrue())
-	Expect(len(SubnetBDetails.ValidatorURIs)).Should(Equal(5))
-	BlockchainIDB = SubnetBDetails.BlockchainID
-	ChainBNodeURIs = append(ChainBNodeURIs, SubnetBDetails.ValidatorURIs...)
+	Expect(len(subnetBDetails.ValidatorURIs)).Should(Equal(5))
+	blockchainIDB = subnetBDetails.BlockchainID
+	chainBNodeURIs = append(chainBNodeURIs, subnetBDetails.ValidatorURIs...)
 
 	log.Info(
 		"Created URIs for subnets",
-		"ChainAURIs", ChainANodeURIs,
-		"ChainBURIs", ChainBNodeURIs,
-		"BlockchainIDA", BlockchainIDA,
-		"BlockchainIDB", BlockchainIDB,
+		"chainAURIs", chainANodeURIs,
+		"chainBURIs", chainBNodeURIs,
+		"blockchainIDA", blockchainIDA,
+		"blockchainIDB", blockchainIDB,
 	)
 
-	chainAWSURI := HttpToWebsocketURI(ChainANodeURIs[0], BlockchainIDA.String())
-	ChainARPCURI = HttpToRPCURI(ChainANodeURIs[0], BlockchainIDA.String())
-	log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI, "rpcURL, ChainARPCURI")
-	ChainAWSClient, err = ethclient.Dial(chainAWSURI)
+	chainAWSURI := HttpToWebsocketURI(chainANodeURIs[0], blockchainIDA.String())
+	chainARPCURI = HttpToRPCURI(chainANodeURIs[0], blockchainIDA.String())
+	log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI, "rpcURL, chainARPCURI")
+	chainAWSClient, err = ethclient.Dial(chainAWSURI)
 	Expect(err).Should(BeNil())
-	ChainARPCClient, err = ethclient.Dial(ChainARPCURI)
-	Expect(err).Should(BeNil())
-
-	ChainAIDInt, err = ChainARPCClient.ChainID(context.Background())
+	chainARPCClient, err = ethclient.Dial(chainARPCURI)
 	Expect(err).Should(BeNil())
 
-	chainBWSURI := HttpToWebsocketURI(ChainBNodeURIs[0], BlockchainIDB.String())
-	ChainBRPCURI = HttpToRPCURI(ChainBNodeURIs[0], BlockchainIDB.String())
+	chainAIDInt, err = chainARPCClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
+
+	chainBWSURI := HttpToWebsocketURI(chainBNodeURIs[0], blockchainIDB.String())
+	chainBRPCURI = HttpToRPCURI(chainBNodeURIs[0], blockchainIDB.String())
 	log.Info("Creating ethclient for blockchainB", "wsURI", chainBWSURI)
-	ChainBWSClient, err = ethclient.Dial(chainBWSURI)
+	chainBWSClient, err = ethclient.Dial(chainBWSURI)
 	Expect(err).Should(BeNil())
-	ChainBRPCClient, err = ethclient.Dial(ChainBRPCURI)
-	Expect(err).Should(BeNil())
-
-	ChainBIDInt, err = ChainBRPCClient.ChainID(context.Background())
+	chainBRPCClient, err = ethclient.Dial(chainBRPCURI)
 	Expect(err).Should(BeNil())
 
-	NewHeadsA = make(chan *types.Header, 10)
+	chainBIDInt, err = chainBRPCClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
+
+	newHeadsA = make(chan *types.Header, 10)
+	newHeadsB = make(chan *types.Header, 10)
 
 	log.Info("Finished setting up e2e test subnet variables")
 }
@@ -169,97 +222,63 @@ func SetupNetwork(warpGenesisFile string) {
 func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Address, contractAddress common.Address) {
 	log.Info("Deploying Teleporter contract to subnets")
 
-	// Set the package level TeleporterContractAddress
-	TeleporterContractAddress = contractAddress
+	subnetsInfo := GetSubnetsInfo()
+
+	// Set the package level teleporterContractAddress
+	teleporterContractAddress = contractAddress
 
 	ctx := context.Background()
-	nonceA, err := ChainARPCClient.NonceAt(ctx, FundedAddress, nil)
-	Expect(err).Should(BeNil())
 
-	nonceB, err := ChainBRPCClient.NonceAt(ctx, FundedAddress, nil)
-	Expect(err).Should(BeNil())
+	for _, subnetInfo := range subnetsInfo {
+		client := subnetInfo.ChainRPCClient
 
-	gasTipCapA, err := ChainARPCClient.SuggestGasTipCap(context.Background())
-	Expect(err).Should(BeNil())
-	gasTipCapB, err := ChainBRPCClient.SuggestGasTipCap(context.Background())
-	Expect(err).Should(BeNil())
-
-	baseFeeA, err := ChainARPCClient.EstimateBaseFee(context.Background())
-	Expect(err).Should(BeNil())
-	gasFeeCapA := baseFeeA.Mul(baseFeeA, big.NewInt(relayerEvm.BaseFeeFactor))
-	gasFeeCapA.Add(gasFeeCapA, big.NewInt(relayerEvm.MaxPriorityFeePerGas))
-
-	baseFeeB, err := ChainBRPCClient.EstimateBaseFee(context.Background())
-	Expect(err).Should(BeNil())
-	gasFeeCapB := baseFeeB.Mul(baseFeeB, big.NewInt(relayerEvm.BaseFeeFactor))
-	gasFeeCapB.Add(gasFeeCapB, big.NewInt(relayerEvm.MaxPriorityFeePerGas))
-
-	// Fund the deployer address
-	{
-		value := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
-		txA := types.NewTx(&types.DynamicFeeTx{
-			ChainID:   ChainAIDInt,
-			Nonce:     nonceA,
-			To:        &deployerAddress,
-			Gas:       DefaultTeleporterTransactionGas,
-			GasFeeCap: gasFeeCapA,
-			GasTipCap: gasTipCapA,
-			Value:     value,
-		})
-		txSignerA := types.LatestSignerForChainID(ChainAIDInt)
-		triggerTxA, err := types.SignTx(txA, txSignerA, FundedKey)
+		chainID, err := client.ChainID(ctx)
 		Expect(err).Should(BeNil())
-		err = ChainARPCClient.SendTransaction(ctx, triggerTxA)
+		nonce, err := client.NonceAt(ctx, fundedAddress, nil)
 		Expect(err).Should(BeNil())
-		time.Sleep(5 * time.Second)
-		receipt, err := ChainARPCClient.TransactionReceipt(ctx, triggerTxA.Hash())
+		gasTipCap, err := client.SuggestGasTipCap(context.Background())
 		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		baseFee, err := client.EstimateBaseFee(context.Background())
+		Expect(err).Should(BeNil())
+		gasFeeCap := baseFee.Mul(baseFee, big.NewInt(relayerEvm.BaseFeeFactor))
+		gasFeeCap.Add(gasFeeCap, big.NewInt(relayerEvm.MaxPriorityFeePerGas))
+		// Fund the deployer address
+		{
+			value := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
+			txA := types.NewTx(&types.DynamicFeeTx{
+				ChainID:   chainID,
+				Nonce:     nonce,
+				To:        &deployerAddress,
+				Gas:       DefaultTeleporterTransactionGas,
+				GasFeeCap: gasFeeCap,
+				GasTipCap: gasTipCap,
+				Value:     value,
+			})
+			txSigner := types.LatestSignerForChainID(chainID)
+			triggerTx, err := types.SignTx(txA, txSigner, fundedKey)
+			Expect(err).Should(BeNil())
+			err = client.SendTransaction(ctx, triggerTx)
+			Expect(err).Should(BeNil())
+			time.Sleep(5 * time.Second)
+			receipt, err := client.TransactionReceipt(ctx, triggerTx.Hash())
+			Expect(err).Should(BeNil())
+			Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		}
+		log.Info("Finished funding Teleporter deployer")
+
+		// Deploy Teleporter
+		{
+			rpcClient, err := rpc.DialContext(ctx, subnetInfo.ChainRPCURI)
+			Expect(err).Should(BeNil())
+			err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
+			Expect(err).Should(BeNil())
+			time.Sleep(5 * time.Second)
+			teleporterCode, err := client.CodeAt(ctx, teleporterContractAddress, nil)
+			Expect(err).Should(BeNil())
+			Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+		}
+		log.Info("Finished deploying Teleporter contracts")
 	}
-	{
-		value := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
-		txB := types.NewTx(&types.DynamicFeeTx{
-			ChainID:   ChainBIDInt,
-			Nonce:     nonceB,
-			To:        &deployerAddress,
-			Gas:       DefaultTeleporterTransactionGas,
-			GasFeeCap: gasFeeCapB,
-			GasTipCap: gasTipCapB,
-			Value:     value,
-		})
-		txSignerB := types.LatestSignerForChainID(ChainBIDInt)
-		triggerTxB, err := types.SignTx(txB, txSignerB, FundedKey)
-		Expect(err).Should(BeNil())
-		err = ChainBRPCClient.SendTransaction(ctx, triggerTxB)
-		Expect(err).Should(BeNil())
-		time.Sleep(5 * time.Second)
-		receipt, err := ChainBRPCClient.TransactionReceipt(ctx, triggerTxB.Hash())
-		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	}
-	log.Info("Finished funding Teleporter deployers")
-	// Deploy Teleporter on the two subnets
-	{
-		rpcClient, err := rpc.DialContext(ctx, ChainARPCURI)
-		Expect(err).Should(BeNil())
-		err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
-		Expect(err).Should(BeNil())
-		time.Sleep(5 * time.Second)
-		teleporterCode, err := ChainARPCClient.CodeAt(ctx, TeleporterContractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-	}
-	{
-		rpcClient, err := rpc.DialContext(ctx, ChainBRPCURI)
-		Expect(err).Should(BeNil())
-		err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
-		Expect(err).Should(BeNil())
-		time.Sleep(5 * time.Second)
-		teleporterCode, err := ChainBRPCClient.CodeAt(ctx, TeleporterContractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-	}
-	log.Info("Finished deploying Teleporter contracts")
 }
 
 func TearDownNetwork() {
