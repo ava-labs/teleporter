@@ -40,3 +40,7 @@ var _ = ginkgo.BeforeSuite(func() {
 })
 
 var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)
+
+var _ = ginkgo.Describe("[Teleporter integration tests]", ginkgo.Ordered, func() {
+	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySend)
+})
