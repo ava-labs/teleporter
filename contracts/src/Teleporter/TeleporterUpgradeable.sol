@@ -7,6 +7,10 @@ pragma solidity 0.8.18;
 
 import "./TeleporterRegistry.sol";
 
+/**
+ * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
+ * of the Teleporter protocol by integrating with the {TeleporterRegistry}.
+ */
 abstract contract TeleporterUpgradeable {
     TeleporterRegistry public immutable teleporterRegistry;
     uint256 internal _minTeleporterVersion;
@@ -14,6 +18,10 @@ abstract contract TeleporterUpgradeable {
     error InvalidTeleporterRegistryAddress();
     error InvalidTeleporterSender();
 
+    /**
+     * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
+     * instance and setting `_minTeleporterVersion`.
+     */
     constructor(address teleporterRegistryAddress) {
         if (teleporterRegistryAddress == address(0)) {
             revert InvalidTeleporterRegistryAddress();
@@ -23,15 +31,24 @@ abstract contract TeleporterUpgradeable {
         _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
+    /**
+     * @dev Throws if called by a `msg.sender` that is not an allowed Telepoter version.
+     */
     modifier onlyAllowedTeleporter() {
         _checkTeleporterMinVersion();
         _;
     }
 
+    /**
+     * @dev Updates `_minTeleporterVersion` to the latest version.
+     */
     function updateMinTeleporterversion() external {
         _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
+    /**
+     * @dev Checks that `msg.sender` matches a Teleporter version greater than or equal to `_minTeleporterVersion`.
+     */
     function _checkTeleporterMinVersion() internal view virtual {
         if (
             teleporterRegistry.getAddressToVersion(msg.sender) <
