@@ -29,7 +29,6 @@
     "contractNativeMinterConfig": {
       "blockTimestamp": 0,
       "adminAddresses": [
-        "0x1337cfd2dCff6270615B90938aCB1efE79801704",
         "0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B"
       ]
     }

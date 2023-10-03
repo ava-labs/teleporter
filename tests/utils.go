@@ -200,6 +200,7 @@ func constructAndSendTransaction(
 	log.Info("Sending transaction to destination chain")
 	err = client.SendTransaction(context.Background(), signedTx)
 	Expect(err).Should(BeNil())
+	log.Info("Successfully sent transaction", "hash", signedTx.Hash().Hex())
 
 	return signedTx
 }

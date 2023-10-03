@@ -21,11 +21,9 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	// "github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/interfaces"
 
-	// "github.com/ava-labs/subnet-evm/internal/debug"
 	"github.com/ava-labs/subnet-evm/params"
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
@@ -106,7 +104,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	}
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
-	_, err = f.Write([]byte(`{"warp-api-enabled": true}`))
+	_, err = f.Write([]byte(`{"warp-api-enabled": true, "eth-apis":["eth","eth-filter","net","web3","internal-eth","internal-blockchain","internal-transaction","debug","debug-tracer"]}`))
 	Expect(err).Should(BeNil())
 	warpChainConfigPath = f.Name()
 
@@ -456,6 +454,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 	var (
 		teleporterMessageID *big.Int
 	)
+	valueToSend := int64(1000_000_000_000_000_000)
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ginkgo.It("Deploy Contracts on chains A and B", ginkgo.Label("NativeTransfer", "DeployContracs"), func() {
@@ -475,9 +474,10 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 			"src/CrossChainApplications/NativeTokenBridge/NativeTokenSource.sol:NativeTokenSource",
 			"--rpc-url", chainARPCURI,
 			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
-			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainBIDInt.Bytes()), nativeTokenBridgeContractAddress.Hex())
+			"--constructor-args", teleporterContractAddress.Hex(), "0x"+blockchainIDB.Hex(), nativeTokenBridgeContractAddress.Hex())
 
 		cmd.Dir = "./contracts"
+		fmt.Println("SOURCE ", cmd.String())
 		err = cmd.Run()
 		Expect(err).Should(BeNil())
 
@@ -487,9 +487,10 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 			"src/CrossChainApplications/NativeTokenBridge/NativeTokenDestination.sol:NativeTokenDestination",
 			"--rpc-url", chainBRPCURI,
 			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
-			"--constructor-args", teleporterContractAddress.Hex(), hexutil.Encode(chainAIDInt.Bytes()), nativeTokenBridgeContractAddress.Hex())
+			"--constructor-args", teleporterContractAddress.Hex(), "0x"+blockchainIDA.Hex(), nativeTokenBridgeContractAddress.Hex())
 
 		cmd.Dir = "./contracts"
+		fmt.Println("DEST ", cmd.String())
 		err = cmd.Run()
 		Expect(err).Should(BeNil())
 
@@ -513,7 +514,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		Expect(err).Should(BeNil())
 		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, chainAIDInt)
 		Expect(err).Should(BeNil())
-		transactor.Value = big.NewInt(1000_000_000_000_000_000)
+		transactor.Value = big.NewInt(valueToSend)
 
 		subA, err := chainAWSClient.SubscribeNewHead(ctx, newHeadsA)
 		Expect(err).Should(BeNil())
@@ -521,7 +522,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 
 		tx, err := nativeTokenReceiver.TransferToDestination(transactor, tokenReceiverAddress, tokenReceiverAddress, big.NewInt(0))
 		Expect(err).Should(BeNil())
-		log.Info("Sent NativeTokenTransfer transaction on source chain", "destinationChainID", blockchainIDB, "txHash", tx.Hash())
+		log.Info("Sent NativeTokenTransfer transaction on source chain", "destinationChainID", blockchainIDB, "txHash", tx.Hash().Hex())
 
 		// Sleep to ensure the new block is published to the subscriber
 		time.Sleep(5 * time.Second)
@@ -570,6 +571,11 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
 		Expect(err).Should(BeNil())
 
+		// Check starting balance is 0
+		bal, err := chainBRPCClient.BalanceAt(ctx, tokenReceiverAddress, nil)
+		Expect(err).Should(BeNil())
+		Expect(bal.Int64()).Should(Equal(common.Big0.Int64()))
+
 		signedTxB := constructAndSendTransaction(
 			ctx,
 			signedWarpMessageBytes,
@@ -587,12 +593,16 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		Expect(err).Should(BeNil())
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-		sendCrossChainMessageLog := receipt.Logs[0]
+		sendCrossChainMessageLog := receipt.Logs[2]
 		var event SendCrossChainMessageEvent
 		err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
 		Expect(err).Should(BeNil())
 		teleporterMessageID = event.Message.MessageID
-		teleporterMessageID.Uint64() // TODO remove
+		teleporterMessageID.Uint64()
+
+		bal, err = chainBRPCClient.BalanceAt(ctx, tokenReceiverAddress, nil)
+		Expect(err).Should(BeNil())
+		Expect(bal.Int64()).Should(Equal(valueToSend))
 	})
 
 })
