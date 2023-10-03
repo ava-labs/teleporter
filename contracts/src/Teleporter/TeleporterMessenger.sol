@@ -560,7 +560,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Returns the number of receipts that have been received from the given chain ID.
+     * @dev See {ITeleporterMessenger-getReceiptQueueSize}
      */
     function getReceiptQueueSize(bytes32 chainID)
         external
@@ -571,7 +571,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Returns the receipt at the given index in the queue for the given chain ID.
+     * @dev See {ITeleporterMessenger-getReceiptAtIndex}
      */
     function getReceiptAtIndex(bytes32 chainID, uint256 index)
         external
