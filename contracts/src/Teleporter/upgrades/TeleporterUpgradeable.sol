@@ -48,7 +48,7 @@ abstract contract TeleporterUpgradeable {
     /**
      * @dev Updates `_minTeleporterVersion` to the latest version.
      */
-    function updateMinTeleporterversion() external {
+    function updateMinTeleporterVersion() external {
         _minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
