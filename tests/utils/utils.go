@@ -13,9 +13,12 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	warpBackend "github.com/ava-labs/subnet-evm/warp"
+
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
+	"github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/params"
 	"github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
@@ -233,4 +236,63 @@ func ConstructAndSendWarpTransaction(
 	_, receipt := SendAndWaitForTransaction(ctx, wsClient, signedTx)
 
 	return signedTx, receipt
+}
+
+func RelayMessage(
+	ctx context.Context,
+	sourceBlockHash common.Hash,
+	sourceBlockNumber uint64,
+	source SubnetTestInfo,
+	destination SubnetTestInfo,
+) *big.Int {
+	log.Info("Fetching relevant warp logs from the newly produced block")
+	logs, err := source.ChainWSClient.FilterLogs(ctx, interfaces.FilterQuery{
+		BlockHash: &sourceBlockHash,
+		Addresses: []common.Address{warp.Module.Address},
+	})
+	Expect(err).Should(BeNil())
+	Expect(len(logs)).Should(Equal(1))
+
+	// Check for relevant warp log from subscription and ensure that it matches
+	// the log extracted from the last block.
+	txLog := logs[0]
+	log.Info("Parsing logData as unsigned warp message")
+	unsignedMsg, err := avalancheWarp.ParseUnsignedMessage(txLog.Data)
+	Expect(err).Should(BeNil())
+
+	// Set local variables for the duration of the test
+	unsignedWarpMessageID := unsignedMsg.ID()
+	unsignedWarpMsg := unsignedMsg
+	log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
+
+	// Loop over each client on chain A to ensure they all have time to accept the block.
+	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
+	// has accepted the block.
+	WaitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceBlockNumber)
+
+	// Get the aggregate signature for the Warp message
+	log.Info("Fetching aggregate signature from the source chain validators")
+	warpClient, err := warpBackend.NewClient(source.ChainNodeURIs[0], source.BlockchainID.String())
+	Expect(err).Should(BeNil())
+	signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
+	Expect(err).Should(BeNil())
+
+	// Construct the transaction to send the Warp message to the destination chain
+	_, receipt := ConstructAndSendWarpTransaction(
+		ctx,
+		signedWarpMessageBytes,
+		big.NewInt(1),
+		teleporterContractAddress,
+		fundedAddress,
+		fundedKey,
+		destination.ChainWSClient,
+		destination.ChainIDInt,
+	)
+
+	sendCrossChainMessageLog := receipt.Logs[0]
+	var event SendCrossChainMessageEvent
+	err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
+	Expect(err).Should(BeNil())
+	teleporterMessageID := event.Message.MessageID
+	return teleporterMessageID
 }
