@@ -62,13 +62,20 @@ func BasicOneWaySend() {
 	Expect(err).Should(BeNil())
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
-	newHeadA, _ := SendAndWaitForTransaction(ctx, subnetAInfo.ChainWSClient, signedTx)
+	newHeadA, receipt := SendAndWaitForTransaction(ctx, subnetAInfo.ChainWSClient, signedTx)
+
+	sendCrossChainMessageLog := receipt.Logs[0]
+	var event SendCrossChainMessageEvent
+	err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
+	Expect(err).Should(BeNil())
+
+	teleporterMessageID = event.Message.MessageID
 
 	//
 	// Relay the message to the destination
 	//
 
-	teleporterMessageID = utils.RelayMessage(ctx, newHeadA, subnetAInfo, subnetBInfo)
+	utils.RelayMessage(ctx, newHeadA, subnetAInfo, subnetBInfo)
 
 	//
 	// Check Teleporter message received on the destination

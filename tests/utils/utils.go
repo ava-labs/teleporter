@@ -243,7 +243,7 @@ func RelayMessage(
 	block *types.Header,
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
-) *big.Int {
+) {
 	sourceBlockHash := block.Hash()
 	sourceBlockNumber := block.Number.Uint64()
 
@@ -280,7 +280,7 @@ func RelayMessage(
 	Expect(err).Should(BeNil())
 
 	// Construct the transaction to send the Warp message to the destination chain
-	_, receipt := ConstructAndSendWarpTransaction(
+	ConstructAndSendWarpTransaction(
 		ctx,
 		signedWarpMessageBytes,
 		big.NewInt(1),
@@ -290,11 +290,4 @@ func RelayMessage(
 		destination.ChainWSClient,
 		destination.ChainIDInt,
 	)
-
-	sendCrossChainMessageLog := receipt.Logs[0]
-	var event SendCrossChainMessageEvent
-	err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
-	Expect(err).Should(BeNil())
-	teleporterMessageID := event.Message.MessageID
-	return teleporterMessageID
 }
