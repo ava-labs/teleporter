@@ -70,7 +70,7 @@ type FeeInfo struct {
 
 // Subscribes to new heads, sends a tx, and waits for the new head to appear
 // Returns the new head
-func SendAndWaitForTransaction(
+func SendTransactionAndWaitForAcceptance(
 	ctx context.Context,
 	wsClient ethclient.Client,
 	tx *types.Transaction) (*types.Header, *types.Receipt) {
@@ -123,19 +123,53 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 	return hostAndPort[0], uint32(port), nil
 }
 
-func NewTestTeleporterTransaction(chainIDInt *big.Int, teleporterAddress common.Address, nonce uint64, data []byte) *types.Transaction {
-	return types.NewTx(&types.DynamicFeeTx{
-		ChainID:   chainIDInt,
+func CreateTeleporterTransaction(
+	ctx context.Context,
+	source SubnetTestInfo,
+	destination SubnetTestInfo,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	teleporterContractAddress common.Address,
+) *types.Transaction {
+	nonce, err := source.ChainWSClient.NonceAt(ctx, fundedAddress, nil)
+	Expect(err).Should(BeNil())
+
+	data, err := teleporter.EVMTeleporterContractABI.Pack(
+		"sendCrossChainMessage",
+		SendCrossChainMessageInput{
+			DestinationChainID: destination.BlockchainID,
+			DestinationAddress: fundedAddress,
+			FeeInfo: FeeInfo{
+				ContractAddress: fundedAddress,
+				Amount:          big.NewInt(0),
+			},
+			RequiredGasLimit:        big.NewInt(1),
+			AllowedRelayerAddresses: []common.Address{},
+			Message:                 []byte{1, 2, 3, 4},
+		},
+	)
+	Expect(err).Should(BeNil())
+
+	// Send a transaction to the Teleporter contract
+	tx := types.NewTx(&types.DynamicFeeTx{
+		ChainID:   source.ChainIDInt,
 		Nonce:     nonce,
-		To:        &teleporterAddress,
+		To:        &teleporterContractAddress,
 		Gas:       DefaultTeleporterTransactionGas,
 		GasFeeCap: DefaultTeleporterTransactionGasFeeCap,
 		GasTipCap: DefaultTeleporterTransactionGasTipCap,
 		Value:     DefaultTeleporterTransactionValue,
 		Data:      data,
 	})
+
+	txSigner := types.LatestSignerForChainID(source.ChainIDInt)
+	signedTx, err := types.SignTx(tx, txSigner, fundedKey)
+	Expect(err).Should(BeNil())
+
+	return signedTx
 }
 
+// Issues txs to activate the proposer VM fork on the specified subnet index in the manager
 func SetUpProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
 	subnet := manager.GetSubnets()[index]
 	subnetDetails, ok := manager.GetSubnet(subnet)
@@ -233,11 +267,12 @@ func ConstructAndSendWarpTransaction(
 	Expect(err).Should(BeNil())
 
 	log.Info("Sending transaction to destination chain")
-	_, receipt := SendAndWaitForTransaction(ctx, wsClient, signedTx)
+	_, receipt := SendTransactionAndWaitForAcceptance(ctx, wsClient, signedTx)
 
 	return signedTx, receipt
 }
 
+// Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
 func RelayMessage(
 	ctx context.Context,
 	block *types.Header,
@@ -280,7 +315,7 @@ func RelayMessage(
 	Expect(err).Should(BeNil())
 
 	// Construct the transaction to send the Warp message to the destination chain
-	ConstructAndSendWarpTransaction(
+	_, receipt := ConstructAndSendWarpTransaction(
 		ctx,
 		signedWarpMessageBytes,
 		big.NewInt(1),
@@ -290,4 +325,9 @@ func RelayMessage(
 		destination.ChainWSClient,
 		destination.ChainIDInt,
 	)
+
+	receiveCrossChainMessageLog := receipt.Logs[0]
+	var event ReceiveCrossChainMessageEvent
+	err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "ReceiveCrossChainMessage", receiveCrossChainMessageLog.Data)
+	Expect(err).Should(BeNil())
 }
