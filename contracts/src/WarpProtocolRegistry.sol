@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
  * @dev Implementation of an abstract `WarpProtocolRegistry` contract.
  *
  * This implementation is a contract that can be used as a base contract for protocols that are
- * build on top of Warp. It allows the protocol to be upgraded through a warp out of band message.
+ * build on top of warp. It allows the protocol to be upgraded through a warp out-of-band message.
  */
 abstract contract WarpProtocolRegistry {
     // Address that the out-of-band warp message sets as the "source" address.
@@ -67,13 +67,13 @@ abstract contract WarpProtocolRegistry {
     }
 
     /**
-     * @dev Gets and verifies a warp out of band message, and adds the new protocol version
+     * @dev Gets and verifies a warp out-of-band message, and adds the new protocol version
      * addres to the registry.
      *
      * Emits a {AddProtocolVersion} event when successful.
      * Requirements:
      *
-     * - a valid warp out of band message must be provided.
+     * - a valid warp out-of-band message must be provided.
      * - the version must be the increment of the latest version.
      * - the protocol address must be a contract address.
      */
@@ -101,11 +101,11 @@ abstract contract WarpProtocolRegistry {
     }
 
     /**
-     * @dev Gets and verifies for a warp out of band message, and adds the new protocol version
+     * @dev Gets and verifies for a warp out-of-band message, and adds the new protocol version
      * addres to the registry.
      */
     function _addProtocolVersion(uint32 messageIndex) internal virtual {
-        // Get and verify a valid warp out of band message.
+        // Get and validate for a warp out-of-band message.
         (WarpMessage memory message, bool valid) = WARP_MESSENGER
             .getVerifiedWarpMessage(messageIndex);
         if (!valid) {

@@ -79,7 +79,7 @@ contract TeleporterUpgradeableTest is Test {
             abi.encode(2)
         );
 
-        app.updateMinTeleporterversion();
+        app.updateMinTeleporterSersion();
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails

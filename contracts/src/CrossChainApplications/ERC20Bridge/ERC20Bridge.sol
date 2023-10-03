@@ -475,7 +475,7 @@ contract ERC20Bridge is
         address nativeContractAddress,
         address recipient,
         uint256 amount
-    ) private nonReentrant onlyAllowedTeleporter {
+    ) private nonReentrant {
         // The recipient cannot be the zero address.
         if (recipient == address(0)) {
             revert InvalidRecipientAddress();
@@ -513,7 +513,7 @@ contract ERC20Bridge is
         address recipient,
         uint256 totalAmount,
         uint256 secondaryFeeAmount
-    ) private nonReentrant onlyAllowedTeleporter {
+    ) private nonReentrant {
         // Neither the recipient nor the destination bridge can be the zero address.
         if (recipient == address(0)) {
             revert InvalidRecipientAddress();
