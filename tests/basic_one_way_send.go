@@ -69,9 +69,7 @@ func BasicOneWaySend() {
 	//
 
 	// Get the latest block from Subnet A, and retrieve the warp message from the logs
-	blockHashA := newHeadA.Hash()
-
-	teleporterMessageID = utils.RelayMessage(ctx, blockHashA, newHeadA.Number.Uint64(), subnetAInfo, subnetBInfo)
+	teleporterMessageID = utils.RelayMessage(ctx, newHeadA, subnetAInfo, subnetBInfo)
 
 	//
 	// Check Teleporter message received on the destination

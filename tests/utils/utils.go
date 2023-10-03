@@ -240,11 +240,13 @@ func ConstructAndSendWarpTransaction(
 
 func RelayMessage(
 	ctx context.Context,
-	sourceBlockHash common.Hash,
-	sourceBlockNumber uint64,
+	block *types.Header,
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
 ) *big.Int {
+	sourceBlockHash := block.Hash()
+	sourceBlockNumber := block.Number.Uint64()
+
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.ChainWSClient.FilterLogs(ctx, interfaces.FilterQuery{
 		BlockHash: &sourceBlockHash,
