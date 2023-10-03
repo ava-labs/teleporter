@@ -70,7 +70,7 @@ type FeeInfo struct {
 func SendAndWaitForTransaction(
 	ctx context.Context,
 	wsClient ethclient.Client,
-	tx *types.Transaction) *types.Header {
+	tx *types.Transaction) (*types.Header, *types.Receipt) {
 
 	newHeads := make(chan *types.Header, 1)
 	subA, err := wsClient.SubscribeNewHead(ctx, newHeads)
@@ -81,7 +81,11 @@ func SendAndWaitForTransaction(
 	Expect(err).Should(BeNil())
 	newHead := <-newHeads
 
-	return newHead
+	receipt, err := wsClient.TransactionReceipt(ctx, tx.Hash())
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return newHead, receipt
 }
 
 func HttpToWebsocketURI(uri string, blockchainID string) string {
@@ -168,7 +172,7 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 
 // Constructs and sends a transaction containing a warp message for the destination chain.
 // Returns the signed transaction.
-func ConstructAndSendTransaction(
+func ConstructAndSendWarpTransaction(
 	ctx context.Context,
 	warpMessageBytes []byte,
 	requiredGasLimit *big.Int,
@@ -177,7 +181,7 @@ func ConstructAndSendTransaction(
 	fundedKey *ecdsa.PrivateKey,
 	wsClient ethclient.Client,
 	chainID *big.Int,
-) *types.Transaction {
+) (*types.Transaction, *types.Receipt) {
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
 	signedMessage, err := avalancheWarp.ParseMessage(warpMessageBytes)
@@ -226,7 +230,7 @@ func ConstructAndSendTransaction(
 	Expect(err).Should(BeNil())
 
 	log.Info("Sending transaction to destination chain")
-	SendAndWaitForTransaction(ctx, wsClient, signedTx)
+	_, receipt := SendAndWaitForTransaction(ctx, wsClient, signedTx)
 
-	return signedTx
+	return signedTx, receipt
 }

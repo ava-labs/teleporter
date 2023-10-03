@@ -238,11 +238,9 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 			})
 			txSigner := types.LatestSignerForChainID(chainID)
 			triggerTx, err := types.SignTx(txA, txSigner, fundedKey)
+			Expect(err).Should(BeNil())
 
 			SendAndWaitForTransaction(ctx, subnetInfo.ChainWSClient, triggerTx)
-			receipt, err := client.TransactionReceipt(ctx, triggerTx.Hash())
-			Expect(err).Should(BeNil())
-			Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 		}
 		log.Info("Finished funding Teleporter deployer")
 

@@ -30,7 +30,7 @@ func BasicOneWaySend() {
 	)
 
 	subnetAInfo := utils.GetSubnetATestInfo()
-	subnetBInfo := utils.GetSubnetATestInfo()
+	subnetBInfo := utils.GetSubnetBTestInfo()
 	teleporterContractAddress := utils.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := utils.GetFundedAccountInfo()
 
@@ -66,18 +66,13 @@ func BasicOneWaySend() {
 	Expect(err).Should(BeNil())
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
-	newHeadA := SendAndWaitForTransaction(ctx, subnetAInfo.ChainWSClient, signedTx)
-
-	receipt, err := subnetAInfo.ChainWSClient.TransactionReceipt(ctx, signedTx.Hash())
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	newHeadA, _ := SendAndWaitForTransaction(ctx, subnetAInfo.ChainWSClient, signedTx)
 
 	//
 	// Relay the message to the destination
 	//
 
 	// Get the latest block from Subnet A, and retrieve the warp message from the logs
-	log.Info("Waiting for new block confirmation")
 	blockHashA := newHeadA.Hash()
 
 	log.Info("Fetching relevant warp logs from the newly produced block")
@@ -113,7 +108,7 @@ func BasicOneWaySend() {
 	Expect(err).Should(BeNil())
 
 	// Construct the transaction to send the Warp message to the destination chain
-	signedTxB := ConstructAndSendTransaction(
+	_, receipt := ConstructAndSendWarpTransaction(
 		ctx,
 		signedWarpMessageBytes,
 		big.NewInt(1),
@@ -123,10 +118,6 @@ func BasicOneWaySend() {
 		subnetBInfo.ChainWSClient,
 		subnetBInfo.ChainIDInt,
 	)
-
-	receipt, err = subnetBInfo.ChainWSClient.TransactionReceipt(ctx, signedTxB.Hash())
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	sendCrossChainMessageLog := receipt.Logs[0]
 	var event SendCrossChainMessageEvent
