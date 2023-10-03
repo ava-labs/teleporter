@@ -1,15 +1,12 @@
 name: ABI Go Bindings Checker
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - "*"
 
 env:
-  GO_VERSION: "1.20.7"
+  GO_VERSION: "1.20.8"
 
 jobs:
   abi_binding:
@@ -17,12 +14,6 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout go-ethereum repository
-        uses: actions/checkout@v4
-        with:
-          repository: ethereum/go-ethereum
-          ref: v1.13.1
-
       - name: Setup Go
         uses: actions/setup-go@v4
         with:

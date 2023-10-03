@@ -13,7 +13,7 @@ TELEPORTER_PATH=$(
   cd .. && pwd
 )
 
-DEFAULT_CONTRACT_LIST="TeleporterMessenger"
+DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver"
 
 CONTRACT_LIST=
 HELP=
@@ -68,7 +68,6 @@ do
 
     echo "Generating Go bindings for $contract_name..."
     mkdir -p $TELEPORTER_PATH/abis/$contract_name
-    cp $abi_file $TELEPORTER_PATH/abis/$contract_name/$contract_name.abi.json
     $GOPATH/bin/abigen --abi $abi_file \
                        --pkg $(convertToSnakeCase $contract_name) \
                        --out $TELEPORTER_PATH/abis/$contract_name/$contract_name.go
