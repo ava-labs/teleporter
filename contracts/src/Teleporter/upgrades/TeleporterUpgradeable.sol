@@ -19,7 +19,7 @@ abstract contract TeleporterUpgradeable {
     error InvalidTeleporterSender();
 
     /**
-     * @dev Throws if called by a `msg.sender` that is not an allowed Telepoter version.
+     * @dev Throws if called by a `msg.sender` that is not an allowed Teleporter version.
      * Checks that `msg.sender` matches a Teleporter version greater than or equal to `_minTeleporterVersion`.
      */
     modifier onlyAllowedTeleporter() {
