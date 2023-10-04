@@ -10,6 +10,7 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
@@ -180,6 +181,8 @@ func SetUpProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *
 
 // Blocks until all validators specified in nodeURIs have reached the specified block height
 func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, blockchainID ids.ID, height uint64) {
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	for i, uri := range nodeURIs {
 		chainAWSURI := HttpToWebsocketURI(uri, blockchainID.String())
 		log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI)
@@ -189,7 +192,7 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 
 		// Loop until each node has advanced to >= the height of the block that emitted the warp log
 		for {
-			block, err := client.BlockByNumber(ctx, nil)
+			block, err := client.BlockByNumber(cctx, nil)
 			Expect(err).Should(BeNil())
 			if block.NumberU64() >= height {
 				log.Info("client accepted the block containing SendWarpMessage", "client", i, "height", block.NumberU64())
