@@ -15,6 +15,7 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
+	teleportermessenger "github.com/ava-labs/teleporter/abis/TeleporterMessenger"
 
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -303,10 +304,11 @@ func RelayMessage(
 	log.Info("Sending transaction to destination chain")
 	receipt := SendTransactionAndWaitForAcceptance(ctx, destination.ChainWSClient, signedTx)
 
-	receiveCrossChainMessageLog := receipt.Logs[0]
-	var event ReceiveCrossChainMessageEvent
-	err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "ReceiveCrossChainMessage", receiveCrossChainMessageLog.Data)
+	bind, err := teleportermessenger.NewTeleportermessenger(teleporterContractAddress, source.ChainWSClient)
 	Expect(err).Should(BeNil())
+	event, err := bind.ParseReceiveCrossChainMessage(*receipt.Logs[0])
+	Expect(err).Should(BeNil())
+	Expect(event.OriginChainID).Should(Equal(source.BlockchainID))
 }
 
 //
