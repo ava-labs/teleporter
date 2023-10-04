@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"math/big"
 	"os"
-	"os/exec"
 	"testing"
 	"time"
 
@@ -48,6 +47,8 @@ const (
 	bridgeDeployerKeyStr   = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
 	warpGenesisFile        = "./tests/warp-genesis.json"
 	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
+	NativeTokenSourceByteCodeFile = "./contracts/out/NativeTokenSource.sol/NativeTokenSource.json"
+	NativeTokenDestinationByteCodeFile = "./contracts/out/NativeTokenDestination.sol/NativeTokenDestination.json"
 )
 
 var (
@@ -469,31 +470,25 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		Expect(err).Should(BeNil())
 		fmt.Println("Native Token Bridge Contract Address: ", nativeTokenBridgeContractAddress.Hex())
 
-		cmd := exec.Command(
-			"forge",
-			"create",
-			"src/CrossChainApplications/NativeTokenBridge/NativeTokenSource.sol:NativeTokenSource",
-			"--rpc-url", chainARPCURI,
-			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
-			"--constructor-args", teleporterContractAddress.Hex(), "0x"+blockchainIDB.Hex(), nativeTokenBridgeContractAddress.Hex())
 
-		cmd.Dir = "./contracts"
-		fmt.Println("SOURCE ", cmd.String())
-		err = cmd.Run()
+		nativeTokenSourceBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenSourceByteCodeFile)
+		Expect(err).Should(BeNil())
+		chainATransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, chainAIDInt)
+		Expect(err).Should(BeNil())
+		nativeTokenSourceAbi, err := abi.NativeTokenSourceMetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		_, _, _, err = bind.DeployContract(chainATransactor, *nativeTokenSourceAbi, nativeTokenSourceBytecode, chainARPCClient, teleporterContractAddress, blockchainIDB, nativeTokenBridgeContractAddress)
 		Expect(err).Should(BeNil())
 
-		cmd = exec.Command(
-			"forge",
-			"create",
-			"src/CrossChainApplications/NativeTokenBridge/NativeTokenDestination.sol:NativeTokenDestination",
-			"--rpc-url", chainBRPCURI,
-			"--private-key", hexutil.Encode(nativeTokenBridgeDeployerPK.D.Bytes()),
-			"--constructor-args", teleporterContractAddress.Hex(), "0x"+blockchainIDA.Hex(), nativeTokenBridgeContractAddress.Hex())
-
-		cmd.Dir = "./contracts"
-		fmt.Println("DEST ", cmd.String())
-		err = cmd.Run()
+		nativeTokenDestinationBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenDestinationByteCodeFile)
 		Expect(err).Should(BeNil())
+		chainBTransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, chainBIDInt)
+		Expect(err).Should(BeNil())
+		nativeTokenDestinationAbi, err := abi.NativeTokenDestinationMetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		_, _, _, err = bind.DeployContract(chainBTransactor, *nativeTokenDestinationAbi, nativeTokenDestinationBytecode, chainBRPCClient, teleporterContractAddress, blockchainIDA, nativeTokenBridgeContractAddress, common.Big0)
+		Expect(err).Should(BeNil())
+
 
 		time.Sleep(5 * time.Second)
 		bridgeCodeA, err := chainARPCClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
