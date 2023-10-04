@@ -57,9 +57,11 @@ if [[ -z "${CONTRACT_LIST}" ]]; then
     contract_names=($DEFAULT_CONTRACT_LIST)
 fi
 
-cd $TELEPORTER_PATH
+cd $TELEPORTER_PATH/contracts/src
 for contract_name in "${contract_names[@]}"
 do
+    path=$(find . -name $contract_name.sol)
+    dir=$(dirname $path)
     abi_file=$TELEPORTER_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
     if ! [ -f $abi_file ]; then
         echo "Error: Contract $contract_name abi file not found"
@@ -67,11 +69,11 @@ do
     fi
 
     echo "Generating Go bindings for $contract_name..."
-    mkdir -p $TELEPORTER_PATH/abis-bings
+    mkdir -p $TELEPORTER_PATH/abis-bings/$dir/$contract_name
     $GOPATH/bin/abigen --abi $abi_file \
-                       --pkg abisbings \
+                       --pkg $(convertToLower $contract_name) \
                        --type $contract_name \
-                       --out $TELEPORTER_PATH/abis-bings/$contract_name.go
+                       --out $TELEPORTER_PATH/abis-bings/$dir/$contract_name/$contract_name.go
     echo "Done generating Go bindings for $contract_name."
 done
 
