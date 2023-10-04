@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ava-labs/teleporter/tests/utils"
-
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/interfaces"
+	teleportermessenger "github.com/ava-labs/teleporter/abis/TeleporterMessenger"
+	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
@@ -49,10 +49,11 @@ func BasicOneWaySend() {
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
 	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, signedTx)
 
-	sendCrossChainMessageLog := receipt.Logs[0]
-	var event utils.SendCrossChainMessageEvent
-	err := teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
+	bind, err := teleportermessenger.NewTeleportermessenger(teleporterContractAddress, subnetAInfo.ChainWSClient)
 	Expect(err).Should(BeNil())
+	event, err := bind.ParseSendCrossChainMessage(*receipt.Logs[0])
+	Expect(err).Should(BeNil())
+	Expect(event.DestinationChainID).Should(Equal(subnetBInfo.BlockchainID))
 
 	teleporterMessageID = event.Message.MessageID
 

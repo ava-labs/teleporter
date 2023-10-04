@@ -201,9 +201,9 @@ func SetupNetwork(warpGenesisFile string) {
 	log.Info("Finished setting up e2e test subnet variables")
 }
 
-// DeployTeleporterContract deploys the Teleporter contract to the two subnets. The caller is responsible for generating the
+// DeployTeleporterContracts deploys the Teleporter contract to the two subnets. The caller is responsible for generating the
 // deployment transaction information
-func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Address, contractAddress common.Address) {
+func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.Address, contractAddress common.Address) {
 	log.Info("Deploying Teleporter contract to subnets")
 
 	subnetsInfo := GetSubnetsInfo()
