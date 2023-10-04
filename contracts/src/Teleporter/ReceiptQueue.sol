@@ -10,6 +10,7 @@ import "./ITeleporterMessenger.sol";
 /**
  * @dev ReceiptQueue is a convenience library that creates a queue-like interface of
  * TeleporterMessageReceipt structs. It provides FIFO properties.
+ * Note: All functions in this library are internal so that the library is not deployed as a contract.
  */
 library ReceiptQueue {
     struct TeleporterMessageReceiptQueue {
