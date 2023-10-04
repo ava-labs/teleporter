@@ -39,6 +39,15 @@ contract TeleporterUpgradeableTest is Test {
             ),
             abi.encode(1)
         );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeCall(
+                TeleporterRegistry.getVersionFromAddress,
+                (address(this))
+            ),
+            abi.encode(0)
+        );
     }
 
     function testInvalidRegistryAddress() public {
