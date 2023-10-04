@@ -71,6 +71,7 @@ var (
 	chainARPCURI, chainBRPCURI       string
 	chainAIDInt, chainBIDInt         *big.Int
 	newHeadsA                        chan *types.Header
+	newHeadsB                        chan *types.Header
 )
 
 func TestE2E(t *testing.T) {
@@ -179,6 +180,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	chainAWSClient, err = ethclient.Dial(chainAWSURI)
 	Expect(err).Should(BeNil())
 	chainARPCClient, err = ethclient.Dial(chainARPCURI)
+	defer chainARPCClient.Close()
 	Expect(err).Should(BeNil())
 
 	chainAIDInt, err = chainARPCClient.ChainID(context.Background())
@@ -196,6 +198,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	Expect(err).Should(BeNil())
 
 	newHeadsA = make(chan *types.Header, 10)
+	newHeadsB = make(chan *types.Header, 10)
 
 	log.Info("Finished setting up e2e test subnet variables")
 
@@ -451,10 +454,8 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 })
 
 var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() {
-	var (
-		teleporterMessageID *big.Int
-	)
 	valueToSend := int64(1000_000_000_000_000_000)
+	valueToReturn := valueToSend/4
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ginkgo.It("Deploy Contracts on chains A and B", ginkgo.Label("NativeTransfer", "DeployContracs"), func() {
@@ -506,11 +507,11 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		log.Info("Finished deploying Bridge contracts")
 	})
 
-	ginkgo.It("Transfer tokens from A to B", ginkgo.Label("NativeTransfer", "Send Teleporter mint message"), func() {
+	ginkgo.It("Transfer tokens from A to B", ginkgo.Label("NativeTransfer", "Lock and Mint"), func() {
 		ctx := context.Background()
 		var err error
 
-		nativeTokenReceiver, err := abi.NewNativeTokenSource(nativeTokenBridgeContractAddress, chainARPCClient)
+		nativeTokenSource, err := abi.NewNativeTokenSource(nativeTokenBridgeContractAddress, chainARPCClient)
 		Expect(err).Should(BeNil())
 		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, chainAIDInt)
 		Expect(err).Should(BeNil())
@@ -520,9 +521,9 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		Expect(err).Should(BeNil())
 		defer subA.Unsubscribe()
 
-		tx, err := nativeTokenReceiver.TransferToDestination(transactor, tokenReceiverAddress, tokenReceiverAddress, big.NewInt(0))
+		tx, err := nativeTokenSource.TransferToDestination(transactor, tokenReceiverAddress, tokenReceiverAddress, big.NewInt(0))
 		Expect(err).Should(BeNil())
-		log.Info("Sent NativeTokenTransfer transaction on source chain", "destinationChainID", blockchainIDB, "txHash", tx.Hash().Hex())
+		log.Info("Sent TransferToDestination transaction on source chain", "destinationChainID", blockchainIDB, "txHash", tx.Hash().Hex())
 
 		// Sleep to ensure the new block is published to the subscriber
 		time.Sleep(5 * time.Second)
@@ -531,7 +532,7 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	})
 
-	ginkgo.It("Relay message to destination", ginkgo.Label("NativeTransfer", "RelayMessage"), func() {
+	ginkgo.It("Relay message to destination", ginkgo.Label("NativeTransfer", "RelayMessage A -> B"), func() {
 		ctx := context.Background()
 
 		// Get the latest block from Subnet A, and retrieve the warp message from the logs
@@ -597,12 +598,107 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 		var event SendCrossChainMessageEvent
 		err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
 		Expect(err).Should(BeNil())
-		teleporterMessageID = event.Message.MessageID
-		teleporterMessageID.Uint64()
 
 		bal, err = chainBRPCClient.BalanceAt(ctx, tokenReceiverAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(bal.Int64()).Should(Equal(valueToSend))
+	})
+
+	ginkgo.It("Transfer tokens from B to A", ginkgo.Label("NativeTransfer", "Burn and Unlock"), func() {
+		ctx := context.Background()
+		var err error
+
+		nativeTokenDestination, err := abi.NewNativeTokenDestination(nativeTokenBridgeContractAddress, chainBRPCClient)
+		Expect(err).Should(BeNil())
+		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, chainBIDInt)
+		Expect(err).Should(BeNil())
+		transactor.Value = big.NewInt(valueToReturn)
+
+		subB, err := chainBWSClient.SubscribeNewHead(ctx, newHeadsB)
+		Expect(err).Should(BeNil())
+		defer subB.Unsubscribe()
+
+		tx, err := nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, tokenReceiverAddress, big.NewInt(0))
+		Expect(err).Should(BeNil())
+		log.Info("Sent TransferToSource transaction on destination chain", "sourceChainID", blockchainIDA, "txHash", tx.Hash().Hex())
+
+		// Sleep to ensure the new block is published to the subscriber
+		time.Sleep(5 * time.Second)
+		receipt, err := chainBRPCClient.TransactionReceipt(ctx, tx.Hash())
+		Expect(err).Should(BeNil())
+		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	})
+
+	ginkgo.It("Relay message to source", ginkgo.Label("NativeTransfer", "RelayMessage B -> A"), func() {
+		ctx := context.Background()
+
+		// Get the latest block from Subnet A, and retrieve the warp message from the logs
+		log.Info("Waiting for new block confirmation")
+		newHeadB := <-newHeadsB
+		blockHashB := newHeadB.Hash()
+
+		log.Info("Fetching relevant warp logs from the newly produced block")
+		logs, err := chainBRPCClient.FilterLogs(ctx, interfaces.FilterQuery{
+			BlockHash: &blockHashB,
+			Addresses: []common.Address{warp.Module.Address},
+		})
+		Expect(err).Should(BeNil())
+		Expect(len(logs)).Should(Equal(1))
+
+		// Check for relevant warp log from subscription and ensure that it matches
+		// the log extracted from the last block.
+		txLog := logs[0]
+		log.Info("Parsing logData as unsigned warp message")
+		unsignedMsg, err := avalancheWarp.ParseUnsignedMessage(txLog.Data)
+		Expect(err).Should(BeNil())
+
+		// Set local variables for the duration of the test
+		unsignedWarpMessageID := unsignedMsg.ID()
+		unsignedWarpMsg := unsignedMsg
+		log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
+
+		// Loop over each client on chain A to ensure they all have time to accept the block.
+		// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
+		// has accepted the block.
+		waitForAllValidatorsToAcceptBlock(ctx, chainBNodeURIs, blockchainIDB, newHeadB.Number.Uint64())
+
+		// Get the aggregate signature for the Warp message
+		log.Info("Fetching aggregate signature from the source chain validators")
+		warpClient, err := warpBackend.NewClient(chainBNodeURIs[0], blockchainIDB.String())
+		Expect(err).Should(BeNil())
+		signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
+		Expect(err).Should(BeNil())
+
+		// Check starting balance is 0
+		bal, err := chainARPCClient.BalanceAt(ctx, tokenReceiverAddress, nil)
+		Expect(err).Should(BeNil())
+		Expect(bal.Int64()).Should(Equal(common.Big0.Int64()))
+
+		signedTxA := constructAndSendTransaction(
+			ctx,
+			signedWarpMessageBytes,
+			big.NewInt(1),
+			teleporterContractAddress,
+			fundedAddress,
+			fundedKey,
+			chainARPCClient,
+			chainAIDInt,
+		)
+
+		// Sleep to ensure the new block is published to the subscriber
+		time.Sleep(5 * time.Second)
+		receipt, err := chainARPCClient.TransactionReceipt(ctx, signedTxA.Hash())
+		Expect(err).Should(BeNil())
+		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+		sendCrossChainMessageLog := receipt.Logs[2]
+		var event SendCrossChainMessageEvent
+		err = teleporter.EVMTeleporterContractABI.UnpackIntoInterface(&event, "SendCrossChainMessage", sendCrossChainMessageLog.Data)
+		Expect(err).Should(BeNil())
+
+		bal, err = chainARPCClient.BalanceAt(ctx, tokenReceiverAddress, nil)
+		Expect(err).Should(BeNil())
+		Expect(bal.Int64()).Should(Equal(valueToReturn))
 	})
 
 })
