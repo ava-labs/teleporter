@@ -25,17 +25,6 @@ interface INativeTokenSource {
      */
     event UnlockTokens(address recipient, uint256 amount);
 
-    error InvalidTeleporterMessengerAddress();
-    error InvalidRecipientAddress();
-    error InvalidSourceChain();
-    error InvalidRecipient();
-    error InvalidPartnerContractAddress();
-    error CannotBridgeTokenWithinSameChain();
-    error Unauthorized();
-    error InsufficientPayment();
-    error InvalidDestinationContractAddress();
-    error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
-
     /**
      * @dev Transfers native tokens to the destination chain as that chain's native token.
      */

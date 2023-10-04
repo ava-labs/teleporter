@@ -19,8 +19,8 @@ contract NativeTokenSource is
     using SafeERC20 for IERC20;
 
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 150_000; // TODO this is a placeholder
-    bytes32 public immutable currentChainID;
-    bytes32 public immutable destinationChainID;
+    bytes32 public immutable currentBlockchainID;
+    bytes32 public immutable destinationBlockchainID;
     address public immutable destinationContractAddress;
 
     // Used for sending an receiving Teleporter messages.
@@ -28,26 +28,20 @@ contract NativeTokenSource is
 
     constructor(
         address teleporterMessengerAddress,
-        bytes32 destinationChainID_,
+        bytes32 destinationBlockchainID_,
         address destinationContractAddress_
     ) {
-        currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
+        currentBlockchainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
 
-        if (teleporterMessengerAddress == address(0)) {
-            revert InvalidTeleporterMessengerAddress();
-        }
+        require(teleporterMessengerAddress != address(0), "Invalid Teleporter Messenger Address");
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
-        if (destinationContractAddress_ == address(0)) {
-            revert InvalidDestinationContractAddress();
-        }
+        require(destinationContractAddress_ != address(0), "Invalid Destination Contract Address");
         destinationContractAddress = destinationContractAddress_;
 
-        if (destinationChainID_ == currentChainID) {
-            revert CannotBridgeTokenWithinSameChain();
-        }
-        destinationChainID = destinationChainID_;
+        require(destinationBlockchainID_ != currentBlockchainID, "Cannot Bridge With Same Blockchain");
+        destinationBlockchainID = destinationBlockchainID_;
     }
 
     /**
@@ -56,30 +50,25 @@ contract NativeTokenSource is
      * Receives a Teleporter message and routes to the appropriate internal function call.
      */
     function receiveTeleporterMessage(
-        bytes32 senderChainID,
+        bytes32 senderBlockchainID,
         address senderAddress,
         bytes calldata message
     ) external nonReentrant {
+
         // Only allow the Teleporter messenger to deliver messages.
-        if (msg.sender != address(teleporterMessenger)) {
-            revert Unauthorized();
-        }
-        // Only allow messages from the partner chain.
-        if (senderChainID != destinationChainID) {
-            revert InvalidSourceChain();
-        }
+        require(msg.sender == address(teleporterMessenger), "Unauthorized");
+
+        // Only allow messages from the destination chain.
+        require(senderBlockchainID == destinationBlockchainID, "Invalid Destination Chain");
+
         // Only allow the partner contract to send messages.
-        if (senderAddress != destinationContractAddress) {
-            revert InvalidPartnerContractAddress();
-        }
+        require(senderAddress == destinationContractAddress, "Invalid Sender address");
 
         (address recipient, uint256 amount) = abi.decode(
             message,
             (address, uint256)
         );
-        if (recipient == address(0)) {
-            revert InvalidRecipient();
-        }
+        require(recipient != address(0), "Invalid Recipient Address");
 
         // TODO set up starting threshold.
 
@@ -98,9 +87,7 @@ contract NativeTokenSource is
         uint256 feeAmount
     ) external payable nonReentrant {
         // The recipient cannot be the zero address.
-        if (recipient == address(0)) {
-            revert InvalidRecipientAddress();
-        }
+        require(recipient != address(0), "Invalid Recipient Address");
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
@@ -122,7 +109,7 @@ contract NativeTokenSource is
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
-                destinationChainID: destinationChainID,
+                destinationChainID: destinationBlockchainID,
                 destinationAddress: destinationContractAddress,
                 feeInfo: TeleporterFeeInfo({
                     contractAddress: feeContractAddress,

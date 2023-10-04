@@ -24,16 +24,6 @@ interface INativeTokenDestination {
      * @dev Emitted when minting bridge tokens.
      */
     event MintNativeTokens(address recipient, uint256 amount);
-    
-    error InvalidTeleporterMessengerAddress();
-    error InvalidRecipientAddress();
-    error InvalidSourceChain();
-    error InvalidPartnerContractAddress();
-    error CannotBridgeTokenWithinSameChain();
-    error Unauthorized();
-    error InsufficientPayment();
-    error InvalidSourceContractAddress();
-    error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
 
     /**
      * @dev This burns native tokens on this chain, and sends a message to the source
