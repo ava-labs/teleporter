@@ -115,25 +115,6 @@ contract TeleporterRegistryTest is Test {
 
         vm.expectRevert(WarpProtocolRegistry.InvalidProtocolVersion.selector);
         teleporterRegistry.addProtocolVersion(messageIndex);
-
-        // Check that adding a protocol address that is not a contract fails
-        warpMessage = _createWarpOutofBandMessage(
-            latestVersion + 1,
-            address(0),
-            address(teleporterRegistry)
-        );
-
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
-                (messageIndex)
-            ),
-            abi.encode(warpMessage, true)
-        );
-
-        vm.expectRevert(WarpProtocolRegistry.InvalidProtocolAddress.selector);
-        teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
     function testGetAddressFromVersion() public {

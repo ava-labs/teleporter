@@ -10,6 +10,10 @@ import "./TeleporterRegistry.sol";
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
  * of the Teleporter protocol by integrating with the {TeleporterRegistry}.
+ *
+ * This contract is intended to be inherited by other contracts that wish to use the
+ * upgrade mechanism. It provides a modifier that restricts access to only Teleporter
+ * versions that are greater than or equal to `_minTeleporterVersion`.
  */
 abstract contract TeleporterUpgradeable {
     TeleporterRegistry public immutable teleporterRegistry;

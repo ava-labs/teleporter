@@ -44,7 +44,6 @@ abstract contract WarpProtocolRegistry {
     error InvalidOriginSenderAddress();
     error InvalidDestinationChainID();
     error InvalidDestinationAddress();
-    error InvalidProtocolAddress();
     error InvalidProtocolVersion();
     error InvalidRegistryInitialization();
 
@@ -136,10 +135,12 @@ abstract contract WarpProtocolRegistry {
      * @dev Adds the new protocol version address to the registry.
      *
      * Emits a {AddProtocolVersion} event when successful.
+     * Note: `protocolAddress` doesn't have to be a contract address, this is primarily
+     * to support the case we want to register a new protocol address meant for a security patch
+     * before the contract is deployed, to prevent the vulnerabilitiy from being exposed before registry update.
      * Requirements:
      *
      * - `version` must be the increment of the latest version.
-     * - `protocolAddress` must be a contract address.
      */
     function _addToRegistry(
         uint256 version,
@@ -148,10 +149,6 @@ abstract contract WarpProtocolRegistry {
         // Check that the version is the increment of the latest version.
         if (version != _latestVersion + 1) {
             revert InvalidProtocolVersion();
-        }
-        // Check that the protocol address is a contract address.
-        if (!Address.isContract(protocolAddress)) {
-            revert InvalidProtocolAddress();
         }
 
         _latestVersion++;

@@ -57,7 +57,7 @@ contract TeleporterRegistry is WarpProtocolRegistry {
      * so that the registry can be queried for the version of a given protocol address.
      * Requirements:
      *
-     * - `protocolAddress` must not have been previously registered.
+     * - `version` must be the increment of the latest version.
      */
     function _addToRegistry(
         uint256 version,
