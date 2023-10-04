@@ -29,7 +29,7 @@ contract ReceiptQueueTest is Test {
         relayerRewardAddress: 0xcC8E718045817AebA89592C72Ae1C9917f5D0894
     });
 
-    function testReceiptQueue() public {
+    function testEnqueueDequeueSuccess() public {
         // Check the initial size is zero.
         assertEq(_queue.size(), 0);
 
@@ -78,7 +78,7 @@ contract ReceiptQueueTest is Test {
         assertEq(result.relayerRewardAddress, _receipt3.relayerRewardAddress);
     }
 
-    function testDequeueEmptyQueue() public {
+    function testDequeueRevertIfEmptyQueue() public {
         // Check that you can't dequeue from empty queue.
         vm.expectRevert(ReceiptQueue.EmptyQueue.selector);
         TeleporterMessageReceipt memory result = _queue.dequeue();
