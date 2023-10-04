@@ -208,7 +208,7 @@ func CreateReceiveCrossChainMessageTransaction(
 }
 
 // Issues txs to activate the proposer VM fork on the specified subnet index in the manager
-func SetUpProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
+func SetupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
 	subnet := manager.GetSubnets()[index]
 	subnetDetails, ok := manager.GetSubnet(subnet)
 	Expect(ok).Should(BeTrue())

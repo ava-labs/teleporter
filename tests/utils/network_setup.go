@@ -153,8 +153,8 @@ func SetupNetwork(warpGenesisFile string) {
 	// Issue transactions to activate the proposerVM fork on the chains
 	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
-	SetUpProposerVM(ctx, fundedKey, manager, 0)
-	SetUpProposerVM(ctx, fundedKey, manager, 1)
+	SetupProposerVM(ctx, fundedKey, manager, 0)
+	SetupProposerVM(ctx, fundedKey, manager, 1)
 
 	// Set up subnet URIs
 	subnetIDs := manager.GetSubnets()
