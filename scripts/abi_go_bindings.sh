@@ -13,7 +13,7 @@ TELEPORTER_PATH=$(
   cd .. && pwd
 )
 
-DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver"
+DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken"
 
 CONTRACT_LIST=
 HELP=
