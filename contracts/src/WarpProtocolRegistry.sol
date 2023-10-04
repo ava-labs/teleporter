@@ -90,7 +90,7 @@ abstract contract WarpProtocolRegistry {
     function getAddressFromVersion(
         uint256 version
     ) external view returns (address) {
-        return _getAddressToVersion(version);
+        return _getAddressFromVersion(version);
     }
 
     /**
@@ -165,7 +165,7 @@ abstract contract WarpProtocolRegistry {
      *
      * - `version` must be a valid version, i.e. greater than 0 and not greater than the latest version.
      */
-    function _getAddressToVersion(
+    function _getAddressFromVersion(
         uint256 version
     ) internal view virtual returns (address) {
         // Check that the version provided is a valid version.

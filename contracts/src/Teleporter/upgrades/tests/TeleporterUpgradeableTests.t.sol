@@ -15,7 +15,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
     ) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
     // solhint-disable-next-line no-empty-blocks
-    function teleporterCall() external onlyAllowedTeleporter {}
+    function teleporterCall() public onlyAllowedTeleporter {}
 }
 
 contract TeleporterUpgradeableTest is Test {
@@ -79,7 +79,7 @@ contract TeleporterUpgradeableTest is Test {
             abi.encode(2)
         );
 
-        app.updateMinTeleporterSersion();
+        app.updateMinTeleporterVersion();
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails

@@ -646,7 +646,7 @@ contract ERC20BridgeTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                TeleporterRegistry.getAddressToVersion.selector,
+                TeleporterRegistry.getVersionFromAddress.selector,
                 (MOCK_TELEPORTER_MESSENGER_ADDRESS)
             ),
             abi.encode(1)
@@ -655,7 +655,7 @@ contract ERC20BridgeTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                WarpProtocolRegistry.getVersionToAddress.selector,
+                WarpProtocolRegistry.getAddressFromVersion.selector,
                 (1)
             ),
             abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)

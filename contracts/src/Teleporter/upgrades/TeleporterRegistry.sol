@@ -26,7 +26,7 @@ contract TeleporterRegistry is WarpProtocolRegistry {
     function getTeleporterFromVersion(
         uint256 version
     ) external view returns (ITeleporterMessenger) {
-        return ITeleporterMessenger(_getAddressToVersion(version));
+        return ITeleporterMessenger(_getAddressFromVersion(version));
     }
 
     /**
@@ -37,7 +37,7 @@ contract TeleporterRegistry is WarpProtocolRegistry {
         view
         returns (ITeleporterMessenger)
     {
-        return ITeleporterMessenger(_getAddressToVersion(_latestVersion));
+        return ITeleporterMessenger(_getAddressFromVersion(_latestVersion));
     }
 
     /**

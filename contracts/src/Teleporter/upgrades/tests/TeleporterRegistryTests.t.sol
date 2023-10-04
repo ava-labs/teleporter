@@ -136,26 +136,26 @@ contract TeleporterRegistryTest is Test {
         teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
-    function testGetVersionToAddress() public {
+    function testGetAddressFromVersion() public {
         _addProtocolVersion(teleporterRegistry);
         uint256 latestVersion = teleporterRegistry.getLatestVersion();
 
         // First test success case
         assertEq(
             teleporterAddress,
-            teleporterRegistry.getVersionToAddress(latestVersion)
+            teleporterRegistry.getAddressFromVersion(latestVersion)
         );
 
         // Check that getting version 0 fails
         vm.expectRevert(WarpProtocolRegistry.InvalidProtocolVersion.selector);
-        teleporterRegistry.getVersionToAddress(0);
+        teleporterRegistry.getAddressFromVersion(0);
 
         // Check that getting a version that doesn't exist fails
         vm.expectRevert(WarpProtocolRegistry.InvalidProtocolVersion.selector);
-        teleporterRegistry.getVersionToAddress(latestVersion + 1);
+        teleporterRegistry.getAddressFromVersion(latestVersion + 1);
     }
 
-    function testGetAddressToVersion() public {
+    function testGetVersionFromAddress() public {
         _addProtocolVersion(teleporterRegistry);
         uint256 latestVersion = teleporterRegistry.getLatestVersion();
 
