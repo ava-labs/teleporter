@@ -13,7 +13,7 @@ import "../ITeleporterMessenger.sol";
  * mechanism for teleporter messenger contracts.
  */
 contract TeleporterRegistry is WarpProtocolRegistry {
-    mapping(address => uint256) internal _addressToVersion;
+    mapping(address => uint256) private _addressToVersion;
 
     constructor(
         uint256[] memory initialVersions,
