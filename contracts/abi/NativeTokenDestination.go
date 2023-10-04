@@ -31,7 +31,7 @@ var (
 
 // NativeTokenDestinationMetaData contains all meta data concerning the NativeTokenDestination contract.
 var NativeTokenDestinationMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"sourceContractAddress_\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceChainID_\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"BalanceNotIncreased\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"CannotBridgeTokenWithinSameChain\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"adjustedAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"}],\"name\":\"InsufficientAdjustedAmount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InsufficientPayment\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidPartnerContractAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidRecipientAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidSourceChain\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidSourceContractAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidTeleporterMessengerAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"Unauthorized\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"MintNativeTokens\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"tokenContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"transferAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_PRECOMPILE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentChainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nativeChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceChainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeTokenContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"sourceContractAddress_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"BalanceNotIncreased\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"MintNativeTokens\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // NativeTokenDestinationABI is the input ABI used to generate the binding from.
@@ -211,43 +211,12 @@ func (_NativeTokenDestination *NativeTokenDestinationCallerSession) TRANSFERNATI
 	return _NativeTokenDestination.Contract.TRANSFERNATIVETOKENSREQUIREDGAS(&_NativeTokenDestination.CallOpts)
 }
 
-// WARPPRECOMPILEADDRESS is a free data retrieval call binding the contract method 0x74971856.
+// CurrentBlockchainID is a free data retrieval call binding the contract method 0x4950d2d0.
 //
-// Solidity: function WARP_PRECOMPILE_ADDRESS() view returns(address)
-func (_NativeTokenDestination *NativeTokenDestinationCaller) WARPPRECOMPILEADDRESS(opts *bind.CallOpts) (common.Address, error) {
+// Solidity: function currentBlockchainID() view returns(bytes32)
+func (_NativeTokenDestination *NativeTokenDestinationCaller) CurrentBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
-	err := _NativeTokenDestination.contract.Call(opts, &out, "WARP_PRECOMPILE_ADDRESS")
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// WARPPRECOMPILEADDRESS is a free data retrieval call binding the contract method 0x74971856.
-//
-// Solidity: function WARP_PRECOMPILE_ADDRESS() view returns(address)
-func (_NativeTokenDestination *NativeTokenDestinationSession) WARPPRECOMPILEADDRESS() (common.Address, error) {
-	return _NativeTokenDestination.Contract.WARPPRECOMPILEADDRESS(&_NativeTokenDestination.CallOpts)
-}
-
-// WARPPRECOMPILEADDRESS is a free data retrieval call binding the contract method 0x74971856.
-//
-// Solidity: function WARP_PRECOMPILE_ADDRESS() view returns(address)
-func (_NativeTokenDestination *NativeTokenDestinationCallerSession) WARPPRECOMPILEADDRESS() (common.Address, error) {
-	return _NativeTokenDestination.Contract.WARPPRECOMPILEADDRESS(&_NativeTokenDestination.CallOpts)
-}
-
-// CurrentChainID is a free data retrieval call binding the contract method 0xb179e1e7.
-//
-// Solidity: function currentChainID() view returns(bytes32)
-func (_NativeTokenDestination *NativeTokenDestinationCaller) CurrentChainID(opts *bind.CallOpts) ([32]byte, error) {
-	var out []interface{}
-	err := _NativeTokenDestination.contract.Call(opts, &out, "currentChainID")
+	err := _NativeTokenDestination.contract.Call(opts, &out, "currentBlockchainID")
 
 	if err != nil {
 		return *new([32]byte), err
@@ -259,26 +228,26 @@ func (_NativeTokenDestination *NativeTokenDestinationCaller) CurrentChainID(opts
 
 }
 
-// CurrentChainID is a free data retrieval call binding the contract method 0xb179e1e7.
+// CurrentBlockchainID is a free data retrieval call binding the contract method 0x4950d2d0.
 //
-// Solidity: function currentChainID() view returns(bytes32)
-func (_NativeTokenDestination *NativeTokenDestinationSession) CurrentChainID() ([32]byte, error) {
-	return _NativeTokenDestination.Contract.CurrentChainID(&_NativeTokenDestination.CallOpts)
+// Solidity: function currentBlockchainID() view returns(bytes32)
+func (_NativeTokenDestination *NativeTokenDestinationSession) CurrentBlockchainID() ([32]byte, error) {
+	return _NativeTokenDestination.Contract.CurrentBlockchainID(&_NativeTokenDestination.CallOpts)
 }
 
-// CurrentChainID is a free data retrieval call binding the contract method 0xb179e1e7.
+// CurrentBlockchainID is a free data retrieval call binding the contract method 0x4950d2d0.
 //
-// Solidity: function currentChainID() view returns(bytes32)
-func (_NativeTokenDestination *NativeTokenDestinationCallerSession) CurrentChainID() ([32]byte, error) {
-	return _NativeTokenDestination.Contract.CurrentChainID(&_NativeTokenDestination.CallOpts)
+// Solidity: function currentBlockchainID() view returns(bytes32)
+func (_NativeTokenDestination *NativeTokenDestinationCallerSession) CurrentBlockchainID() ([32]byte, error) {
+	return _NativeTokenDestination.Contract.CurrentBlockchainID(&_NativeTokenDestination.CallOpts)
 }
 
-// SourceChainID is a free data retrieval call binding the contract method 0x4c335368.
+// SourceBlockchainID is a free data retrieval call binding the contract method 0x29b7b3fd.
 //
-// Solidity: function sourceChainID() view returns(bytes32)
-func (_NativeTokenDestination *NativeTokenDestinationCaller) SourceChainID(opts *bind.CallOpts) ([32]byte, error) {
+// Solidity: function sourceBlockchainID() view returns(bytes32)
+func (_NativeTokenDestination *NativeTokenDestinationCaller) SourceBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
-	err := _NativeTokenDestination.contract.Call(opts, &out, "sourceChainID")
+	err := _NativeTokenDestination.contract.Call(opts, &out, "sourceBlockchainID")
 
 	if err != nil {
 		return *new([32]byte), err
@@ -290,18 +259,18 @@ func (_NativeTokenDestination *NativeTokenDestinationCaller) SourceChainID(opts 
 
 }
 
-// SourceChainID is a free data retrieval call binding the contract method 0x4c335368.
+// SourceBlockchainID is a free data retrieval call binding the contract method 0x29b7b3fd.
 //
-// Solidity: function sourceChainID() view returns(bytes32)
-func (_NativeTokenDestination *NativeTokenDestinationSession) SourceChainID() ([32]byte, error) {
-	return _NativeTokenDestination.Contract.SourceChainID(&_NativeTokenDestination.CallOpts)
+// Solidity: function sourceBlockchainID() view returns(bytes32)
+func (_NativeTokenDestination *NativeTokenDestinationSession) SourceBlockchainID() ([32]byte, error) {
+	return _NativeTokenDestination.Contract.SourceBlockchainID(&_NativeTokenDestination.CallOpts)
 }
 
-// SourceChainID is a free data retrieval call binding the contract method 0x4c335368.
+// SourceBlockchainID is a free data retrieval call binding the contract method 0x29b7b3fd.
 //
-// Solidity: function sourceChainID() view returns(bytes32)
-func (_NativeTokenDestination *NativeTokenDestinationCallerSession) SourceChainID() ([32]byte, error) {
-	return _NativeTokenDestination.Contract.SourceChainID(&_NativeTokenDestination.CallOpts)
+// Solidity: function sourceBlockchainID() view returns(bytes32)
+func (_NativeTokenDestination *NativeTokenDestinationCallerSession) SourceBlockchainID() ([32]byte, error) {
+	return _NativeTokenDestination.Contract.SourceBlockchainID(&_NativeTokenDestination.CallOpts)
 }
 
 // SourceContractAddress is a free data retrieval call binding the contract method 0x3a85f16a.
@@ -366,46 +335,212 @@ func (_NativeTokenDestination *NativeTokenDestinationCallerSession) TeleporterMe
 	return _NativeTokenDestination.Contract.TeleporterMessenger(&_NativeTokenDestination.CallOpts)
 }
 
-// ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
+// TokenReserve is a free data retrieval call binding the contract method 0xcbcb3171.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 nativeChainID, address nativeBridgeAddress, bytes message) returns()
-func (_NativeTokenDestination *NativeTokenDestinationTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, nativeChainID [32]byte, nativeBridgeAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _NativeTokenDestination.contract.Transact(opts, "receiveTeleporterMessage", nativeChainID, nativeBridgeAddress, message)
+// Solidity: function tokenReserve() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationCaller) TokenReserve(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _NativeTokenDestination.contract.Call(opts, &out, "tokenReserve")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// TokenReserve is a free data retrieval call binding the contract method 0xcbcb3171.
+//
+// Solidity: function tokenReserve() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationSession) TokenReserve() (*big.Int, error) {
+	return _NativeTokenDestination.Contract.TokenReserve(&_NativeTokenDestination.CallOpts)
+}
+
+// TokenReserve is a free data retrieval call binding the contract method 0xcbcb3171.
+//
+// Solidity: function tokenReserve() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationCallerSession) TokenReserve() (*big.Int, error) {
+	return _NativeTokenDestination.Contract.TokenReserve(&_NativeTokenDestination.CallOpts)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 nativeChainID, address nativeBridgeAddress, bytes message) returns()
-func (_NativeTokenDestination *NativeTokenDestinationSession) ReceiveTeleporterMessage(nativeChainID [32]byte, nativeBridgeAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _NativeTokenDestination.Contract.ReceiveTeleporterMessage(&_NativeTokenDestination.TransactOpts, nativeChainID, nativeBridgeAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 senderBlockchainID, address senderAddress, bytes message) returns()
+func (_NativeTokenDestination *NativeTokenDestinationTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, senderBlockchainID [32]byte, senderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _NativeTokenDestination.contract.Transact(opts, "receiveTeleporterMessage", senderBlockchainID, senderAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 nativeChainID, address nativeBridgeAddress, bytes message) returns()
-func (_NativeTokenDestination *NativeTokenDestinationTransactorSession) ReceiveTeleporterMessage(nativeChainID [32]byte, nativeBridgeAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _NativeTokenDestination.Contract.ReceiveTeleporterMessage(&_NativeTokenDestination.TransactOpts, nativeChainID, nativeBridgeAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 senderBlockchainID, address senderAddress, bytes message) returns()
+func (_NativeTokenDestination *NativeTokenDestinationSession) ReceiveTeleporterMessage(senderBlockchainID [32]byte, senderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _NativeTokenDestination.Contract.ReceiveTeleporterMessage(&_NativeTokenDestination.TransactOpts, senderBlockchainID, senderAddress, message)
+}
+
+// ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
+//
+// Solidity: function receiveTeleporterMessage(bytes32 senderBlockchainID, address senderAddress, bytes message) returns()
+func (_NativeTokenDestination *NativeTokenDestinationTransactorSession) ReceiveTeleporterMessage(senderBlockchainID [32]byte, senderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _NativeTokenDestination.Contract.ReceiveTeleporterMessage(&_NativeTokenDestination.TransactOpts, senderBlockchainID, senderAddress, message)
 }
 
 // TransferToSource is a paid mutator transaction binding the contract method 0x281c91de.
 //
-// Solidity: function transferToSource(address recipient, address feeTokenContractAddress, uint256 feeAmount) payable returns()
-func (_NativeTokenDestination *NativeTokenDestinationTransactor) TransferToSource(opts *bind.TransactOpts, recipient common.Address, feeTokenContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
-	return _NativeTokenDestination.contract.Transact(opts, "transferToSource", recipient, feeTokenContractAddress, feeAmount)
+// Solidity: function transferToSource(address recipient, address feeContractAddress, uint256 feeAmount) payable returns()
+func (_NativeTokenDestination *NativeTokenDestinationTransactor) TransferToSource(opts *bind.TransactOpts, recipient common.Address, feeContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
+	return _NativeTokenDestination.contract.Transact(opts, "transferToSource", recipient, feeContractAddress, feeAmount)
 }
 
 // TransferToSource is a paid mutator transaction binding the contract method 0x281c91de.
 //
-// Solidity: function transferToSource(address recipient, address feeTokenContractAddress, uint256 feeAmount) payable returns()
-func (_NativeTokenDestination *NativeTokenDestinationSession) TransferToSource(recipient common.Address, feeTokenContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
-	return _NativeTokenDestination.Contract.TransferToSource(&_NativeTokenDestination.TransactOpts, recipient, feeTokenContractAddress, feeAmount)
+// Solidity: function transferToSource(address recipient, address feeContractAddress, uint256 feeAmount) payable returns()
+func (_NativeTokenDestination *NativeTokenDestinationSession) TransferToSource(recipient common.Address, feeContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
+	return _NativeTokenDestination.Contract.TransferToSource(&_NativeTokenDestination.TransactOpts, recipient, feeContractAddress, feeAmount)
 }
 
 // TransferToSource is a paid mutator transaction binding the contract method 0x281c91de.
 //
-// Solidity: function transferToSource(address recipient, address feeTokenContractAddress, uint256 feeAmount) payable returns()
-func (_NativeTokenDestination *NativeTokenDestinationTransactorSession) TransferToSource(recipient common.Address, feeTokenContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
-	return _NativeTokenDestination.Contract.TransferToSource(&_NativeTokenDestination.TransactOpts, recipient, feeTokenContractAddress, feeAmount)
+// Solidity: function transferToSource(address recipient, address feeContractAddress, uint256 feeAmount) payable returns()
+func (_NativeTokenDestination *NativeTokenDestinationTransactorSession) TransferToSource(recipient common.Address, feeContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
+	return _NativeTokenDestination.Contract.TransferToSource(&_NativeTokenDestination.TransactOpts, recipient, feeContractAddress, feeAmount)
+}
+
+// NativeTokenDestinationCollateralAddedIterator is returned from FilterCollateralAdded and is used to iterate over the raw logs and unpacked data for CollateralAdded events raised by the NativeTokenDestination contract.
+type NativeTokenDestinationCollateralAddedIterator struct {
+	Event *NativeTokenDestinationCollateralAdded // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *NativeTokenDestinationCollateralAddedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(NativeTokenDestinationCollateralAdded)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(NativeTokenDestinationCollateralAdded)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *NativeTokenDestinationCollateralAddedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *NativeTokenDestinationCollateralAddedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// NativeTokenDestinationCollateralAdded represents a CollateralAdded event raised by the NativeTokenDestination contract.
+type NativeTokenDestinationCollateralAdded struct {
+	Amount    *big.Int
+	Remaining *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterCollateralAdded is a free log retrieval operation binding the contract event 0x244160b15e69cc411f041d94ae7fab6f6bba85dade8403216c05ff4b920d5449.
+//
+// Solidity: event CollateralAdded(uint256 amount, uint256 remaining)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterCollateralAdded(opts *bind.FilterOpts) (*NativeTokenDestinationCollateralAddedIterator, error) {
+
+	logs, sub, err := _NativeTokenDestination.contract.FilterLogs(opts, "CollateralAdded")
+	if err != nil {
+		return nil, err
+	}
+	return &NativeTokenDestinationCollateralAddedIterator{contract: _NativeTokenDestination.contract, event: "CollateralAdded", logs: logs, sub: sub}, nil
+}
+
+// WatchCollateralAdded is a free log subscription operation binding the contract event 0x244160b15e69cc411f041d94ae7fab6f6bba85dade8403216c05ff4b920d5449.
+//
+// Solidity: event CollateralAdded(uint256 amount, uint256 remaining)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchCollateralAdded(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationCollateralAdded) (event.Subscription, error) {
+
+	logs, sub, err := _NativeTokenDestination.contract.WatchLogs(opts, "CollateralAdded")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(NativeTokenDestinationCollateralAdded)
+				if err := _NativeTokenDestination.contract.UnpackLog(event, "CollateralAdded", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseCollateralAdded is a log parse operation binding the contract event 0x244160b15e69cc411f041d94ae7fab6f6bba85dade8403216c05ff4b920d5449.
+//
+// Solidity: event CollateralAdded(uint256 amount, uint256 remaining)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseCollateralAdded(log types.Log) (*NativeTokenDestinationCollateralAdded, error) {
+	event := new(NativeTokenDestinationCollateralAdded)
+	if err := _NativeTokenDestination.contract.UnpackLog(event, "CollateralAdded", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // NativeTokenDestinationMintNativeTokensIterator is returned from FilterMintNativeTokens and is used to iterate over the raw logs and unpacked data for MintNativeTokens events raised by the NativeTokenDestination contract.
@@ -612,52 +747,51 @@ func (it *NativeTokenDestinationTransferToSourceIterator) Close() error {
 
 // NativeTokenDestinationTransferToSource represents a TransferToSource event raised by the NativeTokenDestination contract.
 type NativeTokenDestinationTransferToSource struct {
-	TokenContractAddress     common.Address
-	TeleporterMessageID      *big.Int
-	DestinationChainID       [32]byte
-	DestinationBridgeAddress common.Address
-	Recipient                common.Address
-	TransferAmount           *big.Int
-	FeeAmount                *big.Int
-	Raw                      types.Log // Blockchain specific contextual infos
+	Sender              common.Address
+	Recipient           common.Address
+	Amount              *big.Int
+	FeeContractAddress  common.Address
+	FeeAmount           *big.Int
+	TeleporterMessageID *big.Int
+	Raw                 types.Log // Blockchain specific contextual infos
 }
 
-// FilterTransferToSource is a free log retrieval operation binding the contract event 0xd68353fcc47e706f53e30e6761a3cf2576d0e791c663e962b868bf38010db9a3.
+// FilterTransferToSource is a free log retrieval operation binding the contract event 0x343e0fe771af9fa258c07a602fad6dfd80c51eda78604397e553106360933bfc.
 //
-// Solidity: event TransferToSource(address indexed tokenContractAddress, uint256 indexed teleporterMessageID, bytes32 destinationChainID, address destinationBridgeAddress, address recipient, uint256 transferAmount, uint256 feeAmount)
-func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterTransferToSource(opts *bind.FilterOpts, tokenContractAddress []common.Address, teleporterMessageID []*big.Int) (*NativeTokenDestinationTransferToSourceIterator, error) {
+// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, address feeContractAddress, uint256 feeAmount, uint256 teleporterMessageID)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterTransferToSource(opts *bind.FilterOpts, sender []common.Address, recipient []common.Address) (*NativeTokenDestinationTransferToSourceIterator, error) {
 
-	var tokenContractAddressRule []interface{}
-	for _, tokenContractAddressItem := range tokenContractAddress {
-		tokenContractAddressRule = append(tokenContractAddressRule, tokenContractAddressItem)
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
 	}
-	var teleporterMessageIDRule []interface{}
-	for _, teleporterMessageIDItem := range teleporterMessageID {
-		teleporterMessageIDRule = append(teleporterMessageIDRule, teleporterMessageIDItem)
+	var recipientRule []interface{}
+	for _, recipientItem := range recipient {
+		recipientRule = append(recipientRule, recipientItem)
 	}
 
-	logs, sub, err := _NativeTokenDestination.contract.FilterLogs(opts, "TransferToSource", tokenContractAddressRule, teleporterMessageIDRule)
+	logs, sub, err := _NativeTokenDestination.contract.FilterLogs(opts, "TransferToSource", senderRule, recipientRule)
 	if err != nil {
 		return nil, err
 	}
 	return &NativeTokenDestinationTransferToSourceIterator{contract: _NativeTokenDestination.contract, event: "TransferToSource", logs: logs, sub: sub}, nil
 }
 
-// WatchTransferToSource is a free log subscription operation binding the contract event 0xd68353fcc47e706f53e30e6761a3cf2576d0e791c663e962b868bf38010db9a3.
+// WatchTransferToSource is a free log subscription operation binding the contract event 0x343e0fe771af9fa258c07a602fad6dfd80c51eda78604397e553106360933bfc.
 //
-// Solidity: event TransferToSource(address indexed tokenContractAddress, uint256 indexed teleporterMessageID, bytes32 destinationChainID, address destinationBridgeAddress, address recipient, uint256 transferAmount, uint256 feeAmount)
-func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchTransferToSource(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationTransferToSource, tokenContractAddress []common.Address, teleporterMessageID []*big.Int) (event.Subscription, error) {
+// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, address feeContractAddress, uint256 feeAmount, uint256 teleporterMessageID)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchTransferToSource(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationTransferToSource, sender []common.Address, recipient []common.Address) (event.Subscription, error) {
 
-	var tokenContractAddressRule []interface{}
-	for _, tokenContractAddressItem := range tokenContractAddress {
-		tokenContractAddressRule = append(tokenContractAddressRule, tokenContractAddressItem)
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
 	}
-	var teleporterMessageIDRule []interface{}
-	for _, teleporterMessageIDItem := range teleporterMessageID {
-		teleporterMessageIDRule = append(teleporterMessageIDRule, teleporterMessageIDItem)
+	var recipientRule []interface{}
+	for _, recipientItem := range recipient {
+		recipientRule = append(recipientRule, recipientItem)
 	}
 
-	logs, sub, err := _NativeTokenDestination.contract.WatchLogs(opts, "TransferToSource", tokenContractAddressRule, teleporterMessageIDRule)
+	logs, sub, err := _NativeTokenDestination.contract.WatchLogs(opts, "TransferToSource", senderRule, recipientRule)
 	if err != nil {
 		return nil, err
 	}
@@ -689,9 +823,9 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchTransferToSo
 	}), nil
 }
 
-// ParseTransferToSource is a log parse operation binding the contract event 0xd68353fcc47e706f53e30e6761a3cf2576d0e791c663e962b868bf38010db9a3.
+// ParseTransferToSource is a log parse operation binding the contract event 0x343e0fe771af9fa258c07a602fad6dfd80c51eda78604397e553106360933bfc.
 //
-// Solidity: event TransferToSource(address indexed tokenContractAddress, uint256 indexed teleporterMessageID, bytes32 destinationChainID, address destinationBridgeAddress, address recipient, uint256 transferAmount, uint256 feeAmount)
+// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, address feeContractAddress, uint256 feeAmount, uint256 teleporterMessageID)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseTransferToSource(log types.Log) (*NativeTokenDestinationTransferToSource, error) {
 	event := new(NativeTokenDestinationTransferToSource)
 	if err := _NativeTokenDestination.contract.UnpackLog(event, "TransferToSource", log); err != nil {
