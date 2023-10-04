@@ -250,13 +250,14 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 }
 
 // Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
+// Returns the receipt on the destination chain
 func RelayMessage(
 	ctx context.Context,
 	sourceBlockHash common.Hash,
 	sourceBlockNumber *big.Int,
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
-) {
+) *types.Receipt {
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.ChainWSClient.FilterLogs(ctx, interfaces.FilterQuery{
 		BlockHash: &sourceBlockHash,
@@ -309,6 +310,8 @@ func RelayMessage(
 	event, err := bind.ParseReceiveCrossChainMessage(*receipt.Logs[0])
 	Expect(err).Should(BeNil())
 	Expect(event.OriginChainID).Should(Equal(source.BlockchainID))
+
+	return receipt
 }
 
 //
