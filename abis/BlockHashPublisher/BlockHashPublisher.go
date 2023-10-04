@@ -1,7 +1,7 @@
 // Code generated - DO NOT EDIT.
 // This file is a generated binding and any manual changes will be lost.
 
-package block_hash_publisher
+package blockhashpublisher
 
 import (
 	"errors"
@@ -29,113 +29,113 @@ var (
 	_ = abi.ConvertType
 )
 
-// BlockHashPublisherMetaData contains all meta data concerning the BlockHashPublisher contract.
-var BlockHashPublisherMetaData = &bind.MetaData{
+// BlockhashpublisherMetaData contains all meta data concerning the Blockhashpublisher contract.
+var BlockhashpublisherMetaData = &bind.MetaData{
 	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"PublishBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"}],\"name\":\"publishLatestBlockHash\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
-// BlockHashPublisherABI is the input ABI used to generate the binding from.
-// Deprecated: Use BlockHashPublisherMetaData.ABI instead.
-var BlockHashPublisherABI = BlockHashPublisherMetaData.ABI
+// BlockhashpublisherABI is the input ABI used to generate the binding from.
+// Deprecated: Use BlockhashpublisherMetaData.ABI instead.
+var BlockhashpublisherABI = BlockhashpublisherMetaData.ABI
 
-// BlockHashPublisher is an auto generated Go binding around an Ethereum contract.
-type BlockHashPublisher struct {
-	BlockHashPublisherCaller     // Read-only binding to the contract
-	BlockHashPublisherTransactor // Write-only binding to the contract
-	BlockHashPublisherFilterer   // Log filterer for contract events
+// Blockhashpublisher is an auto generated Go binding around an Ethereum contract.
+type Blockhashpublisher struct {
+	BlockhashpublisherCaller     // Read-only binding to the contract
+	BlockhashpublisherTransactor // Write-only binding to the contract
+	BlockhashpublisherFilterer   // Log filterer for contract events
 }
 
-// BlockHashPublisherCaller is an auto generated read-only Go binding around an Ethereum contract.
-type BlockHashPublisherCaller struct {
+// BlockhashpublisherCaller is an auto generated read-only Go binding around an Ethereum contract.
+type BlockhashpublisherCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// BlockHashPublisherTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type BlockHashPublisherTransactor struct {
+// BlockhashpublisherTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type BlockhashpublisherTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// BlockHashPublisherFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type BlockHashPublisherFilterer struct {
+// BlockhashpublisherFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type BlockhashpublisherFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// BlockHashPublisherSession is an auto generated Go binding around an Ethereum contract,
+// BlockhashpublisherSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type BlockHashPublisherSession struct {
-	Contract     *BlockHashPublisher // Generic contract binding to set the session for
+type BlockhashpublisherSession struct {
+	Contract     *Blockhashpublisher // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts       // Call options to use throughout this session
 	TransactOpts bind.TransactOpts   // Transaction auth options to use throughout this session
 }
 
-// BlockHashPublisherCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// BlockhashpublisherCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type BlockHashPublisherCallerSession struct {
-	Contract *BlockHashPublisherCaller // Generic contract caller binding to set the session for
+type BlockhashpublisherCallerSession struct {
+	Contract *BlockhashpublisherCaller // Generic contract caller binding to set the session for
 	CallOpts bind.CallOpts             // Call options to use throughout this session
 }
 
-// BlockHashPublisherTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// BlockhashpublisherTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type BlockHashPublisherTransactorSession struct {
-	Contract     *BlockHashPublisherTransactor // Generic contract transactor binding to set the session for
+type BlockhashpublisherTransactorSession struct {
+	Contract     *BlockhashpublisherTransactor // Generic contract transactor binding to set the session for
 	TransactOpts bind.TransactOpts             // Transaction auth options to use throughout this session
 }
 
-// BlockHashPublisherRaw is an auto generated low-level Go binding around an Ethereum contract.
-type BlockHashPublisherRaw struct {
-	Contract *BlockHashPublisher // Generic contract binding to access the raw methods on
+// BlockhashpublisherRaw is an auto generated low-level Go binding around an Ethereum contract.
+type BlockhashpublisherRaw struct {
+	Contract *Blockhashpublisher // Generic contract binding to access the raw methods on
 }
 
-// BlockHashPublisherCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type BlockHashPublisherCallerRaw struct {
-	Contract *BlockHashPublisherCaller // Generic read-only contract binding to access the raw methods on
+// BlockhashpublisherCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type BlockhashpublisherCallerRaw struct {
+	Contract *BlockhashpublisherCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// BlockHashPublisherTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type BlockHashPublisherTransactorRaw struct {
-	Contract *BlockHashPublisherTransactor // Generic write-only contract binding to access the raw methods on
+// BlockhashpublisherTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type BlockhashpublisherTransactorRaw struct {
+	Contract *BlockhashpublisherTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewBlockHashPublisher creates a new instance of BlockHashPublisher, bound to a specific deployed contract.
-func NewBlockHashPublisher(address common.Address, backend bind.ContractBackend) (*BlockHashPublisher, error) {
-	contract, err := bindBlockHashPublisher(address, backend, backend, backend)
+// NewBlockhashpublisher creates a new instance of Blockhashpublisher, bound to a specific deployed contract.
+func NewBlockhashpublisher(address common.Address, backend bind.ContractBackend) (*Blockhashpublisher, error) {
+	contract, err := bindBlockhashpublisher(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &BlockHashPublisher{BlockHashPublisherCaller: BlockHashPublisherCaller{contract: contract}, BlockHashPublisherTransactor: BlockHashPublisherTransactor{contract: contract}, BlockHashPublisherFilterer: BlockHashPublisherFilterer{contract: contract}}, nil
+	return &Blockhashpublisher{BlockhashpublisherCaller: BlockhashpublisherCaller{contract: contract}, BlockhashpublisherTransactor: BlockhashpublisherTransactor{contract: contract}, BlockhashpublisherFilterer: BlockhashpublisherFilterer{contract: contract}}, nil
 }
 
-// NewBlockHashPublisherCaller creates a new read-only instance of BlockHashPublisher, bound to a specific deployed contract.
-func NewBlockHashPublisherCaller(address common.Address, caller bind.ContractCaller) (*BlockHashPublisherCaller, error) {
-	contract, err := bindBlockHashPublisher(address, caller, nil, nil)
+// NewBlockhashpublisherCaller creates a new read-only instance of Blockhashpublisher, bound to a specific deployed contract.
+func NewBlockhashpublisherCaller(address common.Address, caller bind.ContractCaller) (*BlockhashpublisherCaller, error) {
+	contract, err := bindBlockhashpublisher(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &BlockHashPublisherCaller{contract: contract}, nil
+	return &BlockhashpublisherCaller{contract: contract}, nil
 }
 
-// NewBlockHashPublisherTransactor creates a new write-only instance of BlockHashPublisher, bound to a specific deployed contract.
-func NewBlockHashPublisherTransactor(address common.Address, transactor bind.ContractTransactor) (*BlockHashPublisherTransactor, error) {
-	contract, err := bindBlockHashPublisher(address, nil, transactor, nil)
+// NewBlockhashpublisherTransactor creates a new write-only instance of Blockhashpublisher, bound to a specific deployed contract.
+func NewBlockhashpublisherTransactor(address common.Address, transactor bind.ContractTransactor) (*BlockhashpublisherTransactor, error) {
+	contract, err := bindBlockhashpublisher(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &BlockHashPublisherTransactor{contract: contract}, nil
+	return &BlockhashpublisherTransactor{contract: contract}, nil
 }
 
-// NewBlockHashPublisherFilterer creates a new log filterer instance of BlockHashPublisher, bound to a specific deployed contract.
-func NewBlockHashPublisherFilterer(address common.Address, filterer bind.ContractFilterer) (*BlockHashPublisherFilterer, error) {
-	contract, err := bindBlockHashPublisher(address, nil, nil, filterer)
+// NewBlockhashpublisherFilterer creates a new log filterer instance of Blockhashpublisher, bound to a specific deployed contract.
+func NewBlockhashpublisherFilterer(address common.Address, filterer bind.ContractFilterer) (*BlockhashpublisherFilterer, error) {
+	contract, err := bindBlockhashpublisher(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &BlockHashPublisherFilterer{contract: contract}, nil
+	return &BlockhashpublisherFilterer{contract: contract}, nil
 }
 
-// bindBlockHashPublisher binds a generic wrapper to an already deployed contract.
-func bindBlockHashPublisher(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := BlockHashPublisherMetaData.GetAbi()
+// bindBlockhashpublisher binds a generic wrapper to an already deployed contract.
+func bindBlockhashpublisher(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := BlockhashpublisherMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -146,46 +146,46 @@ func bindBlockHashPublisher(address common.Address, caller bind.ContractCaller, 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_BlockHashPublisher *BlockHashPublisherRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _BlockHashPublisher.Contract.BlockHashPublisherCaller.contract.Call(opts, result, method, params...)
+func (_Blockhashpublisher *BlockhashpublisherRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _Blockhashpublisher.Contract.BlockhashpublisherCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_BlockHashPublisher *BlockHashPublisherRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.BlockHashPublisherTransactor.contract.Transfer(opts)
+func (_Blockhashpublisher *BlockhashpublisherRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Blockhashpublisher.Contract.BlockhashpublisherTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_BlockHashPublisher *BlockHashPublisherRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.BlockHashPublisherTransactor.contract.Transact(opts, method, params...)
+func (_Blockhashpublisher *BlockhashpublisherRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Blockhashpublisher.Contract.BlockhashpublisherTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_BlockHashPublisher *BlockHashPublisherCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _BlockHashPublisher.Contract.contract.Call(opts, result, method, params...)
+func (_Blockhashpublisher *BlockhashpublisherCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _Blockhashpublisher.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_BlockHashPublisher *BlockHashPublisherTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.contract.Transfer(opts)
+func (_Blockhashpublisher *BlockhashpublisherTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Blockhashpublisher.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_BlockHashPublisher *BlockHashPublisherTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.contract.Transact(opts, method, params...)
+func (_Blockhashpublisher *BlockhashpublisherTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Blockhashpublisher.Contract.contract.Transact(opts, method, params...)
 }
 
 // RECEIVEBLOCKHASHREQUIREDGASLIMIT is a free data retrieval call binding the contract method 0x18aef19b.
 //
 // Solidity: function RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT() view returns(uint256)
-func (_BlockHashPublisher *BlockHashPublisherCaller) RECEIVEBLOCKHASHREQUIREDGASLIMIT(opts *bind.CallOpts) (*big.Int, error) {
+func (_Blockhashpublisher *BlockhashpublisherCaller) RECEIVEBLOCKHASHREQUIREDGASLIMIT(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _BlockHashPublisher.contract.Call(opts, &out, "RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT")
+	err := _Blockhashpublisher.contract.Call(opts, &out, "RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -200,23 +200,23 @@ func (_BlockHashPublisher *BlockHashPublisherCaller) RECEIVEBLOCKHASHREQUIREDGAS
 // RECEIVEBLOCKHASHREQUIREDGASLIMIT is a free data retrieval call binding the contract method 0x18aef19b.
 //
 // Solidity: function RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT() view returns(uint256)
-func (_BlockHashPublisher *BlockHashPublisherSession) RECEIVEBLOCKHASHREQUIREDGASLIMIT() (*big.Int, error) {
-	return _BlockHashPublisher.Contract.RECEIVEBLOCKHASHREQUIREDGASLIMIT(&_BlockHashPublisher.CallOpts)
+func (_Blockhashpublisher *BlockhashpublisherSession) RECEIVEBLOCKHASHREQUIREDGASLIMIT() (*big.Int, error) {
+	return _Blockhashpublisher.Contract.RECEIVEBLOCKHASHREQUIREDGASLIMIT(&_Blockhashpublisher.CallOpts)
 }
 
 // RECEIVEBLOCKHASHREQUIREDGASLIMIT is a free data retrieval call binding the contract method 0x18aef19b.
 //
 // Solidity: function RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT() view returns(uint256)
-func (_BlockHashPublisher *BlockHashPublisherCallerSession) RECEIVEBLOCKHASHREQUIREDGASLIMIT() (*big.Int, error) {
-	return _BlockHashPublisher.Contract.RECEIVEBLOCKHASHREQUIREDGASLIMIT(&_BlockHashPublisher.CallOpts)
+func (_Blockhashpublisher *BlockhashpublisherCallerSession) RECEIVEBLOCKHASHREQUIREDGASLIMIT() (*big.Int, error) {
+	return _Blockhashpublisher.Contract.RECEIVEBLOCKHASHREQUIREDGASLIMIT(&_Blockhashpublisher.CallOpts)
 }
 
 // TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
 // Solidity: function teleporterMessenger() view returns(address)
-func (_BlockHashPublisher *BlockHashPublisherCaller) TeleporterMessenger(opts *bind.CallOpts) (common.Address, error) {
+func (_Blockhashpublisher *BlockhashpublisherCaller) TeleporterMessenger(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _BlockHashPublisher.contract.Call(opts, &out, "teleporterMessenger")
+	err := _Blockhashpublisher.contract.Call(opts, &out, "teleporterMessenger")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -231,41 +231,41 @@ func (_BlockHashPublisher *BlockHashPublisherCaller) TeleporterMessenger(opts *b
 // TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
 // Solidity: function teleporterMessenger() view returns(address)
-func (_BlockHashPublisher *BlockHashPublisherSession) TeleporterMessenger() (common.Address, error) {
-	return _BlockHashPublisher.Contract.TeleporterMessenger(&_BlockHashPublisher.CallOpts)
+func (_Blockhashpublisher *BlockhashpublisherSession) TeleporterMessenger() (common.Address, error) {
+	return _Blockhashpublisher.Contract.TeleporterMessenger(&_Blockhashpublisher.CallOpts)
 }
 
 // TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
 // Solidity: function teleporterMessenger() view returns(address)
-func (_BlockHashPublisher *BlockHashPublisherCallerSession) TeleporterMessenger() (common.Address, error) {
-	return _BlockHashPublisher.Contract.TeleporterMessenger(&_BlockHashPublisher.CallOpts)
+func (_Blockhashpublisher *BlockhashpublisherCallerSession) TeleporterMessenger() (common.Address, error) {
+	return _Blockhashpublisher.Contract.TeleporterMessenger(&_Blockhashpublisher.CallOpts)
 }
 
 // PublishLatestBlockHash is a paid mutator transaction binding the contract method 0x82ab2b86.
 //
 // Solidity: function publishLatestBlockHash(bytes32 destinationChainID, address destinationAddress) returns(uint256 messageID)
-func (_BlockHashPublisher *BlockHashPublisherTransactor) PublishLatestBlockHash(opts *bind.TransactOpts, destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
-	return _BlockHashPublisher.contract.Transact(opts, "publishLatestBlockHash", destinationChainID, destinationAddress)
+func (_Blockhashpublisher *BlockhashpublisherTransactor) PublishLatestBlockHash(opts *bind.TransactOpts, destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
+	return _Blockhashpublisher.contract.Transact(opts, "publishLatestBlockHash", destinationChainID, destinationAddress)
 }
 
 // PublishLatestBlockHash is a paid mutator transaction binding the contract method 0x82ab2b86.
 //
 // Solidity: function publishLatestBlockHash(bytes32 destinationChainID, address destinationAddress) returns(uint256 messageID)
-func (_BlockHashPublisher *BlockHashPublisherSession) PublishLatestBlockHash(destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.PublishLatestBlockHash(&_BlockHashPublisher.TransactOpts, destinationChainID, destinationAddress)
+func (_Blockhashpublisher *BlockhashpublisherSession) PublishLatestBlockHash(destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
+	return _Blockhashpublisher.Contract.PublishLatestBlockHash(&_Blockhashpublisher.TransactOpts, destinationChainID, destinationAddress)
 }
 
 // PublishLatestBlockHash is a paid mutator transaction binding the contract method 0x82ab2b86.
 //
 // Solidity: function publishLatestBlockHash(bytes32 destinationChainID, address destinationAddress) returns(uint256 messageID)
-func (_BlockHashPublisher *BlockHashPublisherTransactorSession) PublishLatestBlockHash(destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.PublishLatestBlockHash(&_BlockHashPublisher.TransactOpts, destinationChainID, destinationAddress)
+func (_Blockhashpublisher *BlockhashpublisherTransactorSession) PublishLatestBlockHash(destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
+	return _Blockhashpublisher.Contract.PublishLatestBlockHash(&_Blockhashpublisher.TransactOpts, destinationChainID, destinationAddress)
 }
 
-// BlockHashPublisherPublishBlockHashIterator is returned from FilterPublishBlockHash and is used to iterate over the raw logs and unpacked data for PublishBlockHash events raised by the BlockHashPublisher contract.
-type BlockHashPublisherPublishBlockHashIterator struct {
-	Event *BlockHashPublisherPublishBlockHash // Event containing the contract specifics and raw log
+// BlockhashpublisherPublishBlockHashIterator is returned from FilterPublishBlockHash and is used to iterate over the raw logs and unpacked data for PublishBlockHash events raised by the Blockhashpublisher contract.
+type BlockhashpublisherPublishBlockHashIterator struct {
+	Event *BlockhashpublisherPublishBlockHash // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -279,7 +279,7 @@ type BlockHashPublisherPublishBlockHashIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *BlockHashPublisherPublishBlockHashIterator) Next() bool {
+func (it *BlockhashpublisherPublishBlockHashIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -288,7 +288,7 @@ func (it *BlockHashPublisherPublishBlockHashIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(BlockHashPublisherPublishBlockHash)
+			it.Event = new(BlockhashpublisherPublishBlockHash)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -303,7 +303,7 @@ func (it *BlockHashPublisherPublishBlockHashIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(BlockHashPublisherPublishBlockHash)
+		it.Event = new(BlockhashpublisherPublishBlockHash)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -319,19 +319,19 @@ func (it *BlockHashPublisherPublishBlockHashIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *BlockHashPublisherPublishBlockHashIterator) Error() error {
+func (it *BlockhashpublisherPublishBlockHashIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *BlockHashPublisherPublishBlockHashIterator) Close() error {
+func (it *BlockhashpublisherPublishBlockHashIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// BlockHashPublisherPublishBlockHash represents a PublishBlockHash event raised by the BlockHashPublisher contract.
-type BlockHashPublisherPublishBlockHash struct {
+// BlockhashpublisherPublishBlockHash represents a PublishBlockHash event raised by the Blockhashpublisher contract.
+type BlockhashpublisherPublishBlockHash struct {
 	DestinationChainID [32]byte
 	DestinationAddress common.Address
 	BlockHeight        *big.Int
@@ -342,7 +342,7 @@ type BlockHashPublisherPublishBlockHash struct {
 // FilterPublishBlockHash is a free log retrieval operation binding the contract event 0xe13623d33d18131ce960c33b1282ceac1fe7b5ccfcf7f8c0f6dad32dd61e3bdd.
 //
 // Solidity: event PublishBlockHash(bytes32 indexed destinationChainID, address indexed destinationAddress, uint256 indexed blockHeight, bytes32 blockHash)
-func (_BlockHashPublisher *BlockHashPublisherFilterer) FilterPublishBlockHash(opts *bind.FilterOpts, destinationChainID [][32]byte, destinationAddress []common.Address, blockHeight []*big.Int) (*BlockHashPublisherPublishBlockHashIterator, error) {
+func (_Blockhashpublisher *BlockhashpublisherFilterer) FilterPublishBlockHash(opts *bind.FilterOpts, destinationChainID [][32]byte, destinationAddress []common.Address, blockHeight []*big.Int) (*BlockhashpublisherPublishBlockHashIterator, error) {
 
 	var destinationChainIDRule []interface{}
 	for _, destinationChainIDItem := range destinationChainID {
@@ -357,17 +357,17 @@ func (_BlockHashPublisher *BlockHashPublisherFilterer) FilterPublishBlockHash(op
 		blockHeightRule = append(blockHeightRule, blockHeightItem)
 	}
 
-	logs, sub, err := _BlockHashPublisher.contract.FilterLogs(opts, "PublishBlockHash", destinationChainIDRule, destinationAddressRule, blockHeightRule)
+	logs, sub, err := _Blockhashpublisher.contract.FilterLogs(opts, "PublishBlockHash", destinationChainIDRule, destinationAddressRule, blockHeightRule)
 	if err != nil {
 		return nil, err
 	}
-	return &BlockHashPublisherPublishBlockHashIterator{contract: _BlockHashPublisher.contract, event: "PublishBlockHash", logs: logs, sub: sub}, nil
+	return &BlockhashpublisherPublishBlockHashIterator{contract: _Blockhashpublisher.contract, event: "PublishBlockHash", logs: logs, sub: sub}, nil
 }
 
 // WatchPublishBlockHash is a free log subscription operation binding the contract event 0xe13623d33d18131ce960c33b1282ceac1fe7b5ccfcf7f8c0f6dad32dd61e3bdd.
 //
 // Solidity: event PublishBlockHash(bytes32 indexed destinationChainID, address indexed destinationAddress, uint256 indexed blockHeight, bytes32 blockHash)
-func (_BlockHashPublisher *BlockHashPublisherFilterer) WatchPublishBlockHash(opts *bind.WatchOpts, sink chan<- *BlockHashPublisherPublishBlockHash, destinationChainID [][32]byte, destinationAddress []common.Address, blockHeight []*big.Int) (event.Subscription, error) {
+func (_Blockhashpublisher *BlockhashpublisherFilterer) WatchPublishBlockHash(opts *bind.WatchOpts, sink chan<- *BlockhashpublisherPublishBlockHash, destinationChainID [][32]byte, destinationAddress []common.Address, blockHeight []*big.Int) (event.Subscription, error) {
 
 	var destinationChainIDRule []interface{}
 	for _, destinationChainIDItem := range destinationChainID {
@@ -382,7 +382,7 @@ func (_BlockHashPublisher *BlockHashPublisherFilterer) WatchPublishBlockHash(opt
 		blockHeightRule = append(blockHeightRule, blockHeightItem)
 	}
 
-	logs, sub, err := _BlockHashPublisher.contract.WatchLogs(opts, "PublishBlockHash", destinationChainIDRule, destinationAddressRule, blockHeightRule)
+	logs, sub, err := _Blockhashpublisher.contract.WatchLogs(opts, "PublishBlockHash", destinationChainIDRule, destinationAddressRule, blockHeightRule)
 	if err != nil {
 		return nil, err
 	}
@@ -392,8 +392,8 @@ func (_BlockHashPublisher *BlockHashPublisherFilterer) WatchPublishBlockHash(opt
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(BlockHashPublisherPublishBlockHash)
-				if err := _BlockHashPublisher.contract.UnpackLog(event, "PublishBlockHash", log); err != nil {
+				event := new(BlockhashpublisherPublishBlockHash)
+				if err := _Blockhashpublisher.contract.UnpackLog(event, "PublishBlockHash", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -417,9 +417,9 @@ func (_BlockHashPublisher *BlockHashPublisherFilterer) WatchPublishBlockHash(opt
 // ParsePublishBlockHash is a log parse operation binding the contract event 0xe13623d33d18131ce960c33b1282ceac1fe7b5ccfcf7f8c0f6dad32dd61e3bdd.
 //
 // Solidity: event PublishBlockHash(bytes32 indexed destinationChainID, address indexed destinationAddress, uint256 indexed blockHeight, bytes32 blockHash)
-func (_BlockHashPublisher *BlockHashPublisherFilterer) ParsePublishBlockHash(log types.Log) (*BlockHashPublisherPublishBlockHash, error) {
-	event := new(BlockHashPublisherPublishBlockHash)
-	if err := _BlockHashPublisher.contract.UnpackLog(event, "PublishBlockHash", log); err != nil {
+func (_Blockhashpublisher *BlockhashpublisherFilterer) ParsePublishBlockHash(log types.Log) (*BlockhashpublisherPublishBlockHash, error) {
+	event := new(BlockhashpublisherPublishBlockHash)
+	if err := _Blockhashpublisher.contract.UnpackLog(event, "PublishBlockHash", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
