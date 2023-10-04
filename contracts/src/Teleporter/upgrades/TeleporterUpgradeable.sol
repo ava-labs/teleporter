@@ -24,7 +24,7 @@ abstract contract TeleporterUpgradeable {
      */
     modifier onlyAllowedTeleporter() {
         if (
-            teleporterRegistry.getAddressToVersion(msg.sender) <
+            teleporterRegistry.getVersionFromAddress(msg.sender) <
             _minTeleporterVersion
         ) {
             revert InvalidTeleporterSender();

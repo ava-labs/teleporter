@@ -53,18 +53,6 @@ contract TeleporterRegistryTest is Test {
         new TeleporterRegistry(initialVersions, initialProtocolAddresses);
     }
 
-    function testRegistryInitializationDuplicateFails() public {
-        uint256[] memory initialVersions = new uint256[](2);
-        initialVersions[0] = 1;
-        initialVersions[1] = 2;
-        address[] memory initialProtocolAddresses = new address[](2);
-        initialProtocolAddresses[0] = teleporterAddress;
-        initialProtocolAddresses[1] = teleporterAddress;
-
-        vm.expectRevert(TeleporterRegistry.DuplicateProtocolAddress.selector);
-        new TeleporterRegistry(initialVersions, initialProtocolAddresses);
-    }
-
     function testAddProtocolVersionSuccess() public {
         uint256 latestVersion = teleporterRegistry.getLatestVersion();
         assertEq(0, latestVersion);
@@ -76,7 +64,7 @@ contract TeleporterRegistryTest is Test {
             address(teleporterRegistry.getLatestTeleporter())
         );
         assertEq(
-            teleporterRegistry.getAddressToVersion(teleporterAddress),
+            teleporterRegistry.getVersionFromAddress(teleporterAddress),
             teleporterRegistry.getLatestVersion()
         );
     }
@@ -85,7 +73,7 @@ contract TeleporterRegistryTest is Test {
         uint256 latestVersion = teleporterRegistry.getLatestVersion();
         uint32 messageIndex = 0;
 
-        // Create a warp out of band message with same version as latest version
+        // Create a Warp out-of-band message with same version as latest version
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             latestVersion,
             teleporterAddress,
@@ -148,31 +136,6 @@ contract TeleporterRegistryTest is Test {
         teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
-    function testAddToRegistryDuplicateFails() public {
-        _addProtocolVersion(teleporterRegistry);
-        uint256 latestVersion = teleporterRegistry.getLatestVersion();
-        uint32 messageIndex = 0;
-
-        // Check that adding a protocol address that is already registered fails
-        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
-            latestVersion + 1,
-            teleporterAddress,
-            address(teleporterRegistry)
-        );
-
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
-                (messageIndex)
-            ),
-            abi.encode(warpMessage, true)
-        );
-
-        vm.expectRevert(TeleporterRegistry.DuplicateProtocolAddress.selector);
-        teleporterRegistry.addProtocolVersion(messageIndex);
-    }
-
     function testGetVersionToAddress() public {
         _addProtocolVersion(teleporterRegistry);
         uint256 latestVersion = teleporterRegistry.getLatestVersion();
@@ -199,11 +162,11 @@ contract TeleporterRegistryTest is Test {
         // First test success case
         assertEq(
             latestVersion,
-            teleporterRegistry.getAddressToVersion(teleporterAddress)
+            teleporterRegistry.getVersionFromAddress(teleporterAddress)
         );
 
         // Check that getting a version of an address that doesn't exist returns 0
-        assertEq(0, teleporterRegistry.getAddressToVersion(address(this)));
+        assertEq(0, teleporterRegistry.getVersionFromAddress(address(this)));
     }
 
     function testInvalidWarpMessage() public {

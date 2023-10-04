@@ -15,8 +15,6 @@ import "../ITeleporterMessenger.sol";
 contract TeleporterRegistry is WarpProtocolRegistry {
     mapping(address => uint256) internal _addressToVersion;
 
-    error DuplicateProtocolAddress();
-
     constructor(
         uint256[] memory initialVersions,
         address[] memory initialProtocolAddresses
@@ -25,10 +23,10 @@ contract TeleporterRegistry is WarpProtocolRegistry {
     /**
      * @dev Gets the {ITeleporterMessenger} contract of the given `version`.
      */
-    function getTeleporter(
+    function getTeleporterFromVersion(
         uint256 version
     ) external view returns (ITeleporterMessenger) {
-        return ITeleporterMessenger(_getVersionToAddress(version));
+        return ITeleporterMessenger(_getAddressToVersion(version));
     }
 
     /**
@@ -39,14 +37,14 @@ contract TeleporterRegistry is WarpProtocolRegistry {
         view
         returns (ITeleporterMessenger)
     {
-        return ITeleporterMessenger(_getVersionToAddress(_latestVersion));
+        return ITeleporterMessenger(_getAddressToVersion(_latestVersion));
     }
 
     /**
      * @dev Gets the version of the given `protocolAddress`.
      * If `protocolAddress` is not a valid protocol address, returns 0.
      */
-    function getAddressToVersion(
+    function getVersionFromAddress(
         address protocolAddress
     ) external view returns (uint256) {
         return _addressToVersion[protocolAddress];
@@ -66,9 +64,6 @@ contract TeleporterRegistry is WarpProtocolRegistry {
         address protocolAddress
     ) internal override {
         WarpProtocolRegistry._addToRegistry(version, protocolAddress);
-        if (_addressToVersion[protocolAddress] != 0) {
-            revert DuplicateProtocolAddress();
-        }
         _addressToVersion[protocolAddress] = version;
     }
 }
