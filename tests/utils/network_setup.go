@@ -70,7 +70,7 @@ func GetSubnetATestInfo() SubnetTestInfo {
 		ChainNodeURIs: chainANodeURIs,
 		ChainWSClient: chainAWSClient,
 		ChainWSURI:    chainAWSURI,
-		ChainIDInt:    chainAIDInt,
+		ChainIDInt:    big.NewInt(0).Set(chainAIDInt),
 	}
 }
 func GetSubnetBTestInfo() SubnetTestInfo {
@@ -80,14 +80,16 @@ func GetSubnetBTestInfo() SubnetTestInfo {
 		ChainNodeURIs: chainBNodeURIs,
 		ChainWSClient: chainBWSClient,
 		ChainWSURI:    chainBWSURI,
-		ChainIDInt:    chainBIDInt,
+		ChainIDInt:    big.NewInt(0).Set(chainBIDInt),
 	}
 }
 func GetTeleporterContractAddress() common.Address {
 	return teleporterContractAddress
 }
 func GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
-	return fundedAddress, fundedKey
+	key, err := crypto.ToECDSA(crypto.FromECDSA(fundedKey))
+	Expect(err).Should(BeNil())
+	return fundedAddress, key
 }
 
 // setupNetwork starts the default network and adds 10 new nodes as validators with BLS keys
@@ -214,8 +216,6 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 	for _, subnetInfo := range subnetsInfo {
 		client := subnetInfo.ChainWSClient
 
-		chainID, err := client.ChainID(ctx)
-		Expect(err).Should(BeNil())
 		nonce, err := client.NonceAt(ctx, fundedAddress, nil)
 		Expect(err).Should(BeNil())
 		gasTipCap, err := client.SuggestGasTipCap(context.Background())
@@ -228,7 +228,7 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 		{
 			value := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 			txA := types.NewTx(&types.DynamicFeeTx{
-				ChainID:   chainID,
+				ChainID:   subnetInfo.ChainIDInt,
 				Nonce:     nonce,
 				To:        &deployerAddress,
 				Gas:       DefaultTeleporterTransactionGas,
@@ -236,7 +236,7 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 				GasTipCap: gasTipCap,
 				Value:     value,
 			})
-			txSigner := types.LatestSignerForChainID(chainID)
+			txSigner := types.LatestSignerForChainID(subnetInfo.ChainIDInt)
 			triggerTx, err := types.SignTx(txA, txSigner, fundedKey)
 			Expect(err).Should(BeNil())
 
@@ -248,6 +248,7 @@ func DeployTeleporterContract(transactionBytes []byte, deployerAddress common.Ad
 		{
 			rpcClient, err := rpc.DialContext(ctx, HttpToRPCURI(subnetInfo.ChainNodeURIs[0], subnetInfo.BlockchainID.String()))
 			Expect(err).Should(BeNil())
+			defer rpcClient.Close()
 
 			newHeads := make(chan *types.Header, 10)
 			subA, err := subnetInfo.ChainWSClient.SubscribeNewHead(ctx, newHeads)

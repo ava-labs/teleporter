@@ -73,7 +73,7 @@ type FeeInfo struct {
 func SendTransactionAndWaitForAcceptance(
 	ctx context.Context,
 	wsClient ethclient.Client,
-	tx *types.Transaction) (*types.Header, *types.Receipt) {
+	tx *types.Transaction) *types.Receipt {
 
 	newHeads := make(chan *types.Header, 1)
 	subA, err := wsClient.SubscribeNewHead(ctx, newHeads)
@@ -82,13 +82,14 @@ func SendTransactionAndWaitForAcceptance(
 
 	err = wsClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
-	newHead := <-newHeads
+	// Wait for the transaction to be accepted
+	<-newHeads
 
 	receipt, err := wsClient.TransactionReceipt(ctx, tx.Hash())
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	return newHead, receipt
+	return receipt
 }
 
 func HttpToWebsocketURI(uri string, blockchainID string) string {
@@ -194,6 +195,7 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 		log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI)
 		client, err := ethclient.Dial(chainAWSURI)
 		Expect(err).Should(BeNil())
+		defer client.Close()
 
 		// Loop until each node has advanced to >= the height of the block that emitted the warp log
 		for {
@@ -267,7 +269,7 @@ func ConstructAndSendWarpTransaction(
 	Expect(err).Should(BeNil())
 
 	log.Info("Sending transaction to destination chain")
-	_, receipt := SendTransactionAndWaitForAcceptance(ctx, wsClient, signedTx)
+	receipt := SendTransactionAndWaitForAcceptance(ctx, wsClient, signedTx)
 
 	return signedTx, receipt
 }
@@ -275,13 +277,11 @@ func ConstructAndSendWarpTransaction(
 // Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
 func RelayMessage(
 	ctx context.Context,
-	block *types.Header,
+	sourceBlockHash common.Hash,
+	sourceBlockNumber *big.Int,
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
 ) {
-	sourceBlockHash := block.Hash()
-	sourceBlockNumber := block.Number.Uint64()
-
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.ChainWSClient.FilterLogs(ctx, interfaces.FilterQuery{
 		BlockHash: &sourceBlockHash,
@@ -305,7 +305,7 @@ func RelayMessage(
 	// Loop over each client on chain A to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
 	// has accepted the block.
-	WaitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceBlockNumber)
+	WaitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceBlockNumber.Uint64())
 
 	// Get the aggregate signature for the Warp message
 	log.Info("Fetching aggregate signature from the source chain validators")
