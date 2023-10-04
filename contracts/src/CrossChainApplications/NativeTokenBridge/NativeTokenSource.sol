@@ -34,14 +34,26 @@ contract NativeTokenSource is
         currentBlockchainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
 
-        require(teleporterMessengerAddress != address(0), "Invalid Teleporter Messenger Address");
+        require(
+            teleporterMessengerAddress != address(0),
+            "Invalid Teleporter Messenger Address"
+        );
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
-        require(destinationBlockchainID_ != bytes32(0), "Invalid Destination Chain ID");
-        require(destinationBlockchainID_ != currentBlockchainID, "Cannot Bridge With Same Blockchain");
+        require(
+            destinationBlockchainID_ != bytes32(0),
+            "Invalid Destination Chain ID"
+        );
+        require(
+            destinationBlockchainID_ != currentBlockchainID,
+            "Cannot Bridge With Same Blockchain"
+        );
         destinationBlockchainID = destinationBlockchainID_;
 
-        require(destinationContractAddress_ != address(0), "Invalid Destination Contract Address");
+        require(
+            destinationContractAddress_ != address(0),
+            "Invalid Destination Contract Address"
+        );
         destinationContractAddress = destinationContractAddress_;
     }
 
@@ -55,23 +67,29 @@ contract NativeTokenSource is
         address senderAddress,
         bytes calldata message
     ) external nonReentrant {
-
         // Only allow the Teleporter messenger to deliver messages.
-        require(msg.sender == address(teleporterMessenger), "Unauthorized teleporter contract");
+        require(
+            msg.sender == address(teleporterMessenger),
+            "Unauthorized teleporter contract"
+        );
 
         // Only allow messages from the destination chain.
-        require(senderBlockchainID == destinationBlockchainID, "Invalid Destination Chain");
+        require(
+            senderBlockchainID == destinationBlockchainID,
+            "Invalid Destination Chain"
+        );
 
         // Only allow the partner contract to send messages.
-        require(senderAddress == destinationContractAddress, "Unauthorized Sender");
+        require(
+            senderAddress == destinationContractAddress,
+            "Unauthorized Sender"
+        );
 
         (address recipient, uint256 amount) = abi.decode(
             message,
             (address, uint256)
         );
         require(recipient != address(0), "Invalid Recipient Address");
-
-        // TODO set up starting threshold.
 
         // Send to recipient
         payable(recipient).transfer(amount);

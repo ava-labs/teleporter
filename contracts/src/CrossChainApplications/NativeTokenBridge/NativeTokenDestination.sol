@@ -36,6 +36,10 @@ contract NativeTokenDestination is
     bytes32 public immutable currentBlockchainID;
     bytes32 public immutable sourceBlockchainID;
     address public immutable sourceContractAddress;
+    // We will not mint the first `tokenReserve` tokens sent to this subnet.
+    // This should be constructed to match the initial token supply of this subnet.
+    // This will mean we will not mint tokens until the source contact is collateralized.
+    uint256 public tokenReserve;
 
     // Used for sending an receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
@@ -44,20 +48,32 @@ contract NativeTokenDestination is
     constructor(
         address teleporterMessengerAddress,
         bytes32 sourceBlockchainID_,
-        address sourceContractAddress_
+        address sourceContractAddress_,
+        uint256 tokenReserve_
     ) {
         currentBlockchainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
 
-        require(teleporterMessengerAddress != address(0), "Invalid Teleporter Messenger Address");
+        require(
+            teleporterMessengerAddress != address(0),
+            "Invalid Teleporter Messenger Address"
+        );
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
         require(sourceBlockchainID_ != bytes32(0), "Invalid Source Chain ID");
-        require(sourceBlockchainID_ != currentBlockchainID, "Cannot Bridge With Same Blockchain");
+        require(
+            sourceBlockchainID_ != currentBlockchainID,
+            "Cannot Bridge With Same Blockchain"
+        );
         sourceBlockchainID = sourceBlockchainID_;
 
-        require(sourceContractAddress_ != address(0), "Invalid Source Contract Address");
+        require(
+            sourceContractAddress_ != address(0),
+            "Invalid Source Contract Address"
+        );
         sourceContractAddress = sourceContractAddress_;
+
+        tokenReserve = tokenReserve_;
     }
 
     /**
@@ -71,10 +87,16 @@ contract NativeTokenDestination is
         bytes calldata message
     ) external nonReentrant {
         // Only allow the Teleporter messenger to deliver messages.
-        require(msg.sender == address(teleporterMessenger), "Unauthorized teleporter contract");
+        require(
+            msg.sender == address(teleporterMessenger),
+            "Unauthorized teleporter contract"
+        );
 
         // Only allow messages from the source chain.
-        require(senderBlockchainID == sourceBlockchainID, "Invalid Source Chain");
+        require(
+            senderBlockchainID == sourceBlockchainID,
+            "Invalid Source Chain"
+        );
 
         // Only allow the partner contract to send messages.
         require(senderAddress == sourceContractAddress, "Unauthorized Sender");
@@ -83,10 +105,24 @@ contract NativeTokenDestination is
             message,
             (address, uint256)
         );
+        require(recipient != address(0), "Invalid Recipient Address");
+
+        uint256 adjustedAmount = amount;
+        if (tokenReserve > 0) {
+            if (amount > tokenReserve) {
+                emit CollateralAdded({amount: tokenReserve, remaining: 0});
+                adjustedAmount = amount - tokenReserve;
+                tokenReserve = 0;
+            } else {
+                tokenReserve -= amount;
+                emit CollateralAdded({amount: amount, remaining: tokenReserve});
+                return;
+            }
+        }
 
         // Calls NativeMinter precompile through INativeMinter interface.
-        _nativeMinter.mintNativeCoin(recipient, amount);
-        emit MintNativeTokens(recipient, amount);
+        _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
+        emit MintNativeTokens(recipient, adjustedAmount);
     }
 
     /**
@@ -99,6 +135,11 @@ contract NativeTokenDestination is
     ) external payable nonReentrant {
         // The recipient cannot be the zero address.
         require(recipient != address(0), "Invalid Recipient Address");
+
+        require(
+            tokenReserve == 0,
+            "Cannot release tokens until source contract is collateralized"
+        );
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call

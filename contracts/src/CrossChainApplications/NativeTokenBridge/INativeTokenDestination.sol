@@ -20,6 +20,13 @@ interface INativeTokenDestination {
         uint256 feeAmount,
         uint256 teleporterMessageID
     );
+    /**
+     * @dev Emitted when tokens are not minted in order to collateralize the source contract.
+     */
+    event CollateralAdded(
+        uint256 amount,
+        uint256 remaining
+    );
 
     /**
      * @dev Emitted when minting bridge tokens.
