@@ -44,7 +44,7 @@ func BasicOneWaySend() {
 		AllowedRelayerAddresses: []common.Address{},
 		Message:                 []byte{1, 2, 3, 4},
 	}
-	signedTx := utils.CreateTeleporterTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
+	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
 	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, signedTx)
