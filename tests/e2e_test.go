@@ -455,15 +455,18 @@ var _ = ginkgo.Describe("[Teleporter one way send]", ginkgo.Ordered, func() {
 })
 
 var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() {
-	valueToSend := int64(1000_000_000_000_000_000)
-	valueToReturn := valueToSend/4
+	const (
+		valueToSend = int64(1000_000_000_000_000_000)
+		valueToReturn = valueToSend/4
+	)
+	var (
+		ctx = context.Background()
+		err error
+	)
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ginkgo.It("Deploy Contracts on chains A and B", ginkgo.Label("NativeTransfer", "DeployContracs"), func() {
-		ctx := context.Background()
-		var err error
-
-	// Deploy Native Token bridge on the two subnets
+		// Deploy Native Token bridge on the two subnets
 		nativeTokenBridgeDeployerPK, err = crypto.HexToECDSA(bridgeDeployerKeyStr)
 		Expect(err).Should(BeNil())
 		nativeTokenBridgeContractAddress, err = deploymentUtils.DeriveEVMContractAddress(nativeTokenBridgeDeployer, 0)
@@ -503,9 +506,6 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 	})
 
 	ginkgo.It("Transfer tokens from A to B", ginkgo.Label("NativeTransfer", "Lock and Mint"), func() {
-		ctx := context.Background()
-		var err error
-
 		nativeTokenSource, err := abi.NewNativeTokenSource(nativeTokenBridgeContractAddress, chainARPCClient)
 		Expect(err).Should(BeNil())
 		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, chainAIDInt)
@@ -528,8 +528,6 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 	})
 
 	ginkgo.It("Relay message to destination", ginkgo.Label("NativeTransfer", "RelayMessage A -> B"), func() {
-		ctx := context.Background()
-
 		// Get the latest block from Subnet A, and retrieve the warp message from the logs
 		log.Info("Waiting for new block confirmation")
 		newHeadA := <-newHeadsA
@@ -600,9 +598,6 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 	})
 
 	ginkgo.It("Transfer tokens from B to A", ginkgo.Label("NativeTransfer", "Burn and Unlock"), func() {
-		ctx := context.Background()
-		var err error
-
 		nativeTokenDestination, err := abi.NewNativeTokenDestination(nativeTokenBridgeContractAddress, chainBRPCClient)
 		Expect(err).Should(BeNil())
 		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, chainBIDInt)
@@ -625,8 +620,6 @@ var _ = ginkgo.Describe("[NativeTransfer two-way send]", ginkgo.Ordered, func() 
 	})
 
 	ginkgo.It("Relay message to source", ginkgo.Label("NativeTransfer", "RelayMessage B -> A"), func() {
-		ctx := context.Background()
-
 		// Get the latest block from Subnet A, and retrieve the warp message from the logs
 		log.Info("Waiting for new block confirmation")
 		newHeadB := <-newHeadsB
