@@ -8,6 +8,7 @@ import (
 
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/interfaces"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
@@ -32,7 +33,18 @@ func BasicOneWaySend() {
 	//
 	ctx := context.Background()
 
-	signedTx := utils.CreateTeleporterTransaction(ctx, subnetAInfo, subnetBInfo, fundedAddress, fundedKey, teleporterContractAddress)
+	sendCrossChainMessageInput := utils.SendCrossChainMessageInput{
+		DestinationChainID: subnetBInfo.BlockchainID,
+		DestinationAddress: fundedAddress,
+		FeeInfo: utils.FeeInfo{
+			ContractAddress: fundedAddress,
+			Amount:          big.NewInt(0),
+		},
+		RequiredGasLimit:        big.NewInt(1),
+		AllowedRelayerAddresses: []common.Address{},
+		Message:                 []byte{1, 2, 3, 4},
+	}
+	signedTx := utils.CreateTeleporterTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
 	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, signedTx)

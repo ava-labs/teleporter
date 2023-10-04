@@ -127,7 +127,7 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 func CreateTeleporterTransaction(
 	ctx context.Context,
 	source SubnetTestInfo,
-	destination SubnetTestInfo,
+	input SendCrossChainMessageInput,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
@@ -137,17 +137,7 @@ func CreateTeleporterTransaction(
 
 	data, err := teleporter.EVMTeleporterContractABI.Pack(
 		"sendCrossChainMessage",
-		SendCrossChainMessageInput{
-			DestinationChainID: destination.BlockchainID,
-			DestinationAddress: fundedAddress,
-			FeeInfo: FeeInfo{
-				ContractAddress: fundedAddress,
-				Amount:          big.NewInt(0),
-			},
-			RequiredGasLimit:        big.NewInt(1),
-			AllowedRelayerAddresses: []common.Address{},
-			Message:                 []byte{1, 2, 3, 4},
-		},
+		input,
 	)
 	Expect(err).Should(BeNil())
 
