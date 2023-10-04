@@ -92,7 +92,7 @@ func GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	return fundedAddress, key
 }
 
-// setupNetwork starts the default network and adds 10 new nodes as validators with BLS keys
+// SetupNetwork starts the default network and adds 10 new nodes as validators with BLS keys
 // registered on the P-Chain.
 // Adds two disjoint sets of 5 of the new validator nodes to validate two new subnets with a
 // a single Subnet-EVM blockchain.
