@@ -307,11 +307,17 @@ func RelayMessage(
 
 	bind, err := teleportermessenger.NewTeleportermessenger(teleporterContractAddress, source.ChainWSClient)
 	Expect(err).Should(BeNil())
-	event, err := bind.ParseReceiveCrossChainMessage(*receipt.Logs[0])
-	Expect(err).Should(BeNil())
-	Expect(event.OriginChainID).Should(Equal(source.BlockchainID))
+	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
+	for _, log := range receipt.Logs {
+		event, err := bind.ParseReceiveCrossChainMessage(*log)
+		if err == nil {
+			Expect(event.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
+			return receipt
+		}
+	}
 
-	return receipt
+	Expect(false).Should(BeTrue(), "failed to find ReceiveCrossChainMessage event in receipt logs")
+	return nil
 }
 
 //

@@ -53,7 +53,7 @@ func BasicOneWaySend() {
 	Expect(err).Should(BeNil())
 	event, err := bind.ParseSendCrossChainMessage(*receipt.Logs[0])
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID).Should(Equal(subnetBInfo.BlockchainID))
+	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
 	teleporterMessageID = event.Message.MessageID
 
