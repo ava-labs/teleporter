@@ -146,17 +146,17 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessage calldata message
     ) external senderNonReentrant {
         // Get the previously sent message hash.
-        bytes32 messageHash = sentMessageInfo[destinationChainID][
-            message.messageID
-        ].messageHash;
-        if (messageHash == bytes32(0)) {
+        SentMessageInfo memory existingMessageInfo = sentMessageInfo[
+            destinationChainID
+        ][message.messageID];
+        if (existingMessageInfo.messageHash == bytes32(0)) {
             // If the message hash is zero, the message was never sent.
             revert MessageNotFound();
         }
 
         // Check that the hash of the provided message matches the one that was originally submitted.
         bytes memory messageBytes = abi.encode(message);
-        if (keccak256(messageBytes) != messageHash) {
+        if (keccak256(messageBytes) != existingMessageInfo.messageHash) {
             revert InvalidMessageHash();
         }
 
@@ -165,7 +165,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         emit SendCrossChainMessage(
             destinationChainID,
             message.messageID,
-            message
+            message,
+            existingMessageInfo.feeInfo
         );
 
         // Resubmit the message to the warp message precompile now that we know the exact message was
@@ -367,7 +368,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             teleporterMessage.messageID,
-            teleporterMessage
+            teleporterMessage,
+            msg.sender,
+            relayerRewardAddress
         );
     }
 
@@ -629,18 +632,20 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Store the fee asset and amount to be paid to the relayer of this message upon receiving the receipt.
         // Also store the message hash so that it can be retried until we get receipt of its delivery.
+        TeleporterFeeInfo memory adjustedFeeInfo = TeleporterFeeInfo({
+            contractAddress: feeInfo.contractAddress,
+            amount: adjustedFeeAmount
+        });
         sentMessageInfo[destinationChainID][messageID] = SentMessageInfo({
             messageHash: keccak256(teleporterMessageBytes),
-            feeInfo: TeleporterFeeInfo({
-                contractAddress: feeInfo.contractAddress,
-                amount: adjustedFeeAmount
-            })
+            feeInfo: adjustedFeeInfo
         });
 
         emit SendCrossChainMessage(
             destinationChainID,
             messageID,
-            teleporterMessage
+            teleporterMessage,
+            adjustedFeeInfo
         );
 
         // Submit the message to the AWM precompile.

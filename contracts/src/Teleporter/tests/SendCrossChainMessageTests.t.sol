@@ -21,10 +21,11 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             1,
             hex"deadbeef"
         );
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
             destinationAddress: expectedMessage.destinationAddress,
-            feeInfo: TeleporterFeeInfo(address(0), 0),
+            feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
@@ -55,7 +56,8 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         emit SendCrossChainMessage(
             messageInput.destinationChainID,
             expectedMessage.messageID,
-            expectedMessage
+            expectedMessage,
+            feeInfo
         );
 
         // Act
@@ -74,13 +76,14 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             1,
             hex"deadbeef"
         );
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(
+            address(_mockFeeAsset),
+            13131313131313131313
+        );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
             destinationAddress: expectedMessage.destinationAddress,
-            feeInfo: TeleporterFeeInfo(
-                address(_mockFeeAsset),
-                13131313131313131313
-            ),
+            feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
@@ -111,7 +114,8 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         emit SendCrossChainMessage(
             messageInput.destinationChainID,
             expectedMessage.messageID,
-            expectedMessage
+            expectedMessage,
+            feeInfo
         );
 
         // Expect the ERC20 contract transferFrom method to be called to transfer the fee.
@@ -200,7 +204,9 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        vm.expectRevert(TeleporterMessenger.InvalidFeeAssetContractAddress.selector);
+        vm.expectRevert(
+            TeleporterMessenger.InvalidFeeAssetContractAddress.selector
+        );
         teleporterMessenger.sendCrossChainMessage(messageInput);
     }
 }

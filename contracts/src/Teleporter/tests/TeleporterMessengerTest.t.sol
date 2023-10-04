@@ -37,7 +37,8 @@ contract TeleporterMessengerTest is Test {
     event SendCrossChainMessage(
         bytes32 indexed destinationChainID,
         uint256 indexed messageID,
-        TeleporterMessage message
+        TeleporterMessage message,
+        TeleporterFeeInfo feeInfo
     );
 
     event AddFeeAmount(
@@ -96,8 +97,12 @@ contract TeleporterMessengerTest is Test {
             new bytes(0)
         );
 
+        address feeAsset = address(0);
+        if (feeAmount > 0) {
+            feeAsset = address(_mockFeeAsset);
+        }
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo({
-            contractAddress: address(_mockFeeAsset),
+            contractAddress: feeAsset,
             amount: feeAmount
         });
 

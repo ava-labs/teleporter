@@ -44,7 +44,8 @@ interface ITeleporterMessenger {
     event SendCrossChainMessage(
         bytes32 indexed destinationChainID,
         uint256 indexed messageID,
-        TeleporterMessage message
+        TeleporterMessage message,
+        TeleporterFeeInfo feeInfo
     );
 
     /**
@@ -83,7 +84,9 @@ interface ITeleporterMessenger {
     event ReceiveCrossChainMessage(
         bytes32 indexed originChainID,
         uint256 indexed messageID,
-        TeleporterMessage message
+        TeleporterMessage message,
+        address deliverer,
+        address rewardRedeemer
     );
 
     /**
