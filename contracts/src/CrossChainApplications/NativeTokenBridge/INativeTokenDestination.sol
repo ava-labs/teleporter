@@ -13,11 +13,12 @@ interface INativeTokenDestination {
      * @dev Emitted when tokens are burned in this bridge contract to be bridged to the source chain.
      */
     event TransferToSource(
-        uint256 indexed teleporterMessageID,
-        address recipient,
-        uint256 transferAmount,
+        address indexed sender,
+        address indexed recipient,
+        uint256 amount,
         address feeContractAddress,
-        uint256 feeAmount
+        uint256 feeAmount,
+        uint256 teleporterMessageID
     );
 
     /**

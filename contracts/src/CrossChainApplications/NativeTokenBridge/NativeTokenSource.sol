@@ -37,11 +37,12 @@ contract NativeTokenSource is
         require(teleporterMessengerAddress != address(0), "Invalid Teleporter Messenger Address");
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
-        require(destinationContractAddress_ != address(0), "Invalid Destination Contract Address");
-        destinationContractAddress = destinationContractAddress_;
-
+        require(destinationBlockchainID_ != bytes32(0), "Invalid Destination Chain ID");
         require(destinationBlockchainID_ != currentBlockchainID, "Cannot Bridge With Same Blockchain");
         destinationBlockchainID = destinationBlockchainID_;
+
+        require(destinationContractAddress_ != address(0), "Invalid Destination Contract Address");
+        destinationContractAddress = destinationContractAddress_;
     }
 
     /**
@@ -56,13 +57,13 @@ contract NativeTokenSource is
     ) external nonReentrant {
 
         // Only allow the Teleporter messenger to deliver messages.
-        require(msg.sender == address(teleporterMessenger), "Unauthorized");
+        require(msg.sender == address(teleporterMessenger), "Unauthorized teleporter contract");
 
         // Only allow messages from the destination chain.
         require(senderBlockchainID == destinationBlockchainID, "Invalid Destination Chain");
 
         // Only allow the partner contract to send messages.
-        require(senderAddress == destinationContractAddress, "Invalid Sender address");
+        require(senderAddress == destinationContractAddress, "Unauthorized Sender");
 
         (address recipient, uint256 amount) = abi.decode(
             message,
@@ -122,11 +123,12 @@ contract NativeTokenSource is
         );
 
         emit TransferToDestination({
-            teleporterMessageID: messageID,
+            sender: msg.sender,
             recipient: recipient,
-            transferAmount: msg.value,
+            amount: msg.value,
             feeContractAddress: feeContractAddress,
-            feeAmount: adjustedAmount
+            feeAmount: adjustedAmount,
+            teleporterMessageID: messageID
         });
     }
 }
