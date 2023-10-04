@@ -308,16 +308,32 @@ func RelayMessage(
 	bind, err := teleportermessenger.NewTeleportermessenger(teleporterContractAddress, source.ChainWSClient)
 	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	for _, log := range receipt.Logs {
+	event, err := GetReceiveEventFromLogs(receipt.Logs, bind)
+	Expect(err).Should(BeNil())
+	Expect(event.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
+	return nil
+}
+
+func GetReceiveEventFromLogs(logs []*types.Log, bind *teleportermessenger.Teleportermessenger) (*teleportermessenger.TeleportermessengerReceiveCrossChainMessage, error) {
+	for _, log := range logs {
 		event, err := bind.ParseReceiveCrossChainMessage(*log)
 		if err == nil {
-			Expect(event.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
-			return receipt
+			return event, nil
+
 		}
 	}
+	return nil, fmt.Errorf("failed to find ReceiveCrossChainMessage event in receipt logs")
+}
 
-	Expect(false).Should(BeTrue(), "failed to find ReceiveCrossChainMessage event in receipt logs")
-	return nil
+func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.Teleportermessenger) (*teleportermessenger.TeleportermessengerSendCrossChainMessage, error) {
+	for _, log := range logs {
+		event, err := bind.ParseSendCrossChainMessage(*log)
+		if err == nil {
+			return event, nil
+
+		}
+	}
+	return nil, fmt.Errorf("failed to find ReceiveCrossChainMessage event in receipt logs")
 }
 
 //
