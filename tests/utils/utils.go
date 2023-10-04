@@ -101,6 +101,7 @@ func HttpToRPCURI(uri string, blockchainID string) string {
 	return fmt.Sprintf("http://%s/ext/bc/%s/rpc", strings.TrimPrefix(uri, "http://"), blockchainID)
 }
 
+// Get the host and port from a URI. The URI should be in the format http://host:port or https://host:port
 func GetURIHostAndPort(uri string) (string, uint32, error) {
 	// At a minimum uri should have http:// of 7 characters
 	Expect(len(uri)).Should(BeNumerically(">", 7))
@@ -125,6 +126,8 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 	return hostAndPort[0], uint32(port), nil
 }
 
+// Constructs a transaction to call sendCrossChainMessage
+// Returns the signed transaction.
 func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
 	source SubnetTestInfo,
@@ -156,7 +159,7 @@ func CreateSendCrossChainMessageTransaction(
 	return signTransaction(tx, fundedKey, source.ChainIDInt)
 }
 
-// Constructs and sends a transaction containing a warp message for the destination chain.
+// Constructs a transaction to call receiveCrossChainMessage
 // Returns the signed transaction.
 func CreateReceiveCrossChainMessageTransaction(
 	ctx context.Context,
@@ -310,6 +313,7 @@ func RelayMessage(
 // Unexported functions
 //
 
+// Signs a transaction using the provided key for the specified chainID
 func signTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.Int) *types.Transaction {
 	txSigner := types.LatestSignerForChainID(chainID)
 	signedTx, err := types.SignTx(tx, txSigner, key)
@@ -318,6 +322,7 @@ func signTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.
 	return signedTx
 }
 
+// Returns the gasFeeCap, gasTipCap, and nonce the be used when constructing a transaction from fundedAddress
 func calculateTxParams(ctx context.Context, wsClient ethclient.Client, fundedAddress common.Address) (*big.Int, *big.Int, uint64) {
 	baseFee, err := wsClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
