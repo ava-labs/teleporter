@@ -143,11 +143,11 @@ func CreateSendCrossChainMessageTransaction(
 	)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.ChainWSClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.WSClient, fundedAddress)
 
 	// Send a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   source.ChainIDInt,
+		ChainID:   source.ChainID,
 		Nonce:     nonce,
 		To:        &teleporterContractAddress,
 		Gas:       DefaultTeleporterTransactionGas,
@@ -157,7 +157,7 @@ func CreateSendCrossChainMessageTransaction(
 		Data:      data,
 	})
 
-	return signTransaction(tx, fundedKey, source.ChainIDInt)
+	return signTransaction(tx, fundedKey, source.ChainID)
 }
 
 // Constructs a transaction to call receiveCrossChainMessage
@@ -260,7 +260,7 @@ func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclien
 			return receipt
 		} else {
 			log.Info("Waiting for transaction", "hash", txHash.Hex())
-			time.Sleep(100 *time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
@@ -275,7 +275,7 @@ func RelayMessage(
 	destination SubnetTestInfo,
 ) *types.Receipt {
 	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := source.ChainWSClient.FilterLogs(ctx, interfaces.FilterQuery{
+	logs, err := source.WSClient.FilterLogs(ctx, interfaces.FilterQuery{
 		BlockHash: &sourceBlockHash,
 		Addresses: []common.Address{warp.Module.Address},
 	})
@@ -297,11 +297,11 @@ func RelayMessage(
 	// Loop over each client on chain A to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
 	// has accepted the block.
-	WaitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceBlockNumber.Uint64())
+	WaitForAllValidatorsToAcceptBlock(ctx, source.NodeURIs, source.BlockchainID, sourceBlockNumber.Uint64())
 
 	// Get the aggregate signature for the Warp message
 	log.Info("Fetching aggregate signature from the source chain validators")
-	warpClient, err := warpBackend.NewClient(source.ChainNodeURIs[0], source.BlockchainID.String())
+	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
 	signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
 	Expect(err).Should(BeNil())
@@ -314,14 +314,14 @@ func RelayMessage(
 		teleporterContractAddress,
 		fundedAddress,
 		fundedKey,
-		destination.ChainWSClient,
-		destination.ChainIDInt,
+		destination.WSClient,
+		destination.ChainID,
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt := SendTransactionAndWaitForAcceptance(ctx, destination.ChainWSClient, signedTx)
+	receipt := SendTransactionAndWaitForAcceptance(ctx, destination.WSClient, signedTx)
 
-	bind, err := teleportermessenger.NewTeleportermessenger(teleporterContractAddress, source.ChainWSClient)
+	bind, err := teleportermessenger.NewTeleportermessenger(teleporterContractAddress, source.WSClient)
 	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetReceiveEventFromLogs(receipt.Logs, bind)

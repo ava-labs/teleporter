@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"math/big"
-	"time"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -45,31 +44,31 @@ func NativeTokenBridge() {
 	{ // Deploy the contracts
 		nativeTokenSourceBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenSourceByteCodeFile)
 		Expect(err).Should(BeNil())
-		chainATransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetA.ChainIDInt)
+		chainATransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetA.ChainID)
 		Expect(err).Should(BeNil())
 		nativeTokenSourceAbi, err := nativetokensource.NativetokensourceMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		_, txA, _, err := bind.DeployContract(chainATransactor, *nativeTokenSourceAbi, nativeTokenSourceBytecode, subnetA.ChainWSClient, teleporterContractAddress, subnetB.BlockchainID, nativeTokenBridgeContractAddress)
+		_, txA, _, err := bind.DeployContract(chainATransactor, *nativeTokenSourceAbi, nativeTokenSourceBytecode, subnetA.WSClient, teleporterContractAddress, subnetB.BlockchainID, nativeTokenBridgeContractAddress)
 		Expect(err).Should(BeNil())
 
 		nativeTokenDestinationBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenDestinationByteCodeFile)
 		Expect(err).Should(BeNil())
-		chainBTransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetB.ChainIDInt)
+		chainBTransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetB.ChainID)
 		Expect(err).Should(BeNil())
 		nativeTokenDestinationAbi, err := nativetokendestination.NativetokendestinationMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		_, txB, _, err := bind.DeployContract(chainBTransactor, *nativeTokenDestinationAbi, nativeTokenDestinationBytecode, subnetB.ChainWSClient, teleporterContractAddress, subnetA.BlockchainID, nativeTokenBridgeContractAddress, common.Big0)
+		_, txB, _, err := bind.DeployContract(chainBTransactor, *nativeTokenDestinationAbi, nativeTokenDestinationBytecode, subnetB.WSClient, teleporterContractAddress, subnetA.BlockchainID, nativeTokenBridgeContractAddress, common.Big0)
 		Expect(err).Should(BeNil())
 
 		// Wait for transaction, then check code was deployed
-		utils.WaitForTransaction(ctx, txA.Hash(), subnetA.ChainWSClient)
-		bridgeCodeA, err := subnetA.ChainWSClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
+		utils.WaitForTransaction(ctx, txA.Hash(), subnetA.WSClient)
+		bridgeCodeA, err := subnetA.WSClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(len(bridgeCodeA)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 
 		// Wait for transaction, then check code was deployed
-		utils.WaitForTransaction(ctx, txB.Hash(), subnetB.ChainWSClient)
-		bridgeCodeB, err := subnetB.ChainWSClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
+		utils.WaitForTransaction(ctx, txB.Hash(), subnetB.WSClient)
+		bridgeCodeB, err := subnetB.WSClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(len(bridgeCodeB)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 
@@ -77,14 +76,13 @@ func NativeTokenBridge() {
 	}
 
 	// Create abi objects to call the contract with
-	nativeTokenDestination, err := nativetokendestination.NewNativetokendestination(nativeTokenBridgeContractAddress, subnetB.ChainWSClient)
+	nativeTokenDestination, err := nativetokendestination.NewNativetokendestination(nativeTokenBridgeContractAddress, subnetB.WSClient)
 	Expect(err).Should(BeNil())
-	nativeTokenSource, err := nativetokensource.NewNativetokensource(nativeTokenBridgeContractAddress, subnetA.ChainWSClient)
+	nativeTokenSource, err := nativetokensource.NewNativetokensource(nativeTokenBridgeContractAddress, subnetA.WSClient)
 	Expect(err).Should(BeNil())
-
 
 	{ // Transfer tokens A -> B
-		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetA.ChainIDInt)
+		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetA.ChainID)
 		Expect(err).Should(BeNil())
 		transactor.Value = big.NewInt(valueToSend)
 
@@ -92,25 +90,25 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToDestination transaction on source chain", "destinationChainID", subnetB.BlockchainID, "txHash", tx.Hash().Hex())
 
-		receipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetA.ChainWSClient)
+		receipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetA.WSClient)
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 		// Check starting balance is 0
-		bal, err := subnetB.ChainWSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
+		bal, err := subnetB.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(bal.Int64()).Should(Equal(common.Big0.Int64()))
 
 		utils.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetA, subnetB)
 
 		// Check final balance
-		bal, err = subnetB.ChainWSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
+		bal, err = subnetB.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(bal.Int64()).Should(Equal(valueToSend))
 	}
 
 	// Transfer tokens B -> A
 	{
-		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetB.ChainIDInt)
+		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetB.ChainID)
 		Expect(err).Should(BeNil())
 		transactor.Value = big.NewInt(valueToReturn)
 
@@ -118,19 +116,19 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToSource transaction on destination chain", "sourceChainID", subnetA.BlockchainID, "txHash", tx.Hash().Hex())
 
-		receipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetB.ChainWSClient)
+		receipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetB.WSClient)
 		Expect(err).Should(BeNil())
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 		// Check starting balance is 0
-		bal, err := subnetA.ChainWSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
+		bal, err := subnetA.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(bal.Int64()).Should(Equal(common.Big0.Int64()))
 
 		utils.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetB, subnetA)
 
 		// Check final balance
-		bal, err = subnetA.ChainWSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
+		bal, err = subnetA.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(bal.Int64()).Should(Equal(valueToReturn))
 	}

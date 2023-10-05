@@ -47,9 +47,9 @@ func BasicOneWaySend() {
 	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, signedTx)
+	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.WSClient, signedTx)
 
-	bind, err := teleportermessenger.NewTeleportermessenger(teleporterContractAddress, subnetAInfo.ChainWSClient)
+	bind, err := teleportermessenger.NewTeleportermessenger(teleporterContractAddress, subnetAInfo.WSClient)
 	Expect(err).Should(BeNil())
 	event, err := utils.GetSendEventFromLogs(receipt.Logs, bind)
 	Expect(err).Should(BeNil())
@@ -75,7 +75,7 @@ func BasicOneWaySend() {
 		To:   &teleporterContractAddress,
 		Data: data,
 	}
-	result, err := subnetBInfo.ChainWSClient.CallContract(context.Background(), callMessage, nil)
+	result, err := subnetBInfo.WSClient.CallContract(context.Background(), callMessage, nil)
 	Expect(err).Should(BeNil())
 
 	// check the contract call result
