@@ -1,4 +1,4 @@
-package teleporter_block_hash
+package teleporterblockhashreceiver
 
 import "github.com/ava-labs/avalanchego/ids"
 
@@ -13,7 +13,7 @@ type ReceiveBlockHashInput struct {
 
 // Pack packs a ReceiveCrossChainMessageInput to form a call to the receiveCrossChainMessage function
 func PackReceiveBlockHash(inputStruct ReceiveBlockHashInput) ([]byte, error) {
-	abi, err := TeleporterBlockHashMetaData.GetAbi()
+	abi, err := TeleporterblockhashreceiverMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
