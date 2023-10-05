@@ -9,6 +9,14 @@ import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
+ * @dev Registry entry that represents a mapping between protocolAddress and version.
+ */
+struct ProtocolRegistryEntry {
+    uint256 version;
+    address protocolAddress;
+}
+
+/**
  * @dev Implementation of an abstract `WarpProtocolRegistry` contract.
  *
  * This implementation is a contract that can be used as a base contract for protocols that are
@@ -46,23 +54,17 @@ abstract contract WarpProtocolRegistry {
     error InvalidDestinationChainID();
     error InvalidDestinationAddress();
     error InvalidProtocolVersion();
-    error InvalidRegistryInitialization();
+    error InvalidProtocolAddress();
 
     /**
      * @dev Initializes the contract by setting a `chainID` and `latestVersion`.
      */
-    constructor(
-        uint256[] memory initialVersions,
-        address[] memory initialProtocolAddresses
-    ) {
+    constructor(ProtocolRegistryEntry[] memory initialEntries) {
         _latestVersion = 0;
         _chainID = WARP_MESSENGER.getBlockchainID();
-        if (initialProtocolAddresses.length != initialVersions.length) {
-            revert InvalidRegistryInitialization();
-        }
 
-        for (uint256 i = 0; i < initialVersions.length; i++) {
-            _addToRegistry(initialVersions[i], initialProtocolAddresses[i]);
+        for (uint256 i = 0; i < initialEntries.length; i++) {
+            _addToRegistry(initialEntries[i]);
         }
     }
 
@@ -134,12 +136,12 @@ abstract contract WarpProtocolRegistry {
             revert InvalidDestinationAddress();
         }
 
-        (uint256 version, address protocolAddress) = abi.decode(
+        ProtocolRegistryEntry memory entry = abi.decode(
             message.payload,
-            (uint256, address)
+            (ProtocolRegistryEntry)
         );
 
-        _addToRegistry(version, protocolAddress);
+        _addToRegistry(entry);
     }
 
     /**
@@ -154,18 +156,21 @@ abstract contract WarpProtocolRegistry {
      * - `version` must be the increment of the latest version.
      */
     function _addToRegistry(
-        uint256 version,
-        address protocolAddress
+        ProtocolRegistryEntry memory entry
     ) internal virtual {
         // Check that the version is the increment of the latest version.
-        if (version != _latestVersion + 1) {
+        if (entry.version != _latestVersion + 1) {
             revert InvalidProtocolVersion();
         }
 
+        if (entry.protocolAddress == address(0)) {
+            revert InvalidProtocolAddress();
+        }
+
         _latestVersion++;
-        _versionToAddress[_latestVersion] = protocolAddress;
-        _addressToVersion[protocolAddress] = _latestVersion;
-        emit AddProtocolVersion(_latestVersion, protocolAddress);
+        _versionToAddress[entry.version] = entry.protocolAddress;
+        _addressToVersion[entry.protocolAddress] = entry.version;
+        emit AddProtocolVersion(entry.version, entry.protocolAddress);
     }
 
     /**

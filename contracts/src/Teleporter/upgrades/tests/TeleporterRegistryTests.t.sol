@@ -8,6 +8,7 @@ pragma solidity 0.8.18;
 import "forge-std/Test.sol";
 import "../TeleporterRegistry.sol";
 import "../../TeleporterMessenger.sol";
+import "../../../WarpProtocolRegistry.sol";
 
 contract TeleporterRegistryTest is Test {
     TeleporterRegistry public teleporterRegistry;
@@ -29,28 +30,11 @@ contract TeleporterRegistryTest is Test {
             abi.encode(MOCK_BLOCK_CHAIN_ID)
         );
         teleporterRegistry = new TeleporterRegistry(
-            new uint256[](0),
-            new address[](0)
+            new ProtocolRegistryEntry[](0)
         );
         assertEq(0, teleporterRegistry.getLatestVersion());
 
         teleporterAddress = address(new TeleporterMessenger());
-    }
-
-    function testRegistryInitializationMismatchFails() public {
-        uint256[] memory initialVersions = new uint256[](1);
-        initialVersions[0] = 1;
-        address[] memory initialProtocolAddresses = new address[](0);
-
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getBlockchainID, ())
-        );
-
-        vm.expectRevert(
-            WarpProtocolRegistry.InvalidRegistryInitialization.selector
-        );
-        new TeleporterRegistry(initialVersions, initialProtocolAddresses);
     }
 
     function testAddProtocolVersionSuccess() public {
@@ -114,6 +98,25 @@ contract TeleporterRegistryTest is Test {
         );
 
         vm.expectRevert(WarpProtocolRegistry.InvalidProtocolVersion.selector);
+        teleporterRegistry.addProtocolVersion(messageIndex);
+
+        // Check that adding an invalid protocol address of address(0) fails
+        warpMessage = _createWarpOutofBandMessage(
+            latestVersion + 1,
+            address(0),
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                WarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        vm.expectRevert(WarpProtocolRegistry.InvalidProtocolAddress.selector);
         teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
@@ -281,7 +284,12 @@ contract TeleporterRegistryTest is Test {
                     .VALIDATORS_SOURCE_ADDRESS(),
                 destinationChainID: MOCK_BLOCK_CHAIN_ID,
                 destinationAddress: address(registryAddress),
-                payload: abi.encode(version, protocolAddress)
+                payload: abi.encode(
+                    ProtocolRegistryEntry({
+                        version: version,
+                        protocolAddress: protocolAddress
+                    })
+                )
             });
     }
 }

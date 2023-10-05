@@ -14,9 +14,8 @@ import "../ITeleporterMessenger.sol";
  */
 contract TeleporterRegistry is WarpProtocolRegistry {
     constructor(
-        uint256[] memory initialVersions,
-        address[] memory initialProtocolAddresses
-    ) WarpProtocolRegistry(initialVersions, initialProtocolAddresses) {}
+        ProtocolRegistryEntry[] memory initialEntries
+    ) WarpProtocolRegistry(initialEntries) {}
 
     /**
      * @dev Gets the {ITeleporterMessenger} contract of the given `version`.
