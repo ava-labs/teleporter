@@ -249,6 +249,22 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 	}
 }
 
+func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclient.Client) *types.Receipt {
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	// Loop until we find the transaction or time out
+	for {
+		receipt, err := client.TransactionReceipt(cctx, txHash)
+		if err == nil {
+			return receipt
+		} else {
+			log.Info("Waiting for transaction", "hash", txHash.Hex())
+			time.Sleep(100 *time.Millisecond)
+		}
+	}
+}
+
 // Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
 // Returns the receipt on the destination chain
 func RelayMessage(

@@ -46,5 +46,5 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 })
 
 var _ = ginkgo.Describe("[Native Token Bridge integration tests]", func() {
-	ginkgo.It("Send tokens from subnet A to B and back", BasicOneWaySend)
+	ginkgo.It("Send native tokens from subnet A to B and back", NativeTokenBridge)
 })
