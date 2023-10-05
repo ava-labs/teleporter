@@ -82,6 +82,15 @@ contract TeleporterMessengerTest is Test {
         teleporterMessenger = new TeleporterMessenger();
     }
 
+    function testEmptyReceiptQueue() public {
+        assertEq(teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID), 0);
+
+        vm.expectRevert(ReceiptQueue.OutofIndex.selector);
+        TeleporterMessageReceipt memory receipt = teleporterMessenger.getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+        assertEq(receipt.receivedMessageID, 0);
+        assertEq(receipt.relayerRewardAddress, address(0));
+    }
+
     /*
      * TEST UTILS / HELPERS
      */

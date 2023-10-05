@@ -65,6 +65,12 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
 
         // Assert
         assertEq(messageID, 1);
+
+        // Check receipt queue
+        uint256 queueSize = teleporterMessenger.getReceiptQueueSize(
+            messageInput.destinationChainID
+        );
+        assertEq(queueSize, 0);
     }
 
     function testSendMessageWithFee() public {
