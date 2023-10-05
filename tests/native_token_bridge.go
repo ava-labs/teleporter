@@ -49,7 +49,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		nativeTokenSourceAbi, err := nativetokensource.NativetokensourceMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		_, _, _, err = bind.DeployContract(chainATransactor, *nativeTokenSourceAbi, nativeTokenSourceBytecode, subnetA.ChainWSClient, teleporterContractAddress, subnetB.BlockchainID, nativeTokenBridgeContractAddress)
+		_, txA, _, err := bind.DeployContract(chainATransactor, *nativeTokenSourceAbi, nativeTokenSourceBytecode, subnetA.ChainWSClient, teleporterContractAddress, subnetB.BlockchainID, nativeTokenBridgeContractAddress)
 		Expect(err).Should(BeNil())
 
 		nativeTokenDestinationBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenDestinationByteCodeFile)
@@ -58,14 +58,17 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		nativeTokenDestinationAbi, err := nativetokendestination.NativetokendestinationMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		_, _, _, err = bind.DeployContract(chainBTransactor, *nativeTokenDestinationAbi, nativeTokenDestinationBytecode, subnetB.ChainWSClient, teleporterContractAddress, subnetA.BlockchainID, nativeTokenBridgeContractAddress, common.Big0)
+		_, txB, _, err := bind.DeployContract(chainBTransactor, *nativeTokenDestinationAbi, nativeTokenDestinationBytecode, subnetB.ChainWSClient, teleporterContractAddress, subnetA.BlockchainID, nativeTokenBridgeContractAddress, common.Big0)
 		Expect(err).Should(BeNil())
 
-		time.Sleep(5 * time.Second)
+		// Wait for transaction, then check code was deployed
+		utils.WaitForTransaction(ctx, txA.Hash(), subnetA.ChainWSClient)
 		bridgeCodeA, err := subnetA.ChainWSClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(len(bridgeCodeA)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 
+		// Wait for transaction, then check code was deployed
+		utils.WaitForTransaction(ctx, txB.Hash(), subnetB.ChainWSClient)
 		bridgeCodeB, err := subnetB.ChainWSClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(len(bridgeCodeB)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
@@ -79,8 +82,8 @@ func NativeTokenBridge() {
 	nativeTokenSource, err := nativetokensource.NewNativetokensource(nativeTokenBridgeContractAddress, subnetA.ChainWSClient)
 	Expect(err).Should(BeNil())
 
-	// Transfer tokens A -> B
-	{
+
+	{ // Transfer tokens A -> B
 		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetA.ChainIDInt)
 		Expect(err).Should(BeNil())
 		transactor.Value = big.NewInt(valueToSend)
@@ -99,6 +102,7 @@ func NativeTokenBridge() {
 
 		utils.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetA, subnetB)
 
+		// Check final balance
 		bal, err = subnetB.ChainWSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(bal.Int64()).Should(Equal(valueToSend))
@@ -125,6 +129,7 @@ func NativeTokenBridge() {
 
 		utils.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetB, subnetA)
 
+		// Check final balance
 		bal, err = subnetA.ChainWSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(bal.Int64()).Should(Equal(valueToReturn))
