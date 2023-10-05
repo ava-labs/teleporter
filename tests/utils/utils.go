@@ -260,7 +260,7 @@ func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclien
 			return receipt
 		} else {
 			log.Info("Waiting for transaction", "hash", txHash.Hex())
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(200 * time.Millisecond)
 		}
 	}
 }
