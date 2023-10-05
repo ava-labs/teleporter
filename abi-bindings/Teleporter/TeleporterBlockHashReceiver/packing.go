@@ -13,7 +13,7 @@ type ReceiveBlockHashInput struct {
 
 // Pack packs a ReceiveCrossChainMessageInput to form a call to the receiveCrossChainMessage function
 func PackReceiveBlockHash(inputStruct ReceiveBlockHashInput) ([]byte, error) {
-	abi, err := TeleporterblockhashreceiverMetaData.GetAbi()
+	abi, err := TeleporterBlockHashReceiverMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}

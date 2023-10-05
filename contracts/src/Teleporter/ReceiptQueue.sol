@@ -8,90 +8,96 @@ pragma solidity 0.8.18;
 import "./ITeleporterMessenger.sol";
 
 /**
- * @dev ReceiptQueue is a convenience contract that creates a queue-like interface of
+ * @dev ReceiptQueue is a convenience library that creates a queue-like interface of
  * TeleporterMessageReceipt structs. It provides FIFO properties.
+ * Note: All functions in this library are internal so that the library is not deployed as a contract.
  */
-contract ReceiptQueue {
-    address public immutable owner;
-    mapping(uint256 => TeleporterMessageReceipt) public queue;
-    uint256 public first = 0;
-    uint256 public last = 0;
+library ReceiptQueue {
+    struct TeleporterMessageReceiptQueue {
+        uint256 first;
+        uint256 last;
+        mapping(uint256 index => TeleporterMessageReceipt) data;
+    }
 
-    /**
-     * @dev Emitted when a new receipt is added to the queue.
-     */
-    event Enqueue(
-        uint256 indexed messageID,
-        address indexed relayerRewardAddress
-    );
-
-    /**
-     * @dev Emitted when a receipt is taken off the front of the queue.
-     */
-    event Dequeue(
-        uint256 indexed messageID,
-        address indexed relayerRewardAddress
-    );
+    // The maximum number of receipts to include in a single message.
+    uint256 private constant _MAXIMUM_RECEIPT_COUNT = 5;
 
     // Errors
-    error Unauthorized();
     error EmptyQueue();
-
-    constructor() {
-        owner = msg.sender;
-    }
+    error OutofIndex();
 
     /**
      * @dev Adds a receipt to the queue.
-     *
-     * Requirements:
-     *
-     * - `msg.sender` must be the owner.
      */
-    function enqueue(TeleporterMessageReceipt calldata receipt) external {
-        if (msg.sender != owner) {
-            revert Unauthorized();
-        }
-
-        queue[last++] = receipt;
-
-        emit Enqueue(receipt.receivedMessageID, receipt.relayerRewardAddress);
+    function enqueue(
+        TeleporterMessageReceiptQueue storage queue,
+        TeleporterMessageReceipt memory receipt
+    ) internal {
+        queue.data[queue.last++] = receipt;
     }
 
     /**
      * @dev Removes the oldest open receipt from the queue.
      *
      * Requirements:
-     *
-     * - `msg.sender` must be the owner.
      * - The queue must be non-empty.
      */
-    function dequeue()
-        external
+    function dequeue(
+        TeleporterMessageReceiptQueue storage queue
+    )
+        internal
         returns (TeleporterMessageReceipt memory result)
     {
-        if (msg.sender != owner) {
-            revert Unauthorized();
+        uint256 first_ = queue.first;
+        if (queue.last == first_) revert EmptyQueue();
+        result = queue.data[first_];
+        delete queue.data[first_];
+        queue.first = first_ + 1;
+    }
+
+    /**
+     * @dev Returns the outstanding receipts for the given chain ID that should be included in the next message sent.
+     */
+    function getOutstandingReceiptsToSend(
+        TeleporterMessageReceiptQueue storage queue
+    )
+        internal
+        returns (TeleporterMessageReceipt[] memory result)
+    {
+        // Get the current outstanding receipts for the given chain ID.
+        // If the queue contract doesn't exist, there are no outstanding receipts to send.
+        uint256 resultSize = size(queue);
+        if (resultSize == 0) {
+            return new TeleporterMessageReceipt[](0);
         }
 
-        uint256 first_ = first;
-
-        if (last == first_) {
-            revert EmptyQueue(); // empty queue
+        // Calculate the result size as the minimum of the number of receipts and maximum batch size.
+        if (resultSize > _MAXIMUM_RECEIPT_COUNT) {
+            resultSize = _MAXIMUM_RECEIPT_COUNT;
         }
 
-        result = queue[first_];
-
-        delete queue[first_];
-        first = first_ + 1;
-
-        emit Dequeue(result.receivedMessageID, result.relayerRewardAddress);
+        result = new TeleporterMessageReceipt[](resultSize);
+        for (uint256 i = 0; i < resultSize; ++i) {
+            result[i] = dequeue(queue);
+        }
     }
 
     /**
      * @dev Returns the number of open receipts in the queue.
      */
-    function size() external view returns (uint256) {
-        return last - first;
+    function size(TeleporterMessageReceiptQueue storage queue) internal view returns (uint256) {
+        return queue.last - queue.first;
+    }
+
+    /**
+     * @dev Returns the receipt at the given index in the queue.
+     */
+    function getReceiptAtIndex(TeleporterMessageReceiptQueue storage queue, uint256 index)
+        internal
+        view
+        returns (TeleporterMessageReceipt memory)
+    {
+        if (index >= size(queue)) revert OutofIndex();
+        return queue.data[queue.first + index];
     }
 }
