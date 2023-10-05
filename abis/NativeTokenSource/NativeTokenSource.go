@@ -1,7 +1,7 @@
 // Code generated - DO NOT EDIT.
 // This file is a generated binding and any manual changes will be lost.
 
-package abi
+package nativetokensource
 
 import (
 	"errors"
@@ -29,113 +29,113 @@ var (
 	_ = abi.ConvertType
 )
 
-// NativeTokenSourceMetaData contains all meta data concerning the NativeTokenSource contract.
-var NativeTokenSourceMetaData = &bind.MetaData{
+// NativetokensourceMetaData contains all meta data concerning the Nativetokensource contract.
+var NativetokensourceMetaData = &bind.MetaData{
 	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationContractAddress_\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"BalanceNotIncreased\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToDestination\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"UnlockTokens\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MINT_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"destinationBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"destinationContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"}],\"name\":\"transferToDestination\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
-// NativeTokenSourceABI is the input ABI used to generate the binding from.
-// Deprecated: Use NativeTokenSourceMetaData.ABI instead.
-var NativeTokenSourceABI = NativeTokenSourceMetaData.ABI
+// NativetokensourceABI is the input ABI used to generate the binding from.
+// Deprecated: Use NativetokensourceMetaData.ABI instead.
+var NativetokensourceABI = NativetokensourceMetaData.ABI
 
-// NativeTokenSource is an auto generated Go binding around an Ethereum contract.
-type NativeTokenSource struct {
-	NativeTokenSourceCaller     // Read-only binding to the contract
-	NativeTokenSourceTransactor // Write-only binding to the contract
-	NativeTokenSourceFilterer   // Log filterer for contract events
+// Nativetokensource is an auto generated Go binding around an Ethereum contract.
+type Nativetokensource struct {
+	NativetokensourceCaller     // Read-only binding to the contract
+	NativetokensourceTransactor // Write-only binding to the contract
+	NativetokensourceFilterer   // Log filterer for contract events
 }
 
-// NativeTokenSourceCaller is an auto generated read-only Go binding around an Ethereum contract.
-type NativeTokenSourceCaller struct {
+// NativetokensourceCaller is an auto generated read-only Go binding around an Ethereum contract.
+type NativetokensourceCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// NativeTokenSourceTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type NativeTokenSourceTransactor struct {
+// NativetokensourceTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type NativetokensourceTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// NativeTokenSourceFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type NativeTokenSourceFilterer struct {
+// NativetokensourceFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type NativetokensourceFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// NativeTokenSourceSession is an auto generated Go binding around an Ethereum contract,
+// NativetokensourceSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type NativeTokenSourceSession struct {
-	Contract     *NativeTokenSource // Generic contract binding to set the session for
+type NativetokensourceSession struct {
+	Contract     *Nativetokensource // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts      // Call options to use throughout this session
 	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
 }
 
-// NativeTokenSourceCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// NativetokensourceCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type NativeTokenSourceCallerSession struct {
-	Contract *NativeTokenSourceCaller // Generic contract caller binding to set the session for
+type NativetokensourceCallerSession struct {
+	Contract *NativetokensourceCaller // Generic contract caller binding to set the session for
 	CallOpts bind.CallOpts            // Call options to use throughout this session
 }
 
-// NativeTokenSourceTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// NativetokensourceTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type NativeTokenSourceTransactorSession struct {
-	Contract     *NativeTokenSourceTransactor // Generic contract transactor binding to set the session for
+type NativetokensourceTransactorSession struct {
+	Contract     *NativetokensourceTransactor // Generic contract transactor binding to set the session for
 	TransactOpts bind.TransactOpts            // Transaction auth options to use throughout this session
 }
 
-// NativeTokenSourceRaw is an auto generated low-level Go binding around an Ethereum contract.
-type NativeTokenSourceRaw struct {
-	Contract *NativeTokenSource // Generic contract binding to access the raw methods on
+// NativetokensourceRaw is an auto generated low-level Go binding around an Ethereum contract.
+type NativetokensourceRaw struct {
+	Contract *Nativetokensource // Generic contract binding to access the raw methods on
 }
 
-// NativeTokenSourceCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type NativeTokenSourceCallerRaw struct {
-	Contract *NativeTokenSourceCaller // Generic read-only contract binding to access the raw methods on
+// NativetokensourceCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type NativetokensourceCallerRaw struct {
+	Contract *NativetokensourceCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// NativeTokenSourceTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type NativeTokenSourceTransactorRaw struct {
-	Contract *NativeTokenSourceTransactor // Generic write-only contract binding to access the raw methods on
+// NativetokensourceTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type NativetokensourceTransactorRaw struct {
+	Contract *NativetokensourceTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewNativeTokenSource creates a new instance of NativeTokenSource, bound to a specific deployed contract.
-func NewNativeTokenSource(address common.Address, backend bind.ContractBackend) (*NativeTokenSource, error) {
-	contract, err := bindNativeTokenSource(address, backend, backend, backend)
+// NewNativetokensource creates a new instance of Nativetokensource, bound to a specific deployed contract.
+func NewNativetokensource(address common.Address, backend bind.ContractBackend) (*Nativetokensource, error) {
+	contract, err := bindNativetokensource(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &NativeTokenSource{NativeTokenSourceCaller: NativeTokenSourceCaller{contract: contract}, NativeTokenSourceTransactor: NativeTokenSourceTransactor{contract: contract}, NativeTokenSourceFilterer: NativeTokenSourceFilterer{contract: contract}}, nil
+	return &Nativetokensource{NativetokensourceCaller: NativetokensourceCaller{contract: contract}, NativetokensourceTransactor: NativetokensourceTransactor{contract: contract}, NativetokensourceFilterer: NativetokensourceFilterer{contract: contract}}, nil
 }
 
-// NewNativeTokenSourceCaller creates a new read-only instance of NativeTokenSource, bound to a specific deployed contract.
-func NewNativeTokenSourceCaller(address common.Address, caller bind.ContractCaller) (*NativeTokenSourceCaller, error) {
-	contract, err := bindNativeTokenSource(address, caller, nil, nil)
+// NewNativetokensourceCaller creates a new read-only instance of Nativetokensource, bound to a specific deployed contract.
+func NewNativetokensourceCaller(address common.Address, caller bind.ContractCaller) (*NativetokensourceCaller, error) {
+	contract, err := bindNativetokensource(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &NativeTokenSourceCaller{contract: contract}, nil
+	return &NativetokensourceCaller{contract: contract}, nil
 }
 
-// NewNativeTokenSourceTransactor creates a new write-only instance of NativeTokenSource, bound to a specific deployed contract.
-func NewNativeTokenSourceTransactor(address common.Address, transactor bind.ContractTransactor) (*NativeTokenSourceTransactor, error) {
-	contract, err := bindNativeTokenSource(address, nil, transactor, nil)
+// NewNativetokensourceTransactor creates a new write-only instance of Nativetokensource, bound to a specific deployed contract.
+func NewNativetokensourceTransactor(address common.Address, transactor bind.ContractTransactor) (*NativetokensourceTransactor, error) {
+	contract, err := bindNativetokensource(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &NativeTokenSourceTransactor{contract: contract}, nil
+	return &NativetokensourceTransactor{contract: contract}, nil
 }
 
-// NewNativeTokenSourceFilterer creates a new log filterer instance of NativeTokenSource, bound to a specific deployed contract.
-func NewNativeTokenSourceFilterer(address common.Address, filterer bind.ContractFilterer) (*NativeTokenSourceFilterer, error) {
-	contract, err := bindNativeTokenSource(address, nil, nil, filterer)
+// NewNativetokensourceFilterer creates a new log filterer instance of Nativetokensource, bound to a specific deployed contract.
+func NewNativetokensourceFilterer(address common.Address, filterer bind.ContractFilterer) (*NativetokensourceFilterer, error) {
+	contract, err := bindNativetokensource(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &NativeTokenSourceFilterer{contract: contract}, nil
+	return &NativetokensourceFilterer{contract: contract}, nil
 }
 
-// bindNativeTokenSource binds a generic wrapper to an already deployed contract.
-func bindNativeTokenSource(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := NativeTokenSourceMetaData.GetAbi()
+// bindNativetokensource binds a generic wrapper to an already deployed contract.
+func bindNativetokensource(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := NativetokensourceMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -146,46 +146,46 @@ func bindNativeTokenSource(address common.Address, caller bind.ContractCaller, t
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_NativeTokenSource *NativeTokenSourceRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _NativeTokenSource.Contract.NativeTokenSourceCaller.contract.Call(opts, result, method, params...)
+func (_Nativetokensource *NativetokensourceRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _Nativetokensource.Contract.NativetokensourceCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_NativeTokenSource *NativeTokenSourceRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _NativeTokenSource.Contract.NativeTokenSourceTransactor.contract.Transfer(opts)
+func (_Nativetokensource *NativetokensourceRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Nativetokensource.Contract.NativetokensourceTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_NativeTokenSource *NativeTokenSourceRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _NativeTokenSource.Contract.NativeTokenSourceTransactor.contract.Transact(opts, method, params...)
+func (_Nativetokensource *NativetokensourceRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Nativetokensource.Contract.NativetokensourceTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_NativeTokenSource *NativeTokenSourceCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _NativeTokenSource.Contract.contract.Call(opts, result, method, params...)
+func (_Nativetokensource *NativetokensourceCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _Nativetokensource.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_NativeTokenSource *NativeTokenSourceTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _NativeTokenSource.Contract.contract.Transfer(opts)
+func (_Nativetokensource *NativetokensourceTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Nativetokensource.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_NativeTokenSource *NativeTokenSourceTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _NativeTokenSource.Contract.contract.Transact(opts, method, params...)
+func (_Nativetokensource *NativetokensourceTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Nativetokensource.Contract.contract.Transact(opts, method, params...)
 }
 
 // MINTNATIVETOKENSREQUIREDGAS is a free data retrieval call binding the contract method 0xb6171f73.
 //
 // Solidity: function MINT_NATIVE_TOKENS_REQUIRED_GAS() view returns(uint256)
-func (_NativeTokenSource *NativeTokenSourceCaller) MINTNATIVETOKENSREQUIREDGAS(opts *bind.CallOpts) (*big.Int, error) {
+func (_Nativetokensource *NativetokensourceCaller) MINTNATIVETOKENSREQUIREDGAS(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _NativeTokenSource.contract.Call(opts, &out, "MINT_NATIVE_TOKENS_REQUIRED_GAS")
+	err := _Nativetokensource.contract.Call(opts, &out, "MINT_NATIVE_TOKENS_REQUIRED_GAS")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -200,23 +200,23 @@ func (_NativeTokenSource *NativeTokenSourceCaller) MINTNATIVETOKENSREQUIREDGAS(o
 // MINTNATIVETOKENSREQUIREDGAS is a free data retrieval call binding the contract method 0xb6171f73.
 //
 // Solidity: function MINT_NATIVE_TOKENS_REQUIRED_GAS() view returns(uint256)
-func (_NativeTokenSource *NativeTokenSourceSession) MINTNATIVETOKENSREQUIREDGAS() (*big.Int, error) {
-	return _NativeTokenSource.Contract.MINTNATIVETOKENSREQUIREDGAS(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceSession) MINTNATIVETOKENSREQUIREDGAS() (*big.Int, error) {
+	return _Nativetokensource.Contract.MINTNATIVETOKENSREQUIREDGAS(&_Nativetokensource.CallOpts)
 }
 
 // MINTNATIVETOKENSREQUIREDGAS is a free data retrieval call binding the contract method 0xb6171f73.
 //
 // Solidity: function MINT_NATIVE_TOKENS_REQUIRED_GAS() view returns(uint256)
-func (_NativeTokenSource *NativeTokenSourceCallerSession) MINTNATIVETOKENSREQUIREDGAS() (*big.Int, error) {
-	return _NativeTokenSource.Contract.MINTNATIVETOKENSREQUIREDGAS(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceCallerSession) MINTNATIVETOKENSREQUIREDGAS() (*big.Int, error) {
+	return _Nativetokensource.Contract.MINTNATIVETOKENSREQUIREDGAS(&_Nativetokensource.CallOpts)
 }
 
 // CurrentBlockchainID is a free data retrieval call binding the contract method 0x4950d2d0.
 //
 // Solidity: function currentBlockchainID() view returns(bytes32)
-func (_NativeTokenSource *NativeTokenSourceCaller) CurrentBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
+func (_Nativetokensource *NativetokensourceCaller) CurrentBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
-	err := _NativeTokenSource.contract.Call(opts, &out, "currentBlockchainID")
+	err := _Nativetokensource.contract.Call(opts, &out, "currentBlockchainID")
 
 	if err != nil {
 		return *new([32]byte), err
@@ -231,23 +231,23 @@ func (_NativeTokenSource *NativeTokenSourceCaller) CurrentBlockchainID(opts *bin
 // CurrentBlockchainID is a free data retrieval call binding the contract method 0x4950d2d0.
 //
 // Solidity: function currentBlockchainID() view returns(bytes32)
-func (_NativeTokenSource *NativeTokenSourceSession) CurrentBlockchainID() ([32]byte, error) {
-	return _NativeTokenSource.Contract.CurrentBlockchainID(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceSession) CurrentBlockchainID() ([32]byte, error) {
+	return _Nativetokensource.Contract.CurrentBlockchainID(&_Nativetokensource.CallOpts)
 }
 
 // CurrentBlockchainID is a free data retrieval call binding the contract method 0x4950d2d0.
 //
 // Solidity: function currentBlockchainID() view returns(bytes32)
-func (_NativeTokenSource *NativeTokenSourceCallerSession) CurrentBlockchainID() ([32]byte, error) {
-	return _NativeTokenSource.Contract.CurrentBlockchainID(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceCallerSession) CurrentBlockchainID() ([32]byte, error) {
+	return _Nativetokensource.Contract.CurrentBlockchainID(&_Nativetokensource.CallOpts)
 }
 
 // DestinationBlockchainID is a free data retrieval call binding the contract method 0x41d3014d.
 //
 // Solidity: function destinationBlockchainID() view returns(bytes32)
-func (_NativeTokenSource *NativeTokenSourceCaller) DestinationBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
+func (_Nativetokensource *NativetokensourceCaller) DestinationBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
-	err := _NativeTokenSource.contract.Call(opts, &out, "destinationBlockchainID")
+	err := _Nativetokensource.contract.Call(opts, &out, "destinationBlockchainID")
 
 	if err != nil {
 		return *new([32]byte), err
@@ -262,23 +262,23 @@ func (_NativeTokenSource *NativeTokenSourceCaller) DestinationBlockchainID(opts 
 // DestinationBlockchainID is a free data retrieval call binding the contract method 0x41d3014d.
 //
 // Solidity: function destinationBlockchainID() view returns(bytes32)
-func (_NativeTokenSource *NativeTokenSourceSession) DestinationBlockchainID() ([32]byte, error) {
-	return _NativeTokenSource.Contract.DestinationBlockchainID(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceSession) DestinationBlockchainID() ([32]byte, error) {
+	return _Nativetokensource.Contract.DestinationBlockchainID(&_Nativetokensource.CallOpts)
 }
 
 // DestinationBlockchainID is a free data retrieval call binding the contract method 0x41d3014d.
 //
 // Solidity: function destinationBlockchainID() view returns(bytes32)
-func (_NativeTokenSource *NativeTokenSourceCallerSession) DestinationBlockchainID() ([32]byte, error) {
-	return _NativeTokenSource.Contract.DestinationBlockchainID(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceCallerSession) DestinationBlockchainID() ([32]byte, error) {
+	return _Nativetokensource.Contract.DestinationBlockchainID(&_Nativetokensource.CallOpts)
 }
 
 // DestinationContractAddress is a free data retrieval call binding the contract method 0x04d6baf7.
 //
 // Solidity: function destinationContractAddress() view returns(address)
-func (_NativeTokenSource *NativeTokenSourceCaller) DestinationContractAddress(opts *bind.CallOpts) (common.Address, error) {
+func (_Nativetokensource *NativetokensourceCaller) DestinationContractAddress(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _NativeTokenSource.contract.Call(opts, &out, "destinationContractAddress")
+	err := _Nativetokensource.contract.Call(opts, &out, "destinationContractAddress")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -293,23 +293,23 @@ func (_NativeTokenSource *NativeTokenSourceCaller) DestinationContractAddress(op
 // DestinationContractAddress is a free data retrieval call binding the contract method 0x04d6baf7.
 //
 // Solidity: function destinationContractAddress() view returns(address)
-func (_NativeTokenSource *NativeTokenSourceSession) DestinationContractAddress() (common.Address, error) {
-	return _NativeTokenSource.Contract.DestinationContractAddress(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceSession) DestinationContractAddress() (common.Address, error) {
+	return _Nativetokensource.Contract.DestinationContractAddress(&_Nativetokensource.CallOpts)
 }
 
 // DestinationContractAddress is a free data retrieval call binding the contract method 0x04d6baf7.
 //
 // Solidity: function destinationContractAddress() view returns(address)
-func (_NativeTokenSource *NativeTokenSourceCallerSession) DestinationContractAddress() (common.Address, error) {
-	return _NativeTokenSource.Contract.DestinationContractAddress(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceCallerSession) DestinationContractAddress() (common.Address, error) {
+	return _Nativetokensource.Contract.DestinationContractAddress(&_Nativetokensource.CallOpts)
 }
 
 // TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
 // Solidity: function teleporterMessenger() view returns(address)
-func (_NativeTokenSource *NativeTokenSourceCaller) TeleporterMessenger(opts *bind.CallOpts) (common.Address, error) {
+func (_Nativetokensource *NativetokensourceCaller) TeleporterMessenger(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _NativeTokenSource.contract.Call(opts, &out, "teleporterMessenger")
+	err := _Nativetokensource.contract.Call(opts, &out, "teleporterMessenger")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -324,62 +324,62 @@ func (_NativeTokenSource *NativeTokenSourceCaller) TeleporterMessenger(opts *bin
 // TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
 // Solidity: function teleporterMessenger() view returns(address)
-func (_NativeTokenSource *NativeTokenSourceSession) TeleporterMessenger() (common.Address, error) {
-	return _NativeTokenSource.Contract.TeleporterMessenger(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceSession) TeleporterMessenger() (common.Address, error) {
+	return _Nativetokensource.Contract.TeleporterMessenger(&_Nativetokensource.CallOpts)
 }
 
 // TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
 // Solidity: function teleporterMessenger() view returns(address)
-func (_NativeTokenSource *NativeTokenSourceCallerSession) TeleporterMessenger() (common.Address, error) {
-	return _NativeTokenSource.Contract.TeleporterMessenger(&_NativeTokenSource.CallOpts)
+func (_Nativetokensource *NativetokensourceCallerSession) TeleporterMessenger() (common.Address, error) {
+	return _Nativetokensource.Contract.TeleporterMessenger(&_Nativetokensource.CallOpts)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
 // Solidity: function receiveTeleporterMessage(bytes32 senderBlockchainID, address senderAddress, bytes message) returns()
-func (_NativeTokenSource *NativeTokenSourceTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, senderBlockchainID [32]byte, senderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _NativeTokenSource.contract.Transact(opts, "receiveTeleporterMessage", senderBlockchainID, senderAddress, message)
+func (_Nativetokensource *NativetokensourceTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, senderBlockchainID [32]byte, senderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _Nativetokensource.contract.Transact(opts, "receiveTeleporterMessage", senderBlockchainID, senderAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
 // Solidity: function receiveTeleporterMessage(bytes32 senderBlockchainID, address senderAddress, bytes message) returns()
-func (_NativeTokenSource *NativeTokenSourceSession) ReceiveTeleporterMessage(senderBlockchainID [32]byte, senderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _NativeTokenSource.Contract.ReceiveTeleporterMessage(&_NativeTokenSource.TransactOpts, senderBlockchainID, senderAddress, message)
+func (_Nativetokensource *NativetokensourceSession) ReceiveTeleporterMessage(senderBlockchainID [32]byte, senderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _Nativetokensource.Contract.ReceiveTeleporterMessage(&_Nativetokensource.TransactOpts, senderBlockchainID, senderAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
 // Solidity: function receiveTeleporterMessage(bytes32 senderBlockchainID, address senderAddress, bytes message) returns()
-func (_NativeTokenSource *NativeTokenSourceTransactorSession) ReceiveTeleporterMessage(senderBlockchainID [32]byte, senderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _NativeTokenSource.Contract.ReceiveTeleporterMessage(&_NativeTokenSource.TransactOpts, senderBlockchainID, senderAddress, message)
+func (_Nativetokensource *NativetokensourceTransactorSession) ReceiveTeleporterMessage(senderBlockchainID [32]byte, senderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _Nativetokensource.Contract.ReceiveTeleporterMessage(&_Nativetokensource.TransactOpts, senderBlockchainID, senderAddress, message)
 }
 
 // TransferToDestination is a paid mutator transaction binding the contract method 0x3c7bf510.
 //
 // Solidity: function transferToDestination(address recipient, address feeContractAddress, uint256 feeAmount) payable returns()
-func (_NativeTokenSource *NativeTokenSourceTransactor) TransferToDestination(opts *bind.TransactOpts, recipient common.Address, feeContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
-	return _NativeTokenSource.contract.Transact(opts, "transferToDestination", recipient, feeContractAddress, feeAmount)
+func (_Nativetokensource *NativetokensourceTransactor) TransferToDestination(opts *bind.TransactOpts, recipient common.Address, feeContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
+	return _Nativetokensource.contract.Transact(opts, "transferToDestination", recipient, feeContractAddress, feeAmount)
 }
 
 // TransferToDestination is a paid mutator transaction binding the contract method 0x3c7bf510.
 //
 // Solidity: function transferToDestination(address recipient, address feeContractAddress, uint256 feeAmount) payable returns()
-func (_NativeTokenSource *NativeTokenSourceSession) TransferToDestination(recipient common.Address, feeContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
-	return _NativeTokenSource.Contract.TransferToDestination(&_NativeTokenSource.TransactOpts, recipient, feeContractAddress, feeAmount)
+func (_Nativetokensource *NativetokensourceSession) TransferToDestination(recipient common.Address, feeContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
+	return _Nativetokensource.Contract.TransferToDestination(&_Nativetokensource.TransactOpts, recipient, feeContractAddress, feeAmount)
 }
 
 // TransferToDestination is a paid mutator transaction binding the contract method 0x3c7bf510.
 //
 // Solidity: function transferToDestination(address recipient, address feeContractAddress, uint256 feeAmount) payable returns()
-func (_NativeTokenSource *NativeTokenSourceTransactorSession) TransferToDestination(recipient common.Address, feeContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
-	return _NativeTokenSource.Contract.TransferToDestination(&_NativeTokenSource.TransactOpts, recipient, feeContractAddress, feeAmount)
+func (_Nativetokensource *NativetokensourceTransactorSession) TransferToDestination(recipient common.Address, feeContractAddress common.Address, feeAmount *big.Int) (*types.Transaction, error) {
+	return _Nativetokensource.Contract.TransferToDestination(&_Nativetokensource.TransactOpts, recipient, feeContractAddress, feeAmount)
 }
 
-// NativeTokenSourceTransferToDestinationIterator is returned from FilterTransferToDestination and is used to iterate over the raw logs and unpacked data for TransferToDestination events raised by the NativeTokenSource contract.
-type NativeTokenSourceTransferToDestinationIterator struct {
-	Event *NativeTokenSourceTransferToDestination // Event containing the contract specifics and raw log
+// NativetokensourceTransferToDestinationIterator is returned from FilterTransferToDestination and is used to iterate over the raw logs and unpacked data for TransferToDestination events raised by the Nativetokensource contract.
+type NativetokensourceTransferToDestinationIterator struct {
+	Event *NativetokensourceTransferToDestination // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -393,7 +393,7 @@ type NativeTokenSourceTransferToDestinationIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *NativeTokenSourceTransferToDestinationIterator) Next() bool {
+func (it *NativetokensourceTransferToDestinationIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -402,7 +402,7 @@ func (it *NativeTokenSourceTransferToDestinationIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(NativeTokenSourceTransferToDestination)
+			it.Event = new(NativetokensourceTransferToDestination)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -417,7 +417,7 @@ func (it *NativeTokenSourceTransferToDestinationIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(NativeTokenSourceTransferToDestination)
+		it.Event = new(NativetokensourceTransferToDestination)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -433,19 +433,19 @@ func (it *NativeTokenSourceTransferToDestinationIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *NativeTokenSourceTransferToDestinationIterator) Error() error {
+func (it *NativetokensourceTransferToDestinationIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *NativeTokenSourceTransferToDestinationIterator) Close() error {
+func (it *NativetokensourceTransferToDestinationIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// NativeTokenSourceTransferToDestination represents a TransferToDestination event raised by the NativeTokenSource contract.
-type NativeTokenSourceTransferToDestination struct {
+// NativetokensourceTransferToDestination represents a TransferToDestination event raised by the Nativetokensource contract.
+type NativetokensourceTransferToDestination struct {
 	Sender              common.Address
 	Recipient           common.Address
 	Amount              *big.Int
@@ -458,7 +458,7 @@ type NativeTokenSourceTransferToDestination struct {
 // FilterTransferToDestination is a free log retrieval operation binding the contract event 0x32d7e0a933e2b2b5890fd273e9ba2e9293d619805a7ca90d11f41eddc56d2b97.
 //
 // Solidity: event TransferToDestination(address indexed sender, address indexed recipient, uint256 amount, address feeContractAddress, uint256 feeAmount, uint256 teleporterMessageID)
-func (_NativeTokenSource *NativeTokenSourceFilterer) FilterTransferToDestination(opts *bind.FilterOpts, sender []common.Address, recipient []common.Address) (*NativeTokenSourceTransferToDestinationIterator, error) {
+func (_Nativetokensource *NativetokensourceFilterer) FilterTransferToDestination(opts *bind.FilterOpts, sender []common.Address, recipient []common.Address) (*NativetokensourceTransferToDestinationIterator, error) {
 
 	var senderRule []interface{}
 	for _, senderItem := range sender {
@@ -469,17 +469,17 @@ func (_NativeTokenSource *NativeTokenSourceFilterer) FilterTransferToDestination
 		recipientRule = append(recipientRule, recipientItem)
 	}
 
-	logs, sub, err := _NativeTokenSource.contract.FilterLogs(opts, "TransferToDestination", senderRule, recipientRule)
+	logs, sub, err := _Nativetokensource.contract.FilterLogs(opts, "TransferToDestination", senderRule, recipientRule)
 	if err != nil {
 		return nil, err
 	}
-	return &NativeTokenSourceTransferToDestinationIterator{contract: _NativeTokenSource.contract, event: "TransferToDestination", logs: logs, sub: sub}, nil
+	return &NativetokensourceTransferToDestinationIterator{contract: _Nativetokensource.contract, event: "TransferToDestination", logs: logs, sub: sub}, nil
 }
 
 // WatchTransferToDestination is a free log subscription operation binding the contract event 0x32d7e0a933e2b2b5890fd273e9ba2e9293d619805a7ca90d11f41eddc56d2b97.
 //
 // Solidity: event TransferToDestination(address indexed sender, address indexed recipient, uint256 amount, address feeContractAddress, uint256 feeAmount, uint256 teleporterMessageID)
-func (_NativeTokenSource *NativeTokenSourceFilterer) WatchTransferToDestination(opts *bind.WatchOpts, sink chan<- *NativeTokenSourceTransferToDestination, sender []common.Address, recipient []common.Address) (event.Subscription, error) {
+func (_Nativetokensource *NativetokensourceFilterer) WatchTransferToDestination(opts *bind.WatchOpts, sink chan<- *NativetokensourceTransferToDestination, sender []common.Address, recipient []common.Address) (event.Subscription, error) {
 
 	var senderRule []interface{}
 	for _, senderItem := range sender {
@@ -490,7 +490,7 @@ func (_NativeTokenSource *NativeTokenSourceFilterer) WatchTransferToDestination(
 		recipientRule = append(recipientRule, recipientItem)
 	}
 
-	logs, sub, err := _NativeTokenSource.contract.WatchLogs(opts, "TransferToDestination", senderRule, recipientRule)
+	logs, sub, err := _Nativetokensource.contract.WatchLogs(opts, "TransferToDestination", senderRule, recipientRule)
 	if err != nil {
 		return nil, err
 	}
@@ -500,8 +500,8 @@ func (_NativeTokenSource *NativeTokenSourceFilterer) WatchTransferToDestination(
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(NativeTokenSourceTransferToDestination)
-				if err := _NativeTokenSource.contract.UnpackLog(event, "TransferToDestination", log); err != nil {
+				event := new(NativetokensourceTransferToDestination)
+				if err := _Nativetokensource.contract.UnpackLog(event, "TransferToDestination", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -525,18 +525,18 @@ func (_NativeTokenSource *NativeTokenSourceFilterer) WatchTransferToDestination(
 // ParseTransferToDestination is a log parse operation binding the contract event 0x32d7e0a933e2b2b5890fd273e9ba2e9293d619805a7ca90d11f41eddc56d2b97.
 //
 // Solidity: event TransferToDestination(address indexed sender, address indexed recipient, uint256 amount, address feeContractAddress, uint256 feeAmount, uint256 teleporterMessageID)
-func (_NativeTokenSource *NativeTokenSourceFilterer) ParseTransferToDestination(log types.Log) (*NativeTokenSourceTransferToDestination, error) {
-	event := new(NativeTokenSourceTransferToDestination)
-	if err := _NativeTokenSource.contract.UnpackLog(event, "TransferToDestination", log); err != nil {
+func (_Nativetokensource *NativetokensourceFilterer) ParseTransferToDestination(log types.Log) (*NativetokensourceTransferToDestination, error) {
+	event := new(NativetokensourceTransferToDestination)
+	if err := _Nativetokensource.contract.UnpackLog(event, "TransferToDestination", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
 	return event, nil
 }
 
-// NativeTokenSourceUnlockTokensIterator is returned from FilterUnlockTokens and is used to iterate over the raw logs and unpacked data for UnlockTokens events raised by the NativeTokenSource contract.
-type NativeTokenSourceUnlockTokensIterator struct {
-	Event *NativeTokenSourceUnlockTokens // Event containing the contract specifics and raw log
+// NativetokensourceUnlockTokensIterator is returned from FilterUnlockTokens and is used to iterate over the raw logs and unpacked data for UnlockTokens events raised by the Nativetokensource contract.
+type NativetokensourceUnlockTokensIterator struct {
+	Event *NativetokensourceUnlockTokens // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -550,7 +550,7 @@ type NativeTokenSourceUnlockTokensIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *NativeTokenSourceUnlockTokensIterator) Next() bool {
+func (it *NativetokensourceUnlockTokensIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -559,7 +559,7 @@ func (it *NativeTokenSourceUnlockTokensIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(NativeTokenSourceUnlockTokens)
+			it.Event = new(NativetokensourceUnlockTokens)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -574,7 +574,7 @@ func (it *NativeTokenSourceUnlockTokensIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(NativeTokenSourceUnlockTokens)
+		it.Event = new(NativetokensourceUnlockTokens)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -590,19 +590,19 @@ func (it *NativeTokenSourceUnlockTokensIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *NativeTokenSourceUnlockTokensIterator) Error() error {
+func (it *NativetokensourceUnlockTokensIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *NativeTokenSourceUnlockTokensIterator) Close() error {
+func (it *NativetokensourceUnlockTokensIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// NativeTokenSourceUnlockTokens represents a UnlockTokens event raised by the NativeTokenSource contract.
-type NativeTokenSourceUnlockTokens struct {
+// NativetokensourceUnlockTokens represents a UnlockTokens event raised by the Nativetokensource contract.
+type NativetokensourceUnlockTokens struct {
 	Recipient common.Address
 	Amount    *big.Int
 	Raw       types.Log // Blockchain specific contextual infos
@@ -611,21 +611,21 @@ type NativeTokenSourceUnlockTokens struct {
 // FilterUnlockTokens is a free log retrieval operation binding the contract event 0x55aaef8fd8c07238c3618a93c8a1627194187d3b0952908e58f2ab0f944fb407.
 //
 // Solidity: event UnlockTokens(address recipient, uint256 amount)
-func (_NativeTokenSource *NativeTokenSourceFilterer) FilterUnlockTokens(opts *bind.FilterOpts) (*NativeTokenSourceUnlockTokensIterator, error) {
+func (_Nativetokensource *NativetokensourceFilterer) FilterUnlockTokens(opts *bind.FilterOpts) (*NativetokensourceUnlockTokensIterator, error) {
 
-	logs, sub, err := _NativeTokenSource.contract.FilterLogs(opts, "UnlockTokens")
+	logs, sub, err := _Nativetokensource.contract.FilterLogs(opts, "UnlockTokens")
 	if err != nil {
 		return nil, err
 	}
-	return &NativeTokenSourceUnlockTokensIterator{contract: _NativeTokenSource.contract, event: "UnlockTokens", logs: logs, sub: sub}, nil
+	return &NativetokensourceUnlockTokensIterator{contract: _Nativetokensource.contract, event: "UnlockTokens", logs: logs, sub: sub}, nil
 }
 
 // WatchUnlockTokens is a free log subscription operation binding the contract event 0x55aaef8fd8c07238c3618a93c8a1627194187d3b0952908e58f2ab0f944fb407.
 //
 // Solidity: event UnlockTokens(address recipient, uint256 amount)
-func (_NativeTokenSource *NativeTokenSourceFilterer) WatchUnlockTokens(opts *bind.WatchOpts, sink chan<- *NativeTokenSourceUnlockTokens) (event.Subscription, error) {
+func (_Nativetokensource *NativetokensourceFilterer) WatchUnlockTokens(opts *bind.WatchOpts, sink chan<- *NativetokensourceUnlockTokens) (event.Subscription, error) {
 
-	logs, sub, err := _NativeTokenSource.contract.WatchLogs(opts, "UnlockTokens")
+	logs, sub, err := _Nativetokensource.contract.WatchLogs(opts, "UnlockTokens")
 	if err != nil {
 		return nil, err
 	}
@@ -635,8 +635,8 @@ func (_NativeTokenSource *NativeTokenSourceFilterer) WatchUnlockTokens(opts *bin
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(NativeTokenSourceUnlockTokens)
-				if err := _NativeTokenSource.contract.UnpackLog(event, "UnlockTokens", log); err != nil {
+				event := new(NativetokensourceUnlockTokens)
+				if err := _Nativetokensource.contract.UnpackLog(event, "UnlockTokens", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -660,9 +660,9 @@ func (_NativeTokenSource *NativeTokenSourceFilterer) WatchUnlockTokens(opts *bin
 // ParseUnlockTokens is a log parse operation binding the contract event 0x55aaef8fd8c07238c3618a93c8a1627194187d3b0952908e58f2ab0f944fb407.
 //
 // Solidity: event UnlockTokens(address recipient, uint256 amount)
-func (_NativeTokenSource *NativeTokenSourceFilterer) ParseUnlockTokens(log types.Log) (*NativeTokenSourceUnlockTokens, error) {
-	event := new(NativeTokenSourceUnlockTokens)
-	if err := _NativeTokenSource.contract.UnpackLog(event, "UnlockTokens", log); err != nil {
+func (_Nativetokensource *NativetokensourceFilterer) ParseUnlockTokens(log types.Log) (*NativetokensourceUnlockTokens, error) {
+	event := new(NativetokensourceUnlockTokens)
+	if err := _Nativetokensource.contract.UnpackLog(event, "UnlockTokens", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
