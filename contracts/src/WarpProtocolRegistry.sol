@@ -29,6 +29,7 @@ abstract contract WarpProtocolRegistry {
     uint256 internal _latestVersion;
 
     mapping(uint256 => address) internal _versionToAddress;
+    mapping(address => uint256) internal _addressToVersion;
 
     /**
      * @dev Emitted when a new protocol version is added to the registry.
@@ -93,6 +94,16 @@ abstract contract WarpProtocolRegistry {
     }
 
     /**
+     * @dev Gets the version of the given `protocolAddress`.
+     * If `protocolAddress` is not a valid protocol address, returns 0, which is an invalid version.
+     */
+    function getVersionFromAddress(
+        address protocolAddress
+    ) external view returns (uint256) {
+        return _addressToVersion[protocolAddress];
+    }
+
+    /**
      * @dev Gets the latest protocol version.
      */
     function getLatestVersion() external view returns (uint256) {
@@ -153,6 +164,7 @@ abstract contract WarpProtocolRegistry {
 
         _latestVersion++;
         _versionToAddress[_latestVersion] = protocolAddress;
+        _addressToVersion[protocolAddress] = _latestVersion;
         emit AddProtocolVersion(_latestVersion, protocolAddress);
     }
 

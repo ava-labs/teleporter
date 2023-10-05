@@ -34,7 +34,7 @@ contract TeleporterUpgradeableTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeCall(
-                TeleporterRegistry.getVersionFromAddress,
+                WarpProtocolRegistry.getVersionFromAddress,
                 (MOCK_TELEPORTER_MESSENGER_ADDRESS)
             ),
             abi.encode(1)
@@ -43,7 +43,7 @@ contract TeleporterUpgradeableTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeCall(
-                TeleporterRegistry.getVersionFromAddress,
+                WarpProtocolRegistry.getVersionFromAddress,
                 (address(this))
             ),
             abi.encode(0)
