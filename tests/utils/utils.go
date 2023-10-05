@@ -78,9 +78,9 @@ func SendTransactionAndWaitForAcceptance(
 	tx *types.Transaction) *types.Receipt {
 
 	newHeads := make(chan *types.Header, 1)
-	subA, err := wsClient.SubscribeNewHead(ctx, newHeads)
+	sub, err := wsClient.SubscribeNewHead(ctx, newHeads)
 	Expect(err).Should(BeNil())
-	defer subA.Unsubscribe()
+	defer sub.Unsubscribe()
 
 	err = wsClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
