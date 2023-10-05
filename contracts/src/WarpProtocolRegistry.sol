@@ -67,7 +67,7 @@ abstract contract WarpProtocolRegistry {
 
     /**
      * @dev Gets and verifies a warp out-of-band message, and adds the new protocol version
-     * addres to the registry.
+     * address to the registry.
      *
      * Emits a {AddProtocolVersion} event when successful.
      * Requirements:

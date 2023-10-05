@@ -22,6 +22,9 @@ contract TeleporterRegistry is WarpProtocolRegistry {
 
     /**
      * @dev Gets the {ITeleporterMessenger} contract of the given `version`.
+     * Requirements:
+     *
+     * - `version` must be a valid version, i.e. greater than 0 and not greater than the latest version.
      */
     function getTeleporterFromVersion(
         uint256 version
@@ -42,7 +45,7 @@ contract TeleporterRegistry is WarpProtocolRegistry {
 
     /**
      * @dev Gets the version of the given `protocolAddress`.
-     * If `protocolAddress` is not a valid protocol address, returns 0.
+     * If `protocolAddress` is not a valid protocol address, returns 0, which is an invalid version.
      */
     function getVersionFromAddress(
         address protocolAddress
