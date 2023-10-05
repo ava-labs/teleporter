@@ -14,8 +14,6 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
     bytes public constant DEFAULT_MESSAGE_PAYLOAD =
         hex"cafebabe11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff11223344556677889900aabbccddeeffdeadbeef";
 
-    mapping(bytes32 => ReceiptQueue.TeleporterMessageReceiptQueue) private outstandingReceipts;
-
     // The state of the contract gets reset before each
     // test is run, with the `setUp()` function being called
     // each time after deployment.
@@ -239,14 +237,5 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
     function testMessageSentToEOADoesNotExecute() public {
         _receiveMessageSentToEOA();
-    }
-
-    function testEmptyReceiptQueue() public {
-        ReceiptQueue.TeleporterMessageReceiptQueue storage receiptQueue = outstandingReceipts[
-            DEFAULT_ORIGIN_CHAIN_ID
-        ];
-
-        assertEq(receiptQueue.first, 0);
-        assertEq(receiptQueue.last, 0);
     }
 }

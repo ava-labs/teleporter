@@ -104,4 +104,12 @@ contract ReceiptQueueTest is Test {
         vm.expectRevert(ReceiptQueue.OutofIndex.selector);
         result = _queue.getReceiptAtIndex(4);
     }
+
+    function testGetReceiptAtIndexWithEmptyQueue() public {
+        // Check that you can't get receipts from empty queue.
+        vm.expectRevert(ReceiptQueue.OutofIndex.selector);
+        TeleporterMessageReceipt memory result = _queue.getReceiptAtIndex(0);
+        assertEq(result.receivedMessageID, 0);
+        assertEq(result.relayerRewardAddress, address(0));
+    }
 }

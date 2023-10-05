@@ -66,15 +66,14 @@ library ReceiptQueue {
     {
         // Get the current outstanding receipts for the given chain ID.
         // If the queue contract doesn't exist, there are no outstanding receipts to send.
-        uint256 outstandingReceiptsSize = size(queue);
-        if (outstandingReceiptsSize == 0) {
+        uint256 resultSize = size(queue);
+        if (resultSize == 0) {
             return new TeleporterMessageReceipt[](0);
         }
 
         // Calculate the result size as the minimum of the number of receipts and maximum batch size.
-        uint256 resultSize = _MAXIMUM_RECEIPT_COUNT;
-        if (outstandingReceiptsSize < _MAXIMUM_RECEIPT_COUNT) {
-            resultSize = outstandingReceiptsSize;
+        if (resultSize > _MAXIMUM_RECEIPT_COUNT) {
+            resultSize = _MAXIMUM_RECEIPT_COUNT;
         }
 
         result = new TeleporterMessageReceipt[](resultSize);
