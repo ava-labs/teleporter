@@ -46,11 +46,33 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
+        // Check receipt queue size
+        assertEq(
+            teleporterMessenger.getReceiptQueueSize(
+                DEFAULT_ORIGIN_CHAIN_ID
+            ),
+            0
+        );
+
         // Receive the message.
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
+
+        // Check receipt queue size
+        assertEq(
+            teleporterMessenger.getReceiptQueueSize(
+                DEFAULT_ORIGIN_CHAIN_ID
+            ),
+            1
+        );
+
+        // Check receipt queue contents
+        TeleporterMessageReceipt memory receipt = teleporterMessenger
+            .getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+        assertEq(receipt.receivedMessageID, 1);
+        assertEq(receipt.relayerRewardAddress, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Receive at a different index
         messageToReceive.messageID = 2;
@@ -65,6 +87,22 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             3,
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
+
+        // Check receipt queue size
+        assertEq(
+            teleporterMessenger.getReceiptQueueSize(
+                DEFAULT_ORIGIN_CHAIN_ID
+            ),
+            2
+        );
+
+        // Check receipt queue contents
+        receipt = teleporterMessenger.getReceiptAtIndex(
+            DEFAULT_ORIGIN_CHAIN_ID,
+            1
+        );
+        assertEq(receipt.receivedMessageID, 2);
+        assertEq(receipt.relayerRewardAddress, DEFAULT_RELAYER_REWARD_ADDRESS);
     }
 
     function testNoValidMessage() public {
