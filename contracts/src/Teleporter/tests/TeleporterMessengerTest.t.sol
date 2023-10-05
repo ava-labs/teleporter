@@ -86,7 +86,9 @@ contract TeleporterMessengerTest is Test {
         assertEq(teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID), 0);
 
         vm.expectRevert(ReceiptQueue.OutofIndex.selector);
-        teleporterMessenger.getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+        TeleporterMessageReceipt memory receipt = teleporterMessenger.getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+        assertEq(receipt.receivedMessageID, 0);
+        assertEq(receipt.relayerRewardAddress, address(0));
     }
 
     /*
