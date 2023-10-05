@@ -20,16 +20,16 @@ import (
 func NativeTokenBridge() {
 	const (
 		valueToSend   = int64(1000_000_000_000_000_000)
-		valueToReturn = valueToSend/4
+		valueToReturn = valueToSend / 4
 
-		bridgeDeployerKeyStr   = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
-		NativeTokenSourceByteCodeFile = "./contracts/out/NativeTokenSource.sol/NativeTokenSource.json"
+		bridgeDeployerKeyStr               = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
+		NativeTokenSourceByteCodeFile      = "./contracts/out/NativeTokenSource.sol/NativeTokenSource.json"
 		NativeTokenDestinationByteCodeFile = "./contracts/out/NativeTokenDestination.sol/NativeTokenDestination.json"
 	)
 	var (
-		ctx = context.Background()
-		nativeTokenBridgeDeployer   = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
-		tokenReceiverAddress        = common.HexToAddress("0x0123456789012345678901234567890123456789")
+		ctx                       = context.Background()
+		nativeTokenBridgeDeployer = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
+		tokenReceiverAddress      = common.HexToAddress("0x0123456789012345678901234567890123456789")
 	)
 
 	subnetA := utils.GetSubnetATestInfo()
@@ -41,7 +41,6 @@ func NativeTokenBridge() {
 	nativeTokenBridgeContractAddress, err := deploymentUtils.DeriveEVMContractAddress(nativeTokenBridgeDeployer, 0)
 	Expect(err).Should(BeNil())
 	log.Info("Native Token Bridge Contract Address: " + nativeTokenBridgeContractAddress.Hex())
-
 
 	{ // Deploy the contracts
 		nativeTokenSourceBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenSourceByteCodeFile)
@@ -74,13 +73,11 @@ func NativeTokenBridge() {
 		log.Info("Finished deploying Bridge contracts")
 	}
 
-
 	// Create abi objects to call the contract with
 	nativeTokenDestination, err := nativetokendestination.NewNativetokendestination(nativeTokenBridgeContractAddress, subnetB.ChainWSClient)
 	Expect(err).Should(BeNil())
 	nativeTokenSource, err := nativetokensource.NewNativetokensource(nativeTokenBridgeContractAddress, subnetA.ChainWSClient)
 	Expect(err).Should(BeNil())
-
 
 	// Transfer tokens A -> B
 	{
@@ -94,7 +91,6 @@ func NativeTokenBridge() {
 
 		receipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetA.ChainWSClient)
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-
 
 		// Check starting balance is 0
 		bal, err := subnetB.ChainWSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
