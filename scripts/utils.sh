@@ -28,3 +28,11 @@ function setARCH() {
     [ $ARCH = x86_64 ] && ARCH=amd64
     echo "ARCH set to $ARCH"
 }
+
+function convertToLower() {
+    if [ "$ARCH" = 'arm64' ]; then
+        echo $1 | perl -ne 'print lc'
+    else
+        echo $1 | sed -e 's/\(.*\)/\L\1/'
+    fi
+}
