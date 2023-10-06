@@ -47,6 +47,14 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            messageToReceive,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -61,6 +69,14 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(3, warpMessage);
 
         // Receive the message.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            messageToReceive,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS
+        );
         teleporterMessenger.receiveCrossChainMessage(
             3,
             DEFAULT_RELAYER_REWARD_ADDRESS

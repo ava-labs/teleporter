@@ -131,6 +131,14 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
 
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x93753a9eA4C9D6eeed9f64eA92E97ce1f5FBAeDe;
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            messageToReceive,
+            address(this),
+            expectedRelayerRewardAddress
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             expectedRelayerRewardAddress

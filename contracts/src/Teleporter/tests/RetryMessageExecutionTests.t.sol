@@ -249,6 +249,14 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             messageToReceive.messageID,
             messageToReceive
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            messageToReceive,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
