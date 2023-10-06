@@ -20,7 +20,7 @@ struct ProtocolRegistryEntry {
  * @dev Implementation of an abstract `WarpProtocolRegistry` contract.
  *
  * This implementation is a contract that can be used as a base contract for protocols that are
- * build on top of warp. It allows the protocol to be upgraded through a warp out-of-band message.
+ * build on top of Warp. It allows the protocol to be upgraded through a Warp out-of-band message.
  */
 abstract contract WarpProtocolRegistry {
     // Address that the out-of-band warp message sets as the "source" address.
