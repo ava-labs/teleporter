@@ -15,7 +15,7 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	teleportermessenger "github.com/ava-labs/teleporter/abis/TeleporterMessenger"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/Teleporter/TeleporterMessenger"
 
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -321,7 +321,7 @@ func RelayMessage(
 	log.Info("Sending transaction to destination chain")
 	receipt := SendTransactionAndWaitForAcceptance(ctx, destination.WSClient, signedTx)
 
-	bind, err := teleportermessenger.NewTeleportermessenger(teleporterContractAddress, source.WSClient)
+	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.WSClient)
 	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetReceiveEventFromLogs(receipt.Logs, bind)
@@ -330,7 +330,7 @@ func RelayMessage(
 	return nil
 }
 
-func GetReceiveEventFromLogs(logs []*types.Log, bind *teleportermessenger.Teleportermessenger) (*teleportermessenger.TeleportermessengerReceiveCrossChainMessage, error) {
+func GetReceiveEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerReceiveCrossChainMessage, error) {
 	for _, log := range logs {
 		event, err := bind.ParseReceiveCrossChainMessage(*log)
 		if err == nil {
@@ -341,7 +341,7 @@ func GetReceiveEventFromLogs(logs []*types.Log, bind *teleportermessenger.Telepo
 	return nil, fmt.Errorf("failed to find ReceiveCrossChainMessage event in receipt logs")
 }
 
-func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.Teleportermessenger) (*teleportermessenger.TeleportermessengerSendCrossChainMessage, error) {
+func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerSendCrossChainMessage, error) {
 	for _, log := range logs {
 		event, err := bind.ParseSendCrossChainMessage(*log)
 		if err == nil {
