@@ -29,113 +29,113 @@ var (
 	_ = abi.ConvertType
 )
 
-// ExamplecrosschainmessengerMetaData contains all meta data concerning the Examplecrosschainmessenger contract.
-var ExamplecrosschainmessengerMetaData = &bind.MetaData{
+// ExampleCrossChainMessengerMetaData contains all meta data concerning the ExampleCrossChainMessenger contract.
+var ExampleCrossChainMessengerMetaData = &bind.MetaData{
 	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"BalanceNotIncreased\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"Unauthorized\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"ReceiveMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"feeAsset\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"SendMessage\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"}],\"name\":\"getCurrentMessage\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"sendMessage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
-// ExamplecrosschainmessengerABI is the input ABI used to generate the binding from.
-// Deprecated: Use ExamplecrosschainmessengerMetaData.ABI instead.
-var ExamplecrosschainmessengerABI = ExamplecrosschainmessengerMetaData.ABI
+// ExampleCrossChainMessengerABI is the input ABI used to generate the binding from.
+// Deprecated: Use ExampleCrossChainMessengerMetaData.ABI instead.
+var ExampleCrossChainMessengerABI = ExampleCrossChainMessengerMetaData.ABI
 
-// Examplecrosschainmessenger is an auto generated Go binding around an Ethereum contract.
-type Examplecrosschainmessenger struct {
-	ExamplecrosschainmessengerCaller     // Read-only binding to the contract
-	ExamplecrosschainmessengerTransactor // Write-only binding to the contract
-	ExamplecrosschainmessengerFilterer   // Log filterer for contract events
+// ExampleCrossChainMessenger is an auto generated Go binding around an Ethereum contract.
+type ExampleCrossChainMessenger struct {
+	ExampleCrossChainMessengerCaller     // Read-only binding to the contract
+	ExampleCrossChainMessengerTransactor // Write-only binding to the contract
+	ExampleCrossChainMessengerFilterer   // Log filterer for contract events
 }
 
-// ExamplecrosschainmessengerCaller is an auto generated read-only Go binding around an Ethereum contract.
-type ExamplecrosschainmessengerCaller struct {
+// ExampleCrossChainMessengerCaller is an auto generated read-only Go binding around an Ethereum contract.
+type ExampleCrossChainMessengerCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// ExamplecrosschainmessengerTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type ExamplecrosschainmessengerTransactor struct {
+// ExampleCrossChainMessengerTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type ExampleCrossChainMessengerTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// ExamplecrosschainmessengerFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type ExamplecrosschainmessengerFilterer struct {
+// ExampleCrossChainMessengerFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type ExampleCrossChainMessengerFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// ExamplecrosschainmessengerSession is an auto generated Go binding around an Ethereum contract,
+// ExampleCrossChainMessengerSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type ExamplecrosschainmessengerSession struct {
-	Contract     *Examplecrosschainmessenger // Generic contract binding to set the session for
+type ExampleCrossChainMessengerSession struct {
+	Contract     *ExampleCrossChainMessenger // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts               // Call options to use throughout this session
 	TransactOpts bind.TransactOpts           // Transaction auth options to use throughout this session
 }
 
-// ExamplecrosschainmessengerCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// ExampleCrossChainMessengerCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type ExamplecrosschainmessengerCallerSession struct {
-	Contract *ExamplecrosschainmessengerCaller // Generic contract caller binding to set the session for
+type ExampleCrossChainMessengerCallerSession struct {
+	Contract *ExampleCrossChainMessengerCaller // Generic contract caller binding to set the session for
 	CallOpts bind.CallOpts                     // Call options to use throughout this session
 }
 
-// ExamplecrosschainmessengerTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// ExampleCrossChainMessengerTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type ExamplecrosschainmessengerTransactorSession struct {
-	Contract     *ExamplecrosschainmessengerTransactor // Generic contract transactor binding to set the session for
+type ExampleCrossChainMessengerTransactorSession struct {
+	Contract     *ExampleCrossChainMessengerTransactor // Generic contract transactor binding to set the session for
 	TransactOpts bind.TransactOpts                     // Transaction auth options to use throughout this session
 }
 
-// ExamplecrosschainmessengerRaw is an auto generated low-level Go binding around an Ethereum contract.
-type ExamplecrosschainmessengerRaw struct {
-	Contract *Examplecrosschainmessenger // Generic contract binding to access the raw methods on
+// ExampleCrossChainMessengerRaw is an auto generated low-level Go binding around an Ethereum contract.
+type ExampleCrossChainMessengerRaw struct {
+	Contract *ExampleCrossChainMessenger // Generic contract binding to access the raw methods on
 }
 
-// ExamplecrosschainmessengerCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type ExamplecrosschainmessengerCallerRaw struct {
-	Contract *ExamplecrosschainmessengerCaller // Generic read-only contract binding to access the raw methods on
+// ExampleCrossChainMessengerCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type ExampleCrossChainMessengerCallerRaw struct {
+	Contract *ExampleCrossChainMessengerCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// ExamplecrosschainmessengerTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type ExamplecrosschainmessengerTransactorRaw struct {
-	Contract *ExamplecrosschainmessengerTransactor // Generic write-only contract binding to access the raw methods on
+// ExampleCrossChainMessengerTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type ExampleCrossChainMessengerTransactorRaw struct {
+	Contract *ExampleCrossChainMessengerTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewExamplecrosschainmessenger creates a new instance of Examplecrosschainmessenger, bound to a specific deployed contract.
-func NewExamplecrosschainmessenger(address common.Address, backend bind.ContractBackend) (*Examplecrosschainmessenger, error) {
-	contract, err := bindExamplecrosschainmessenger(address, backend, backend, backend)
+// NewExampleCrossChainMessenger creates a new instance of ExampleCrossChainMessenger, bound to a specific deployed contract.
+func NewExampleCrossChainMessenger(address common.Address, backend bind.ContractBackend) (*ExampleCrossChainMessenger, error) {
+	contract, err := bindExampleCrossChainMessenger(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &Examplecrosschainmessenger{ExamplecrosschainmessengerCaller: ExamplecrosschainmessengerCaller{contract: contract}, ExamplecrosschainmessengerTransactor: ExamplecrosschainmessengerTransactor{contract: contract}, ExamplecrosschainmessengerFilterer: ExamplecrosschainmessengerFilterer{contract: contract}}, nil
+	return &ExampleCrossChainMessenger{ExampleCrossChainMessengerCaller: ExampleCrossChainMessengerCaller{contract: contract}, ExampleCrossChainMessengerTransactor: ExampleCrossChainMessengerTransactor{contract: contract}, ExampleCrossChainMessengerFilterer: ExampleCrossChainMessengerFilterer{contract: contract}}, nil
 }
 
-// NewExamplecrosschainmessengerCaller creates a new read-only instance of Examplecrosschainmessenger, bound to a specific deployed contract.
-func NewExamplecrosschainmessengerCaller(address common.Address, caller bind.ContractCaller) (*ExamplecrosschainmessengerCaller, error) {
-	contract, err := bindExamplecrosschainmessenger(address, caller, nil, nil)
+// NewExampleCrossChainMessengerCaller creates a new read-only instance of ExampleCrossChainMessenger, bound to a specific deployed contract.
+func NewExampleCrossChainMessengerCaller(address common.Address, caller bind.ContractCaller) (*ExampleCrossChainMessengerCaller, error) {
+	contract, err := bindExampleCrossChainMessenger(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &ExamplecrosschainmessengerCaller{contract: contract}, nil
+	return &ExampleCrossChainMessengerCaller{contract: contract}, nil
 }
 
-// NewExamplecrosschainmessengerTransactor creates a new write-only instance of Examplecrosschainmessenger, bound to a specific deployed contract.
-func NewExamplecrosschainmessengerTransactor(address common.Address, transactor bind.ContractTransactor) (*ExamplecrosschainmessengerTransactor, error) {
-	contract, err := bindExamplecrosschainmessenger(address, nil, transactor, nil)
+// NewExampleCrossChainMessengerTransactor creates a new write-only instance of ExampleCrossChainMessenger, bound to a specific deployed contract.
+func NewExampleCrossChainMessengerTransactor(address common.Address, transactor bind.ContractTransactor) (*ExampleCrossChainMessengerTransactor, error) {
+	contract, err := bindExampleCrossChainMessenger(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &ExamplecrosschainmessengerTransactor{contract: contract}, nil
+	return &ExampleCrossChainMessengerTransactor{contract: contract}, nil
 }
 
-// NewExamplecrosschainmessengerFilterer creates a new log filterer instance of Examplecrosschainmessenger, bound to a specific deployed contract.
-func NewExamplecrosschainmessengerFilterer(address common.Address, filterer bind.ContractFilterer) (*ExamplecrosschainmessengerFilterer, error) {
-	contract, err := bindExamplecrosschainmessenger(address, nil, nil, filterer)
+// NewExampleCrossChainMessengerFilterer creates a new log filterer instance of ExampleCrossChainMessenger, bound to a specific deployed contract.
+func NewExampleCrossChainMessengerFilterer(address common.Address, filterer bind.ContractFilterer) (*ExampleCrossChainMessengerFilterer, error) {
+	contract, err := bindExampleCrossChainMessenger(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &ExamplecrosschainmessengerFilterer{contract: contract}, nil
+	return &ExampleCrossChainMessengerFilterer{contract: contract}, nil
 }
 
-// bindExamplecrosschainmessenger binds a generic wrapper to an already deployed contract.
-func bindExamplecrosschainmessenger(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := ExamplecrosschainmessengerMetaData.GetAbi()
+// bindExampleCrossChainMessenger binds a generic wrapper to an already deployed contract.
+func bindExampleCrossChainMessenger(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := ExampleCrossChainMessengerMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -146,49 +146,49 @@ func bindExamplecrosschainmessenger(address common.Address, caller bind.Contract
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _Examplecrosschainmessenger.Contract.ExamplecrosschainmessengerCaller.contract.Call(opts, result, method, params...)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ExampleCrossChainMessenger.Contract.ExampleCrossChainMessengerCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.Contract.ExamplecrosschainmessengerTransactor.contract.Transfer(opts)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.ExampleCrossChainMessengerTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.Contract.ExamplecrosschainmessengerTransactor.contract.Transact(opts, method, params...)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.ExampleCrossChainMessengerTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _Examplecrosschainmessenger.Contract.contract.Call(opts, result, method, params...)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ExampleCrossChainMessenger.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.Contract.contract.Transfer(opts)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.Contract.contract.Transact(opts, method, params...)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.contract.Transact(opts, method, params...)
 }
 
 // GetCurrentMessage is a free data retrieval call binding the contract method 0xb33fead4.
 //
 // Solidity: function getCurrentMessage(bytes32 originChainID) view returns(address sender, string message)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerCaller) GetCurrentMessage(opts *bind.CallOpts, originChainID [32]byte) (struct {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCaller) GetCurrentMessage(opts *bind.CallOpts, originChainID [32]byte) (struct {
 	Sender  common.Address
 	Message string
 }, error) {
 	var out []interface{}
-	err := _Examplecrosschainmessenger.contract.Call(opts, &out, "getCurrentMessage", originChainID)
+	err := _ExampleCrossChainMessenger.contract.Call(opts, &out, "getCurrentMessage", originChainID)
 
 	outstruct := new(struct {
 		Sender  common.Address
@@ -208,29 +208,29 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerCaller) GetCurrentM
 // GetCurrentMessage is a free data retrieval call binding the contract method 0xb33fead4.
 //
 // Solidity: function getCurrentMessage(bytes32 originChainID) view returns(address sender, string message)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerSession) GetCurrentMessage(originChainID [32]byte) (struct {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) GetCurrentMessage(originChainID [32]byte) (struct {
 	Sender  common.Address
 	Message string
 }, error) {
-	return _Examplecrosschainmessenger.Contract.GetCurrentMessage(&_Examplecrosschainmessenger.CallOpts, originChainID)
+	return _ExampleCrossChainMessenger.Contract.GetCurrentMessage(&_ExampleCrossChainMessenger.CallOpts, originChainID)
 }
 
 // GetCurrentMessage is a free data retrieval call binding the contract method 0xb33fead4.
 //
 // Solidity: function getCurrentMessage(bytes32 originChainID) view returns(address sender, string message)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerCallerSession) GetCurrentMessage(originChainID [32]byte) (struct {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerSession) GetCurrentMessage(originChainID [32]byte) (struct {
 	Sender  common.Address
 	Message string
 }, error) {
-	return _Examplecrosschainmessenger.Contract.GetCurrentMessage(&_Examplecrosschainmessenger.CallOpts, originChainID)
+	return _ExampleCrossChainMessenger.Contract.GetCurrentMessage(&_ExampleCrossChainMessenger.CallOpts, originChainID)
 }
 
 // TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
 // Solidity: function teleporterMessenger() view returns(address)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerCaller) TeleporterMessenger(opts *bind.CallOpts) (common.Address, error) {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCaller) TeleporterMessenger(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _Examplecrosschainmessenger.contract.Call(opts, &out, "teleporterMessenger")
+	err := _ExampleCrossChainMessenger.contract.Call(opts, &out, "teleporterMessenger")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -245,62 +245,62 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerCaller) TeleporterM
 // TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
 // Solidity: function teleporterMessenger() view returns(address)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerSession) TeleporterMessenger() (common.Address, error) {
-	return _Examplecrosschainmessenger.Contract.TeleporterMessenger(&_Examplecrosschainmessenger.CallOpts)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) TeleporterMessenger() (common.Address, error) {
+	return _ExampleCrossChainMessenger.Contract.TeleporterMessenger(&_ExampleCrossChainMessenger.CallOpts)
 }
 
 // TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
 // Solidity: function teleporterMessenger() view returns(address)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerCallerSession) TeleporterMessenger() (common.Address, error) {
-	return _Examplecrosschainmessenger.Contract.TeleporterMessenger(&_Examplecrosschainmessenger.CallOpts)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerSession) TeleporterMessenger() (common.Address, error) {
+	return _ExampleCrossChainMessenger.Contract.TeleporterMessenger(&_ExampleCrossChainMessenger.CallOpts)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
 // Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.contract.Transact(opts, "receiveTeleporterMessage", originChainID, originSenderAddress, message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.contract.Transact(opts, "receiveTeleporterMessage", originChainID, originSenderAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
 // Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerSession) ReceiveTeleporterMessage(originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.Contract.ReceiveTeleporterMessage(&_Examplecrosschainmessenger.TransactOpts, originChainID, originSenderAddress, message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) ReceiveTeleporterMessage(originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.ReceiveTeleporterMessage(&_ExampleCrossChainMessenger.TransactOpts, originChainID, originSenderAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
 // Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerTransactorSession) ReceiveTeleporterMessage(originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.Contract.ReceiveTeleporterMessage(&_Examplecrosschainmessenger.TransactOpts, originChainID, originSenderAddress, message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorSession) ReceiveTeleporterMessage(originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.ReceiveTeleporterMessage(&_ExampleCrossChainMessenger.TransactOpts, originChainID, originSenderAddress, message)
 }
 
 // SendMessage is a paid mutator transaction binding the contract method 0xf63d09d7.
 //
 // Solidity: function sendMessage(bytes32 destinationChainID, address destinationAddress, address feeContractAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256 messageID)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerTransactor) SendMessage(opts *bind.TransactOpts, destinationChainID [32]byte, destinationAddress common.Address, feeContractAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.contract.Transact(opts, "sendMessage", destinationChainID, destinationAddress, feeContractAddress, feeAmount, requiredGasLimit, message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactor) SendMessage(opts *bind.TransactOpts, destinationChainID [32]byte, destinationAddress common.Address, feeContractAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.contract.Transact(opts, "sendMessage", destinationChainID, destinationAddress, feeContractAddress, feeAmount, requiredGasLimit, message)
 }
 
 // SendMessage is a paid mutator transaction binding the contract method 0xf63d09d7.
 //
 // Solidity: function sendMessage(bytes32 destinationChainID, address destinationAddress, address feeContractAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256 messageID)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerSession) SendMessage(destinationChainID [32]byte, destinationAddress common.Address, feeContractAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.Contract.SendMessage(&_Examplecrosschainmessenger.TransactOpts, destinationChainID, destinationAddress, feeContractAddress, feeAmount, requiredGasLimit, message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) SendMessage(destinationChainID [32]byte, destinationAddress common.Address, feeContractAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.SendMessage(&_ExampleCrossChainMessenger.TransactOpts, destinationChainID, destinationAddress, feeContractAddress, feeAmount, requiredGasLimit, message)
 }
 
 // SendMessage is a paid mutator transaction binding the contract method 0xf63d09d7.
 //
 // Solidity: function sendMessage(bytes32 destinationChainID, address destinationAddress, address feeContractAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256 messageID)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerTransactorSession) SendMessage(destinationChainID [32]byte, destinationAddress common.Address, feeContractAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
-	return _Examplecrosschainmessenger.Contract.SendMessage(&_Examplecrosschainmessenger.TransactOpts, destinationChainID, destinationAddress, feeContractAddress, feeAmount, requiredGasLimit, message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorSession) SendMessage(destinationChainID [32]byte, destinationAddress common.Address, feeContractAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.SendMessage(&_ExampleCrossChainMessenger.TransactOpts, destinationChainID, destinationAddress, feeContractAddress, feeAmount, requiredGasLimit, message)
 }
 
-// ExamplecrosschainmessengerReceiveMessageIterator is returned from FilterReceiveMessage and is used to iterate over the raw logs and unpacked data for ReceiveMessage events raised by the Examplecrosschainmessenger contract.
-type ExamplecrosschainmessengerReceiveMessageIterator struct {
-	Event *ExamplecrosschainmessengerReceiveMessage // Event containing the contract specifics and raw log
+// ExampleCrossChainMessengerReceiveMessageIterator is returned from FilterReceiveMessage and is used to iterate over the raw logs and unpacked data for ReceiveMessage events raised by the ExampleCrossChainMessenger contract.
+type ExampleCrossChainMessengerReceiveMessageIterator struct {
+	Event *ExampleCrossChainMessengerReceiveMessage // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -314,7 +314,7 @@ type ExamplecrosschainmessengerReceiveMessageIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *ExamplecrosschainmessengerReceiveMessageIterator) Next() bool {
+func (it *ExampleCrossChainMessengerReceiveMessageIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -323,7 +323,7 @@ func (it *ExamplecrosschainmessengerReceiveMessageIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(ExamplecrosschainmessengerReceiveMessage)
+			it.Event = new(ExampleCrossChainMessengerReceiveMessage)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -338,7 +338,7 @@ func (it *ExamplecrosschainmessengerReceiveMessageIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(ExamplecrosschainmessengerReceiveMessage)
+		it.Event = new(ExampleCrossChainMessengerReceiveMessage)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -354,19 +354,19 @@ func (it *ExamplecrosschainmessengerReceiveMessageIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *ExamplecrosschainmessengerReceiveMessageIterator) Error() error {
+func (it *ExampleCrossChainMessengerReceiveMessageIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *ExamplecrosschainmessengerReceiveMessageIterator) Close() error {
+func (it *ExampleCrossChainMessengerReceiveMessageIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// ExamplecrosschainmessengerReceiveMessage represents a ReceiveMessage event raised by the Examplecrosschainmessenger contract.
-type ExamplecrosschainmessengerReceiveMessage struct {
+// ExampleCrossChainMessengerReceiveMessage represents a ReceiveMessage event raised by the ExampleCrossChainMessenger contract.
+type ExampleCrossChainMessengerReceiveMessage struct {
 	OriginChainID       [32]byte
 	OriginSenderAddress common.Address
 	Message             string
@@ -376,7 +376,7 @@ type ExamplecrosschainmessengerReceiveMessage struct {
 // FilterReceiveMessage is a free log retrieval operation binding the contract event 0x1f5c800b5f2b573929a7948f82a199c2a212851b53a6c5bd703ece23999d24aa.
 //
 // Solidity: event ReceiveMessage(bytes32 indexed originChainID, address indexed originSenderAddress, string message)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) FilterReceiveMessage(opts *bind.FilterOpts, originChainID [][32]byte, originSenderAddress []common.Address) (*ExamplecrosschainmessengerReceiveMessageIterator, error) {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) FilterReceiveMessage(opts *bind.FilterOpts, originChainID [][32]byte, originSenderAddress []common.Address) (*ExampleCrossChainMessengerReceiveMessageIterator, error) {
 
 	var originChainIDRule []interface{}
 	for _, originChainIDItem := range originChainID {
@@ -387,17 +387,17 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) FilterRec
 		originSenderAddressRule = append(originSenderAddressRule, originSenderAddressItem)
 	}
 
-	logs, sub, err := _Examplecrosschainmessenger.contract.FilterLogs(opts, "ReceiveMessage", originChainIDRule, originSenderAddressRule)
+	logs, sub, err := _ExampleCrossChainMessenger.contract.FilterLogs(opts, "ReceiveMessage", originChainIDRule, originSenderAddressRule)
 	if err != nil {
 		return nil, err
 	}
-	return &ExamplecrosschainmessengerReceiveMessageIterator{contract: _Examplecrosschainmessenger.contract, event: "ReceiveMessage", logs: logs, sub: sub}, nil
+	return &ExampleCrossChainMessengerReceiveMessageIterator{contract: _ExampleCrossChainMessenger.contract, event: "ReceiveMessage", logs: logs, sub: sub}, nil
 }
 
 // WatchReceiveMessage is a free log subscription operation binding the contract event 0x1f5c800b5f2b573929a7948f82a199c2a212851b53a6c5bd703ece23999d24aa.
 //
 // Solidity: event ReceiveMessage(bytes32 indexed originChainID, address indexed originSenderAddress, string message)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) WatchReceiveMessage(opts *bind.WatchOpts, sink chan<- *ExamplecrosschainmessengerReceiveMessage, originChainID [][32]byte, originSenderAddress []common.Address) (event.Subscription, error) {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) WatchReceiveMessage(opts *bind.WatchOpts, sink chan<- *ExampleCrossChainMessengerReceiveMessage, originChainID [][32]byte, originSenderAddress []common.Address) (event.Subscription, error) {
 
 	var originChainIDRule []interface{}
 	for _, originChainIDItem := range originChainID {
@@ -408,7 +408,7 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) WatchRece
 		originSenderAddressRule = append(originSenderAddressRule, originSenderAddressItem)
 	}
 
-	logs, sub, err := _Examplecrosschainmessenger.contract.WatchLogs(opts, "ReceiveMessage", originChainIDRule, originSenderAddressRule)
+	logs, sub, err := _ExampleCrossChainMessenger.contract.WatchLogs(opts, "ReceiveMessage", originChainIDRule, originSenderAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -418,8 +418,8 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) WatchRece
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(ExamplecrosschainmessengerReceiveMessage)
-				if err := _Examplecrosschainmessenger.contract.UnpackLog(event, "ReceiveMessage", log); err != nil {
+				event := new(ExampleCrossChainMessengerReceiveMessage)
+				if err := _ExampleCrossChainMessenger.contract.UnpackLog(event, "ReceiveMessage", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -443,18 +443,18 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) WatchRece
 // ParseReceiveMessage is a log parse operation binding the contract event 0x1f5c800b5f2b573929a7948f82a199c2a212851b53a6c5bd703ece23999d24aa.
 //
 // Solidity: event ReceiveMessage(bytes32 indexed originChainID, address indexed originSenderAddress, string message)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) ParseReceiveMessage(log types.Log) (*ExamplecrosschainmessengerReceiveMessage, error) {
-	event := new(ExamplecrosschainmessengerReceiveMessage)
-	if err := _Examplecrosschainmessenger.contract.UnpackLog(event, "ReceiveMessage", log); err != nil {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) ParseReceiveMessage(log types.Log) (*ExampleCrossChainMessengerReceiveMessage, error) {
+	event := new(ExampleCrossChainMessengerReceiveMessage)
+	if err := _ExampleCrossChainMessenger.contract.UnpackLog(event, "ReceiveMessage", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
 	return event, nil
 }
 
-// ExamplecrosschainmessengerSendMessageIterator is returned from FilterSendMessage and is used to iterate over the raw logs and unpacked data for SendMessage events raised by the Examplecrosschainmessenger contract.
-type ExamplecrosschainmessengerSendMessageIterator struct {
-	Event *ExamplecrosschainmessengerSendMessage // Event containing the contract specifics and raw log
+// ExampleCrossChainMessengerSendMessageIterator is returned from FilterSendMessage and is used to iterate over the raw logs and unpacked data for SendMessage events raised by the ExampleCrossChainMessenger contract.
+type ExampleCrossChainMessengerSendMessageIterator struct {
+	Event *ExampleCrossChainMessengerSendMessage // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -468,7 +468,7 @@ type ExamplecrosschainmessengerSendMessageIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *ExamplecrosschainmessengerSendMessageIterator) Next() bool {
+func (it *ExampleCrossChainMessengerSendMessageIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -477,7 +477,7 @@ func (it *ExamplecrosschainmessengerSendMessageIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(ExamplecrosschainmessengerSendMessage)
+			it.Event = new(ExampleCrossChainMessengerSendMessage)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -492,7 +492,7 @@ func (it *ExamplecrosschainmessengerSendMessageIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(ExamplecrosschainmessengerSendMessage)
+		it.Event = new(ExampleCrossChainMessengerSendMessage)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -508,19 +508,19 @@ func (it *ExamplecrosschainmessengerSendMessageIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *ExamplecrosschainmessengerSendMessageIterator) Error() error {
+func (it *ExampleCrossChainMessengerSendMessageIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *ExamplecrosschainmessengerSendMessageIterator) Close() error {
+func (it *ExampleCrossChainMessengerSendMessageIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// ExamplecrosschainmessengerSendMessage represents a SendMessage event raised by the Examplecrosschainmessenger contract.
-type ExamplecrosschainmessengerSendMessage struct {
+// ExampleCrossChainMessengerSendMessage represents a SendMessage event raised by the ExampleCrossChainMessenger contract.
+type ExampleCrossChainMessengerSendMessage struct {
 	DestinationChainID [32]byte
 	DestinationAddress common.Address
 	FeeAsset           common.Address
@@ -533,7 +533,7 @@ type ExamplecrosschainmessengerSendMessage struct {
 // FilterSendMessage is a free log retrieval operation binding the contract event 0xa06eff1edd0c66b8dc96d086dda7ba263edf88d7417e6cb15073b5e7bff8a8ca.
 //
 // Solidity: event SendMessage(bytes32 indexed destinationChainID, address indexed destinationAddress, address feeAsset, uint256 feeAmount, uint256 requiredGasLimit, string message)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) FilterSendMessage(opts *bind.FilterOpts, destinationChainID [][32]byte, destinationAddress []common.Address) (*ExamplecrosschainmessengerSendMessageIterator, error) {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) FilterSendMessage(opts *bind.FilterOpts, destinationChainID [][32]byte, destinationAddress []common.Address) (*ExampleCrossChainMessengerSendMessageIterator, error) {
 
 	var destinationChainIDRule []interface{}
 	for _, destinationChainIDItem := range destinationChainID {
@@ -544,17 +544,17 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) FilterSen
 		destinationAddressRule = append(destinationAddressRule, destinationAddressItem)
 	}
 
-	logs, sub, err := _Examplecrosschainmessenger.contract.FilterLogs(opts, "SendMessage", destinationChainIDRule, destinationAddressRule)
+	logs, sub, err := _ExampleCrossChainMessenger.contract.FilterLogs(opts, "SendMessage", destinationChainIDRule, destinationAddressRule)
 	if err != nil {
 		return nil, err
 	}
-	return &ExamplecrosschainmessengerSendMessageIterator{contract: _Examplecrosschainmessenger.contract, event: "SendMessage", logs: logs, sub: sub}, nil
+	return &ExampleCrossChainMessengerSendMessageIterator{contract: _ExampleCrossChainMessenger.contract, event: "SendMessage", logs: logs, sub: sub}, nil
 }
 
 // WatchSendMessage is a free log subscription operation binding the contract event 0xa06eff1edd0c66b8dc96d086dda7ba263edf88d7417e6cb15073b5e7bff8a8ca.
 //
 // Solidity: event SendMessage(bytes32 indexed destinationChainID, address indexed destinationAddress, address feeAsset, uint256 feeAmount, uint256 requiredGasLimit, string message)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) WatchSendMessage(opts *bind.WatchOpts, sink chan<- *ExamplecrosschainmessengerSendMessage, destinationChainID [][32]byte, destinationAddress []common.Address) (event.Subscription, error) {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) WatchSendMessage(opts *bind.WatchOpts, sink chan<- *ExampleCrossChainMessengerSendMessage, destinationChainID [][32]byte, destinationAddress []common.Address) (event.Subscription, error) {
 
 	var destinationChainIDRule []interface{}
 	for _, destinationChainIDItem := range destinationChainID {
@@ -565,7 +565,7 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) WatchSend
 		destinationAddressRule = append(destinationAddressRule, destinationAddressItem)
 	}
 
-	logs, sub, err := _Examplecrosschainmessenger.contract.WatchLogs(opts, "SendMessage", destinationChainIDRule, destinationAddressRule)
+	logs, sub, err := _ExampleCrossChainMessenger.contract.WatchLogs(opts, "SendMessage", destinationChainIDRule, destinationAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -575,8 +575,8 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) WatchSend
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(ExamplecrosschainmessengerSendMessage)
-				if err := _Examplecrosschainmessenger.contract.UnpackLog(event, "SendMessage", log); err != nil {
+				event := new(ExampleCrossChainMessengerSendMessage)
+				if err := _ExampleCrossChainMessenger.contract.UnpackLog(event, "SendMessage", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -600,9 +600,9 @@ func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) WatchSend
 // ParseSendMessage is a log parse operation binding the contract event 0xa06eff1edd0c66b8dc96d086dda7ba263edf88d7417e6cb15073b5e7bff8a8ca.
 //
 // Solidity: event SendMessage(bytes32 indexed destinationChainID, address indexed destinationAddress, address feeAsset, uint256 feeAmount, uint256 requiredGasLimit, string message)
-func (_Examplecrosschainmessenger *ExamplecrosschainmessengerFilterer) ParseSendMessage(log types.Log) (*ExamplecrosschainmessengerSendMessage, error) {
-	event := new(ExamplecrosschainmessengerSendMessage)
-	if err := _Examplecrosschainmessenger.contract.UnpackLog(event, "SendMessage", log); err != nil {
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) ParseSendMessage(log types.Log) (*ExampleCrossChainMessengerSendMessage, error) {
+	event := new(ExampleCrossChainMessengerSendMessage)
+	if err := _ExampleCrossChainMessenger.contract.UnpackLog(event, "SendMessage", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
