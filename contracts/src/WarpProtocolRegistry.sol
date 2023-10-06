@@ -25,7 +25,7 @@ struct ProtocolRegistryEntry {
 abstract contract WarpProtocolRegistry {
     // Address that the out-of-band warp message sets as the "source" address.
     // The address is obviously not owned by any EOA or smart contract account, so it
-    // can not possibly be the source address of any other warp message emitted by the VM.
+    // cannot possibly be the source address of any other Warp message emitted by the VM.
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
 
     WarpMessenger public constant WARP_MESSENGER =
