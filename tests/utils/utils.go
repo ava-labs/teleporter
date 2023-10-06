@@ -32,12 +32,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const (
-	receiveCrossChainMessageStaticGasCost           uint64 = 2_000_000
-	receiveCrossChainMessageGasCostPerAggregatedKey uint64 = 1_000
-	receiveMessageGasLimitBufferAmount                     = 100_000
-)
-
 var (
 	DefaultTeleporterTransactionGas       uint64 = 200_000
 	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
