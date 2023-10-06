@@ -13,11 +13,10 @@ import (
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/math"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/Teleporter/TeleporterMessenger"
-	"github.com/pkg/errors"
+	teleportermessenger "github.com/ava-labs/teleporter/go/abi-bindings/Teleporter/TeleporterMessenger"
+	teleporterutilities "github.com/ava-labs/teleporter/go/teleporter-utilities"
 
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -44,36 +43,7 @@ var (
 	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
 	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
 	DefaultTeleporterTransactionValue            = common.Big0
-
-	TeleporterABI = NewTeleporterABI()
 )
-
-type SendCrossChainMessageEvent struct {
-	DestinationChainID ids.ID
-	MessageID          *big.Int
-	Message            teleportermessenger.TeleporterMessage
-}
-
-type ReceiveCrossChainMessageEvent struct {
-	OriginChainID ids.ID
-	MessageID     *big.Int
-	Message       teleportermessenger.TeleporterMessage
-}
-
-// Teleporter contract sendCrossChainMessage input type
-// type SendCrossChainMessageInput struct {
-// 	DestinationChainID      ids.ID
-// 	DestinationAddress      common.Address
-// 	FeeInfo                 FeeInfo
-// 	RequiredGasLimit        *big.Int
-// 	Message                 []byte
-// 	AllowedRelayerAddresses []common.Address
-// }
-
-// type FeeInfo struct {
-// 	ContractAddress common.Address
-// 	Amount          *big.Int
-// }
 
 //
 // Test utility functions
@@ -146,7 +116,7 @@ func CreateSendCrossChainMessageTransaction(
 	fundedKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
-	data, err := TeleporterABI.PackSendCrossChainMessage(input)
+	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.ChainWSClient, fundedAddress)
@@ -186,10 +156,10 @@ func CreateReceiveCrossChainMessageTransaction(
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := calculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
+	gasLimit, err := teleporterutilities.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
 	Expect(err).Should(BeNil())
 
-	callData, err := TeleporterABI.PackReceiveCrossChainMessage(0, fundedAddress)
+	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, wsClient, fundedAddress)
@@ -367,33 +337,4 @@ func calculateTxParams(ctx context.Context, wsClient ethclient.Client, fundedAdd
 	gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
 
 	return gasFeeCap, gasTipCap, nonce
-}
-
-// CalculateReceiveMessageGasLimit calculates the estimated gas amount used by a single call
-// to receiveCrossChainMessage for the given message and validator bit vector. The result amount
-// depends on the required limit for the message execution, the number of validator signatures
-// included in the aggregate signature, the static gas cost defined by the precompile, and an
-// extra buffer amount defined here to ensure the call doesn't run out of gas.
-func calculateReceiveMessageGasLimit(numSigners int, executionRequiredGasLimit *big.Int) (uint64, error) {
-	if !executionRequiredGasLimit.IsUint64() {
-		return 0, errors.New("required gas limit too high")
-	}
-
-	gasAmounts := []uint64{
-		executionRequiredGasLimit.Uint64(),
-		receiveCrossChainMessageStaticGasCost,
-		uint64(numSigners) * receiveCrossChainMessageGasCostPerAggregatedKey,
-		receiveMessageGasLimitBufferAmount,
-	}
-
-	res := gasAmounts[0]
-	var err error
-	for i := 1; i < len(gasAmounts); i++ {
-		res, err = math.Add64(res, gasAmounts[i])
-		if err != nil {
-			return 0, err
-		}
-	}
-
-	return res, nil
 }

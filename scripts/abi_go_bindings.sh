@@ -69,11 +69,12 @@ do
     fi
 
     echo "Generating Go bindings for $contract_name..."
-    mkdir -p $TELEPORTER_PATH/abi-bindings/$dir/$contract_name
+    gen_path=$TELEPORTER_PATH/go/abi-bindings/$dir/$contract_name
+    mkdir -p $gen_path
     $GOPATH/bin/abigen --abi $abi_file \
                        --pkg $(convertToLower $contract_name) \
                        --type $contract_name \
-                       --out $TELEPORTER_PATH/abi-bindings/$dir/$contract_name/$contract_name.go
+                       --out $gen_path/$contract_name.go
     echo "Done generating Go bindings for $contract_name."
 done
 
