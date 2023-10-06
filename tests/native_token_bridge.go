@@ -7,8 +7,8 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	nativetokendestination "github.com/ava-labs/teleporter/abis/NativeTokenDestination"
-	nativetokensource "github.com/ava-labs/teleporter/abis/NativeTokenSource"
+	nativetokendestination "github.com/ava-labs/teleporter/abi-bindings/CrossChainApplications/NativeTokenBridge/NativeTokenDestination"
+	nativetokensource "github.com/ava-labs/teleporter/abi-bindings/CrossChainApplications/NativeTokenBridge/NativeTokenSource"
 	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -20,7 +20,7 @@ import (
 func NativeTokenBridge() {
 	const (
 		tokenReserve  = uint64(1e15)
-		valueToSend1  = tokenReserve/4
+		valueToSend1  = tokenReserve / 4
 		valueToSend2  = tokenReserve
 		valueToReturn = valueToSend1 / 4
 
@@ -50,7 +50,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		chainATransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetA.ChainID)
 		Expect(err).Should(BeNil())
-		nativeTokenSourceAbi, err := nativetokensource.NativetokensourceMetaData.GetAbi()
+		nativeTokenSourceAbi, err := nativetokensource.NativeTokenSourceMetaData.GetAbi()
 		Expect(err).Should(BeNil())
 		_, txA, _, err := bind.DeployContract(chainATransactor, *nativeTokenSourceAbi, nativeTokenSourceBytecode, subnetA.WSClient, teleporterContractAddress, subnetB.BlockchainID, nativeTokenBridgeContractAddress)
 		Expect(err).Should(BeNil())
@@ -59,7 +59,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		chainBTransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetB.ChainID)
 		Expect(err).Should(BeNil())
-		nativeTokenDestinationAbi, err := nativetokendestination.NativetokendestinationMetaData.GetAbi()
+		nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
 		Expect(err).Should(BeNil())
 		_, txB, _, err := bind.DeployContract(chainBTransactor, *nativeTokenDestinationAbi, nativeTokenDestinationBytecode, subnetB.WSClient, teleporterContractAddress, subnetA.BlockchainID, nativeTokenBridgeContractAddress, new(big.Int).SetUint64(tokenReserve))
 		Expect(err).Should(BeNil())
@@ -80,9 +80,9 @@ func NativeTokenBridge() {
 	}
 
 	// Create abi objects to call the contract with
-	nativeTokenDestination, err := nativetokendestination.NewNativetokendestination(nativeTokenBridgeContractAddress, subnetB.WSClient)
+	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(nativeTokenBridgeContractAddress, subnetB.WSClient)
 	Expect(err).Should(BeNil())
-	nativeTokenSource, err := nativetokensource.NewNativetokensource(nativeTokenBridgeContractAddress, subnetA.WSClient)
+	nativeTokenSource, err := nativetokensource.NewNativeTokenSource(nativeTokenBridgeContractAddress, subnetA.WSClient)
 	Expect(err).Should(BeNil())
 
 	// Helper function
