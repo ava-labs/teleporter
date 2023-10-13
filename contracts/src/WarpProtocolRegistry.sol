@@ -31,7 +31,7 @@ abstract contract WarpProtocolRegistry {
     WarpMessenger public constant WARP_MESSENGER =
         WarpMessenger(0x0200000000000000000000000000000000000005);
 
-    bytes32 internal immutable _chainID;
+    bytes32 internal immutable _blockchainID;
 
     // The latest protocol version. 0 means no protocol version has been added, and isn't a valid version.
     uint256 internal _latestVersion;
@@ -61,7 +61,7 @@ abstract contract WarpProtocolRegistry {
      */
     constructor(ProtocolRegistryEntry[] memory initialEntries) {
         _latestVersion = 0;
-        _chainID = WARP_MESSENGER.getBlockchainID();
+        _blockchainID = WARP_MESSENGER.getBlockchainID();
 
         for (uint256 i = 0; i < initialEntries.length; i++) {
             _addToRegistry(initialEntries[i]);
@@ -79,7 +79,7 @@ abstract contract WarpProtocolRegistry {
      * - the version must be the increment of the latest version.
      * - the protocol address must be a contract address.
      */
-    function addProtocolVersion(uint32 messageIndex) external {
+    function addProtocolVersion(uint32 messageIndex) external virtual {
         _addProtocolVersion(messageIndex);
     }
 
@@ -91,7 +91,7 @@ abstract contract WarpProtocolRegistry {
      */
     function getAddressFromVersion(
         uint256 version
-    ) external view returns (address) {
+    ) external view virtual returns (address) {
         return _getAddressFromVersion(version);
     }
 
@@ -101,20 +101,20 @@ abstract contract WarpProtocolRegistry {
      */
     function getVersionFromAddress(
         address protocolAddress
-    ) external view returns (uint256) {
+    ) external view virtual returns (uint256) {
         return _addressToVersion[protocolAddress];
     }
 
     /**
      * @dev Gets the latest protocol version.
      */
-    function getLatestVersion() external view returns (uint256) {
+    function getLatestVersion() external view virtual returns (uint256) {
         return _latestVersion;
     }
 
     /**
      * @dev Gets and verifies for a warp out-of-band message, and adds the new protocol version
-     * addres to the registry.
+     * address to the registry.
      */
     function _addProtocolVersion(uint32 messageIndex) internal virtual {
         // Get and validate for a warp out-of-band message.
@@ -123,13 +123,13 @@ abstract contract WarpProtocolRegistry {
         if (!valid) {
             revert InvalidWarpMessage();
         }
-        if (message.sourceChainID != _chainID) {
+        if (message.sourceChainID != _blockchainID) {
             revert InvalidSourceChainID();
         }
         if (message.originSenderAddress != VALIDATORS_SOURCE_ADDRESS) {
             revert InvalidOriginSenderAddress();
         }
-        if (message.destinationChainID != _chainID) {
+        if (message.destinationChainID != _blockchainID) {
             revert InvalidDestinationChainID();
         }
         if (message.destinationAddress != address(this)) {
