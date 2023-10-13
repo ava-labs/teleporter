@@ -27,15 +27,15 @@ const (
 )
 
 var (
-	teleporterContractAddress      common.Address
-	subnetA, subnetB               ids.ID
-	blockchainIDA, blockchainIDB   ids.ID
-	chainANodeURIs, chainBNodeURIs []string
-	fundedAddress                  = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
-	fundedKey                      *ecdsa.PrivateKey
-	chainAWSClient, chainBWSClient ethclient.Client
-	chainAWSURI, chainBWSURI       string
-	chainAIDInt, chainBIDInt       *big.Int
+	teleporterContractAddress                      common.Address
+	subnetA, subnetB, subnetC                      ids.ID
+	blockchainIDA, blockchainIDB, blockchainIDC    ids.ID
+	chainANodeURIs, chainBNodeURIs, chainCNodeURIs []string
+	fundedAddress                                  = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
+	fundedKey                                      *ecdsa.PrivateKey
+	chainAWSClient, chainBWSClient, chainCWSClient ethclient.Client
+	chainAWSURI, chainBWSURI, chainCWSURI          string
+	chainAIDInt, chainBIDInt, chainCIDInt          *big.Int
 
 	// Internal vars only used to set up the local network
 	anrConfig           = runner.NewDefaultANRConfig()
@@ -60,6 +60,7 @@ func GetSubnetsInfo() []SubnetTestInfo {
 	return []SubnetTestInfo{
 		GetSubnetATestInfo(),
 		GetSubnetBTestInfo(),
+		GetSubnetCTestInfo(),
 	}
 }
 
@@ -83,6 +84,16 @@ func GetSubnetBTestInfo() SubnetTestInfo {
 		ChainIDInt:    big.NewInt(0).Set(chainBIDInt),
 	}
 }
+func GetSubnetCTestInfo() SubnetTestInfo {
+	return SubnetTestInfo{
+		SubnetID:      subnetC,
+		BlockchainID:  blockchainIDC,
+		ChainNodeURIs: chainCNodeURIs,
+		ChainWSClient: chainCWSClient,
+		ChainWSURI:    chainCWSURI,
+		ChainIDInt:    big.NewInt(0).Set(chainCIDInt),
+	}
+}
 func GetTeleporterContractAddress() common.Address {
 	return teleporterContractAddress
 }
@@ -100,15 +111,18 @@ func SetupNetwork(warpGenesisFile string) {
 	ctx := context.Background()
 	var err error
 
-	// Name 10 new validators (which should have BLS key registered)
+	// Name 15 new validators (which should have BLS key registered)
 	subnetANodeNames := []string{}
 	subnetBNodeNames := []string{}
-	for i := 1; i <= 10; i++ {
+	subnetCNodeNames := []string{}
+	for i := 1; i <= 15; i++ {
 		n := fmt.Sprintf("node%d-bls", i)
 		if i <= 5 {
 			subnetANodeNames = append(subnetANodeNames, n)
-		} else {
+		} else if i <= 10 {
 			subnetBNodeNames = append(subnetBNodeNames, n)
+		} else {
+			subnetCNodeNames = append(subnetCNodeNames, n)
 		}
 	}
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
@@ -146,6 +160,15 @@ func SetupNetwork(warpGenesisFile string) {
 					Participants: subnetBNodeNames,
 				},
 			},
+			{
+				VmName:      evm.IDStr,
+				Genesis:     warpGenesisFile,
+				ChainConfig: warpChainConfigPath,
+				SubnetSpec: &rpcpb.SubnetSpec{
+					SubnetConfig: "",
+					Participants: subnetCNodeNames,
+				},
+			},
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -155,10 +178,11 @@ func SetupNetwork(warpGenesisFile string) {
 	Expect(err).Should(BeNil())
 	SetupProposerVM(ctx, fundedKey, manager, 0)
 	SetupProposerVM(ctx, fundedKey, manager, 1)
+	SetupProposerVM(ctx, fundedKey, manager, 2)
 
 	// Set up subnet URIs
 	subnetIDs := manager.GetSubnets()
-	Expect(len(subnetIDs)).Should(Equal(2))
+	Expect(len(subnetIDs)).Should(Equal(3))
 
 	subnetA = subnetIDs[0]
 	subnetADetails, ok := manager.GetSubnet(subnetA)
@@ -174,12 +198,21 @@ func SetupNetwork(warpGenesisFile string) {
 	blockchainIDB = subnetBDetails.BlockchainID
 	chainBNodeURIs = append(chainBNodeURIs, subnetBDetails.ValidatorURIs...)
 
+	subnetC = subnetIDs[2]
+	subnetCDetails, ok := manager.GetSubnet(subnetC)
+	Expect(ok).Should(BeTrue())
+	Expect(len(subnetCDetails.ValidatorURIs)).Should(Equal(5))
+	blockchainIDC = subnetCDetails.BlockchainID
+	chainCNodeURIs = append(chainCNodeURIs, subnetCDetails.ValidatorURIs...)
+
 	log.Info(
 		"Created URIs for subnets",
 		"chainAURIs", chainANodeURIs,
 		"chainBURIs", chainBNodeURIs,
+		"chainCURIs", chainCNodeURIs,
 		"blockchainIDA", blockchainIDA,
 		"blockchainIDB", blockchainIDB,
+		"blockchainIDC", blockchainIDC,
 	)
 
 	chainAWSURI := HttpToWebsocketURI(chainANodeURIs[0], blockchainIDA.String())
@@ -196,6 +229,14 @@ func SetupNetwork(warpGenesisFile string) {
 	Expect(err).Should(BeNil())
 
 	chainBIDInt, err = chainBWSClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
+
+	chainCWSURI := HttpToWebsocketURI(chainCNodeURIs[0], blockchainIDC.String())
+	log.Info("Creating ethclient for blockchainC", "wsURI", chainCWSURI)
+	chainCWSClient, err = ethclient.Dial(chainCWSURI)
+	Expect(err).Should(BeNil())
+
+	chainCIDInt, err = chainCWSClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
 	log.Info("Finished setting up e2e test subnet variables")
