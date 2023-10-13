@@ -31,7 +31,7 @@ var (
 
 // BlockHashReceiverMetaData contains all meta data concerning the BlockHashReceiver contract.
 var BlockHashReceiverMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"publisherChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"publisherContractAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"InvalidSourceChainID\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidSourceChainPublisher\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"Unauthorized\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getLatestBlockInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceChainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourcePublisherContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"publisherChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"publisherContractAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"InvalidSourceChainID\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidSourceChainPublisher\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidTeleporterRegistryAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidTeleporterSender\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getLatestBlockInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceChainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourcePublisherContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // BlockHashReceiverABI is the input ABI used to generate the binding from.
@@ -225,6 +225,37 @@ func (_BlockHashReceiver *BlockHashReceiverCallerSession) GetLatestBlockInfo() (
 	return _BlockHashReceiver.Contract.GetLatestBlockInfo(&_BlockHashReceiver.CallOpts)
 }
 
+// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
+//
+// Solidity: function getMinTeleporterVersion() view returns(uint256)
+func (_BlockHashReceiver *BlockHashReceiverCaller) GetMinTeleporterVersion(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _BlockHashReceiver.contract.Call(opts, &out, "getMinTeleporterVersion")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
+//
+// Solidity: function getMinTeleporterVersion() view returns(uint256)
+func (_BlockHashReceiver *BlockHashReceiverSession) GetMinTeleporterVersion() (*big.Int, error) {
+	return _BlockHashReceiver.Contract.GetMinTeleporterVersion(&_BlockHashReceiver.CallOpts)
+}
+
+// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
+//
+// Solidity: function getMinTeleporterVersion() view returns(uint256)
+func (_BlockHashReceiver *BlockHashReceiverCallerSession) GetMinTeleporterVersion() (*big.Int, error) {
+	return _BlockHashReceiver.Contract.GetMinTeleporterVersion(&_BlockHashReceiver.CallOpts)
+}
+
 // LatestBlockHash is a free data retrieval call binding the contract method 0x6c4f6ba9.
 //
 // Solidity: function latestBlockHash() view returns(bytes32)
@@ -349,12 +380,12 @@ func (_BlockHashReceiver *BlockHashReceiverCallerSession) SourcePublisherContrac
 	return _BlockHashReceiver.Contract.SourcePublisherContractAddress(&_BlockHashReceiver.CallOpts)
 }
 
-// TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
+// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
 //
-// Solidity: function teleporterMessenger() view returns(address)
-func (_BlockHashReceiver *BlockHashReceiverCaller) TeleporterMessenger(opts *bind.CallOpts) (common.Address, error) {
+// Solidity: function teleporterRegistry() view returns(address)
+func (_BlockHashReceiver *BlockHashReceiverCaller) TeleporterRegistry(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _BlockHashReceiver.contract.Call(opts, &out, "teleporterMessenger")
+	err := _BlockHashReceiver.contract.Call(opts, &out, "teleporterRegistry")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -366,18 +397,18 @@ func (_BlockHashReceiver *BlockHashReceiverCaller) TeleporterMessenger(opts *bin
 
 }
 
-// TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
+// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
 //
-// Solidity: function teleporterMessenger() view returns(address)
-func (_BlockHashReceiver *BlockHashReceiverSession) TeleporterMessenger() (common.Address, error) {
-	return _BlockHashReceiver.Contract.TeleporterMessenger(&_BlockHashReceiver.CallOpts)
+// Solidity: function teleporterRegistry() view returns(address)
+func (_BlockHashReceiver *BlockHashReceiverSession) TeleporterRegistry() (common.Address, error) {
+	return _BlockHashReceiver.Contract.TeleporterRegistry(&_BlockHashReceiver.CallOpts)
 }
 
-// TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
+// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
 //
-// Solidity: function teleporterMessenger() view returns(address)
-func (_BlockHashReceiver *BlockHashReceiverCallerSession) TeleporterMessenger() (common.Address, error) {
-	return _BlockHashReceiver.Contract.TeleporterMessenger(&_BlockHashReceiver.CallOpts)
+// Solidity: function teleporterRegistry() view returns(address)
+func (_BlockHashReceiver *BlockHashReceiverCallerSession) TeleporterRegistry() (common.Address, error) {
+	return _BlockHashReceiver.Contract.TeleporterRegistry(&_BlockHashReceiver.CallOpts)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
@@ -399,6 +430,27 @@ func (_BlockHashReceiver *BlockHashReceiverSession) ReceiveTeleporterMessage(ori
 // Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
 func (_BlockHashReceiver *BlockHashReceiverTransactorSession) ReceiveTeleporterMessage(originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
 	return _BlockHashReceiver.Contract.ReceiveTeleporterMessage(&_BlockHashReceiver.TransactOpts, originChainID, originSenderAddress, message)
+}
+
+// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
+//
+// Solidity: function updateMinTeleporterVersion() returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactor) UpdateMinTeleporterVersion(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _BlockHashReceiver.contract.Transact(opts, "updateMinTeleporterVersion")
+}
+
+// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
+//
+// Solidity: function updateMinTeleporterVersion() returns()
+func (_BlockHashReceiver *BlockHashReceiverSession) UpdateMinTeleporterVersion() (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.UpdateMinTeleporterVersion(&_BlockHashReceiver.TransactOpts)
+}
+
+// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
+//
+// Solidity: function updateMinTeleporterVersion() returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactorSession) UpdateMinTeleporterVersion() (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.UpdateMinTeleporterVersion(&_BlockHashReceiver.TransactOpts)
 }
 
 // BlockHashReceiverReceiveBlockHashIterator is returned from FilterReceiveBlockHash and is used to iterate over the raw logs and unpacked data for ReceiveBlockHash events raised by the BlockHashReceiver contract.

@@ -31,7 +31,7 @@ var (
 
 // ExampleCrossChainMessengerMetaData contains all meta data concerning the ExampleCrossChainMessenger contract.
 var ExampleCrossChainMessengerMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"BalanceNotIncreased\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"Unauthorized\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"ReceiveMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"feeAsset\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"SendMessage\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"}],\"name\":\"getCurrentMessage\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"sendMessage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"BalanceNotIncreased\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidTeleporterRegistryAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidTeleporterSender\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"ReceiveMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"feeAsset\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"SendMessage\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"}],\"name\":\"getCurrentMessage\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"sendMessage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // ExampleCrossChainMessengerABI is the input ABI used to generate the binding from.
@@ -225,12 +225,43 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerSession) GetC
 	return _ExampleCrossChainMessenger.Contract.GetCurrentMessage(&_ExampleCrossChainMessenger.CallOpts, originChainID)
 }
 
-// TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
+// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
 //
-// Solidity: function teleporterMessenger() view returns(address)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCaller) TeleporterMessenger(opts *bind.CallOpts) (common.Address, error) {
+// Solidity: function getMinTeleporterVersion() view returns(uint256)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCaller) GetMinTeleporterVersion(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _ExampleCrossChainMessenger.contract.Call(opts, &out, "teleporterMessenger")
+	err := _ExampleCrossChainMessenger.contract.Call(opts, &out, "getMinTeleporterVersion")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
+//
+// Solidity: function getMinTeleporterVersion() view returns(uint256)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) GetMinTeleporterVersion() (*big.Int, error) {
+	return _ExampleCrossChainMessenger.Contract.GetMinTeleporterVersion(&_ExampleCrossChainMessenger.CallOpts)
+}
+
+// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
+//
+// Solidity: function getMinTeleporterVersion() view returns(uint256)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerSession) GetMinTeleporterVersion() (*big.Int, error) {
+	return _ExampleCrossChainMessenger.Contract.GetMinTeleporterVersion(&_ExampleCrossChainMessenger.CallOpts)
+}
+
+// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
+//
+// Solidity: function teleporterRegistry() view returns(address)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCaller) TeleporterRegistry(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _ExampleCrossChainMessenger.contract.Call(opts, &out, "teleporterRegistry")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -242,18 +273,18 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCaller) TeleporterM
 
 }
 
-// TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
+// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
 //
-// Solidity: function teleporterMessenger() view returns(address)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) TeleporterMessenger() (common.Address, error) {
-	return _ExampleCrossChainMessenger.Contract.TeleporterMessenger(&_ExampleCrossChainMessenger.CallOpts)
+// Solidity: function teleporterRegistry() view returns(address)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) TeleporterRegistry() (common.Address, error) {
+	return _ExampleCrossChainMessenger.Contract.TeleporterRegistry(&_ExampleCrossChainMessenger.CallOpts)
 }
 
-// TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
+// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
 //
-// Solidity: function teleporterMessenger() view returns(address)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerSession) TeleporterMessenger() (common.Address, error) {
-	return _ExampleCrossChainMessenger.Contract.TeleporterMessenger(&_ExampleCrossChainMessenger.CallOpts)
+// Solidity: function teleporterRegistry() view returns(address)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerSession) TeleporterRegistry() (common.Address, error) {
+	return _ExampleCrossChainMessenger.Contract.TeleporterRegistry(&_ExampleCrossChainMessenger.CallOpts)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
@@ -296,6 +327,27 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) SendMessag
 // Solidity: function sendMessage(bytes32 destinationChainID, address destinationAddress, address feeContractAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256 messageID)
 func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorSession) SendMessage(destinationChainID [32]byte, destinationAddress common.Address, feeContractAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
 	return _ExampleCrossChainMessenger.Contract.SendMessage(&_ExampleCrossChainMessenger.TransactOpts, destinationChainID, destinationAddress, feeContractAddress, feeAmount, requiredGasLimit, message)
+}
+
+// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
+//
+// Solidity: function updateMinTeleporterVersion() returns()
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactor) UpdateMinTeleporterVersion(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.contract.Transact(opts, "updateMinTeleporterVersion")
+}
+
+// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
+//
+// Solidity: function updateMinTeleporterVersion() returns()
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) UpdateMinTeleporterVersion() (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.UpdateMinTeleporterVersion(&_ExampleCrossChainMessenger.TransactOpts)
+}
+
+// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
+//
+// Solidity: function updateMinTeleporterVersion() returns()
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorSession) UpdateMinTeleporterVersion() (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.UpdateMinTeleporterVersion(&_ExampleCrossChainMessenger.TransactOpts)
 }
 
 // ExampleCrossChainMessengerReceiveMessageIterator is returned from FilterReceiveMessage and is used to iterate over the raw logs and unpacked data for ReceiveMessage events raised by the ExampleCrossChainMessenger contract.
