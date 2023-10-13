@@ -16,6 +16,7 @@ import (
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/Teleporter/TeleporterMessenger"
+	"github.com/pkg/errors"
 
 	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -364,4 +365,64 @@ func calculateTxParams(ctx context.Context, wsClient ethclient.Client, fundedAdd
 	gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
 
 	return gasFeeCap, gasTipCap, nonce
+}
+
+func createNativeTransferTransaction(
+	ctx context.Context,
+	network SubnetTestInfo,
+	fromAddress common.Address,
+	fromKey *ecdsa.PrivateKey,
+	recipient common.Address,
+	amount *big.Int,
+) *types.Transaction {
+	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.ChainWSClient, fundedAddress)
+
+	tx := types.NewTx(&types.DynamicFeeTx{
+		ChainID:   network.ChainIDInt,
+		Nonce:     nonce,
+		To:        &recipient,
+		Gas:       DefaultTeleporterTransactionGas,
+		GasFeeCap: gasFeeCap,
+		GasTipCap: gasTipCap,
+		Value:     amount,
+	})
+
+	return signTransaction(tx, fundedKey, network.ChainIDInt)
+}
+
+// Constructs a transaction to call initializeBlockchainID
+func createInitializeBlockchainIDTransaction(
+	ctx context.Context,
+	source SubnetTestInfo,
+	teleporterContractAddress common.Address,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+) *types.Transaction {
+	data, err := packInitializeBlockchainID()
+	Expect(err).Should(BeNil())
+
+	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.ChainWSClient, fundedAddress)
+
+	// Send a transaction to the Teleporter contract
+	tx := types.NewTx(&types.DynamicFeeTx{
+		ChainID:   source.ChainIDInt,
+		Nonce:     nonce,
+		To:        &teleporterContractAddress,
+		Gas:       DefaultTeleporterTransactionGas,
+		GasFeeCap: gasFeeCap,
+		GasTipCap: gasTipCap,
+		Value:     DefaultTeleporterTransactionValue,
+		Data:      data,
+	})
+
+	return signTransaction(tx, fundedKey, source.ChainIDInt)
+}
+
+// TODO: Remove once working.
+func packInitializeBlockchainID() ([]byte, error) {
+	abi, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get abi")
+	}
+	return abi.Pack("initializeBlockchainID")
 }

@@ -82,20 +82,33 @@ contract TeleporterMessengerTest is Test {
         );
 
         teleporterMessenger = new TeleporterMessenger();
+        teleporterMessenger.initializeBlockchainID();
         _mockFeeAsset = new UnitTestMockERC20();
     }
 
-    function testCannotDeployWithoutWarpPrecompile() public {
-        vm.clearMockedCalls();
-        vm.expectRevert();
+    function testInitializeBlockchainID() public {
+        // Contract deployed without initializing blockchain ID.
         teleporterMessenger = new TeleporterMessenger();
+        assertEq(teleporterMessenger.blockchainID(), bytes32(0));
+
+        // Initialize the blockchain ID.
+        teleporterMessenger.initializeBlockchainID();
+        assertEq(teleporterMessenger.blockchainID(), MOCK_BLOCK_CHAIN_ID);
+
+        // Check that you can't initialize the blockchain ID multiple times.
+        vm.expectRevert(TeleporterMessenger.AlreadyInitialized.selector);
+        teleporterMessenger.initializeBlockchainID();
     }
 
     function testEmptyReceiptQueue() public {
-        assertEq(teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID), 0);
+        assertEq(
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
+            0
+        );
 
-        vm.expectRevert(ReceiptQueue.OutofIndex.selector);
-        TeleporterMessageReceipt memory receipt = teleporterMessenger.getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+        vm.expectRevert(ReceiptQueue.IndexOutOfBounds.selector);
+        TeleporterMessageReceipt memory receipt = teleporterMessenger
+            .getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
         assertEq(receipt.receivedMessageID, 0);
         assertEq(receipt.relayerRewardAddress, address(0));
     }

@@ -48,9 +48,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             0
         );
 
@@ -70,9 +68,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             1
         );
 
@@ -106,9 +102,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             2
         );
 
@@ -180,6 +174,25 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         vm.expectRevert(
             TeleporterMessenger.InvalidOriginSenderAddress.selector
         );
+        teleporterMessenger.receiveCrossChainMessage(
+            0,
+            DEFAULT_RELAYER_REWARD_ADDRESS
+        );
+    }
+
+    function testCannotReceiveBeforeBlockchainIDInitialized() public {
+        teleporterMessenger = new TeleporterMessenger();
+
+        // Mock the call to the warp precompile to get the message.
+        WarpMessage memory warpMessage = _createDefaultWarpMessage(
+            DEFAULT_ORIGIN_CHAIN_ID,
+            new bytes(0)
+        );
+        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
+
+        // Receiving the message should revert because the blockchain ID
+        // of the TeleporterMessenger instnace has yet to be initialized.
+        vm.expectRevert(TeleporterMessenger.Uninitialized.selector);
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS

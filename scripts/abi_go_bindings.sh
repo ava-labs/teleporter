@@ -12,6 +12,7 @@ TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
+echo "Teleporter path is: $TELEPORTER_PATH"
 
 DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken"
 

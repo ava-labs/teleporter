@@ -41,7 +41,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // Tracks the outstanding receipts to send back to a given subnet in subsequent messages sent to it.
     // Key is the subnet ID of the other subnet, and the value is a queue of pending receipts for messages
     // we have received from that subnet.
-    mapping(bytes32 => ReceiptQueue.TeleporterMessageReceiptQueue) public outstandingReceipts;
+    mapping(bytes32 => ReceiptQueue.TeleporterMessageReceiptQueue)
+        public outstandingReceipts;
 
     // Tracks the message hash and fee information for each message sent that we have not yet received
     // a receipt for. The messages are tracked per subnet and keyed by message ID.
@@ -75,10 +76,12 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     uint256 public constant REQUIRED_ORIGIN_CHAIN_ID_START_INDEX = 4;
     uint256 public constant MINIMUM_REQUIRED_CALL_DATA_LENGTH = 68;
 
-    // The blockchain ID of the chain the contract is deployed on. Determined by warp messenger precompile.
-    bytes32 public immutable blockchainID;
+    // The blockchain ID of the chain the contract is deployed on.
+    // Set at most once by calling initializeBlockchainID().
+    bytes32 public blockchainID = bytes32(0);
 
     // Errors
+    error AlreadyInitialized();
     error InsufficientGas();
     error InvalidAdditionalFeeAmount();
     error InvalidDestinationAddress();
@@ -94,11 +97,15 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     error NoRelayerRewardToRedeem();
     error ReceiptNotFound();
     error UnauthorizedRelayer();
+    error Uninitialized();
 
     /**
      * @dev Sets the value of `blockchainID` to the value determined by the warp messenger precompile.
      */
-    constructor() {
+    function initializeBlockchainID() public {
+        if (blockchainID != bytes32(0)) {
+            revert AlreadyInitialized();
+        }
         blockchainID = WARP_MESSENGER.getBlockchainID();
     }
 
@@ -124,7 +131,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 requiredGasLimit: messageInput.requiredGasLimit,
                 allowedRelayerAddresses: messageInput.allowedRelayerAddresses,
                 message: messageInput.message,
-                receipts: outstandingReceipts[messageInput.destinationChainID].getOutstandingReceiptsToSend()
+                receipts: outstandingReceipts[messageInput.destinationChainID]
+                    .getOutstandingReceiptsToSend()
             });
     }
 
@@ -260,8 +268,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         uint32 messageIndex,
         address relayerRewardAddress
     ) external receiverNonReentrant {
-        // The relayer reward address is not allowed to be the zero address because it is how we track
-        // whether or not a message has been delivered.
+        // The relayer reward address is not allowed to be the zero address because it is how the
+        // contract tracks whether or not a message has been delivered.
         if (relayerRewardAddress == address(0)) {
             revert InvalidRelayerRewardAddress();
         }
@@ -284,6 +292,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         // Require that the message was intended for this blockchain and teleporter contract.
+        if (blockchainID == bytes32(0)) {
+            revert Uninitialized();
+        }
         if (warpMessage.destinationChainID != blockchainID) {
             revert InvalidDestinationChainID();
         }
@@ -347,9 +358,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Store the receipt of this message delivery. When a subsquent message is sent back
         // to the origin of this message, we will clean up the receipt state.
         // If the receipts queue contract for this chain doesn't exist yet, create it now.
-        ReceiptQueue.TeleporterMessageReceiptQueue storage receiptsQueue = outstandingReceipts[
-            warpMessage.sourceChainID
-        ];
+        ReceiptQueue.TeleporterMessageReceiptQueue
+            storage receiptsQueue = outstandingReceipts[
+                warpMessage.sourceChainID
+            ];
 
         receiptsQueue.enqueue(
             TeleporterMessageReceipt({
@@ -565,22 +577,19 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-getReceiptQueueSize}
      */
-    function getReceiptQueueSize(bytes32 chainID)
-        external
-        view
-        returns (uint256)
-    {
+    function getReceiptQueueSize(
+        bytes32 chainID
+    ) external view returns (uint256) {
         return outstandingReceipts[chainID].size();
     }
 
     /**
      * @dev See {ITeleporterMessenger-getReceiptAtIndex}
      */
-    function getReceiptAtIndex(bytes32 chainID, uint256 index)
-        external
-        view
-        returns (TeleporterMessageReceipt memory)
-    {
+    function getReceiptAtIndex(
+        bytes32 chainID,
+        uint256 index
+    ) external view returns (TeleporterMessageReceipt memory) {
         return outstandingReceipts[chainID].getReceiptAtIndex(index);
     }
 

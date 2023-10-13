@@ -24,7 +24,7 @@ library ReceiptQueue {
 
     // Errors
     error EmptyQueue();
-    error OutofIndex();
+    error IndexOutOfBounds();
 
     /**
      * @dev Adds a receipt to the queue.
@@ -44,10 +44,7 @@ library ReceiptQueue {
      */
     function dequeue(
         TeleporterMessageReceiptQueue storage queue
-    )
-        internal
-        returns (TeleporterMessageReceipt memory result)
-    {
+    ) internal returns (TeleporterMessageReceipt memory result) {
         uint256 first_ = queue.first;
         if (queue.last == first_) revert EmptyQueue();
         result = queue.data[first_];
@@ -60,10 +57,7 @@ library ReceiptQueue {
      */
     function getOutstandingReceiptsToSend(
         TeleporterMessageReceiptQueue storage queue
-    )
-        internal
-        returns (TeleporterMessageReceipt[] memory result)
-    {
+    ) internal returns (TeleporterMessageReceipt[] memory result) {
         // Get the current outstanding receipts for the given chain ID.
         // If the queue contract doesn't exist, there are no outstanding receipts to send.
         uint256 resultSize = size(queue);
@@ -85,19 +79,20 @@ library ReceiptQueue {
     /**
      * @dev Returns the number of open receipts in the queue.
      */
-    function size(TeleporterMessageReceiptQueue storage queue) internal view returns (uint256) {
+    function size(
+        TeleporterMessageReceiptQueue storage queue
+    ) internal view returns (uint256) {
         return queue.last - queue.first;
     }
 
     /**
      * @dev Returns the receipt at the given index in the queue.
      */
-    function getReceiptAtIndex(TeleporterMessageReceiptQueue storage queue, uint256 index)
-        internal
-        view
-        returns (TeleporterMessageReceipt memory)
-    {
-        if (index >= size(queue)) revert OutofIndex();
+    function getReceiptAtIndex(
+        TeleporterMessageReceiptQueue storage queue,
+        uint256 index
+    ) internal view returns (TeleporterMessageReceipt memory) {
+        if (index >= size(queue)) revert IndexOutOfBounds();
         return queue.data[queue.first + index];
     }
 }

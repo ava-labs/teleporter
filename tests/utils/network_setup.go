@@ -9,7 +9,6 @@ import (
 
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
 	"github.com/ava-labs/avalanchego/ids"
-	relayerEvm "github.com/ava-labs/awm-relayer/vms/evm"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/plugin/evm"
@@ -216,35 +215,15 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 	for _, subnetInfo := range subnetsInfo {
 		client := subnetInfo.ChainWSClient
 
-		nonce, err := client.NonceAt(ctx, fundedAddress, nil)
-		Expect(err).Should(BeNil())
-		gasTipCap, err := client.SuggestGasTipCap(context.Background())
-		Expect(err).Should(BeNil())
-		baseFee, err := client.EstimateBaseFee(context.Background())
-		Expect(err).Should(BeNil())
-		gasFeeCap := baseFee.Mul(baseFee, big.NewInt(relayerEvm.BaseFeeFactor))
-		gasFeeCap.Add(gasFeeCap, big.NewInt(relayerEvm.MaxPriorityFeePerGas))
 		// Fund the deployer address
 		{
-			value := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
-			txA := types.NewTx(&types.DynamicFeeTx{
-				ChainID:   subnetInfo.ChainIDInt,
-				Nonce:     nonce,
-				To:        &deployerAddress,
-				Gas:       DefaultTeleporterTransactionGas,
-				GasFeeCap: gasFeeCap,
-				GasTipCap: gasTipCap,
-				Value:     value,
-			})
-			txSigner := types.LatestSignerForChainID(subnetInfo.ChainIDInt)
-			triggerTx, err := types.SignTx(txA, txSigner, fundedKey)
-			Expect(err).Should(BeNil())
-
-			SendTransactionAndWaitForAcceptance(ctx, subnetInfo.ChainWSClient, triggerTx)
+			fundAmounnt := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
+			fundDeployerTx := createNativeTransferTransaction(ctx, subnetInfo, fundedAddress, fundedKey, deployerAddress, fundAmounnt)
+			SendTransactionAndWaitForAcceptance(ctx, subnetInfo.ChainWSClient, fundDeployerTx)
 		}
-		log.Info("Finished funding Teleporter deployer")
+		log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
 
-		// Deploy Teleporter
+		// Deploy Teleporter contract
 		{
 			rpcClient, err := rpc.DialContext(ctx, HttpToRPCURI(subnetInfo.ChainNodeURIs[0], subnetInfo.BlockchainID.String()))
 			Expect(err).Should(BeNil())
@@ -263,8 +242,16 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 			Expect(err).Should(BeNil())
 			Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 		}
-		log.Info("Finished deploying Teleporter contracts")
+		log.Info("Finished deploying Teleporter contract", "blockchainID", subnetInfo.BlockchainID.Hex())
+
+		// Initialize the blockchain ID
+		{
+			initializeBlockchainIDTx := createInitializeBlockchainIDTransaction(ctx, subnetInfo, teleporterContractAddress, fundedAddress, fundedKey)
+			SendTransactionAndWaitForAcceptance(ctx, subnetInfo.ChainWSClient, initializeBlockchainIDTx)
+		}
+		log.Info("Finished initializing blockchain ID of Teleporter instance", "blockchainID", subnetInfo.BlockchainID.Hex())
 	}
+	log.Info("Deployed Teleporter contracts to all subnets")
 }
 
 func TearDownNetwork() {
