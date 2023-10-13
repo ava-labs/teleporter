@@ -64,7 +64,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Add to the fee amount of a message that doesn't exist. Expect revert.
         uint256 additionalFeeAmount = 131313;
         uint256 fakeMessageID = 13;
-        vm.expectRevert(TeleporterMessenger.MessageAlreadyDelivered.selector);
+        vm.expectRevert(
+            TeleporterMessenger.ERR_MESSAGE_ALREADY_DELIVERED.selector
+        );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             fakeMessageID,
@@ -118,7 +120,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
 
         // Expect revert when adding 0 additional amount.
         uint256 additionalFeeAmount = 0;
-        vm.expectRevert(TeleporterMessenger.InvalidAdditionalFeeAmount.selector);
+        vm.expectRevert(
+            TeleporterMessenger.InvalidAdditionalFeeAmount.selector
+        );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
@@ -138,7 +142,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Expect revert when using a different fee asset than originally used.
         uint256 additionalFeeAmount = 131313;
         address differentFeeAsset = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
-        vm.expectRevert(TeleporterMessenger.InvalidFeeAssetContractAddress.selector);
+        vm.expectRevert(
+            TeleporterMessenger.InvalidFeeAssetContractAddress.selector
+        );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
@@ -158,7 +164,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Expect revert when using an invalid fee asset.
         uint256 additionalFeeAmount = 131313;
         address invalidFeeAsset = address(0);
-        vm.expectRevert(TeleporterMessenger.InvalidFeeAssetContractAddress.selector);
+        vm.expectRevert(
+            TeleporterMessenger.InvalidFeeAssetContractAddress.selector
+        );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
