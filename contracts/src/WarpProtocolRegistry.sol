@@ -20,7 +20,7 @@ struct ProtocolRegistryEntry {
  * @dev Implementation of an abstract `WarpProtocolRegistry` contract.
  *
  * This implementation is a contract that can be used as a base contract for protocols that are
- * build on top of Warp. It allows the protocol to be upgraded through a Warp out-of-band message.
+ * built on top of Warp. It allows the protocol to be upgraded through a Warp out-of-band message.
  */
 abstract contract WarpProtocolRegistry {
     // Address that the out-of-band Warp message sets as the "source" address.
@@ -126,6 +126,8 @@ abstract contract WarpProtocolRegistry {
         if (message.sourceChainID != _blockchainID) {
             revert InvalidSourceChainID();
         }
+
+        // Check that the message is sent through a warp out of band message.
         if (message.originSenderAddress != VALIDATORS_SOURCE_ADDRESS) {
             revert InvalidOriginSenderAddress();
         }
