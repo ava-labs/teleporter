@@ -136,7 +136,8 @@ contract NativeTokenDestination is
     function transferToSource(
         address recipient,
         address feeContractAddress,
-        uint256 feeAmount
+        uint256 feeAmount,
+        address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
         // The recipient cannot be the zero address.
         require(recipient != address(0), "Invalid Recipient Address");
@@ -173,7 +174,7 @@ contract NativeTokenDestination is
                     amount: adjustedAmount
                 }),
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: new address[](0),
+                allowedRelayerAddresses: allowedRelayerAddresses,
                 message: abi.encode(recipient, msg.value)
             })
         );

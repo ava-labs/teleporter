@@ -33,6 +33,7 @@ interface INativeTokenSource {
     function transferToDestination(
         address recipient,
         address feeContractAddress,
-        uint256 feeAmount
+        uint256 feeAmount,
+        address[] calldata allowedRelayerAddresses
     ) external payable;
 }
