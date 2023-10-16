@@ -1,4 +1,8 @@
-//SPDX-License-Identifier: MIT
+// (c) 2023, Ava Labs, Inc. All rights reserved.
+// See the file LICENSE for licensing terms.
+
+// SPDX-License-Identifier: Ecosystem
+
 pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -10,10 +14,11 @@ import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
 
-// Precompiled Native Minter Contract Address
+// Native Minter Precompile Contract Address
 address constant MINTER_ADDRESS = 0x0200000000000000000000000000000000000001;
 // This is the address where the burned base fee go. We use this to send the amount of
 // burned tokens back to the source chain.
+// TODO implement mechanism to report burned tx fees to source chian.
 address constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
 // Designated Blackhole Address. This is where we burn token before sending an unlock
 // message to the source chain. Different from the burned tx fee address so we can
@@ -159,9 +164,6 @@ contract NativeTokenDestination is
         // Burn native token by sending to BLACKHOLE_ADDRESS
         payable(BLACKHOLE_ADDRESS).transfer(msg.value);
 
-        // Send Teleporter message.
-        bytes memory messageData = abi.encode(recipient, msg.value);
-
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationChainID: sourceBlockchainID,
@@ -172,7 +174,7 @@ contract NativeTokenDestination is
                 }),
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
-                message: messageData
+                message: abi.encode(recipient, msg.value)
             })
         );
 

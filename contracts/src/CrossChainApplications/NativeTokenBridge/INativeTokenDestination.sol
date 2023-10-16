@@ -6,7 +6,8 @@
 pragma solidity 0.8.18;
 
 /**
- * @dev Interface that describes functionalities for a cross-chain native token bridge.
+ * @dev Interface that describes functionalities for a contract that can mint native tokens when
+ * paired with a "source" contract that will lock tokens on another chain.
  */
 interface INativeTokenDestination {
     /**
@@ -20,22 +21,20 @@ interface INativeTokenDestination {
         uint256 feeAmount,
         uint256 teleporterMessageID
     );
+
     /**
      * @dev Emitted when tokens are not minted in order to collateralize the source contract.
      */
-    event CollateralAdded(
-        uint256 amount,
-        uint256 remaining
-    );
+    event CollateralAdded(uint256 amount, uint256 remaining);
 
     /**
-     * @dev Emitted when minting bridge tokens.
+     * @dev Emitted when minting native tokens.
      */
-    event MintNativeTokens(address recipient, uint256 amount);
+    event MintNativeTokens(address indexed recipient, uint256 amount);
 
     /**
      * @dev This burns native tokens on this chain, and sends a message to the source
-     * chain to mint unlock tokens there.
+     * chain to unlock tokens there.
      */
     function transferToSource(
         address recipient,

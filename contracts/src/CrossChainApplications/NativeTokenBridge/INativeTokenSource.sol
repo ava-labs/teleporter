@@ -6,7 +6,8 @@
 pragma solidity 0.8.18;
 
 /**
- * @dev Interface that describes functionalities for a cross-chain native token bridge.
+ * @dev Interface that describes functionalities for a contract that will lock tokens and send a
+ * teleporter message to a NativeTokenDestination contract to mint native tokens on that chain.
  */
 interface INativeTokenSource {
     /**
@@ -27,7 +28,7 @@ interface INativeTokenSource {
     event UnlockTokens(address recipient, uint256 amount);
 
     /**
-     * @dev Transfers native tokens to the destination chain as that chain's native token.
+     * @dev Transfers source chain native tokens to destination chain's native tokens.
      */
     function transferToDestination(
         address recipient,
