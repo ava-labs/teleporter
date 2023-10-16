@@ -127,9 +127,6 @@ contract NativeTokenSource is
             );
         }
 
-        // Send Teleporter message.
-        bytes memory messageData = abi.encode(recipient, msg.value);
-
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationChainID: destinationBlockchainID,
@@ -140,7 +137,7 @@ contract NativeTokenSource is
                 }),
                 requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
-                message: messageData
+                message: abi.encode(recipient, msg.value)
             })
         );
 
