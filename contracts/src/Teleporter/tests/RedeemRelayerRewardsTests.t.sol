@@ -84,6 +84,12 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
                 (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
             )
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit RelayerRewardsRedeemed(
+            feeRewardInfo.relayerRewardAddress,
+            address(_mockFeeAsset),
+            feeRewardInfo.feeAmount
+        );
         vm.prank(feeRewardInfo.relayerRewardAddress);
         teleporterMessenger.redeemRelayerRewards(address(_mockFeeAsset));
 
@@ -135,9 +141,9 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
-            messageToReceive,
             address(this),
-            expectedRelayerRewardAddress
+            expectedRelayerRewardAddress,
+            messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
             0,

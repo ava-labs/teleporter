@@ -84,9 +84,18 @@ interface ITeleporterMessenger {
     event ReceiveCrossChainMessage(
         bytes32 indexed originChainID,
         uint256 indexed messageID,
-        TeleporterMessage message,
-        address deliverer,
-        address rewardRedeemer
+        address indexed deliverer,
+        address rewardRedeemer,
+        TeleporterMessage message
+    );
+
+    /**
+     * @dev Emitted when an account redeems accumulated relayer rewards.
+     */
+    event RelayerRewardsRedeemed(
+        address indexed redeemer,
+        address asset,
+        uint256 amount
     );
 
     /**
@@ -211,7 +220,9 @@ interface ITeleporterMessenger {
     /**
      * @dev Gets the number of receipts that have been sent to the given destination chain ID.
      */
-    function getReceiptQueueSize(bytes32 chainID) external view returns (uint256 size);
+    function getReceiptQueueSize(
+        bytes32 chainID
+    ) external view returns (uint256 size);
 
     /**
      * @dev Gets the receipt at the given index in the queue for the given chain ID.

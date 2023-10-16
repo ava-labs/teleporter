@@ -48,9 +48,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             0
         );
 
@@ -59,9 +57,9 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
-            messageToReceive,
             address(this),
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
             0,
@@ -70,9 +68,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             1
         );
 
@@ -95,9 +91,9 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
-            messageToReceive,
             address(this),
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
             3,
@@ -106,9 +102,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             2
         );
 
