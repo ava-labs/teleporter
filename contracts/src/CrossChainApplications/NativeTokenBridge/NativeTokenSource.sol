@@ -21,7 +21,7 @@ contract NativeTokenSource is
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 150_000; // TODO this is a placeholder
     bytes32 public immutable currentBlockchainID;
     bytes32 public immutable destinationBlockchainID;
-    address public immutable destinationContractAddress;
+    address public immutable nativeTokenDestinationAddress;
 
     // Used for sending an receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
@@ -29,7 +29,7 @@ contract NativeTokenSource is
     constructor(
         address teleporterMessengerAddress,
         bytes32 destinationBlockchainID_,
-        address destinationContractAddress_
+        address nativeTokenDestinationAddress_
     ) {
         currentBlockchainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
@@ -51,10 +51,10 @@ contract NativeTokenSource is
         destinationBlockchainID = destinationBlockchainID_;
 
         require(
-            destinationContractAddress_ != address(0),
+            nativeTokenDestinationAddress_ != address(0),
             "Invalid Destination Contract Address"
         );
-        destinationContractAddress = destinationContractAddress_;
+        nativeTokenDestinationAddress = nativeTokenDestinationAddress_;
     }
 
     /**
@@ -81,7 +81,7 @@ contract NativeTokenSource is
 
         // Only allow the partner contract to send messages.
         require(
-            senderAddress == destinationContractAddress,
+            senderAddress == nativeTokenDestinationAddress,
             "Unauthorized Sender"
         );
 
@@ -129,7 +129,7 @@ contract NativeTokenSource is
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationChainID: destinationBlockchainID,
-                destinationAddress: destinationContractAddress,
+                destinationAddress: nativeTokenDestinationAddress,
                 feeInfo: TeleporterFeeInfo({
                     contractAddress: feeContractAddress,
                     amount: adjustedAmount

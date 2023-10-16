@@ -35,7 +35,7 @@ contract NativeTokenDestination is
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 150_000; // TODO this is a placeholder
     bytes32 public immutable currentBlockchainID;
     bytes32 public immutable sourceBlockchainID;
-    address public immutable sourceContractAddress;
+    address public immutable nativeTokenSourceAddress;
     // We will not mint the first `tokenReserve` tokens sent to this subnet.
     // This should be constructed to match the initial token supply of this subnet.
     // This will mean we will not mint tokens until the source contact is collateralized.
@@ -48,7 +48,7 @@ contract NativeTokenDestination is
     constructor(
         address teleporterMessengerAddress,
         bytes32 sourceBlockchainID_,
-        address sourceContractAddress_,
+        address nativeTokenSourceAddress_,
         uint256 tokenReserve_
     ) {
         currentBlockchainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
@@ -68,10 +68,10 @@ contract NativeTokenDestination is
         sourceBlockchainID = sourceBlockchainID_;
 
         require(
-            sourceContractAddress_ != address(0),
+            nativeTokenSourceAddress_ != address(0),
             "Invalid Source Contract Address"
         );
-        sourceContractAddress = sourceContractAddress_;
+        nativeTokenSourceAddress = nativeTokenSourceAddress_;
 
         tokenReserve = tokenReserve_;
     }
@@ -99,7 +99,7 @@ contract NativeTokenDestination is
         );
 
         // Only allow the partner contract to send messages.
-        require(senderAddress == sourceContractAddress, "Unauthorized Sender");
+        require(senderAddress == nativeTokenSourceAddress, "Unauthorized Sender");
 
         (address recipient, uint256 amount) = abi.decode(
             message,
@@ -165,7 +165,7 @@ contract NativeTokenDestination is
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationChainID: sourceBlockchainID,
-                destinationAddress: sourceContractAddress,
+                destinationAddress: nativeTokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({
                     contractAddress: feeContractAddress,
                     amount: adjustedAmount
