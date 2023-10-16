@@ -43,8 +43,5 @@ var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySend)
-})
-
-var _ = ginkgo.Describe("[Native Token Bridge integration tests]", func() {
 	ginkgo.It("Send native tokens from subnet A to B and back", NativeTokenBridge)
 })
