@@ -14,31 +14,6 @@ import "./SafeERC20TransferFrom.sol";
 import "./ITeleporterReceiver.sol";
 import "./ReentrancyGuards.sol";
 
-    // Errors
-    string public constant ERR_INSUFFICIENT_GAS = "Insufficient gas";
-    string public constant ERR_INVALID_ADDITIONAL_FEE_AMOUNT =
-        "Invalid additional fee amount";
-    string public constant ERR_INVALID_DESTINATION_ADDRESS =
-        "Invalid destination address";
-    string public constant ERR_INVALID_DESTINATION_CHAIN_ID =
-        "Invalid destination chain ID";
-    string public constant ERR_INVALID_FEE_ASSET_CONTRACT_ADDRESS =
-        "Invalid fee asset contract address";
-    string public constant ERR_INVALID_MESSAGE_HASH = "Invalid message hash";
-    string public constant ERR_INVALID_ORIGIN_SENDER_ADDRESS =
-        "Invalid origin sender address";
-    string public constant ERR_INVALID_RELAYER_REWARD_ADDRESS =
-        "Invalid relayer reward address";
-    string public constant ERR_INVALID_WARP_MESSAGE = "Invalid warp message";
-    string public constant ERR_MESSAGE_ALREADY_DELIVERED = "Message already delivered";
-    string public constant ERR_MESSAGE_NOT_FOUND = "Message not found";
-    string public constant ERR_MESSAGE_RETRY_EXECUTION_FAILED =
-        "Message retry execution failed";
-    string public constant ERR_NO_RELAYER_REWARD_TO_REDEEM =
-        "No relayer reward to redeem";
-    string public constant ERR_RECEIPT_NOT_FOUND = "Receipt not found";
-    string public constant ERR_UNAUTHORIZED_RELAYER = "Unauthorized relayer";
-
 /**
  * @dev Implementation of the {ITeleporterMessenger} interface.
  *
@@ -156,13 +131,16 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             message.messageID
         ].messageHash;
         // If the message hash is zero, the message was never sent.
-        require(messageHash != bytes32(0), ERR_MESSAGE_NOT_FOUND);
+        require(
+            messageHash != bytes32(0),
+            "TeleporterMessenger: message hash not found"
+        );
 
         // Check that the hash of the provided message matches the one that was originally submitted.
         bytes memory messageBytes = abi.encode(message);
         require(
             keccak256(messageBytes) == messageHash,
-            ERR_INVALID_MESSAGE_HASH
+            "TeleporterMessenger: invalid message hash"
         );
 
         // Emit and make state variable changes before external calls when possible,
@@ -199,12 +177,15 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         uint256 additionalFeeAmount
     ) external senderNonReentrant {
         // The additional fee amount must be non-zero.
-        require(additionalFeeAmount > 0, ERR_INVALID_ADDITIONAL_FEE_AMOUNT);
+        require(
+            additionalFeeAmount > 0,
+            "TeleporterMessenger: zero fee amount"
+        );
 
         // Do not allow adding a fee asset with contract address zero.
         require(
             feeContractAddress != address(0),
-            ERR_INVALID_FEE_ASSET_CONTRACT_ADDRESS
+            "TeleporterMessenger: zero fee asset contract address"
         );
 
         // If we have received the delivery receipt for this message, its hash and fee information
@@ -213,7 +194,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         require(
             sentMessageInfo[destinationChainID][messageID].messageHash !=
                 bytes32(0),
-            ERR_MESSAGE_ALREADY_DELIVERED
+            "TeleporterMessenger: message not found"
         );
 
         // Check that the fee contract address matches the one that was originally used. Only a single
@@ -225,7 +206,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             sentMessageInfo[destinationChainID][messageID]
                 .feeInfo
                 .contractAddress == feeContractAddress,
-            ERR_INVALID_FEE_ASSET_CONTRACT_ADDRESS
+            "TeleporterMessenger: invalid fee asset contract address"
         );
 
         // Transfer the additional fee amount to this Teleporter instance.
@@ -269,14 +250,14 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // whether or not a message has been delivered.
         require(
             relayerRewardAddress != address(0),
-            ERR_INVALID_RELAYER_REWARD_ADDRESS
+            "TeleporterMessenger: zero relayer reward address"
         );
 
         // Verify and parse the cross chain message included in the transaction access list
         // using the warp message precompile.
         (WarpMessage memory warpMessage, bool success) = WARP_MESSENGER
             .getVerifiedWarpMessage(messageIndex);
-        require(success, ERR_INVALID_WARP_MESSAGE);
+        require(success, "TeleporterMessenger: invalid warp message");
 
         // Only allow for messages to be received from the same address as this teleporter contract.
         // The contract should be deployed using the universal deployer pattern, such that it knows messages
@@ -284,17 +265,17 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // This allows for trusting the message format and uniqueness as specified by sendCrossChainMessage.
         require(
             warpMessage.originSenderAddress == address(this),
-            ERR_INVALID_ORIGIN_SENDER_ADDRESS
+            "TeleporterMessenger: invalid origin sender address"
         );
 
         // Require that the message was intended for this blockchain and teleporter contract.
         require(
             warpMessage.destinationChainID == blockchainID,
-            ERR_INVALID_DESTINATION_CHAIN_ID
+            "TeleporterMessenger: invalid destination chain ID"
         );
         require(
             warpMessage.destinationAddress == address(this),
-            ERR_INVALID_DESTINATION_ADDRESS
+            "TeleporterMessenger: invalid destination address"
         );
 
         // Parse the payload of the message.
@@ -309,7 +290,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             relayerRewardAddresses[warpMessage.sourceChainID][
                 teleporterMessage.messageID
             ] == address(0),
-            ERR_MESSAGE_ALREADY_DELIVERED
+            "TeleporterMessenger: message already delivered"
         );
 
         // Check that the caller is allowed to deliver this message.
@@ -318,7 +299,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 msg.sender,
                 teleporterMessage.allowedRelayerAddresses
             ),
-            ERR_UNAUTHORIZED_RELAYER
+            "TeleporterMessenger: unauthorized relayer"
         );
 
         // Store the relayer reward address provided, effectively marking the message as received.
@@ -385,10 +366,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 failedMessageHash = receivedFailedMessageHashes[originChainID][
             message.messageID
         ];
-        require(failedMessageHash != bytes32(0), ERR_MESSAGE_NOT_FOUND);
+        require(
+            failedMessageHash != bytes32(0),
+            "TeleporterMessenger: message not found"
+        );
         require(
             keccak256(abi.encode(message)) == failedMessageHash,
-            ERR_INVALID_MESSAGE_HASH
+            "TeleporterMessenger: invalid message hash"
         );
 
         // Check that the target address has fully initialized contract code prior to calling it.
@@ -396,7 +380,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // we disallow calling EOA addresses.
         require(
             message.destinationAddress.code.length > 0,
-            ERR_INVALID_DESTINATION_ADDRESS
+            "TeleporterMessenger: destination address has no code"
         );
 
         // Clear the failed message hash from state prior to retrying its execution to redundantly prevent
@@ -417,7 +401,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 (originChainID, message.senderAddress, message.message)
             )
         );
-        require(success, ERR_MESSAGE_RETRY_EXECUTION_FAILED);
+        require(success, "TeleporterMessenger: retry execution failed");
     }
 
     /**
@@ -454,7 +438,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             address relayerRewardAddress = relayerRewardAddresses[
                 originChainID
             ][receivedMessageID];
-            require(relayerRewardAddress != address(0), ERR_RECEIPT_NOT_FOUND);
+            require(
+                relayerRewardAddress != address(0),
+                "TeleporterMessenger: receipt not found"
+            );
 
             receiptsToSend[i] = TeleporterMessageReceipt({
                 receivedMessageID: receivedMessageID,
@@ -483,7 +470,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      */
     function redeemRelayerRewards(address feeAsset) external {
         uint256 rewardAmount = relayerRewardAmounts[msg.sender][feeAsset];
-        require(rewardAmount != 0, ERR_NO_RELAYER_REWARD_TO_REDEEM);
+        require(rewardAmount != 0, "TeleporterMessenger: no reward to redeem");
 
         // Zero the reward balance before calling the external ERC20 to transfer the
         // reward to prevent any possible re-entrancy.
@@ -629,7 +616,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             // If the fee amount is non-zero, check that the contract address is not address(0)
             require(
                 feeInfo.contractAddress != address(0),
-                ERR_INVALID_FEE_ASSET_CONTRACT_ADDRESS
+                "TeleporterMessenger: zero fee asset contract address"
             );
 
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
@@ -722,7 +709,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // its execution succeeds, such that the relayer can claim their fee reward. However, if the message
         // execution fails, the message hash will be stored in state such that anyone can try to provide more
         // gas to successfully execute the message.
-        require(gasleft() >= message.requiredGasLimit, ERR_INSUFFICIENT_GAS);
+        require(
+            gasleft() >= message.requiredGasLimit,
+            "TeleporterMessenger: insufficient gas"
+        );
 
         // The destination address must have fully initialized contract code in order for the message
         // to call it. If the destination address does not have code, we store the message as a failed

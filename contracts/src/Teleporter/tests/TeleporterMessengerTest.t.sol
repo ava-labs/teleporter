@@ -83,10 +83,14 @@ contract TeleporterMessengerTest is Test {
     }
 
     function testEmptyReceiptQueue() public {
-        assertEq(teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID), 0);
+        assertEq(
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
+            0
+        );
 
         vm.expectRevert(ReceiptQueue.OutofIndex.selector);
-        TeleporterMessageReceipt memory receipt = teleporterMessenger.getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+        TeleporterMessageReceipt memory receipt = teleporterMessenger
+            .getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
         assertEq(receipt.receivedMessageID, 0);
         assertEq(receipt.relayerRewardAddress, address(0));
     }
@@ -259,5 +263,11 @@ contract TeleporterMessengerTest is Test {
                 destinationAddress: address(teleporterMessenger),
                 payload: payload
             });
+    }
+
+    function _formatErrorMessage(
+        string memory errorMessage
+    ) internal pure returns (bytes memory) {
+        return bytes(string.concat("TeleporterMessenger: ", errorMessage));
     }
 }

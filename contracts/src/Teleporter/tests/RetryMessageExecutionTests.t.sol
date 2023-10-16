@@ -119,9 +119,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         ) = _receiveFailedMessage(false);
 
         // Now retry it in another block with an even timestamp so that it fails again.
-        vm.expectRevert(
-            TeleporterMessenger.MessageRetryExecutionFailed.selector
-        );
+        vm.expectRevert(_formatErrorMessage("retry execution failed"));
         teleporterMessenger.retryMessageExecution(originChainID, message);
     }
 
@@ -137,7 +135,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        vm.expectRevert(TeleporterMessenger.MessageNotFound.selector);
+        vm.expectRevert(_formatErrorMessage("message not found"));
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             fakeMessage
@@ -154,7 +152,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
         // Alter the message before retrying it.
         message.message = "altered message";
-        vm.expectRevert(TeleporterMessenger.InvalidMessageHash.selector);
+        vm.expectRevert(_formatErrorMessage("invalid message hash"));
         teleporterMessenger.retryMessageExecution(originChainID, message);
     }
 
@@ -166,7 +164,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         ) = _successfullyRetryMessage();
 
         // Now try again and make sure it's been cleared from state
-        vm.expectRevert(TeleporterMessenger.MessageNotFound.selector);
+        vm.expectRevert(_formatErrorMessage("message not found"));
         teleporterMessenger.retryMessageExecution(originChainID, message);
     }
 
@@ -208,7 +206,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
         // Retrying the message execution should revert since there is still no contract deployed
         // to the destination address.
-        vm.expectRevert(TeleporterMessenger.InvalidDestinationAddress.selector);
+        vm.expectRevert(_formatErrorMessage("destination address has no code"));
         teleporterMessenger.retryMessageExecution(originChainID, message);
     }
 
