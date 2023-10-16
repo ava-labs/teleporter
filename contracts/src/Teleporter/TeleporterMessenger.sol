@@ -133,7 +133,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // If the message hash is zero, the message was never sent.
         require(
             messageHash != bytes32(0),
-            "TeleporterMessenger: message hash not found"
+            "TeleporterMessenger: message not found"
         );
 
         // Check that the hash of the provided message matches the one that was originally submitted.

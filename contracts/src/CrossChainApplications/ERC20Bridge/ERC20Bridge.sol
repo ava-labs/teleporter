@@ -261,7 +261,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         // Only allow the Teleporter messenger to deliver messages.
         require(
             msg.sender == address(teleporterMessenger),
-            "ERC20Bridge: unauthoried sender"
+            "ERC20Bridge: unauthorized"
         );
 
         // Decode the payload to recover the action and corresponding function parameters
