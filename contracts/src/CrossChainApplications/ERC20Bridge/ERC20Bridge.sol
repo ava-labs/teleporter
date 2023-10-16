@@ -15,12 +15,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-struct TokenID {
-    bytes32 chainID;
-    address bridgeContract;
-    address asset;
-}
-
 /**
  * @dev Implementation of the {IERC20Bridge} interface.
  *
@@ -73,31 +67,15 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     uint256 public constant MINT_BRIDGE_TOKENS_REQUIRED_GAS = 200_000;
     uint256 public constant TRANSFER_BRIDGE_TOKENS_REQUIRED_GAS = 300_000;
 
-    // Errors
-    error BridgeTokenAlreadyExists(address bridgeTokenAddress);
-    error CannotBridgeTokenWithinSameChain();
-    error CannotBridgeWrappedToken(address nativeTokenAddress);
-    error InsufficientAdjustedAmount(uint256 adjustedAmount, uint256 feeAmount);
-    error InsufficientTotalAmount(uint256 totalAmount, uint256 feeAmount);
-    error InsufficientWrappedTokenBalance(
-        uint256 currentBalance,
-        uint256 requestAmount
-    );
-    error InvalidAction();
-    error InvalidBridgeTokenAddress();
-    error InvalidDestinationBridgeAddress();
-    error InvalidRecipientAddress();
-    error InvalidTeleporterMessengerAddress();
-    error Unauthorized();
-
     /**
      * @dev Initializes the Teleporter messenger used for sending and receiving messages,
      * and initializes the current chain ID.
      */
     constructor(address teleporterMessengerAddress) {
-        if (teleporterMessengerAddress == address(0)) {
-            revert InvalidTeleporterMessengerAddress();
-        }
+        require(
+            teleporterMessengerAddress != address(0),
+            "ERC20Bridge: Invalid teleporter messenger address"
+        );
 
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
         currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
@@ -123,18 +101,17 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         uint256 secondaryFeeAmount
     ) external nonReentrant {
         // Bridging tokens within a single chain is not allowed.
-        if (destinationChainID == currentChainID) {
-            revert CannotBridgeTokenWithinSameChain();
-        }
+        require(
+            destinationChainID != currentChainID,
+            "ERC20Bridge: bridging to same chain"
+        );
 
         // Neither the recipient nor the destination bridge can be the zero address.
-        if (recipient == address(0)) {
-            revert InvalidRecipientAddress();
-        }
-
-        if (destinationBridgeAddress == address(0)) {
-            revert InvalidDestinationBridgeAddress();
-        }
+        require(recipient != address(0), "ERC20Bridge: zero recipient address");
+        require(
+            destinationBridgeAddress != address(0),
+            "ERC20Bridge: zero destination bridge address"
+        );
 
         // If the token to be bridged is an existing wrapped token of this bridge,
         // then handle it as an "unwrap" by burning the tokens, and sending a message
@@ -146,12 +123,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
             // In the wrapped token case, we know that the bridgeToken to be burned
             // is not a "fee/burn on transfer" token, since it was deployed by this
             // contract itself.
-            if (totalAmount <= primaryFeeAmount + secondaryFeeAmount) {
-                revert InsufficientTotalAmount(
-                    totalAmount,
-                    primaryFeeAmount + secondaryFeeAmount
-                );
-            }
+            require(
+                totalAmount > primaryFeeAmount + secondaryFeeAmount,
+                "ERC20Bridge: insufficient total fee amount"
+            );
 
             return
                 _processWrappedTokenTransfer(
@@ -168,13 +143,12 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         }
 
         // Otherwise, this is a token "native" to this chain.
-        if (
-            !submittedBridgeTokenCreations[destinationChainID][
+        require(
+            submittedBridgeTokenCreations[destinationChainID][
                 destinationBridgeAddress
-            ][tokenContractAddress]
-        ) {
-            revert InvalidBridgeTokenAddress();
-        }
+            ][tokenContractAddress],
+            "ERC20Bridge: invalid bridge token address"
+        );
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
@@ -187,9 +161,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         // Ensure that the adjusted amount is greater than the fee to be paid.
         // The secondary fee amount is not used in this case (and can assumed to be 0) since bridging
         // a native token to another chain only ever involves a single cross-chain message.
-        if (adjustedAmount <= primaryFeeAmount) {
-            revert InsufficientAdjustedAmount(adjustedAmount, primaryFeeAmount);
-        }
+        require(
+            adjustedAmount > primaryFeeAmount,
+            "ERC20Bridge: insufficient adjusted amount"
+        );
 
         return
             _processNativeTokenTransfer({
@@ -219,9 +194,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         address messageFeeAsset,
         uint256 messageFeeAmount
     ) external nonReentrant {
-        if (destinationBridgeAddress == address(0)) {
-            revert InvalidDestinationBridgeAddress();
-        }
+        require(
+            destinationBridgeAddress != address(0),
+            "ERC20Bridge: zero destination bridge address"
+        );
 
         // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
         // allow the Teleporter contract to spend it.
@@ -283,9 +259,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         bytes calldata message
     ) external {
         // Only allow the Teleporter messenger to deliver messages.
-        if (msg.sender != address(teleporterMessenger)) {
-            revert Unauthorized();
-        }
+        require(
+            msg.sender == address(teleporterMessenger),
+            "ERC20Bridge: unauthoried sender"
+        );
 
         // Decode the payload to recover the action and corresponding function parameters
         (BridgeAction action, bytes memory actionData) = abi.decode(
@@ -345,7 +322,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
                 secondaryFeeAmount: secondaryFeeAmount
             });
         } else {
-            revert InvalidAction();
+            revert("ERC20Bridge: invalid action");
         }
     }
 
@@ -429,17 +406,12 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         uint8 nativeDecimals
     ) private {
         // Check that the bridge token doesn't already exist.
-        if (
+        require(
             nativeToWrappedTokens[nativeChainID][nativeBridgeAddress][
                 nativeContractAddress
-            ] != address(0)
-        ) {
-            revert BridgeTokenAlreadyExists(
-                nativeToWrappedTokens[nativeChainID][nativeBridgeAddress][
-                    nativeContractAddress
-                ]
-            );
-        }
+            ] == address(0),
+            "ERC20Bridge: bridge token already exists"
+        );
 
         address bridgeTokenAddress = address(
             new BridgeToken({
@@ -481,9 +453,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         uint256 amount
     ) private nonReentrant {
         // The recipient cannot be the zero address.
-        if (recipient == address(0)) {
-            revert InvalidRecipientAddress();
-        }
+        require(recipient != address(0), "ERC20Bridge: zero recipient address");
 
         // Check that a bridge token exists for this native asset.
         // If not, one needs to be created by the delivery of a "createBridgeToken" message first
@@ -492,9 +462,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         address bridgeTokenAddress = nativeToWrappedTokens[nativeChainID][
             nativeBridgeAddress
         ][nativeContractAddress];
-        if (bridgeTokenAddress == address(0)) {
-            revert InvalidBridgeTokenAddress();
-        }
+        require(
+            bridgeTokenAddress != address(0),
+            "ERC20Bridge: bridge token does not exist"
+        );
 
         // Mint the wrapped tokens.
         BridgeToken(bridgeTokenAddress).mint(recipient, amount);
@@ -519,21 +490,20 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         uint256 secondaryFeeAmount
     ) private nonReentrant {
         // Neither the recipient nor the destination bridge can be the zero address.
-        if (recipient == address(0)) {
-            revert InvalidRecipientAddress();
-        }
-
-        if (destinationBridgeAddress == address(0)) {
-            revert InvalidDestinationBridgeAddress();
-        }
+        require(recipient != address(0), "ERC20Bridge: zero recipient address");
+        require(
+            destinationBridgeAddress != address(0),
+            "ERC20Bridge: zero destination bridge address"
+        );
 
         // Check that the bridge returning the tokens has sufficient balance to do so.
         uint256 currentBalance = bridgedBalances[sourceChainID][
             sourceBridgeAddress
         ][nativeContractAddress];
-        if (currentBalance < totalAmount) {
-            revert InsufficientWrappedTokenBalance(currentBalance, totalAmount);
-        }
+        require(
+            currentBalance >= totalAmount,
+            "ERC20Bridge: insufficient balance"
+        );
 
         bridgedBalances[sourceChainID][sourceBridgeAddress][
             nativeContractAddress
@@ -542,9 +512,10 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         // If the destination chain ID and bridge is this bridge instance, then release the tokens back to the recipient.
         // In this case, since there is no secondary Teleporter message, the secondary fee amount is not used.
         if (destinationChainID == currentChainID) {
-            if (destinationBridgeAddress != address(this)) {
-                revert InvalidDestinationBridgeAddress();
-            }
+            require(
+                destinationBridgeAddress == address(this),
+                "ERC20Bridge: invalid destination bridge address"
+            );
 
             // Transfer tokens to the recipient.
             // We don't need have a special case for handling "fee/burn on transfer" ERC20 token implementations
@@ -590,16 +561,18 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         uint256 feeAmount
     ) private {
         // Do not allow nested bridging of wrapped tokens.
-        if (wrappedTokenContracts[nativeContractAddress]) {
-            revert CannotBridgeWrappedToken(nativeContractAddress);
-        }
+        require(
+            !wrappedTokenContracts[nativeContractAddress],
+            "ERC20Bridge: cannot bridge wrapped token"
+        );
 
         // Bridging tokens within a single chain is not allowed.
         // This function is called by bridgeTokens and transferBridgeTokens which both already make this check,
         // so this check is redundant but left in for clarity.
-        if (destinationChainID == currentChainID) {
-            revert CannotBridgeTokenWithinSameChain();
-        }
+        require(
+            destinationChainID != currentChainID,
+            "ERC20Bridge: bridging to same chain"
+        );
 
         // Allow the Teleporter messenger to spend the fee amount.
         if (feeAmount > 0) {
@@ -693,12 +666,11 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         bytes32 nativeChainID = bridgeToken.nativeChainID();
         address nativeBridgeAddress = bridgeToken.nativeBridge();
         if (wrappedTransferInfo.destinationChainID == nativeChainID) {
-            if (
-                wrappedTransferInfo.destinationBridgeAddress !=
-                nativeBridgeAddress
-            ) {
-                revert InvalidDestinationBridgeAddress();
-            }
+            require(
+                wrappedTransferInfo.destinationBridgeAddress ==
+                    nativeBridgeAddress,
+                "ERC20Bridge: invalid destination bridge address"
+            );
         }
 
         // Send a message to the native chain and bridge of the wrapped asset that was burned.

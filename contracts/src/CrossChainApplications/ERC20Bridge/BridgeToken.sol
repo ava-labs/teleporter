@@ -19,12 +19,6 @@ contract BridgeToken is ERC20Burnable {
 
     uint8 private immutable _decimals;
 
-    // Errors
-    error InvalidSourceAsset();
-    error InvalidSourceBridgeAddress();
-    error InvalidSourceChainID();
-    error Unauthorized();
-
     /**
      * @dev Initializes a BridgeToken instance.
      */
@@ -36,15 +30,18 @@ contract BridgeToken is ERC20Burnable {
         string memory tokenSymbol,
         uint8 tokenDecimals
     ) ERC20(tokenName, tokenSymbol) {
-        if (sourceChainID == bytes32(0)) {
-            revert InvalidSourceChainID();
-        }
-        if (sourceBridge == address(0)) {
-            revert InvalidSourceBridgeAddress();
-        }
-        if (sourceAsset == address(0)) {
-            revert InvalidSourceAsset();
-        }
+        require(
+            sourceChainID != bytes32(0),
+            "BridgeToken: invalid source chain id"
+        );
+        require(
+            sourceBridge != address(0),
+            "BridgeToken: invalid source bridge address"
+        );
+        require(
+            sourceAsset != address(0),
+            "BridgeToken: invalid source asset address"
+        );
         bridgeContract = msg.sender;
         nativeChainID = sourceChainID;
         nativeBridge = sourceBridge;
@@ -56,9 +53,7 @@ contract BridgeToken is ERC20Burnable {
      * @dev Mints tokens to `account` if called by original `bridgeContract`.
      */
     function mint(address account, uint256 amount) public {
-        if (msg.sender != bridgeContract) {
-            revert Unauthorized();
-        }
+        require(msg.sender == bridgeContract, "BridgeToken: unauthorized");
         _mint(account, amount);
     }
 
