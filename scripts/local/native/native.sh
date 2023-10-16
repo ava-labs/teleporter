@@ -2,6 +2,9 @@
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
 
+# TODO We want to run the native token bridge with our Fuji scripts.
+# This file isn't compeletely set up properly yet.
+
 set -e # Stop on first error
 
 # Variables provided by run_test.sh:

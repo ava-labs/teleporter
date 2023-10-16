@@ -55,6 +55,11 @@ func NativeTokenBridge() {
 		_, txA, _, err := bind.DeployContract(chainATransactor, *nativeTokenSourceAbi, nativeTokenSourceBytecode, subnetA.WSClient, teleporterContractAddress, subnetB.BlockchainID, nativeTokenBridgeContractAddress)
 		Expect(err).Should(BeNil())
 
+		// Both contracts in this test will be deployed to 0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B,
+		// though they do not necessarily have to be deployed at the same address, each contract needs
+		// to know the address of the other.
+		// The nativeTokenDestination contract must be added to "adminAddresses" of "contractNativeMinterConfig"
+		// in the genesis file for the subnet. This will allow it to call the native minter precompile.
 		nativeTokenDestinationBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenDestinationByteCodeFile)
 		Expect(err).Should(BeNil())
 		chainBTransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetB.ChainID)
