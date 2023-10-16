@@ -31,7 +31,7 @@ var (
 
 // BlockHashPublisherMetaData contains all meta data concerning the BlockHashPublisher contract.
 var BlockHashPublisherMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"InvalidTeleporterRegistryAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidTeleporterSender\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"PublishBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"}],\"name\":\"publishLatestBlockHash\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"PublishBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"}],\"name\":\"publishLatestBlockHash\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // BlockHashPublisherABI is the input ABI used to generate the binding from.
@@ -211,43 +211,12 @@ func (_BlockHashPublisher *BlockHashPublisherCallerSession) RECEIVEBLOCKHASHREQU
 	return _BlockHashPublisher.Contract.RECEIVEBLOCKHASHREQUIREDGASLIMIT(&_BlockHashPublisher.CallOpts)
 }
 
-// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
+// TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
-// Solidity: function getMinTeleporterVersion() view returns(uint256)
-func (_BlockHashPublisher *BlockHashPublisherCaller) GetMinTeleporterVersion(opts *bind.CallOpts) (*big.Int, error) {
+// Solidity: function teleporterMessenger() view returns(address)
+func (_BlockHashPublisher *BlockHashPublisherCaller) TeleporterMessenger(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _BlockHashPublisher.contract.Call(opts, &out, "getMinTeleporterVersion")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
-//
-// Solidity: function getMinTeleporterVersion() view returns(uint256)
-func (_BlockHashPublisher *BlockHashPublisherSession) GetMinTeleporterVersion() (*big.Int, error) {
-	return _BlockHashPublisher.Contract.GetMinTeleporterVersion(&_BlockHashPublisher.CallOpts)
-}
-
-// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
-//
-// Solidity: function getMinTeleporterVersion() view returns(uint256)
-func (_BlockHashPublisher *BlockHashPublisherCallerSession) GetMinTeleporterVersion() (*big.Int, error) {
-	return _BlockHashPublisher.Contract.GetMinTeleporterVersion(&_BlockHashPublisher.CallOpts)
-}
-
-// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
-//
-// Solidity: function teleporterRegistry() view returns(address)
-func (_BlockHashPublisher *BlockHashPublisherCaller) TeleporterRegistry(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _BlockHashPublisher.contract.Call(opts, &out, "teleporterRegistry")
+	err := _BlockHashPublisher.contract.Call(opts, &out, "teleporterMessenger")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -259,18 +228,18 @@ func (_BlockHashPublisher *BlockHashPublisherCaller) TeleporterRegistry(opts *bi
 
 }
 
-// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
+// TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
-// Solidity: function teleporterRegistry() view returns(address)
-func (_BlockHashPublisher *BlockHashPublisherSession) TeleporterRegistry() (common.Address, error) {
-	return _BlockHashPublisher.Contract.TeleporterRegistry(&_BlockHashPublisher.CallOpts)
+// Solidity: function teleporterMessenger() view returns(address)
+func (_BlockHashPublisher *BlockHashPublisherSession) TeleporterMessenger() (common.Address, error) {
+	return _BlockHashPublisher.Contract.TeleporterMessenger(&_BlockHashPublisher.CallOpts)
 }
 
-// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
+// TeleporterMessenger is a free data retrieval call binding the contract method 0x9b3e5803.
 //
-// Solidity: function teleporterRegistry() view returns(address)
-func (_BlockHashPublisher *BlockHashPublisherCallerSession) TeleporterRegistry() (common.Address, error) {
-	return _BlockHashPublisher.Contract.TeleporterRegistry(&_BlockHashPublisher.CallOpts)
+// Solidity: function teleporterMessenger() view returns(address)
+func (_BlockHashPublisher *BlockHashPublisherCallerSession) TeleporterMessenger() (common.Address, error) {
+	return _BlockHashPublisher.Contract.TeleporterMessenger(&_BlockHashPublisher.CallOpts)
 }
 
 // PublishLatestBlockHash is a paid mutator transaction binding the contract method 0x82ab2b86.
@@ -292,27 +261,6 @@ func (_BlockHashPublisher *BlockHashPublisherSession) PublishLatestBlockHash(des
 // Solidity: function publishLatestBlockHash(bytes32 destinationChainID, address destinationAddress) returns(uint256 messageID)
 func (_BlockHashPublisher *BlockHashPublisherTransactorSession) PublishLatestBlockHash(destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
 	return _BlockHashPublisher.Contract.PublishLatestBlockHash(&_BlockHashPublisher.TransactOpts, destinationChainID, destinationAddress)
-}
-
-// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
-//
-// Solidity: function updateMinTeleporterVersion() returns()
-func (_BlockHashPublisher *BlockHashPublisherTransactor) UpdateMinTeleporterVersion(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _BlockHashPublisher.contract.Transact(opts, "updateMinTeleporterVersion")
-}
-
-// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
-//
-// Solidity: function updateMinTeleporterVersion() returns()
-func (_BlockHashPublisher *BlockHashPublisherSession) UpdateMinTeleporterVersion() (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.UpdateMinTeleporterVersion(&_BlockHashPublisher.TransactOpts)
-}
-
-// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
-//
-// Solidity: function updateMinTeleporterVersion() returns()
-func (_BlockHashPublisher *BlockHashPublisherTransactorSession) UpdateMinTeleporterVersion() (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.UpdateMinTeleporterVersion(&_BlockHashPublisher.TransactOpts)
 }
 
 // BlockHashPublisherPublishBlockHashIterator is returned from FilterPublishBlockHash and is used to iterate over the raw logs and unpacked data for PublishBlockHash events raised by the BlockHashPublisher contract.
