@@ -15,8 +15,8 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	teleportermessenger "github.com/ava-labs/teleporter/go/abi-bindings/Teleporter/TeleporterMessenger"
-	teleporterutilities "github.com/ava-labs/teleporter/go/teleporter-utilities"
+	teleportermessenger "github.com/ava-labs/teleporter/go-utils/abi-bindings/Teleporter/TeleporterMessenger"
+	teleporterutilities "github.com/ava-labs/teleporter/go-utils/utils"
 
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"

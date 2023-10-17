@@ -14,7 +14,7 @@ import (
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
-	teleporterutilities "github.com/ava-labs/teleporter/go/teleporter-utilities"
+	teleporterutilities "github.com/ava-labs/teleporter/go-utils/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"

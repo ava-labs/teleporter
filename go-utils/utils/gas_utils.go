@@ -1,4 +1,4 @@
-package teleporterutilities
+package utils
 
 import (
 	"errors"
@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	receiveCrossChainMessageStaticGasCost           uint64 = 2_000_000
-	receiveCrossChainMessageGasCostPerAggregatedKey uint64 = 1_000
-	receiveMessageGasLimitBufferAmount              uint64 = 100_000
+	ReceiveCrossChainMessageStaticGasCost           uint64 = 2_000_000
+	ReceiveCrossChainMessageGasCostPerAggregatedKey uint64 = 1_000
+	ReceiveMessageGasLimitBufferAmount              uint64 = 100_000
 
 	BaseFeeFactor        = 2
 	MaxPriorityFeePerGas = 2500000000 // 2.5 gwei
@@ -28,9 +28,9 @@ func CalculateReceiveMessageGasLimit(numSigners int, executionRequiredGasLimit *
 
 	gasAmounts := []uint64{
 		executionRequiredGasLimit.Uint64(),
-		receiveCrossChainMessageStaticGasCost,
-		uint64(numSigners) * receiveCrossChainMessageGasCostPerAggregatedKey,
-		receiveMessageGasLimitBufferAmount,
+		ReceiveCrossChainMessageStaticGasCost,
+		uint64(numSigners) * ReceiveCrossChainMessageGasCostPerAggregatedKey,
+		ReceiveMessageGasLimitBufferAmount,
 	}
 
 	res := gasAmounts[0]
