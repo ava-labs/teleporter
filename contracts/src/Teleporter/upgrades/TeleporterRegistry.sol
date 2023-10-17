@@ -10,7 +10,7 @@ import "../ITeleporterMessenger.sol";
 
 /**
  * @dev TeleporterRegistry contract is a {WarpProtocolRegistry} and provides an upgrade
- * mechanism for teleporter messenger contracts.
+ * mechanism for {ITeleporterMessenger} contracts.
  */
 contract TeleporterRegistry is WarpProtocolRegistry {
     constructor(

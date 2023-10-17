@@ -24,7 +24,7 @@ struct ProtocolRegistryEntry {
  */
 abstract contract WarpProtocolRegistry {
     // Address that the out-of-band Warp message sets as the "source" address.
-    // The address is obviously not owned by any EOA or smart contract account, so it
+    // The address is not owned by any EOA or smart contract account, so it
     // cannot possibly be the source address of any other Warp message emitted by the VM.
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
 
@@ -36,6 +36,7 @@ abstract contract WarpProtocolRegistry {
     // The latest protocol version. 0 means no protocol version has been added, and isn't a valid version.
     uint256 internal _latestVersion;
 
+    // Mappings that keep track of the protocol version and corresponding contract address.
     mapping(uint256 => address) internal _versionToAddress;
     mapping(address => uint256) internal _addressToVersion;
 
@@ -48,7 +49,8 @@ abstract contract WarpProtocolRegistry {
     );
 
     /**
-     * @dev Initializes the contract by setting a `chainID` and `latestVersion`.
+     * @dev Initializes the contract by setting `_blockchainID` and `_latestVersion`.
+     * Also adds the initial protocol versions to the registry.
      */
     constructor(ProtocolRegistryEntry[] memory initialEntries) {
         _blockchainID = WARP_MESSENGER.getBlockchainID();
@@ -62,13 +64,16 @@ abstract contract WarpProtocolRegistry {
     /**
      * @dev Gets and verifies a warp out-of-band message, and adds the new protocol version
      * address to the registry.
+     * If a version is greater than the current latest version, it will be set as the latest version.
+     * If a version is less than the current latest version, it is added to the registry, but
+     * doesn't change the latest version.
      *
      * Emits a {AddProtocolVersion} event when successful.
      * Requirements:
      *
      * - a valid warp out-of-band message must be provided.
-     * - the version must be the increment of the latest version.
-     * - the protocol address must be a contract address.
+     * - the version must not already be registered.
+     * - version and protocol address can not be the zero values.
      */
     function addProtocolVersion(uint32 messageIndex) external virtual {
         // Get and validate for a warp out-of-band message.
@@ -115,7 +120,7 @@ abstract contract WarpProtocolRegistry {
 
     /**
      * @dev Gets the version of the given `protocolAddress`.
-     * If `protocolAddress` is not a valid protocol address, returns 0, which is an invalid version.
+     * If `protocolAddress` is not a registered protocol address, returns 0, which is an invalid version.
      */
     function getVersionFromAddress(
         address protocolAddress
@@ -125,6 +130,7 @@ abstract contract WarpProtocolRegistry {
 
     /**
      * @dev Gets the latest protocol version.
+     * If the registry has no versions, we return 0, which is an invalid version.
      */
     function getLatestVersion() external view virtual returns (uint256) {
         return _latestVersion;
@@ -132,6 +138,7 @@ abstract contract WarpProtocolRegistry {
 
     /**
      * @dev Adds the new protocol version address to the registry.
+     * Updates latest version if the version is greater than the current latest version.
      *
      * Emits a {AddProtocolVersion} event when successful.
      * Note: `protocolAddress` doesn't have to be a contract address, this is primarily
@@ -139,7 +146,9 @@ abstract contract WarpProtocolRegistry {
      * before the contract is deployed, to prevent the vulnerabilitiy from being exposed before registry update.
      * Requirements:
      *
-     * - `version` must be the increment of the latest version.
+     * - `version` is not zero
+     * - `version` is not already registered
+     * - `protocolAddress` is not zero address
      */
     function _addToRegistry(
         ProtocolRegistryEntry memory entry
