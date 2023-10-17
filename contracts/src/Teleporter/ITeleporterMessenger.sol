@@ -94,7 +94,7 @@ interface ITeleporterMessenger {
      */
     event RelayerRewardsRedeemed(
         address indexed redeemer,
-        address asset,
+        address indexed asset,
         uint256 amount
     );
 

@@ -76,7 +76,7 @@ contract TeleporterMessengerTest is Test {
 
     event RelayerRewardsRedeemed(
         address indexed redeemer,
-        address asset,
+        address indexed asset,
         uint256 amount
     );
 
