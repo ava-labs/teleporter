@@ -37,8 +37,9 @@ contract TeleporterRegistryTest is Test {
         teleporterAddress = address(new TeleporterMessenger());
     }
 
-    function testAddProtocolVersionSuccess() public {
+    function testAddProtocolVersionBasic() public {
         uint256 latestVersion = teleporterRegistry.getLatestVersion();
+        uint32 messageIndex = 0;
         assertEq(0, latestVersion);
 
         _addProtocolVersion(teleporterRegistry);
@@ -51,15 +52,125 @@ contract TeleporterRegistryTest is Test {
             teleporterRegistry.getVersionFromAddress(teleporterAddress),
             teleporterRegistry.getLatestVersion()
         );
+
+        // Check that adding a protocol version with a version that is not the increment of the latest version succeeds
+        latestVersion = teleporterRegistry.getLatestVersion();
+        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+            latestVersion + 2,
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                WarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        teleporterRegistry.addProtocolVersion(messageIndex);
+        assertEq(latestVersion + 2, teleporterRegistry.getLatestVersion());
+        assertEq(
+            teleporterAddress,
+            address(teleporterRegistry.getLatestTeleporter())
+        );
     }
 
-    function testAddToRegistryFails() public {
+    function testAddNonContractAddress() public {
+        // Check that adding a protocol version with a protocol address that is not a contract address succeeds
+        uint256 latestVersion = teleporterRegistry.getLatestVersion();
+        uint32 messageIndex = 0;
+        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+            latestVersion + 2,
+            address(this),
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                WarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        teleporterRegistry.addProtocolVersion(messageIndex);
+        assertEq(latestVersion + 2, teleporterRegistry.getLatestVersion());
+        assertEq(
+            address(this),
+            teleporterRegistry.getAddressFromVersion(latestVersion + 2)
+        );
+    }
+
+    function testAddOldVersion() public {
+        // Check that adding a protocol version that has not been registered, but is less than the latest version succeeds
+        // First add to latest version by skipping a version.
+        uint256 latestVersion = teleporterRegistry.getLatestVersion();
+        uint32 messageIndex = 0;
+        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+            latestVersion + 2,
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                WarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        teleporterRegistry.addProtocolVersion(messageIndex);
+        assertEq(latestVersion + 2, teleporterRegistry.getLatestVersion());
+        assertEq(
+            teleporterAddress,
+            teleporterRegistry.getAddressFromVersion(latestVersion + 2)
+        );
+
+        // latestVersion + 1 was skipped in previous check, is not registered, and is less than getLatestVersion()
+        uint256 oldVersion = latestVersion + 1;
+        warpMessage = _createWarpOutofBandMessage(
+            oldVersion,
+            address(this),
+            address(teleporterRegistry)
+        );
+
+        // Make sure that oldVersion is not registered, and is less than getLatestVersion()
+        assertEq(oldVersion, teleporterRegistry.getLatestVersion() - 1);
+        assertEq(
+            address(0),
+            teleporterRegistry.getAddressFromVersion(oldVersion)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                WarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        teleporterRegistry.addProtocolVersion(messageIndex);
+        assertEq(
+            address(this),
+            teleporterRegistry.getAddressFromVersion(oldVersion)
+        );
+        assertEq(oldVersion + 1, teleporterRegistry.getLatestVersion());
+    }
+
+    function testAddExistingVersion() public {
         uint256 latestVersion = teleporterRegistry.getLatestVersion();
         uint32 messageIndex = 0;
 
-        // Create a Warp out-of-band message with same version as latest version
+        // Add a new version to the registiry
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
-            latestVersion,
+            latestVersion + 1,
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -77,31 +188,24 @@ contract TeleporterRegistryTest is Test {
             abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (messageIndex))
         );
 
-        // Check that adding a protocol version with the same version fails
-        vm.expectRevert(WarpProtocolRegistry.InvalidProtocolVersion.selector);
         teleporterRegistry.addProtocolVersion(messageIndex);
-
-        // Check that adding a protocol version with a version that is not the increment of the latest version fails
-        warpMessage = _createWarpOutofBandMessage(
-            latestVersion + 2,
+        assertEq(latestVersion + 1, teleporterRegistry.getLatestVersion());
+        assertEq(
             teleporterAddress,
-            address(teleporterRegistry)
+            teleporterRegistry.getAddressFromVersion(latestVersion + 1)
         );
 
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
-                (messageIndex)
-            ),
-            abi.encode(warpMessage, true)
-        );
-
-        vm.expectRevert(WarpProtocolRegistry.InvalidProtocolVersion.selector);
+        // Check that adding a protocol version with the same version fails
+        vm.expectRevert(_formatErrorMessage("version already exists"));
         teleporterRegistry.addProtocolVersion(messageIndex);
+    }
+
+    function testAddZeroProtocolAddress() public {
+        uint256 latestVersion = teleporterRegistry.getLatestVersion();
+        uint32 messageIndex = 0;
 
         // Check that adding an invalid protocol address of address(0) fails
-        warpMessage = _createWarpOutofBandMessage(
+        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             latestVersion + 1,
             address(0),
             address(teleporterRegistry)
@@ -116,7 +220,30 @@ contract TeleporterRegistryTest is Test {
             abi.encode(warpMessage, true)
         );
 
-        vm.expectRevert(WarpProtocolRegistry.InvalidProtocolAddress.selector);
+        vm.expectRevert(_formatErrorMessage("zero protocol address"));
+        teleporterRegistry.addProtocolVersion(messageIndex);
+    }
+
+    function testAddZeroVersion() public {
+        uint32 messageIndex = 0;
+
+        // Check that adding an invalid version of 0 fails
+        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+            0,
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                WarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        vm.expectRevert(_formatErrorMessage("zero version"));
         teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
@@ -131,11 +258,11 @@ contract TeleporterRegistryTest is Test {
         );
 
         // Check that getting version 0 fails
-        vm.expectRevert(WarpProtocolRegistry.InvalidProtocolVersion.selector);
+        vm.expectRevert(_formatErrorMessage("zero version"));
         teleporterRegistry.getAddressFromVersion(0);
 
         // Check that getting a version that doesn't exist fails
-        vm.expectRevert(WarpProtocolRegistry.InvalidProtocolVersion.selector);
+        vm.expectRevert(_formatErrorMessage("invalid version"));
         teleporterRegistry.getAddressFromVersion(latestVersion + 1);
     }
 
@@ -176,7 +303,7 @@ contract TeleporterRegistryTest is Test {
             abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (messageIndex))
         );
 
-        vm.expectRevert(WarpProtocolRegistry.InvalidWarpMessage.selector);
+        vm.expectRevert(_formatErrorMessage("invalid warp message"));
         teleporterRegistry.addProtocolVersion(messageIndex);
 
         // Check if we have an invalid source chain ID
@@ -190,7 +317,7 @@ contract TeleporterRegistryTest is Test {
             abi.encode(warpMessage, true)
         );
 
-        vm.expectRevert(WarpProtocolRegistry.InvalidSourceChainID.selector);
+        vm.expectRevert(_formatErrorMessage("invalid source chain ID"));
         teleporterRegistry.addProtocolVersion(messageIndex);
 
         // Check if we have an invalid origin sender address
@@ -205,9 +332,7 @@ contract TeleporterRegistryTest is Test {
             abi.encode(warpMessage, true)
         );
 
-        vm.expectRevert(
-            WarpProtocolRegistry.InvalidOriginSenderAddress.selector
-        );
+        vm.expectRevert(_formatErrorMessage("invalid origin sender address"));
         teleporterRegistry.addProtocolVersion(messageIndex);
 
         // Check if we have an invalid destination chain ID
@@ -223,9 +348,7 @@ contract TeleporterRegistryTest is Test {
             abi.encode(warpMessage, true)
         );
 
-        vm.expectRevert(
-            WarpProtocolRegistry.InvalidDestinationChainID.selector
-        );
+        vm.expectRevert(_formatErrorMessage("invalid destination chain ID"));
         teleporterRegistry.addProtocolVersion(messageIndex);
 
         // Check if we have an invalid destination address
@@ -240,9 +363,7 @@ contract TeleporterRegistryTest is Test {
             abi.encode(warpMessage, true)
         );
 
-        vm.expectRevert(
-            WarpProtocolRegistry.InvalidDestinationAddress.selector
-        );
+        vm.expectRevert(_formatErrorMessage("invalid destination address"));
         teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
@@ -291,5 +412,11 @@ contract TeleporterRegistryTest is Test {
                     })
                 )
             });
+    }
+
+    function _formatErrorMessage(
+        string memory errorMessage
+    ) private pure returns (bytes memory) {
+        return bytes(string.concat("WarpProtocolRegistry: ", errorMessage));
     }
 }

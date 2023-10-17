@@ -47,15 +47,6 @@ abstract contract WarpProtocolRegistry {
         address indexed protocolAddress
     );
 
-    // Errors
-    error InvalidWarpMessage();
-    error InvalidSourceChainID();
-    error InvalidOriginSenderAddress();
-    error InvalidDestinationChainID();
-    error InvalidDestinationAddress();
-    error InvalidProtocolVersion();
-    error InvalidProtocolAddress();
-
     /**
      * @dev Initializes the contract by setting a `chainID` and `latestVersion`.
      */
@@ -81,25 +72,26 @@ abstract contract WarpProtocolRegistry {
      */
     function addProtocolVersion(uint32 messageIndex) external virtual {
         // Get and validate for a warp out-of-band message.
-        (WarpMessage memory message, bool valid) = WARP_MESSENGER
+        (WarpMessage memory message, bool success) = WARP_MESSENGER
             .getVerifiedWarpMessage(messageIndex);
-        if (!valid) {
-            revert InvalidWarpMessage();
-        }
-        if (message.sourceChainID != _blockchainID) {
-            revert InvalidSourceChainID();
-        }
-
+        require(success, "WarpProtocolRegistry: invalid warp message");
+        require(
+            message.sourceChainID == _blockchainID,
+            "WarpProtocolRegistry: invalid source chain ID"
+        );
         // Check that the message is sent through a warp out of band message.
-        if (message.originSenderAddress != VALIDATORS_SOURCE_ADDRESS) {
-            revert InvalidOriginSenderAddress();
-        }
-        if (message.destinationChainID != _blockchainID) {
-            revert InvalidDestinationChainID();
-        }
-        if (message.destinationAddress != address(this)) {
-            revert InvalidDestinationAddress();
-        }
+        require(
+            message.originSenderAddress == VALIDATORS_SOURCE_ADDRESS,
+            "WarpProtocolRegistry: invalid origin sender address"
+        );
+        require(
+            message.destinationChainID == _blockchainID,
+            "WarpProtocolRegistry: invalid destination chain ID"
+        );
+        require(
+            message.destinationAddress == address(this),
+            "WarpProtocolRegistry: invalid destination address"
+        );
 
         ProtocolRegistryEntry memory entry = abi.decode(
             message.payload,
@@ -182,8 +174,9 @@ abstract contract WarpProtocolRegistry {
     function _getAddressFromVersion(
         uint256 version
     ) internal view virtual returns (address) {
+        require(version != 0, "WarpProtocolRegistry: zero version");
         require(
-            0 < version <= _latestVersion,
+            version <= _latestVersion,
             "WarpProtocolRegistry: invalid version"
         );
         return _versionToAddress[version];

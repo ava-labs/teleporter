@@ -19,20 +19,16 @@ abstract contract TeleporterUpgradeable {
     TeleporterRegistry public immutable teleporterRegistry;
     uint256 internal _minTeleporterVersion;
 
-    error InvalidTeleporterRegistryAddress();
-    error InvalidTeleporterSender();
-
     /**
      * @dev Throws if called by a `msg.sender` that is not an allowed Teleporter version.
      * Checks that `msg.sender` matches a Teleporter version greater than or equal to `_minTeleporterVersion`.
      */
     modifier onlyAllowedTeleporter() {
-        if (
-            teleporterRegistry.getVersionFromAddress(msg.sender) <
-            _minTeleporterVersion
-        ) {
-            revert InvalidTeleporterSender();
-        }
+        require(
+            teleporterRegistry.getVersionFromAddress(msg.sender) >=
+                _minTeleporterVersion,
+            "TeleporterUpgradeable: invalid teleporter sender"
+        );
         _;
     }
 
@@ -41,9 +37,10 @@ abstract contract TeleporterUpgradeable {
      * instance and setting `_minTeleporterVersion`.
      */
     constructor(address teleporterRegistryAddress) {
-        if (teleporterRegistryAddress == address(0)) {
-            revert InvalidTeleporterRegistryAddress();
-        }
+        require(
+            teleporterRegistryAddress != address(0),
+            "TeleporterUpgradeable: invalid teleporter registry address"
+        );
 
         teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
         _minTeleporterVersion = teleporterRegistry.getLatestVersion();
