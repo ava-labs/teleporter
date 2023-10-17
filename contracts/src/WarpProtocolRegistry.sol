@@ -60,8 +60,8 @@ abstract contract WarpProtocolRegistry {
      * @dev Initializes the contract by setting a `chainID` and `latestVersion`.
      */
     constructor(ProtocolRegistryEntry[] memory initialEntries) {
-        _latestVersion = 0;
         _blockchainID = WARP_MESSENGER.getBlockchainID();
+        _latestVersion = 0;
 
         for (uint256 i = 0; i < initialEntries.length; i++) {
             _addToRegistry(initialEntries[i]);
@@ -80,7 +80,33 @@ abstract contract WarpProtocolRegistry {
      * - the protocol address must be a contract address.
      */
     function addProtocolVersion(uint32 messageIndex) external virtual {
-        _addProtocolVersion(messageIndex);
+        // Get and validate for a warp out-of-band message.
+        (WarpMessage memory message, bool valid) = WARP_MESSENGER
+            .getVerifiedWarpMessage(messageIndex);
+        if (!valid) {
+            revert InvalidWarpMessage();
+        }
+        if (message.sourceChainID != _blockchainID) {
+            revert InvalidSourceChainID();
+        }
+
+        // Check that the message is sent through a warp out of band message.
+        if (message.originSenderAddress != VALIDATORS_SOURCE_ADDRESS) {
+            revert InvalidOriginSenderAddress();
+        }
+        if (message.destinationChainID != _blockchainID) {
+            revert InvalidDestinationChainID();
+        }
+        if (message.destinationAddress != address(this)) {
+            revert InvalidDestinationAddress();
+        }
+
+        ProtocolRegistryEntry memory entry = abi.decode(
+            message.payload,
+            (ProtocolRegistryEntry)
+        );
+
+        _addToRegistry(entry);
     }
 
     /**
@@ -113,40 +139,6 @@ abstract contract WarpProtocolRegistry {
     }
 
     /**
-     * @dev Gets and verifies for a warp out-of-band message, and adds the new protocol version
-     * address to the registry.
-     */
-    function _addProtocolVersion(uint32 messageIndex) internal virtual {
-        // Get and validate for a warp out-of-band message.
-        (WarpMessage memory message, bool valid) = WARP_MESSENGER
-            .getVerifiedWarpMessage(messageIndex);
-        if (!valid) {
-            revert InvalidWarpMessage();
-        }
-        if (message.sourceChainID != _blockchainID) {
-            revert InvalidSourceChainID();
-        }
-
-        // Check that the message is sent through a warp out of band message.
-        if (message.originSenderAddress != VALIDATORS_SOURCE_ADDRESS) {
-            revert InvalidOriginSenderAddress();
-        }
-        if (message.destinationChainID != _blockchainID) {
-            revert InvalidDestinationChainID();
-        }
-        if (message.destinationAddress != address(this)) {
-            revert InvalidDestinationAddress();
-        }
-
-        ProtocolRegistryEntry memory entry = abi.decode(
-            message.payload,
-            (ProtocolRegistryEntry)
-        );
-
-        _addToRegistry(entry);
-    }
-
-    /**
      * @dev Adds the new protocol version address to the registry.
      *
      * Emits a {AddProtocolVersion} event when successful.
@@ -160,19 +152,25 @@ abstract contract WarpProtocolRegistry {
     function _addToRegistry(
         ProtocolRegistryEntry memory entry
     ) internal virtual {
-        // Check that the version is the increment of the latest version.
-        if (entry.version != _latestVersion + 1) {
-            revert InvalidProtocolVersion();
-        }
+        require(entry.version != 0, "WarpProtocolRegistry: zero version");
+        // Check that the version has not previously been registered.
+        require(
+            _versionToAddress[entry.version] == address(0),
+            "WarpProtocolRegistry: version already exists"
+        );
+        require(
+            entry.protocolAddress != address(0),
+            "WarpProtocolRegistry: zero protocol address"
+        );
 
-        if (entry.protocolAddress == address(0)) {
-            revert InvalidProtocolAddress();
-        }
-
-        _latestVersion++;
         _versionToAddress[entry.version] = entry.protocolAddress;
         _addressToVersion[entry.protocolAddress] = entry.version;
         emit AddProtocolVersion(entry.version, entry.protocolAddress);
+
+        // Set latest version if the version is greater than the current latest version.
+        if (entry.version > _latestVersion) {
+            _latestVersion = entry.version;
+        }
     }
 
     /**
@@ -184,14 +182,10 @@ abstract contract WarpProtocolRegistry {
     function _getAddressFromVersion(
         uint256 version
     ) internal view virtual returns (address) {
-        // Check that the version provided is a valid version.
-        if (version == 0) {
-            revert InvalidProtocolVersion();
-        }
-
-        if (version > _latestVersion) {
-            revert InvalidProtocolVersion();
-        }
+        require(
+            0 < version <= _latestVersion,
+            "WarpProtocolRegistry: invalid version"
+        );
         return _versionToAddress[version];
     }
 }
