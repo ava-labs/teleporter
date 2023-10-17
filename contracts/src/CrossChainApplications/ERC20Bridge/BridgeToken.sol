@@ -32,15 +32,15 @@ contract BridgeToken is ERC20Burnable {
     ) ERC20(tokenName, tokenSymbol) {
         require(
             sourceChainID != bytes32(0),
-            "BridgeToken: invalid source chain id"
+            "BridgeToken: zero source chain id"
         );
         require(
             sourceBridge != address(0),
-            "BridgeToken: invalid source bridge address"
+            "BridgeToken: zero source bridge address"
         );
         require(
             sourceAsset != address(0),
-            "BridgeToken: invalid source asset address"
+            "BridgeToken: zero source asset address"
         );
         bridgeContract = msg.sender;
         nativeChainID = sourceChainID;

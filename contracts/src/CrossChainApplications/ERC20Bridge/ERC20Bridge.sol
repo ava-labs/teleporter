@@ -74,7 +74,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     constructor(address teleporterMessengerAddress) {
         require(
             teleporterMessengerAddress != address(0),
-            "ERC20Bridge: Invalid teleporter messenger address"
+            "ERC20Bridge: invalid teleporter messenger address"
         );
 
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
