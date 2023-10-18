@@ -127,19 +127,19 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessage calldata message
     ) external senderNonReentrant {
         // Get the previously sent message hash.
-        bytes32 messageHash = sentMessageInfo[destinationChainID][
-            message.messageID
-        ].messageHash;
+        SentMessageInfo memory existingMessageInfo = sentMessageInfo[
+            destinationChainID
+        ][message.messageID];
         // If the message hash is zero, the message was never sent.
         require(
-            messageHash != bytes32(0),
+            existingMessageInfo.messageHash != bytes32(0),
             "TeleporterMessenger: message not found"
         );
 
         // Check that the hash of the provided message matches the one that was originally submitted.
         bytes memory messageBytes = abi.encode(message);
         require(
-            keccak256(messageBytes) == messageHash,
+            keccak256(messageBytes) == existingMessageInfo.messageHash,
             "TeleporterMessenger: invalid message hash"
         );
 
@@ -148,7 +148,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         emit SendCrossChainMessage(
             destinationChainID,
             message.messageID,
-            message
+            message,
+            existingMessageInfo.feeInfo
         );
 
         // Resubmit the message to the warp message precompile now that we know the exact message was
@@ -346,6 +347,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             teleporterMessage.messageID,
+            msg.sender,
+            relayerRewardAddress,
             teleporterMessage
         );
     }
@@ -475,6 +478,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Zero the reward balance before calling the external ERC20 to transfer the
         // reward to prevent any possible re-entrancy.
         delete relayerRewardAmounts[msg.sender][feeAsset];
+
+        emit RelayerRewardsRedeemed(msg.sender, feeAsset, rewardAmount);
 
         // We don't need to handle "fee on transfer" tokens in a special case here because
         // the amount credited to the caller does not affect this contracts accounting. The
@@ -627,18 +632,20 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Store the fee asset and amount to be paid to the relayer of this message upon receiving the receipt.
         // Also store the message hash so that it can be retried until we get receipt of its delivery.
+        TeleporterFeeInfo memory adjustedFeeInfo = TeleporterFeeInfo({
+            contractAddress: feeInfo.contractAddress,
+            amount: adjustedFeeAmount
+        });
         sentMessageInfo[destinationChainID][messageID] = SentMessageInfo({
             messageHash: keccak256(teleporterMessageBytes),
-            feeInfo: TeleporterFeeInfo({
-                contractAddress: feeInfo.contractAddress,
-                amount: adjustedFeeAmount
-            })
+            feeInfo: adjustedFeeInfo
         });
 
         emit SendCrossChainMessage(
             destinationChainID,
             messageID,
-            teleporterMessage
+            teleporterMessage,
+            adjustedFeeInfo
         );
 
         // Submit the message to the AWM precompile.
