@@ -10,5 +10,5 @@ TELEPORTER_PATH=$(
 )
 
 cd $TELEPORTER_PATH/contracts/src
-solhint '**/*.sol'
+solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore
 exit 0
