@@ -37,18 +37,18 @@ jobs:
 
       - name: Check for clean branch
         run: .github/workflows/check_clean_branch.sh
-    unit_tests:
-      name: Unit tests
-      runs-on: ubuntu-20.04
+  unit_tests:
+    name: Unit tests
+    runs-on: ubuntu-20.04
 
-      steps:
-        - name: Setup Go
-          uses: actions/setup-go@v4
-          with:
-            go-version: ${{ env.GO_VERSION }}
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
-        - name: Checkout teleporter repository
-          uses: actions/checkout@v4
+      - name: Checkout teleporter repository
+        uses: actions/checkout@v4
 
-        - name: Run ABI Binding Unit Tests
-          run: go test ./...
+      - name: Run ABI Binding Unit Tests
+        run: go test ./...
