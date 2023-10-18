@@ -1,27 +1,59 @@
 package teleportermessenger
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 )
 
-// UnpackTeleporterMessage unpacks message bytes according to EVM ABI encoding rules into a TeleporterMessage
+var teleporterMessageType abi.Type
+
+func init() {
+	// Create an ABI binding for TeleporterMessage, defined in ITeleporterMessenger.sol
+	// abigen does not support ABI bindings for standalone structs, only methods and events,
+	// so we must manually keep this up-to-date with the struct defined in the contract.
+	var err error
+	teleporterMessageType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
+		{Name: "messageID", Type: "uint256"},
+		{Name: "senderAddress", Type: "address"},
+		{Name: "destinationAddress", Type: "address"},
+		{Name: "requiredGasLimit", Type: "uint256"},
+		{Name: "allowedRelayerAddresses", Type: "address[]"},
+		{Name: "receipts", Type: "tuple[]", Components: []abi.ArgumentMarshaling{
+			{Name: "receivedMessageID", Type: "uint256"},
+			{Name: "relayerRewardAddress", Type: "address"},
+		}},
+		{Name: "message", Type: "bytes"},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("failed to create TeleporterMessage ABI type: %v", err))
+	}
+}
+
 func UnpackTeleporterMessage(messageBytes []byte) (*TeleporterMessage, error) {
-	abi, err := TeleporterMessengerMetaData.GetAbi()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get abi")
+	args := abi.Arguments{
+		{
+			Name: "teleporterMessage",
+			Type: teleporterMessageType,
+		},
 	}
-
-	var teleporterMessage TeleporterMessage
-	err = abi.UnpackIntoInterface(&teleporterMessage, "teleporterMessage", messageBytes)
+	unpacked, err := args.Unpack(messageBytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to unpack to teleporter message")
+		return nil, fmt.Errorf("failed to unpack to teleporter message with err: %v", err)
 	}
-
-	return &teleporterMessage, nil
+	type teleporterMessageArg struct {
+		TeleporterMessage TeleporterMessage `json:"teleporterMessage"`
+	}
+	var teleporterMessage teleporterMessageArg
+	err = args.Copy(&teleporterMessage, unpacked)
+	if err != nil {
+		return nil, err
+	}
+	return &teleporterMessage.TeleporterMessage, nil
 }
 
 func PackSendCrossChainMessage(input TeleporterMessageInput) ([]byte, error) {
