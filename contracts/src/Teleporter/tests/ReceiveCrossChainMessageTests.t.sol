@@ -48,13 +48,19 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             0
         );
 
         // Receive the message.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -62,9 +68,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             1
         );
 
@@ -83,6 +87,14 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(3, warpMessage);
 
         // Receive the message.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
+        );
         teleporterMessenger.receiveCrossChainMessage(
             3,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -90,9 +102,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             2
         );
 
