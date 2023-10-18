@@ -473,7 +473,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      */
     function redeemRelayerRewards(address feeAsset) external {
         uint256 rewardAmount = relayerRewardAmounts[msg.sender][feeAsset];
-        require(rewardAmount != 0, "TeleporterMessenger: no reward to redeem");
+        require(rewardAmount > 0, "TeleporterMessenger: no reward to redeem");
 
         // Zero the reward balance before calling the external ERC20 to transfer the
         // reward to prevent any possible re-entrancy.
