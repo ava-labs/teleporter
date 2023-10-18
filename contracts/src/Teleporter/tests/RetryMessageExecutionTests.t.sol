@@ -22,11 +22,6 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
     bytes32 public latestMessageSenderSubnetID;
     address public latestMessageSenderAddress;
 
-    // Errors
-    error EvenBlockNumber();
-    error InvalidAction();
-    error Unauthorized();
-
     constructor(address teleporterContractAddress) {
         teleporterContract = teleporterContractAddress;
     }
@@ -36,9 +31,7 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         bytes calldata messageBytes
     ) external {
-        if (msg.sender != teleporterContract) {
-            revert Unauthorized();
-        }
+        require(msg.sender == teleporterContract, "unauthorized");
         // Decode the payload to recover the action and corresponding function parameters
         (FlakyMessageReceiverAction action, bytes memory actionData) = abi
             .decode(messageBytes, (FlakyMessageReceiverAction, bytes));
@@ -49,7 +42,7 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
             string memory message = abi.decode(actionData, (string));
             _retryReceive(originChainID, originSenderAddress, message);
         } else {
-            revert InvalidAction();
+            revert("invalid action");
         }
     }
 
@@ -59,12 +52,8 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         string memory message
     ) internal {
-        if (msg.sender != teleporterContract) {
-            revert Unauthorized();
-        }
-        if (block.number % 2 == 0) {
-            revert EvenBlockNumber();
-        }
+        require(msg.sender == teleporterContract, "unauthorized");
+        require(block.number % 2 != 0, "even block number");
         latestMessage = message;
         latestMessageSenderSubnetID = originChainID;
         latestMessageSenderAddress = originSenderAddress;
@@ -76,12 +65,8 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         string memory message
     ) internal {
-        if (msg.sender != teleporterContract) {
-            revert Unauthorized();
-        }
-        if (block.number % 2 == 0) {
-            revert EvenBlockNumber();
-        }
+        require(msg.sender == teleporterContract, "unauthorized");
+        require(block.number % 2 != 0, "even block number");
 
         ITeleporterMessenger messenger = ITeleporterMessenger(
             teleporterContract
