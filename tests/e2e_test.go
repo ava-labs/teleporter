@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	deploymentUtils "github.com/ava-labs/teleporter/contract-deployment/utils"
 	testUtils "github.com/ava-labs/teleporter/tests/utils"
+	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

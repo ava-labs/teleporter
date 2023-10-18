@@ -15,9 +15,9 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/Teleporter/TeleporterMessenger"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 
-	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/interfaces"
@@ -38,33 +38,6 @@ var (
 	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
 	DefaultTeleporterTransactionValue            = common.Big0
 )
-
-type SendCrossChainMessageEvent struct {
-	DestinationChainID ids.ID
-	MessageID          *big.Int
-	Message            teleporter.TeleporterMessage
-}
-
-type ReceiveCrossChainMessageEvent struct {
-	OriginChainID ids.ID
-	MessageID     *big.Int
-	Message       teleporter.TeleporterMessage
-}
-
-// Teleporter contract sendCrossChainMessage input type
-type SendCrossChainMessageInput struct {
-	DestinationChainID      ids.ID
-	DestinationAddress      common.Address
-	FeeInfo                 FeeInfo
-	RequiredGasLimit        *big.Int
-	Message                 []byte
-	AllowedRelayerAddresses []common.Address
-}
-
-type FeeInfo struct {
-	ContractAddress common.Address
-	Amount          *big.Int
-}
 
 //
 // Test utility functions
@@ -132,15 +105,12 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
 	source SubnetTestInfo,
-	input SendCrossChainMessageInput,
+	input teleportermessenger.TeleporterMessageInput,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
-	data, err := teleporter.EVMTeleporterContractABI.Pack(
-		"sendCrossChainMessage",
-		input,
-	)
+	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.ChainWSClient, fundedAddress)
@@ -180,13 +150,10 @@ func CreateReceiveCrossChainMessageTransaction(
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := teleporter.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
 	Expect(err).Should(BeNil())
 
-	callData, err := teleporter.PackReceiveCrossChainMessage(teleporter.ReceiveCrossChainMessageInput{
-		MessageIndex:         0,
-		RelayerRewardAddress: fundedAddress,
-	})
+	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, wsClient, fundedAddress)

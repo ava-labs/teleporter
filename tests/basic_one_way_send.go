@@ -4,9 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ava-labs/awm-relayer/messages/teleporter"
 	"github.com/ava-labs/subnet-evm/interfaces"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/Teleporter/TeleporterMessenger"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -33,10 +32,10 @@ func BasicOneWaySend() {
 	//
 	ctx := context.Background()
 
-	sendCrossChainMessageInput := utils.SendCrossChainMessageInput{
+	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 		DestinationChainID: subnetBInfo.BlockchainID,
 		DestinationAddress: fundedAddress,
-		FeeInfo: utils.FeeInfo{
+		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			ContractAddress: fundedAddress,
 			Amount:          big.NewInt(0),
 		},
@@ -66,10 +65,7 @@ func BasicOneWaySend() {
 	//
 	// Check Teleporter message received on the destination
 	//
-	data, err := teleporter.PackMessageReceived(teleporter.MessageReceivedInput{
-		OriginChainID: subnetAInfo.BlockchainID,
-		MessageID:     teleporterMessageID,
-	})
+	data, err := teleportermessenger.PackMessageReceived(subnetAInfo.BlockchainID, teleporterMessageID)
 	Expect(err).Should(BeNil())
 	callMessage := interfaces.CallMsg{
 		To:   &teleporterContractAddress,
@@ -79,7 +75,7 @@ func BasicOneWaySend() {
 	Expect(err).Should(BeNil())
 
 	// check the contract call result
-	delivered, err := teleporter.UnpackMessageReceivedResult(result)
+	delivered, err := teleportermessenger.UnpackMessageReceivedResult(result)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 }
