@@ -59,10 +59,11 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceipts;
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
             destinationAddress: expectedMessage.destinationAddress,
-            feeInfo: TeleporterFeeInfo(address(0), 0),
+            feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
@@ -86,7 +87,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         emit SendCrossChainMessage(
             messageInput.destinationChainID,
             expectedMessage.messageID,
-            expectedMessage
+            expectedMessage,
+            feeInfo
         );
 
         // Submit the message.
@@ -113,7 +115,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         emit SendCrossChainMessage(
             messageInput.destinationChainID,
             nextExpectedMessage.messageID,
-            nextExpectedMessage
+            nextExpectedMessage,
+            feeInfo
         );
 
         // Submit the new message.
@@ -189,10 +192,11 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceiptsBatch1;
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
             destinationAddress: expectedMessage.destinationAddress,
-            feeInfo: TeleporterFeeInfo(address(0), 0),
+            feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
@@ -216,7 +220,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         emit SendCrossChainMessage(
             messageInput.destinationChainID,
             expectedMessage.messageID,
-            expectedMessage
+            expectedMessage,
+            feeInfo
         );
 
         // Submit the message.
@@ -244,7 +249,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         emit SendCrossChainMessage(
             messageInput.destinationChainID,
             nextExpectedMessage.messageID,
-            nextExpectedMessage
+            nextExpectedMessage,
+            feeInfo
         );
 
         // Submit the new message.
