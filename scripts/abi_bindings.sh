@@ -26,7 +26,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$HELP" = true ]; then
-    echo "Usage: ./scripts/abi_go_bindings.sh [OPTIONS]"
+    echo "Usage: ./scripts/abi_bindings.sh [OPTIONS]"
     echo "Build contracts and generate Go bindings"
     echo ""
     echo "Options:"
@@ -71,11 +71,12 @@ do
     fi
 
     echo "Generating Go bindings for $contract_name..."
-    mkdir -p $TELEPORTER_PATH/abi-bindings/$dir/$contract_name
+    gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
+    mkdir -p $gen_path
     $GOPATH/bin/abigen --abi $abi_file \
                        --pkg $(convertToLower $contract_name) \
                        --type $contract_name \
-                       --out $TELEPORTER_PATH/abi-bindings/$dir/$contract_name/$contract_name.go
+                       --out $gen_path/$contract_name.go
     echo "Done generating Go bindings for $contract_name."
 done
 
