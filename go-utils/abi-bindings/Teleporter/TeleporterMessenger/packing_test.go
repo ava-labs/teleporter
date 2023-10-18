@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testTeleporterMessage(messageID int64) TeleporterMessage {
+func createTestTeleporterMessage(messageID int64) TeleporterMessage {
 	m := TeleporterMessage{
 		MessageID:          big.NewInt(messageID),
 		SenderAddress:      common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
@@ -36,7 +36,7 @@ func TestPackUnpackTeleporterMessage(t *testing.T) {
 	var (
 		messageID int64 = 4
 	)
-	message := testTeleporterMessage(messageID)
+	message := createTestTeleporterMessage(messageID)
 
 	b, err := PackSendCrossChainMessageEvent(common.HexToHash("0x03"), message)
 	if err != nil {
