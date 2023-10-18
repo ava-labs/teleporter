@@ -69,7 +69,7 @@ do
     fi
 
     echo "Generating Go bindings for $contract_name..."
-    gen_path=$TELEPORTER_PATH/go-utils/abi-bindings/$dir/$contract_name
+    gen_path=$TELEPORTER_PATH/abi-bindings/go/$dir/$contract_name
     mkdir -p $gen_path
     $GOPATH/bin/abigen --abi $abi_file \
                        --pkg $(convertToLower $contract_name) \

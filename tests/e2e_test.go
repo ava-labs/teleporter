@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	teleporterUtils "github.com/ava-labs/teleporter/go-utils/utils"
 	testUtils "github.com/ava-labs/teleporter/tests/utils"
+	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -32,7 +32,7 @@ func TestE2E(t *testing.T) {
 var _ = ginkgo.BeforeSuite(func() {
 	testUtils.SetupNetwork(warpGenesisFile)
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err := teleporterUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
+	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
 
 	testUtils.DeployTeleporterContracts(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)

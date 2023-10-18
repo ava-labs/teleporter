@@ -14,7 +14,7 @@ import (
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
-	teleporterutilities "github.com/ava-labs/teleporter/go-utils/utils"
+	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -222,8 +222,8 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 		Expect(err).Should(BeNil())
 		baseFee, err := client.EstimateBaseFee(context.Background())
 		Expect(err).Should(BeNil())
-		gasFeeCap := baseFee.Mul(baseFee, big.NewInt(teleporterutilities.BaseFeeFactor))
-		gasFeeCap.Add(gasFeeCap, big.NewInt(teleporterutilities.MaxPriorityFeePerGas))
+		gasFeeCap := baseFee.Mul(baseFee, big.NewInt(gasUtils.BaseFeeFactor))
+		gasFeeCap.Add(gasFeeCap, big.NewInt(gasUtils.MaxPriorityFeePerGas))
 		// Fund the deployer address
 		{
 			value := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth

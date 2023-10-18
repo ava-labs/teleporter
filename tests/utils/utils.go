@@ -15,8 +15,8 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	teleportermessenger "github.com/ava-labs/teleporter/go-utils/abi-bindings/Teleporter/TeleporterMessenger"
-	teleporterutilities "github.com/ava-labs/teleporter/go-utils/utils"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -150,7 +150,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := teleporterutilities.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
 	Expect(err).Should(BeNil())
 
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
