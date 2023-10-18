@@ -180,7 +180,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // The additional fee amount must be non-zero.
         require(
             additionalFeeAmount > 0,
-            "TeleporterMessenger: zero fee amount"
+            "TeleporterMessenger: zero additional fee amount"
         );
 
         // Do not allow adding a fee asset with contract address zero.
