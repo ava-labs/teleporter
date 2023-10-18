@@ -50,9 +50,9 @@ contract TeleporterMessengerTest is Test {
     event ReceiveCrossChainMessage(
         bytes32 indexed originChainID,
         uint256 indexed messageID,
-        TeleporterMessage message,
-        address deliverer,
-        address rewardRedeemer
+        address indexed deliverer,
+        address rewardRedeemer,
+        TeleporterMessage message
     );
 
     event FailedMessageExecution(
@@ -72,6 +72,12 @@ contract TeleporterMessengerTest is Test {
         address indexed feeAsset,
         uint256 feeAmount,
         address relayerRewardAddress
+    );
+
+    event RelayerRewardsRedeemed(
+        address indexed redeemer,
+        address indexed asset,
+        uint256 amount
     );
 
     function setUp() public virtual {
@@ -209,9 +215,9 @@ contract TeleporterMessengerTest is Test {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
-            messageToReceive,
             address(this),
-            relayerRewardAddress
+            relayerRewardAddress,
+            messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(0, relayerRewardAddress);
     }
@@ -254,9 +260,9 @@ contract TeleporterMessengerTest is Test {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
-            messageToReceive,
             address(this),
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
             0,

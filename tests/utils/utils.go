@@ -300,7 +300,7 @@ func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.Teleporte
 
 		}
 	}
-	return nil, fmt.Errorf("failed to find ReceiveCrossChainMessage event in receipt logs")
+	return nil, fmt.Errorf("failed to find SendCrossChainMessage event in receipt logs")
 }
 
 //

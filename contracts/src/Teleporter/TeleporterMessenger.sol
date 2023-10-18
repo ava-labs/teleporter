@@ -373,9 +373,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             teleporterMessage.messageID,
-            teleporterMessage,
             msg.sender,
-            relayerRewardAddress
+            relayerRewardAddress,
+            teleporterMessage
         );
     }
 
@@ -505,6 +505,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Zero the reward balance before calling the external ERC20 to transfer the
         // reward to prevent any possible re-entrancy.
         delete relayerRewardAmounts[msg.sender][feeAsset];
+
+        emit RelayerRewardsRedeemed(msg.sender, feeAsset, rewardAmount);
 
         // We don't need to handle "fee on transfer" tokens in a special case here because
         // the amount credited to the caller does not affect this contracts accounting. The

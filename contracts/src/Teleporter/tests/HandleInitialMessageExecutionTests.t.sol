@@ -141,9 +141,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
-            messageToReceive,
             address(this),
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
             0,
@@ -240,9 +240,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
-            messageToReceive,
             address(this),
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
             0,
@@ -303,9 +303,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
-            messageToReceive,
             address(this),
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
             0,
