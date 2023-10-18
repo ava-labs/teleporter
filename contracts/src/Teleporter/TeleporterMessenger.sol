@@ -41,7 +41,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // Tracks the outstanding receipts to send back to a given subnet in subsequent messages sent to it.
     // Key is the subnet ID of the other subnet, and the value is a queue of pending receipts for messages
     // we have received from that subnet.
-    mapping(bytes32 => ReceiptQueue.TeleporterMessageReceiptQueue) public outstandingReceipts;
+    mapping(bytes32 => ReceiptQueue.TeleporterMessageReceiptQueue)
+        public outstandingReceipts;
 
     // Tracks the message hash and fee information for each message sent that we have not yet received
     // a receipt for. The messages are tracked per subnet and keyed by message ID.
@@ -124,7 +125,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 requiredGasLimit: messageInput.requiredGasLimit,
                 allowedRelayerAddresses: messageInput.allowedRelayerAddresses,
                 message: messageInput.message,
-                receipts: outstandingReceipts[messageInput.destinationChainID].getOutstandingReceiptsToSend()
+                receipts: outstandingReceipts[messageInput.destinationChainID]
+                    .getOutstandingReceiptsToSend()
             });
     }
 
@@ -142,17 +144,17 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessage calldata message
     ) external senderNonReentrant {
         // Get the previously sent message hash.
-        bytes32 messageHash = sentMessageInfo[destinationChainID][
-            message.messageID
-        ].messageHash;
-        if (messageHash == bytes32(0)) {
+        SentMessageInfo memory existingMessageInfo = sentMessageInfo[
+            destinationChainID
+        ][message.messageID];
+        if (existingMessageInfo.messageHash == bytes32(0)) {
             // If the message hash is zero, the message was never sent.
             revert MessageNotFound();
         }
 
         // Check that the hash of the provided message matches the one that was originally submitted.
         bytes memory messageBytes = abi.encode(message);
-        if (keccak256(messageBytes) != messageHash) {
+        if (keccak256(messageBytes) != existingMessageInfo.messageHash) {
             revert InvalidMessageHash();
         }
 
@@ -161,7 +163,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         emit SendCrossChainMessage(
             destinationChainID,
             message.messageID,
-            message
+            message,
+            existingMessageInfo.feeInfo
         );
 
         // Resubmit the message to the warp message precompile now that we know the exact message was
@@ -346,9 +349,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Store the receipt of this message delivery. When a subsquent message is sent back
         // to the origin of this message, we will clean up the receipt state.
         // If the receipts queue contract for this chain doesn't exist yet, create it now.
-        ReceiptQueue.TeleporterMessageReceiptQueue storage receiptsQueue = outstandingReceipts[
-            warpMessage.sourceChainID
-        ];
+        ReceiptQueue.TeleporterMessageReceiptQueue
+            storage receiptsQueue = outstandingReceipts[
+                warpMessage.sourceChainID
+            ];
 
         receiptsQueue.enqueue(
             TeleporterMessageReceipt({
@@ -360,6 +364,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             teleporterMessage.messageID,
+            msg.sender,
+            relayerRewardAddress,
             teleporterMessage
         );
     }
@@ -491,6 +497,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // reward to prevent any possible re-entrancy.
         delete relayerRewardAmounts[msg.sender][feeAsset];
 
+        emit RelayerRewardsRedeemed(msg.sender, feeAsset, rewardAmount);
+
         // We don't need to handle "fee on transfer" tokens in a special case here because
         // the amount credited to the caller does not affect this contracts accounting. The
         // reward is considered paid in full in all cases.
@@ -562,22 +570,19 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-getReceiptQueueSize}
      */
-    function getReceiptQueueSize(bytes32 chainID)
-        external
-        view
-        returns (uint256)
-    {
+    function getReceiptQueueSize(
+        bytes32 chainID
+    ) external view returns (uint256) {
         return outstandingReceipts[chainID].size();
     }
 
     /**
      * @dev See {ITeleporterMessenger-getReceiptAtIndex}
      */
-    function getReceiptAtIndex(bytes32 chainID, uint256 index)
-        external
-        view
-        returns (TeleporterMessageReceipt memory)
-    {
+    function getReceiptAtIndex(
+        bytes32 chainID,
+        uint256 index
+    ) external view returns (TeleporterMessageReceipt memory) {
         return outstandingReceipts[chainID].getReceiptAtIndex(index);
     }
 
@@ -644,18 +649,20 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Store the fee asset and amount to be paid to the relayer of this message upon receiving the receipt.
         // Also store the message hash so that it can be retried until we get receipt of its delivery.
+        TeleporterFeeInfo memory adjustedFeeInfo = TeleporterFeeInfo({
+            contractAddress: feeInfo.contractAddress,
+            amount: adjustedFeeAmount
+        });
         sentMessageInfo[destinationChainID][messageID] = SentMessageInfo({
             messageHash: keccak256(teleporterMessageBytes),
-            feeInfo: TeleporterFeeInfo({
-                contractAddress: feeInfo.contractAddress,
-                amount: adjustedFeeAmount
-            })
+            feeInfo: adjustedFeeInfo
         });
 
         emit SendCrossChainMessage(
             destinationChainID,
             messageID,
-            teleporterMessage
+            teleporterMessage,
+            adjustedFeeInfo
         );
 
         // Submit the message to the AWM precompile.
