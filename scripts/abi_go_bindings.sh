@@ -46,9 +46,11 @@ fi
 echo "Building subnet-evm abigen"
 go install $TELEPORTER_PATH/subnet-evm/cmd/abigen
 
+# Force recompile of all contracts to prevent against using previous
+# compilations that did not generate new ABI files.
 echo "Building Contracts"
 cd $TELEPORTER_PATH/contracts
-forge build --extra-output-files abi
+forge build --force --extra-output-files abi
 
 contract_names=($CONTRACT_LIST)
 

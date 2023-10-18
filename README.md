@@ -164,6 +164,16 @@ Next, provide the path to the `subnet-evm` repository and the path to a writeabl
 ```bash
 ./scripts/local/e2e_test.sh --local --subnet-evm ./subnet-evm --data-dir ~/tmp/e2e-test
 ```
+
+### ABI Bindings
+
+To generate Golang ABI bindings for the Solidity smart contracts, run:
+```bash
+./scripts/abi_go_bindings.sh
+```
+
+The auto-generated bindings should be written under the `abi-bindings/` directory.
+
 ## Docs
 
 - [Teleporter Protocol Overview](./contracts/src/Teleporter/README.md)
