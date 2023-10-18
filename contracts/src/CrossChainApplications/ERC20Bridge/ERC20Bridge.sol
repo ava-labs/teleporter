@@ -125,7 +125,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
             // contract itself.
             require(
                 totalAmount >= primaryFeeAmount + secondaryFeeAmount,
-                "ERC20Bridge: insufficient total fee amount"
+                "ERC20Bridge: insufficient total amount"
             );
 
             return
