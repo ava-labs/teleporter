@@ -19,11 +19,6 @@ contract SampleMessageReceiver is ITeleporterReceiver {
     bytes32 public latestMessageSenderSubnetID;
     address public latestMessageSenderAddress;
 
-    // Errors
-    error IntendedToFail();
-    error InvalidAction();
-    error Unauthorized();
-
     constructor(address teleporterContractAddress) {
         teleporterContract = teleporterContractAddress;
     }
@@ -33,9 +28,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         bytes calldata message
     ) external {
-        if (msg.sender != teleporterContract) {
-            revert Unauthorized();
-        }
+        require(msg.sender == teleporterContract, "unauthorized");
         // Decode the payload to recover the action and corresponding function parameters
         (SampleMessageReceiverAction action, bytes memory actionData) = abi
             .decode(message, (SampleMessageReceiverAction, bytes));
@@ -58,7 +51,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
                 messageString
             );
         } else {
-            revert InvalidAction();
+            revert("invalid action");
         }
     }
 
@@ -69,13 +62,8 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         string memory message,
         bool succeed
     ) internal {
-        if (msg.sender != teleporterContract) {
-            revert Unauthorized();
-        }
-
-        if (!succeed) {
-            revert IntendedToFail();
-        }
+        require(msg.sender == teleporterContract, "unauthorized");
+        require(succeed, "intended to fail");
         latestMessage = message;
         latestMessageSenderSubnetID = originChainID;
         latestMessageSenderAddress = originSenderAddress;
@@ -87,9 +75,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         address originSenderAddress,
         string memory message
     ) internal {
-        if (msg.sender != teleporterContract) {
-            revert Unauthorized();
-        }
+        require(msg.sender == teleporterContract, "unauthorized");
         ITeleporterMessenger messenger = ITeleporterMessenger(
             teleporterContract
         );
