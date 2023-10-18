@@ -25,9 +25,10 @@ jobs:
       - name: Run Slither
         uses: crytic/slither-action@6ef3a33e56de4e8f59488cf60858b5c1bf4967c0
         id: slither
-        continue-on-error: true
         with:
+          slither-version: 0.9.6
           target: "contracts/"
+          fail-on: none
           sarif: results.sarif
           slither-config: "contracts/slither.config.json"
 
