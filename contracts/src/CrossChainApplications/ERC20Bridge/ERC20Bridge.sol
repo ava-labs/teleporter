@@ -103,7 +103,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         // Bridging tokens within a single chain is not allowed.
         require(
             destinationChainID != currentChainID,
-            "ERC20Bridge: bridging to same chain"
+            "ERC20Bridge: cannot bridge to same chain"
         );
 
         // Neither the recipient nor the destination bridge can be the zero address.
