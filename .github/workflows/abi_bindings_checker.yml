@@ -33,7 +33,7 @@ jobs:
           export GOPATH=$HOME/go
           export PATH="$PATH:$BASE_DIR/.foundry/bin"
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/abi_go_bindings.sh
+          ./scripts/abi_bindings.sh
 
       - name: Check for clean branch
         run: .github/workflows/check_clean_branch.sh

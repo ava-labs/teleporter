@@ -26,7 +26,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$HELP" = true ]; then
-    echo "Usage: ./scripts/abi_go_bindings.sh [OPTIONS]"
+    echo "Usage: ./scripts/abi_bindings.sh [OPTIONS]"
     echo "Build contracts and generate Go bindings"
     echo ""
     echo "Options:"
