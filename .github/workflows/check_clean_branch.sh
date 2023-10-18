@@ -9,4 +9,4 @@ set -o pipefail
 # Checks to see if merges or updates are needed by checking stat() information.
 git update-index --really-refresh > /dev/null
 # Checks to see if there are any differences from the index to the current HEAD commit
-git diff-index --quiet HEAD
+git diff-index HEAD --exit-code
