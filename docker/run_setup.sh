@@ -94,7 +94,7 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     cd contracts
     forge build
     cd ..
-    go run contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
+    go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
     teleporter_deploy_address=$(cat UniversalTeleporterDeployerAddress.txt)
     teleporter_deploy_tx=$(cat UniversalTeleporterDeployerTransaction.txt)
     teleporter_contract_address=$(cat UniversalTeleporterMessengerContractAddress.txt)
