@@ -118,7 +118,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
 
         // Expect revert when adding 0 additional amount.
         uint256 additionalFeeAmount = 0;
-        vm.expectRevert(_formatErrorMessage("zero fee amount"));
+        vm.expectRevert(_formatErrorMessage("zero additional fee amount"));
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,

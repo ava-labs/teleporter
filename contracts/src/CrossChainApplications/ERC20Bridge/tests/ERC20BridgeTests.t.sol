@@ -71,7 +71,7 @@ contract ERC20BridgeTest is Test {
     }
 
     function testSameChainID() public {
-        vm.expectRevert(_formatErrorMessage("bridging to same chain"));
+        vm.expectRevert(_formatErrorMessage("cannot bridge to same chain"));
         erc20Bridge.bridgeTokens({
             destinationChainID: _MOCK_BLOCKCHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -113,7 +113,7 @@ contract ERC20BridgeTest is Test {
             contractNonce: 1
         });
 
-        vm.expectRevert(_formatErrorMessage("insufficient total fee amount"));
+        vm.expectRevert(_formatErrorMessage("insufficient total amount"));
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,

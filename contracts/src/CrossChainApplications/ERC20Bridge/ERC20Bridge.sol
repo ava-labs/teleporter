@@ -124,7 +124,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
             // is not a "fee/burn on transfer" token, since it was deployed by this
             // contract itself.
             require(
-                totalAmount >= primaryFeeAmount + secondaryFeeAmount,
+                totalAmount > primaryFeeAmount + secondaryFeeAmount,
                 "ERC20Bridge: insufficient total amount"
             );
 
@@ -162,7 +162,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         // The secondary fee amount is not used in this case (and can assumed to be 0) since bridging
         // a native token to another chain only ever involves a single cross-chain message.
         require(
-            adjustedAmount >= primaryFeeAmount,
+            adjustedAmount > primaryFeeAmount,
             "ERC20Bridge: insufficient adjusted amount"
         );
 
