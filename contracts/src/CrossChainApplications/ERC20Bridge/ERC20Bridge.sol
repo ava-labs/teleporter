@@ -571,7 +571,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         // so this check is redundant but left in for clarity.
         require(
             destinationChainID != currentChainID,
-            "ERC20Bridge: bridging to same chain"
+            "ERC20Bridge: cannot bridge to same chain"
         );
 
         // Allow the Teleporter messenger to spend the fee amount.
