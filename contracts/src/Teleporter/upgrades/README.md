@@ -9,7 +9,7 @@ However, we do want to be able to provide new features and improvements to the `
 The `TeleporterRegistry` keeps track of a mapping of `TeleporterMessenger` contract versions to their addresses. This allows us to deploy new versions of the `TeleporterMessenger` contract and then update the `TeleporterRegistry` to point to different versions. The `TeleporterRegistry` can only be updated through a Warp out-of-band message that meets the following requirements:
 
 - `sourceChainAddress` must match `VALIDATORS_SOURCE_ADDRESS = address(0)`
-- `sourceChainID` must match blockchain ID that the registry is deployed on
+- `sourceChainID` must match the blockchain ID that the registry is deployed on
 - `destinationChainID` must match the blockchain ID that the registry is deployed on
 - `destinationAddress` must match the address of the registry
 
