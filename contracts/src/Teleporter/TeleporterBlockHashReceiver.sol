@@ -18,29 +18,20 @@ contract TeleporterBlockHashReceiver is ITeleporterBlockHashReceiver, Reentrancy
     WarpMessenger public constant WARP_MESSENGER =
         WarpMessenger(0x0200000000000000000000000000000000000005);
 
-    error InvalidWarpBlockHash();
-    error UnexpectedSourceChainID();
-
     /**
-     * @dev See {ITeleporterBlockHashReceiver-receiveCrossChainMessage}
+     * @dev See {ITeleporterBlockHashReceiver-receiveBlockHash}
      *
      * Emits a {ReceiveBlockHash} event when a block hash is verified..
      */
     function receiveBlockHash(
-        uint32 messageIndex,
-        bytes32 sourceChainID
+        uint32 messageIndex
     ) external receiverNonReentrant {
         // Verify and parse the block hash payload included in the transaction access list
         // using the warp message precompile.
         (WarpBlockHash memory warpBlockHash, bool success) = WARP_MESSENGER
             .getVerifiedWarpBlockHash(messageIndex);
 
-        if (!success) {
-            revert InvalidWarpBlockHash();
-        }
-        if (warpBlockHash.sourceChainID != sourceChainID) {
-            revert UnexpectedSourceChainID();
-        }
+        require(success, "TeleporterBlockHashReceiver: invalid warp message");
 
         emit ReceiveBlockHash(
             warpBlockHash.sourceChainID,

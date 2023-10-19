@@ -24,7 +24,6 @@ interface ITeleporterBlockHashReceiver {
      * and is verified in the precompile predicate.
      */
     function receiveBlockHash(
-        uint32 messageIndex,
-        bytes32 sourceChainID
+        uint32 messageIndex
     ) external;
 }
