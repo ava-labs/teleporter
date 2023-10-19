@@ -24,5 +24,4 @@ jobs:
             # in subdirectories. The former only checks sol files in the current directory and directories one level down.
             - name: Run Lint
               run: |
-                  cd contracts/src
-                  npx solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
+                  ./scripts/local/lint.sh

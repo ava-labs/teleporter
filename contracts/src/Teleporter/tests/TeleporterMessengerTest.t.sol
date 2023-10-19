@@ -300,7 +300,7 @@ contract TeleporterMessengerTest is Test {
             });
     }
 
-    function _formatErrorMessage(
+    function _formatTeleporterErrorMessage(
         string memory errorMessage
     ) internal pure returns (bytes memory) {
         return bytes(string.concat("TeleporterMessenger: ", errorMessage));

@@ -71,7 +71,9 @@ contract ERC20BridgeTest is Test {
     }
 
     function testSameChainID() public {
-        vm.expectRevert(_formatErrorMessage("cannot bridge to same chain"));
+        vm.expectRevert(
+            _formatERC20BridgeErrorMessage("cannot bridge to same chain")
+        );
         erc20Bridge.bridgeTokens({
             destinationChainID: _MOCK_BLOCKCHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -90,7 +92,9 @@ contract ERC20BridgeTest is Test {
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
         );
-        vm.expectRevert(_formatErrorMessage("insufficient adjusted amount"));
+        vm.expectRevert(
+            _formatERC20BridgeErrorMessage("insufficient adjusted amount")
+        );
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -113,7 +117,9 @@ contract ERC20BridgeTest is Test {
             contractNonce: 1
         });
 
-        vm.expectRevert(_formatErrorMessage("insufficient total amount"));
+        vm.expectRevert(
+            _formatERC20BridgeErrorMessage("insufficient total amount")
+        );
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -490,7 +496,9 @@ contract ERC20BridgeTest is Test {
             address(mockERC20)
         );
 
-        vm.expectRevert(_formatErrorMessage("insufficient adjusted amount"));
+        vm.expectRevert(
+            _formatERC20BridgeErrorMessage("insufficient adjusted amount")
+        );
         erc20Bridge.bridgeTokens({
             destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
@@ -757,7 +765,7 @@ contract ERC20BridgeTest is Test {
             );
     }
 
-    function _formatErrorMessage(
+    function _formatERC20BridgeErrorMessage(
         string memory errorMessage
     ) private pure returns (bytes memory) {
         return bytes(string.concat("ERC20Bridge: ", errorMessage));

@@ -210,7 +210,9 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        vm.expectRevert(_formatErrorMessage("zero fee asset contract address"));
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("zero fee asset contract address")
+        );
         teleporterMessenger.sendCrossChainMessage(messageInput);
     }
 }

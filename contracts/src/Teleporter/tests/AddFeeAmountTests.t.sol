@@ -64,7 +64,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Add to the fee amount of a message that doesn't exist. Expect revert.
         uint256 additionalFeeAmount = 131313;
         uint256 fakeMessageID = 13;
-        vm.expectRevert(_formatErrorMessage("message not found"));
+        vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             fakeMessageID,
@@ -99,7 +99,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
 
         // Now try to add to the fee of the message. Should revert since the message receipt was received already.
         uint256 additionalFeeAmount = 131313;
-        vm.expectRevert(_formatErrorMessage("message not found"));
+        vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
@@ -118,7 +118,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
 
         // Expect revert when adding 0 additional amount.
         uint256 additionalFeeAmount = 0;
-        vm.expectRevert(_formatErrorMessage("zero additional fee amount"));
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("zero additional fee amount")
+        );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
@@ -139,7 +141,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         uint256 additionalFeeAmount = 131313;
         address differentFeeAsset = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
         vm.expectRevert(
-            _formatErrorMessage("invalid fee asset contract address")
+            _formatTeleporterErrorMessage("invalid fee asset contract address")
         );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
@@ -160,7 +162,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Expect revert when using an invalid fee asset.
         uint256 additionalFeeAmount = 131313;
         address invalidFeeAsset = address(0);
-        vm.expectRevert(_formatErrorMessage("zero fee asset contract address"));
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("zero fee asset contract address")
+        );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,

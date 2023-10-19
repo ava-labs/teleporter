@@ -22,7 +22,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     }
 
     function testZeroRewardBalance() public {
-        vm.expectRevert(_formatErrorMessage("no reward to redeem"));
+        vm.expectRevert(_formatTeleporterErrorMessage("no reward to redeem"));
         teleporterMessenger.redeemRelayerRewards(address(_mockFeeAsset));
     }
 

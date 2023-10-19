@@ -48,7 +48,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
             receipts: new TeleporterMessageReceipt[](0),
             message: new bytes(0)
         });
-        vm.expectRevert(_formatErrorMessage("message not found"));
+        vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
         teleporterMessenger.retrySendCrossChainMessage(
             DEFAULT_DESTINATION_CHAIN_ID,
             fakeMessage
@@ -72,7 +72,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         });
 
         // Retry it - should fail.
-        vm.expectRevert(_formatErrorMessage("invalid message hash"));
+        vm.expectRevert(_formatTeleporterErrorMessage("invalid message hash"));
         teleporterMessenger.retrySendCrossChainMessage(
             DEFAULT_DESTINATION_CHAIN_ID,
             alteredMessage

@@ -183,7 +183,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
-        vm.expectRevert(_formatErrorMessage("insufficient gas"));
+        vm.expectRevert(_formatTeleporterErrorMessage("insufficient gas"));
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -246,7 +246,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
-        vm.expectRevert(_formatErrorMessage("retry execution failed"));
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("retry execution failed")
+        );
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive
@@ -307,7 +309,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
-        vm.expectRevert(_formatErrorMessage("retry execution failed"));
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("retry execution failed")
+        );
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive
