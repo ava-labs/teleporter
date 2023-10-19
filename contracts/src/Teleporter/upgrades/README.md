@@ -10,7 +10,7 @@ The `TeleporterRegistry` keeps track of a mapping of `TeleporterMessenger` contr
 
 - `sourceChainAddress` must match `VALIDATORS_SOURCE_ADDRESS = address(0)`
 - `sourceChainID` must match blockchain ID that the registry is deployed on
-- `destinationChainID` must match blockchain ID that the registry is deployed on
+- `destinationChainID` must match the blockchain ID that the registry is deployed on
 - `destinationAddress` must match the address of the registry
 
 ## Design
