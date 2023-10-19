@@ -31,7 +31,7 @@ var (
 
 // TeleporterBlockHashReceiverMetaData contains all meta data concerning the TeleporterBlockHashReceiver contract.
 var TeleporterBlockHashReceiverMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[],\"name\":\"InvalidWarpBlockHash\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ReceiverReentrancy\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"SenderReentrancy\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"UnexpectedSourceChainID\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"},{\"internalType\":\"bytes32\",\"name\":\"sourceChainID\",\"type\":\"bytes32\"}],\"name\":\"receiveBlockHash\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[],\"name\":\"ReceiverReentrancy\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"SenderReentrancy\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"receiveBlockHash\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // TeleporterBlockHashReceiverABI is the input ABI used to generate the binding from.
@@ -211,25 +211,25 @@ func (_TeleporterBlockHashReceiver *TeleporterBlockHashReceiverCallerSession) WA
 	return _TeleporterBlockHashReceiver.Contract.WARPMESSENGER(&_TeleporterBlockHashReceiver.CallOpts)
 }
 
-// ReceiveBlockHash is a paid mutator transaction binding the contract method 0x30b52559.
+// ReceiveBlockHash is a paid mutator transaction binding the contract method 0x303bb425.
 //
-// Solidity: function receiveBlockHash(uint32 messageIndex, bytes32 sourceChainID) returns()
-func (_TeleporterBlockHashReceiver *TeleporterBlockHashReceiverTransactor) ReceiveBlockHash(opts *bind.TransactOpts, messageIndex uint32, sourceChainID [32]byte) (*types.Transaction, error) {
-	return _TeleporterBlockHashReceiver.contract.Transact(opts, "receiveBlockHash", messageIndex, sourceChainID)
+// Solidity: function receiveBlockHash(uint32 messageIndex) returns()
+func (_TeleporterBlockHashReceiver *TeleporterBlockHashReceiverTransactor) ReceiveBlockHash(opts *bind.TransactOpts, messageIndex uint32) (*types.Transaction, error) {
+	return _TeleporterBlockHashReceiver.contract.Transact(opts, "receiveBlockHash", messageIndex)
 }
 
-// ReceiveBlockHash is a paid mutator transaction binding the contract method 0x30b52559.
+// ReceiveBlockHash is a paid mutator transaction binding the contract method 0x303bb425.
 //
-// Solidity: function receiveBlockHash(uint32 messageIndex, bytes32 sourceChainID) returns()
-func (_TeleporterBlockHashReceiver *TeleporterBlockHashReceiverSession) ReceiveBlockHash(messageIndex uint32, sourceChainID [32]byte) (*types.Transaction, error) {
-	return _TeleporterBlockHashReceiver.Contract.ReceiveBlockHash(&_TeleporterBlockHashReceiver.TransactOpts, messageIndex, sourceChainID)
+// Solidity: function receiveBlockHash(uint32 messageIndex) returns()
+func (_TeleporterBlockHashReceiver *TeleporterBlockHashReceiverSession) ReceiveBlockHash(messageIndex uint32) (*types.Transaction, error) {
+	return _TeleporterBlockHashReceiver.Contract.ReceiveBlockHash(&_TeleporterBlockHashReceiver.TransactOpts, messageIndex)
 }
 
-// ReceiveBlockHash is a paid mutator transaction binding the contract method 0x30b52559.
+// ReceiveBlockHash is a paid mutator transaction binding the contract method 0x303bb425.
 //
-// Solidity: function receiveBlockHash(uint32 messageIndex, bytes32 sourceChainID) returns()
-func (_TeleporterBlockHashReceiver *TeleporterBlockHashReceiverTransactorSession) ReceiveBlockHash(messageIndex uint32, sourceChainID [32]byte) (*types.Transaction, error) {
-	return _TeleporterBlockHashReceiver.Contract.ReceiveBlockHash(&_TeleporterBlockHashReceiver.TransactOpts, messageIndex, sourceChainID)
+// Solidity: function receiveBlockHash(uint32 messageIndex) returns()
+func (_TeleporterBlockHashReceiver *TeleporterBlockHashReceiverTransactorSession) ReceiveBlockHash(messageIndex uint32) (*types.Transaction, error) {
+	return _TeleporterBlockHashReceiver.Contract.ReceiveBlockHash(&_TeleporterBlockHashReceiver.TransactOpts, messageIndex)
 }
 
 // TeleporterBlockHashReceiverReceiveBlockHashIterator is returned from FilterReceiveBlockHash and is used to iterate over the raw logs and unpacked data for ReceiveBlockHash events raised by the TeleporterBlockHashReceiver contract.
