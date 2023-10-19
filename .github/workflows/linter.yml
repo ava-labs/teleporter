@@ -17,8 +17,8 @@ jobs:
 
             - name: Install solhint
               run: |
-                  npm install solhint
-                  npx solhint --version
+                  npm install solhint -g
+                  solhint --version
 
             # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
             # in subdirectories. The former only checks sol files in the current directory and directories one level down.
