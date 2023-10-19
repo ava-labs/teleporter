@@ -2,9 +2,9 @@
 
 ## Overview
 
-The `TeleporterMessenger` contract is non-upgradable, once a version of the contract is deployed it cannot be changed. This is with the intention of preventing any changes to the contract that could potentially introduce bugs or vulnerabilities.
+The `TeleporterMessenger` contract is non-upgradable, once a version of the contract is deployed it cannot be changed. This is with the intention of preventing any changes to the deployed contract that could potentially introduce bugs or vulnerabilities.
 
-However, we do want to be able to provide new features and improvements to the `TeleporterMessenger` contract. To do this we have implemented a `TeleporterRegistry`.
+However, there should still be new versions of the `TeleporterMessenger` contract that provide new features, and `TeleporterRegistry` supports the integration with these new versions.
 
 The `TeleporterRegistry` keeps track of a mapping of `TeleporterMessenger` contract versions to their addresses. This allows us to deploy new versions of the `TeleporterMessenger` contract and then update the `TeleporterRegistry` to point to different versions. The `TeleporterRegistry` can only be updated through a Warp out-of-band message that meets the following requirements:
 
@@ -16,14 +16,15 @@ The `TeleporterRegistry` keeps track of a mapping of `TeleporterMessenger` contr
 ## Design
 
 - `TeleporterRegistry` is deployed on each blockchain that needs to keep track of `TeleporterMessenger` contract versions.
+- Each registry's mapping of version to contract address is independent of registries on other blockchains, and chains can decide on their own registry mapping entries.
 - `TeleporterRegistry` contract can be initialized through a list of initial registry entries, which are `TeleporterMessenger` contract versions and their addresses.
 - The registry keeps track of a mapping of `TeleporterMessenger` contract versions to their addresses, and vice versa, a mapping of `TeleporterMessenger` contract addresses to their versions.
 - Version zero is an invalid version, and is used to indicate that a `TeleporterMessenger` contract has not been registered yet.
-- Once a version number is registered in the registry, it cannot be changed, but a previous registered protocol address can be added to the registry with a new version.
+- Once a version number is registered in the registry, it cannot be changed, but a previous registered protocol address can be added to the registry with a new version. This is especially important in the case of a rollback to a previous version, the previous Teleporter contract address can be registered with a new version to the registry.
 
 ## How to use `TeleporterRegistry`
 
-We've added an abstract `TeleporterUpgradeable` contract that helps integrate the `TeleporterRegistry` into a dapp. The dapp contract can inherit `TeleporterUpgradeable`, and pass in the Teleporter registry address inside the constructor, for example in [ERC20Bridge](../ERC20Bridge.sol):
+`TeleporterUpgradeable` is an abstract contract that helps integrate the `TeleporterRegistry` into a dapp. The dapp contract can inherit `TeleporterUpgradeable`, and pass in the Teleporter registry address inside the constructor, for example in [ERC20Bridge](../ERC20Bridge.sol):
 
 ```solidity
 contract ERC20Bridge is
