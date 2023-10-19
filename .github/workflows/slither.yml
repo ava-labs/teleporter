@@ -27,10 +27,11 @@ jobs:
         id: slither
         with:
           slither-version: 0.9.6
-          target: "contracts/"
-          fail-on: none
-          sarif: results.sarif
           slither-config: "contracts/slither.config.json"
+          target: "contracts/"
+          solc-version: 0.8.18
+          sarif: results.sarif
+          fail-on: none
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
