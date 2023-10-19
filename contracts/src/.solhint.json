@@ -16,6 +16,8 @@
                 "strict": true
             }
         ],
+        "reason-string": ["warn", { "maxLength": 60 }],
+        "custom-errors": "off",
         "ordering": "warn",
         "immutable-vars-naming": [
             "warn",

@@ -32,10 +32,6 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterUpgradeable {
         bytes32 blockHash
     );
 
-    // Errors
-    error InvalidSourceChainID();
-    error InvalidSourceChainPublisher();
-
     constructor(
         address teleporterRegistryAddress,
         bytes32 publisherChainID,
@@ -61,13 +57,14 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterUpgradeable {
         address originSenderAddress,
         bytes calldata message
     ) external onlyAllowedTeleporter {
-        if (originChainID != sourceChainID) {
-            revert InvalidSourceChainID();
-        }
-
-        if (originSenderAddress != sourcePublisherContractAddress) {
-            revert InvalidSourceChainPublisher();
-        }
+        require(
+            originChainID == sourceChainID,
+            "BlockHashReceiver: invalid source chain ID"
+        );
+        require(
+            originSenderAddress == sourcePublisherContractAddress,
+            "BlockHashReceiver: invalid source chain publisher"
+        );
 
         (uint256 blockHeight, bytes32 blockHash) = abi.decode(
             message,
