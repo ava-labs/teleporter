@@ -77,7 +77,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     uint256 public constant MINIMUM_REQUIRED_CALL_DATA_LENGTH = 68;
 
     // The blockchain ID of the chain the contract is deployed on.
-    // Set at most once by calling initializeBlockchainID().
+    // Set at most once by calling initializeBlockchainID() or receiveCrossChainMessage().
     bytes32 public blockchainID = bytes32(0);
 
     // Errors
@@ -97,17 +97,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     error NoRelayerRewardToRedeem();
     error ReceiptNotFound();
     error UnauthorizedRelayer();
-    error Uninitialized();
-
-    /**
-     * @dev Sets the value of `blockchainID` to the value determined by the warp messenger precompile.
-     */
-    function initializeBlockchainID() public {
-        if (blockchainID != bytes32(0)) {
-            revert AlreadyInitialized();
-        }
-        blockchainID = WARP_MESSENGER.getBlockchainID();
-    }
 
     /**
      * @dev See {ITeleporterMessenger-sendCrossChainMessage}
@@ -291,10 +280,12 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             revert InvalidOriginSenderAddress();
         }
 
-        // Require that the message was intended for this blockchain and teleporter contract.
+        // If the blockchain ID has yet to be initialized, try to do so now.
         if (blockchainID == bytes32(0)) {
-            revert Uninitialized();
+            initializeBlockchainID();
         }
+
+        // Require that the message was intended for this blockchain and teleporter contract.
         if (warpMessage.destinationChainID != blockchainID) {
             revert InvalidDestinationChainID();
         }
@@ -603,6 +594,16 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         address[] calldata allowedRelayers
     ) external pure returns (bool) {
         return _checkIsAllowedRelayer(delivererAddress, allowedRelayers);
+    }
+
+    /**
+     * @dev Sets the value of `blockchainID` to the value determined by the warp messenger precompile.
+     */
+    function initializeBlockchainID() public {
+        if (blockchainID != bytes32(0)) {
+            revert AlreadyInitialized();
+        }
+        blockchainID = WARP_MESSENGER.getBlockchainID();
     }
 
     /**
