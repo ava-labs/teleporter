@@ -624,6 +624,13 @@ contract ERC20BridgeTest is Test {
         assertEq(address(mockERC20), newBridgeToken.nativeAsset());
     }
 
+    function testZeroTeleporterRegistryAddress() public {
+        vm.expectRevert(
+            "TeleporterUpgradeable: zero teleporter registry address"
+        );
+        new ERC20Bridge(address(0));
+    }
+
     function _initMockTeleporterRegistry() internal {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -734,13 +741,6 @@ contract ERC20BridgeTest is Test {
             address(0),
             0
         );
-    }
-
-    function testZeroTeleporterRegistryAddress() public {
-        vm.expectRevert(
-            "TeleporterUpgradeable: zero teleporter registry address"
-        );
-        new ERC20Bridge(address(0));
     }
 
     function _setUpBridgeToken(
