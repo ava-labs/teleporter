@@ -52,7 +52,9 @@ contract TeleporterUpgradeableTest is Test {
 
     function testInvalidRegistryAddress() public {
         vm.expectRevert(
-            _formatErrorMessage("invalid teleporter registry address")
+            _formatTeleporterUpgradeableErrorMessage(
+                "zero teleporter registry address"
+            )
         );
         new ExampleUpgradeableApp(address(0));
     }
@@ -64,7 +66,11 @@ contract TeleporterUpgradeableTest is Test {
 
         assertEq(app.getMinTeleporterVersion(), 1);
 
-        vm.expectRevert(_formatErrorMessage("invalid teleporter sender"));
+        vm.expectRevert(
+            _formatTeleporterUpgradeableErrorMessage(
+                "invalid teleporter sender"
+            )
+        );
         app.teleporterCall();
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -92,12 +98,16 @@ contract TeleporterUpgradeableTest is Test {
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
-        vm.expectRevert(_formatErrorMessage("invalid teleporter sender"));
+        vm.expectRevert(
+            _formatTeleporterUpgradeableErrorMessage(
+                "invalid teleporter sender"
+            )
+        );
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         app.teleporterCall();
     }
 
-    function _formatErrorMessage(
+    function _formatTeleporterUpgradeableErrorMessage(
         string memory errorMessage
     ) private pure returns (bytes memory) {
         return bytes(string.concat("TeleporterUpgradeable: ", errorMessage));

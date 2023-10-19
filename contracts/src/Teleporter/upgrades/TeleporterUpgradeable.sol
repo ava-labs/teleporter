@@ -39,7 +39,7 @@ abstract contract TeleporterUpgradeable {
     constructor(address teleporterRegistryAddress) {
         require(
             teleporterRegistryAddress != address(0),
-            "TeleporterUpgradeable: invalid teleporter registry address"
+            "TeleporterUpgradeable: zero teleporter registry address"
         );
 
         teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);

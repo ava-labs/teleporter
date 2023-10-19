@@ -736,6 +736,13 @@ contract ERC20BridgeTest is Test {
         );
     }
 
+    function testZeroTeleporterRegistryAddress() public {
+        vm.expectRevert(
+            "TeleporterUpgradeable: zero teleporter registry address"
+        );
+        new ERC20Bridge(address(0));
+    }
+
     function _setUpBridgeToken(
         bytes32 nativeChainID,
         address nativeBridgeAddress,
