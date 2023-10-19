@@ -6,7 +6,7 @@ The `TeleporterMessenger` contract is non-upgradable, once a version of the cont
 
 However, we do want to be able to provide new features and improvements to the `TeleporterMessenger` contract. To do this we have implemented a `TeleporterRegistry`.
 
-The `TeleporterRegistry` keeps track of a mapping of `TeleporterMessenger` contract versions to their addresses. This allows us to deploy new versions of the `TeleporterMessenger` contract and then update the `TeleporterRegistry` to point to different versions. The `TeleporterRegistry` can only be updated through a Warp out-of-band message that qualifies the following requirements:
+The `TeleporterRegistry` keeps track of a mapping of `TeleporterMessenger` contract versions to their addresses. This allows us to deploy new versions of the `TeleporterMessenger` contract and then update the `TeleporterRegistry` to point to different versions. The `TeleporterRegistry` can only be updated through a Warp out-of-band message that meets the following requirements:
 
 - `sourceChainAddress` must match `VALIDATORS_SOURCE_ADDRESS = address(0)`
 - `sourceChainID` must match blockchain ID that the registry is deployed on
