@@ -1,6 +1,9 @@
 name: ABI Go Bindings Checker
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - "*"
@@ -53,4 +56,6 @@ jobs:
           submodules: recursive
 
       - name: Run ABI Binding Unit Tests
-        run: go test ./...
+        run: |
+          cd abi-bindings/go
+          go test ./...
