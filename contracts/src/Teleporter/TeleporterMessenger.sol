@@ -76,8 +76,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     uint256 public constant REQUIRED_ORIGIN_CHAIN_ID_START_INDEX = 4;
     uint256 public constant MINIMUM_REQUIRED_CALL_DATA_LENGTH = 68;
 
-    // The blockchain ID of the chain the contract is deployed on.
-    // Set at most once by calling initializeBlockchainID() or receiveCrossChainMessage().
+    // The blockchain ID of the chain the contract is deployed on. Initialized lazily when receiveCrossChainMessage() is called,
+    // if the value has not already been set.
     bytes32 public blockchainID = bytes32(0);
 
     // Errors
@@ -280,9 +280,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             revert InvalidOriginSenderAddress();
         }
 
-        // If the blockchain ID has yet to be initialized, try to do so now.
+        // If the blockchain ID has yet to be initialized, do so now.
         if (blockchainID == bytes32(0)) {
-            initializeBlockchainID();
+            blockchainID = WARP_MESSENGER.getBlockchainID();
         }
 
         // Require that the message was intended for this blockchain and teleporter contract.
@@ -594,16 +594,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         address[] calldata allowedRelayers
     ) external pure returns (bool) {
         return _checkIsAllowedRelayer(delivererAddress, allowedRelayers);
-    }
-
-    /**
-     * @dev Sets the value of `blockchainID` to the value determined by the warp messenger precompile.
-     */
-    function initializeBlockchainID() public {
-        if (blockchainID != bytes32(0)) {
-            revert AlreadyInitialized();
-        }
-        blockchainID = WARP_MESSENGER.getBlockchainID();
     }
 
     /**

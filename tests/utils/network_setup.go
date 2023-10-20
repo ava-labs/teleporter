@@ -243,13 +243,6 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 			Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 		}
 		log.Info("Finished deploying Teleporter contract", "blockchainID", subnetInfo.BlockchainID.Hex())
-
-		// Initialize the blockchain ID
-		{
-			initializeBlockchainIDTx := createInitializeBlockchainIDTransaction(ctx, subnetInfo, teleporterContractAddress, fundedAddress, fundedKey)
-			SendTransactionAndWaitForAcceptance(ctx, subnetInfo.ChainWSClient, initializeBlockchainIDTx)
-		}
-		log.Info("Finished initializing blockchain ID of Teleporter instance", "blockchainID", subnetInfo.BlockchainID.Hex())
 	}
 	log.Info("Deployed Teleporter contracts to all subnets")
 }

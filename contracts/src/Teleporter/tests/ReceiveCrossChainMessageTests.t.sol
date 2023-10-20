@@ -180,26 +180,6 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         );
     }
 
-    function testReceiveInitializesBlockIDIfNeeded() public {
-        teleporterMessenger = new TeleporterMessenger();
-
-        // The blockchain ID should be uninitialized
-        assertEq(teleporterMessenger.blockchainID(), bytes32(0));
-
-        // Receiving a message should result in the blockchain ID being initialized.
-        _receiveTestMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            1,
-            DEFAULT_RELAYER_REWARD_ADDRESS,
-            new TeleporterMessageReceipt[](0)
-        );
-        assertEq(teleporterMessenger.blockchainID(), MOCK_BLOCK_CHAIN_ID);
-
-        // Check that you can't initialize the blockchain ID multiple times.
-        vm.expectRevert(TeleporterMessenger.AlreadyInitialized.selector);
-        teleporterMessenger.initializeBlockchainID();
-    }
-
     function testInvalidDestinationChainID() public {
         // Construct the test message to be received.
         TeleporterMessage

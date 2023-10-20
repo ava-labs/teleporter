@@ -56,15 +56,6 @@ func UnpackTeleporterMessage(messageBytes []byte) (*TeleporterMessage, error) {
 	return &teleporterMessage.TeleporterMessage, nil
 }
 
-func PackInitializeBlockchainID() ([]byte, error) {
-	abi, err := TeleporterMessengerMetaData.GetAbi()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get abi")
-	}
-
-	return abi.Pack("initializeBlockchainID")
-}
-
 func PackSendCrossChainMessage(input TeleporterMessageInput) ([]byte, error) {
 	abi, err := TeleporterMessengerMetaData.GetAbi()
 	if err != nil {

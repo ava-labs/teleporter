@@ -355,31 +355,3 @@ func createNativeTransferTransaction(
 
 	return signTransaction(tx, fundedKey, network.ChainIDInt)
 }
-
-// Constructs a transaction to call initializeBlockchainID
-func createInitializeBlockchainIDTransaction(
-	ctx context.Context,
-	source SubnetTestInfo,
-	teleporterContractAddress common.Address,
-	fundedAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
-) *types.Transaction {
-	data, err := teleportermessenger.PackInitializeBlockchainID()
-	Expect(err).Should(BeNil())
-
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.ChainWSClient, fundedAddress)
-
-	// Send a transaction to the Teleporter contract
-	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   source.ChainIDInt,
-		Nonce:     nonce,
-		To:        &teleporterContractAddress,
-		Gas:       DefaultTeleporterTransactionGas,
-		GasFeeCap: gasFeeCap,
-		GasTipCap: gasTipCap,
-		Value:     DefaultTeleporterTransactionValue,
-		Data:      data,
-	})
-
-	return signTransaction(tx, fundedKey, source.ChainIDInt)
-}
