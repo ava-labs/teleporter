@@ -10,8 +10,12 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 
 - [Overview](#overview)
   - [Setup](#setup)
+    - [Docker Setup](#docker-setup)
+    - [General Setup](#general-setup)
   - [Structure](#structure)
-  - [Building and Running](#building-and-running)
+  - [Build + Run + Test](#build--run--test)
+    - [Run tests on Fuji Testnet](#run-tests-on-fuji-testnet)
+    - [E2E tests](#e2e-tests)
   - [Docs](#docs)
   - [Resources](#resources)
 
@@ -70,7 +74,7 @@ The above steps are sufficient to run the included integration tests inside Dock
     - `scripts/fuji/example-workflows/` includes example workflows that send transactions to interact with Teleporter contracts on Fuji subnets.
 - `docker/` includes containerized setup for running a local setup of Teleporter, as well as a script to run each of the integration tests against the local network.
 
-## Building and Running
+## Build + Run + Test
 
 - Get all submodules: `git submodule update --init --recursive`
 - Install Docker as described in the setup section of the README in the root of this repository.
@@ -164,6 +168,16 @@ Next, provide the path to the `subnet-evm` repository and the path to a writeabl
 ```bash
 ./scripts/local/e2e_test.sh --local --subnet-evm ./subnet-evm --data-dir ~/tmp/e2e-test
 ```
+
+### ABI Bindings
+
+To generate Golang ABI bindings for the Solidity smart contracts, run:
+```bash
+./scripts/abi_go_bindings.sh
+```
+
+The auto-generated bindings should be written under the `abi-bindings/` directory.
+
 ## Docs
 
 - [Teleporter Protocol Overview](./contracts/src/Teleporter/README.md)

@@ -49,10 +49,12 @@ contract RetryReceiptTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         emit SendCrossChainMessage(
             DEFAULT_DESTINATION_CHAIN_ID,
             1,
-            expectedMessage
+            expectedMessage,
+            feeInfo
         );
         uint256 outboundMessageID = _sendTestMessageWithNoFee(
             DEFAULT_DESTINATION_CHAIN_ID
@@ -96,7 +98,8 @@ contract RetryReceiptTest is TeleporterMessengerTest {
         emit SendCrossChainMessage(
             DEFAULT_DESTINATION_CHAIN_ID,
             2,
-            newExpectedMessage
+            newExpectedMessage,
+            feeInfo
         );
 
         outboundMessageID = _retryTestReceiptsWithNoFee(
@@ -145,7 +148,8 @@ contract RetryReceiptTest is TeleporterMessengerTest {
         emit SendCrossChainMessage(
             DEFAULT_DESTINATION_CHAIN_ID,
             1,
-            expectedMessage
+            expectedMessage,
+            TeleporterFeeInfo(address(0), 0)
         );
 
         uint256 outboundMessageID = _retryTestReceiptsWithNoFee(
@@ -168,7 +172,7 @@ contract RetryReceiptTest is TeleporterMessengerTest {
         missingIDs[0] = 21;
 
         // Try to retry a receipt for an unreceived message from that chain - should fail.
-        vm.expectRevert(TeleporterMessenger.ReceiptNotFound.selector);
+        vm.expectRevert(_formatTeleporterErrorMessage("receipt not found"));
         _retryTestReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, missingIDs);
     }
 

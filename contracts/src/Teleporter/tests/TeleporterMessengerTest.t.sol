@@ -37,13 +37,22 @@ contract TeleporterMessengerTest is Test {
     event SendCrossChainMessage(
         bytes32 indexed destinationChainID,
         uint256 indexed messageID,
-        TeleporterMessage message
+        TeleporterMessage message,
+        TeleporterFeeInfo feeInfo
     );
 
     event AddFeeAmount(
         bytes32 indexed destinationChainID,
         uint256 indexed messageID,
         TeleporterFeeInfo updatedFeeInfo
+    );
+
+    event ReceiveCrossChainMessage(
+        bytes32 indexed originChainID,
+        uint256 indexed messageID,
+        address indexed deliverer,
+        address rewardRedeemer,
+        TeleporterMessage message
     );
 
     event FailedMessageExecution(
@@ -65,6 +74,12 @@ contract TeleporterMessengerTest is Test {
         address relayerRewardAddress
     );
 
+    event RelayerRewardsRedeemed(
+        address indexed redeemer,
+        address indexed asset,
+        uint256 amount
+    );
+
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -83,10 +98,14 @@ contract TeleporterMessengerTest is Test {
     }
 
     function testEmptyReceiptQueue() public {
-        assertEq(teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID), 0);
+        assertEq(
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
+            0
+        );
 
-        vm.expectRevert(ReceiptQueue.OutofIndex.selector);
-        TeleporterMessageReceipt memory receipt = teleporterMessenger.getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+        vm.expectRevert("ReceiptQueue: index out of bounds");
+        TeleporterMessageReceipt memory receipt = teleporterMessenger
+            .getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
         assertEq(receipt.receivedMessageID, 0);
         assertEq(receipt.relayerRewardAddress, address(0));
     }
@@ -105,8 +124,12 @@ contract TeleporterMessengerTest is Test {
             new bytes(0)
         );
 
+        address feeAsset = address(0);
+        if (feeAmount > 0) {
+            feeAsset = address(_mockFeeAsset);
+        }
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo({
-            contractAddress: address(_mockFeeAsset),
+            contractAddress: feeAsset,
             amount: feeAmount
         });
 
@@ -179,6 +202,14 @@ contract TeleporterMessengerTest is Test {
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            relayerRewardAddress,
+            messageToReceive
+        );
         teleporterMessenger.receiveCrossChainMessage(0, relayerRewardAddress);
     }
 
@@ -214,6 +245,14 @@ contract TeleporterMessengerTest is Test {
         emit FailedMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive.messageID,
+            messageToReceive
+        );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
@@ -259,5 +298,11 @@ contract TeleporterMessengerTest is Test {
                 destinationAddress: address(teleporterMessenger),
                 payload: payload
             });
+    }
+
+    function _formatTeleporterErrorMessage(
+        string memory errorMessage
+    ) internal pure returns (bytes memory) {
+        return bytes(string.concat("TeleporterMessenger: ", errorMessage));
     }
 }

@@ -22,7 +22,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     }
 
     function testZeroRewardBalance() public {
-        vm.expectRevert(TeleporterMessenger.NoRelayerRewardToRedeem.selector);
+        vm.expectRevert(_formatTeleporterErrorMessage("no reward to redeem"));
         teleporterMessenger.redeemRelayerRewards(address(_mockFeeAsset));
     }
 
@@ -84,6 +84,12 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
                 (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
             )
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit RelayerRewardsRedeemed(
+            feeRewardInfo.relayerRewardAddress,
+            address(_mockFeeAsset),
+            feeRewardInfo.feeAmount
+        );
         vm.prank(feeRewardInfo.relayerRewardAddress);
         teleporterMessenger.redeemRelayerRewards(address(_mockFeeAsset));
 
@@ -131,6 +137,14 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
 
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x93753a9eA4C9D6eeed9f64eA92E97ce1f5FBAeDe;
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            expectedRelayerRewardAddress,
+            messageToReceive
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             expectedRelayerRewardAddress

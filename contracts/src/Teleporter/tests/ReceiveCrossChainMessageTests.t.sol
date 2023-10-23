@@ -48,13 +48,19 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             0
         );
 
         // Receive the message.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -62,9 +68,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             1
         );
 
@@ -83,6 +87,14 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(3, warpMessage);
 
         // Receive the message.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
+        );
         teleporterMessenger.receiveCrossChainMessage(
             3,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -90,9 +102,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_ORIGIN_CHAIN_ID
-            ),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
             2
         );
 
@@ -125,7 +135,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
         );
 
-        vm.expectRevert(TeleporterMessenger.InvalidWarpMessage.selector);
+        vm.expectRevert(_formatTeleporterErrorMessage("invalid warp message"));
         teleporterMessenger.receiveCrossChainMessage(0, address(1));
 
         // Receive invalid message at index 3
@@ -139,7 +149,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (3))
         );
 
-        vm.expectRevert(TeleporterMessenger.InvalidWarpMessage.selector);
+        vm.expectRevert(_formatTeleporterErrorMessage("invalid warp message"));
         teleporterMessenger.receiveCrossChainMessage(3, address(1));
     }
 
@@ -162,7 +172,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         vm.expectRevert(
-            TeleporterMessenger.InvalidOriginSenderAddress.selector
+            _formatTeleporterErrorMessage("invalid origin sender address")
         );
         teleporterMessenger.receiveCrossChainMessage(
             0,
@@ -190,7 +200,9 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
-        vm.expectRevert(TeleporterMessenger.InvalidDestinationChainID.selector);
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("invalid destination chain ID")
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -215,7 +227,9 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
-        vm.expectRevert(TeleporterMessenger.InvalidDestinationAddress.selector);
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("invalid destination address")
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -224,7 +238,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
     function testInvalidRelayerAddress() public {
         vm.expectRevert(
-            TeleporterMessenger.InvalidRelayerRewardAddress.selector
+            _formatTeleporterErrorMessage("zero relayer reward address")
         );
         teleporterMessenger.receiveCrossChainMessage(0, address(0));
     }
@@ -234,7 +248,9 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         testSuccess();
 
         // Check you can't deliver it again.
-        vm.expectRevert(TeleporterMessenger.MessageAlreadyDelivered.selector);
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("message already delivered")
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -266,7 +282,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
-        vm.expectRevert(TeleporterMessenger.UnauthorizedRelayer.selector);
+        vm.expectRevert(_formatTeleporterErrorMessage("unauthorized relayer"));
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
