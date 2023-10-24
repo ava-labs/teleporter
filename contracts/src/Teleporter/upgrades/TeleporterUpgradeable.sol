@@ -17,7 +17,7 @@ import "./TeleporterRegistry.sol";
  */
 abstract contract TeleporterUpgradeable {
     TeleporterRegistry public immutable teleporterRegistry;
-    uint256 internal _minTeleporterVersion;
+    uint256 public minTeleporterVersion;
 
     /**
      * @dev Throws if called by a `msg.sender` that is not an allowed Teleporter version.
@@ -26,7 +26,7 @@ abstract contract TeleporterUpgradeable {
     modifier onlyAllowedTeleporter() {
         require(
             teleporterRegistry.getVersionFromAddress(msg.sender) >=
-                _minTeleporterVersion,
+                minTeleporterVersion,
             "TeleporterUpgradeable: invalid teleporter sender"
         );
         _;
@@ -43,20 +43,20 @@ abstract contract TeleporterUpgradeable {
         );
 
         teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**
-     * @dev Updates `_minTeleporterVersion` to the latest version.
+     * @dev Updates `minTeleporterVersion` to the latest version.
      */
     function updateMinTeleporterVersion() external {
-        _minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        minTeleporterVersion = teleporterRegistry.getLatestVersion();
     }
 
     /**
      * @dev Gets the minimum Teleporter version that is allowed to call this contract.
      */
     function getMinTeleporterVersion() external view returns (uint256) {
-        return _minTeleporterVersion;
+        return minTeleporterVersion;
     }
 }
