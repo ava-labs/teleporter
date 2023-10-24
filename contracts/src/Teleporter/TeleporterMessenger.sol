@@ -357,6 +357,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * @dev See {ITeleporterMessenger-retryMessageExecution}
      *
      * Reverts if the message execution fails again on specified message.
+     * Emits a {MessageExecuted} evemt if the retry is successful.
      * Requirements:
      *
      * - `message` must have previously failed to execute, and matches the hash of the failed message.
@@ -388,7 +389,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Clear the failed message hash from state prior to retrying its execution to redundantly prevent
         // reentrance attacks (on top of the nonReentrant guard).
-        emit MessageExecutionRetried(originChainID, message.messageID);
+        emit MessageExecuted(originChainID, message.messageID);
         delete receivedFailedMessageHashes[originChainID][message.messageID];
 
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
@@ -702,7 +703,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * (including possibly storing a failed message in state). All execution specific errors (i.e. invalid call data, etc)
      * that are not in the relayers control are caught and handled properly.
      *
-     * Emits a {FailedMessageExecution} event if the call on destination address fails with formatted call data.
+     * Emits a {MessageExecuted} event if the call on destination address is successful.
+     * Emits a {MessageExecutionFailed} event if the call on destination address fails with formatted call data.
      * Requirements:
      *
      * - There is enough gas left to cover `message.requiredGasLimit`.
@@ -751,6 +753,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         if (!success) {
             _storeFailedMessageExecution(originChainID, message);
         }
+
+        emit MessageExecuted(originChainID, message.messageID);
     }
 
     /**
@@ -766,7 +770,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         ] = keccak256(abi.encode(message));
 
         // Emit a failed execution event for anyone monitoring unsuccessful messages to retry.
-        emit FailedMessageExecution(originChainID, message.messageID, message);
+        emit MessageExecutionFailed(originChainID, message.messageID, message);
     }
 
     /**
