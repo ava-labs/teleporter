@@ -19,6 +19,11 @@ abstract contract TeleporterUpgradeable {
     TeleporterRegistry public immutable teleporterRegistry;
     uint256 public minTeleporterVersion;
 
+    event MinTeleporterVersionUpdated(
+        uint256 oldMinTeleporterVersion,
+        uint256 newMinTeleporterVersion
+    );
+
     /**
      * @dev Throws if called by a `msg.sender` that is not an allowed Teleporter version.
      * Checks that `msg.sender` matches a Teleporter version greater than or equal to `_minTeleporterVersion`.
@@ -50,13 +55,8 @@ abstract contract TeleporterUpgradeable {
      * @dev Updates `minTeleporterVersion` to the latest version.
      */
     function updateMinTeleporterVersion() external {
+        uint256 prevVersion = minTeleporterVersion;
         minTeleporterVersion = teleporterRegistry.getLatestVersion();
-    }
-
-    /**
-     * @dev Gets the minimum Teleporter version that is allowed to call this contract.
-     */
-    function getMinTeleporterVersion() external view returns (uint256) {
-        return minTeleporterVersion;
+        emit MinTeleporterVersionUpdated(prevVersion, minTeleporterVersion);
     }
 }

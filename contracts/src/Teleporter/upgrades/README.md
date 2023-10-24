@@ -4,7 +4,7 @@
 
 The `TeleporterMessenger` contract is non-upgradable, once a version of the contract is deployed it cannot be changed. This is with the intention of preventing any changes to the deployed contract that could potentially introduce bugs or vulnerabilities.
 
-However, there should still be new versions of the `TeleporterMessenger` contract that provide new features, and `TeleporterRegistry` supports the integration with these new versions.
+However, there could still be new versions of `TeleporterMessenger` contracts needed to be deployed in the future. `TeleporterRegistry` provides applications that use a `TeleporterMessenger` instance a minimal step process to integrate with new versions of `TeleporterMessenger`.
 
 The `TeleporterRegistry` keeps track of a mapping of `TeleporterMessenger` contract versions to their addresses. This allows us to deploy new versions of the `TeleporterMessenger` contract and then update the `TeleporterRegistry` to point to different versions. The `TeleporterRegistry` can only be updated through a Warp out-of-band message that meets the following requirements:
 
@@ -47,7 +47,7 @@ contract ERC20Bridge is
 }
 ```
 
-The `TeleporterUpgradeable` contract saves the Teleporter registry in a state variable used by the inheriting contract, and initializes a `_minTeleporterVersion` to the highest number `TeleporterMessenger` version registered in `TeleporterRegistry`. The `onlyAllowedTeleporter` modifier ensures that `msg.sender` is a `TeleporterMessenger` contract with a version greater than or equal to `_minTeleporterVersion`. This modifier is used to restrict access to functions that should only be called by a `TeleporterMessenger` contract, i.e. `ITeleporterReceiver.receiveTeleporterMessage`. This is to support the case where a dapp wants to upgrade to a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract. Then once the dapp completes delivery of messages from the old Teleporter contract, it can call `TeleporterUpgradeable.updateMinTeleporterVersion` to update the `_minTeleporterVersion` to the new version.
+The `TeleporterUpgradeable` contract saves the Teleporter registry in a state variable used by the inheriting contract, and initializes a `minTeleporterVersion` to the highest number `TeleporterMessenger` version registered in `TeleporterRegistry`. The `onlyAllowedTeleporter` modifier ensures that `msg.sender` is a `TeleporterMessenger` contract with a version greater than or equal to `minTeleporterVersion`. This modifier is used to restrict access to functions that should only be called by a `TeleporterMessenger` contract, i.e. `ITeleporterReceiver.receiveTeleporterMessage`. This is to support the case where a dapp wants to upgrade to a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract. Then once the dapp completes delivery of messages from the old Teleporter contract, it can call `TeleporterUpgradeable.updateMinTeleporterVersion` to update the `minTeleporterVersion` to the new version.
 
 For sending messages with the Teleporter registry, dapps should generally use `TeleporterRegistry.getLatestTeleporter` for the latest version, but if the dapp wants to send a message to a specific version, it can use `TeleporterRegistry.getTeleporterFromVersion` to get the specific Teleporter version.
 

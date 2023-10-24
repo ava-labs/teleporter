@@ -24,6 +24,11 @@ contract TeleporterUpgradeableTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
 
+    event MinTeleporterVersionUpdated(
+        uint256 oldMinTeleporterVersion,
+        uint256 newMinTeleporterVersion
+    );
+
     function setUp() public {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -64,7 +69,7 @@ contract TeleporterUpgradeableTest is Test {
             MOCK_TELEPORTER_REGISTRY_ADDRESS
         );
 
-        assertEq(app.getMinTeleporterVersion(), 1);
+        assertEq(app.minTeleporterVersion(), 1);
 
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
@@ -83,7 +88,7 @@ contract TeleporterUpgradeableTest is Test {
         );
 
         // First check that calling with initial teleporter address works
-        assertEq(app.getMinTeleporterVersion(), 1);
+        assertEq(app.minTeleporterVersion(), 1);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         app.teleporterCall();
 
@@ -94,8 +99,10 @@ contract TeleporterUpgradeableTest is Test {
             abi.encode(2)
         );
 
+        vm.expectEmit(true, true, true, true, address(app));
+        emit MinTeleporterVersionUpdated(1, 2);
         app.updateMinTeleporterVersion();
-        assertEq(app.getMinTeleporterVersion(), 2);
+        assertEq(app.minTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
         vm.expectRevert(
