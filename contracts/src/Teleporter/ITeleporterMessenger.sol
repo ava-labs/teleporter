@@ -70,9 +70,10 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Emitted when a Teleporter message successfully performs message execution with the
-     * specified destination address and message call data.abi
+     * specified destination address and message call data.
      *
-     * This event is emitted for when messages succeed initial message execution, and if retries of previoulsy failed message executio now succeeds.
+     * This event is emitted for when messages succeed initial message execution, and if retries
+     * of previously failed message executions now succeed.
      *
      * In the successful retry case, the message is then no longer able to be retried again
      * in the future since each message will be successfully executed at most once.

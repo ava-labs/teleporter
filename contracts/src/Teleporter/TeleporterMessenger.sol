@@ -357,7 +357,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * @dev See {ITeleporterMessenger-retryMessageExecution}
      *
      * Reverts if the message execution fails again on specified message.
-     * Emits a {MessageExecuted} evemt if the retry is successful.
+     * Emits a {MessageExecuted} event if the retry is successful.
      * Requirements:
      *
      * - `message` must have previously failed to execute, and matches the hash of the failed message.
