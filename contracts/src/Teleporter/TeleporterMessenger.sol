@@ -78,7 +78,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
     // The blockchain ID of the chain the contract is deployed on. Initialized lazily when receiveCrossChainMessage() is called,
     // if the value has not already been set.
-    bytes32 public blockchainID = bytes32(0);
+    bytes32 public blockchainID;
 
     // Errors
     error AlreadyInitialized();
