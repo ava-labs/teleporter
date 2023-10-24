@@ -13,18 +13,13 @@ contract ExampleERC20 is ERC20Burnable {
 
     uint256 private constant _MAX_MINT = 10_000_000_000_000_000;
 
-    // Errors
-    error MaxAmountExceeded(uint256 maxAmount, uint256 mintAmount);
-
     constructor() ERC20(_TOKEN_NAME, _TOKEN_SYMBOL) {
         _mint(msg.sender, 10_000_000_000_000_000_000_000_000_000);
     }
 
     function mint(uint256 amount) public {
         // Can only mint 10 at a time.
-        if (amount > _MAX_MINT) {
-            revert MaxAmountExceeded(_MAX_MINT, amount);
-        }
+        require(amount <= _MAX_MINT, "ExampleERC20: max mint exceeded");
 
         _mint(msg.sender, amount);
     }

@@ -101,7 +101,7 @@ contract TeleporterMessengerTest is Test {
             0
         );
 
-        vm.expectRevert(ReceiptQueue.IndexOutOfBounds.selector);
+        vm.expectRevert("ReceiptQueue: index out of bounds");
         TeleporterMessageReceipt memory receipt = teleporterMessenger
             .getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
         assertEq(receipt.receivedMessageID, 0);
@@ -296,5 +296,11 @@ contract TeleporterMessengerTest is Test {
                 destinationAddress: address(teleporterMessenger),
                 payload: payload
             });
+    }
+
+    function _formatTeleporterErrorMessage(
+        string memory errorMessage
+    ) internal pure returns (bytes memory) {
+        return bytes(string.concat("TeleporterMessenger: ", errorMessage));
     }
 }

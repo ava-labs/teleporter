@@ -83,7 +83,7 @@ contract ReceiptQueueTest is Test {
 
     function testDequeueRevertIfEmptyQueue() public {
         // Check that you can't dequeue from empty queue.
-        vm.expectRevert(ReceiptQueue.EmptyQueue.selector);
+        vm.expectRevert(_formatReceiptQueueErrorMessage("empty queue"));
         TeleporterMessageReceipt memory result = _queue.dequeue();
         assertEq(result.receivedMessageID, 0);
         assertEq(result.relayerRewardAddress, address(0));
@@ -104,15 +104,21 @@ contract ReceiptQueueTest is Test {
         assertEq(result.relayerRewardAddress, _receipt2.relayerRewardAddress);
 
         // Check  can't get an out of index element.
-        vm.expectRevert(ReceiptQueue.IndexOutOfBounds.selector);
+        vm.expectRevert(_formatReceiptQueueErrorMessage("index out of bounds"));
         result = _queue.getReceiptAtIndex(4);
     }
 
     function testGetReceiptAtIndexWithEmptyQueue() public {
         // Check that you can't get receipts from empty queue.
-        vm.expectRevert(ReceiptQueue.IndexOutOfBounds.selector);
+        vm.expectRevert(_formatReceiptQueueErrorMessage("index out of bounds"));
         TeleporterMessageReceipt memory result = _queue.getReceiptAtIndex(0);
         assertEq(result.receivedMessageID, 0);
         assertEq(result.relayerRewardAddress, address(0));
+    }
+
+    function _formatReceiptQueueErrorMessage(
+        string memory errorMessage
+    ) private pure returns (bytes memory) {
+        return bytes(string.concat("ReceiptQueue: ", errorMessage));
     }
 }

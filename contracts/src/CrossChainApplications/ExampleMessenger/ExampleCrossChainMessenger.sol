@@ -49,9 +49,6 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         string message
     );
 
-    // Errors
-    error Unauthorized();
-
     constructor(address teleporterMessengerAddress) {
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
     }
@@ -67,9 +64,7 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         bytes calldata message
     ) external {
         // Only the Teleporter receiver can deliver a message.
-        if (msg.sender != address(teleporterMessenger)) {
-            revert Unauthorized();
-        }
+        require(msg.sender == address(teleporterMessenger), "ExampleCrossChainMessenger: unauthorized");
 
         // Store the message.
         string memory messageString = abi.decode(message, (string));
