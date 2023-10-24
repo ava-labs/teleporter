@@ -19,9 +19,12 @@ abstract contract TeleporterUpgradeable {
     TeleporterRegistry public immutable teleporterRegistry;
     uint256 public minTeleporterVersion;
 
+    /**
+     * @dev Emitted when `minTeleporterVersion` is updated to a new value.
+     */
     event MinTeleporterVersionUpdated(
-        uint256 oldMinTeleporterVersion,
-        uint256 newMinTeleporterVersion
+        uint256 indexed oldMinTeleporterVersion,
+        uint256 indexed newMinTeleporterVersion
     );
 
     /**
@@ -53,6 +56,7 @@ abstract contract TeleporterUpgradeable {
 
     /**
      * @dev Updates `minTeleporterVersion` to the latest version.
+     * Emits a {MinTeleporterVersionUpdated} event.
      */
     function updateMinTeleporterVersion() external {
         uint256 prevVersion = minTeleporterVersion;
