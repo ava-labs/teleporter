@@ -111,6 +111,7 @@ contract NativeTokenDestination is
             (address, uint256)
         );
         require(recipient != address(0), "Invalid Recipient Address");
+        require(amount != 0, "Transfer value of 0");
 
         uint256 adjustedAmount = amount;
         if (tokenReserve > 0) {

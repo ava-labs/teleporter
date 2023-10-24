@@ -20,6 +20,7 @@ The native-to-native bridge is implemented using two primary contracts.
 
 - `Burning tokens spent as fees`
     - As tokens are burned for transaction fees on the destination chain, we may want to relay this information to the source chain in order to burn an equivalent number of locked tokens there because these tokens will never be bridged back.
+    - The address for burned transaction fees is `0x0100000000000000000000000000000000000000`. We will send tokens that are "burned" in order to unlock tokens on the source chain to a different address so that `0x0100000000000000000000000000000000000000` will only include burned transaction fees (or tokens others have decided to burn outside of this contract) so that we can report this number to the source chain to burn an equivalent numbers of locked tokens.
     - `TODO` explain implementation.
 
 - `Setup`
