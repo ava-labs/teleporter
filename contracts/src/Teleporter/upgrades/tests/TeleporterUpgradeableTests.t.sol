@@ -25,8 +25,8 @@ contract TeleporterUpgradeableTest is Test {
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
 
     event MinTeleporterVersionUpdated(
-        uint256 oldMinTeleporterVersion,
-        uint256 newMinTeleporterVersion
+        uint256 indexed oldMinTeleporterVersion,
+        uint256 indexed newMinTeleporterVersion
     );
 
     function setUp() public {
@@ -101,6 +101,7 @@ contract TeleporterUpgradeableTest is Test {
 
         vm.expectEmit(true, true, true, true, address(app));
         emit MinTeleporterVersionUpdated(1, 2);
+
         app.updateMinTeleporterVersion();
         assertEq(app.minTeleporterVersion(), 2);
 
