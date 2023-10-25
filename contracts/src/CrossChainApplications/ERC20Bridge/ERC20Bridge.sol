@@ -16,6 +16,7 @@ import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev Implementation of the {IERC20Bridge} interface.
@@ -27,7 +28,8 @@ contract ERC20Bridge is
     IERC20Bridge,
     ITeleporterReceiver,
     ReentrancyGuard,
-    TeleporterUpgradeable
+    TeleporterUpgradeable,
+    Ownable
 {
     using SafeERC20 for IERC20;
 
@@ -320,6 +322,23 @@ contract ERC20Bridge is
         } else {
             revert("ERC20Bridge: invalid action");
         }
+    }
+
+    /**
+     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
+     *
+     * Updates the minimum Teleporter version allowed for receiving on this contract
+     * to the latest version registered in the {TeleporterRegistry}. Also restricts this function to
+     * the owner of this contract.
+     * Emits a {MinTeleporterVersionUpdated} event.
+     */
+    function updateMinTeleporterVersion() external override onlyOwner {
+        uint256 oldMinTeleporterVersion = minTeleporterVersion;
+        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        emit MinTeleporterVersionUpdated(
+            oldMinTeleporterVersion,
+            minTeleporterVersion
+        );
     }
 
     /**

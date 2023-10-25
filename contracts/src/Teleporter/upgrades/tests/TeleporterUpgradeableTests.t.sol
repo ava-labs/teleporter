@@ -14,6 +14,15 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
         address teleporterRegistryAddress
     ) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
+    function updateMinTeleporterVersion() external override {
+        uint256 oldMinTeleporterVersion = minTeleporterVersion;
+        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        emit MinTeleporterVersionUpdated(
+            oldMinTeleporterVersion,
+            minTeleporterVersion
+        );
+    }
+
     // solhint-disable-next-line no-empty-blocks
     function teleporterCall() public onlyAllowedTeleporter {}
 }

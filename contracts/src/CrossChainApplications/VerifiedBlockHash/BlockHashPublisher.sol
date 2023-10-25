@@ -7,15 +7,16 @@ pragma solidity 0.8.18;
 
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/upgrades/TeleporterRegistry.sol";
-import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./BlockHashReceiver.sol";
 
 /**
  * Contract that publishes the latest block hash of current chain to another chain.
  */
-contract BlockHashPublisher is TeleporterUpgradeable {
+contract BlockHashPublisher {
     uint256 public constant RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT = 1.5e5;
+
+    TeleporterRegistry public immutable teleporterRegistry;
 
     /**
      * @dev Emitted when a block hash is submitted to be published to another chain.
@@ -27,9 +28,14 @@ contract BlockHashPublisher is TeleporterUpgradeable {
         bytes32 blockHash
     );
 
-    constructor(
-        address teleporterRegistryAddress
-    ) TeleporterUpgradeable(teleporterRegistryAddress) {}
+    constructor(address teleporterRegistryAddress) {
+        require(
+            teleporterRegistryAddress != address(0),
+            "BlockHashPublisher: zero teleporter registry address"
+        );
+
+        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
+    }
 
     /**
      * @dev Publishes the latest block hash to another chain.

@@ -13,15 +13,12 @@ import "./TeleporterRegistry.sol";
  *
  * This contract is intended to be inherited by other contracts that wish to use the
  * upgrade mechanism. It provides a modifier that restricts access to only Teleporter
- * versions that are greater than or equal to `_minTeleporterVersion`.
+ * versions that are greater than or equal to `minTeleporterVersion`.
  */
 abstract contract TeleporterUpgradeable {
     TeleporterRegistry public immutable teleporterRegistry;
     uint256 public minTeleporterVersion;
 
-    /**
-     * @dev Emitted when `minTeleporterVersion` is updated to a new value.
-     */
     event MinTeleporterVersionUpdated(
         uint256 indexed oldMinTeleporterVersion,
         uint256 indexed newMinTeleporterVersion
@@ -29,7 +26,7 @@ abstract contract TeleporterUpgradeable {
 
     /**
      * @dev Throws if called by a `msg.sender` that is not an allowed Teleporter version.
-     * Checks that `msg.sender` matches a Teleporter version greater than or equal to `_minTeleporterVersion`.
+     * Checks that `msg.sender` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
      */
     modifier onlyAllowedTeleporter() virtual {
         require(
@@ -55,12 +52,15 @@ abstract contract TeleporterUpgradeable {
     }
 
     /**
-     * @dev Updates `minTeleporterVersion` to the latest version.
-     * Emits a {MinTeleporterVersionUpdated} event.
+     * @dev This is a virtual function that should be overridden to update the `minTeleporterVersion`
+     * allowed for modifier `onlyAllowedTeleporter`, and emit {MinTeleporterVersionUpdated} event after.
+     * The derived contract should call this function after there is a new Teleporter version
+     * registered in the `TeleporterRegistry`, and the derived contract no longer needs to receive
+     * messages from the previous Teleporter versions.
+     *
+     * Note: To prevent anyone from being able to call this function, which would disallow messages
+     * from old Teleporter versions from being received, this function should be safeguarded with access
+     * controls. For example, if the derived contract has an owner/admin, only they can call this function.
      */
-    function updateMinTeleporterVersion() external virtual {
-        uint256 prevVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
-        emit MinTeleporterVersionUpdated(prevVersion, minTeleporterVersion);
-    }
+    function updateMinTeleporterVersion() external virtual;
 }

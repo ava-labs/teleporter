@@ -84,6 +84,23 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterUpgradeable {
     }
 
     /**
+     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
+     *
+     * Updates the minimum Teleporter version allowed for receiving on this contract
+     * to the latest version registered in the {TeleporterRegistry}.
+     *
+     * Emits a {MinTeleporterVersionUpdated} event.
+     */
+    function updateMinTeleporterVersion() external override {
+        uint256 oldMinTeleporterVersion = minTeleporterVersion;
+        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        emit MinTeleporterVersionUpdated(
+            oldMinTeleporterVersion,
+            minTeleporterVersion
+        );
+    }
+
+    /**
      * @dev Returns the latest block information.
      */
     function getLatestBlockInfo()
