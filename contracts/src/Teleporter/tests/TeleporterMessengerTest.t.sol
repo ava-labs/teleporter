@@ -83,8 +83,8 @@ contract TeleporterMessengerTest is Test {
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector),
-            abi.encode(MOCK_BLOCK_CHAIN_ID)
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
+            abi.encode(DEFAULT_ORIGIN_CHAIN_ID)
         );
 
         teleporterMessenger = new TeleporterMessenger();
@@ -99,13 +99,13 @@ contract TeleporterMessengerTest is Test {
 
     function testEmptyReceiptQueue() public {
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
+            teleporterMessenger.getReceiptQueueSize(DEFAULT_DESTINATION_CHAIN_ID),
             0
         );
 
         vm.expectRevert("ReceiptQueue: index out of bounds");
         TeleporterMessageReceipt memory receipt = teleporterMessenger
-            .getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+            .getReceiptAtIndex(DEFAULT_DESTINATION_CHAIN_ID, 0);
         assertEq(receipt.receivedMessageID, 0);
         assertEq(receipt.relayerRewardAddress, address(0));
     }
@@ -120,7 +120,7 @@ contract TeleporterMessengerTest is Test {
     ) internal returns (uint256) {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
             new bytes(0)
         );
 
@@ -168,12 +168,12 @@ contract TeleporterMessengerTest is Test {
     ) internal {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (index)),
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (index)),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (index))
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (index))
         );
     }
 
@@ -278,6 +278,7 @@ contract TeleporterMessengerTest is Test {
             TeleporterMessage({
                 messageID: messageID,
                 senderAddress: address(this),
+                destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
                 destinationAddress: DEFAULT_DESTINATION_ADDRESS,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
                 allowedRelayerAddresses: new address[](0),
@@ -294,8 +295,6 @@ contract TeleporterMessengerTest is Test {
             WarpMessage({
                 sourceChainID: originChainID,
                 originSenderAddress: address(teleporterMessenger),
-                destinationChainID: MOCK_BLOCK_CHAIN_ID,
-                destinationAddress: address(teleporterMessenger),
                 payload: payload
             });
     }

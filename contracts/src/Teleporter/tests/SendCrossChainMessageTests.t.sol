@@ -34,7 +34,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // We have to mock the precompile call so that the test does not revert.
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
             new bytes(0)
         );
 
@@ -42,10 +42,8 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
+                IWarpMessenger.sendWarpMessage,
                 (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
                     abi.encode(expectedMessage)
                 )
             )
@@ -98,7 +96,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // We have to mock the precompile call so that the test does not revert.
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
             new bytes(0)
         );
 
@@ -106,12 +104,8 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(expectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(expectedMessage))
             )
         );
 

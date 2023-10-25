@@ -62,7 +62,7 @@ contract ERC20BridgeTest is Test {
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector),
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
             abi.encode(_MOCK_BLOCKCHAIN_ID)
         );
 

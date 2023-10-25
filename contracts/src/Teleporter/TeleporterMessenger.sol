@@ -17,7 +17,7 @@ import "./ReentrancyGuards.sol";
 /**
  * @dev Implementation of the {ITeleporterMessenger} interface.
  *
- * This implementation is used to send messages cross chain using the WarpMessenger precompile,
+ * This implementation is used to send messages cross chain using the IWarpMessenger precompile,
  * and to receive messages sent from other chains. Teleporter contracts should be deployed through Nick's method
  * of universal deployer, such that the same contract is deployed at the same address on all chains.
  */
@@ -30,8 +30,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterFeeInfo feeInfo;
     }
 
-    WarpMessenger public constant WARP_MESSENGER =
-        WarpMessenger(0x0200000000000000000000000000000000000005);
+    IWarpMessenger public constant WARP_MESSENGER =
+        IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     // Tracks the latest message ID used for a given destination subnet.
     // Key is the destination subnet ID, and the value is the last message ID used for that subnet.
@@ -154,11 +154,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Resubmit the message to the warp message precompile now that we know the exact message was
         // already submitted in the past.
-        WARP_MESSENGER.sendWarpMessage(
-            destinationChainID,
-            address(this),
-            messageBytes
-        );
+        WARP_MESSENGER.sendWarpMessage(messageBytes);
     }
 
     /**
@@ -269,20 +265,20 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             "TeleporterMessenger: invalid origin sender address"
         );
 
-        // Require that the message was intended for this blockchain and teleporter contract.
-        require(
-            warpMessage.destinationChainID == blockchainID,
-            "TeleporterMessenger: invalid destination chain ID"
-        );
-        require(
-            warpMessage.destinationAddress == address(this),
-            "TeleporterMessenger: invalid destination address"
-        );
-
         // Parse the payload of the message.
         TeleporterMessage memory teleporterMessage = abi.decode(
             warpMessage.payload,
             (TeleporterMessage)
+        );
+
+        // Require that the message was intended for this blockchain and teleporter contract.
+        require(
+            teleporterMessage.destinationChainID == blockchainID,
+            "TeleporterMessenger: invalid destination chain ID"
+        );
+        require(
+            teleporterMessage.destinationAddress == address(this),
+            "TeleporterMessenger: invalid destination address"
         );
 
         // Check the message has not been delivered before by checking that there is no relayer reward
@@ -601,6 +597,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessage memory teleporterMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: msg.sender,
+            destinationChainID: destinationChainID,
             destinationAddress: destinationAddress,
             requiredGasLimit: requiredGasLimit,
             allowedRelayerAddresses: allowedRelayerAddresses,
@@ -652,11 +649,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // The Teleporter contract only allows for sending messages to other instances of the same
         // contract at the same address on other EVM chains, which is why we set the destination adress
         // as the address of this contract.
-        WARP_MESSENGER.sendWarpMessage(
-            destinationChainID,
-            address(this),
-            teleporterMessageBytes
-        );
+        WARP_MESSENGER.sendWarpMessage(teleporterMessageBytes);
 
         return messageID;
     }

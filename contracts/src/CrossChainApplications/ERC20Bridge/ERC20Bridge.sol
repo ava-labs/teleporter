@@ -78,7 +78,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         );
 
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
-        currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
+        currentChainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
 

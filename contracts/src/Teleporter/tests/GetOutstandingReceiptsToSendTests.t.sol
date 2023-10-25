@@ -73,12 +73,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(expectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(expectedMessage))
             )
         );
 
@@ -103,12 +99,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(nextExpectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(nextExpectedMessage))
             )
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
@@ -206,12 +198,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(expectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(expectedMessage))
             )
         );
 
@@ -237,12 +225,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(nextExpectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(nextExpectedMessage))
             )
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
