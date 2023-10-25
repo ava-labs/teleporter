@@ -128,7 +128,9 @@ contract ExampleCrossChainMessenger is
      * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
      *
      * Updates the minimum Teleporter version allowed for receiving on this contract
-     * to the latest version registered in the {TeleporterRegistry}.
+     * to the latest version registered in the {TeleporterRegistry}. We do not have
+     * access controls for this example messenger so anyone can call the function to update `minTeleporterVersion`,
+     * and disallow messages from old Teleporter versions from being received.
      *
      * Emits a {MinTeleporterVersionUpdated} event.
      */

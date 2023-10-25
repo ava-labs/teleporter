@@ -9,11 +9,16 @@ import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/upgrades/TeleporterRegistry.sol";
 import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.
  */
-contract BlockHashReceiver is ITeleporterReceiver, TeleporterUpgradeable {
+contract BlockHashReceiver is
+    ITeleporterReceiver,
+    TeleporterUpgradeable,
+    Ownable
+{
     // Source chain information
     bytes32 public immutable sourceChainID;
     address public immutable sourcePublisherContractAddress;
@@ -87,11 +92,11 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterUpgradeable {
      * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
      *
      * Updates the minimum Teleporter version allowed for receiving on this contract
-     * to the latest version registered in the {TeleporterRegistry}.
-     *
+     * to the latest version registered in the {TeleporterRegistry}. Also restricts this function to
+     * the owner of this contract.
      * Emits a {MinTeleporterVersionUpdated} event.
      */
-    function updateMinTeleporterVersion() external override {
+    function updateMinTeleporterVersion() external override onlyOwner {
         uint256 oldMinTeleporterVersion = minTeleporterVersion;
         minTeleporterVersion = teleporterRegistry.getLatestVersion();
         emit MinTeleporterVersionUpdated(

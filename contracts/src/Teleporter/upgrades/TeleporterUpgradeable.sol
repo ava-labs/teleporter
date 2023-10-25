@@ -28,7 +28,7 @@ abstract contract TeleporterUpgradeable {
      * @dev Throws if called by a `msg.sender` that is not an allowed Teleporter version.
      * Checks that `msg.sender` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
      */
-    modifier onlyAllowedTeleporter() virtual {
+    modifier onlyAllowedTeleporter() {
         require(
             teleporterRegistry.getVersionFromAddress(msg.sender) >=
                 minTeleporterVersion,
