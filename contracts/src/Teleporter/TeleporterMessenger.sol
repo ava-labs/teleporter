@@ -389,7 +389,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Clear the failed message hash from state prior to retrying its execution to redundantly prevent
         // reentrance attacks (on top of the nonReentrant guard).
-        emit MessageExecuted(originChainID, message.messageID);
+        emit MessageExecuted(originChainID, message.messageID, true);
         delete receivedFailedMessageHashes[originChainID][message.messageID];
 
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
@@ -754,7 +754,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             _storeFailedMessageExecution(originChainID, message);
         }
 
-        emit MessageExecuted(originChainID, message.messageID);
+        emit MessageExecuted(originChainID, message.messageID, false);
     }
 
     /**

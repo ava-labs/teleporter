@@ -80,7 +80,8 @@ interface ITeleporterMessenger {
      */
     event MessageExecuted(
         bytes32 indexed originChainID,
-        uint256 indexed messageID
+        uint256 indexed messageID,
+        bool indexed isRetry
     );
 
     /**
