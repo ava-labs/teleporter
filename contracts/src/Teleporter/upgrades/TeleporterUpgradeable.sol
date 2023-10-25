@@ -54,9 +54,6 @@ abstract contract TeleporterUpgradeable {
     /**
      * @dev This is a virtual function that should be overridden to update the `minTeleporterVersion`
      * allowed for modifier `onlyAllowedTeleporter`, and emit {MinTeleporterVersionUpdated} event after.
-     * The derived contract should call this function after there is a new Teleporter version
-     * registered in the `TeleporterRegistry`, and the derived contract no longer needs to receive
-     * messages from the previous Teleporter versions.
      *
      * Note: To prevent anyone from being able to call this function, which would disallow messages
      * from old Teleporter versions from being received, this function should be safeguarded with access
