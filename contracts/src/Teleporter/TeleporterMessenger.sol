@@ -752,6 +752,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // provided enough gas to meet the required gas limit.
         if (!success) {
             _storeFailedMessageExecution(originChainID, message);
+            return;
         }
 
         emit MessageExecuted(originChainID, message.messageID);
