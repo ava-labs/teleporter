@@ -74,7 +74,6 @@ interface ITeleporterMessenger {
      * the message is initially received, or on a retry attempt.
      *
      * Each message received can be executed successfully at most once.
-     * in the future since each message will be successfully executed at most once.
      */
     event MessageExecuted(
         bytes32 indexed originChainID,
