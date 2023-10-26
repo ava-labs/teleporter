@@ -36,7 +36,7 @@ ENV LANG en_US.utf8
 
 # Install foundry
 SHELL ["/bin/bash", "-c"]
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN curl -L https://foundry.paradigm.xyz | bash && \
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
