@@ -33,6 +33,7 @@ import (
 )
 
 var (
+	NativeTransferGas                     uint64 = 21_000
 	DefaultTeleporterTransactionGas       uint64 = 200_000
 	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
 	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
@@ -347,7 +348,7 @@ func createNativeTransferTransaction(
 		ChainID:   network.ChainIDInt,
 		Nonce:     nonce,
 		To:        &recipient,
-		Gas:       DefaultTeleporterTransactionGas,
+		Gas:       NativeTransferGas,
 		GasFeeCap: gasFeeCap,
 		GasTipCap: gasTipCap,
 		Value:     amount,
