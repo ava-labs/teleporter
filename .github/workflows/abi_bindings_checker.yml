@@ -44,11 +44,13 @@ jobs:
           ./scripts/abi_bindings.sh
 
       - name: Check for clean branch
-        if: ${{ !contains(github.ref, 'dependabot/') }}
-        run: git --no-pager diff && git --no-pager diff --quiet
+        if: ${{ !startsWith(github.ref, 'refs/heads/dependabot/') }}
+        run: |
+          echo "::set-env name=BRANCH::$(echo ${GITHUB_REF##*/})"
+          git --no-pager diff && git --no-pager diff --quiet
 
       - name: Dependabot commit changes
-        if: contains(github.ref, 'dependabot/')
+        if: startsWith(github.ref, 'refs/heads/dependabot/')
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Dependabot Github Action commit
