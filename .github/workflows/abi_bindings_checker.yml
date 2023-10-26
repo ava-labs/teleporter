@@ -39,7 +39,10 @@ jobs:
           ./scripts/abi_bindings.sh
 
       - name: Check for clean branch
-        run: .github/workflows/check_clean_branch.sh
+        run: |
+          git --no-pager diff -- abi-bindings/**.go
+          git --no-pager diff --quiet -- abi-bindings/**.go
+
   unit_tests:
     name: Unit tests
     runs-on: ubuntu-20.04
