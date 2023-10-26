@@ -28,7 +28,7 @@ jobs:
         with:
           target: "contracts/"
           sarif: results.sarif
-          slither-args: "--foundry_compile_all"
+          slither-args: "--foundry-compile-all"
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
