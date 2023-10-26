@@ -31,7 +31,7 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(bytes32(0))
         );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationChainID: chainID,
@@ -63,7 +63,7 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(bytes32(0))
         );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationChainID: chainID,

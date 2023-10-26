@@ -276,10 +276,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             teleporterMessage.destinationChainID == blockchainID,
             "TeleporterMessenger: invalid destination chain ID"
         );
-        require(
-            teleporterMessage.destinationAddress == address(this),
-            "TeleporterMessenger: invalid destination address"
-        );
 
         // Check the message has not been delivered before by checking that there is no relayer reward
         // address stored for it already.

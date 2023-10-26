@@ -59,15 +59,22 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceipts;
+        expectedMessage.destinationChainID = chainID;
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
+            destinationChainID: expectedMessage.destinationChainID,
             destinationAddress: expectedMessage.destinationAddress,
             feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
         });
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
+        );
 
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
@@ -96,6 +103,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
                 2,
                 hex"deadbeef"
             );
+        nextExpectedMessage.destinationChainID = chainID;
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
@@ -184,15 +192,22 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceiptsBatch1;
+        expectedMessage.destinationChainID = chainID;
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
+            destinationChainID: expectedMessage.destinationChainID,
             destinationAddress: expectedMessage.destinationAddress,
             feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
         });
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
+        );
 
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
@@ -222,6 +237,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
                 hex"deadbeef"
             );
         nextExpectedMessage.receipts = expectedReceiptsBatch2;
+        nextExpectedMessage.destinationChainID = chainID;
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
