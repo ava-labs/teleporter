@@ -21,6 +21,7 @@ func init() {
 		{Name: "messageID", Type: "uint256"},
 		{Name: "senderAddress", Type: "address"},
 		{Name: "destinationChainID", Type: "bytes32"},
+		{Name: "sourceTeleporterAddress", Type: "address"},
 		{Name: "destinationAddress", Type: "address"},
 		{Name: "requiredGasLimit", Type: "uint256"},
 		{Name: "allowedRelayerAddresses", Type: "address[]"},
