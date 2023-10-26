@@ -65,10 +65,8 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-          cache: false
 
       - name: Run unit tests
-        # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
         run: |
           cd contracts/
-          $BASE_DIR/.foundry/bin/forge test -vvv
+          forge test -vvv

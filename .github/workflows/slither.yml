@@ -35,7 +35,6 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-          cache: false
 
       - name: Run Slither
         run: |
