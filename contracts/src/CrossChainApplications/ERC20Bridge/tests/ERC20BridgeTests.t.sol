@@ -61,6 +61,11 @@ contract ERC20BridgeTest is Test {
         uint256 amount
     );
 
+    event MinTeleporterVersionUpdated(
+        uint256 indexed oldMinTeleporterVersion,
+        uint256 indexed newMinTeleporterVersion
+    );
+
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -651,6 +656,9 @@ contract ERC20BridgeTest is Test {
                 WarpProtocolRegistry.getLatestVersion.selector
             )
         );
+
+        vm.expectEmit(true, true, true, true, address(erc20Bridge));
+        emit MinTeleporterVersionUpdated(1, 2);
         erc20Bridge.updateMinTeleporterVersion();
     }
 

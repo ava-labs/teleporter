@@ -72,12 +72,12 @@ abstract contract WarpProtocolRegistry {
      * Requirements:
      *
      * - a valid Warp out-of-band message must be provided.
-     * - Message source chain ID must be the same as the blockchain ID of the registry.
-     * - Message origin sender address must be the same as the `VALIDATORS_SOURCE_ADDRESS`.
-     * - Message destination chain ID must be the same as the blockchain ID of the registry.
-     * - Message destination address must be the same as the address of the registry.
-     * - the version must not be zero.
-     * - the version must not already be registered.
+     * - source chain ID must be the same as the blockchain ID of the registry.
+     * - origin sender address must be the same as the `VALIDATORS_SOURCE_ADDRESS`.
+     * - destination chain ID must be the same as the blockchain ID of the registry.
+     * - destination address must be the same as the address of the registry.
+     * - version must not be zero.
+     * - version must not already be registered.
      * - protocol address must not be zero address.
      */
     function addProtocolVersion(uint32 messageIndex) external virtual {
