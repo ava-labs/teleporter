@@ -55,13 +55,13 @@ contract TeleporterMessengerTest is Test {
         TeleporterMessage message
     );
 
-    event FailedMessageExecution(
+    event MessageExecutionFailed(
         bytes32 indexed originChainID,
         uint256 indexed messageID,
         TeleporterMessage message
     );
 
-    event MessageExecutionRetried(
+    event MessageExecuted(
         bytes32 indexed originChainID,
         uint256 indexed messageID
     );
@@ -240,7 +240,7 @@ contract TeleporterMessengerTest is Test {
 
         // Receive the message - which should fail execution.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit FailedMessageExecution(
+        emit MessageExecutionFailed(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive.messageID,
             messageToReceive
