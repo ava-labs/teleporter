@@ -279,6 +279,7 @@ contract TeleporterMessengerTest is Test {
                 messageID: messageID,
                 senderAddress: address(this),
                 destinationChainID: MOCK_BLOCK_CHAIN_ID,
+                sourceTeleporterAddress: address(teleporterMessenger),
                 destinationAddress: DEFAULT_DESTINATION_ADDRESS,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
                 allowedRelayerAddresses: new address[](0),

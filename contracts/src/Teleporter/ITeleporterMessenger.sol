@@ -23,6 +23,7 @@ struct TeleporterMessage {
     uint256 messageID;
     address senderAddress;
     bytes32 destinationChainID;
+    address sourceTeleporterAddress;
     address destinationAddress;
     uint256 requiredGasLimit;
     address[] allowedRelayerAddresses;
