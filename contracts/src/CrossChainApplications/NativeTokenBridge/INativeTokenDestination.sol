@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 /**
  * @dev Interface that describes functionalities for a contract that can mint native tokens when
- * paired with a "source" contract that will lock tokens on another chain.
+ * paired with a NativeTokenSource contract that will lock tokens on another chain.
  */
 interface INativeTokenDestination {
     /**

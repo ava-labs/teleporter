@@ -40,7 +40,7 @@ contract NativeTokenSource is
 
         require(
             teleporterMessengerAddress != address(0),
-            "Invalid Teleporter Messenger Address"
+            "Invalid TeleporterMessenger Address"
         );
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
@@ -74,7 +74,7 @@ contract NativeTokenSource is
         // Only allow the Teleporter messenger to deliver messages.
         require(
             msg.sender == address(teleporterMessenger),
-            "Unauthorized teleporter contract"
+            "Unauthorized TeleporterMessenger contract"
         );
 
         // Only allow messages from the destination chain.
