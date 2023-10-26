@@ -660,6 +660,7 @@ contract ERC20BridgeTest is Test {
         vm.expectEmit(true, true, true, true, address(erc20Bridge));
         emit MinTeleporterVersionUpdated(1, 2);
         erc20Bridge.updateMinTeleporterVersion();
+        assertEq(erc20Bridge.minTeleporterVersion(), 2);
     }
 
     function _initMockTeleporterRegistry() internal {
