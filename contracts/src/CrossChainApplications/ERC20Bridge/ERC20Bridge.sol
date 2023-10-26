@@ -328,8 +328,8 @@ contract ERC20Bridge is
      * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
      *
      * Updates the minimum Teleporter version allowed for receiving on this contract
-     * to the latest version registered in the {TeleporterRegistry}. Also restricts this function to
-     * the owner of this contract.
+     * to the latest version registered in the {TeleporterRegistry}.
+     * Restricted to only owners of the contract.
      * Emits a {MinTeleporterVersionUpdated} event.
      */
     function updateMinTeleporterVersion() external override onlyOwner {
