@@ -126,8 +126,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit MessageExecuted(
             DEFAULT_ORIGIN_CHAIN_ID,
-            messageToReceive.messageID,
-            false
+            messageToReceive.messageID
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
