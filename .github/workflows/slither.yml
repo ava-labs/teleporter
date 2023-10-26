@@ -27,10 +27,14 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: Install Slither and Forge
+      - name: Install Slither
         run: |
           pip install slither-analyzer
+
+      - name: Install Foundryup and Forge
+        run: |
           curl -L https://foundry.paradigm.xyz | bash
+          foundryup
 
       - name: Run Slither
         run: slither contracts/ --sarif contracts/results.sarif
