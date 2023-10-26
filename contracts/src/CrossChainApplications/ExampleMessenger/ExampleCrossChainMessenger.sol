@@ -12,6 +12,7 @@ import "../../Teleporter/upgrades/TeleporterRegistry.sol";
 import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev ExampleCrossChainMessenger is an example contract that demonstrates how to send and receive
@@ -20,7 +21,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract ExampleCrossChainMessenger is
     ITeleporterReceiver,
     ReentrancyGuard,
-    TeleporterUpgradeable
+    TeleporterUpgradeable,
+    Ownable
 {
     using SafeERC20 for IERC20;
 
@@ -128,13 +130,11 @@ contract ExampleCrossChainMessenger is
      * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
      *
      * Updates the minimum Teleporter version allowed for receiving on this contract
-     * to the latest version registered in the {TeleporterRegistry}. We do not have
-     * access controls for this example messenger so anyone can call the function to update `minTeleporterVersion`,
-     * and disallow messages from old Teleporter versions from being received.
-     *
+     * to the latest version registered in the {TeleporterRegistry}. Also restricts this function to
+     * the owner of this contract.
      * Emits a {MinTeleporterVersionUpdated} event.
      */
-    function updateMinTeleporterVersion() external override {
+    function updateMinTeleporterVersion() external override onlyOwner {
         uint256 oldMinTeleporterVersion = minTeleporterVersion;
         minTeleporterVersion = teleporterRegistry.getLatestVersion();
         emit MinTeleporterVersionUpdated(
