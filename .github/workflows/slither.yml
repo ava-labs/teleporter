@@ -33,9 +33,10 @@ jobs:
 
       - name: Install Foundryup and Forge
         run: |
+          BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
           curl -L https://foundry.paradigm.xyz | bash
           source $HOME/.bashrc
-          foundryup
+          $BASE_DIR/.foundry/bin/foundryup
 
       - name: Run Slither
         run: slither contracts/ --sarif contracts/results.sarif
