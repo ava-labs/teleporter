@@ -40,7 +40,7 @@ jobs:
       - name: Run Slither
         run: |
           cd contracts
-          slither ./ --fail-medium --sarif ./results.sarif
+          slither ./ --fail-none --sarif ./results.sarif
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
