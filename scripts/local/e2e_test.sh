@@ -64,7 +64,7 @@ cd $TELEPORTER_PATH/contracts
 if command -v forge &> /dev/null; then
   forge build
 else
-  echo "Forge command not found, attempting to use from HOME"
+  echo "Forge command not found, attempting to use from $HOME"
   $HOME/.foundry/bin/forge build
 fi
 
