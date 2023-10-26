@@ -43,13 +43,14 @@ jobs:
       - name: Checkout teleporter repository
         uses: actions/checkout@v4
 
-      - name: Install Forge and Run E2E Tests
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+          cache: false
+
+      - name: Run E2E Tests
         # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
         run: |
-          BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
-          curl -L https://foundry.paradigm.xyz | bash
-          source $HOME/.bashrc
-          $BASE_DIR/.foundry/bin/foundryup
-          export PATH="$PATH:$BASE_DIR/.foundry/bin"
           export PATH="$PATH:$GOPATH/bin"
           AVALANCHEGO_BUILD_PATH=/tmp/e2e-test/avalanchego DATA_DIR=/tmp/e2e-test/data ./scripts/local/e2e_test.sh
