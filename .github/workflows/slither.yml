@@ -25,11 +25,9 @@ jobs:
       - name: Run Slither
         uses: crytic/slither-action@v0.3.0
         id: slither
-        continue-on-error: true
         with:
-          target: "contracts/"
           sarif: results.sarif
-          slither-config: "contracts/slither.config.json"
+          fail-on: none
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
