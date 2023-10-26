@@ -40,7 +40,7 @@ RUN curl -L https://foundry.paradigm.xyz | bash && \
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
     export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
-    foundryup
+    foundryup -C 6ac22dfb99bb5df7f5bdde2290ea500b13356175
 
 # Install python base58 decode library
 RUN apt-get update && \
