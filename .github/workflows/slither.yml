@@ -31,12 +31,10 @@ jobs:
         run: |
           pip install slither-analyzer
 
-      - name: Install Foundryup and Forge
-        run: |
-          BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
-          curl -L https://foundry.paradigm.xyz | bash
-          source $HOME/.bashrc
-          $BASE_DIR/.foundry/bin/foundryup
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Run Slither
         run: slither contracts/ --sarif contracts/results.sarif
