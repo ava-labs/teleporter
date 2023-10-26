@@ -36,6 +36,7 @@ ENV LANG en_US.utf8
 
 # Install foundry
 SHELL ["/bin/bash", "-c"]
+RUN set -x
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN curl -L https://foundry.paradigm.xyz | bash && \
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
@@ -49,6 +50,6 @@ RUN apt-get update && \
 RUN pip3 install base58
 
 # Install avalanche-cli
-RUN curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s -- -b /usr/local/bin v1.3.2
+RUN curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s -- -b /usr/local/bin v1.3.3
 RUN avalanche --version
 RUN echo '{"MetricsEnabled}":false}' > ~/.avalanche-cli/config
