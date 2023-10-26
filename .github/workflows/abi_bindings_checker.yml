@@ -38,8 +38,12 @@ jobs:
           export PATH="$PATH:$GOPATH/bin"
           ./scripts/abi_bindings.sh
 
-      - name: Check for clean branch
-        run: .github/workflows/check_clean_branch.sh
+      - name: Print diff
+        run: git --no-pager diff -- abi-bindings/**.go
+
+      - name: Fail if diff exists
+        run: git --no-pager diff --quiet -- abi-bindings/**.go
+
   unit_tests:
     name: Unit tests
     runs-on: ubuntu-20.04
