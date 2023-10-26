@@ -37,7 +37,9 @@ jobs:
           version: nightly
 
       - name: Run Slither
-        run: slither contracts/ --sarif contracts/results.sarif
+        run: |
+          cd contracts
+          slither ./ --sarif ./results.sarif
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
