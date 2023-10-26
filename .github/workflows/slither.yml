@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - '*'
+      - "*"
 
 jobs:
   slither-analyze:
@@ -23,7 +23,7 @@ jobs:
           submodules: recursive
 
       - name: Run Slither
-        uses: crytic/slither-action@6ef3a33e56de4e8f59488cf60858b5c1bf4967c0
+        uses: crytic/slither-action@v0.3.0
         id: slither
         continue-on-error: true
         with:
