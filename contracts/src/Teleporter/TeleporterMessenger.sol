@@ -76,15 +76,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     uint256 public constant REQUIRED_ORIGIN_CHAIN_ID_START_INDEX = 4;
     uint256 public constant MINIMUM_REQUIRED_CALL_DATA_LENGTH = 68;
 
-    // The blockchain ID of the chain the contract is deployed on. Determined by warp messenger precompile.
-    bytes32 public immutable blockchainID;
-
-    /**
-     * @dev Sets the value of `blockchainID` to the value determined by the warp messenger precompile.
-     */
-    constructor() {
-        blockchainID = WARP_MESSENGER.getBlockchainID();
-    }
+    // The blockchain ID of the chain the contract is deployed on. Initialized lazily when receiveCrossChainMessage() is called,
+    // if the value has not already been set.
+    bytes32 public blockchainID;
 
     /**
      * @dev See {ITeleporterMessenger-sendCrossChainMessage}
@@ -247,8 +241,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         uint32 messageIndex,
         address relayerRewardAddress
     ) external receiverNonReentrant {
-        // The relayer reward address is not allowed to be the zero address because it is how we track
-        // whether or not a message has been delivered.
+        // The relayer reward address is not allowed to be the zero address because it is how the
+        // contract tracks whether or not a message has been delivered.
         require(
             relayerRewardAddress != address(0),
             "TeleporterMessenger: zero relayer reward address"
@@ -268,6 +262,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             warpMessage.originSenderAddress == address(this),
             "TeleporterMessenger: invalid origin sender address"
         );
+
+        // If the blockchain ID has yet to be initialized, do so now.
+        if (blockchainID == bytes32(0)) {
+            blockchainID = WARP_MESSENGER.getBlockchainID();
+        }
 
         // Require that the message was intended for this blockchain and teleporter contract.
         require(
