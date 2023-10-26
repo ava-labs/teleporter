@@ -22,14 +22,26 @@ jobs:
         with:
           submodules: recursive
 
+      # The compile step used by the slither-action below is broken to this issue properly
+      # using the 'target' directory: https://github.com/crytic/crytic-compile/issues/509
+      # As a workaround until the issue is fixed, compile the contracts manually before
+      # running the slither action, and then pass hte 'ignore-compile' flag to the slither action.
+      - name: Compile Contracts
+        run: |
+          BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
+          curl -L https://foundry.paradigm.xyz | bash
+          source $HOME/.bashrc
+          $BASE_DIR/.foundry/bin/foundryup
+          cd contracts/
+          $BASE_DIR/.foundry/bin/forge build --force
+
       - name: Run Slither
-        uses: crytic/slither-action@6ef3a33e56de4e8f59488cf60858b5c1bf4967c0
+        uses: crytic/slither-action@v0.3.0
         id: slither
         with:
-          slither-version: 0.9.6
           slither-config: "contracts/slither.config.json"
           target: "contracts/"
-          solc-version: 0.8.18
+          ignore-compile: true
           sarif: results.sarif
           fail-on: none
 
