@@ -36,7 +36,26 @@ jobs:
           export GOPATH=$HOME/go
           export PATH="$PATH:$BASE_DIR/.foundry/bin"
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/abi_go_bindings.sh
+          ./scripts/abi_bindings.sh
 
       - name: Check for clean branch
         run: .github/workflows/check_clean_branch.sh
+  unit_tests:
+    name: Unit tests
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Checkout repositories and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Run ABI Binding Unit Tests
+        run: |
+          cd abi-bindings/go
+          go test ./...
