@@ -37,12 +37,11 @@ ENV LANG en_US.utf8
 # Install foundry
 SHELL ["/bin/bash", "-c"]
 RUN set -x
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
-    curl -L https://foundry.paradigm.xyz | bash && \
+RUN curl -L https://foundry.paradigm.xyz | bash && \
     echo "export PATH=\"$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
     export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
-    foundryup -C 1044042
+    foundryup --version nightly-6262870fb1b8d9b605e5c1552b730af844ba3a3e
 
 # Install python base58 decode library
 RUN apt-get update && \
