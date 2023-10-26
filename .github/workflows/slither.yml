@@ -28,6 +28,7 @@ jobs:
         with:
           target: "contracts/"
           sarif: results.sarif
+          slither-version: "0.9.6"
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
