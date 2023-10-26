@@ -88,13 +88,11 @@ contract TeleporterMessengerTest is Test {
         );
 
         teleporterMessenger = new TeleporterMessenger();
-        _mockFeeAsset = new UnitTestMockERC20();
-    }
 
-    function testCannotDeployWithoutWarpPrecompile() public {
-        vm.clearMockedCalls();
-        vm.expectRevert();
-        teleporterMessenger = new TeleporterMessenger();
+        // Blockchain ID should be 0 before it is initialized.
+        assertEq(teleporterMessenger.blockchainID(), bytes32(0));
+
+        _mockFeeAsset = new UnitTestMockERC20();
     }
 
     function testEmptyReceiptQueue() public {
