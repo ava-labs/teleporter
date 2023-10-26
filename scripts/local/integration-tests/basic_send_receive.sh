@@ -3,6 +3,7 @@
 # See the file LICENSE for licensing terms.
 
 set -e # Stop on first error
+set -x
 
 # Variables provided by run_setup.sh:
 #   c_chain_url
