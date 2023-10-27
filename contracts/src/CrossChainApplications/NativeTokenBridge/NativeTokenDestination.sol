@@ -16,13 +16,12 @@ import "../../Teleporter/SafeERC20TransferFrom.sol";
 
 // Native Minter Precompile Contract Address
 address constant MINTER_ADDRESS = 0x0200000000000000000000000000000000000001;
-// This is the address where the burned base fee go. We use this to send the amount of
-// burned tokens back to the source chain.
+// The address where the burned transaction fees are credited.
 // TODO implement mechanism to report burned tx fees to source chian.
 address constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
-// Designated Blackhole Address. This is where we burn token before sending an unlock
-// message to the source chain. Different from the burned tx fee address so we can
-// track each separately.
+// Designated Blackhole Address. Tokens are sent here to be "burned" before sending an unlock
+// message to the source chain. Different from the burned tx fee address so they can be
+// tracked separately.
 address constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000001;
 // Precompiled Warp address
 address constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
@@ -41,15 +40,14 @@ contract NativeTokenDestination is
     bytes32 public immutable currentBlockchainID;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
-    // We will not mint the first `tokenReserve` tokens sent to this subnet.
+    // The first `tokenReserve` tokens sent to this subnet will not be minted.
     // This should be constructed to match the initial token supply of this subnet.
-    // This will mean we will not mint tokens until the source contact is collateralized.
+    // This means tokens will not be minted until the source contact is collateralized.
     uint256 public tokenReserve;
 
     // Used for sending an receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
 
-    // TODO we probably want to add the original token supply from this chain to the constructor.
     constructor(
         address teleporterMessengerAddress,
         bytes32 sourceBlockchainID_,
@@ -128,7 +126,7 @@ contract NativeTokenDestination is
 
         // Calls NativeMinter precompile through INativeMinter interface.
         _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
-        emit MintNativeTokens(recipient, adjustedAmount);
+        emit NativeTokensMinted(recipient, adjustedAmount);
     }
 
     /**
@@ -184,8 +182,6 @@ contract NativeTokenDestination is
             sender: msg.sender,
             recipient: recipient,
             amount: msg.value,
-            feeContractAddress: feeContractAddress,
-            feeAmount: adjustedFeeAmount,
             teleporterMessageID: messageID
         });
     }

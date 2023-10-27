@@ -17,8 +17,6 @@ interface INativeTokenDestination {
         address indexed sender,
         address indexed recipient,
         uint256 amount,
-        address feeContractAddress,
-        uint256 feeAmount,
         uint256 teleporterMessageID
     );
 
@@ -30,7 +28,7 @@ interface INativeTokenDestination {
     /**
      * @dev Emitted when minting native tokens.
      */
-    event MintNativeTokens(address indexed recipient, uint256 amount);
+    event NativeTokensMinted(address indexed recipient, uint256 amount);
 
     /**
      * @dev This burns native tokens on this chain, and sends a message to the source

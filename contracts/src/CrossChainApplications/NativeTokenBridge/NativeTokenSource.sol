@@ -146,8 +146,6 @@ contract NativeTokenSource is
             sender: msg.sender,
             recipient: recipient,
             amount: msg.value,
-            feeContractAddress: feeContractAddress,
-            feeAmount: adjustedFeeAmount,
             teleporterMessageID: messageID
         });
     }

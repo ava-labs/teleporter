@@ -77,7 +77,7 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		exampleERC20Abi, err := exampleerc20.ExampleERC20MetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		exampleERC20ContractAddress, txExampleERC20, _, err := bind.DeployContract(chainATransactor, *exampleERC20Abi, exampleERC20Bytecode, subnetA.WSClient, "Ignored", "Params")
+		exampleERC20ContractAddress, txExampleERC20, _, err := bind.DeployContract(chainATransactor, *exampleERC20Abi, exampleERC20Bytecode, subnetA.WSClient)
 		Expect(err).Should(BeNil())
 
 		// Wait for transaction, then check code was deployed
