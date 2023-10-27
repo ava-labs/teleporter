@@ -44,4 +44,5 @@ var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySend)
 	ginkgo.It("Send native tokens from subnet A to B and back", NativeTokenBridge)
+	ginkgo.It("Send ERC20 tokens from subnet A to Native tokens on subnet B and back", ERC20ToNativeTokenBridge)
 })
