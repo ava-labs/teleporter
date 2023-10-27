@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import "./TeleporterMessengerTest.t.sol";
 
-contract RetryReceiptTest is TeleporterMessengerTest {
+contract SendReceiptsTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
     // test is run, with the `setUp()` function being called
     // each time after deployment.
@@ -89,7 +89,7 @@ contract RetryReceiptTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        // Retry two of the receipts.
+        // Retry sending two of the receipts.
         uint256[] memory receiptIDs = new uint256[](2);
         receiptIDs[0] = 3;
         receiptIDs[1] = 1;
@@ -102,7 +102,7 @@ contract RetryReceiptTest is TeleporterMessengerTest {
             feeInfo
         );
 
-        outboundMessageID = _retryTestReceiptsWithNoFee(
+        outboundMessageID = _sendTestReceiptsWithNoFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             receiptIDs
         );
@@ -143,7 +143,7 @@ contract RetryReceiptTest is TeleporterMessengerTest {
         messageIDs[0] = 1;
         messageIDs[1] = 1;
 
-        // Test retryReceipts when there are duplicate message IDs in the input.
+        // Test sendReceipts when there are duplicate message IDs in the input.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
             DEFAULT_DESTINATION_CHAIN_ID,
@@ -152,7 +152,7 @@ contract RetryReceiptTest is TeleporterMessengerTest {
             TeleporterFeeInfo(address(0), 0)
         );
 
-        uint256 outboundMessageID = _retryTestReceiptsWithNoFee(
+        uint256 outboundMessageID = _sendTestReceiptsWithNoFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageIDs
         );
@@ -171,12 +171,12 @@ contract RetryReceiptTest is TeleporterMessengerTest {
         uint256[] memory missingIDs = new uint256[](1);
         missingIDs[0] = 21;
 
-        // Try to retry a receipt for an unreceived message from that chain - should fail.
+        // Try to send a receipt for an unreceived message from that chain - should fail.
         vm.expectRevert(_formatTeleporterErrorMessage("receipt not found"));
-        _retryTestReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, missingIDs);
+        _sendTestReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, missingIDs);
     }
 
-    function _retryTestReceiptsWithFee(
+    function _sendTestReceiptsWithFee(
         bytes32 chainID,
         uint256[] memory messageIDs,
         address feeAddress,
@@ -215,7 +215,7 @@ contract RetryReceiptTest is TeleporterMessengerTest {
         }
 
         return
-            teleporterMessenger.retryReceipts(
+            teleporterMessenger.sendReceipts(
                 chainID,
                 messageIDs,
                 feeInfo,
@@ -223,10 +223,10 @@ contract RetryReceiptTest is TeleporterMessengerTest {
             );
     }
 
-    function _retryTestReceiptsWithNoFee(
+    function _sendTestReceiptsWithNoFee(
         bytes32 chainID,
         uint256[] memory messageIDs
     ) private returns (uint256) {
-        return _retryTestReceiptsWithFee(chainID, messageIDs, address(0), 0);
+        return _sendTestReceiptsWithFee(chainID, messageIDs, address(0), 0);
     }
 }

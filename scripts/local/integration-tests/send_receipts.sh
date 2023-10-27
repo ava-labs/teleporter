@@ -26,7 +26,7 @@ set -e # Stop on first error
 # Test covers:
 # - Sending cross chain messages between two chains, by calling Teleporter contract sendCrossChainMessage function directly.
 # - Checking message delivery for message that was sent on destination chain.
-# - Calling retry receipts to deliver a noop message that includes the receipt for previously sent message.
+# - Calling send receipts to deliver a noop message that includes the receipt for previously sent message.
 # - Checking that the noop message was delivered back to originating chain.
 # - Checking that relayer address redeemable rewards increased by the fee amount.
 
@@ -108,10 +108,10 @@ if [ ! -z "$relayer_address" ]; then
     echo "Relayer currently can redeem rewards of $startingReward"
 fi
 
-receiptID=$(cast call $teleporter_contract_address "retryReceipts(bytes32,uint256[],(address,uint256),address[])(uint256)" $subnet_a_chain_id_hex "[$startID]" "($erc20_contract_address_b,$send_cross_subnet_message_fee_amount)" [] --from $user_address --rpc-url $subnet_b_url)
+receiptID=$(cast call $teleporter_contract_address "sendReceipts(bytes32,uint256[],(address,uint256),address[])(uint256)" $subnet_a_chain_id_hex "[$startID]" "($erc20_contract_address_b,$send_cross_subnet_message_fee_amount)" [] --from $user_address --rpc-url $subnet_b_url)
 
-cast send $teleporter_contract_address "retryReceipts(bytes32,uint256[],(address,uint256),address[])(uint256)" $subnet_a_chain_id_hex "[$startID]" "($erc20_contract_address_b,$send_cross_subnet_message_fee_amount)" [] --private-key $user_private_key --rpc-url $subnet_b_url
-echo "Successfully sent a transaction to retryReceipts for message id $startID"
+cast send $teleporter_contract_address "sendReceipts(bytes32,uint256[],(address,uint256),address[])(uint256)" $subnet_a_chain_id_hex "[$startID]" "($erc20_contract_address_b,$send_cross_subnet_message_fee_amount)" [] --private-key $user_private_key --rpc-url $subnet_b_url
+echo "Successfully sent a transaction to sendReceipts for message id $startID"
 
 retry_count=0
 received=$(cast call $teleporter_contract_address "messageReceived(bytes32,uint256)(bool)" $subnet_b_chain_id_hex $receiptID --rpc-url $subnet_a_url)
@@ -133,7 +133,7 @@ echo "Received on subnet A is $received"
 # Check reward if relayer address is provided.
 if [ ! -z "$relayer_address" ]; then
     afterReward=$(cast call $teleporter_contract_address "checkRelayerRewardAmount(address,address)(uint256)" $relayer_address $erc20_contract_address_a --rpc-url $subnet_a_url)
-    echo "Relayer after retryReceipts can redeem rewards of $afterReward"
+    echo "Relayer after sendReceipts can redeem rewards of $afterReward"
 
     reward=$(($afterReward-$startingReward))
     if [[ $reward != $relayer_reward ]]; then # The fee amount 00FF in decimal form is 255
