@@ -61,10 +61,10 @@ source "$TELEPORTER_PATH"/scripts/local/versions.sh
 # Build the teleporter and cross chain apps smart contracts
 cwd=$(pwd)
 cd $TELEPORTER_PATH/contracts
-if [[ ":$PATH:" == *".foundry/bin"* ]]; then
+if command -v forge &> /dev/null; then
   forge build
 else
-  echo "Foundry not found in PATH, attempting to use from HOME"
+  echo "Forge command not found, attempting to use from $HOME"
   $HOME/.foundry/bin/forge build
 fi
 
