@@ -3,6 +3,8 @@
 
 FROM ubuntu:20.04
 
+RUN set -e
+
 ARG DEBIAN_FRONTEND=noninteractive
 
 # defaults to amd64. needs to be arm64 for Macos M1
