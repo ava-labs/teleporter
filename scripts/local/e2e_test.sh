@@ -54,9 +54,9 @@ TELEPORTER_PATH=$(
   cd ../.. && pwd
 )
 
-source "$TELEPORTER_PATH"/scripts/local/constants.sh
+source "$TELEPORTER_PATH"/scripts/constants.sh
 
-source "$TELEPORTER_PATH"/scripts/local/versions.sh
+source "$TELEPORTER_PATH"/scripts/versions.sh
 
 # Build the teleporter and cross chain apps smart contracts
 cwd=$(pwd)
