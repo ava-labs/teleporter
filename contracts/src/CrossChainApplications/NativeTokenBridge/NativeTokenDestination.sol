@@ -132,7 +132,7 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {INativeTokenMinter-bridgeTokens}.
+     * @dev See {INativeTokenDestination-transferToSource}.
      */
     function transferToSource(
         address recipient,
@@ -151,15 +151,15 @@ contract NativeTokenDestination is
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
-        uint256 adjustedAmount = 0;
+        uint256 adjustedFeeAmount = 0;
         if (feeAmount > 0) {
-            adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
+            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
                 IERC20(feeContractAddress),
                 feeAmount
             );
             IERC20(feeContractAddress).safeIncreaseAllowance(
                 address(teleporterMessenger),
-                adjustedAmount
+                adjustedFeeAmount
             );
         }
 
@@ -172,7 +172,7 @@ contract NativeTokenDestination is
                 destinationAddress: nativeTokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({
                     contractAddress: feeContractAddress,
-                    amount: adjustedAmount
+                    amount: adjustedFeeAmount
                 }),
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
@@ -185,7 +185,7 @@ contract NativeTokenDestination is
             recipient: recipient,
             amount: msg.value,
             feeContractAddress: feeContractAddress,
-            feeAmount: adjustedAmount,
+            feeAmount: adjustedFeeAmount,
             teleporterMessageID: messageID
         });
     }

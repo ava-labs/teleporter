@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "./INativeTokenSource.sol";
+import "./IERC20TokenSource.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
@@ -15,9 +15,9 @@ import "../../Teleporter/SafeERC20TransferFrom.sol";
 // Precompiled Warp address
 address constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
-contract NativeTokenSource is
+contract ERC20TokenSource is
     ITeleporterReceiver,
-    INativeTokenSource,
+    IERC20TokenSource,
     ReentrancyGuard
 {
     using SafeERC20 for IERC20;
@@ -102,52 +102,62 @@ contract NativeTokenSource is
     }
 
     /**
-     * @dev See {INativeTokenSource-transferToDestination}.
+     * @dev See {IERC20TokenSource-transferToDestination}.
      */
     function transferToDestination(
         address recipient,
-        address feeContractAddress,
+        address ERC20ContractAddress,
+        uint256 totalAmount,
         uint256 feeAmount,
         address[] calldata allowedRelayerAddresses
-    ) external payable nonReentrant {
+    ) external nonReentrant {
         // The recipient cannot be the zero address.
         require(recipient != address(0), "Invalid Recipient Address");
 
-        // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
+        // Lock tokens in this contract. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
-        uint256 adjustedFeeAmount = 0;
+        uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
+            IERC20(ERC20ContractAddress),
+            totalAmount
+        );
+
+        // Ensure that the adjusted amount is greater than the fee to be paid.
+        require(
+            adjustedAmount > feeAmount,
+            "ERC20TokenSource: insufficient adjusted amount"
+        );
+
+        // Allow the Teleporter messenger to spend the fee amount.
         if (feeAmount > 0) {
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeContractAddress),
+            IERC20(ERC20ContractAddress).safeIncreaseAllowance(
+                address(teleporterMessenger),
                 feeAmount
             );
-            IERC20(feeContractAddress).safeIncreaseAllowance(
-                address(teleporterMessenger),
-                adjustedFeeAmount
-            );
         }
+
+        uint256 transferAmount = totalAmount - feeAmount;
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationChainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: feeContractAddress,
-                    amount: adjustedFeeAmount
+                    contractAddress: ERC20ContractAddress,
+                    amount: feeAmount
                 }),
                 requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(recipient, msg.value)
+                message: abi.encode(recipient, transferAmount)
             })
         );
 
         emit TransferToDestination({
             sender: msg.sender,
             recipient: recipient,
-            amount: msg.value,
-            feeContractAddress: feeContractAddress,
-            feeAmount: adjustedFeeAmount,
+            ERC20ContractAddress: ERC20ContractAddress,
+            transferAmount: totalAmount,
+            feeAmount: feeAmount,
             teleporterMessageID: messageID
         });
     }
