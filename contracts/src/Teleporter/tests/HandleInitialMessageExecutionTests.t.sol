@@ -122,7 +122,12 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
-        // Receive the message.
+        // Receive the message and check that message execution was successful.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecuted(
+            DEFAULT_ORIGIN_CHAIN_ID,
+            messageToReceive.messageID
+        );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
@@ -217,7 +222,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // is considered a failed message execution, but the message itself is
         // still successfully delivered.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit FailedMessageExecution(
+        emit MessageExecutionFailed(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive.messageID,
             messageToReceive
@@ -280,7 +285,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
 
         // Receive the message.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit FailedMessageExecution(
+        emit MessageExecutionFailed(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive.messageID,
             messageToReceive
