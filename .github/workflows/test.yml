@@ -61,12 +61,12 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Forge and Run the Forge tests
-        # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run unit tests
         run: |
-          BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
-          curl -L https://foundry.paradigm.xyz | bash
-          source $HOME/.bashrc
-          $BASE_DIR/.foundry/bin/foundryup
           cd contracts/
-          $BASE_DIR/.foundry/bin/forge test -vvv
+          forge test -vvv
