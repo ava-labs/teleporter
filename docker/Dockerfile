@@ -38,7 +38,7 @@ ENV LANG en_US.utf8
 SHELL ["/bin/bash", "-c"]
 RUN set -x
 RUN curl -L https://foundry.paradigm.xyz | bash && \
-    echo "export PATH=\"$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin\"">> ~/.bashrc && \
+    echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
     export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
     foundryup --version nightly-6262870fb1b8d9b605e5c1552b730af844ba3a3e
