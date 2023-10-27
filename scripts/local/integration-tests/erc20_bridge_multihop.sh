@@ -57,8 +57,10 @@ echo "ERC20 bridge contract deployed to subnet C at $bridge_c_address."
 
 cd ..
 
+approve_amount=309485009821345068724781055
+
 # Approve the bridge contract on subnet A to spend ERC20 tokens from the user account we're using to send transactions
-cast send $native_erc20_contract_address "approve(address,uint256)(bool)" $bridge_a_address 000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF \
+cast send $native_erc20_contract_address "approve(address,uint256)(bool)" $bridge_a_address $approve_amount \
     --private-key $user_private_key --rpc-url $subnet_a_url
 result=$(cast call $native_erc20_contract_address "allowance(address,address)(uint256)" $user_address $bridge_a_address --rpc-url $subnet_a_url)
 if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
@@ -149,8 +151,8 @@ echo "Bridge token decimals: $actual_decimals"
 if [[ "$actual_native_chain_id" != "0x$subnet_a_chain_id_hex" ||
       "$actual_native_bridge" != "$bridge_a_address" ||
       "$actual_native_asset" != "$native_erc20_contract_address" ||
-      "$actual_name" != "Mock Token" ||
-      "$actual_symbol" != "EXMP" ||
+      "$actual_name" != "\"Mock Token\"" ||
+      "$actual_symbol" != "\"EXMP\"" ||
       "$actual_decimals" != "18" ]]; then
     echo "Bridge token contract was not created or did not have expected values."
     echo "Actual native chain ID: $actual_native_chain_id, Expected: $subnet_a_chain_id_hex"
@@ -174,7 +176,7 @@ fi
 echo "Bridge token balance matches expected."
 
 # Approve the bridge contract on subnet B to spent the wrapped tokens in the user account.
-cast send $bridge_token_subnet_b_contract_address "approve(address,uint256)(bool)" $bridge_b_address 000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF --private-key $user_private_key --rpc-url $subnet_b_url
+cast send $bridge_token_subnet_b_contract_address "approve(address,uint256)(bool)" $bridge_b_address $approve_amount --private-key $user_private_key --rpc-url $subnet_b_url
 result=$(cast call $bridge_token_subnet_b_contract_address "allowance(address,address)(uint256)" $user_address $bridge_b_address --rpc-url $subnet_b_url)
 if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
     echo $result
@@ -222,7 +224,7 @@ if [ ! -z "$relayer_address" ]; then
 fi
 
 # Approve the bridge contract on Subnet C to spend the bridge tokens from the user account
-cast send $bridge_token_subnet_c_contract_address "approve(address,uint256)(bool)" $bridge_c_address 000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF --private-key $user_private_key --rpc-url $subnet_c_url
+cast send $bridge_token_subnet_c_contract_address "approve(address,uint256)(bool)" $bridge_c_address $approve_amount --private-key $user_private_key --rpc-url $subnet_c_url
 result=$(cast call $bridge_token_subnet_c_contract_address "allowance(address,address)(uint256)" $user_address $bridge_c_address --rpc-url $subnet_c_url)
 if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
     echo $result

@@ -41,9 +41,11 @@ example_messenger_b_deploy_result=$(forge create --private-key $user_private_key
 example_messenger_b_contract_address=$(parseContractAddress "$example_messenger_b_deploy_result")
 echo "Example Messenger contract deployed to subnet B at $example_messenger_b_contract_address"
 
+approve_amount=309485009821345068724781055
+
 # Approve the example messenger contract on subnet A spent ERC20 tokens from the user account we're using to send transactions
 cast send $erc20_contract_address "approve(address,uint256)(bool)" $example_messenger_a_contract_address \
-    000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF --private-key $user_private_key --rpc-url $subnet_a_url
+    $approve_amount --private-key $user_private_key --rpc-url $subnet_a_url
 result=$(cast call $erc20_contract_address "allowance(address,address)(uint256)" $user_address $example_messenger_a_contract_address --rpc-url $subnet_a_url)
 if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
     echo $result
@@ -88,7 +90,7 @@ if [[ $(stringToLower $actual_sender_address) != $origin_contract_address_lower 
 fi
 # Check that the message matched the one submitted to subnet A.
 # The message "hello world!" is returned without quotations, so it is split up as two different values by bash across indices 1 and 2 of the result.
-if [[ "${result_arr[1]} ${result_arr[2]}" != "$send_cross_chain_message_message_string" ]]; then
+if [[ "${result_arr[1]} ${result_arr[2]}" != "\"$send_cross_chain_message_message_string\"" ]]; then
     echo $result
     echo "Get current message returned unexpected message."
     exit 1
