@@ -110,22 +110,28 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     # Verify that the transaction status was successful for the deployments
     status=$(cast publish --rpc-url $subnet_a_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
-        echo "Error deploying Teleporter Messenger transaction on subnet A."
+        echo "Error deploying Teleporter Messenger on subnet A."
         exit 1
     fi
-    echo "Deployed TeleporterMessenger to Subnet A"
+    echo "Deployed TeleporterMessenger to Subnet A."
     status=$(cast publish --rpc-url $subnet_b_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
-        echo "Error deploying Teleporter Messenger transaction on subnet B."
+        echo "Error deploying Teleporter Messenger on subnet B."
         exit 1
     fi
-    echo "Deployed TeleporterMessenger to Subnet B"
+    echo "Deployed TeleporterMessenger to Subnet B."
     status=$(cast publish --rpc-url $subnet_c_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
-        echo "Error deploying Teleporter Messenger transaction on subnet C."
+        echo "Error deploying Teleporter Messenger on subnet C."
         exit 1
     fi
-    echo "Deployed TeleporterMessenger to Subnet C"
+    echo "Deployed TeleporterMessenger to Subnet C."
+    status=$(cast publish --rpc-url $c_chain_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    if [[ $status != "0x1" ]]; then
+        echo "Error deploying Teleporter Messenger on C-chain."
+        exit 1
+    fi
+    echo "Deployed TeleporterMessenger to C-chain."
 
     # Deploy TeleporterRegistry to each chain.
     cd contracts
