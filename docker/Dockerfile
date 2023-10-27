@@ -34,9 +34,6 @@ RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* 
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
 
-# Install Rust (needed to install specific commit of Foundry from source.)
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
 # Install foundry from specific commit
 SHELL ["/bin/bash", "-c"]
 RUN curl -L https://raw.githubusercontent.com/foundry-rs/foundry/70d00222c2ef74fc484b8d98c5705d131ab31871/foundryup/install > /tmp/foundry-install-script && \
@@ -45,7 +42,7 @@ RUN curl -L https://raw.githubusercontent.com/foundry-rs/foundry/70d00222c2ef74f
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
     export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
-    foundryup -C 70d0022
+    foundryup --version nightly-70d00222c2ef74fc484b8d98c5705d131ab31871
 
 # Install python base58 decode library
 RUN apt-get update && \

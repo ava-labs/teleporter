@@ -54,10 +54,9 @@ echo "Next message ID for subnet $subnet_b_chain_id_hex is $result"
 send_cross_subnet_message_destination_chain_id=$subnet_b_chain_id_hex
 send_cross_subnet_message_destination_address=abcedf1234abcedf1234abcedf1234abcedf1234
 send_bytes32=000000000000000000000000$send_cross_subnet_message_destination_address
-send_cross_subnet_message_fee_amount=00000000000000000000000000000000000000000000000000000000000000FF
-send_cross_subnet_message_required_gas_limit=0000000000000000000000000000000000000000000000000000000000001000
+send_cross_subnet_message_fee_amount=255
+send_cross_subnet_message_required_gas_limit=100000
 send_cross_subnet_message_message_data=cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafe
-relayer_reward=255 # The fee amount 00FF in decimal form is 255
 
 # Approve the Teleporter contract to some ERC20 tokens from the user account we're using to send transactions
 approve_amount=1000000000000000000000000000
@@ -137,7 +136,7 @@ if [ ! -z "$relayer_address" ]; then
     echo "Relayer after retryReceipts can redeem rewards of $afterReward"
 
     reward=$(($afterReward-$startingReward))
-    if [[ $reward != $relayer_reward ]]; then # The fee amount 00FF in decimal form is 255
+    if [[ $reward != $send_cross_subnet_message_fee_amount ]]; then
         echo "Relayer reward should be rewarded $send_cross_subnet_message_fee_amount but instead increased by $reward"
         exit 1
     fi
