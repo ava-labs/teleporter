@@ -64,18 +64,20 @@ interface ITeleporterMessenger {
      * @dev Emitted when Teleporter message is being delivered on destination chain and address,
      * but message execution fails. Failed messages can then be retried.
      */
-    event FailedMessageExecution(
+    event MessageExecutionFailed(
         bytes32 indexed originChainID,
         uint256 indexed messageID,
         TeleporterMessage message
     );
 
     /**
-     * @dev Emitted when a Teleporter message that previously failed to be executed properly
-     * is retried and is successfully executed. The message is then no longer able to be retried again
-     * in the future since each message will be successfully executed at most once.
+     * @dev Emitted when a Teleporter message is successfully executed with the
+     * specified destination address and message call data. This can occur either when
+     * the message is initially received, or on a retry attempt.
+     *
+     * Each message received can be executed successfully at most once.
      */
-    event MessageExecutionRetried(
+    event MessageExecuted(
         bytes32 indexed originChainID,
         uint256 indexed messageID
     );

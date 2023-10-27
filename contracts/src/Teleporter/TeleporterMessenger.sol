@@ -76,15 +76,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     uint256 public constant REQUIRED_ORIGIN_CHAIN_ID_START_INDEX = 4;
     uint256 public constant MINIMUM_REQUIRED_CALL_DATA_LENGTH = 68;
 
-    // The blockchain ID of the chain the contract is deployed on. Determined by warp messenger precompile.
-    bytes32 public immutable blockchainID;
-
-    /**
-     * @dev Sets the value of `blockchainID` to the value determined by the warp messenger precompile.
-     */
-    constructor() {
-        blockchainID = WARP_MESSENGER.getBlockchainID();
-    }
+    // The blockchain ID of the chain the contract is deployed on. Initialized lazily when receiveCrossChainMessage() is called,
+    // if the value has not already been set.
+    bytes32 public blockchainID;
 
     /**
      * @dev See {ITeleporterMessenger-sendCrossChainMessage}
@@ -243,8 +237,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         uint32 messageIndex,
         address relayerRewardAddress
     ) external receiverNonReentrant {
-        // The relayer reward address is not allowed to be the zero address because it is how we track
-        // whether or not a message has been delivered.
+        // The relayer reward address is not allowed to be the zero address because it is how the
+        // contract tracks whether or not a message has been delivered.
         require(
             relayerRewardAddress != address(0),
             "TeleporterMessenger: zero relayer reward address"
@@ -264,6 +258,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             warpMessage.originSenderAddress == address(this),
             "TeleporterMessenger: invalid origin sender address"
         );
+
+        // If the blockchain ID has yet to be initialized, do so now.
+        if (blockchainID == bytes32(0)) {
+            blockchainID = WARP_MESSENGER.getBlockchainID();
+        }
 
         // Parse the payload of the message.
         TeleporterMessage memory teleporterMessage = abi.decode(
@@ -356,6 +355,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * @dev See {ITeleporterMessenger-retryMessageExecution}
      *
      * Reverts if the message execution fails again on specified message.
+     * Emits a {MessageExecuted} event if the retry is successful.
      * Requirements:
      *
      * - `message` must have previously failed to execute, and matches the hash of the failed message.
@@ -387,7 +387,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Clear the failed message hash from state prior to retrying its execution to redundantly prevent
         // reentrance attacks (on top of the nonReentrant guard).
-        emit MessageExecutionRetried(originChainID, message.messageID);
+        emit MessageExecuted(originChainID, message.messageID);
         delete receivedFailedMessageHashes[originChainID][message.messageID];
 
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
@@ -699,7 +699,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * (including possibly storing a failed message in state). All execution specific errors (i.e. invalid call data, etc)
      * that are not in the relayers control are caught and handled properly.
      *
-     * Emits a {FailedMessageExecution} event if the call on destination address fails with formatted call data.
+     * Emits a {MessageExecuted} event if the call on destination address is successful.
+     * Emits a {MessageExecutionFailed} event if the call on destination address fails with formatted call data.
      * Requirements:
      *
      * - There is enough gas left to cover `message.requiredGasLimit`.
@@ -747,7 +748,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // provided enough gas to meet the required gas limit.
         if (!success) {
             _storeFailedMessageExecution(originChainID, message);
+            return;
         }
+
+        emit MessageExecuted(originChainID, message.messageID);
     }
 
     /**
@@ -763,7 +767,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         ] = keccak256(abi.encode(message));
 
         // Emit a failed execution event for anyone monitoring unsuccessful messages to retry.
-        emit FailedMessageExecution(originChainID, message.messageID, message);
+        emit MessageExecutionFailed(originChainID, message.messageID, message);
     }
 
     /**

@@ -55,13 +55,13 @@ contract TeleporterMessengerTest is Test {
         TeleporterMessage message
     );
 
-    event FailedMessageExecution(
+    event MessageExecutionFailed(
         bytes32 indexed originChainID,
         uint256 indexed messageID,
         TeleporterMessage message
     );
 
-    event MessageExecutionRetried(
+    event MessageExecuted(
         bytes32 indexed originChainID,
         uint256 indexed messageID
     );
@@ -88,13 +88,11 @@ contract TeleporterMessengerTest is Test {
         );
 
         teleporterMessenger = new TeleporterMessenger();
-        _mockFeeAsset = new UnitTestMockERC20();
-    }
 
-    function testCannotDeployWithoutWarpPrecompile() public {
-        vm.clearMockedCalls();
-        vm.expectRevert();
-        teleporterMessenger = new TeleporterMessenger();
+        // Blockchain ID should be 0 before it is initialized.
+        assertEq(teleporterMessenger.blockchainID(), bytes32(0));
+
+        _mockFeeAsset = new UnitTestMockERC20();
     }
 
     function testEmptyReceiptQueue() public {
@@ -242,7 +240,7 @@ contract TeleporterMessengerTest is Test {
 
         // Receive the message - which should fail execution.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit FailedMessageExecution(
+        emit MessageExecutionFailed(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive.messageID,
             messageToReceive

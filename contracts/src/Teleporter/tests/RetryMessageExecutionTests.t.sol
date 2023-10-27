@@ -235,7 +235,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         // The message should be successfully received, but its execution should fail.
         vm.roll(12);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit FailedMessageExecution(
+        emit MessageExecutionFailed(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive.messageID,
             messageToReceive
@@ -289,7 +289,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         // Now retry the message execution in a block with an odd height, which should succeed.
         vm.roll(13);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionRetried(originChainID, message.messageID);
+        emit MessageExecuted(originChainID, message.messageID);
         teleporterMessenger.retryMessageExecution(originChainID, message);
 
         // Check that the message had the proper affect on the destination contract.
