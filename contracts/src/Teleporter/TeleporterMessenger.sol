@@ -408,15 +408,15 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev See {ITeleporterMessenger-sendReceipts}
+     * @dev See {ITeleporterMessenger-sendCustomReceipts}
      *
-     * There is no explicit limit to the number of receipts able to be sent by a {sendReceipts} message because
+     * There is no explicit limit to the number of receipts able to be sent by a {sendCustomReceipts} message because
      * this method is intended to be used by relayers themselves to ensure their receipts get returned.
      * There is no fee associated with the empty message, and the same relayer is expected to relay it
      * themselves in order to claim their rewards, so it is their responsibility to ensure that the necessary
      * gas is provided for however many receipts are being retried.
      *
-     * These specified receipts not removed from their corresponding receipt queue because there
+     * These specified receipts are not removed from their corresponding receipt queue because there
      * is no efficient way to remove a specific receipt from an arbitrary position in the queue, and it is
      * harmless for receipts to be sent multiple times within the protocol.
      *
@@ -424,7 +424,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * Requirements:
      * - `messageIDs` must all be valid and have existing receipts.
      */
-    function sendReceipts(
+    function sendCustomReceipts(
         bytes32 originChainID,
         uint256[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,

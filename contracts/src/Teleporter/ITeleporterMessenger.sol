@@ -162,11 +162,11 @@ interface ITeleporterMessenger {
     /**
      * @dev Sends the receipts for the given `messageIDs`.
      *
-     * Sends the specified message receipts in a new message (with an empty payload) back to the origin chain.
+     * Sends the receipts of the specified messages in a new message (with an empty payload) back to the origin chain.
      * This is intended to be used if the message receipts were originally included in messages that were dropped
      * or otherwise not delivered in a timely manner.
      */
-    function sendReceipts(
+    function sendCustomReceipts(
         bytes32 originChainID,
         uint256[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,

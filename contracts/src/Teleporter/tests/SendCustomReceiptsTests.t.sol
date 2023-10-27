@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import "./TeleporterMessengerTest.t.sol";
 
-contract SendReceiptsTest is TeleporterMessengerTest {
+contract SendCustomReceiptsTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
     // test is run, with the `setUp()` function being called
     // each time after deployment.
@@ -89,7 +89,7 @@ contract SendReceiptsTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        // Retry sending two of the receipts.
+        // Retry sending two of the receipts with {sendCustomReceipts}.
         uint256[] memory receiptIDs = new uint256[](2);
         receiptIDs[0] = 3;
         receiptIDs[1] = 1;
@@ -102,7 +102,7 @@ contract SendReceiptsTest is TeleporterMessengerTest {
             feeInfo
         );
 
-        outboundMessageID = _sendTestReceiptsWithNoFee(
+        outboundMessageID = _sendCustomReceiptsWithNoFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             receiptIDs
         );
@@ -143,7 +143,7 @@ contract SendReceiptsTest is TeleporterMessengerTest {
         messageIDs[0] = 1;
         messageIDs[1] = 1;
 
-        // Test sendReceipts when there are duplicate message IDs in the input.
+        // Test sendCustomReceipts when there are duplicate message IDs in the input.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
             DEFAULT_DESTINATION_CHAIN_ID,
@@ -152,7 +152,7 @@ contract SendReceiptsTest is TeleporterMessengerTest {
             TeleporterFeeInfo(address(0), 0)
         );
 
-        uint256 outboundMessageID = _sendTestReceiptsWithNoFee(
+        uint256 outboundMessageID = _sendCustomReceiptsWithNoFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageIDs
         );
@@ -173,10 +173,10 @@ contract SendReceiptsTest is TeleporterMessengerTest {
 
         // Try to send a receipt for an unreceived message from that chain - should fail.
         vm.expectRevert(_formatTeleporterErrorMessage("receipt not found"));
-        _sendTestReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, missingIDs);
+        _sendCustomReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, missingIDs);
     }
 
-    function _sendTestReceiptsWithFee(
+    function _sendCustomReceiptsWithFee(
         bytes32 chainID,
         uint256[] memory messageIDs,
         address feeAddress,
@@ -215,7 +215,7 @@ contract SendReceiptsTest is TeleporterMessengerTest {
         }
 
         return
-            teleporterMessenger.sendReceipts(
+            teleporterMessenger.sendCustomReceipts(
                 chainID,
                 messageIDs,
                 feeInfo,
@@ -223,10 +223,10 @@ contract SendReceiptsTest is TeleporterMessengerTest {
             );
     }
 
-    function _sendTestReceiptsWithNoFee(
+    function _sendCustomReceiptsWithNoFee(
         bytes32 chainID,
         uint256[] memory messageIDs
     ) private returns (uint256) {
-        return _sendTestReceiptsWithFee(chainID, messageIDs, address(0), 0);
+        return _sendCustomReceiptsWithFee(chainID, messageIDs, address(0), 0);
     }
 }
