@@ -75,9 +75,11 @@ func ERC20ToNativeTokenBridge() {
 		// Deploy an example ERC20 contract to be used as the source token
 		exampleERC20Bytecode, err := deploymentUtils.ExtractByteCode(ExampleERC20ByteCodeFile)
 		Expect(err).Should(BeNil())
+		chainATransactor2, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetA.ChainID)
+		Expect(err).Should(BeNil())
 		exampleERC20Abi, err := exampleerc20.ExampleERC20MetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		exampleERC20ContractAddress, txExampleERC20, _, err := bind.DeployContract(chainATransactor, *exampleERC20Abi, exampleERC20Bytecode, subnetA.WSClient)
+		exampleERC20ContractAddress, txExampleERC20, _, err := bind.DeployContract(chainATransactor2, *exampleERC20Abi, exampleERC20Bytecode, subnetA.WSClient)
 		Expect(err).Should(BeNil())
 
 		// Wait for transaction, then check code was deployed
