@@ -11,7 +11,7 @@ pragma solidity 0.8.18;
  */
 interface INativeTokenSource {
     /**
-     * @dev Emitted when tokens are locked in this bridge contract to be bridged to the destination chain.
+     * @dev Emitted when tokens are locked in the source contract to be transferred to the destination chain.
      */
     event TransferToDestination(
         address indexed sender,
