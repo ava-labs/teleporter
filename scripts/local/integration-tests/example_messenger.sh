@@ -89,7 +89,7 @@ if [[ $(stringToLower $actual_sender_address) != $origin_contract_address_lower 
 fi
 # Check that the message matched the one submitted to subnet A.
 # The message "hello world!" is returned without quotations, so it is split up as two different values by bash across indices 1 and 2 of the result.
-if [[ "${result_arr[1]} ${result_arr[2]}" != "\"$send_cross_chain_message_message_string\"" ]]; then
+if [[ "${result_arr[1]} ${result_arr[2]}" != "$send_cross_chain_message_message_string" ]]; then
     echo "Get current message returned unexpected message."
     echo "Actual: ${result_arr[1]} ${result_arr[2]}"
     echo "Expected: $send_cross_chain_message_message_string"

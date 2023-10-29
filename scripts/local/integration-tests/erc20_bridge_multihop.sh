@@ -162,12 +162,12 @@ if [[ "$actual_native_asset" != "$native_erc20_contract_address" ]]; then
     exit 1
 fi
 
-if [[ $actual_name != "\"Mock Token\"" ]]; then
+if [[ $actual_name != "Mock Token" ]]; then
     echo "Actual name: $actual_name, Expected: Mock Token"
     exit 1
 fi
 
-if [[ $actual_symbol != "\"EXMP\"" ]]; then
+if [[ $actual_symbol != "EXMP" ]]; then
     echo "Actual symbol: $actual_symbol, Expected: EXMP"
     exit 1
 fi
