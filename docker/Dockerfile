@@ -42,7 +42,7 @@ RUN FOUNDRY_VERSION=5be158ba6dc7c798a6f032026fe60fc01686b33b \
     cat /tmp/foundry-install-script | bash && \
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
-    export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \gs
+    export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
     foundryup --version nightly-${FOUNDRY_VERSION}
 
 # Install python base58 decode library
