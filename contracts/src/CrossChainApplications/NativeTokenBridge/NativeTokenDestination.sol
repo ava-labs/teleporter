@@ -45,7 +45,7 @@ contract NativeTokenDestination is
     // This means tokens will not be minted until the source contact is collateralized.
     uint256 public tokenReserve;
 
-    // Used for sending an receiving Teleporter messages.
+    // Used for sending and receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
 
     constructor(
