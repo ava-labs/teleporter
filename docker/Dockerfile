@@ -36,13 +36,14 @@ ENV LANG en_US.utf8
 
 # Install foundry from specific commit
 SHELL ["/bin/bash", "-c"]
-RUN curl -L https://raw.githubusercontent.com/foundry-rs/foundry/70d00222c2ef74fc484b8d98c5705d131ab31871/foundryup/install > /tmp/foundry-install-script && \
-    sed -i 's/\/foundry-rs\/foundry\/master\/foundryup/\/foundry-rs\/foundry\/70d00222c2ef74fc484b8d98c5705d131ab31871\/foundryup/g' /tmp/foundry-install-script && \
+RUN FOUNDRY_VERSION=5be158ba6dc7c798a6f032026fe60fc01686b33b \
+    curl -L https://raw.githubusercontent.com/foundry-rs/foundry/${FOUNDRY_VERSION}/foundryup/install > /tmp/foundry-install-script && \
+    sed -i 's/\/foundry-rs\/foundry\/master\/foundryup/\/foundry-rs\/foundry\/${FOUNDRY_VERSION}\/foundryup/g' /tmp/foundry-install-script && \
     cat /tmp/foundry-install-script | bash && \
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
-    export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
-    foundryup --version nightly-5be158ba6dc7c798a6f032026fe60fc01686b33b
+    export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \gs
+    foundryup --version nightly-${FOUNDRY_VERSION}
 
 # Install python base58 decode library
 RUN apt-get update && \
