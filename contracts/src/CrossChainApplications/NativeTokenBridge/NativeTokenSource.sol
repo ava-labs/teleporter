@@ -12,9 +12,6 @@ import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
 
-// Precompiled Warp address
-address constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
-
 contract NativeTokenSource is
     ITeleporterReceiver,
     INativeTokenSource,
@@ -35,8 +32,9 @@ contract NativeTokenSource is
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_
     ) {
-        currentBlockchainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
-            .getBlockchainID();
+        currentBlockchainID = WarpMessenger(
+            0x0200000000000000000000000000000000000005
+        ).getBlockchainID();
 
         require(
             teleporterMessengerAddress != address(0),

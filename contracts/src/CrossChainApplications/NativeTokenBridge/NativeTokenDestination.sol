@@ -14,8 +14,6 @@ import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
 
-// Native Minter Precompile Contract Address
-address constant MINTER_ADDRESS = 0x0200000000000000000000000000000000000001;
 // The address where the burned transaction fees are credited.
 // TODO implement mechanism to report burned tx fees to source chian.
 address constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
@@ -23,8 +21,6 @@ address constant BURNED_TX_FEES_ADDRESS = 0x010000000000000000000000000000000000
 // message to the source chain. Different from the burned tx fee address so they can be
 // tracked separately.
 address constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000001;
-// Precompiled Warp address
-address constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
 contract NativeTokenDestination is
     ITeleporterReceiver,
@@ -34,14 +30,14 @@ contract NativeTokenDestination is
     using SafeERC20 for IERC20;
 
     INativeMinter private immutable _nativeMinter =
-        INativeMinter(MINTER_ADDRESS);
+        INativeMinter(0x0200000000000000000000000000000000000001);
 
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 150_000; // TODO this is a placeholder
     bytes32 public immutable currentBlockchainID;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
     // The first `tokenReserve` tokens sent to this subnet will not be minted.
-    // This should be constructed to match the initial token supply of this subnet.
+    // `tokenReserve` should be constructed to match the initial token supply of this subnet.
     // This means tokens will not be minted until the source contact is collateralized.
     uint256 public tokenReserve;
 
@@ -54,8 +50,9 @@ contract NativeTokenDestination is
         address nativeTokenSourceAddress_,
         uint256 tokenReserve_
     ) {
-        currentBlockchainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
-            .getBlockchainID();
+        currentBlockchainID = WarpMessenger(
+            0x0200000000000000000000000000000000000005
+        ).getBlockchainID();
 
         require(
             teleporterMessengerAddress != address(0),
@@ -102,7 +99,10 @@ contract NativeTokenDestination is
         );
 
         // Only allow the partner contract to send messages.
-        require(senderAddress == nativeTokenSourceAddress, "Unauthorized Sender");
+        require(
+            senderAddress == nativeTokenSourceAddress,
+            "Unauthorized Sender"
+        );
 
         (address recipient, uint256 amount) = abi.decode(
             message,
