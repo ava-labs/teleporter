@@ -31,7 +31,7 @@ var (
 
 // NativeTokenDestinationMetaData contains all meta data concerning the NativeTokenDestination contract.
 var NativeTokenDestinationMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenSourceAddress_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"MintNativeTokens\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenSourceAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenSourceAddress_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"NativeTokensMinted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenSourceAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // NativeTokenDestinationABI is the input ABI used to generate the binding from.
@@ -543,9 +543,9 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseCollateralAd
 	return event, nil
 }
 
-// NativeTokenDestinationMintNativeTokensIterator is returned from FilterMintNativeTokens and is used to iterate over the raw logs and unpacked data for MintNativeTokens events raised by the NativeTokenDestination contract.
-type NativeTokenDestinationMintNativeTokensIterator struct {
-	Event *NativeTokenDestinationMintNativeTokens // Event containing the contract specifics and raw log
+// NativeTokenDestinationNativeTokensMintedIterator is returned from FilterNativeTokensMinted and is used to iterate over the raw logs and unpacked data for NativeTokensMinted events raised by the NativeTokenDestination contract.
+type NativeTokenDestinationNativeTokensMintedIterator struct {
+	Event *NativeTokenDestinationNativeTokensMinted // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -559,7 +559,7 @@ type NativeTokenDestinationMintNativeTokensIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *NativeTokenDestinationMintNativeTokensIterator) Next() bool {
+func (it *NativeTokenDestinationNativeTokensMintedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -568,7 +568,7 @@ func (it *NativeTokenDestinationMintNativeTokensIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(NativeTokenDestinationMintNativeTokens)
+			it.Event = new(NativeTokenDestinationNativeTokensMinted)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -583,7 +583,7 @@ func (it *NativeTokenDestinationMintNativeTokensIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(NativeTokenDestinationMintNativeTokens)
+		it.Event = new(NativeTokenDestinationNativeTokensMinted)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -599,52 +599,52 @@ func (it *NativeTokenDestinationMintNativeTokensIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *NativeTokenDestinationMintNativeTokensIterator) Error() error {
+func (it *NativeTokenDestinationNativeTokensMintedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *NativeTokenDestinationMintNativeTokensIterator) Close() error {
+func (it *NativeTokenDestinationNativeTokensMintedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// NativeTokenDestinationMintNativeTokens represents a MintNativeTokens event raised by the NativeTokenDestination contract.
-type NativeTokenDestinationMintNativeTokens struct {
+// NativeTokenDestinationNativeTokensMinted represents a NativeTokensMinted event raised by the NativeTokenDestination contract.
+type NativeTokenDestinationNativeTokensMinted struct {
 	Recipient common.Address
 	Amount    *big.Int
 	Raw       types.Log // Blockchain specific contextual infos
 }
 
-// FilterMintNativeTokens is a free log retrieval operation binding the contract event 0xe2899f7ef7618206fa13efbcde0c05cccd83f35ac3b18ef860021181d61fa680.
+// FilterNativeTokensMinted is a free log retrieval operation binding the contract event 0xd949ea0e9d5db53492d77f28fd5467fb2f6c4f5b88e3350e3c36729b76e99cf2.
 //
-// Solidity: event MintNativeTokens(address indexed recipient, uint256 amount)
-func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterMintNativeTokens(opts *bind.FilterOpts, recipient []common.Address) (*NativeTokenDestinationMintNativeTokensIterator, error) {
+// Solidity: event NativeTokensMinted(address indexed recipient, uint256 amount)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterNativeTokensMinted(opts *bind.FilterOpts, recipient []common.Address) (*NativeTokenDestinationNativeTokensMintedIterator, error) {
 
 	var recipientRule []interface{}
 	for _, recipientItem := range recipient {
 		recipientRule = append(recipientRule, recipientItem)
 	}
 
-	logs, sub, err := _NativeTokenDestination.contract.FilterLogs(opts, "MintNativeTokens", recipientRule)
+	logs, sub, err := _NativeTokenDestination.contract.FilterLogs(opts, "NativeTokensMinted", recipientRule)
 	if err != nil {
 		return nil, err
 	}
-	return &NativeTokenDestinationMintNativeTokensIterator{contract: _NativeTokenDestination.contract, event: "MintNativeTokens", logs: logs, sub: sub}, nil
+	return &NativeTokenDestinationNativeTokensMintedIterator{contract: _NativeTokenDestination.contract, event: "NativeTokensMinted", logs: logs, sub: sub}, nil
 }
 
-// WatchMintNativeTokens is a free log subscription operation binding the contract event 0xe2899f7ef7618206fa13efbcde0c05cccd83f35ac3b18ef860021181d61fa680.
+// WatchNativeTokensMinted is a free log subscription operation binding the contract event 0xd949ea0e9d5db53492d77f28fd5467fb2f6c4f5b88e3350e3c36729b76e99cf2.
 //
-// Solidity: event MintNativeTokens(address indexed recipient, uint256 amount)
-func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchMintNativeTokens(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationMintNativeTokens, recipient []common.Address) (event.Subscription, error) {
+// Solidity: event NativeTokensMinted(address indexed recipient, uint256 amount)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchNativeTokensMinted(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationNativeTokensMinted, recipient []common.Address) (event.Subscription, error) {
 
 	var recipientRule []interface{}
 	for _, recipientItem := range recipient {
 		recipientRule = append(recipientRule, recipientItem)
 	}
 
-	logs, sub, err := _NativeTokenDestination.contract.WatchLogs(opts, "MintNativeTokens", recipientRule)
+	logs, sub, err := _NativeTokenDestination.contract.WatchLogs(opts, "NativeTokensMinted", recipientRule)
 	if err != nil {
 		return nil, err
 	}
@@ -654,8 +654,8 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchMintNativeTo
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(NativeTokenDestinationMintNativeTokens)
-				if err := _NativeTokenDestination.contract.UnpackLog(event, "MintNativeTokens", log); err != nil {
+				event := new(NativeTokenDestinationNativeTokensMinted)
+				if err := _NativeTokenDestination.contract.UnpackLog(event, "NativeTokensMinted", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -676,12 +676,12 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchMintNativeTo
 	}), nil
 }
 
-// ParseMintNativeTokens is a log parse operation binding the contract event 0xe2899f7ef7618206fa13efbcde0c05cccd83f35ac3b18ef860021181d61fa680.
+// ParseNativeTokensMinted is a log parse operation binding the contract event 0xd949ea0e9d5db53492d77f28fd5467fb2f6c4f5b88e3350e3c36729b76e99cf2.
 //
-// Solidity: event MintNativeTokens(address indexed recipient, uint256 amount)
-func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseMintNativeTokens(log types.Log) (*NativeTokenDestinationMintNativeTokens, error) {
-	event := new(NativeTokenDestinationMintNativeTokens)
-	if err := _NativeTokenDestination.contract.UnpackLog(event, "MintNativeTokens", log); err != nil {
+// Solidity: event NativeTokensMinted(address indexed recipient, uint256 amount)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseNativeTokensMinted(log types.Log) (*NativeTokenDestinationNativeTokensMinted, error) {
+	event := new(NativeTokenDestinationNativeTokensMinted)
+	if err := _NativeTokenDestination.contract.UnpackLog(event, "NativeTokensMinted", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -760,15 +760,13 @@ type NativeTokenDestinationTransferToSource struct {
 	Sender              common.Address
 	Recipient           common.Address
 	Amount              *big.Int
-	FeeContractAddress  common.Address
-	FeeAmount           *big.Int
 	TeleporterMessageID *big.Int
 	Raw                 types.Log // Blockchain specific contextual infos
 }
 
-// FilterTransferToSource is a free log retrieval operation binding the contract event 0x343e0fe771af9fa258c07a602fad6dfd80c51eda78604397e553106360933bfc.
+// FilterTransferToSource is a free log retrieval operation binding the contract event 0x0322cbb1d3c23f6dbf1deddb3b4ef3ce0f93ae6eec7b44e4f395804104466d14.
 //
-// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, address feeContractAddress, uint256 feeAmount, uint256 teleporterMessageID)
+// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, uint256 teleporterMessageID)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterTransferToSource(opts *bind.FilterOpts, sender []common.Address, recipient []common.Address) (*NativeTokenDestinationTransferToSourceIterator, error) {
 
 	var senderRule []interface{}
@@ -787,9 +785,9 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterTransferToS
 	return &NativeTokenDestinationTransferToSourceIterator{contract: _NativeTokenDestination.contract, event: "TransferToSource", logs: logs, sub: sub}, nil
 }
 
-// WatchTransferToSource is a free log subscription operation binding the contract event 0x343e0fe771af9fa258c07a602fad6dfd80c51eda78604397e553106360933bfc.
+// WatchTransferToSource is a free log subscription operation binding the contract event 0x0322cbb1d3c23f6dbf1deddb3b4ef3ce0f93ae6eec7b44e4f395804104466d14.
 //
-// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, address feeContractAddress, uint256 feeAmount, uint256 teleporterMessageID)
+// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, uint256 teleporterMessageID)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchTransferToSource(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationTransferToSource, sender []common.Address, recipient []common.Address) (event.Subscription, error) {
 
 	var senderRule []interface{}
@@ -833,9 +831,9 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchTransferToSo
 	}), nil
 }
 
-// ParseTransferToSource is a log parse operation binding the contract event 0x343e0fe771af9fa258c07a602fad6dfd80c51eda78604397e553106360933bfc.
+// ParseTransferToSource is a log parse operation binding the contract event 0x0322cbb1d3c23f6dbf1deddb3b4ef3ce0f93ae6eec7b44e4f395804104466d14.
 //
-// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, address feeContractAddress, uint256 feeAmount, uint256 teleporterMessageID)
+// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, uint256 teleporterMessageID)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseTransferToSource(log types.Log) (*NativeTokenDestinationTransferToSource, error) {
 	event := new(NativeTokenDestinationTransferToSource)
 	if err := _NativeTokenDestination.contract.UnpackLog(event, "TransferToSource", log); err != nil {
