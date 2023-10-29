@@ -42,7 +42,7 @@ RUN curl -L https://raw.githubusercontent.com/foundry-rs/foundry/70d00222c2ef74f
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
     export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
-    foundryup --version nightly-70d00222c2ef74fc484b8d98c5705d131ab31871
+    foundryup --version nightly-5be158ba6dc7c798a6f032026fe60fc01686b33b
 
 # Install python base58 decode library
 RUN apt-get update && \
