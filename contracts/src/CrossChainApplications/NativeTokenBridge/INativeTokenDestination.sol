@@ -31,8 +31,8 @@ interface INativeTokenDestination {
     event NativeTokensMinted(address indexed recipient, uint256 amount);
 
     /**
-     * @dev This burns native tokens on this chain, and sends a message to the source
-     * chain to unlock tokens there.
+     * @dev Burns native tokens on the destination contract chain, and sends a message to the source
+     * contract to unlock corresponding tokens.
      */
     function transferToSource(
         address recipient,
