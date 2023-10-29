@@ -33,6 +33,7 @@ import (
 )
 
 var (
+	NativeTransferGas                     uint64 = 21_000
 	DefaultTeleporterTransactionGas       uint64 = 200_000
 	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
 	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
@@ -347,4 +348,27 @@ func calculateTxParams(ctx context.Context, wsClient ethclient.Client, fundedAdd
 	gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
 
 	return gasFeeCap, gasTipCap, nonce
+}
+
+func createNativeTransferTransaction(
+	ctx context.Context,
+	network SubnetTestInfo,
+	fromAddress common.Address,
+	fromKey *ecdsa.PrivateKey,
+	recipient common.Address,
+	amount *big.Int,
+) *types.Transaction {
+	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.ChainWSClient, fundedAddress)
+
+	tx := types.NewTx(&types.DynamicFeeTx{
+		ChainID:   network.ChainIDInt,
+		Nonce:     nonce,
+		To:        &recipient,
+		Gas:       NativeTransferGas,
+		GasFeeCap: gasFeeCap,
+		GasTipCap: gasTipCap,
+		Value:     amount,
+	})
+
+	return signTransaction(tx, fundedKey, network.ChainIDInt)
 }
