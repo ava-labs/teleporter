@@ -33,7 +33,7 @@ library ReceiptQueue {
     }
 
     /**
-     * @dev Removes the oldest open receipt from the queue.
+     * @dev Removes the oldest outstanding receipt from the queue.
      *
      * Requirements:
      * - The queue must be non-empty.
@@ -73,7 +73,7 @@ library ReceiptQueue {
     }
 
     /**
-     * @dev Returns the number of open receipts in the queue.
+     * @dev Returns the number of outstanding receipts in the queue.
      */
     function size(
         TeleporterMessageReceiptQueue storage queue
