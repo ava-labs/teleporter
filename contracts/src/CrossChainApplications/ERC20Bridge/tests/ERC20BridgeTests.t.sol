@@ -637,10 +637,17 @@ contract ERC20BridgeTest is Test {
     }
 
     function testUpdateMinTeleporterVersion() public {
+        uint256 latestVersion = erc20Bridge
+            .teleporterRegistry()
+            .getLatestVersion();
+
         // Check that updating minimum Teleporter version fails if it's not the contract owner.
         vm.prank(address(0));
         vm.expectRevert("Ownable: caller is not the owner");
         erc20Bridge.updateMinTeleporterVersion();
+
+        // Check that minimum Teleporter version is not updated.
+        assertEq(erc20Bridge.minTeleporterVersion(), latestVersion);
 
         // Check that the owner can update the minimum Teleporter version.
         vm.mockCall(
@@ -658,9 +665,9 @@ contract ERC20BridgeTest is Test {
         );
 
         vm.expectEmit(true, true, true, true, address(erc20Bridge));
-        emit MinTeleporterVersionUpdated(1, 2);
+        emit MinTeleporterVersionUpdated(latestVersion, latestVersion + 1);
         erc20Bridge.updateMinTeleporterVersion();
-        assertEq(erc20Bridge.minTeleporterVersion(), 2);
+        assertEq(erc20Bridge.minTeleporterVersion(), latestVersion + 1);
     }
 
     function _initMockTeleporterRegistry() internal {
