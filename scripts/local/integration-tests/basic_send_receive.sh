@@ -55,7 +55,6 @@ send_bytes32=000000000000000000000000$send_cross_subnet_message_destination_addr
 send_cross_subnet_message_fee_amount=255
 send_cross_subnet_message_required_gas_limit=10000
 send_cross_subnet_message_message_data=cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafe
-approve_amount=100000000000000000000000000000
 
 # Approve the Teleporter contract to some ERC20 tokens from the user account we're using to send transactions
 approve_amount=100000000000000000000000000000
