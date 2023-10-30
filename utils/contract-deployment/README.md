@@ -7,14 +7,14 @@ This directory contains scripts written in Golang to construct a raw transaction
 ## Running
 There are two supporting subcommands: `constructKeylessTx` and `deriveContractAddress`.
 
-`go run contractDeploymentTools.go constructKeylessTx <PATH_TO_CONTRACT_JSON_FILE>`
+`go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx <PATH_TO_CONTRACT_JSON_FILE>`
 OR
-`go run contractDeploymentTools.go deriveContractAddress <DEPLOYER_ADDRESS> <NONCE>`
+`go run utils/contract-deployment/contractDeploymentTools.go deriveContractAddress <DEPLOYER_ADDRESS> <NONCE>`
 
 For example:
-`go run contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json`
+`go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json`
 OR
-`go run contract-deployment/contractDeploymentTools.go deriveContractAddress 0x38545c4b331D8BFb3bee94C62D77a6735b5eF8c0 1`
+`go run utils/contract-deployment/contractDeploymentTools.go deriveContractAddress 0x38545c4b331D8BFb3bee94C62D77a6735b5eF8c0 1`
 
 ## Results
 The resulting raw transaction and universal deployer address are written to standard output, as well as to `UniversalTeleporterDeployerTransaction.txt` and `UniversalTeleporterDeployerAddress.txt` respectively.
