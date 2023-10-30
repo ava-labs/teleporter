@@ -8,14 +8,22 @@ pragma solidity 0.8.18;
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
+import "../../Teleporter/upgrades/TeleporterRegistry.sol";
+import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev ExampleCrossChainMessenger is an example contract that demonstrates how to send and receive
  * messages cross chain.
  */
-contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
+contract ExampleCrossChainMessenger is
+    ITeleporterReceiver,
+    ReentrancyGuard,
+    TeleporterUpgradeable,
+    Ownable
+{
     using SafeERC20 for IERC20;
 
     // Messages sent to this contract.
@@ -23,8 +31,6 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         address sender;
         string message;
     }
-
-    ITeleporterMessenger public immutable teleporterMessenger;
 
     mapping(bytes32 => Message) private _messages;
 
@@ -49,9 +55,9 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         string message
     );
 
-    constructor(address teleporterMessengerAddress) {
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
-    }
+    constructor(
+        address teleporterRegistryAddress
+    ) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
@@ -62,10 +68,7 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         bytes32 originChainID,
         address originSenderAddress,
         bytes calldata message
-    ) external {
-        // Only the Teleporter receiver can deliver a message.
-        require(msg.sender == address(teleporterMessenger), "ExampleCrossChainMessenger: unauthorized");
-
+    ) external onlyAllowedTeleporter {
         // Store the message.
         string memory messageString = abi.decode(message, (string));
         _messages[originChainID] = Message(originSenderAddress, messageString);
@@ -83,6 +86,8 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
         uint256 requiredGasLimit,
         string calldata message
     ) external nonReentrant returns (uint256 messageID) {
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry
+            .getLatestTeleporter();
         // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
         // allow the Teleporter contract to spend it.
         uint256 adjustedFeeAmount = 0;
@@ -119,6 +124,23 @@ contract ExampleCrossChainMessenger is ITeleporterReceiver, ReentrancyGuard {
                     message: abi.encode(message)
                 })
             );
+    }
+
+    /**
+     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
+     *
+     * Updates the minimum Teleporter version allowed for receiving on this contract
+     * to the latest version registered in the {TeleporterRegistry}. Also restricts this function to
+     * the owner of this contract.
+     * Emits a {MinTeleporterVersionUpdated} event.
+     */
+    function updateMinTeleporterVersion() external override onlyOwner {
+        uint256 oldMinTeleporterVersion = minTeleporterVersion;
+        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        emit MinTeleporterVersionUpdated(
+            oldMinTeleporterVersion,
+            minTeleporterVersion
+        );
     }
 
     /**
