@@ -22,6 +22,9 @@ set -e # Stop on first error
 #   subnet_b_subnet_id_hex
 #   teleporter_contract_address
 #   warp_messenger_precompile_addr
+#   registry_address_a
+#   registry_address_b
+#   registry_address_c
 
 # Test covers:
 # - Sending cross chain messages between two chains, by calling Teleporter contract sendCrossChainMessage function directly.
@@ -54,25 +57,25 @@ echo "Next message ID for subnet $subnet_b_chain_id_hex is $result"
 send_cross_subnet_message_destination_chain_id=$subnet_b_chain_id_hex
 send_cross_subnet_message_destination_address=abcedf1234abcedf1234abcedf1234abcedf1234
 send_bytes32=000000000000000000000000$send_cross_subnet_message_destination_address
-send_cross_subnet_message_fee_amount=00000000000000000000000000000000000000000000000000000000000000FF
-send_cross_subnet_message_required_gas_limit=0000000000000000000000000000000000000000000000000000000000001000
+send_cross_subnet_message_fee_amount=255
+send_cross_subnet_message_required_gas_limit=100000
 send_cross_subnet_message_message_data=cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafe
-relayer_reward=255 # The fee amount 00FF in decimal form is 255
 
 # Approve the Teleporter contract to some ERC20 tokens from the user account we're using to send transactions
+approve_amount=1000000000000000000000000000
 cast send $erc20_contract_address_a "approve(address,uint256)(bool)" $teleporter_contract_address \
-    000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF \
+    $approve_amount \
     --private-key $user_private_key --rpc-url $subnet_a_url
 result=$(cast call $erc20_contract_address_a "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_a_url)
-if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
+if [[ $result != $approve_amount ]]; then
     echo $result
     echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
 fi
 
-cast send $erc20_contract_address_b "approve(address,uint256)(bool)" $teleporter_contract_address 000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF --private-key $user_private_key --rpc-url $subnet_b_url
+cast send $erc20_contract_address_b "approve(address,uint256)(bool)" $teleporter_contract_address $approve_amount --private-key $user_private_key --rpc-url $subnet_b_url
 result=$(cast call $erc20_contract_address_b "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_b_url)
-if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
+if [[ $result != $approve_amount ]]; then
     echo $result
     echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
@@ -136,7 +139,7 @@ if [ ! -z "$relayer_address" ]; then
     echo "Relayer after retryReceipts can redeem rewards of $afterReward"
 
     reward=$(($afterReward-$startingReward))
-    if [[ $reward != $relayer_reward ]]; then # The fee amount 00FF in decimal form is 255
+    if [[ $reward != $send_cross_subnet_message_fee_amount ]]; then
         echo "Relayer reward should be rewarded $send_cross_subnet_message_fee_amount but instead increased by $reward"
         exit 1
     fi

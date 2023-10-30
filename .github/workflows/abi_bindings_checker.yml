@@ -27,19 +27,23 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install forge and generate ABI Go bindings
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Generate ABI Go bindings
         run: |
-          BASE_DIR=${XDG_CONFIG_HOME:-$HOME}
-          curl -L https://foundry.paradigm.xyz | bash
-          source $HOME/.bashrc
-          $BASE_DIR/.foundry/bin/foundryup
           export GOPATH=$HOME/go
-          export PATH="$PATH:$BASE_DIR/.foundry/bin"
           export PATH="$PATH:$GOPATH/bin"
           ./scripts/abi_bindings.sh
 
-      - name: Check for clean branch
-        run: .github/workflows/check_clean_branch.sh
+      - name: Print diff
+        run: git --no-pager diff -- abi-bindings/**.go
+
+      - name: Fail if diff exists
+        run: git --no-pager diff --quiet -- abi-bindings/**.go
+
   unit_tests:
     name: Unit tests
     runs-on: ubuntu-20.04

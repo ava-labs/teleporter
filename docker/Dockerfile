@@ -34,13 +34,15 @@ RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* 
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
 
-# Install foundry
+# Install foundry from specific commit
 SHELL ["/bin/bash", "-c"]
-RUN curl -L https://foundry.paradigm.xyz | bash && \
+RUN curl -L https://raw.githubusercontent.com/foundry-rs/foundry/037b3bc9cebd545fe3a4f05a32bf7efb82afdbd8/foundryup/install > /tmp/foundry-install-script && \
+    sed -i 's/\/foundry-rs\/foundry\/master\/foundryup/\/foundry-rs\/foundry\/037b3bc9cebd545fe3a4f05a32bf7efb82afdbd8\/foundryup/g' /tmp/foundry-install-script && \
+    cat /tmp/foundry-install-script | bash && \
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
     export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
-    foundryup
+    foundryup --version nightly-037b3bc9cebd545fe3a4f05a32bf7efb82afdbd8
 
 # Install python base58 decode library
 RUN apt-get update && \
@@ -48,6 +50,6 @@ RUN apt-get update && \
 RUN pip3 install base58
 
 # Install avalanche-cli
-RUN curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s -- -b /usr/local/bin v1.3.2
+RUN curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s -- -b /usr/local/bin v1.3.3
 RUN avalanche --version
 RUN echo '{"MetricsEnabled}":false}' > ~/.avalanche-cli/config
