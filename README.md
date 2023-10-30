@@ -69,7 +69,7 @@ The above steps are sufficient to run the included integration tests inside Dock
 - `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework
 - `utils/` includes Go utility functions for interacting with the contracts in `contracts/`. Included are Golang scripts to derive the expected EVM contract address deployed from a given EOA at a specific nonce, and also construct a transaction to deploy provided byte code to the same address on any EVM chain using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#).
 - `subnet-evm/` is the public subnet-evm repository (included as a submodule) checked out on the `warp-contract` branch with our changes.
-- `scripts/` includes bash scripts for interacting with Teleporter in various environments, as well as utility scripts. All the scripts should be run from the root of the repository.
+- `scripts/` includes bash scripts for interacting with Teleporter in various environments, as well as utility scripts.
   - `abi_bindings.sh` generates ABI bindings for the contracts in `contracts/` and outputs them to `abi-bindings/`
   - `lint.sh` lints the contracts in `contracts/`
   - `scripts/local/` includes scripts for running Teleporter in Docker containers and tests in the `scripts/local/integration-tests` locally.
