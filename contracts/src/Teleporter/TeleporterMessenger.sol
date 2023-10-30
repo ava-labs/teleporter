@@ -408,9 +408,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev See {ITeleporterMessenger-sendCustomReceipts}
+     * @dev See {ITeleporterMessenger-sendSpecifiedReceipts}
      *
-     * There is no explicit limit to the number of receipts able to be sent by a {sendCustomReceipts} message because
+     * There is no explicit limit to the number of receipts able to be sent by a {sendSpecifiedReceipts} message because
      * this method is intended to be used by relayers themselves to ensure their receipts get returned.
      * There is no fee associated with the empty message, and the same relayer is expected to relay it
      * themselves in order to claim their rewards, so it is their responsibility to ensure that the necessary
@@ -424,7 +424,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * Requirements:
      * - `messageIDs` must all be valid and have existing receipts.
      */
-    function sendCustomReceipts(
+    function sendSpecifiedReceipts(
         bytes32 originChainID,
         uint256[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,

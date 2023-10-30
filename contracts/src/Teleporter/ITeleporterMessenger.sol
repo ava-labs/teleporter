@@ -166,7 +166,7 @@ interface ITeleporterMessenger {
      * This is intended to be used if the message receipts were originally included in messages that were dropped
      * or otherwise not delivered in a timely manner.
      */
-    function sendCustomReceipts(
+    function sendSpecifiedReceipts(
         bytes32 originChainID,
         uint256[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,
