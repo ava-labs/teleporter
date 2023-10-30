@@ -22,6 +22,9 @@ set -e # Stop on first error
 #   subnet_b_subnet_id_hex
 #   teleporter_contract_address
 #   warp_messenger_precompile_addr
+#   registry_address_a
+#   registry_address_b
+#   registry_address_c
 
 # Deploy a test ERC20 on subnet A.
 cd contracts
@@ -30,22 +33,23 @@ erc20_contract_address=$(parseContractAddress "$erc20_deploy_result")
 echo "Test ERC20 contract deployed to $erc20_contract_address on Subnet A"
 
 # Deploy the example messenger application on subnet A
-example_messenger_a_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
-    --rpc-url $subnet_a_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger)
+example_messenger_a_deploy_result=$(forge create --private-key $user_private_key \
+    --rpc-url $subnet_a_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger --constructor-args $registry_address_a)
 example_messenger_a_contract_address=$(parseContractAddress "$example_messenger_a_deploy_result")
 echo "Example Messenger contract deployed to subnet A at $example_messenger_a_contract_address"
 
 # Deploy the example messenger application on subnet B
-example_messenger_b_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
-    --rpc-url $subnet_b_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger)
+example_messenger_b_deploy_result=$(forge create --private-key $user_private_key \
+    --rpc-url $subnet_b_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger --constructor-args $registry_address_b)
 example_messenger_b_contract_address=$(parseContractAddress "$example_messenger_b_deploy_result")
 echo "Example Messenger contract deployed to subnet B at $example_messenger_b_contract_address"
 
 # Approve the example messenger contract on subnet A spent ERC20 tokens from the user account we're using to send transactions
+approve_amount=100000000000000000000000
 cast send $erc20_contract_address "approve(address,uint256)(bool)" $example_messenger_a_contract_address \
-    000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFF --private-key $user_private_key --rpc-url $subnet_a_url
+    $approve_amount --private-key $user_private_key --rpc-url $subnet_a_url
 result=$(cast call $erc20_contract_address "allowance(address,address)(uint256)" $user_address $example_messenger_a_contract_address --rpc-url $subnet_a_url)
-if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
+if [[ $result != $approve_amount ]]; then
     echo $result
     echo "Error approving example messenger contract to spend ERC20 from user account."
     exit 1
@@ -88,9 +92,10 @@ if [[ $(stringToLower $actual_sender_address) != $origin_contract_address_lower 
 fi
 # Check that the message matched the one submitted to subnet A.
 # The message "hello world!" is returned without quotations, so it is split up as two different values by bash across indices 1 and 2 of the result.
-if [[ "${result_arr[1]} ${result_arr[2]}" != "$send_cross_chain_message_message_string" ]]; then
-    echo $result
+if [[ "${result_arr[1]} ${result_arr[2]}" != "\"$send_cross_chain_message_message_string\"" ]]; then
     echo "Get current message returned unexpected message."
+    echo "Actual: ${result_arr[1]} ${result_arr[2]}"
+    echo "Expected: $send_cross_chain_message_message_string"
     exit 1
 fi
 echo "The latest message from chain ID $subnet_a_chain_id was: "

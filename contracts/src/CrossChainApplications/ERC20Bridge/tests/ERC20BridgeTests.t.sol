@@ -12,6 +12,8 @@ import "../../../Mocks/UnitTestMockERC20.sol";
 contract ERC20BridgeTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
+    address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS =
+        0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
     address public constant WARP_PRECOMPILE_ADDRESS =
         address(0x0200000000000000000000000000000000000005);
     bytes32 private constant _MOCK_BLOCKCHAIN_ID = bytes32(uint256(123456));
@@ -59,14 +61,32 @@ contract ERC20BridgeTest is Test {
         uint256 amount
     );
 
+    event MinTeleporterVersionUpdated(
+        uint256 indexed oldMinTeleporterVersion,
+        uint256 indexed newMinTeleporterVersion
+    );
+
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector),
             abi.encode(_MOCK_BLOCKCHAIN_ID)
         );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector)
+        );
 
-        erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        _initMockTeleporterRegistry();
+
+        vm.expectCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getLatestVersion.selector
+            )
+        );
+
+        erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS);
         mockERC20 = new UnitTestMockERC20();
     }
 
@@ -607,6 +627,76 @@ contract ERC20BridgeTest is Test {
         assertEq(_DEFAULT_OTHER_CHAIN_ID, newBridgeToken.nativeChainID());
         assertEq(_DEFAULT_OTHER_BRIDGE_ADDRESS, newBridgeToken.nativeBridge());
         assertEq(address(mockERC20), newBridgeToken.nativeAsset());
+    }
+
+    function testZeroTeleporterRegistryAddress() public {
+        vm.expectRevert(
+            "TeleporterUpgradeable: zero teleporter registry address"
+        );
+        new ERC20Bridge(address(0));
+    }
+
+    function testUpdateMinTeleporterVersion() public {
+        // Check that updating minimum Teleporter version fails if it's not the contract owner.
+        vm.prank(address(0));
+        vm.expectRevert("Ownable: caller is not the owner");
+        erc20Bridge.updateMinTeleporterVersion();
+
+        // Check that the owner can update the minimum Teleporter version.
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getLatestVersion.selector
+            ),
+            abi.encode(2)
+        );
+        vm.expectCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getLatestVersion.selector
+            )
+        );
+
+        vm.expectEmit(true, true, true, true, address(erc20Bridge));
+        emit MinTeleporterVersionUpdated(1, 2);
+        erc20Bridge.updateMinTeleporterVersion();
+        assertEq(erc20Bridge.minTeleporterVersion(), 2);
+    }
+
+    function _initMockTeleporterRegistry() internal {
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getLatestVersion.selector
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getVersionFromAddress.selector,
+                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                WarpProtocolRegistry.getAddressFromVersion.selector,
+                (1)
+            ),
+            abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getLatestTeleporter.selector
+            ),
+            abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
+        );
     }
 
     function _setUpExpectedTransferFromCall(
