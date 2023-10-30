@@ -76,7 +76,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		transactor.Value = new(big.Int).SetUint64(valueToSend)
 
-		tx, err := nativeTokenDestination.TransferToSource(transactor, toAddress, common.Address{}, big.NewInt(0), []common.Address{})
+		tx, err := nativeTokenDestination.TransferToSource(transactor, toAddress, nativetokendestination.TeleporterFeeInfo{},[]common.Address{})
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToSource transaction on destination chain", "sourceChainID", subnetA.BlockchainID, "txHash", tx.Hash().Hex())
 
@@ -94,7 +94,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		transactor.Value = new(big.Int).SetUint64(valueToSend)
 
-		tx, err := nativeTokenSource.TransferToDestination(transactor, toAddress, common.Address{}, big.NewInt(0), []common.Address{})
+		tx, err := nativeTokenSource.TransferToDestination(transactor, toAddress, nativetokensource.TeleporterFeeInfo{}, []common.Address{})
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToDestination transaction on source chain", "destinationChainID", subnetB.BlockchainID, "txHash", tx.Hash().Hex())
 
@@ -131,7 +131,7 @@ func NativeTokenBridge() {
 		transactor.Value = new(big.Int).SetUint64(valueToSend1)
 
 		// This transfer should revert because the bridge isn't collateralized
-		_, err = nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, common.Address{}, big.NewInt(0), []common.Address{})
+		_, err = nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, nativetokendestination.TeleporterFeeInfo{}, []common.Address{})
 		Expect(err).ShouldNot(BeNil())
 
 		// Check we should fail to send because we're not collateralized
