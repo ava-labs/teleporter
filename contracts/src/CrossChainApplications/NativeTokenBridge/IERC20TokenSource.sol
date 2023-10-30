@@ -16,7 +16,6 @@ interface IERC20TokenSource {
     event TransferToDestination(
         address indexed sender,
         address indexed recipient,
-        address ERC20ContractAddress,
         uint256 transferAmount,
         uint256 feeAmount,
         uint256 teleporterMessageID
@@ -32,7 +31,6 @@ interface IERC20TokenSource {
      */
     function transferToDestination(
         address recipient,
-        address ERC20ContractAddress,
         uint256 totalAmount,
         uint256 feeAmount,
         address[] calldata allowedRelayerAddresses

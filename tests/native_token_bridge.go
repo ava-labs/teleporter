@@ -9,8 +9,8 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	nativetokendestination "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/NativeTokenDestination"
 	nativetokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/NativeTokenSource"
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ava-labs/teleporter/tests/utils"
+	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -24,14 +24,14 @@ func NativeTokenBridge() {
 		valueToSend2  = tokenReserve
 		valueToReturn = valueToSend1 / 4
 
-		bridgeDeployerKeyStr               = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
+		deployerKeyStr                     = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
 		NativeTokenSourceByteCodeFile      = "./contracts/out/NativeTokenSource.sol/NativeTokenSource.json"
 		NativeTokenDestinationByteCodeFile = "./contracts/out/NativeTokenDestination.sol/NativeTokenDestination.json"
 	)
 	var (
-		ctx                       = context.Background()
-		nativeTokenBridgeDeployer = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
-		tokenReceiverAddress      = common.HexToAddress("0x0123456789012345678901234567890123456789")
+		ctx                  = context.Background()
+		deployerAddress      = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
+		tokenReceiverAddress = common.HexToAddress("0x0123456789012345678901234567890123456789")
 	)
 
 	subnetA := utils.GetSubnetATestInfo()
@@ -39,16 +39,16 @@ func NativeTokenBridge() {
 	teleporterContractAddress := utils.GetTeleporterContractAddress()
 
 	// Info we need to calculate for the test
-	nativeTokenBridgeDeployerPK, err := crypto.HexToECDSA(bridgeDeployerKeyStr)
+	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
 	Expect(err).Should(BeNil())
-	nativeTokenBridgeContractAddress, err := deploymentUtils.DeriveEVMContractAddress(nativeTokenBridgeDeployer, 0)
+	nativeTokenBridgeContractAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, 0)
 	Expect(err).Should(BeNil())
 	log.Info("Native Token Bridge Contract Address: " + nativeTokenBridgeContractAddress.Hex())
 
 	{ // Deploy the contracts
 		nativeTokenSourceBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenSourceByteCodeFile)
 		Expect(err).Should(BeNil())
-		chainATransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetA.ChainID)
+		chainATransactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetA.ChainID)
 		Expect(err).Should(BeNil())
 		nativeTokenSourceAbi, err := nativetokensource.NativeTokenSourceMetaData.GetAbi()
 		Expect(err).Should(BeNil())
@@ -62,7 +62,7 @@ func NativeTokenBridge() {
 		// in the genesis file for the subnet. This will allow it to call the native minter precompile.
 		nativeTokenDestinationBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenDestinationByteCodeFile)
 		Expect(err).Should(BeNil())
-		chainBTransactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetB.ChainID)
+		chainBTransactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainID)
 		Expect(err).Should(BeNil())
 		nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
 		Expect(err).Should(BeNil())
@@ -132,7 +132,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		Expect(bal.Uint64()).Should(Equal(common.Big0.Uint64()))
 
-		sendTokensToDestination(valueToSend1, nativeTokenBridgeDeployerPK, tokenReceiverAddress)
+		sendTokensToDestination(valueToSend1, deployerPK, tokenReceiverAddress)
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
 		bal, err = subnetB.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
@@ -140,13 +140,13 @@ func NativeTokenBridge() {
 		Expect(bal.Uint64()).Should(BeZero())
 	}
 
-	{  // Fail to Transfer tokens B -> A because bridge is not collateralized
+	{ // Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
 		bal, err := subnetA.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(bal.Uint64()).Should(BeZero())
 
-		transactor, err := bind.NewKeyedTransactorWithChainID(nativeTokenBridgeDeployerPK, subnetB.ChainID)
+		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainID)
 		Expect(err).Should(BeNil())
 		transactor.Value = new(big.Int).SetUint64(valueToSend1)
 
@@ -166,7 +166,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		Expect(bal.Uint64()).Should(BeZero())
 
-		sendTokensToDestination(valueToSend2, nativeTokenBridgeDeployerPK, tokenReceiverAddress)
+		sendTokensToDestination(valueToSend2, deployerPK, tokenReceiverAddress)
 
 		// We should have minted the excess coins after checking the collateral
 		bal, err = subnetB.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
@@ -175,7 +175,7 @@ func NativeTokenBridge() {
 	}
 
 	{ // Transfer tokens B -> A
-		sendTokensToSource(valueToReturn, nativeTokenBridgeDeployerPK, tokenReceiverAddress)
+		sendTokensToSource(valueToReturn, deployerPK, tokenReceiverAddress)
 
 		// Check we should fail to send because we're not collateralized
 		bal, err := subnetA.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)

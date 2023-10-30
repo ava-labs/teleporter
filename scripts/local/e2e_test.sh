@@ -80,6 +80,7 @@ ginkgo build ./tests/
 echo "Running e2e tests $RUN_E2E"
 RUN_E2E=true ./tests/tests.test \
   --ginkgo.vv \
+  --ginkgo.trace \
   --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""}
 
 echo "e2e tests passed"

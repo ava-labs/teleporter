@@ -31,7 +31,7 @@ var (
 
 // ERC20TokenSourceMetaData contains all meta data concerning the ERC20TokenSource contract.
 var ERC20TokenSourceMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenDestinationAddress_\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"ERC20ContractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"transferAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToDestination\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"UnlockTokens\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MINT_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"destinationBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenDestinationAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"ERC20ContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToDestination\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenDestinationAddress_\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"erc20ContractAddress_\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"transferAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToDestination\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"UnlockTokens\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MINT_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"destinationBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"erc20ContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenDestinationAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToDestination\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // ERC20TokenSourceABI is the input ABI used to generate the binding from.
@@ -273,6 +273,37 @@ func (_ERC20TokenSource *ERC20TokenSourceCallerSession) DestinationBlockchainID(
 	return _ERC20TokenSource.Contract.DestinationBlockchainID(&_ERC20TokenSource.CallOpts)
 }
 
+// Erc20ContractAddress is a free data retrieval call binding the contract method 0xe486df15.
+//
+// Solidity: function erc20ContractAddress() view returns(address)
+func (_ERC20TokenSource *ERC20TokenSourceCaller) Erc20ContractAddress(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _ERC20TokenSource.contract.Call(opts, &out, "erc20ContractAddress")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Erc20ContractAddress is a free data retrieval call binding the contract method 0xe486df15.
+//
+// Solidity: function erc20ContractAddress() view returns(address)
+func (_ERC20TokenSource *ERC20TokenSourceSession) Erc20ContractAddress() (common.Address, error) {
+	return _ERC20TokenSource.Contract.Erc20ContractAddress(&_ERC20TokenSource.CallOpts)
+}
+
+// Erc20ContractAddress is a free data retrieval call binding the contract method 0xe486df15.
+//
+// Solidity: function erc20ContractAddress() view returns(address)
+func (_ERC20TokenSource *ERC20TokenSourceCallerSession) Erc20ContractAddress() (common.Address, error) {
+	return _ERC20TokenSource.Contract.Erc20ContractAddress(&_ERC20TokenSource.CallOpts)
+}
+
 // NativeTokenDestinationAddress is a free data retrieval call binding the contract method 0xb8c9091a.
 //
 // Solidity: function nativeTokenDestinationAddress() view returns(address)
@@ -356,25 +387,25 @@ func (_ERC20TokenSource *ERC20TokenSourceTransactorSession) ReceiveTeleporterMes
 	return _ERC20TokenSource.Contract.ReceiveTeleporterMessage(&_ERC20TokenSource.TransactOpts, senderBlockchainID, senderAddress, message)
 }
 
-// TransferToDestination is a paid mutator transaction binding the contract method 0x10a61f2b.
+// TransferToDestination is a paid mutator transaction binding the contract method 0x87a2edba.
 //
-// Solidity: function transferToDestination(address recipient, address ERC20ContractAddress, uint256 totalAmount, uint256 feeAmount, address[] allowedRelayerAddresses) returns()
-func (_ERC20TokenSource *ERC20TokenSourceTransactor) TransferToDestination(opts *bind.TransactOpts, recipient common.Address, ERC20ContractAddress common.Address, totalAmount *big.Int, feeAmount *big.Int, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
-	return _ERC20TokenSource.contract.Transact(opts, "transferToDestination", recipient, ERC20ContractAddress, totalAmount, feeAmount, allowedRelayerAddresses)
+// Solidity: function transferToDestination(address recipient, uint256 totalAmount, uint256 feeAmount, address[] allowedRelayerAddresses) returns()
+func (_ERC20TokenSource *ERC20TokenSourceTransactor) TransferToDestination(opts *bind.TransactOpts, recipient common.Address, totalAmount *big.Int, feeAmount *big.Int, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
+	return _ERC20TokenSource.contract.Transact(opts, "transferToDestination", recipient, totalAmount, feeAmount, allowedRelayerAddresses)
 }
 
-// TransferToDestination is a paid mutator transaction binding the contract method 0x10a61f2b.
+// TransferToDestination is a paid mutator transaction binding the contract method 0x87a2edba.
 //
-// Solidity: function transferToDestination(address recipient, address ERC20ContractAddress, uint256 totalAmount, uint256 feeAmount, address[] allowedRelayerAddresses) returns()
-func (_ERC20TokenSource *ERC20TokenSourceSession) TransferToDestination(recipient common.Address, ERC20ContractAddress common.Address, totalAmount *big.Int, feeAmount *big.Int, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
-	return _ERC20TokenSource.Contract.TransferToDestination(&_ERC20TokenSource.TransactOpts, recipient, ERC20ContractAddress, totalAmount, feeAmount, allowedRelayerAddresses)
+// Solidity: function transferToDestination(address recipient, uint256 totalAmount, uint256 feeAmount, address[] allowedRelayerAddresses) returns()
+func (_ERC20TokenSource *ERC20TokenSourceSession) TransferToDestination(recipient common.Address, totalAmount *big.Int, feeAmount *big.Int, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
+	return _ERC20TokenSource.Contract.TransferToDestination(&_ERC20TokenSource.TransactOpts, recipient, totalAmount, feeAmount, allowedRelayerAddresses)
 }
 
-// TransferToDestination is a paid mutator transaction binding the contract method 0x10a61f2b.
+// TransferToDestination is a paid mutator transaction binding the contract method 0x87a2edba.
 //
-// Solidity: function transferToDestination(address recipient, address ERC20ContractAddress, uint256 totalAmount, uint256 feeAmount, address[] allowedRelayerAddresses) returns()
-func (_ERC20TokenSource *ERC20TokenSourceTransactorSession) TransferToDestination(recipient common.Address, ERC20ContractAddress common.Address, totalAmount *big.Int, feeAmount *big.Int, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
-	return _ERC20TokenSource.Contract.TransferToDestination(&_ERC20TokenSource.TransactOpts, recipient, ERC20ContractAddress, totalAmount, feeAmount, allowedRelayerAddresses)
+// Solidity: function transferToDestination(address recipient, uint256 totalAmount, uint256 feeAmount, address[] allowedRelayerAddresses) returns()
+func (_ERC20TokenSource *ERC20TokenSourceTransactorSession) TransferToDestination(recipient common.Address, totalAmount *big.Int, feeAmount *big.Int, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
+	return _ERC20TokenSource.Contract.TransferToDestination(&_ERC20TokenSource.TransactOpts, recipient, totalAmount, feeAmount, allowedRelayerAddresses)
 }
 
 // ERC20TokenSourceTransferToDestinationIterator is returned from FilterTransferToDestination and is used to iterate over the raw logs and unpacked data for TransferToDestination events raised by the ERC20TokenSource contract.
@@ -446,18 +477,17 @@ func (it *ERC20TokenSourceTransferToDestinationIterator) Close() error {
 
 // ERC20TokenSourceTransferToDestination represents a TransferToDestination event raised by the ERC20TokenSource contract.
 type ERC20TokenSourceTransferToDestination struct {
-	Sender               common.Address
-	Recipient            common.Address
-	ERC20ContractAddress common.Address
-	TransferAmount       *big.Int
-	FeeAmount            *big.Int
-	TeleporterMessageID  *big.Int
-	Raw                  types.Log // Blockchain specific contextual infos
+	Sender              common.Address
+	Recipient           common.Address
+	TransferAmount      *big.Int
+	FeeAmount           *big.Int
+	TeleporterMessageID *big.Int
+	Raw                 types.Log // Blockchain specific contextual infos
 }
 
-// FilterTransferToDestination is a free log retrieval operation binding the contract event 0x13a202fe5d8659b297514aa4630f23f3a30583706bf3aa067257552aa20e9ec3.
+// FilterTransferToDestination is a free log retrieval operation binding the contract event 0x51f5c55ca5f8f5fde6736f19d1d035a8c67fe18c30d445cea44c4816c6a525a0.
 //
-// Solidity: event TransferToDestination(address indexed sender, address indexed recipient, address ERC20ContractAddress, uint256 transferAmount, uint256 feeAmount, uint256 teleporterMessageID)
+// Solidity: event TransferToDestination(address indexed sender, address indexed recipient, uint256 transferAmount, uint256 feeAmount, uint256 teleporterMessageID)
 func (_ERC20TokenSource *ERC20TokenSourceFilterer) FilterTransferToDestination(opts *bind.FilterOpts, sender []common.Address, recipient []common.Address) (*ERC20TokenSourceTransferToDestinationIterator, error) {
 
 	var senderRule []interface{}
@@ -476,9 +506,9 @@ func (_ERC20TokenSource *ERC20TokenSourceFilterer) FilterTransferToDestination(o
 	return &ERC20TokenSourceTransferToDestinationIterator{contract: _ERC20TokenSource.contract, event: "TransferToDestination", logs: logs, sub: sub}, nil
 }
 
-// WatchTransferToDestination is a free log subscription operation binding the contract event 0x13a202fe5d8659b297514aa4630f23f3a30583706bf3aa067257552aa20e9ec3.
+// WatchTransferToDestination is a free log subscription operation binding the contract event 0x51f5c55ca5f8f5fde6736f19d1d035a8c67fe18c30d445cea44c4816c6a525a0.
 //
-// Solidity: event TransferToDestination(address indexed sender, address indexed recipient, address ERC20ContractAddress, uint256 transferAmount, uint256 feeAmount, uint256 teleporterMessageID)
+// Solidity: event TransferToDestination(address indexed sender, address indexed recipient, uint256 transferAmount, uint256 feeAmount, uint256 teleporterMessageID)
 func (_ERC20TokenSource *ERC20TokenSourceFilterer) WatchTransferToDestination(opts *bind.WatchOpts, sink chan<- *ERC20TokenSourceTransferToDestination, sender []common.Address, recipient []common.Address) (event.Subscription, error) {
 
 	var senderRule []interface{}
@@ -522,9 +552,9 @@ func (_ERC20TokenSource *ERC20TokenSourceFilterer) WatchTransferToDestination(op
 	}), nil
 }
 
-// ParseTransferToDestination is a log parse operation binding the contract event 0x13a202fe5d8659b297514aa4630f23f3a30583706bf3aa067257552aa20e9ec3.
+// ParseTransferToDestination is a log parse operation binding the contract event 0x51f5c55ca5f8f5fde6736f19d1d035a8c67fe18c30d445cea44c4816c6a525a0.
 //
-// Solidity: event TransferToDestination(address indexed sender, address indexed recipient, address ERC20ContractAddress, uint256 transferAmount, uint256 feeAmount, uint256 teleporterMessageID)
+// Solidity: event TransferToDestination(address indexed sender, address indexed recipient, uint256 transferAmount, uint256 feeAmount, uint256 teleporterMessageID)
 func (_ERC20TokenSource *ERC20TokenSourceFilterer) ParseTransferToDestination(log types.Log) (*ERC20TokenSourceTransferToDestination, error) {
 	event := new(ERC20TokenSourceTransferToDestination)
 	if err := _ERC20TokenSource.contract.UnpackLog(event, "TransferToDestination", log); err != nil {

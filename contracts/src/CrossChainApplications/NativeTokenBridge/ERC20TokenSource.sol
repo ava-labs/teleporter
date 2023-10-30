@@ -23,6 +23,7 @@ contract ERC20TokenSource is
     bytes32 public immutable currentBlockchainID;
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
+    address public immutable erc20ContractAddress;
 
     // Used for sending an receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
@@ -30,7 +31,8 @@ contract ERC20TokenSource is
     constructor(
         address teleporterMessengerAddress,
         bytes32 destinationBlockchainID_,
-        address nativeTokenDestinationAddress_
+        address nativeTokenDestinationAddress_,
+        address erc20ContractAddress_
     ) {
         currentBlockchainID = WarpMessenger(
             0x0200000000000000000000000000000000000005
@@ -57,6 +59,9 @@ contract ERC20TokenSource is
             "Invalid Destination Contract Address"
         );
         nativeTokenDestinationAddress = nativeTokenDestinationAddress_;
+
+        require(erc20ContractAddress_ != address(0), "Invalid ERC20 Contract Address");
+        erc20ContractAddress = erc20ContractAddress_;
     }
 
     /**
@@ -93,8 +98,8 @@ contract ERC20TokenSource is
         );
         require(recipient != address(0), "Invalid Recipient Address");
 
-        // Send to recipient
-        payable(recipient).transfer(amount);
+        // Transfer to recipient
+        IERC20(erc20ContractAddress).safeTransfer(recipient, amount);
 
         emit UnlockTokens(recipient, amount);
     }
@@ -104,7 +109,6 @@ contract ERC20TokenSource is
      */
     function transferToDestination(
         address recipient,
-        address ERC20ContractAddress,
         uint256 totalAmount,
         uint256 feeAmount,
         address[] calldata allowedRelayerAddresses
@@ -116,7 +120,7 @@ contract ERC20TokenSource is
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
         uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
-            IERC20(ERC20ContractAddress),
+            IERC20(erc20ContractAddress),
             totalAmount
         );
 
@@ -128,7 +132,7 @@ contract ERC20TokenSource is
 
         // Allow the Teleporter messenger to spend the fee amount.
         if (feeAmount > 0) {
-            IERC20(ERC20ContractAddress).safeIncreaseAllowance(
+            IERC20(erc20ContractAddress).safeIncreaseAllowance(
                 address(teleporterMessenger),
                 feeAmount
             );
@@ -141,7 +145,7 @@ contract ERC20TokenSource is
                 destinationChainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: ERC20ContractAddress,
+                    contractAddress: erc20ContractAddress,
                     amount: feeAmount
                 }),
                 requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,
@@ -153,7 +157,6 @@ contract ERC20TokenSource is
         emit TransferToDestination({
             sender: msg.sender,
             recipient: recipient,
-            ERC20ContractAddress: ERC20ContractAddress,
             transferAmount: totalAmount,
             feeAmount: feeAmount,
             teleporterMessageID: messageID
