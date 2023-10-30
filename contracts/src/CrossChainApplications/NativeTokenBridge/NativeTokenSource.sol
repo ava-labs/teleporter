@@ -107,8 +107,7 @@ contract NativeTokenSource is
      */
     function transferToDestination(
         address recipient,
-        address feeContractAddress,
-        uint256 feeAmount,
+        TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
         // The recipient cannot be the zero address.
@@ -121,12 +120,12 @@ contract NativeTokenSource is
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
         uint256 adjustedFeeAmount = 0;
-        if (feeAmount > 0) {
+        if (feeInfo.amount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeContractAddress),
-                feeAmount
+                IERC20(feeInfo.contractAddress),
+                feeInfo.amount
             );
-            IERC20(feeContractAddress).safeIncreaseAllowance(
+            IERC20(feeInfo.contractAddress).safeIncreaseAllowance(
                 address(teleporterMessenger),
                 adjustedFeeAmount
             );
@@ -136,10 +135,7 @@ contract NativeTokenSource is
             TeleporterMessageInput({
                 destinationChainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,
-                feeInfo: TeleporterFeeInfo({
-                    contractAddress: feeContractAddress,
-                    amount: adjustedFeeAmount
-                }),
+                feeInfo: feeInfo,
                 requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
                 message: abi.encode(recipient, msg.value)

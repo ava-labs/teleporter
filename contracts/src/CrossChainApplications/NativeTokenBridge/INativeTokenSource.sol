@@ -5,6 +5,8 @@
 
 pragma solidity 0.8.18;
 
+import "../../Teleporter/ITeleporterMessenger.sol";
+
 /**
  * @dev Interface that describes functionalities for a contract that will lock tokens and send a
  * Teleporter message to a {INativeTokenDestination} contract to mint native tokens on the destination chain.
@@ -26,12 +28,12 @@ interface INativeTokenSource {
     event UnlockTokens(address recipient, uint256 amount);
 
     /**
-     * @dev Transfers source chain native tokens to destination chain's native tokens.
+     * @dev Locks native tokens on the source contract chain, and sends a message to the destination
+     * contract to mint corresponding tokens.
      */
     function transferToDestination(
         address recipient,
-        address feeContractAddress,
-        uint256 feeAmount,
+        TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable;
 }

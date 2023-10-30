@@ -41,6 +41,7 @@ contract NativeTokenDestination is
     // This means tokens will not be minted until the source contact is collateralized.
     uint256 public immutable initialReserveImbalance;
     uint256 public currentReserveImbalance;
+    uint256 public totalMinted = 0;
 
     // Used for sending and receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
@@ -134,6 +135,7 @@ contract NativeTokenDestination is
 
         // Calls NativeMinter precompile through INativeMinter interface.
         _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
+        totalMinted += adjustedAmount;
         emit NativeTokensMinted(recipient, adjustedAmount);
     }
 
@@ -142,8 +144,7 @@ contract NativeTokenDestination is
      */
     function transferToSource(
         address recipient,
-        address feeContractAddress,
-        uint256 feeAmount,
+        TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
         // The recipient cannot be the zero address.
@@ -161,12 +162,12 @@ contract NativeTokenDestination is
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
         uint256 adjustedFeeAmount = 0;
-        if (feeAmount > 0) {
+        if (feeInfo.amount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeContractAddress),
-                feeAmount
+                IERC20(feeInfo.contractAddress),
+                feeInfo.amount
             );
-            IERC20(feeContractAddress).safeIncreaseAllowance(
+            IERC20(feeInfo.contractAddress).safeIncreaseAllowance(
                 address(teleporterMessenger),
                 adjustedFeeAmount
             );
@@ -179,10 +180,7 @@ contract NativeTokenDestination is
             TeleporterMessageInput({
                 destinationChainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({
-                    contractAddress: feeContractAddress,
-                    amount: adjustedFeeAmount
-                }),
+                feeInfo: feeInfo,
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
                 message: abi.encode(recipient, msg.value)
@@ -197,7 +195,13 @@ contract NativeTokenDestination is
         });
     }
 
-    function isCollateralized() public view returns (bool) {
+    function isCollateralized() external view returns (bool) {
         return currentReserveImbalance == 0;
+    }
+
+    function totalSupply() external view returns (uint256) {
+        uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance - address(BLACKHOLE_ADDRESS).balance;
+        require(burned > totalMinted + initialReserveImbalance, "NativeTokenDestination: FATAL - Contract has tokens unaccounted for");
+        return totalMinted + initialReserveImbalance - burned;
     }
 }

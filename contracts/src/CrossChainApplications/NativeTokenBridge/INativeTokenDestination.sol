@@ -5,6 +5,8 @@
 
 pragma solidity 0.8.18;
 
+import "../../Teleporter/ITeleporterMessenger.sol";
+
 /**
  * @dev Interface that describes functionalities for a contract that can mint native tokens when
  * paired with a {INativeTokenSource} contract that will lock tokens on another chain.
@@ -36,8 +38,20 @@ interface INativeTokenDestination {
      */
     function transferToSource(
         address recipient,
-        address feeContractAddress,
-        uint256 feeAmount,
+        TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable;
+
+    /**
+     * @dev Returns true if currentTokenImbalance is 0. When this is true, all tokens sent to
+     * this chain will be minted, and sending tokens to the source chain is allowed.
+     */
+    function isCollateralized() external view returns (bool);
+
+    /**
+     * @dev Returns the total number of tokens minted + initialReserveImbalance -
+     * total tokens burned through fees and transferring back to the source chain.
+     */
+    function totalSupply() external view returns (uint256);
 }
+

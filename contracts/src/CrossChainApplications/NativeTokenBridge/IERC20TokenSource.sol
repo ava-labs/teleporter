@@ -27,7 +27,8 @@ interface IERC20TokenSource {
     event UnlockTokens(address recipient, uint256 amount);
 
     /**
-     * @dev Transfers source chain native tokens to destination chain's native tokens.
+     * @dev Locks ERC20 tokens on the source contract chain, and sends a message to the destination
+     * contract to mint corresponding tokens.
      */
     function transferToDestination(
         address recipient,
