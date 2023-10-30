@@ -36,10 +36,11 @@ contract NativeTokenDestination is
     bytes32 public immutable currentBlockchainID;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
-    // The first `tokenReserve` tokens sent to this subnet will not be minted.
-    // `tokenReserve` should be constructed to match the initial token supply of this subnet.
+    // The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
+    // `initialReserveImbalance` should be constructed to match the initial token supply of this subnet.
     // This means tokens will not be minted until the source contact is collateralized.
-    uint256 public tokenReserve;
+    uint256 public immutable initialReserveImbalance;
+    uint256 public currentReserveImbalance;
 
     // Used for sending and receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
@@ -48,7 +49,7 @@ contract NativeTokenDestination is
         address teleporterMessengerAddress,
         bytes32 sourceBlockchainID_,
         address nativeTokenSourceAddress_,
-        uint256 tokenReserve_
+        uint256 initialReserveImbalance_
     ) {
         currentBlockchainID = WarpMessenger(
             0x0200000000000000000000000000000000000005
@@ -76,7 +77,8 @@ contract NativeTokenDestination is
         );
         nativeTokenSourceAddress = nativeTokenSourceAddress_;
 
-        tokenReserve = tokenReserve_;
+        initialReserveImbalance = initialReserveImbalance_;
+        currentReserveImbalance = initialReserveImbalance_;
     }
 
     /**
@@ -118,14 +120,14 @@ contract NativeTokenDestination is
         require(amount != 0, "NativeTokenDestination: Transfer value of 0");
 
         uint256 adjustedAmount = amount;
-        if (tokenReserve > 0) {
-            if (amount > tokenReserve) {
-                emit CollateralAdded({amount: tokenReserve, remaining: 0});
-                adjustedAmount = amount - tokenReserve;
-                tokenReserve = 0;
+        if (currentReserveImbalance > 0) {
+            if (amount > currentReserveImbalance) {
+                emit CollateralAdded({amount: currentReserveImbalance, remaining: 0});
+                adjustedAmount = amount - currentReserveImbalance;
+                currentReserveImbalance = 0;
             } else {
-                tokenReserve -= amount;
-                emit CollateralAdded({amount: amount, remaining: tokenReserve});
+                currentReserveImbalance -= amount;
+                emit CollateralAdded({amount: amount, remaining: currentReserveImbalance});
                 return;
             }
         }
@@ -151,7 +153,7 @@ contract NativeTokenDestination is
         );
 
         require(
-            tokenReserve == 0,
+            currentReserveImbalance == 0,
             "NativeTokenDestination: Cannot release tokens until source contract is collateralized"
         );
 
@@ -193,5 +195,9 @@ contract NativeTokenDestination is
             amount: msg.value,
             teleporterMessageID: messageID
         });
+    }
+
+    function isCollateralized() public view returns (bool) {
+        return currentReserveImbalance == 0;
     }
 }

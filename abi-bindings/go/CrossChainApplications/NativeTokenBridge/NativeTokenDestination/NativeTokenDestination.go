@@ -31,7 +31,7 @@ var (
 
 // NativeTokenDestinationMetaData contains all meta data concerning the NativeTokenDestination contract.
 var NativeTokenDestinationMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenSourceAddress_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"NativeTokensMinted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenSourceAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenReserve\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenSourceAddress_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"initialReserveImbalance_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"NativeTokensMinted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"initialReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isCollateralized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenSourceAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeContractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // NativeTokenDestinationABI is the input ABI used to generate the binding from.
@@ -242,6 +242,99 @@ func (_NativeTokenDestination *NativeTokenDestinationCallerSession) CurrentBlock
 	return _NativeTokenDestination.Contract.CurrentBlockchainID(&_NativeTokenDestination.CallOpts)
 }
 
+// CurrentReserveImbalance is a free data retrieval call binding the contract method 0x00d872ae.
+//
+// Solidity: function currentReserveImbalance() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationCaller) CurrentReserveImbalance(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _NativeTokenDestination.contract.Call(opts, &out, "currentReserveImbalance")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// CurrentReserveImbalance is a free data retrieval call binding the contract method 0x00d872ae.
+//
+// Solidity: function currentReserveImbalance() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationSession) CurrentReserveImbalance() (*big.Int, error) {
+	return _NativeTokenDestination.Contract.CurrentReserveImbalance(&_NativeTokenDestination.CallOpts)
+}
+
+// CurrentReserveImbalance is a free data retrieval call binding the contract method 0x00d872ae.
+//
+// Solidity: function currentReserveImbalance() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationCallerSession) CurrentReserveImbalance() (*big.Int, error) {
+	return _NativeTokenDestination.Contract.CurrentReserveImbalance(&_NativeTokenDestination.CallOpts)
+}
+
+// InitialReserveImbalance is a free data retrieval call binding the contract method 0x8ac7dd20.
+//
+// Solidity: function initialReserveImbalance() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationCaller) InitialReserveImbalance(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _NativeTokenDestination.contract.Call(opts, &out, "initialReserveImbalance")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// InitialReserveImbalance is a free data retrieval call binding the contract method 0x8ac7dd20.
+//
+// Solidity: function initialReserveImbalance() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationSession) InitialReserveImbalance() (*big.Int, error) {
+	return _NativeTokenDestination.Contract.InitialReserveImbalance(&_NativeTokenDestination.CallOpts)
+}
+
+// InitialReserveImbalance is a free data retrieval call binding the contract method 0x8ac7dd20.
+//
+// Solidity: function initialReserveImbalance() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationCallerSession) InitialReserveImbalance() (*big.Int, error) {
+	return _NativeTokenDestination.Contract.InitialReserveImbalance(&_NativeTokenDestination.CallOpts)
+}
+
+// IsCollateralized is a free data retrieval call binding the contract method 0x49e3284e.
+//
+// Solidity: function isCollateralized() view returns(bool)
+func (_NativeTokenDestination *NativeTokenDestinationCaller) IsCollateralized(opts *bind.CallOpts) (bool, error) {
+	var out []interface{}
+	err := _NativeTokenDestination.contract.Call(opts, &out, "isCollateralized")
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
+}
+
+// IsCollateralized is a free data retrieval call binding the contract method 0x49e3284e.
+//
+// Solidity: function isCollateralized() view returns(bool)
+func (_NativeTokenDestination *NativeTokenDestinationSession) IsCollateralized() (bool, error) {
+	return _NativeTokenDestination.Contract.IsCollateralized(&_NativeTokenDestination.CallOpts)
+}
+
+// IsCollateralized is a free data retrieval call binding the contract method 0x49e3284e.
+//
+// Solidity: function isCollateralized() view returns(bool)
+func (_NativeTokenDestination *NativeTokenDestinationCallerSession) IsCollateralized() (bool, error) {
+	return _NativeTokenDestination.Contract.IsCollateralized(&_NativeTokenDestination.CallOpts)
+}
+
 // NativeTokenSourceAddress is a free data retrieval call binding the contract method 0x5d93f9af.
 //
 // Solidity: function nativeTokenSourceAddress() view returns(address)
@@ -333,37 +426,6 @@ func (_NativeTokenDestination *NativeTokenDestinationSession) TeleporterMessenge
 // Solidity: function teleporterMessenger() view returns(address)
 func (_NativeTokenDestination *NativeTokenDestinationCallerSession) TeleporterMessenger() (common.Address, error) {
 	return _NativeTokenDestination.Contract.TeleporterMessenger(&_NativeTokenDestination.CallOpts)
-}
-
-// TokenReserve is a free data retrieval call binding the contract method 0xcbcb3171.
-//
-// Solidity: function tokenReserve() view returns(uint256)
-func (_NativeTokenDestination *NativeTokenDestinationCaller) TokenReserve(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _NativeTokenDestination.contract.Call(opts, &out, "tokenReserve")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// TokenReserve is a free data retrieval call binding the contract method 0xcbcb3171.
-//
-// Solidity: function tokenReserve() view returns(uint256)
-func (_NativeTokenDestination *NativeTokenDestinationSession) TokenReserve() (*big.Int, error) {
-	return _NativeTokenDestination.Contract.TokenReserve(&_NativeTokenDestination.CallOpts)
-}
-
-// TokenReserve is a free data retrieval call binding the contract method 0xcbcb3171.
-//
-// Solidity: function tokenReserve() view returns(uint256)
-func (_NativeTokenDestination *NativeTokenDestinationCallerSession) TokenReserve() (*big.Int, error) {
-	return _NativeTokenDestination.Contract.TokenReserve(&_NativeTokenDestination.CallOpts)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.

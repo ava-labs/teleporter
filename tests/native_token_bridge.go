@@ -19,9 +19,9 @@ import (
 
 func NativeTokenBridge() {
 	const (
-		tokenReserve  = uint64(1e15)
-		valueToSend1  = tokenReserve / 4
-		valueToSend2  = tokenReserve
+		initialReserveImbalance  = uint64(1e15)
+		valueToSend1  = initialReserveImbalance / 4
+		valueToSend2  = initialReserveImbalance
 		valueToReturn = valueToSend1 / 4
 
 		deployerKeyStr                     = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
@@ -58,7 +58,7 @@ func NativeTokenBridge() {
 
 		nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		DeployContract(ctx, NativeTokenDestinationByteCodeFile, deployerPK, subnetB, nativeTokenDestinationAbi, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress, new(big.Int).SetUint64(tokenReserve))
+		DeployContract(ctx, NativeTokenDestinationByteCodeFile, deployerPK, subnetB, nativeTokenDestinationAbi, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress, new(big.Int).SetUint64(initialReserveImbalance))
 
 
 		log.Info("Finished deploying Bridge contracts")
@@ -151,7 +151,7 @@ func NativeTokenBridge() {
 		// We should have minted the excess coins after checking the collateral
 		bal, err = subnetB.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
 		Expect(err).Should(BeNil())
-		Expect(bal.Uint64()).Should(Equal(valueToSend1 + valueToSend2 - tokenReserve))
+		Expect(bal.Uint64()).Should(Equal(valueToSend1 + valueToSend2 - initialReserveImbalance))
 	}
 
 	{ // Transfer tokens B -> A
