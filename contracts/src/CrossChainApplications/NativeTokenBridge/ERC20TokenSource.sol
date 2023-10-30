@@ -40,27 +40,30 @@ contract ERC20TokenSource is
 
         require(
             teleporterMessengerAddress != address(0),
-            "Invalid TeleporterMessenger Address"
+            "ERC20TokenSource: zero TeleporterMessenger Address"
         );
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
         require(
             destinationBlockchainID_ != bytes32(0),
-            "Invalid Destination Chain ID"
+            "ERC20TokenSource: zero Destination Chain ID"
         );
         require(
             destinationBlockchainID_ != currentBlockchainID,
-            "Cannot Bridge With Same Blockchain"
+            "ERC20TokenSource: Cannot Bridge With Same Blockchain"
         );
         destinationBlockchainID = destinationBlockchainID_;
 
         require(
             nativeTokenDestinationAddress_ != address(0),
-            "Invalid Destination Contract Address"
+            "ERC20TokenSource: zero Destination Contract Address"
         );
         nativeTokenDestinationAddress = nativeTokenDestinationAddress_;
 
-        require(erc20ContractAddress_ != address(0), "Invalid ERC20 Contract Address");
+        require(
+            erc20ContractAddress_ != address(0),
+            "ERC20TokenSource: Invalid ERC20 Contract Address"
+        );
         erc20ContractAddress = erc20ContractAddress_;
     }
 
@@ -77,26 +80,29 @@ contract ERC20TokenSource is
         // Only allow the Teleporter messenger to deliver messages.
         require(
             msg.sender == address(teleporterMessenger),
-            "Unauthorized TeleporterMessenger contract"
+            "ERC20TokenSource: Unauthorized TeleporterMessenger contract"
         );
 
         // Only allow messages from the destination chain.
         require(
             senderBlockchainID == destinationBlockchainID,
-            "Invalid Destination Chain"
+            "ERC20TokenSource: Invalid Destination Chain"
         );
 
         // Only allow the partner contract to send messages.
         require(
             senderAddress == nativeTokenDestinationAddress,
-            "Unauthorized Sender"
+            "ERC20TokenSource: Unauthorized Sender"
         );
 
         (address recipient, uint256 amount) = abi.decode(
             message,
             (address, uint256)
         );
-        require(recipient != address(0), "Invalid Recipient Address");
+        require(
+            recipient != address(0),
+            "ERC20TokenSource: zero Recipient Address"
+        );
 
         // Transfer to recipient
         IERC20(erc20ContractAddress).safeTransfer(recipient, amount);
@@ -114,7 +120,10 @@ contract ERC20TokenSource is
         address[] calldata allowedRelayerAddresses
     ) external nonReentrant {
         // The recipient cannot be the zero address.
-        require(recipient != address(0), "Invalid Recipient Address");
+        require(
+            recipient != address(0),
+            "ERC20TokenSource: zero Recipient Address"
+        );
 
         // Lock tokens in this contract. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call

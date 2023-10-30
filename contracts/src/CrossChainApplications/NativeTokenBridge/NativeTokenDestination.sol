@@ -56,20 +56,23 @@ contract NativeTokenDestination is
 
         require(
             teleporterMessengerAddress != address(0),
-            "Invalid TeleporterMessenger Address"
+            "NativeTokenDestination: zero TeleporterMessenger Address"
         );
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
-        require(sourceBlockchainID_ != bytes32(0), "Invalid Source Chain ID");
+        require(
+            sourceBlockchainID_ != bytes32(0),
+            "NativeTokenDestination: zero Source Chain ID"
+        );
         require(
             sourceBlockchainID_ != currentBlockchainID,
-            "Cannot Bridge With Same Blockchain"
+            "NativeTokenDestination: Cannot Bridge With Same Blockchain"
         );
         sourceBlockchainID = sourceBlockchainID_;
 
         require(
             nativeTokenSourceAddress_ != address(0),
-            "Invalid Source Contract Address"
+            "NativeTokenDestination: zero Source Contract Address"
         );
         nativeTokenSourceAddress = nativeTokenSourceAddress_;
 
@@ -89,27 +92,30 @@ contract NativeTokenDestination is
         // Only allow the Teleporter messenger to deliver messages.
         require(
             msg.sender == address(teleporterMessenger),
-            "Unauthorized TeleporterMessenger contract"
+            "NativeTokenDestination: Unauthorized TeleporterMessenger contract"
         );
 
         // Only allow messages from the source chain.
         require(
             senderBlockchainID == sourceBlockchainID,
-            "Invalid Source Chain"
+            "NativeTokenDestination: Invalid Source Chain"
         );
 
         // Only allow the partner contract to send messages.
         require(
             senderAddress == nativeTokenSourceAddress,
-            "Unauthorized Sender"
+            "NativeTokenDestination: Unauthorized Sender"
         );
 
         (address recipient, uint256 amount) = abi.decode(
             message,
             (address, uint256)
         );
-        require(recipient != address(0), "Invalid Recipient Address");
-        require(amount != 0, "Transfer value of 0");
+        require(
+            recipient != address(0),
+            "NativeTokenDestination: zero Recipient Address"
+        );
+        require(amount != 0, "NativeTokenDestination: Transfer value of 0");
 
         uint256 adjustedAmount = amount;
         if (tokenReserve > 0) {
@@ -139,11 +145,14 @@ contract NativeTokenDestination is
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
         // The recipient cannot be the zero address.
-        require(recipient != address(0), "Invalid Recipient Address");
+        require(
+            recipient != address(0),
+            "NativeTokenDestination: zero Recipient Address"
+        );
 
         require(
             tokenReserve == 0,
-            "Cannot release tokens until source contract is collateralized"
+            "NativeTokenDestination: Cannot release tokens until source contract is collateralized"
         );
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
