@@ -41,53 +41,33 @@ func NativeTokenBridge() {
 	// Info we need to calculate for the test
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
 	Expect(err).Should(BeNil())
-	nativeTokenBridgeContractAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, 0)
+	bridgeContractAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, 0)
 	Expect(err).Should(BeNil())
-	log.Info("Native Token Bridge Contract Address: " + nativeTokenBridgeContractAddress.Hex())
+	log.Info("Native Token Bridge Contract Address: " + bridgeContractAddress.Hex())
 
 	{ // Deploy the contracts
-		nativeTokenSourceBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenSourceByteCodeFile)
-		Expect(err).Should(BeNil())
-		chainATransactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetA.ChainID)
-		Expect(err).Should(BeNil())
-		nativeTokenSourceAbi, err := nativetokensource.NativeTokenSourceMetaData.GetAbi()
-		Expect(err).Should(BeNil())
-		_, txA, _, err := bind.DeployContract(chainATransactor, *nativeTokenSourceAbi, nativeTokenSourceBytecode, subnetA.WSClient, teleporterContractAddress, subnetB.BlockchainID, nativeTokenBridgeContractAddress)
-		Expect(err).Should(BeNil())
-
 		// Both contracts in this test will be deployed to 0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B,
 		// though they do not necessarily have to be deployed at the same address, each contract needs
 		// to know the address of the other.
 		// The nativeTokenDestination contract must be added to "adminAddresses" of "contractNativeMinterConfig"
 		// in the genesis file for the subnet. This will allow it to call the native minter precompile.
-		nativeTokenDestinationBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenDestinationByteCodeFile)
+		erc20TokenSourceAbi, err := nativetokensource.NativeTokenSourceMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		chainBTransactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainID)
+		DeployContract(ctx, NativeTokenSourceByteCodeFile, deployerPK, subnetA, erc20TokenSourceAbi, teleporterContractAddress, subnetB.BlockchainID, bridgeContractAddress)
 		Expect(err).Should(BeNil())
+
 		nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		_, txB, _, err := bind.DeployContract(chainBTransactor, *nativeTokenDestinationAbi, nativeTokenDestinationBytecode, subnetB.WSClient, teleporterContractAddress, subnetA.BlockchainID, nativeTokenBridgeContractAddress, new(big.Int).SetUint64(tokenReserve))
-		Expect(err).Should(BeNil())
+		DeployContract(ctx, NativeTokenDestinationByteCodeFile, deployerPK, subnetB, nativeTokenDestinationAbi, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress, new(big.Int).SetUint64(tokenReserve))
 
-		// Wait for transaction, then check code was deployed
-		utils.WaitForTransaction(ctx, txA.Hash(), subnetA.WSClient)
-		bridgeCodeA, err := subnetA.WSClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(bridgeCodeA)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-
-		// Wait for transaction, then check code was deployed
-		utils.WaitForTransaction(ctx, txB.Hash(), subnetB.WSClient)
-		bridgeCodeB, err := subnetB.WSClient.CodeAt(ctx, nativeTokenBridgeContractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(bridgeCodeB)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 
 		log.Info("Finished deploying Bridge contracts")
 	}
 
 	// Create abi objects to call the contract with
-	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(nativeTokenBridgeContractAddress, subnetB.WSClient)
+	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(bridgeContractAddress, subnetB.WSClient)
 	Expect(err).Should(BeNil())
-	nativeTokenSource, err := nativetokensource.NewNativeTokenSource(nativeTokenBridgeContractAddress, subnetA.WSClient)
+	nativeTokenSource, err := nativetokensource.NewNativeTokenSource(bridgeContractAddress, subnetA.WSClient)
 	Expect(err).Should(BeNil())
 
 	// Helper function

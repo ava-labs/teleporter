@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"math/big"
 
+	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	erc20tokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/ERC20TokenSource"
@@ -17,6 +18,9 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
+
+
+
 
 func ERC20ToNativeTokenBridge() {
 	const (
@@ -55,54 +59,18 @@ func ERC20ToNativeTokenBridge() {
 		// to know the address of the other.
 		// The nativeTokenDestination contract must be added to "adminAddresses" of "contractNativeMinterConfig"
 		// in the genesis file for the subnet. This will allow it to call the native minter precompile.
-		erc20TokenSourceBytecode, err := deploymentUtils.ExtractByteCode(ERC20TokenSourceByteCodeFile)
-		Expect(err).Should(BeNil())
-		Expect(len(erc20TokenSourceBytecode) > 0).Should(BeTrue())
-		chainATransactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetA.ChainID)
-		Expect(err).Should(BeNil())
 		erc20TokenSourceAbi, err := erc20tokensource.ERC20TokenSourceMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		_, txA, _, err := bind.DeployContract(chainATransactor, *erc20TokenSourceAbi, erc20TokenSourceBytecode, subnetA.WSClient, teleporterContractAddress, subnetB.BlockchainID, bridgeContractAddress, exampleERC20ContractAddress)
+		DeployContract(ctx, ERC20TokenSourceByteCodeFile, deployerPK, subnetA, erc20TokenSourceAbi, teleporterContractAddress, subnetB.BlockchainID, bridgeContractAddress, exampleERC20ContractAddress)
 		Expect(err).Should(BeNil())
 
-		// Wait for transaction, then check code was deployed
-		utils.WaitForTransaction(ctx, txA.Hash(), subnetA.WSClient)
-		bridgeCodeA, err := subnetA.WSClient.CodeAt(ctx, bridgeContractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(bridgeCodeA)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-
-		nativeTokenDestinationBytecode, err := deploymentUtils.ExtractByteCode(NativeTokenDestinationByteCodeFile)
-		Expect(err).Should(BeNil())
-		Expect(len(nativeTokenDestinationBytecode) > 0).Should(BeTrue())
-		chainBTransactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainID)
-		Expect(err).Should(BeNil())
 		nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		_, txB, _, err := bind.DeployContract(chainBTransactor, *nativeTokenDestinationAbi, nativeTokenDestinationBytecode, subnetB.WSClient, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress, new(big.Int).SetUint64(tokenReserve))
-		Expect(err).Should(BeNil())
+		DeployContract(ctx, NativeTokenDestinationByteCodeFile, deployerPK, subnetB, nativeTokenDestinationAbi, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress, new(big.Int).SetUint64(tokenReserve))
 
-		// Wait for transaction, then check code was deployed
-		utils.WaitForTransaction(ctx, txB.Hash(), subnetB.WSClient)
-		bridgeCodeB, err := subnetB.WSClient.CodeAt(ctx, bridgeContractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(bridgeCodeB)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-
-		// Deploy an example ERC20 contract to be used as the source token
-		exampleERC20Bytecode, err := deploymentUtils.ExtractByteCode(ExampleERC20ByteCodeFile)
-		Expect(err).Should(BeNil())
-		Expect(len(exampleERC20Bytecode) > 0).Should(BeTrue())
 		exampleERC20Abi, err := exampleerc20.ExampleERC20MetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		chainATransactor2, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetA.ChainID)
-		Expect(err).Should(BeNil())
-		_, txExampleERC20, _, err := bind.DeployContract(chainATransactor2, *exampleERC20Abi, exampleERC20Bytecode, subnetA.WSClient)
-		Expect(err).Should(BeNil())
-
-		// Wait for transaction, then check code was deployed
-		utils.WaitForTransaction(ctx, txExampleERC20.Hash(), subnetA.WSClient)
-		exampleERC20Code, err := subnetA.WSClient.CodeAt(ctx, exampleERC20ContractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(exampleERC20Code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+		DeployContract(ctx, ExampleERC20ByteCodeFile, deployerPK, subnetA, exampleERC20Abi)
 
 		log.Info("Finished deploying contracts")
 	}
@@ -220,4 +188,21 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		Expect(bal.Uint64()).Should(Equal(valueToReturn))
 	}
+}
+
+func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ecdsa.PrivateKey, subnetInfo utils.SubnetTestInfo, abi *abi.ABI, constructorArgs ...interface{}) {
+	// Deploy an example ERC20 contract to be used as the source token
+	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
+	Expect(err).Should(BeNil())
+	Expect(len(byteCode) > 0).Should(BeTrue())
+	chainATransactor2, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.ChainID)
+	Expect(err).Should(BeNil())
+	contractAddress, tx, _, err := bind.DeployContract(chainATransactor2, *abi, byteCode, subnetInfo.WSClient, constructorArgs...)
+	Expect(err).Should(BeNil())
+
+	// Wait for transaction, then check code was deployed
+	utils.WaitForTransaction(ctx, tx.Hash(), subnetInfo.WSClient)
+	code, err := subnetInfo.WSClient.CodeAt(ctx, contractAddress, nil)
+	Expect(err).Should(BeNil())
+	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 }
