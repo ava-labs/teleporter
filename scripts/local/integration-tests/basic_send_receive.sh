@@ -52,16 +52,18 @@ echo "Next message ID for subnet $subnet_b_chain_id_hex is $result"
 send_cross_subnet_message_destination_chain_id=$subnet_b_chain_id_hex
 send_cross_subnet_message_destination_address=abcedf1234abcedf1234abcedf1234abcedf1234
 send_bytes32=000000000000000000000000$send_cross_subnet_message_destination_address
-send_cross_subnet_message_fee_amount=400000000000000000
-send_cross_subnet_message_required_gas_limit=4069
+send_cross_subnet_message_fee_amount=255
+send_cross_subnet_message_required_gas_limit=10000
 send_cross_subnet_message_message_data=cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafe
-approve_amount=309485009821345068724781055
+approve_amount=100000000000000000000000000000
 
 # Approve the Teleporter contract to some ERC20 tokens from the user account we're using to send transactions
-echo "params: $erc20_contract_address_a $teleporter_contract_address $user_private_key $subnet_a_url"
-cast send $erc20_contract_address_a "approve(address,uint256)(bool)" $teleporter_contract_address $approve_amount --private-key $user_private_key --rpc-url $subnet_a_url
+approve_amount=100000000000000000000000000000
+cast send $erc20_contract_address_a "approve(address,uint256)(bool)" $teleporter_contract_address \
+    $approve_amount \
+    --private-key $user_private_key --rpc-url $subnet_a_url
 result=$(cast call $erc20_contract_address_a "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_a_url)
-if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
+if [[ $result != $approve_amount ]]; then
     echo $result
     echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
@@ -107,14 +109,12 @@ echo "Next message ID for subnet $subnet_a_chain_id_hex is $result"
 send_cross_subnet_message_destination_chain_id=$subnet_a_chain_id_hex
 send_cross_subnet_message_destination_address=abcedf1234abcedf1234abcedf1234abcedf1234
 send_bytes32=000000000000000000000000$send_cross_subnet_message_destination_address
-# send_cross_subnet_message_fee_amount=00000000000000000000000000000000000000000000000000000000000000FF
-# send_cross_subnet_message_required_gas_limit=0000000000000000000000000000000000000000000000000000000000001000
-# send_cross_subnet_message_message_data=cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafe
+send_cross_subnet_message_message_data=cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabecafe
 
 # Approve the teleporter contract to some ERC20 tokens from the user account we're using to send transactions
 cast send $erc20_contract_address_b "approve(address,uint256)(bool)" $teleporter_contract_address $approve_amount --private-key $user_private_key --rpc-url $subnet_b_url
 result=$(cast call $erc20_contract_address_b "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_b_url)
-if [[ $result != 309485009821345068724781055 ]]; then # FFFFFFFFFFFFFFFFFFFFFF in decimal form is 309485009821345068724781055
+if [[ $result != $approve_amount ]]; then
     echo $result
     echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
