@@ -26,6 +26,10 @@ set -e # Stop on first error
 #   subnet_b_subnet_id_hex
 #   subnet_c_subnet_id_hex
 #   teleporter_contract_address
+#   warp_messenger_precompile_addr
+#   registry_address_a
+#   registry_address_b
+#   registry_address_c
 
 # Test covers:
 # - Creating bridged tokens on subnets different from the original subnet with the native token asset.
@@ -39,19 +43,22 @@ native_erc20_deploy_result=$(forge create --private-key $user_private_key src/Mo
 native_erc20_contract_address=$(parseContractAddress "$native_erc20_deploy_result")
 echo "Test ERC20 contract deployed to $native_erc20_contract_address on Subnet A"
 
-# Deploy the ERC20 bridge contract to both chains.
-bridge_a_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
-    --rpc-url $subnet_a_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge)
+# Deploy the ERC20 bridge contract to all chains.
+bridge_a_deploy_result=$(forge create --private-key $user_private_key \
+    --rpc-url $subnet_a_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge \
+    --constructor-args $registry_address_a)
 bridge_a_address=$(parseContractAddress "$bridge_a_deploy_result")
 echo "ERC20 bridge contract deployed to subnet A at $bridge_a_address."
 
-bridge_b_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
-    --rpc-url $subnet_b_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge)
+bridge_b_deploy_result=$(forge create --private-key $user_private_key \
+    --rpc-url $subnet_b_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge \
+    --constructor-args $registry_address_b)
 bridge_b_address=$(parseContractAddress "$bridge_b_deploy_result")
 echo "ERC20 bridge contract deployed to subnet B at $bridge_b_address."
 
-bridge_c_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address \
-    --rpc-url $subnet_c_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge)
+bridge_c_deploy_result=$(forge create --private-key $user_private_key \
+    --rpc-url $subnet_c_url src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol:ERC20Bridge \
+    --constructor-args $registry_address_c)
 bridge_c_address=$(parseContractAddress "$bridge_c_deploy_result")
 echo "ERC20 bridge contract deployed to subnet C at $bridge_c_address."
 
