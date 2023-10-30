@@ -38,12 +38,20 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that call to update minimum Teleporter version succeeds for owners
         vm.prank(address(this));
+        vm.expectEmit(true, true, true, true, address(app));
+        emit MinTeleporterVersionUpdated(
+            minTeleporterVersion,
+            minTeleporterVersion + 1
+        );
         app.updateMinTeleporterVersion();
 
         assertEq(app.minTeleporterVersion(), minTeleporterVersion + 1);
     }
 
     function testOwnerTransfer() public {
+        uint256 minTeleporterVersion = app.minTeleporterVersion();
+        _addProtocolVersion(teleporterRegistry, teleporterAddress);
+
         // Check that call to transfer ownership reverts for non-owners
         vm.prank(teleporterAddress);
         vm.expectRevert("Ownable: caller is not the owner");
@@ -60,6 +68,11 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         // Check that after ownership transfer call succeeds
         app.transferOwnership(teleporterAddress);
         vm.prank(teleporterAddress);
+        vm.expectEmit(true, true, true, true, address(app));
+        emit MinTeleporterVersionUpdated(
+            minTeleporterVersion,
+            minTeleporterVersion + 1
+        );
         app.updateMinTeleporterVersion();
 
         // Check that call with old owner reverts
