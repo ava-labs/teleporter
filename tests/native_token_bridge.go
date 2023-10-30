@@ -19,11 +19,12 @@ import (
 
 func NativeTokenBridge() {
 	const (
-		initialReserveImbalance  = uint64(1e15)
-		valueToSend1  = initialReserveImbalance / 4
-		valueToSend2  = initialReserveImbalance
-		valueToReturn = valueToSend1 / 4
+		initialReserveImbalance = uint64(1e15)
+		valueToSend1            = initialReserveImbalance / 4
+		valueToSend2            = initialReserveImbalance
+		valueToReturn           = valueToSend1 / 4
 
+		// TODO use a unique deployer for each test file
 		deployerKeyStr                     = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
 		NativeTokenSourceByteCodeFile      = "./contracts/out/NativeTokenSource.sol/NativeTokenSource.json"
 		NativeTokenDestinationByteCodeFile = "./contracts/out/NativeTokenDestination.sol/NativeTokenDestination.json"
@@ -60,7 +61,6 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		DeployContract(ctx, NativeTokenDestinationByteCodeFile, deployerPK, subnetB, nativeTokenDestinationAbi, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress, new(big.Int).SetUint64(initialReserveImbalance))
 
-
 		log.Info("Finished deploying Bridge contracts")
 	}
 
@@ -76,7 +76,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		transactor.Value = new(big.Int).SetUint64(valueToSend)
 
-		tx, err := nativeTokenDestination.TransferToSource(transactor, toAddress, nativetokendestination.TeleporterFeeInfo{},[]common.Address{})
+		tx, err := nativeTokenDestination.TransferToSource(transactor, toAddress, nativetokendestination.TeleporterFeeInfo{}, []common.Address{})
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToSource transaction on destination chain", "sourceChainID", subnetA.BlockchainID, "txHash", tx.Hash().Hex())
 
