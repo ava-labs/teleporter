@@ -349,6 +349,12 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-retryMessageExecution}
      *
+     * A Teleporter message has an associated `requiredGasLimit` that is used to execute the message.
+     * If the `requiredGasLimit` is too low, then the message execution will fail. This method allows
+     * for retrying the execution of a message with a higher gas limit. Contrary to `receiveCrossChainMessage`,
+     * which will only use `requiredGasLimit` in the sub-call to execute the message, this method may
+     * use all of the gas available in the transaction.
+     *
      * Reverts if the message execution fails again on the specified message.
      * Emits a {MessageExecuted} event if the retry is successful.
      * Requirements:

@@ -44,7 +44,7 @@ contract MyExampleCrossChainMessenger {}
 
 Now that the initial empty `MyExampleCrossChainMessenger` is defined, it's time to integrate the `ITeleporterMessenger` that will provide the functionality to deliver cross chain messages.
 
-Create a state variable of `ITeleporterMessenger` type called `teleporterMessenger`. Then create a constructor for our contract that takes in an address where the Teleporter messenger would be deployed on this chain, and set our state variable with it.
+Create a state variable of `ITeleporterMessenger` type called `teleporterMessenger`. Then create a constructor for our contract that takes in an address where the Teleporter Messenger would be deployed on this chain, and set our state variable with it.
 
 ```solidity
 contract ExampleCrossChainMessenger {
@@ -85,7 +85,7 @@ function receiveTeleporterMessage(
 ) external {
 ```
 
-Now it's time to implement the methods, starting with `sendMessage`. First, import OpenZeppelin's `IERC20` contract, then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeContractAddress` to the teleporter messenger saved as a state variable.
+Now it's time to implement the methods, starting with `sendMessage`. First, import OpenZeppelin's `IERC20` contract, then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeContractAddress` to the Teleporter Messenger saved as a state variable. Relayer fees are an optional way to incentive relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if relaying is guaranteed, such as with a self-hosted relayer.
 
 ```solidity
 // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
@@ -125,7 +125,7 @@ return
     );
 ```
 
-With the sending side complete, the next step is to implement `receiveTeleporterMessage`. The receiver in this example will just receive the arbitrary string data, and check that the message is sent through Teleporter.
+With the sending side complete, the next step is to implement `ITeleporterReceiver.receiveTeleporterMessage`. The receiver in this example will just receive the arbitrary string data, and check that the message is sent through Teleporter.
 
 ```solidity
 // Receive a new message from another chain.

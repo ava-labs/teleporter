@@ -60,7 +60,7 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Emitted when a Teleporter message is being delivered on the destination chain to an address,
-     * but message execution fails. Failed messages can then be retried.
+     * but message execution fails. Failed messages can then be retried with `retryMessageExecution`
      */
     event MessageExecutionFailed(
         bytes32 indexed originChainID,
@@ -151,8 +151,10 @@ interface ITeleporterMessenger {
      * @dev Retries the execution of a previously delivered message by verifying the payload matches
      * the hash of the payload originally delivered, and calling the destination address again.
      *
-     * Intended to be used if the original required gas limit was not sufficient for the message
-     * execution. Messages are ensured to be successfully executed at most once.
+     * Intended to be used if message excution failed on initial delivery of the Teleporter message.
+     * For example, this may occur if the original required gas limit was not sufficient for the message
+     * execution, or if the destination address did not contain a contract, but a compatible contract
+     * was later deployed to that address. Messages are ensured to be successfully executed at most once.
      */
     function retryMessageExecution(
         bytes32 originChainID,
