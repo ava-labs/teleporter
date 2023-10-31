@@ -110,25 +110,14 @@ contract TeleporterRegistry {
     }
 
     /**
-     * @dev Gets the address of a protocol version.
-     * Requirements:
-     *
-     * - the version must be a valid version.
+     * @dev Gets the latest {ITeleporterMessenger} contract.
      */
-    function getAddressFromVersion(
-        uint256 version
-    ) external view returns (address) {
-        return _getAddressFromVersion(version);
-    }
-
-    /**
-     * @dev Gets the version of the given `protocolAddress`.
-     * If `protocolAddress` is not a registered protocol address, returns 0, which is an invalid version.
-     */
-    function getVersionFromAddress(
-        address protocolAddress
-    ) external view returns (uint256) {
-        return _addressToVersion[protocolAddress];
+    function getLatestTeleporter()
+        external
+        view
+        returns (ITeleporterMessenger)
+    {
+        return ITeleporterMessenger(getAddressFromVersion(latestVersion));
     }
 
     /**
@@ -140,18 +129,34 @@ contract TeleporterRegistry {
     function getTeleporterFromVersion(
         uint256 version
     ) external view returns (ITeleporterMessenger) {
-        return ITeleporterMessenger(_getAddressFromVersion(version));
+        return ITeleporterMessenger(getAddressFromVersion(version));
     }
 
     /**
-     * @dev Gets the latest {ITeleporterMessenger} contract.
+     * @dev Gets the address of a protocol version.
+     * Requirements:
+     *
+     * - `version` must be a valid version, i.e. greater than 0 and not greater than the latest version.
      */
-    function getLatestTeleporter()
-        external
-        view
-        returns (ITeleporterMessenger)
-    {
-        return ITeleporterMessenger(_getAddressFromVersion(latestVersion));
+    function getAddressFromVersion(
+        uint256 version
+    ) public view returns (address) {
+        require(version != 0, "TeleporterRegistry: zero version");
+        require(
+            version <= latestVersion,
+            "TeleporterRegistry: invalid version"
+        );
+        return _versionToAddress[version];
+    }
+
+    /**
+     * @dev Gets the version of the given `protocolAddress`.
+     * If `protocolAddress` is not a registered protocol address, returns 0, which is an invalid version.
+     */
+    function getVersionFromAddress(
+        address protocolAddress
+    ) public view returns (uint256) {
+        return _addressToVersion[protocolAddress];
     }
 
     /**
@@ -188,22 +193,5 @@ contract TeleporterRegistry {
         if (entry.version > latestVersion) {
             latestVersion = entry.version;
         }
-    }
-
-    /**
-     * @dev Gets the address of a protocol version.
-     * Requirements:
-     *
-     * - `version` must be a valid version, i.e. greater than 0 and not greater than the latest version.
-     */
-    function _getAddressFromVersion(
-        uint256 version
-    ) internal view returns (address) {
-        require(version != 0, "TeleporterRegistry: zero version");
-        require(
-            version <= latestVersion,
-            "TeleporterRegistry: invalid version"
-        );
-        return _versionToAddress[version];
     }
 }
