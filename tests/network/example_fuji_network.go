@@ -21,15 +21,12 @@ var (
 
 	amplifySubnetID     ids.ID
 	amplifyBlockchainID ids.ID
-	amplifyChainIDInt   *big.Int
 
 	bulletinSubnetID     ids.ID
 	bulletinBlockchainID ids.ID
-	bulletinChainIDInt   *big.Int
 
 	conduitSubnetID     ids.ID
 	conduitBlockchainID ids.ID
-	conduitChainIDInt   *big.Int
 
 	userAddress = common.HexToAddress("0xF0Aa98fDE5f1d08F0CCEC68A7d7A7Eae31c5E9C9")
 	skHex       = ""
@@ -46,7 +43,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	amplifyChainIDInt = big.NewInt(0).SetBytes(amplifyBlockchainID[:])
 
 	bulletinSubnetID, err = ids.FromString("cbXsFGWSDWUYTmRXUoCirVDdQkZmUWrkQQYoVc2wUoDm8eFup")
 	if err != nil {
@@ -56,7 +52,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	bulletinChainIDInt = big.NewInt(0).SetBytes(bulletinBlockchainID[:])
 
 	conduitSubnetID, err = ids.FromString("wW7JVmjXp8SKrpacGzM81RBXdfcLDVY6M2DkFyArEXgtkyozK")
 	if err != nil {
@@ -66,45 +61,59 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	conduitChainIDInt = big.NewInt(0).SetBytes(conduitBlockchainID[:])
 }
 
 // Implements Network, pointing to subnets deployed on Fuji
 type FujiNetwork struct{}
 
 func (g *FujiNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
-	amplifyWSURI := "https://subnets.avax.network/amplify/testnet/rpc"
-	amplifyClient, err := ethclient.Dial(amplifyWSURI)
+	amplifyWSURI := "wss://subnets.avax.network/amplify/testnet/ws"
+	amplifyWSClient, err := ethclient.Dial(amplifyWSURI)
+	Expect(err).Should(BeNil())
+	amplifyRPCURI := "https://subnets.avax.network/amplify/testnet/rpc"
+	amplifyRPCClient, err := ethclient.Dial(amplifyRPCURI)
+	Expect(err).Should(BeNil())
+	amplifyChainIDInt, err := amplifyRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
-	bulletinWSURI := "https://subnets.avax.network/bulletin/testnet/rpc"
-	bulletinClient, err := ethclient.Dial(bulletinWSURI)
+	bulletinWSURI := "wss://subnets.avax.network/bulletin/testnet/ws"
+	bulletinWSClient, err := ethclient.Dial(bulletinWSURI)
+	Expect(err).Should(BeNil())
+	bulletinRPCURI := "https://subnets.avax.network/bulletin/testnet/rpc"
+	bulletinRPCClient, err := ethclient.Dial(bulletinRPCURI)
+	Expect(err).Should(BeNil())
+	bulletinChainIDInt, err := bulletinRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
-	conduitWSURI := "https://subnets.avax.network/conduit/testnet/rpc"
-	conduitClient, err := ethclient.Dial(conduitWSURI)
+	conduitWSURI := "wss://subnets.avax.network/conduit/testnet/ws"
+	conduitWSClient, err := ethclient.Dial(conduitWSURI)
+	Expect(err).Should(BeNil())
+	conduitRPCURI := "https://subnets.avax.network/conduit/testnet/rpc"
+	conduitRPCClient, err := ethclient.Dial(conduitRPCURI)
+	Expect(err).Should(BeNil())
+	conduitChainIDInt, err := conduitRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
 	amplifyInfo := utils.SubnetTestInfo{
-		SubnetID:      amplifySubnetID,
-		BlockchainID:  amplifyBlockchainID,
-		ChainIDInt:    amplifyChainIDInt,
-		ChainWSURI:    amplifyWSURI,
-		ChainWSClient: amplifyClient,
+		SubnetID:       amplifySubnetID,
+		BlockchainID:   amplifyBlockchainID,
+		ChainIDInt:     amplifyChainIDInt,
+		ChainWSClient:  amplifyWSClient,
+		ChainRPCClient: amplifyRPCClient,
 	}
 	bulletinInfo := utils.SubnetTestInfo{
-		SubnetID:      bulletinSubnetID,
-		BlockchainID:  bulletinBlockchainID,
-		ChainIDInt:    bulletinChainIDInt,
-		ChainWSURI:    bulletinWSURI,
-		ChainWSClient: bulletinClient,
+		SubnetID:       bulletinSubnetID,
+		BlockchainID:   bulletinBlockchainID,
+		ChainIDInt:     bulletinChainIDInt,
+		ChainWSClient:  bulletinWSClient,
+		ChainRPCClient: bulletinRPCClient,
 	}
 	conduitInfo := utils.SubnetTestInfo{
-		SubnetID:      conduitSubnetID,
-		BlockchainID:  conduitBlockchainID,
-		ChainIDInt:    conduitChainIDInt,
-		ChainWSURI:    conduitWSURI,
-		ChainWSClient: conduitClient,
+		SubnetID:       conduitSubnetID,
+		BlockchainID:   conduitBlockchainID,
+		ChainIDInt:     conduitChainIDInt,
+		ChainWSClient:  conduitWSClient,
+		ChainRPCClient: conduitRPCClient,
 	}
 
 	return []utils.SubnetTestInfo{

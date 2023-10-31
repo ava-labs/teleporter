@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"encoding/hex"
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/interfaces"
@@ -45,12 +46,13 @@ func BasicOneWaySend(network network.Network) {
 		AllowedRelayerAddresses: []common.Address{},
 		Message:                 []byte{1, 2, 3, 4},
 	}
+	log.Info("debug", "fundedAddress", fundedAddress, "fundedKey", hex.EncodeToString(fundedKey.D.Bytes()), "teleporterContractAddress", teleporterContractAddress)
 	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, signedTx)
+	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, subnetAInfo.ChainRPCClient, signedTx)
 
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainWSClient)
+	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
 	Expect(err).Should(BeNil())
 	event, err := utils.GetSendEventFromLogs(receipt.Logs, bind)
 	Expect(err).Should(BeNil())
@@ -73,7 +75,7 @@ func BasicOneWaySend(network network.Network) {
 		To:   &teleporterContractAddress,
 		Data: data,
 	}
-	result, err := subnetBInfo.ChainWSClient.CallContract(context.Background(), callMessage, nil)
+	result, err := subnetBInfo.ChainRPCClient.CallContract(context.Background(), callMessage, nil)
 	Expect(err).Should(BeNil())
 
 	// check the contract call result
