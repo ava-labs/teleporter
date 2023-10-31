@@ -36,6 +36,16 @@ func init() {
 	}
 }
 
+func PackTeleporterMessage(message TeleporterMessage) ([]byte, error) {
+	args := abi.Arguments{
+		{
+			Name: "teleporterMessage",
+			Type: teleporterMessageType,
+		},
+	}
+	return args.Pack(message)
+}
+
 func UnpackTeleporterMessage(messageBytes []byte) (*TeleporterMessage, error) {
 	args := abi.Arguments{
 		{
