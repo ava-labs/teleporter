@@ -1,5 +1,5 @@
 # ITeleporterMessenger
-[Git Source](https://github.com/ava-labs/teleporter/blob/cadc1420fd95195b094eea855b7496cc71b5be2a/src/Teleporter/ITeleporterMessenger.sol)
+[Git Source](https://github.com/ava-labs/teleporter/blob/dde09fbf56cc395da6bfd76c7f894a3cf5b2cd9e/src/Teleporter/ITeleporterMessenger.sol)
 
 *Interface that describes functionalities for a cross-chain messenger implementing the Teleporter protcol.*
 
@@ -61,8 +61,10 @@ function receiveCrossChainMessage(uint32 messageIndex, address relayerRewardAddr
 
 *Retries the execution of a previously delivered message by verifying the payload matches
 the hash of the payload originally delivered, and calling the destination address again.
-Intended to be used if the original required gas limit was not sufficient for the message
-execution. Messages are ensured to be successfully executed at most once.*
+Intended to be used if message excution failed on initial delivery of the Teleporter message.
+For example, this may occur if the original required gas limit was not sufficient for the message
+execution, or if the destination address did not contain a contract, but a compatible contract
+was later deployed to that address. Messages are ensured to be successfully executed at most once.*
 
 
 ```solidity
@@ -197,7 +199,7 @@ event AddFeeAmount(bytes32 indexed destinationChainID, uint256 indexed messageID
 
 ### MessageExecutionFailed
 *Emitted when a Teleporter message is being delivered on the destination chain to an address,
-but message execution fails. Failed messages can then be retried.*
+but message execution fails. Failed messages can then be retried with `retryMessageExecution`*
 
 
 ```solidity

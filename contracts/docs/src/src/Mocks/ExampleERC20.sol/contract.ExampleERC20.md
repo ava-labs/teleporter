@@ -1,5 +1,5 @@
 # ExampleERC20
-[Git Source](https://github.com/ava-labs/teleporter/blob/cadc1420fd95195b094eea855b7496cc71b5be2a/src/Mocks/ExampleERC20.sol)
+[Git Source](https://github.com/ava-labs/teleporter/blob/dde09fbf56cc395da6bfd76c7f894a3cf5b2cd9e/src/Mocks/ExampleERC20.sol)
 
 **Inherits:**
 ERC20Burnable

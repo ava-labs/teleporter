@@ -1,5 +1,5 @@
 # TeleporterMessenger
-[Git Source](https://github.com/ava-labs/teleporter/blob/cadc1420fd95195b094eea855b7496cc71b5be2a/src/Teleporter/TeleporterMessenger.sol)
+[Git Source](https://github.com/ava-labs/teleporter/blob/dde09fbf56cc395da6bfd76c7f894a3cf5b2cd9e/src/Teleporter/TeleporterMessenger.sol)
 
 **Inherits:**
 [ITeleporterMessenger](/src/Teleporter/ITeleporterMessenger.sol/interface.ITeleporterMessenger.md), [ReentrancyGuards](/src/Teleporter/ReentrancyGuards.sol/abstract.ReentrancyGuards.md)
@@ -139,6 +139,11 @@ function receiveCrossChainMessage(uint32 messageIndex, address relayerRewardAddr
 ### retryMessageExecution
 
 *See {ITeleporterMessenger-retryMessageExecution}
+A Teleporter message has an associated `requiredGasLimit` that is used to execute the message.
+If the `requiredGasLimit` is too low, then the message execution will fail. This method allows
+for retrying the execution of a message with a higher gas limit. Contrary to `receiveCrossChainMessage`,
+which will only use `requiredGasLimit` in the sub-call to execute the message, this method may
+use all of the gas available in the transaction.
 Reverts if the message execution fails again on the specified message.
 Emits a {MessageExecuted} event if the retry is successful.
 Requirements:

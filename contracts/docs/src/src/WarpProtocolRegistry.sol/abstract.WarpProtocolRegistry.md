@@ -1,5 +1,5 @@
 # WarpProtocolRegistry
-[Git Source](https://github.com/ava-labs/teleporter/blob/cadc1420fd95195b094eea855b7496cc71b5be2a/src/WarpProtocolRegistry.sol)
+[Git Source](https://github.com/ava-labs/teleporter/blob/dde09fbf56cc395da6bfd76c7f894a3cf5b2cd9e/src/WarpProtocolRegistry.sol)
 
 *Implementation of an abstract `WarpProtocolRegistry` contract.
 This implementation is a contract that can be used as a base contract for protocols that are

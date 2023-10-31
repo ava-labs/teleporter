@@ -1,5 +1,5 @@
 # ERC20Bridge
-[Git Source](https://github.com/ava-labs/teleporter/blob/cadc1420fd95195b094eea855b7496cc71b5be2a/src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol)
+[Git Source](https://github.com/ava-labs/teleporter/blob/dde09fbf56cc395da6bfd76c7f894a3cf5b2cd9e/src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol)
 
 **Inherits:**
 [IERC20Bridge](/src/CrossChainApplications/ERC20Bridge/IERC20Bridge.sol/interface.IERC20Bridge.md), [ITeleporterReceiver](/src/Teleporter/ITeleporterReceiver.sol/interface.ITeleporterReceiver.md), ReentrancyGuard, [TeleporterUpgradeable](/src/Teleporter/upgrades/TeleporterUpgradeable.sol/abstract.TeleporterUpgradeable.md), Ownable
@@ -76,7 +76,7 @@ uint256 public constant TRANSFER_BRIDGE_TOKENS_REQUIRED_GAS = 300_000;
 ## Functions
 ### constructor
 
-*Initializes the Teleporter messenger used for sending and receiving messages,
+*Initializes the Teleporter Messenger used for sending and receiving messages,
 and initializes the current chain ID.*
 
 
@@ -197,7 +197,7 @@ function encodeTransferBridgeTokensData(
 *Teleporter message receiver for creating a new bridge token on this chain.
 Emits a {CreateBridgeToken} event.
 Note: This function is only called within `receiveTeleporterMessage`, which can only be
-called by the Teleporter messenger.*
+called by the Teleporter Messenger.*
 
 
 ```solidity
@@ -216,7 +216,7 @@ function _createBridgeToken(
 *Teleporter message receiver for minting of an existing bridge token on this chain.
 Emits a {MintBridgeTokens} event.
 Note: This function is only called within `receiveTeleporterMessage`, which can only be
-called by the Teleporter messenger.*
+called by the Teleporter Messenger.*
 
 
 ```solidity
@@ -234,7 +234,7 @@ function _mintBridgeTokens(
 *Teleporter message receiver for handling bridge tokens transfers back from another chain
 and optionally routing them to a different third chain.
 Note: This function is only called within `receiveTeleporterMessage`, which can only be
-called by the Teleporter messenger.*
+called by the Teleporter Messenger.*
 
 
 ```solidity
