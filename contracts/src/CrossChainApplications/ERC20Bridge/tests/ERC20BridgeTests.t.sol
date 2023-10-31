@@ -81,9 +81,7 @@ contract ERC20BridgeTest is Test {
 
         vm.expectCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
-            )
+            abi.encodeWithSignature("latestVersion()")
         );
 
         erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS);
@@ -639,7 +637,7 @@ contract ERC20BridgeTest is Test {
     function testUpdateMinTeleporterVersion() public {
         uint256 latestVersion = erc20Bridge
             .teleporterRegistry()
-            .getLatestVersion();
+            .latestVersion();
 
         // Check that updating minimum Teleporter version fails if it's not the contract owner.
         vm.prank(address(0));
@@ -652,16 +650,12 @@ contract ERC20BridgeTest is Test {
         // Check that the owner can update the minimum Teleporter version.
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
-            ),
+            abi.encodeWithSignature("latestVersion()"),
             abi.encode(2)
         );
         vm.expectCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
-            )
+            abi.encodeWithSignature("latestVersion()")
         );
 
         vm.expectEmit(true, true, true, true, address(erc20Bridge));
@@ -673,16 +667,14 @@ contract ERC20BridgeTest is Test {
     function _initMockTeleporterRegistry() internal {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
-            ),
+            abi.encodeWithSignature("latestVersion()"),
             abi.encode(1)
         );
 
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                WarpProtocolRegistry.getVersionFromAddress.selector,
+                TeleporterRegistry.getVersionFromAddress.selector,
                 (MOCK_TELEPORTER_MESSENGER_ADDRESS)
             ),
             abi.encode(1)
@@ -691,7 +683,7 @@ contract ERC20BridgeTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                WarpProtocolRegistry.getAddressFromVersion.selector,
+                TeleporterRegistry.getAddressFromVersion.selector,
                 (1)
             ),
             abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)

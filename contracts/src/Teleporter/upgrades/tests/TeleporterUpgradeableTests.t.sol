@@ -17,7 +17,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
 
     function updateMinTeleporterVersion() external override {
         uint256 oldMinTeleporterVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        minTeleporterVersion = teleporterRegistry.latestVersion();
         emit MinTeleporterVersionUpdated(
             oldMinTeleporterVersion,
             minTeleporterVersion
