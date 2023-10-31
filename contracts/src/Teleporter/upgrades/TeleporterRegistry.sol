@@ -173,7 +173,7 @@ contract TeleporterRegistry {
      * - `version` is not already registered
      * - `protocolAddress` is not zero address
      */
-    function _addToRegistry(ProtocolRegistryEntry memory entry) internal {
+    function _addToRegistry(ProtocolRegistryEntry memory entry) private {
         require(entry.version != 0, "TeleporterRegistry: zero version");
         // Check that the version has not previously been registered.
         require(
