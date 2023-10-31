@@ -28,8 +28,8 @@ abstract contract WarpProtocolRegistry {
     // cannot possibly be the source address of any other Warp message emitted by the VM.
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
 
-    WarpMessenger public constant WARP_MESSENGER =
-        WarpMessenger(0x0200000000000000000000000000000000000005);
+    IWarpMessenger public constant WARP_MESSENGER =
+        IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     bytes32 internal immutable _blockchainID;
 
@@ -93,14 +93,6 @@ abstract contract WarpProtocolRegistry {
         require(
             message.originSenderAddress == VALIDATORS_SOURCE_ADDRESS,
             "WarpProtocolRegistry: invalid origin sender address"
-        );
-        require(
-            message.destinationChainID == _blockchainID,
-            "WarpProtocolRegistry: invalid destination chain ID"
-        );
-        require(
-            message.destinationAddress == address(this),
-            "WarpProtocolRegistry: invalid destination address"
         );
 
         ProtocolRegistryEntry memory entry = abi.decode(

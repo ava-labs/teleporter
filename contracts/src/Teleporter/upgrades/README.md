@@ -41,7 +41,7 @@ contract ERC20Bridge is
     constructor(
         address teleporterRegistryAddress
     ) TeleporterUpgradeable(teleporterRegistryAddress) {
-        currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
+        currentChainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
     ...

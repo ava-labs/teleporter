@@ -74,7 +74,7 @@ contract ERC20BridgeTest is Test {
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector)
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
         );
 
         _initMockTeleporterRegistry();
