@@ -161,13 +161,13 @@ interface ITeleporterMessenger {
     ) external;
 
     /**
-     * @dev Retries the sending of receipts for the given `messageIDs`.
+     * @dev Sends the receipts for the given `messageIDs`.
      *
-     * Sends the specified message receipts in a new message (with an empty payload) back to the origin chain.
+     * Sends the receipts of the specified messages in a new message (with an empty payload) back to the origin chain.
      * This is intended to be used if the message receipts were originally included in messages that were dropped
      * or otherwise not delivered in a timely manner.
      */
-    function retryReceipts(
+    function sendSpecifiedReceipts(
         bytes32 originChainID,
         uint256[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,
