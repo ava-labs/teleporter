@@ -21,6 +21,10 @@ set -e # Stop on first error
 #   subnet_a_subnet_id_hex
 #   subnet_b_subnet_id_hex
 #   teleporter_contract_address
+#   warp_messenger_precompile_addr
+#   registry_address_a
+#   registry_address_b
+#   registry_address_c
 
 # Test covers:
 # - Deploying block hash publisher smart contract, which is built on top of teleporter.
@@ -28,15 +32,15 @@ set -e # Stop on first error
 
 # Deploy the block hash publisher to subnet A
 cd contracts
-block_hash_publisher_deploy_result=$(forge create --private-key $user_private_key --constructor-args $teleporter_contract_address  \
-    --rpc-url $subnet_a_url src/CrossChainApplications/VerifiedBlockHash/BlockHashPublisher.sol:BlockHashPublisher)
+block_hash_publisher_deploy_result=$(forge create --private-key $user_private_key \
+    --rpc-url $subnet_a_url src/CrossChainApplications/VerifiedBlockHash/BlockHashPublisher.sol:BlockHashPublisher --constructor-args $registry_address_a )
 block_hash_publisher_contract_address=$(parseContractAddress "$block_hash_publisher_deploy_result")
 echo "Block hash publisher contract deployed to subnet A at $block_hash_publisher_contract_address"
 
 # Deploy the example messenger application on subnet B
 block_hash_receiver_deploy_result=$(forge create --private-key $user_private_key \
-    --constructor-args $teleporter_contract_address $subnet_a_chain_id_hex $block_hash_publisher_contract_address \
-    --rpc-url $subnet_b_url src/CrossChainApplications/VerifiedBlockHash/BlockHashReceiver.sol:BlockHashReceiver)
+    --rpc-url $subnet_b_url src/CrossChainApplications/VerifiedBlockHash/BlockHashReceiver.sol:BlockHashReceiver \
+    --constructor-args $registry_address_a $subnet_a_chain_id_hex $block_hash_publisher_contract_address)
 block_hash_receiver_contract_address=$(parseContractAddress "$block_hash_receiver_deploy_result")
 echo "Block hash receiver contract deployed to subnet B at $block_hash_receiver_contract_address"
 
