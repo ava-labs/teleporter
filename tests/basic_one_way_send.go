@@ -13,15 +13,11 @@ import (
 )
 
 func BasicOneWaySendGinkgo() {
-	BasicOneWaySend(&ginkgoNetwork{}, true)
+	BasicOneWaySend(&ginkgoNetwork{})
 }
 
-// Ginkgo describe node that acts as a container for the teleporter e2e tests. This test suite
-// will run through the following steps in order:
-// 1. Send a transaction to the Teleporter contract on Subnet A
-// 2. Aggregate signatures and send the Warp message to Subnet B
-// 3. Verify receipt of the message on Subnet B
-func BasicOneWaySend(network Network, relay bool) {
+// Tests basic one-way send from Subnet A to Subnet B
+func BasicOneWaySend(network Network) {
 	var (
 		teleporterMessageID *big.Int
 	)
@@ -65,9 +61,7 @@ func BasicOneWaySend(network Network, relay bool) {
 	// Relay the message to the destination
 	//
 
-	if relay {
-		utils.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetAInfo, subnetBInfo)
-	}
+	network.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetAInfo, subnetBInfo)
 
 	//
 	// Check Teleporter message received on the destination
