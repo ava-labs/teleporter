@@ -30,7 +30,7 @@ jobs:
       - name: Generate forge docs
         run: |
           cd contracts
-          forge docs --build
+          forge doc --build
 
       - name: Print diff
         run: git --no-pager diff -- contracts/docs/
