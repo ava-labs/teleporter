@@ -37,7 +37,7 @@ type ProtocolRegistryEntry struct {
 
 // TeleporterRegistryMetaData contains all meta data concerning the TeleporterRegistry contract.
 var TeleporterRegistryMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"internalType\":\"structProtocolRegistryEntry[]\",\"name\":\"initialEntries\",\"type\":\"tuple[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"AddProtocolVersion\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"VALIDATORS_SOURCE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"addProtocolVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getAddressFromVersion\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLatestTeleporter\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLatestVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getTeleporterFromVersion\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"getVersionFromAddress\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"internalType\":\"structProtocolRegistryEntry[]\",\"name\":\"initialEntries\",\"type\":\"tuple[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"AddProtocolVersion\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"VALIDATORS_SOURCE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"addProtocolVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"blockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getAddressFromVersion\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLatestTeleporter\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getTeleporterFromVersion\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"getVersionFromAddress\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // TeleporterRegistryABI is the input ABI used to generate the binding from.
@@ -248,6 +248,37 @@ func (_TeleporterRegistry *TeleporterRegistryCallerSession) WARPMESSENGER() (com
 	return _TeleporterRegistry.Contract.WARPMESSENGER(&_TeleporterRegistry.CallOpts)
 }
 
+// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
+//
+// Solidity: function blockchainID() view returns(bytes32)
+func (_TeleporterRegistry *TeleporterRegistryCaller) BlockchainID(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _TeleporterRegistry.contract.Call(opts, &out, "blockchainID")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
+//
+// Solidity: function blockchainID() view returns(bytes32)
+func (_TeleporterRegistry *TeleporterRegistrySession) BlockchainID() ([32]byte, error) {
+	return _TeleporterRegistry.Contract.BlockchainID(&_TeleporterRegistry.CallOpts)
+}
+
+// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
+//
+// Solidity: function blockchainID() view returns(bytes32)
+func (_TeleporterRegistry *TeleporterRegistryCallerSession) BlockchainID() ([32]byte, error) {
+	return _TeleporterRegistry.Contract.BlockchainID(&_TeleporterRegistry.CallOpts)
+}
+
 // GetAddressFromVersion is a free data retrieval call binding the contract method 0x46f9ef49.
 //
 // Solidity: function getAddressFromVersion(uint256 version) view returns(address)
@@ -310,37 +341,6 @@ func (_TeleporterRegistry *TeleporterRegistryCallerSession) GetLatestTeleporter(
 	return _TeleporterRegistry.Contract.GetLatestTeleporter(&_TeleporterRegistry.CallOpts)
 }
 
-// GetLatestVersion is a free data retrieval call binding the contract method 0x0e6d1de9.
-//
-// Solidity: function getLatestVersion() view returns(uint256)
-func (_TeleporterRegistry *TeleporterRegistryCaller) GetLatestVersion(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _TeleporterRegistry.contract.Call(opts, &out, "getLatestVersion")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// GetLatestVersion is a free data retrieval call binding the contract method 0x0e6d1de9.
-//
-// Solidity: function getLatestVersion() view returns(uint256)
-func (_TeleporterRegistry *TeleporterRegistrySession) GetLatestVersion() (*big.Int, error) {
-	return _TeleporterRegistry.Contract.GetLatestVersion(&_TeleporterRegistry.CallOpts)
-}
-
-// GetLatestVersion is a free data retrieval call binding the contract method 0x0e6d1de9.
-//
-// Solidity: function getLatestVersion() view returns(uint256)
-func (_TeleporterRegistry *TeleporterRegistryCallerSession) GetLatestVersion() (*big.Int, error) {
-	return _TeleporterRegistry.Contract.GetLatestVersion(&_TeleporterRegistry.CallOpts)
-}
-
 // GetTeleporterFromVersion is a free data retrieval call binding the contract method 0x215abce9.
 //
 // Solidity: function getTeleporterFromVersion(uint256 version) view returns(address)
@@ -401,6 +401,37 @@ func (_TeleporterRegistry *TeleporterRegistrySession) GetVersionFromAddress(prot
 // Solidity: function getVersionFromAddress(address protocolAddress) view returns(uint256)
 func (_TeleporterRegistry *TeleporterRegistryCallerSession) GetVersionFromAddress(protocolAddress common.Address) (*big.Int, error) {
 	return _TeleporterRegistry.Contract.GetVersionFromAddress(&_TeleporterRegistry.CallOpts, protocolAddress)
+}
+
+// LatestVersion is a free data retrieval call binding the contract method 0xc07f47d4.
+//
+// Solidity: function latestVersion() view returns(uint256)
+func (_TeleporterRegistry *TeleporterRegistryCaller) LatestVersion(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _TeleporterRegistry.contract.Call(opts, &out, "latestVersion")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// LatestVersion is a free data retrieval call binding the contract method 0xc07f47d4.
+//
+// Solidity: function latestVersion() view returns(uint256)
+func (_TeleporterRegistry *TeleporterRegistrySession) LatestVersion() (*big.Int, error) {
+	return _TeleporterRegistry.Contract.LatestVersion(&_TeleporterRegistry.CallOpts)
+}
+
+// LatestVersion is a free data retrieval call binding the contract method 0xc07f47d4.
+//
+// Solidity: function latestVersion() view returns(uint256)
+func (_TeleporterRegistry *TeleporterRegistryCallerSession) LatestVersion() (*big.Int, error) {
+	return _TeleporterRegistry.Contract.LatestVersion(&_TeleporterRegistry.CallOpts)
 }
 
 // AddProtocolVersion is a paid mutator transaction binding the contract method 0x41f34ed9.
