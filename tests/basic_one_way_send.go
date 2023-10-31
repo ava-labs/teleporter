@@ -6,6 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/interfaces"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -13,11 +14,11 @@ import (
 )
 
 func BasicOneWaySendGinkgo() {
-	BasicOneWaySend(&ginkgoNetwork{})
+	BasicOneWaySend(&network.LocalNetwork{})
 }
 
 // Tests basic one-way send from Subnet A to Subnet B
-func BasicOneWaySend(network Network) {
+func BasicOneWaySend(network network.Network) {
 	var (
 		teleporterMessageID *big.Int
 	)

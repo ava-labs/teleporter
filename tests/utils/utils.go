@@ -279,7 +279,7 @@ func RelayMessage(
 	event, err := GetReceiveEventFromLogs(receipt.Logs, bind)
 	Expect(err).Should(BeNil())
 	Expect(event.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
-	return nil
+	return receipt
 }
 
 func GetReceiveEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerReceiveCrossChainMessage, error) {
