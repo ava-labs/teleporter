@@ -9,7 +9,7 @@ on:
       - "*"
 
 env:
-  GO_VERSION: "1.20.8"
+  GO_VERSION: "1.20.10"
 
 jobs:
   abi_binding:
