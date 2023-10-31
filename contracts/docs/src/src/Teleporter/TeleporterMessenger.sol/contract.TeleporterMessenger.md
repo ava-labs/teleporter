@@ -1,5 +1,5 @@
 # TeleporterMessenger
-[Git Source](https://github.com/ava-labs/teleporter/blob/dde09fbf56cc395da6bfd76c7f894a3cf5b2cd9e/src/Teleporter/TeleporterMessenger.sol)
+[Git Source](https://github.com/ava-labs/teleporter/blob/4e46f28c075e9bfc858fb8bbe266f5b4cb45a0be/src/Teleporter/TeleporterMessenger.sol)
 
 **Inherits:**
 [ITeleporterMessenger](/src/Teleporter/ITeleporterMessenger.sol/interface.ITeleporterMessenger.md), [ReentrancyGuards](/src/Teleporter/ReentrancyGuards.sol/abstract.ReentrancyGuards.md)

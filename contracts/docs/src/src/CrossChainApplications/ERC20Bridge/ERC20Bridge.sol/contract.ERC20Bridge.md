@@ -1,5 +1,5 @@
 # ERC20Bridge
-[Git Source](https://github.com/ava-labs/teleporter/blob/dde09fbf56cc395da6bfd76c7f894a3cf5b2cd9e/src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol)
+[Git Source](https://github.com/ava-labs/teleporter/blob/4e46f28c075e9bfc858fb8bbe266f5b4cb45a0be/src/CrossChainApplications/ERC20Bridge/ERC20Bridge.sol)
 
 **Inherits:**
 [IERC20Bridge](/src/CrossChainApplications/ERC20Bridge/IERC20Bridge.sol/interface.IERC20Bridge.md), [ITeleporterReceiver](/src/Teleporter/ITeleporterReceiver.sol/interface.ITeleporterReceiver.md), ReentrancyGuard, [TeleporterUpgradeable](/src/Teleporter/upgrades/TeleporterUpgradeable.sol/abstract.TeleporterUpgradeable.md), Ownable

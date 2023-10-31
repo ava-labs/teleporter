@@ -1,5 +1,5 @@
 # ReentrancyGuards
-[Git Source](https://github.com/ava-labs/teleporter/blob/dde09fbf56cc395da6bfd76c7f894a3cf5b2cd9e/src/Teleporter/ReentrancyGuards.sol)
+[Git Source](https://github.com/ava-labs/teleporter/blob/4e46f28c075e9bfc858fb8bbe266f5b4cb45a0be/src/Teleporter/ReentrancyGuards.sol)
 
 *Abstract contract that helps implement reentrancy guards between functions for sending and receiving.
 Consecutive calls for sending functions should work together, same for receive functions, but recursive calls
