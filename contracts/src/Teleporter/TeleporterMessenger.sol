@@ -270,7 +270,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             (TeleporterMessage)
         );
 
-        // Require that the message was intended for this blockchain and teleporter contract.
+        // Require that the message was intended for this blockchain.
         require(
             teleporterMessage.destinationChainID == blockchainID,
             "TeleporterMessenger: invalid destination chain ID"
