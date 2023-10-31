@@ -64,18 +64,22 @@ func GetSubnetsInfo() []SubnetTestInfo {
 
 func GetSubnetATestInfo() SubnetTestInfo {
 	return SubnetTestInfo{
-		SubnetID:      subnetA,
-		BlockchainID:  blockchainIDA,
-		ChainWSClient: chainAWSClient,
-		ChainIDInt:    big.NewInt(0).Set(chainAIDInt),
+		SubnetID:       subnetA,
+		BlockchainID:   blockchainIDA,
+		ChainNodeURIs:  chainANodeURIs,
+		ChainWSClient:  chainAWSClient,
+		ChainRPCClient: chainARPCClient,
+		ChainIDInt:     big.NewInt(0).Set(chainAIDInt),
 	}
 }
 func GetSubnetBTestInfo() SubnetTestInfo {
 	return SubnetTestInfo{
-		SubnetID:      subnetB,
-		BlockchainID:  blockchainIDB,
-		ChainWSClient: chainBWSClient,
-		ChainIDInt:    big.NewInt(0).Set(chainBIDInt),
+		SubnetID:       subnetB,
+		BlockchainID:   blockchainIDB,
+		ChainNodeURIs:  chainBNodeURIs,
+		ChainWSClient:  chainBWSClient,
+		ChainRPCClient: chainBRPCClient,
+		ChainIDInt:     big.NewInt(0).Set(chainBIDInt),
 	}
 }
 func GetTeleporterContractAddress() common.Address {
@@ -185,7 +189,7 @@ func SetupNetwork(warpGenesisFile string) {
 	Expect(err).Should(BeNil())
 	chainARPCClient, err = ethclient.Dial(chainARPCURI)
 	Expect(err).Should(BeNil())
-	chainAIDInt, err = chainAWSClient.ChainID(context.Background())
+	chainAIDInt, err = chainARPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
 	chainBWSURI := HttpToWebsocketURI(chainBNodeURIs[0], blockchainIDB.String())
@@ -196,7 +200,7 @@ func SetupNetwork(warpGenesisFile string) {
 	Expect(err).Should(BeNil())
 	chainBRPCClient, err = ethclient.Dial(chainBRPCURI)
 	Expect(err).Should(BeNil())
-	chainBIDInt, err = chainBWSClient.ChainID(context.Background())
+	chainBIDInt, err = chainBRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
 	log.Info("Finished setting up e2e test subnet variables")
