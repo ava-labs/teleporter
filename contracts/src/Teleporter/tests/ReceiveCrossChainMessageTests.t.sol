@@ -32,8 +32,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 1,
             senderAddress: address(this),
-            destinationChainID: MOCK_BLOCK_CHAIN_ID,
-            sourceTeleporterAddress: address(teleporterMessenger),
+            destinationChainID: DEFAULT_ORIGIN_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,
@@ -208,33 +207,6 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         );
     }
 
-    function testInvalidSourceTeleporterAddress() public {
-        // Construct the test message to be received.
-        TeleporterMessage
-            memory messageToReceive = _createMockTeleporterMessage(
-                1,
-                new bytes(0)
-            );
-        address invalidDestinationAddress = 0xb73aD7e0FF026a805D1f1186EAB89E41bf01835D;
-        messageToReceive.sourceTeleporterAddress = invalidDestinationAddress;
-
-        WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            abi.encode(messageToReceive)
-        );
-
-        // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
-
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("invalid source teleporter address")
-        );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
-    }
-
     function testInvalidRelayerAddress() public {
         vm.expectRevert(
             _formatTeleporterErrorMessage("zero relayer reward address")
@@ -266,8 +238,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
-            destinationChainID: MOCK_BLOCK_CHAIN_ID,
-            sourceTeleporterAddress: address(teleporterMessenger),
+            destinationChainID: DEFAULT_ORIGIN_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,

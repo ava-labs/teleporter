@@ -25,7 +25,6 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
             messageID: messageID,
             senderAddress: address(this),
             destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
-            sourceTeleporterAddress: address(teleporterMessenger),
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -44,8 +43,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         TeleporterMessage memory fakeMessage = TeleporterMessage({
             messageID: 354,
             senderAddress: address(this),
-            destinationChainID: MOCK_BLOCK_CHAIN_ID,
-            sourceTeleporterAddress: address(teleporterMessenger),
+            destinationChainID: DEFAULT_ORIGIN_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -68,8 +66,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         TeleporterMessage memory alteredMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: address(this),
-            destinationChainID: MOCK_BLOCK_CHAIN_ID,
-            sourceTeleporterAddress: address(teleporterMessenger),
+            destinationChainID: DEFAULT_ORIGIN_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),

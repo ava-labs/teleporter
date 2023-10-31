@@ -15,7 +15,6 @@ import "../../Mocks/UnitTestMockERC20.sol";
 contract TeleporterMessengerTest is Test {
     TeleporterMessenger public teleporterMessenger;
 
-    bytes32 public constant MOCK_BLOCK_CHAIN_ID = bytes32(uint256(123456));
     bytes32 public constant DEFAULT_ORIGIN_CHAIN_ID =
         bytes32(
             hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"
@@ -84,7 +83,7 @@ contract TeleporterMessengerTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
-            abi.encode(MOCK_BLOCK_CHAIN_ID)
+            abi.encode(DEFAULT_ORIGIN_CHAIN_ID)
         );
 
         teleporterMessenger = new TeleporterMessenger();
@@ -276,8 +275,7 @@ contract TeleporterMessengerTest is Test {
             TeleporterMessage({
                 messageID: messageID,
                 senderAddress: address(this),
-                destinationChainID: MOCK_BLOCK_CHAIN_ID,
-                sourceTeleporterAddress: address(teleporterMessenger),
+                destinationChainID: DEFAULT_ORIGIN_CHAIN_ID,
                 destinationAddress: DEFAULT_DESTINATION_ADDRESS,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
                 allowedRelayerAddresses: new address[](0),

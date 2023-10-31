@@ -276,13 +276,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             "TeleporterMessenger: invalid destination chain ID"
         );
 
-        // Require the source teleporter address matches this contract.
-        // It is previously encoded as destinationAddress in WarpMessage before subnet-evm@v0.5.7
-        require(
-            teleporterMessage.sourceTeleporterAddress == address(this),
-            "TeleporterMessenger: invalid source teleporter address"
-        );
-
         // Check the message has not been delivered before by checking that there is no relayer reward
         // address stored for it already.
         require(
@@ -601,7 +594,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             messageID: messageID,
             senderAddress: msg.sender,
             destinationChainID: destinationChainID,
-            sourceTeleporterAddress: address(this),
             destinationAddress: destinationAddress,
             requiredGasLimit: requiredGasLimit,
             allowedRelayerAddresses: allowedRelayerAddresses,
