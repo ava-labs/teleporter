@@ -1,6 +1,6 @@
 # Teleporter Cross Chain Applications
 
-This directory includes cross-chain applications that are built on top of the [Teleporter Messenger Protocol](../Teleporter/README.md).
+This directory includes cross-chain applications that are built on top of the [Teleporter protocol](../Teleporter/README.md).
 
 - [Teleporter Cross Chain Applications](#teleporter-cross-chain-applications)
   - [Applications](#applications)
@@ -20,7 +20,7 @@ This directory includes cross-chain applications that are built on top of the [T
 
 ## Getting started with an example application
 
-This section walks through how to build a cross-chain application on top of the Teleporter Messenger protocol, recreating the `ExampleCrossChainMessenger` contract that sends arbitrary string data from one chain to another.
+This section walks through how to build a cross-chain application on top of the Teleporter protocol, recreating the `ExampleCrossChainMessenger` contract that sends arbitrary string data from one chain to another.
 
 ### Step 1: Create Initial Contract
 
@@ -196,11 +196,11 @@ There we have it, a simple cross chain messenger built on top of Teleporter! Ful
 
 For testing, `scripts/local/test.sh` sets up a local Avalanche network with three subnets deployed with Teleporter, and a relayer to deliver Teleporter messages. To add an integration test simply add a new test script under `integration-tests`. An integration test for `ExampleCrossChainMessenger` is already included (`scripts/local/integration_tests/example_messenger.sh`), which performs the following steps:
 
-1. Deploy the [ExampleERC20](../Mocks/ExampleERC20.sol) token to subnet A.
-2. Deploy `ExampleCrossChainMessenger` to both subnets A and B.
-3. Approve the cross-chain messenger on subnet A to spend ERC20 tokens from the default address.
-4. Send `"hello world"` from subnet A to subnet B's cross-chain messenger to receive.
-5. Call `getCurrentMessage` on subnet B to make sure the right message and sender are received.
+1. Deploys the [ExampleERC20](../Mocks/ExampleERC20.sol) token to subnet A.
+2. Deploys `ExampleCrossChainMessenger` to both subnets A and B.
+3. Approves the cross-chain messenger on subnet A to spend ERC20 tokens from the default address.
+4. Sends `"hello world"` from subnet A to subnet B's cross-chain messenger to receive.
+5. Calls `getCurrentMessage` on subnet B to make sure the right message and sender are received.
 
 Running `./test.sh example_messenger` at the root of the repo should yield at the end of the test:
 
