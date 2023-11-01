@@ -2,9 +2,6 @@
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
 
-
-set -e # Stop on first error
-
 # Needed for submodules
 git config --global --add safe.directory '*'
 if [[ $# -eq 1 ]] && [[ "$1" == "--local-tests-only" ]]; then
