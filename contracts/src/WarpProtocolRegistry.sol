@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
  */
 struct ProtocolRegistryEntry {
     uint256 version;
+    address destinationAddress;
     address protocolAddress;
 }
 
@@ -98,6 +99,12 @@ abstract contract WarpProtocolRegistry {
         ProtocolRegistryEntry memory entry = abi.decode(
             message.payload,
             (ProtocolRegistryEntry)
+        );
+
+        // Check that the message is sent to the registry.
+        require(
+            entry.destinationAddress == address(this),
+            "WarpProtocolRegistry: invalid destination address"
         );
 
         _addToRegistry(entry);

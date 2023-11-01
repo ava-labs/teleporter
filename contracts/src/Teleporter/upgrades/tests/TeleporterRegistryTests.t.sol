@@ -57,6 +57,7 @@ contract TeleporterRegistryTest is Test {
         latestVersion = teleporterRegistry.getLatestVersion();
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             latestVersion + 2,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -84,6 +85,7 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             latestVersion + 2,
+            address(teleporterRegistry),
             address(this),
             address(teleporterRegistry)
         );
@@ -112,6 +114,7 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             latestVersion + 2,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -136,6 +139,7 @@ contract TeleporterRegistryTest is Test {
         uint256 oldVersion = latestVersion + 1;
         warpMessage = _createWarpOutofBandMessage(
             oldVersion,
+            address(teleporterRegistry),
             address(this),
             address(teleporterRegistry)
         );
@@ -171,6 +175,7 @@ contract TeleporterRegistryTest is Test {
         // Add a new version to the registiry
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             latestVersion + 1,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -207,6 +212,7 @@ contract TeleporterRegistryTest is Test {
         // Check that adding an invalid protocol address of address(0) fails
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             latestVersion + 1,
+            address(teleporterRegistry),
             address(0),
             address(teleporterRegistry)
         );
@@ -230,6 +236,7 @@ contract TeleporterRegistryTest is Test {
         // Check that adding an invalid version of 0 fails
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             0,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -285,11 +292,12 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             latestVersion + 1,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
 
-        // First check if warp message is invalid from getVerifiedWarpMessage
+        // Check if warp message is invalid from getVerifiedWarpMessage
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
@@ -334,6 +342,25 @@ contract TeleporterRegistryTest is Test {
 
         vm.expectRevert(_formatErrorMessage("invalid origin sender address"));
         teleporterRegistry.addProtocolVersion(messageIndex);
+
+        // Check if we have an invalid destination address
+        warpMessage = _createWarpOutofBandMessage(
+            latestVersion + 1,
+            address(this),
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        vm.expectRevert(_formatErrorMessage("invalid destination address"));
+        teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
     function _addProtocolVersion(TeleporterRegistry registry) internal {
@@ -341,6 +368,7 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOutofBandMessage(
             latestVersion + 1,
+            address(registry),
             teleporterAddress,
             address(registry)
         );
@@ -364,6 +392,7 @@ contract TeleporterRegistryTest is Test {
 
     function _createWarpOutofBandMessage(
         uint256 version,
+        address destinationAddress,
         address protocolAddress,
         address registryAddress
     ) internal view returns (WarpMessage memory) {
@@ -375,6 +404,7 @@ contract TeleporterRegistryTest is Test {
                 payload: abi.encode(
                     ProtocolRegistryEntry({
                         version: version,
+                        destinationAddress: destinationAddress,
                         protocolAddress: protocolAddress
                     })
                 )

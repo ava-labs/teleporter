@@ -32,7 +32,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 1,
             senderAddress: address(this),
-            destinationChainID: DEFAULT_ORIGIN_CHAIN_ID,
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,
@@ -238,7 +238,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
-            destinationChainID: DEFAULT_ORIGIN_CHAIN_ID,
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,

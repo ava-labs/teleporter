@@ -83,7 +83,7 @@ contract TeleporterMessengerTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
-            abi.encode(DEFAULT_ORIGIN_CHAIN_ID)
+            abi.encode(DEFAULT_DESTINATION_CHAIN_ID)
         );
 
         teleporterMessenger = new TeleporterMessenger();
@@ -275,7 +275,7 @@ contract TeleporterMessengerTest is Test {
             TeleporterMessage({
                 messageID: messageID,
                 senderAddress: address(this),
-                destinationChainID: DEFAULT_ORIGIN_CHAIN_ID,
+                destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
                 destinationAddress: DEFAULT_DESTINATION_ADDRESS,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
                 allowedRelayerAddresses: new address[](0),

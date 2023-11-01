@@ -115,16 +115,3 @@ func PackMessageReceivedOutput(success bool) ([]byte, error) {
 
 	return abi.PackOutput("messageReceived", success)
 }
-
-// CAUTION: PackEvent is documented as not supporting struct types, so this should only be used for testing purposes.
-// In a real setting, the Teleporter contract should pack the event.
-// PackSendCrossChainMessageEvent packs the SendCrossChainMessage event type.
-func PackSendCrossChainMessageEvent(destinationChainID common.Hash, message TeleporterMessage, feeInfo TeleporterFeeInfo) ([]byte, error) {
-	abi, err := TeleporterMessengerMetaData.GetAbi()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get abi")
-	}
-
-	_, hashes, err := abi.PackEvent("SendCrossChainMessage", destinationChainID, message.MessageID, message, feeInfo)
-	return hashes, err
-}
