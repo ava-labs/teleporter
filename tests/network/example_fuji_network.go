@@ -19,14 +19,26 @@ import (
 var (
 	teleporterContractAddress = common.HexToAddress("0x50A46AA7b2eCBe2B1AbB7df865B9A87f5eed8635")
 
-	amplifySubnetID     ids.ID
-	amplifyBlockchainID ids.ID
+	amplifySubnetIDStr     = "2PsShLjrFFwR51DMcAh8pyuwzLn1Ym3zRhuXLTmLCR1STk2mL6"
+	amplifyBlockchainIDStr = "2nFUad4Nw4pCgEF6MwYgGuKrzKbHJzM8wF29jeVUL41RWHgNRa"
+	amplifyWSURI           = "wss://subnets.avax.network/amplify/testnet/ws"
+	amplifyRPCURI          = "https://subnets.avax.network/amplify/testnet/rpc"
+	amplifySubnetID        ids.ID
+	amplifyBlockchainID    ids.ID
 
-	bulletinSubnetID     ids.ID
-	bulletinBlockchainID ids.ID
+	bulletinSubnetIDStr     = "cbXsFGWSDWUYTmRXUoCirVDdQkZmUWrkQQYoVc2wUoDm8eFup"
+	bulletinBlockchainIDStr = "2e3RJ3ub9Pceh8fJ3HX3gZ6nSXJLvBJ9WoXLcU4nwdpZ8X2RLq"
+	bulletinWSURI           = "wss://subnets.avax.network/bulletin/testnet/ws"
+	bulletinRPCURI          = "https://subnets.avax.network/bulletin/testnet/rpc"
+	bulletinSubnetID        ids.ID
+	bulletinBlockchainID    ids.ID
 
-	conduitSubnetID     ids.ID
-	conduitBlockchainID ids.ID
+	conduitSubnetIDStr     = "wW7JVmjXp8SKrpacGzM81RBXdfcLDVY6M2DkFyArEXgtkyozK"
+	conduitBlockchainIDStr = "9asUA3QckLh7vGnFQiiUJGPTx8KE4nFtP8c1wTWJuP8XiWW75"
+	conduitWSURI           = "wss://subnets.avax.network/conduit/testnet/ws"
+	conduitRPCURI          = "https://subnets.avax.network/conduit/testnet/rpc"
+	conduitSubnetID        ids.ID
+	conduitBlockchainID    ids.ID
 
 	userAddress = common.HexToAddress("0xF0Aa98fDE5f1d08F0CCEC68A7d7A7Eae31c5E9C9")
 	skHex       = "" // To be supplied by user
@@ -35,29 +47,29 @@ var (
 func init() {
 	var err error
 
-	amplifySubnetID, err = ids.FromString("2PsShLjrFFwR51DMcAh8pyuwzLn1Ym3zRhuXLTmLCR1STk2mL6")
+	amplifySubnetID, err = ids.FromString(amplifySubnetIDStr)
 	if err != nil {
 		panic(err)
 	}
-	amplifyBlockchainID, err = ids.FromString("2nFUad4Nw4pCgEF6MwYgGuKrzKbHJzM8wF29jeVUL41RWHgNRa")
-	if err != nil {
-		panic(err)
-	}
-
-	bulletinSubnetID, err = ids.FromString("cbXsFGWSDWUYTmRXUoCirVDdQkZmUWrkQQYoVc2wUoDm8eFup")
-	if err != nil {
-		panic(err)
-	}
-	bulletinBlockchainID, err = ids.FromString("2e3RJ3ub9Pceh8fJ3HX3gZ6nSXJLvBJ9WoXLcU4nwdpZ8X2RLq")
+	amplifyBlockchainID, err = ids.FromString(amplifyBlockchainIDStr)
 	if err != nil {
 		panic(err)
 	}
 
-	conduitSubnetID, err = ids.FromString("wW7JVmjXp8SKrpacGzM81RBXdfcLDVY6M2DkFyArEXgtkyozK")
+	bulletinSubnetID, err = ids.FromString(bulletinSubnetIDStr)
 	if err != nil {
 		panic(err)
 	}
-	conduitBlockchainID, err = ids.FromString("9asUA3QckLh7vGnFQiiUJGPTx8KE4nFtP8c1wTWJuP8XiWW75")
+	bulletinBlockchainID, err = ids.FromString(bulletinBlockchainIDStr)
+	if err != nil {
+		panic(err)
+	}
+
+	conduitSubnetID, err = ids.FromString(conduitSubnetIDStr)
+	if err != nil {
+		panic(err)
+	}
+	conduitBlockchainID, err = ids.FromString(conduitBlockchainIDStr)
 	if err != nil {
 		panic(err)
 	}
@@ -67,28 +79,22 @@ func init() {
 type FujiNetwork struct{}
 
 func (g *FujiNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
-	amplifyWSURI := "wss://subnets.avax.network/amplify/testnet/ws"
 	amplifyWSClient, err := ethclient.Dial(amplifyWSURI)
 	Expect(err).Should(BeNil())
-	amplifyRPCURI := "https://subnets.avax.network/amplify/testnet/rpc"
 	amplifyRPCClient, err := ethclient.Dial(amplifyRPCURI)
 	Expect(err).Should(BeNil())
 	amplifyChainIDInt, err := amplifyRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
-	bulletinWSURI := "wss://subnets.avax.network/bulletin/testnet/ws"
 	bulletinWSClient, err := ethclient.Dial(bulletinWSURI)
 	Expect(err).Should(BeNil())
-	bulletinRPCURI := "https://subnets.avax.network/bulletin/testnet/rpc"
 	bulletinRPCClient, err := ethclient.Dial(bulletinRPCURI)
 	Expect(err).Should(BeNil())
 	bulletinChainIDInt, err := bulletinRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
-	conduitWSURI := "wss://subnets.avax.network/conduit/testnet/ws"
 	conduitWSClient, err := ethclient.Dial(conduitWSURI)
 	Expect(err).Should(BeNil())
-	conduitRPCURI := "https://subnets.avax.network/conduit/testnet/rpc"
 	conduitRPCClient, err := ethclient.Dial(conduitRPCURI)
 	Expect(err).Should(BeNil())
 	conduitChainIDInt, err := conduitRPCClient.ChainID(context.Background())
