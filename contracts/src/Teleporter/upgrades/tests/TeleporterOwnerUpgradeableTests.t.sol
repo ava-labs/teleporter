@@ -16,7 +16,9 @@ contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
 }
 
 contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
-    ExampleOwnerUpgradeableApp app;
+    ExampleOwnerUpgradeableApp public app;
+    address public constant MOCK_INVALID_OWNER_ADDRESS =
+        0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
 
     function setUp() public virtual override {
         TeleporterUpgradeableTest.setUp();
@@ -27,7 +29,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         uint256 minTeleporterVersion = app.minTeleporterVersion();
 
         // Check that call to update minimum Teleporter version reverts for non-owners
-        vm.prank(teleporterAddress);
+        vm.prank(MOCK_INVALID_OWNER_ADDRESS);
         vm.expectRevert("Ownable: caller is not the owner");
         app.updateMinTeleporterVersion();
 
@@ -53,7 +55,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         _addProtocolVersion(teleporterRegistry, teleporterAddress);
 
         // Check that call to transfer ownership reverts for non-owners
-        vm.prank(teleporterAddress);
+        vm.prank(MOCK_INVALID_OWNER_ADDRESS);
         vm.expectRevert("Ownable: caller is not the owner");
         app.transferOwnership(address(0));
 
@@ -61,13 +63,14 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         assertEq(app.owner(), address(this));
 
         // Check that call for non owners reverts
-        vm.prank(teleporterAddress);
+        vm.prank(MOCK_INVALID_OWNER_ADDRESS);
         vm.expectRevert("Ownable: caller is not the owner");
         app.updateMinTeleporterVersion();
 
         // Check that after ownership transfer call succeeds
-        app.transferOwnership(teleporterAddress);
-        vm.prank(teleporterAddress);
+        address newOwner = address(0x123);
+        app.transferOwnership(newOwner);
+        vm.prank(newOwner);
         vm.expectEmit(true, true, true, true, address(app));
         emit MinTeleporterVersionUpdated(
             minTeleporterVersion,
@@ -76,14 +79,13 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         app.updateMinTeleporterVersion();
 
         // Check that call with old owner reverts
-        vm.prank(address(this));
         vm.expectRevert("Ownable: caller is not the owner");
         app.updateMinTeleporterVersion();
     }
 
     function testRenounceOwnership() public {
         // Check that call to renounce ownership reverts for non-owners
-        vm.prank(teleporterAddress);
+        vm.prank(MOCK_INVALID_OWNER_ADDRESS);
         vm.expectRevert("Ownable: caller is not the owner");
         app.renounceOwnership();
 
