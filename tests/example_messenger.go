@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"encoding/hex"
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -12,7 +11,6 @@ import (
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
@@ -41,9 +39,6 @@ func ExampleMessenger(network network.Network) {
 	ctx := context.Background()
 	exampleMessengerABI, err := examplecrosschainmessenger.ExampleCrossChainMessengerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-
-	log.Info("registryAddressA", hex.EncodeToString(subnetAInfo.TeleporterRegistryAddress[:]))
-	log.Info("registryAddressB", hex.EncodeToString(subnetBInfo.TeleporterRegistryAddress[:]))
 
 	exampleMessengerContractA := utils.DeployContract(ctx, ExampleMessengerByteCodeFile, fundedKey, subnetAInfo, exampleMessengerABI, subnetAInfo.TeleporterRegistryAddress)
 	exampleMessengerContractB := utils.DeployContract(ctx, ExampleMessengerByteCodeFile, fundedKey, subnetBInfo, exampleMessengerABI, subnetBInfo.TeleporterRegistryAddress)
