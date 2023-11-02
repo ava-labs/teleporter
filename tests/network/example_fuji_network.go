@@ -79,7 +79,7 @@ func init() {
 // Implements Network, pointing to subnets deployed on Fuji
 type FujiNetwork struct{}
 
-func (g *FujiNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
+func (n *FujiNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
 	amplifyWSClient, err := ethclient.Dial(amplifyWSURI)
 	Expect(err).Should(BeNil())
 	amplifyRPCClient, err := ethclient.Dial(amplifyRPCURI)
@@ -130,18 +130,18 @@ func (g *FujiNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
 	}
 }
 
-func (g *FujiNetwork) GetTeleporterContractAddress() common.Address {
+func (n *FujiNetwork) GetTeleporterContractAddress() common.Address {
 	return teleporterContractAddress
 }
 
-func (g *FujiNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
+func (n *FujiNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	key, err := crypto.HexToECDSA(skHex)
 	Expect(err).Should(BeNil())
 
 	return userAddress, key
 }
 
-func (g *FujiNetwork) RelayMessage(ctx context.Context,
+func (n *FujiNetwork) RelayMessage(ctx context.Context,
 	sourceBlockHash common.Hash,
 	sourceBlockNumber *big.Int,
 	source utils.SubnetTestInfo,

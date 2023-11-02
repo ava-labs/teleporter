@@ -10,22 +10,22 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// Implements Network, pointing to the network setup in network_setup.go
+// Implements Network, pointing to the network setup in local_network_setup.go
 type LocalNetwork struct{}
 
-func (g *LocalNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
+func (n *LocalNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
 	return utils.GetSubnetsInfo()
 }
 
-func (g *LocalNetwork) GetTeleporterContractAddress() common.Address {
+func (n *LocalNetwork) GetTeleporterContractAddress() common.Address {
 	return utils.GetTeleporterContractAddress()
 }
 
-func (g *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
+func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	return utils.GetFundedAccountInfo()
 }
 
-func (g *LocalNetwork) RelayMessage(ctx context.Context,
+func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	sourceBlockHash common.Hash,
 	sourceBlockNumber *big.Int,
 	source utils.SubnetTestInfo,
