@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -134,6 +135,41 @@ func CreateSendCrossChainMessageTransaction(
 	return SignTransaction(tx, fundedKey, source.ChainIDInt)
 }
 
+func CreateRetryMessageExecutionTransaction(
+	ctx context.Context,
+	subnetInfo SubnetTestInfo,
+	originChainID ids.ID,
+	message teleportermessenger.TeleporterMessage,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	teleporterContractAddress common.Address,
+) *types.Transaction {
+	teleporterABI, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+
+	data, err := teleporterABI.Pack("retryMessageExecution", originChainID, message)
+	Expect(err).Should(BeNil())
+
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit) // TODO: replace with actual number of signers
+	Expect(err).Should(BeNil())
+
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo.ChainRPCClient, fundedAddress)
+
+	// Send a transaction to the Teleporter contract
+	tx := types.NewTx(&types.DynamicFeeTx{
+		ChainID:   subnetInfo.ChainIDInt,
+		Nonce:     nonce,
+		To:        &teleporterContractAddress,
+		Gas:       gasLimit,
+		GasFeeCap: gasFeeCap,
+		GasTipCap: gasTipCap,
+		Value:     DefaultTeleporterTransactionValue,
+		Data:      data,
+	})
+
+	return SignTransaction(tx, fundedKey, subnetInfo.ChainIDInt)
+}
+
 // Constructs a transaction to call receiveCrossChainMessage
 // Returns the signed transaction.
 func CreateReceiveCrossChainMessageTransaction(
@@ -231,6 +267,17 @@ func GetReceiveEventFromLogs(logs []*types.Log, bind *teleportermessenger.Telepo
 		}
 	}
 	return nil, fmt.Errorf("failed to find ReceiveCrossChainMessage event in receipt logs")
+}
+
+func GetMessageExecutionFailedFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerMessageExecutionFailed, error) {
+	for _, log := range logs {
+		event, err := bind.ParseMessageExecutionFailed(*log)
+		if err == nil {
+			return event, nil
+
+		}
+	}
+	return nil, fmt.Errorf("failed to find MessageExecutionFailed event in receipt logs")
 }
 
 func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerSendCrossChainMessage, error) {
