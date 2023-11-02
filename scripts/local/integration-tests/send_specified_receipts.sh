@@ -67,7 +67,7 @@ cast send $erc20_contract_address_a "approve(address,uint256)(bool)" $teleporter
     $approve_amount \
     --private-key $user_private_key --rpc-url $subnet_a_url
 result=$(cast call $erc20_contract_address_a "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_a_url)
-if [[ $result != $approve_amount ]]; then
+if [[ $result -ne $approve_amount ]]; then
     echo $result
     echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
@@ -75,7 +75,7 @@ fi
 
 cast send $erc20_contract_address_b "approve(address,uint256)(bool)" $teleporter_contract_address $approve_amount --private-key $user_private_key --rpc-url $subnet_b_url
 result=$(cast call $erc20_contract_address_b "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_b_url)
-if [[ $result != $approve_amount ]]; then
+if [[ $result -ne $approve_amount ]]; then
     echo $result
     echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
@@ -139,7 +139,7 @@ if [ ! -z "$relayer_address" ]; then
     echo "Relayer after sendSpecifiedReceipts can redeem rewards of $afterReward"
 
     reward=$(($afterReward-$startingReward))
-    if [[ $reward != $send_cross_subnet_message_fee_amount ]]; then
+    if [[ $reward -ne $send_cross_subnet_message_fee_amount ]]; then
         echo "Relayer reward should be rewarded $send_cross_subnet_message_fee_amount but instead increased by $reward"
         exit 1
     fi
