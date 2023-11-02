@@ -10,6 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+var _ Network = &LocalNetwork{}
+
 // Implements Network, pointing to the network setup in local_network_setup.go
 type LocalNetwork struct{}
 
