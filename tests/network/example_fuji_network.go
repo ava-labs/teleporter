@@ -145,7 +145,8 @@ func (n *FujiNetwork) RelayMessage(ctx context.Context,
 	sourceBlockHash common.Hash,
 	sourceBlockNumber *big.Int,
 	source utils.SubnetTestInfo,
-	destination utils.SubnetTestInfo) *types.Receipt {
+	destination utils.SubnetTestInfo,
+	expectSuccess bool) *types.Receipt {
 
 	// Rely on a separately deployed relayer to relay the message
 	time.Sleep(20 * time.Second)

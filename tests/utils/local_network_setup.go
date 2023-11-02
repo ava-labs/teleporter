@@ -223,7 +223,7 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 		{
 			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 			fundDeployerTx := CreateNativeTransferTransaction(ctx, subnetInfo, fundedAddress, fundedKey, deployerAddress, fundAmount)
-			SendTransactionAndWaitForAcceptance(ctx, subnetInfo.ChainWSClient, subnetInfo.ChainRPCClient, fundDeployerTx)
+			SendTransactionAndWaitForAcceptance(ctx, subnetInfo.ChainWSClient, subnetInfo.ChainRPCClient, fundDeployerTx, true)
 		}
 		log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
 

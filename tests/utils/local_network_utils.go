@@ -71,6 +71,7 @@ func RelayMessage(
 	sourceBlockNumber *big.Int,
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
+	expectSuccess bool,
 ) *types.Receipt {
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.ChainRPCClient.FilterLogs(ctx, interfaces.FilterQuery{
@@ -117,7 +118,11 @@ func RelayMessage(
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt := SendTransactionAndWaitForAcceptance(ctx, destination.ChainWSClient, destination.ChainRPCClient, signedTx)
+	receipt := SendTransactionAndWaitForAcceptance(ctx, destination.ChainWSClient, destination.ChainRPCClient, signedTx, expectSuccess)
+
+	if !expectSuccess {
+		return nil
+	}
 
 	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
 	Expect(err).Should(BeNil())

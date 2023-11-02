@@ -19,5 +19,6 @@ type Network interface {
 		sourceBlockHash common.Hash,
 		sourceBlockNumber *big.Int,
 		source utils.SubnetTestInfo,
-		destination utils.SubnetTestInfo) *types.Receipt
+		destination utils.SubnetTestInfo,
+		expectSuccess bool) *types.Receipt
 }

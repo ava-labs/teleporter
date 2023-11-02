@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"math/big"
 
+	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/interfaces"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
@@ -14,12 +15,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func BasicOneWaySendGinkgo() {
-	BasicOneWaySend(&network.LocalNetwork{})
+func DeliverToWrongChainGinkgo() {
+	DeliverToWrongChain(&network.LocalNetwork{})
 }
 
-// Tests basic one-way send from Subnet A to Subnet B
-func BasicOneWaySend(network network.Network) {
+func DeliverToWrongChain(network network.Network) {
 	var (
 		teleporterMessageID *big.Int
 	)
@@ -31,12 +31,12 @@ func BasicOneWaySend(network network.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
+	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to a chain other than Subnet B
 	//
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationChainID: subnetBInfo.BlockchainID,
+		DestinationChainID: ids.Empty, // Some other chain ID
 		DestinationAddress: fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			ContractAddress: fundedAddress,
@@ -56,7 +56,7 @@ func BasicOneWaySend(network network.Network) {
 	Expect(err).Should(BeNil())
 	event, err := utils.GetSendEventFromLogs(receipt.Logs, bind)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
+	Expect(event.DestinationChainID[:]).Should(Equal(ids.Empty[:]))
 
 	teleporterMessageID = event.Message.MessageID
 
@@ -64,10 +64,10 @@ func BasicOneWaySend(network network.Network) {
 	// Relay the message to the destination
 	//
 
-	network.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetAInfo, subnetBInfo, true)
+	network.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetAInfo, subnetBInfo, false)
 
 	//
-	// Check Teleporter message received on the destination
+	// Check that the message was not received on the Subnet B
 	//
 	data, err := teleportermessenger.PackMessageReceived(subnetAInfo.BlockchainID, teleporterMessageID)
 	Expect(err).Should(BeNil())
@@ -81,5 +81,5 @@ func BasicOneWaySend(network network.Network) {
 	// check the contract call result
 	delivered, err := teleportermessenger.UnpackMessageReceivedResult(result)
 	Expect(err).Should(BeNil())
-	Expect(delivered).Should(BeTrue())
+	Expect(delivered).Should(BeFalse())
 }

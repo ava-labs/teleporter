@@ -29,6 +29,7 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	sourceBlockHash common.Hash,
 	sourceBlockNumber *big.Int,
 	source utils.SubnetTestInfo,
-	destination utils.SubnetTestInfo) *types.Receipt {
-	return utils.RelayMessage(ctx, sourceBlockHash, sourceBlockNumber, source, destination)
+	destination utils.SubnetTestInfo,
+	expectSuccess bool) *types.Receipt {
+	return utils.RelayMessage(ctx, sourceBlockHash, sourceBlockNumber, source, destination, expectSuccess)
 }

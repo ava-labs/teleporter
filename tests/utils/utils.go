@@ -42,7 +42,8 @@ func SendTransactionAndWaitForAcceptance(
 	ctx context.Context,
 	wsClient ethclient.Client,
 	rpcClient ethclient.Client,
-	tx *types.Transaction) *types.Receipt {
+	tx *types.Transaction,
+	expectSuccess bool) *types.Receipt {
 
 	newHeads := make(chan *types.Header, 1)
 	subA, err := wsClient.SubscribeNewHead(ctx, newHeads)
@@ -56,7 +57,11 @@ func SendTransactionAndWaitForAcceptance(
 
 	receipt, err := rpcClient.TransactionReceipt(ctx, tx.Hash())
 	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	if expectSuccess {
+		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	} else {
+		Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
+	}
 
 	return receipt
 }
