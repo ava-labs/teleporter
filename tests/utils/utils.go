@@ -12,16 +12,14 @@ import (
 	"strings"
 
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
-
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/params"
 	predicateutils "github.com/ava-labs/subnet-evm/utils/predicate"
 	"github.com/ava-labs/subnet-evm/x/warp"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
