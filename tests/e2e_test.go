@@ -43,7 +43,11 @@ var _ = ginkgo.BeforeSuite(func() {
 var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
+	// Teleporter tests
 	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySendGinkgo)
 	ginkgo.It("Deliver to the wrong chain", DeliverToWrongChainGinkgo)
+	ginkgo.It("Deliver to non-existent contract", DeliverToNonExistentContractGinkgo)
+
+	// Cross-chain application tests
 	ginkgo.It("Example cross chain messenger", ExampleMessengerGinkgo)
 })
