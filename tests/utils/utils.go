@@ -10,6 +10,7 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+	"time"
 
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -116,7 +117,7 @@ func CreateSendCrossChainMessageTransaction(
 	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.ChainRPCClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, source.ChainRPCClient, fundedAddress)
 
 	// Send a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -130,7 +131,7 @@ func CreateSendCrossChainMessageTransaction(
 		Data:      data,
 	})
 
-	return signTransaction(tx, fundedKey, source.ChainIDInt)
+	return SignTransaction(tx, fundedKey, source.ChainIDInt)
 }
 
 // Constructs a transaction to call receiveCrossChainMessage
@@ -159,7 +160,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, rpcClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, rpcClient, fundedAddress)
 
 	destinationTx := predicateutils.NewPredicateTx(
 		chainID,
@@ -175,7 +176,7 @@ func CreateReceiveCrossChainMessageTransaction(
 		signedMessage.Bytes(),
 	)
 
-	return signTransaction(destinationTx, fundedKey, chainID)
+	return SignTransaction(destinationTx, fundedKey, chainID)
 }
 
 func CreateNativeTransferTransaction(
@@ -186,7 +187,7 @@ func CreateNativeTransferTransaction(
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Transaction {
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.ChainRPCClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, network.ChainRPCClient, fundedAddress)
 
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   network.ChainIDInt,
@@ -198,7 +199,23 @@ func CreateNativeTransferTransaction(
 		Value:     amount,
 	})
 
-	return signTransaction(tx, fundedKey, network.ChainIDInt)
+	return SignTransaction(tx, fundedKey, network.ChainIDInt)
+}
+
+func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclient.Client) *types.Receipt {
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	// Loop until we find the transaction or time out
+	for {
+		receipt, err := client.TransactionReceipt(cctx, txHash)
+		if err == nil {
+			return receipt
+		} else {
+			log.Info("Waiting for transaction", "hash", txHash.Hex())
+			time.Sleep(200 * time.Millisecond)
+		}
+	}
 }
 
 //
@@ -227,12 +244,8 @@ func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.Teleporte
 	return nil, fmt.Errorf("failed to find SendCrossChainMessage event in receipt logs")
 }
 
-//
-// Unexported functions
-//
-
 // Signs a transaction using the provided key for the specified chainID
-func signTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.Int) *types.Transaction {
+func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.Int) *types.Transaction {
 	txSigner := types.LatestSignerForChainID(chainID)
 	signedTx, err := types.SignTx(tx, txSigner, key)
 	Expect(err).Should(BeNil())
@@ -241,7 +254,7 @@ func signTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.
 }
 
 // Returns the gasFeeCap, gasTipCap, and nonce the be used when constructing a transaction from fundedAddress
-func calculateTxParams(ctx context.Context, rpcClient ethclient.Client, fundedAddress common.Address) (*big.Int, *big.Int, uint64) {
+func CalculateTxParams(ctx context.Context, rpcClient ethclient.Client, fundedAddress common.Address) (*big.Int, *big.Int, uint64) {
 	baseFee, err := rpcClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
 

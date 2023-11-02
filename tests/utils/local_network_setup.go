@@ -14,6 +14,7 @@ import (
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
+	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -22,19 +23,21 @@ import (
 )
 
 const (
-	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	fundedKeyStr                   = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	TeleporterRegistryByteCodeFile = "./contracts/out/TeleporterRegistry.sol/TeleporterRegistry.json"
 )
 
 var (
-	teleporterContractAddress        common.Address
-	subnetA, subnetB                 ids.ID
-	blockchainIDA, blockchainIDB     ids.ID
-	chainANodeURIs, chainBNodeURIs   []string
-	fundedAddress                    = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
-	fundedKey                        *ecdsa.PrivateKey
-	chainAWSClient, chainBWSClient   ethclient.Client
-	chainARPCClient, chainBRPCClient ethclient.Client
-	chainAIDInt, chainBIDInt         *big.Int
+	teleporterContractAddress                              common.Address
+	subnetA, subnetB                                       ids.ID
+	blockchainIDA, blockchainIDB                           ids.ID
+	chainANodeURIs, chainBNodeURIs                         []string
+	fundedAddress                                          = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
+	fundedKey                                              *ecdsa.PrivateKey
+	chainAWSClient, chainBWSClient                         ethclient.Client
+	chainARPCClient, chainBRPCClient                       ethclient.Client
+	chainAIDInt, chainBIDInt                               *big.Int
+	teleporterRegistryAddressA, teleporterRegistryAddressB common.Address
 
 	// Internal vars only used to set up the local network
 	anrConfig           = runner.NewDefaultANRConfig()
@@ -47,12 +50,13 @@ var (
 //
 
 type SubnetTestInfo struct {
-	SubnetID       ids.ID
-	BlockchainID   ids.ID
-	ChainNodeURIs  []string
-	ChainWSClient  ethclient.Client
-	ChainRPCClient ethclient.Client
-	ChainIDInt     *big.Int
+	SubnetID                  ids.ID
+	BlockchainID              ids.ID
+	ChainNodeURIs             []string
+	ChainWSClient             ethclient.Client
+	ChainRPCClient            ethclient.Client
+	ChainIDInt                *big.Int
+	TeleporterRegistryAddress common.Address
 }
 
 func GetSubnetsInfo() []SubnetTestInfo {
@@ -64,22 +68,24 @@ func GetSubnetsInfo() []SubnetTestInfo {
 
 func GetSubnetATestInfo() SubnetTestInfo {
 	return SubnetTestInfo{
-		SubnetID:       subnetA,
-		BlockchainID:   blockchainIDA,
-		ChainNodeURIs:  chainANodeURIs,
-		ChainWSClient:  chainAWSClient,
-		ChainRPCClient: chainARPCClient,
-		ChainIDInt:     big.NewInt(0).Set(chainAIDInt),
+		SubnetID:                  subnetA,
+		BlockchainID:              blockchainIDA,
+		ChainNodeURIs:             chainANodeURIs,
+		ChainWSClient:             chainAWSClient,
+		ChainRPCClient:            chainARPCClient,
+		ChainIDInt:                big.NewInt(0).Set(chainAIDInt),
+		TeleporterRegistryAddress: teleporterRegistryAddressA,
 	}
 }
 func GetSubnetBTestInfo() SubnetTestInfo {
 	return SubnetTestInfo{
-		SubnetID:       subnetB,
-		BlockchainID:   blockchainIDB,
-		ChainNodeURIs:  chainBNodeURIs,
-		ChainWSClient:  chainBWSClient,
-		ChainRPCClient: chainBRPCClient,
-		ChainIDInt:     big.NewInt(0).Set(chainBIDInt),
+		SubnetID:                  subnetB,
+		BlockchainID:              blockchainIDB,
+		ChainNodeURIs:             chainBNodeURIs,
+		ChainWSClient:             chainBWSClient,
+		ChainRPCClient:            chainBRPCClient,
+		ChainIDInt:                big.NewInt(0).Set(chainBIDInt),
+		TeleporterRegistryAddress: teleporterRegistryAddressB,
 	}
 }
 func GetTeleporterContractAddress() common.Address {
@@ -249,6 +255,26 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 		log.Info("Finished deploying Teleporter contract", "blockchainID", subnetInfo.BlockchainID.Hex())
 	}
 	log.Info("Deployed Teleporter contracts to all subnets")
+}
+
+func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
+	log.Info("Deploying TeleporterRegistry contract to subnets")
+	ctx := context.Background()
+
+	entries := []teleporterregistry.ProtocolRegistryEntry{
+		{
+			Version:         big.NewInt(1),
+			ProtocolAddress: teleporterAddress,
+		},
+	}
+
+	teleporterRegistryABI, err := teleporterregistry.TeleporterRegistryMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+
+	teleporterRegistryAddressA = DeployContract(ctx, TeleporterRegistryByteCodeFile, fundedKey, GetSubnetATestInfo(), teleporterRegistryABI, entries)
+	teleporterRegistryAddressB = DeployContract(ctx, TeleporterRegistryByteCodeFile, fundedKey, GetSubnetBTestInfo(), teleporterRegistryABI, entries)
+
+	log.Info("Deployed TeleporterRegistry contracts to all subnets")
 }
 
 func TearDownNetwork() {

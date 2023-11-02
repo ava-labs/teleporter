@@ -57,6 +57,32 @@ func DeriveEVMContractAddress(sender common.Address, nonce uint64) (common.Addre
 	return common.HexToAddress(fmt.Sprintf("0x%x", hash.Bytes()[12:])), nil
 }
 
+func ExtractByteCode(byteCodeFileName string) ([]byte, error) {
+	log.Println("Using bytecode file at", byteCodeFileName)
+	byteCodeFileContents, err := os.ReadFile(byteCodeFileName)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to read bytecode file contents")
+	}
+	var byteCodeJSON byteCodeFile
+	err = json.Unmarshal(byteCodeFileContents, &byteCodeJSON)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to unmarshal bytecode file contents as JSON")
+	}
+	byteCodeString := byteCodeJSON.ByteCode.Object
+	if len(byteCodeString) < 2 {
+		return nil, errors.New("Invalid byte code length.")
+	}
+	// Strip off leading 0x if present
+	if byteCodeString[:2] == "0x" || byteCodeString[:2] == "0X" {
+		byteCodeString = byteCodeString[2:]
+	}
+	byteCode, err := hex.DecodeString(byteCodeString)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to decode bytecode string as hexadecimal.")
+	}
+	return byteCode, nil
+}
+
 // Constructs a keyless transaction using Nick's method
 // Optionally writes the transaction, deployer address, and contract address to file
 // Returns the transaction bytes, deployer address, and contract address
@@ -67,27 +93,9 @@ func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byt
 		return nil, common.Address{}, common.Address{}, errors.New("Failed to convert R and S value to big.Int.")
 	}
 
-	log.Println("Using bytecode file at", byteCodeFileName)
-	byteCodeFileContents, err := os.ReadFile(byteCodeFileName)
+	byteCode, err := ExtractByteCode(byteCodeFileName)
 	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to read bytecode file contents")
-	}
-	var byteCodeJSON byteCodeFile
-	err = json.Unmarshal(byteCodeFileContents, &byteCodeJSON)
-	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to unmarshal bytecode file contents as JSON")
-	}
-	byteCodeString := byteCodeJSON.ByteCode.Object
-	if len(byteCodeString) < 2 {
-		return nil, common.Address{}, common.Address{}, errors.New("Invalid byte code length.")
-	}
-	// Strip off leading 0x if present
-	if byteCodeString[:2] == "0x" || byteCodeString[:2] == "0X" {
-		byteCodeString = byteCodeString[2:]
-	}
-	byteCode, err := hex.DecodeString(byteCodeString)
-	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to decode bytecode string as hexadecimal.")
+		return nil, common.Address{}, common.Address{}, err
 	}
 
 	// Construct the legacy transaction with pre-determined signature values.
