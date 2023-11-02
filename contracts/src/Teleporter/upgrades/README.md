@@ -14,7 +14,7 @@ The `TeleporterRegistry` maintains a mapping of `TeleporterMessenger` contract v
 - `destinationChainID` must match the blockchain ID that the registry is deployed on
 - `destinationAddress` must match the address of the registry
 
-In the `TeleporterRegistry` contract, the `getLatestVersion` function returns the highest version number that has been registered in the registry. The `getLatestTeleporter` function returns the `ITeleporterMessenger` that is registered with the corresponding version.
+In the `TeleporterRegistry` contract, the `latestVersion` state variable returns the highest version number that has been registered in the registry. The `getLatestTeleporter` function returns the `ITeleporterMessenger` that is registered with the corresponding version.
 
 ## Design
 
@@ -57,7 +57,7 @@ To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which wo
 ```solidity
     function updateMinTeleporterVersion() external override onlyOwner {
         uint256 oldMinTeleporterVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        minTeleporterVersion = teleporterRegistry.latestVersion();
         emit MinTeleporterVersionUpdated(
             oldMinTeleporterVersion,
             minTeleporterVersion

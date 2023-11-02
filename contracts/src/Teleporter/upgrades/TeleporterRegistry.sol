@@ -18,7 +18,8 @@ struct ProtocolRegistryEntry {
 }
 
 /**
- * @dev TeleporterRegistry contract provides an upgrade mechanism for {ITeleporterMessenger} contracts.
+ * @dev TeleporterRegistry contract provides an upgrade mechanism for {ITeleporterMessenger} contracts
+ * through Warp out-of-band messages
  */
 contract TeleporterRegistry {
     // Address that the out-of-band Warp message sets as the "source" address.
@@ -60,7 +61,7 @@ contract TeleporterRegistry {
     }
 
     /**
-     * @dev Gets and verifies a warp out-of-band message, and adds the new protocol version
+     * @dev Gets and verifies a Warp out-of-band message, and adds the new protocol version
      * address to the registry.
      * If a version is greater than the current latest version, it will be set as the latest version.
      * If a version is less than the current latest version, it is added to the registry, but
@@ -79,7 +80,7 @@ contract TeleporterRegistry {
      * - protocol address must not be zero address.
      */
     function addProtocolVersion(uint32 messageIndex) external {
-        // Get and validate for a warp out-of-band message.
+        // Get and validate for a Warp out-of-band message.
         (WarpMessage memory message, bool success) = WARP_MESSENGER
             .getVerifiedWarpMessage(messageIndex);
         require(success, "TeleporterRegistry: invalid warp message");
@@ -87,7 +88,7 @@ contract TeleporterRegistry {
             message.sourceChainID == blockchainID,
             "TeleporterRegistry: invalid source chain ID"
         );
-        // Check that the message is sent through a warp out of band message.
+        // Check that the message is sent through a Warp out-of-band message.
         require(
             message.originSenderAddress == VALIDATORS_SOURCE_ADDRESS,
             "TeleporterRegistry: invalid origin sender address"
