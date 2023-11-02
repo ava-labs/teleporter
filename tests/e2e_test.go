@@ -36,6 +36,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	Expect(err).Should(BeNil())
 
 	testUtils.DeployTeleporterContracts(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
+	testUtils.DeployTeleporterRegistryContracts(teleporterContractAddress)
 	log.Info("Set up ginkgo before suite")
 })
 
