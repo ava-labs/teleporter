@@ -37,6 +37,7 @@ ENV LANG en_US.utf8
 # Install foundry from specific commit
 SHELL ["/bin/bash", "-c"]
 RUN curl -L https://raw.githubusercontent.com/ava-labs/foundry/v0.1.0/foundryup/install > /tmp/foundry-install-script && \
+    sed -i 's/\/ava-labs\/foundry\/master\/foundryup/\/ava-labs\/foundry\/v0.1.0\/foundryup/g' /tmp/foundry-install-script && \
     cat /tmp/foundry-install-script | bash && \
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
