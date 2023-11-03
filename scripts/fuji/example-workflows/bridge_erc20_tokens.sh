@@ -19,7 +19,7 @@ echo "Bridged ERC20 balance on Conduit Subnet: $subnet_c_bridged_token_balance"
 cast send $subnet_a_native_erc20_contract "approve(address,uint256)(bool)" $subnet_a_erc20_bridge_contract 400000000000000000 \
     --private-key $user_private_key --rpc-url $subnet_a_url
 result=$(cast call $subnet_a_native_erc20_contract "allowance(address,address)(uint256)" $user_address $subnet_a_erc20_bridge_contract --rpc-url $subnet_a_url)
-if [[ $result != 400000000000000000 ]]; then
+if [[ $result -ne 400000000000000000 ]]; then
     echo "Allowance $result"
     echo "Error approving bridge contract on Amplify Subnet to spend ERC20 from user account."
     exit 1
@@ -51,11 +51,11 @@ subnet_b_bridged_token_balance=$(cast call $subnet_b_bridge_token_contract "bala
 retry_count=0
 until [[ $native_erc20_balance = $native_erc20_expected_balance ]] && [[ $subnet_b_bridged_token_balance = $subnet_b_bridged_token_expected_balance ]]; do
     if [[ retry_count -ge 10 ]]; then
-        if [[ $native_erc20_balance != $native_erc20_expected_balance ]]; then
+        if [[ $native_erc20_balance -ne $native_erc20_expected_balance ]]; then
             echo "Native ERC20 balance for $user_address did not match expected on Amplify Subnet."
             echo "Actual balance: $native_erc20_balance, Expected: $native_erc20_expected_balance"
         fi
-        if [[ $subnet_b_bridged_token_balance != $subnet_b_bridged_token_expected_balance ]]; then
+        if [[ $subnet_b_bridged_token_balance -ne $subnet_b_bridged_token_expected_balance ]]; then
             echo "Bridge token balance for $user_address did not match expected on Bulletin Subnet."
             echo "Actual balance: $subnet_b_bridged_token_balance, Expected: $subnet_b_bridged_token_expected_balance"
         fi
@@ -78,7 +78,7 @@ echo "Bridge token balance matches expected."
 cast send $subnet_b_bridge_token_contract "approve(address,uint256)(bool)" $subnet_b_erc20_bridge_contract 200000000000000000 \
     --private-key $user_private_key --rpc-url $subnet_b_url
 result=$(cast call $subnet_b_bridge_token_contract "allowance(address,address)(uint256)" $user_address $subnet_b_erc20_bridge_contract --rpc-url $subnet_b_url)
-if [[ $result != 200000000000000000 ]]; then
+if [[ $result -ne 200000000000000000 ]]; then
     echo $result
     echo "Error approving bridge contract on Bulletin Subnet to spend bridged ERC20 from user account."
     exit 1
@@ -110,11 +110,11 @@ subnet_c_bridged_token_balance=$(cast call $subnet_c_bridge_token_contract "bala
 retry_count=0
 until [[ $subnet_b_bridged_token_balance = $subnet_b_bridged_token_expected_balance ]] && [[ $subnet_c_bridged_token_balance = $subnet_c_bridged_token_expected_balance ]]; do
     if [[ retry_count -ge 10 ]]; then
-        if [[ $subnet_b_bridged_token_balance != $subnet_b_bridged_token_expected_balance ]]; then
+        if [[ $subnet_b_bridged_token_balance -ne $subnet_b_bridged_token_expected_balance ]]; then
             echo "Bridge token balance for $user_address did not match expected on Bulletin Subnet."
             echo "Actual balance: $subnet_b_bridged_token_balance, Expected: $subnet_b_bridged_token_expected_balance"
         fi
-        if [[ $subnet_c_bridged_token_balance != $subnet_c_bridged_token_expected_balance ]]; then
+        if [[ $subnet_c_bridged_token_balance -ne $subnet_c_bridged_token_expected_balance ]]; then
             echo "Bridge token balance for $user_address did not match expected on Conduit Subnet."
             echo "Actual balance: $subnet_c_bridged_token_balance, Expected: $subnet_c_bridged_token_expected_balance"
         fi
