@@ -5,8 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import {WarpMessage, WarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 
 /**
  * @dev Registry entry that represents a mapping between protocolAddress and version.

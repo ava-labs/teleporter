@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterRegistry.sol";
+import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top

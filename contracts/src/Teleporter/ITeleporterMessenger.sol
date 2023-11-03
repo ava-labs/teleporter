@@ -5,11 +5,19 @@
 
 pragma solidity 0.8.18;
 
+// A message receipt identifies the message ID that was
+// delivered and address that should be able to redeem the
+// reward for that message.
 struct TeleporterMessageReceipt {
     uint256 receivedMessageID;
     address relayerRewardAddress;
 }
 
+// Represents all of the information required for submitting a Teleporter message
+// to be sent to the given destination chain ID and address. Includes the fee
+// information for the message, the amount of gas the relayer must provide to execute
+// the message on the destination chain, the relayer accounts allowed to deliver the
+// message, and the message data itself.
 struct TeleporterMessageInput {
     bytes32 destinationChainID;
     address destinationAddress;
@@ -19,6 +27,7 @@ struct TeleporterMessageInput {
     bytes message;
 }
 
+// Represents a message sent or received by an implementation of {ITeleporterMessenger}.
 struct TeleporterMessage {
     uint256 messageID;
     address senderAddress;
@@ -29,6 +38,9 @@ struct TeleporterMessage {
     bytes message;
 }
 
+// Represents the fee information associated to a given Teleporter message.
+// The contract address is the asset contract the fee will be paid in, and
+// the amount is the amount of that specified asset.
 struct TeleporterFeeInfo {
     address contractAddress;
     uint256 amount;
@@ -36,6 +48,8 @@ struct TeleporterFeeInfo {
 
 /**
  * @dev Interface that describes functionalities for a cross chain messenger.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 interface ITeleporterMessenger {
     /**
@@ -113,7 +127,7 @@ interface ITeleporterMessenger {
      * Retriggers the sending of a message previously emitted by sendCrossChainMessage that has not yet been acknowledged
      * with a receipt from the destination chain. This may be necessary in the unlikely event that less than the required
      * threshold of stake weight successfully inserted the message in their messages DB at the time of the first submission.
-     * The message is checked to have already been previously submitted by comparing it's message hash against those kept in
+     * The message is checked to have already been previously submitted by comparing its message hash against those kept in
      * state until a receipt is received for the message.
      */
     function retrySendCrossChainMessage(
@@ -165,6 +179,8 @@ interface ITeleporterMessenger {
      * Sends the receipts of the specified messages in a new message (with an empty payload) back to the origin chain.
      * This is intended to be used if the message receipts were originally included in messages that were dropped
      * or otherwise not delivered in a timely manner.
+     *
+     * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
      */
     function sendSpecifiedReceipts(
         bytes32 originChainID,
@@ -218,6 +234,11 @@ interface ITeleporterMessenger {
         bytes32 destinationChainID,
         uint256 messageID
     ) external view returns (address feeAsset, uint256 feeAmount);
+
+    /**
+     * @dev Returns the next message ID to be used to send a message to the given chain ID.
+     */
+    function getNextMessageID(bytes32 chainID) external view returns (uint256);
 
     /**
      * @dev Gets the number of receipts that have been sent to the given destination chain ID.

@@ -5,17 +5,25 @@
 
 pragma solidity 0.8.18;
 
-import "./ITeleporterMessenger.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {TeleporterMessageReceipt} from "./ITeleporterMessenger.sol";
 
 /**
  * @dev ReceiptQueue is a convenience library that creates a queue-like interface of
  * TeleporterMessageReceipt structs. It provides FIFO properties.
  * Note: All functions in this library are internal so that the library is not deployed as a contract.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 library ReceiptQueue {
+    // A receipt queue represents a FIFO list of receipts.
     struct TeleporterMessageReceiptQueue {
+        // Tracks the head of the queue within the {data} mapping.
         uint256 first;
+        // Tracks the tail of the queue within the {data} mapping.
         uint256 last;
+        // Represents the elements in the queue. Each new item enqueued is
+        // assigned an index one greater than the previous tail.
         mapping(uint256 index => TeleporterMessageReceipt) data;
     }
 
@@ -56,14 +64,9 @@ library ReceiptQueue {
     ) internal returns (TeleporterMessageReceipt[] memory result) {
         // Get the current outstanding receipts for the given chain ID.
         // If the queue contract doesn't exist, there are no outstanding receipts to send.
-        uint256 resultSize = size(queue);
+        uint256 resultSize = Math.min(_MAXIMUM_RECEIPT_COUNT, size(queue));
         if (resultSize == 0) {
             return new TeleporterMessageReceipt[](0);
-        }
-
-        // Calculate the result size as the minimum of the number of receipts and maximum batch size.
-        if (resultSize > _MAXIMUM_RECEIPT_COUNT) {
-            resultSize = _MAXIMUM_RECEIPT_COUNT;
         }
 
         result = new TeleporterMessageReceipt[](resultSize);
