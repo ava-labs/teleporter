@@ -69,7 +69,7 @@ approve_amount=10000000000000000000000000000000
 cast send $native_erc20_contract_address "approve(address,uint256)(bool)" $bridge_a_address $approve_amount \
     --private-key $user_private_key --rpc-url $subnet_a_url
 result=$(cast call $native_erc20_contract_address "allowance(address,address)(uint256)" $user_address $bridge_a_address --rpc-url $subnet_a_url)
-if [[ $result != $approve_amount ]]; then
+if [[ $result -ne $approve_amount ]]; then
     echo $result
     echo "Error approving bridge contract on subnet A to spend ERC20 from user account."
     exit 1
@@ -169,12 +169,12 @@ if [[ "$actual_native_asset" != "$native_erc20_contract_address" ]]; then
     exit 1
 fi
 
-if [[ $actual_name != "\"Mock Token\"" ]]; then
+if [[ $actual_name != "Mock Token" ]]; then
     echo "Actual name: $actual_name, Expected: Mock Token"
     exit 1
 fi
 
-if [[ $actual_symbol != "\"EXMP\"" ]]; then
+if [[ $actual_symbol != "EXMP" ]]; then
     echo "Actual symbol: $actual_symbol, Expected: EXMP"
     exit 1
 fi
@@ -188,7 +188,7 @@ fi
 actual_bridge_token_balance=$(cast call $bridge_token_subnet_b_contract_address "balanceOf(address)(uint256)" $user_address --rpc-url $subnet_b_url)
 echo "Bridge token balance is $actual_bridge_token_balance"
 
-if [[ "$actual_bridge_token_balance" != "12000000000000000000" ]]; then
+if [[ $actual_bridge_token_balance -ne 12000000000000000000 ]]; then
     echo "Bridge token balance for $user_address did not match expected."
     echo "Actual balance: $actual_bridge_token_balance, Expected: 12000000000000000000"
     exit 1
@@ -198,7 +198,7 @@ echo "Bridge token balance matches expected."
 # Approve the bridge contract on subnet B to spent the wrapped tokens in the user account.
 cast send $bridge_token_subnet_b_contract_address "approve(address,uint256)(bool)" $bridge_b_address $approve_amount --private-key $user_private_key --rpc-url $subnet_b_url
 result=$(cast call $bridge_token_subnet_b_contract_address "allowance(address,address)(uint256)" $user_address $bridge_b_address --rpc-url $subnet_b_url)
-if [[ $result != $approve_amount ]]; then
+if [[ $result -ne $approve_amount ]]; then
     echo $result
     echo "Error approving bridge contract on subnet B to spend bridged ERC20 from user account."
     exit 1
@@ -224,7 +224,7 @@ sleep 10
 actual_bridge_token_balance=$(cast call $bridge_token_subnet_c_contract_address "balanceOf(address)(uint256)" $user_address --rpc-url $subnet_c_url)
 echo "Bridge token balance on Subnet C is $actual_bridge_token_balance"
 
-if [[ "$actual_bridge_token_balance" != "9000000000000000000" ]]; then
+if [[ $actual_bridge_token_balance -ne 9000000000000000000 ]]; then
     echo "Bridge token balance for $user_address on Subnet C did not match expected."
     echo "Actual balance: $actual_bridge_token_balance, Expected: 9000000000000000000"
     exit 1
@@ -235,7 +235,7 @@ echo "Bridge token balance matches expected on Subnet C."
 if [ ! -z "$relayer_address" ]; then
     actual_relayer_redeemable_balance=$(cast call $teleporter_contract_address "checkRelayerRewardAmount(address,address)(uint256)" $relayer_address $native_erc20_contract_address --rpc-url $subnet_a_url)
     echo "Redeemable native ERC20 token balance for relayer account is $actual_relayer_redeemable_balance"
-    if [[ "$actual_relayer_redeemable_balance" != "2000000000000000000" ]]; then
+    if [[ $actual_relayer_redeemable_balance -ne 2000000000000000000 ]]; then
         echo "Redeemable rewards for relayer account ($relayer_address) did not match expected."
         echo "Actual balance: $actual_relayer_redeemable_balance, Expected: 2000000000000000000"
         exit 1
@@ -246,7 +246,7 @@ fi
 # Approve the bridge contract on Subnet C to spend the bridge tokens from the user account
 cast send $bridge_token_subnet_c_contract_address "approve(address,uint256)(bool)" $bridge_c_address $approve_amount --private-key $user_private_key --rpc-url $subnet_c_url
 result=$(cast call $bridge_token_subnet_c_contract_address "allowance(address,address)(uint256)" $user_address $bridge_c_address --rpc-url $subnet_c_url)
-if [[ $result != $approve_amount ]]; then
+if [[ $result -ne $approve_amount ]]; then
     echo $result
     echo "Error approving bridge contract on subnet C to spend bridged ERC20 from user account."
     exit 1
@@ -271,7 +271,7 @@ sleep 10
 # Check the balance of the native token after the unwrap
 actual_native_token_default_account_balance=$(cast call $native_erc20_contract_address "balanceOf(address)(uint256)" $user_address --rpc-url $subnet_a_url)
 echo "Native ERC20 token balance for user account is $actual_native_token_default_account_balance"
-if [[ "$actual_native_token_default_account_balance" != "9999999992000000000000000000" ]]; then
+if [[ $actual_native_token_default_account_balance -ne 9999999992000000000000000000 ]]; then
     echo "Native token balance for $user_address did not match expected."
     echo "Actual balance: $actual_native_token_default_account_balance, Expected: 9999999992000000000000000000"
     exit 1
@@ -282,7 +282,7 @@ echo "Native token balance matches expected for user account."
 if [ ! -z "$relayer_address" ]; then
     actual_relayer_redeemable_balance=$(cast call $teleporter_contract_address "checkRelayerRewardAmount(address,address)(uint256)" $relayer_address $native_erc20_contract_address --rpc-url $subnet_a_url)
     echo "Redeemable ERC20 token reward balance for relayer account is $actual_relayer_redeemable_balance"
-    if [[ "$actual_relayer_redeemable_balance" != "4000000000000000000" ]]; then
+    if [[ $actual_relayer_redeemable_balance -ne 4000000000000000000 ]]; then
         echo "Redeemable reward balance for relayer account ($relayer_address) did not match expected."
         echo "Actual balance: $actual_relayer_redeemable_balance, Expected: 4000000000000000000"
         exit 1
