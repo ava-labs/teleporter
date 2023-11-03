@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"encoding/hex"
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/interfaces"
@@ -48,7 +47,6 @@ func UnallowedRelayer(network network.Network) {
 		},
 		Message: []byte{1, 2, 3, 4},
 	}
-	log.Info("debug", "fundedAddress", fundedAddress, "fundedKey", hex.EncodeToString(fundedKey.D.Bytes()), "teleporterContractAddress", teleporterContractAddress)
 	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
