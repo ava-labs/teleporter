@@ -36,8 +36,10 @@ abstract contract WarpProtocolRegistry {
     uint256 internal _latestVersion;
 
     // Mappings that keep track of the protocol version and corresponding contract address.
-    mapping(uint256 => address) internal _versionToAddress;
-    mapping(address => uint256) internal _addressToVersion;
+    mapping(uint256 version => address protocolAddress)
+        internal _versionToAddress;
+    mapping(address protocolAddress => uint256 version)
+        internal _addressToVersion;
 
     /**
      * @dev Emitted when a new protocol version is added to the registry.

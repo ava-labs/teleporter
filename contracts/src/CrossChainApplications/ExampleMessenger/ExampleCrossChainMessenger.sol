@@ -32,7 +32,7 @@ contract ExampleCrossChainMessenger is
         string message;
     }
 
-    mapping(bytes32 => Message) private _messages;
+    mapping(bytes32 originChainID => Message message) private _messages;
 
     /**
      * @dev Emitted when a message is submited to be sent.

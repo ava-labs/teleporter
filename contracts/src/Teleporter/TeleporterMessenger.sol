@@ -41,42 +41,43 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // if the value has not already been set.
     bytes32 public blockchainID;
 
-    // Tracks the latest message ID used for a given destination subnet.
-    // Key is the destination subnet ID, and the value is the last message ID used for that subnet.
-    // Note that the first message ID used for each subnet will be 1 (not 0).
-    mapping(bytes32 => uint256) public latestMessageIDs;
+    // Tracks the latest message ID used for a given destination chain.
+    // Key is the destination blockchain ID, and the value is the last message ID used for that chain.
+    // Note that the first message ID used for each chain will be 1 (not 0).
+    mapping(bytes32 destinationChainID => uint256 messageID)
+        public latestMessageIDs;
 
     // Tracks the outstanding receipts to send back to a given subnet in subsequent messages sent to it.
-    // Key is the subnet ID of the other subnet, and the value is a queue of pending receipts for messages
+    // Key is the blockchain ID of the other subnet, and the value is a queue of pending receipts for messages
     // received from that subnet.
-    mapping(bytes32 => ReceiptQueue.TeleporterMessageReceiptQueue)
+    mapping(bytes32 sourceChainID => ReceiptQueue.TeleporterMessageReceiptQueue receiptQueue)
         public receiptQueues;
 
     // Tracks the message hash and fee information for each message sent that has yet to be acknowledged
     // with a receipt. The messages are tracked per subnet and keyed by message ID.
-    // The first key is the subnet ID, the second key is the message ID, and the value is the info
+    // The first key is the blockchain ID, the second key is the message ID, and the value is the info
     // for the uniquely identified message.
-    mapping(bytes32 => mapping(uint256 => SentMessageInfo))
+    mapping(bytes32 destinationChainID => mapping(uint256 messageID => SentMessageInfo messageInfo))
         public sentMessageInfo;
 
     // Tracks the hash of messages that have been received but whose execution has never succeeded.
     // Enables retrying of failed messages with higher gas limits. Message execution is guaranteed to
-    // succeed at most once.  The first key is the subnet ID, the second key is the message ID, and
+    // succeed at most once. The first key is the blockchain ID, the second key is the message ID, and
     // the value is the hash of the uniquely identified message whose execution failed.
-    mapping(bytes32 => mapping(uint256 => bytes32))
+    mapping(bytes32 sourceChainID => mapping(uint256 messageID => bytes32 messageHash))
         public receivedFailedMessageHashes;
 
     // Tracks the relayer reward address for each message delivered from a given subnet.
     // Note that these values are also used to determine if a given message has been delivered or not.
-    // The first key is the subnet ID, the second key is the message ID, and the value is the reward address
+    // The first key is the blockchain ID, the second key is the message ID, and the value is the reward address
     // provided by the deliverer of the uniquely identified message.
-    mapping(bytes32 => mapping(uint256 => address))
+    mapping(bytes32 sourceChainID => mapping(uint256 messageID => address relayerRewardAddress))
         internal _relayerRewardAddresses;
 
     // Tracks the fee amounts for a given asset able to be redeemed by a given relayer.
-    // The first key is the relayer address, the second key is the ERC20 token contract address,
-    // and the value is the amount of the asset owed to the relayer.
-    mapping(address => mapping(address => uint256))
+    // The first key is the relayer address, the second key is the fee token contract address,
+    // and the value is the amount of the asset redeemable by the relayer.
+    mapping(address relayerAddress => mapping(address feeTokenContract => uint256 redeemableRewardAmount))
         internal _relayerRewardAmounts;
 
     /**

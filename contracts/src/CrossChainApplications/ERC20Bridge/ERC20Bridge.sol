@@ -52,21 +52,22 @@ contract ERC20Bridge is
     // Note that the existence of a bridge token in this mapping does not ensure that it exists on
     // the destination bridge because the message to create the new token may not have been
     // successfully delivered yet.
-    mapping(bytes32 => mapping(address => mapping(address => bool)))
+    mapping(bytes32 destinationChainID => mapping(address destinationBridgeAddress => mapping(address nativeTokenContract => bool tokenCreationSubmitted)))
         public submittedBridgeTokenCreations;
 
     // Tracks the balances of native tokens sent to other bridge instances.
     // Bridges are not allowed to unwrap more than has been sent to them.
     // (destinationChainID, destinationBridgeAddress) -> nativeTokenContract -> balance
-    mapping(bytes32 => mapping(address => mapping(address => uint256)))
+    mapping(bytes32 destinationChainID => mapping(address destinationBridgeAddress => mapping(address nativeTokenContract => uint256 balance)))
         public bridgedBalances;
 
     // Set of bridge tokens created by this bridge instance.
-    mapping(address => bool) public wrappedTokenContracts;
+    mapping(address bridgeToken => bool bridgeTokenExists)
+        public wrappedTokenContracts;
 
     // Tracks the wrapped bridge token contract address for each native token bridged to this bridge instance.
     // (nativeChainID, nativeBridgeAddress, nativeTokenAddress) -> bridgeTokenAddress
-    mapping(bytes32 => mapping(address => mapping(address => address)))
+    mapping(bytes32 nativeChainID => mapping(address nativeBridgeAddress => mapping(address nativeTokenAddress => address bridgeTokenAddress)))
         public nativeToWrappedTokens;
 
     uint256 public constant CREATE_BRIDGE_TOKENS_REQUIRED_GAS = 2_000_000;

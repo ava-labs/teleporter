@@ -24,7 +24,7 @@ library ReceiptQueue {
         uint256 last;
         // Represents the elements in the queue. Each new item enqueued is
         // assigned an index one greater than the previous tail.
-        mapping(uint256 index => TeleporterMessageReceipt) data;
+        mapping(uint256 index => TeleporterMessageReceipt receipt) data;
     }
 
     // The maximum number of receipts to include in a single message.
