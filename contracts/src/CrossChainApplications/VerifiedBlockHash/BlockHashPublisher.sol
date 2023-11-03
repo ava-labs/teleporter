@@ -66,7 +66,7 @@ contract BlockHashPublisher {
                     destinationChainID: destinationChainID,
                     destinationAddress: destinationAddress,
                     feeInfo: TeleporterFeeInfo({
-                        contractAddress: address(0),
+                        feeTokenAddress: address(0),
                         amount: 0
                     }),
                     requiredGasLimit: RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT,

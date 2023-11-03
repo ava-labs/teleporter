@@ -42,7 +42,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
             TeleporterFeeInfo({
-                contractAddress: address(_mockFeeAsset),
+                feeTokenAddress: address(_mockFeeAsset),
                 amount: totalFeeAmount
             })
         );

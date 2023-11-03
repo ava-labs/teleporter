@@ -202,7 +202,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         }
 
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo({
-            contractAddress: feeAddress,
+            feeTokenAddress: feeAddress,
             amount: feeAmount
         });
 

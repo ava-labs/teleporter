@@ -72,7 +72,7 @@ To start, we create the function declarations for `sendMessage`, which will send
 function sendMessage(
     bytes32 destinationChainID,
     address destinationAddress,
-    address feeContractAddress,
+    address feeTokenAddress,
     uint256 feeAmount,
     uint256 requiredGasLimit,
     string calldata message
@@ -94,13 +94,13 @@ Now that the function declarations are set up, we can move on to implementation.
 
 > To incentivize relayers to deliver our cross chain messages from source to destination, we will need to support `ERC20` fees. Relayer fees aren't needed when running your own relayers to deliver your own messages and pay costs out of pocket.
 
-Import OpenZeppelin's `IERC20` contract, then in our `sendMessage` we will check whether `feeAmount` is greater than zero. If it is, we transfer and approve the amount of IERC20 asset at `feeContractAddress` to the teleporter messenger saved as a state variable.
+Import OpenZeppelin's `IERC20` contract, then in our `sendMessage` we will check whether `feeAmount` is greater than zero. If it is, we transfer and approve the amount of IERC20 asset at `feeTokenAddress` to the teleporter messenger saved as a state variable.
 
 ```solidity
 // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
 // allow the Teleporter contract to spend it.
 if (feeAmount > 0) {
-    IERC20 feeAsset = IERC20(feeContractAddress);
+    IERC20 feeAsset = IERC20(feeTokenAddress);
     require(
         feeAsset.transferFrom(msg.sender, address(this), feeAmount),
         "Failed to transfer fee amount"
@@ -126,7 +126,7 @@ return
             destinationChainID: destinationChainID,
             destinationAddress: destinationAddress,
             feeInfo: TeleporterFeeInfo({
-                contractAddress: feeContractAddress,
+                feeTokenAddress: feeTokenAddress,
                 amount: feeAmount
             }),
             requiredGasLimit: requiredGasLimit,

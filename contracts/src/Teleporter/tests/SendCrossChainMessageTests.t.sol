@@ -126,7 +126,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
 
         // Expect the ERC20 contract transferFrom method to be called to transfer the fee.
         vm.expectCall(
-            messageInput.feeInfo.contractAddress,
+            messageInput.feeInfo.feeTokenAddress,
             abi.encodeCall(
                 IERC20.transferFrom,
                 (

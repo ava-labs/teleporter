@@ -122,12 +122,12 @@ contract TeleporterMessengerTest is Test {
             new bytes(0)
         );
 
-        address feeAsset = address(0);
+        address feeToken = address(0);
         if (feeAmount > 0) {
-            feeAsset = address(_mockFeeAsset);
+            feeToken = address(_mockFeeAsset);
         }
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo({
-            contractAddress: feeAsset,
+            feeTokenAddress: feeToken,
             amount: feeAmount
         });
 

@@ -231,7 +231,7 @@ contract ERC20Bridge is
                 destinationChainID: destinationChainID,
                 destinationAddress: destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: messageFeeAsset,
+                    feeTokenAddress: messageFeeAsset,
                     amount: adjustedFeeAmount
                 }),
                 requiredGasLimit: CREATE_BRIDGE_TOKENS_REQUIRED_GAS,
@@ -617,7 +617,7 @@ contract ERC20Bridge is
                 destinationChainID: destinationChainID,
                 destinationAddress: destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: nativeContractAddress,
+                    feeTokenAddress: nativeContractAddress,
                     amount: feeAmount
                 }),
                 requiredGasLimit: MINT_BRIDGE_TOKENS_REQUIRED_GAS,
@@ -711,7 +711,7 @@ contract ERC20Bridge is
                 destinationChainID: nativeChainID,
                 destinationAddress: nativeBridgeAddress,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: wrappedTransferInfo.wrappedContractAddress,
+                    feeTokenAddress: wrappedTransferInfo.wrappedContractAddress,
                     amount: adjustedPrimaryFeeAmount
                 }),
                 requiredGasLimit: TRANSFER_BRIDGE_TOKENS_REQUIRED_GAS,

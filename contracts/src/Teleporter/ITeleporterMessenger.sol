@@ -30,7 +30,7 @@ struct TeleporterMessage {
 }
 
 struct TeleporterFeeInfo {
-    address contractAddress;
+    address feeTokenAddress;
     uint256 amount;
 }
 
@@ -125,14 +125,14 @@ interface ITeleporterMessenger {
      * @dev Adds the additional fee amount to the amount to be paid to the relayer that delivers
      * the given message ID to the destination subnet.
      *
-     * The fee contract address must be the same asset type as the fee asset specified in the original
+     * The fee token address must be the same asset type as the fee asset specified in the original
      * call to sendCrossChainMessage. Returns a failure if the message doesn't exist or there is already
      * receipt of delivery of the message.
      */
     function addFeeAmount(
         bytes32 destinationChainID,
         uint256 messageID,
-        address feeContractAddress,
+        address feeTokenAddress,
         uint256 additionalFeeAmount
     ) external;
 

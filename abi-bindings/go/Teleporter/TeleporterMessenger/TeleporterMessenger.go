@@ -31,7 +31,7 @@ var (
 
 // TeleporterFeeInfo is an auto generated low-level Go binding around an user-defined struct.
 type TeleporterFeeInfo struct {
-	ContractAddress common.Address
+	FeeTokenAddress common.Address
 	Amount          *big.Int
 }
 

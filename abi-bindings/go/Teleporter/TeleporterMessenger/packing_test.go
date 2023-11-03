@@ -39,7 +39,7 @@ func TestPackUnpackTeleporterMessage(t *testing.T) {
 	message := createTestTeleporterMessage(messageID)
 
 	b, err := PackSendCrossChainMessageEvent(common.HexToHash("0x03"), message, TeleporterFeeInfo{
-		ContractAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
+		FeeTokenAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		Amount:          big.NewInt(1),
 	})
 	if err != nil {
