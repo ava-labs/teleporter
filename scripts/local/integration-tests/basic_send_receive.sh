@@ -65,8 +65,9 @@ cast send $erc20_contract_address_a "approve(address,uint256)(bool)" $teleporter
     $approve_amount \
     --private-key $user_private_key --rpc-url $subnet_a_url
 result=$(cast call $erc20_contract_address_a "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_a_url)
-if [[ $result != $approve_amount ]]; then
+if [[ $result -ne $approve_amount ]]; then
     echo $result
+    echo $approve_amount
     echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
 fi
@@ -116,7 +117,7 @@ send_cross_subnet_message_message_data=cafebabecafebabecafebabecafebabecafebabec
 # Approve the teleporter contract to some ERC20 tokens from the user account we're using to send transactions
 cast send $erc20_contract_address_b "approve(address,uint256)(bool)" $teleporter_contract_address $approve_amount --private-key $user_private_key --rpc-url $subnet_b_url
 result=$(cast call $erc20_contract_address_b "allowance(address,address)(uint256)" $user_address $teleporter_contract_address --rpc-url $subnet_b_url)
-if [[ $result != $approve_amount ]]; then
+if [[ $result -ne $approve_amount ]]; then
     echo $result
     echo "Error approving Teleporter contract to spend ERC20 from user account."
     exit 1
