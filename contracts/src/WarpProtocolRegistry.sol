@@ -13,8 +13,15 @@ import "@openzeppelin/contracts/utils/Address.sol";
  */
 struct ProtocolRegistryEntry {
     uint256 version;
-    address destinationAddress;
     address protocolAddress;
+}
+
+/**
+ * @dev Update registry message that is sent through a Warp out-of-band message.
+ */
+struct UpdateRegistryMessage {
+    address destinationAddress;
+    ProtocolRegistryEntry entry;
 }
 
 /**
@@ -96,18 +103,18 @@ abstract contract WarpProtocolRegistry {
             "WarpProtocolRegistry: invalid origin sender address"
         );
 
-        ProtocolRegistryEntry memory entry = abi.decode(
+        UpdateRegistryMessage memory payload = abi.decode(
             message.payload,
-            (ProtocolRegistryEntry)
+            (UpdateRegistryMessage)
         );
 
         // Check that the message is sent to the registry.
         require(
-            entry.destinationAddress == address(this),
+            payload.destinationAddress == address(this),
             "WarpProtocolRegistry: invalid destination address"
         );
 
-        _addToRegistry(entry);
+        _addToRegistry(payload.entry);
     }
 
     /**

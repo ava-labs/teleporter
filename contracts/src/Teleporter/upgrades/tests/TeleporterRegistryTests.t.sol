@@ -402,10 +402,12 @@ contract TeleporterRegistryTest is Test {
                 originSenderAddress: TeleporterRegistry(registryAddress)
                     .VALIDATORS_SOURCE_ADDRESS(),
                 payload: abi.encode(
-                    ProtocolRegistryEntry({
-                        version: version,
+                    UpdateRegistryMessage({
                         destinationAddress: destinationAddress,
-                        protocolAddress: protocolAddress
+                        entry: ProtocolRegistryEntry({
+                            version: version,
+                            protocolAddress: protocolAddress
+                        })
                     })
                 )
             });
