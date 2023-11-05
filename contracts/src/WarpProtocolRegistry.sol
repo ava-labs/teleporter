@@ -17,14 +17,6 @@ struct ProtocolRegistryEntry {
 }
 
 /**
- * @dev Update registry message that is sent through a Warp out-of-band message.
- */
-struct UpdateRegistryMessage {
-    address destinationAddress;
-    ProtocolRegistryEntry entry;
-}
-
-/**
  * @dev Implementation of an abstract `WarpProtocolRegistry` contract.
  *
  * This implementation is a contract that can be used as a base contract for protocols that are
@@ -103,18 +95,18 @@ abstract contract WarpProtocolRegistry {
             "WarpProtocolRegistry: invalid origin sender address"
         );
 
-        UpdateRegistryMessage memory payload = abi.decode(
+        (ProtocolRegistryEntry memory entry, address destinationAddress) = abi.decode(
             message.payload,
-            (UpdateRegistryMessage)
+            (ProtocolRegistryEntry, address)
         );
 
         // Check that the message is sent to the registry.
         require(
-            payload.destinationAddress == address(this),
+            destinationAddress == address(this),
             "WarpProtocolRegistry: invalid destination address"
         );
 
-        _addToRegistry(payload.entry);
+        _addToRegistry(entry);
     }
 
     /**
