@@ -22,7 +22,7 @@ library ReceiptQueue {
         uint256 first;
         // Tracks the tail of the queue within the {data} mapping.
         uint256 last;
-        // Represents the elements in the queue. Each new item enqueued is
+        // Represents the elements in the queue. Each newly enqueue item is
         // assigned an index one greater than the previous tail.
         mapping(uint256 index => TeleporterMessageReceipt receipt) data;
     }
