@@ -36,6 +36,3 @@ docker-compose-run-local.yml
 main.log
 server.log
 tests.test
-
-# Forge docs
-contracts/docs/

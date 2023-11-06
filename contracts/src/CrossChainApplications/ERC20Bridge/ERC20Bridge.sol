@@ -10,13 +10,11 @@ import "./BridgeToken.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
-import "../../Teleporter/upgrades/TeleporterRegistry.sol";
-import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
+import "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev Implementation of the {IERC20Bridge} interface.
@@ -28,8 +26,7 @@ contract ERC20Bridge is
     IERC20Bridge,
     ITeleporterReceiver,
     ReentrancyGuard,
-    TeleporterUpgradeable,
-    Ownable
+    TeleporterOwnerUpgradeable
 {
     using SafeERC20 for IERC20;
 
@@ -79,7 +76,7 @@ contract ERC20Bridge is
      */
     constructor(
         address teleporterRegistryAddress
-    ) TeleporterUpgradeable(teleporterRegistryAddress) {
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
         currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
@@ -322,23 +319,6 @@ contract ERC20Bridge is
         } else {
             revert("ERC20Bridge: invalid action");
         }
-    }
-
-    /**
-     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
-     *
-     * Updates the minimum Teleporter version allowed for receiving on this contract
-     * to the latest version registered in the {TeleporterRegistry}.
-     * Restricted to only owners of the contract.
-     * Emits a {MinTeleporterVersionUpdated} event.
-     */
-    function updateMinTeleporterVersion() external override onlyOwner {
-        uint256 oldMinTeleporterVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
-        emit MinTeleporterVersionUpdated(
-            oldMinTeleporterVersion,
-            minTeleporterVersion
-        );
     }
 
     /**
