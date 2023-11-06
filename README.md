@@ -72,7 +72,7 @@ The above steps are sufficient to run the included integration tests inside Dock
 - `scripts/` includes bash scripts for interacting with Teleporter in various environments, as well as utility scripts.
   - `abi_bindings.sh` generates ABI bindings for the contracts in `contracts/` and outputs them to `abi-bindings/`
   - `lint.sh` lints the contracts in `contracts/`
-  - `scripts/local/` includes scripts for running Teleporter in Docker containers and tests in the `scripts/local/integration-tests` locally.
+  - `scripts/local/` includes scripts for running Teleporter in Docker containers and for running the tests in the `scripts/local/integration-tests` locally.
     - `scripts/local/integration-tests/` includes integration test scripts written in bash. The scripts use `foundry` to deploy smart contracts that use Teleporter, send transactions to interact with the contracts, and check that cross-chain messages have the expected effect on destination chains.
       - *Note* These tests will be deprecated in favor of the end to end tests in `tests/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework
     - `scripts/fuji/` includes scripts to interact with a live Teleporter deployment on Fuji subnets.
