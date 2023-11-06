@@ -66,7 +66,7 @@ The above steps are sufficient to run the included integration tests inside Dock
 
 - `contracts/` is a [Foundry](https://github.com/foundry-rs/foundry) project that includes the implementation of the `TeleporterMessenger` contract and example dApps that demonstrate how to write contracts that interact with Teleporter.
 - `abi-bindings/` includes Go ABI bindings for the contracts in `contracts/`.
-- `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework
+- `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
 - `utils/` includes Go utility functions for interacting with the contracts in `contracts/`. Included are Golang scripts to derive the expected EVM contract address deployed from a given EOA at a specific nonce, and also construct a transaction to deploy provided byte code to the same address on any EVM chain using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#).
 - `subnet-evm/` is the public subnet-evm repository (included as a submodule) checked out on the `warp-contract` branch with our changes.
 - `scripts/` includes bash scripts for interacting with Teleporter in various environments, as well as utility scripts.
