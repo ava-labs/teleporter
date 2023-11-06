@@ -263,7 +263,7 @@ func CreateNativeTransferTransaction(
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Transaction {
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.ChainRPCClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.ChainRPCClient, fromAddress)
 
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   network.ChainIDInt,
@@ -275,7 +275,7 @@ func CreateNativeTransferTransaction(
 		Value:     amount,
 	})
 
-	return signTransaction(tx, fundedKey, network.ChainIDInt)
+	return signTransaction(tx, fromKey, network.ChainIDInt)
 }
 
 //
