@@ -140,7 +140,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             existingMessageInfo.feeInfo
         );
 
-        // Resubmit the message to the warp message precompile now that it is known that
+        // Resubmit the message to the warp message precompile now that it is confirmed that
         // the exact message was already submitted in the past.
         WARP_MESSENGER.sendWarpMessage(
             destinationChainID,
