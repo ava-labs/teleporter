@@ -9,11 +9,13 @@ import (
 
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
+	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -275,6 +277,33 @@ func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
 	teleporterRegistryAddressB = DeployContract(ctx, TeleporterRegistryByteCodeFile, fundedKey, GetSubnetBTestInfo(), teleporterRegistryABI, entries)
 
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
+}
+
+func DeployMockToken(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source SubnetTestInfo) (common.Address, *exampleerc20.ExampleERC20) {
+	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+
+	// Deploy Mock ERC20 contract
+	address, txn, mockToken, err := exampleerc20.DeployExampleERC20(opts, source.ChainRPCClient)
+	Expect(err).Should(BeNil())
+	log.Info("Deployed Mock ERC20 contract", "address", address.Hex(), "txHash", txn.Hash().Hex())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return address, mockToken
+}
+
+func ExampleERC20Approve(ctx context.Context, mockToken *exampleerc20.ExampleERC20, spender common.Address, amount *big.Int, source SubnetTestInfo) {
+	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	txn, err := mockToken.Approve(opts, spender, amount)
+	Expect(err).Should(BeNil())
+	log.Info("Approved Mock ERC20", "spender", teleporterContractAddress.Hex(), "txHash", txn.Hash().Hex())
+
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 }
 
 func TearDownNetwork() {

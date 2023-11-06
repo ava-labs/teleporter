@@ -92,7 +92,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	// Relay the message to the destination
 	//
 
-	receipt = network.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetAInfo, subnetBInfo, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 	bind, err = teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
 	Expect(err).Should(BeNil())
 	receiveEvent, err := utils.GetReceiveEventFromLogs(receipt.Logs, bind)

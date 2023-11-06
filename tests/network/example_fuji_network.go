@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"crypto/ecdsa"
-	"math/big"
 	"strings"
 	"time"
 
@@ -144,8 +143,7 @@ func (n *FujiNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey)
 }
 
 func (n *FujiNetwork) RelayMessage(ctx context.Context,
-	sourceBlockHash common.Hash,
-	sourceBlockNumber *big.Int,
+	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,
 	destination utils.SubnetTestInfo,
 	expectSuccess bool) *types.Receipt {
