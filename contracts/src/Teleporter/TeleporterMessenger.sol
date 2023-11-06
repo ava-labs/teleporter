@@ -37,8 +37,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     WarpMessenger public constant WARP_MESSENGER =
         WarpMessenger(0x0200000000000000000000000000000000000005);
 
-    // The blockchain ID of the chain the contract is deployed on. Initialized lazily when receiveCrossChainMessage() is called,
-    // if the value has not already been set.
+    // The blockchain ID of the chain the contract is deployed on. Initialized lazily on the first call of `receiveCrossChainMessage`
     bytes32 public blockchainID;
 
     // Tracks the latest message ID used for a given destination chain.
