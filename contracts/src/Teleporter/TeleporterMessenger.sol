@@ -278,12 +278,12 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             (TeleporterMessage)
         );
 
-        // Check the message has not been delivered before by checking that there is no relayer reward
-        // address stored for it already.
+        // Check the message has not been delivered previously.
         require(
-            _relayerRewardAddresses[warpMessage.sourceChainID][
+            !_messageReceived(
+                warpMessage.sourceChainID,
                 teleporterMessage.messageID
-            ] == address(0),
+            ),
             "TeleporterMessenger: message already delivered"
         );
 
@@ -496,7 +496,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 originChainID,
         uint256 messageID
     ) external view returns (bool) {
-        return _relayerRewardAddresses[originChainID][messageID] != address(0);
+        return _messageReceived(originChainID, messageID);
     }
 
     /**
@@ -556,6 +556,17 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         uint256 index
     ) external view returns (TeleporterMessageReceipt memory) {
         return receiptQueues[chainID].getReceiptAtIndex(index);
+    }
+
+    /**
+     * @dev Checks if a given message has been received.
+     * @return A boolean representing if the given message has been received or not.
+     */
+    function _messageReceived(
+        bytes32 originChainID,
+        uint256 messageID
+    ) internal view returns (bool) {
+        return _relayerRewardAddresses[originChainID][messageID] != address(0);
     }
 
     /**
