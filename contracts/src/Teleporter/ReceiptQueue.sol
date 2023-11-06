@@ -22,6 +22,7 @@ library ReceiptQueue {
     // The maximum number of receipts to include in a single message.
     uint256 private constant _MAXIMUM_RECEIPT_COUNT = 5;
 
+    // solhint-disable private-vars-leading-underscore
     /**
      * @dev Adds a receipt to the queue.
      */
@@ -91,4 +92,5 @@ library ReceiptQueue {
         require(index < size(queue), "ReceiptQueue: index out of bounds");
         return queue.data[queue.first + index];
     }
+    // solhint-enable private-vars-leading-underscore
 }
