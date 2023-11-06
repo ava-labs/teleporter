@@ -145,7 +145,7 @@ source vars.sh
 
 ### Additional notes
 
-- Both the `./scripts/local/run.sh` and `./scripts/local/test.sh` scripts run local five node networks, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
+- Both the `./scripts/local/run.sh` and `./scripts/local/test.sh` scripts run five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
 - Logs from the subnets on one of the five nodes are printed to stdout when run using either script.
 - These logs can also be found at `~/.avalanche-cli/runs/network-runner-root-data_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log` in the `local_network_run` container, or at `/var/lib/docker/overlay2/<CONTAINER_ID>/merged/root/.avalanche-cli/....` on your local machine. You will need to be the root user to access the logs under `/var/lib`.
 
