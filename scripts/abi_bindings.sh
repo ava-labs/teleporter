@@ -13,6 +13,8 @@ TELEPORTER_PATH=$(
   cd .. && pwd
 )
 
+source "$TELEPORTER_PATH"/scripts/constants.sh
+
 DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken TeleporterRegistry"
 
 CONTRACT_LIST=

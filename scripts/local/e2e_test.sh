@@ -49,12 +49,12 @@ if [ "$LOCAL" = true ]; then
     export DATA_DIR=$DATA_DIRECTORY/data
 fi
 
-TELEPORTER_PATH=$(
+constants.shTELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd ../.. && pwd
 )
 
-source "$TELEPORTER_PATH"/scripts/local/constants.sh
+source "$TELEPORTER_PATH"/scripts/
 
 source "$TELEPORTER_PATH"/scripts/local/versions.sh
 
