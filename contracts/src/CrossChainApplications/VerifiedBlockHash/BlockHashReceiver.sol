@@ -7,18 +7,12 @@ pragma solidity 0.8.18;
 
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
-import "../../Teleporter/upgrades/TeleporterRegistry.sol";
-import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.
  */
-contract BlockHashReceiver is
-    ITeleporterReceiver,
-    TeleporterUpgradeable,
-    Ownable
-{
+contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
     // Source chain information
     bytes32 public immutable sourceChainID;
     address public immutable sourcePublisherContractAddress;
@@ -41,7 +35,7 @@ contract BlockHashReceiver is
         address teleporterRegistryAddress,
         bytes32 publisherChainID,
         address publisherContractAddress
-    ) TeleporterUpgradeable(teleporterRegistryAddress) {
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
         sourceChainID = publisherChainID;
         sourcePublisherContractAddress = publisherContractAddress;
     }
@@ -86,23 +80,6 @@ contract BlockHashReceiver is
                 blockHash
             );
         }
-    }
-
-    /**
-     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
-     *
-     * Updates the minimum Teleporter version allowed for receiving on this contract
-     * to the latest version registered in the {TeleporterRegistry}.
-     * Restricted to only owners of the contract.
-     * Emits a {MinTeleporterVersionUpdated} event.
-     */
-    function updateMinTeleporterVersion() external override onlyOwner {
-        uint256 oldMinTeleporterVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
-        emit MinTeleporterVersionUpdated(
-            oldMinTeleporterVersion,
-            minTeleporterVersion
-        );
     }
 
     /**
