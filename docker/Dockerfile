@@ -36,13 +36,13 @@ ENV LANG en_US.utf8
 
 # Install foundry from specific commit
 SHELL ["/bin/bash", "-c"]
-RUN curl -L https://raw.githubusercontent.com/foundry-rs/foundry/037b3bc9cebd545fe3a4f05a32bf7efb82afdbd8/foundryup/install > /tmp/foundry-install-script && \
-    sed -i 's/\/foundry-rs\/foundry\/master\/foundryup/\/foundry-rs\/foundry\/037b3bc9cebd545fe3a4f05a32bf7efb82afdbd8\/foundryup/g' /tmp/foundry-install-script && \
+RUN curl -L https://raw.githubusercontent.com/ava-labs/foundry/v0.1.0/foundryup/install > /tmp/foundry-install-script && \
+    sed -i 's/\/ava-labs\/foundry\/master\/foundryup/\/ava-labs\/foundry\/v0.1.0\/foundryup/g' /tmp/foundry-install-script && \
     cat /tmp/foundry-install-script | bash && \
     echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
     source ~/.bashrc && \
     export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
-    foundryup --version nightly-037b3bc9cebd545fe3a4f05a32bf7efb82afdbd8
+    foundryup --version v0.1.0
 
 # Install python base58 decode library
 RUN apt-get update && \
