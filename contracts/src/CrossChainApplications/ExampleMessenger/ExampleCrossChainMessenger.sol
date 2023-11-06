@@ -8,11 +8,9 @@ pragma solidity 0.8.18;
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
-import "../../Teleporter/upgrades/TeleporterRegistry.sol";
-import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
+import "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev ExampleCrossChainMessenger is an example contract that demonstrates how to send and receive
@@ -21,8 +19,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract ExampleCrossChainMessenger is
     ITeleporterReceiver,
     ReentrancyGuard,
-    TeleporterUpgradeable,
-    Ownable
+    TeleporterOwnerUpgradeable
 {
     using SafeERC20 for IERC20;
 
@@ -57,7 +54,7 @@ contract ExampleCrossChainMessenger is
 
     constructor(
         address teleporterRegistryAddress
-    ) TeleporterUpgradeable(teleporterRegistryAddress) {}
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {}
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
@@ -124,23 +121,6 @@ contract ExampleCrossChainMessenger is
                     message: abi.encode(message)
                 })
             );
-    }
-
-    /**
-     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
-     *
-     * Updates the minimum Teleporter version allowed for receiving on this contract
-     * to the latest version registered in the {TeleporterRegistry}. Also restricts this function to
-     * the owner of this contract.
-     * Emits a {MinTeleporterVersionUpdated} event.
-     */
-    function updateMinTeleporterVersion() external override onlyOwner {
-        uint256 oldMinTeleporterVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
-        emit MinTeleporterVersionUpdated(
-            oldMinTeleporterVersion,
-            minTeleporterVersion
-        );
     }
 
     /**
