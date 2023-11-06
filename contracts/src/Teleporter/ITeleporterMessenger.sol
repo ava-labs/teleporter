@@ -175,11 +175,9 @@ interface ITeleporterMessenger {
     /**
      * @dev Sends the receipts for the given `messageIDs`.
      *
-     * Sends the receipts of the specified messages in a new message (with an empty payload) back to the origin chain.
-     * This is intended to be used if the message receipts were originally included in messages that were dropped
-     * or otherwise not delivered in a timely manner.
-     *
-     * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+     * Sends the specified message receipts in a new message (with an empty payload) back to the origin chain.
+     * This is intended to be used if the message receipts are not being delivered in a timely manner by the
+     * mechanism to include them in independent messages from this chain being sent back to the origin chain.
      */
     function sendSpecifiedReceipts(
         bytes32 originChainID,
