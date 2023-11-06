@@ -77,7 +77,7 @@ The above steps are sufficient to run the included integration tests inside Dock
       - *Note* These tests will be deprecated in favor of the end to end tests in `tests/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework
     - `scripts/fuji/` includes scripts to interact with a live Teleporter deployment on Fuji subnets.
       - `scripts/fuji/example-workflows/` includes example workflows that send transactions to interact with Teleporter contracts on Fuji subnets.
-- `docker/` includes a containerized setup for running a local setup of Teleporter
+- `docker/` includes configurations for a local, containerized setup of Teleporter.
 
 ## Run the Docker integration tests
 
