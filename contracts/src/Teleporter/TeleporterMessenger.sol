@@ -47,14 +47,14 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     mapping(bytes32 destinationChainID => uint256 messageID)
         public latestMessageIDs;
 
-    // Tracks the outstanding receipts to send back to a given subnet in subsequent messages sent to it.
-    // Key is the blockchain ID of the other subnet, and the value is a queue of pending receipts for messages
-    // received from that subnet.
+    // Tracks the outstanding receipts to send back to a given chain in subsequent messages sent to that chain.
+    // Key is the blockchain ID of the other chain, and the value is a queue of pending receipts for messages
+    // received from that chain.
     mapping(bytes32 sourceChainID => ReceiptQueue.TeleporterMessageReceiptQueue receiptQueue)
         public receiptQueues;
 
     // Tracks the message hash and fee information for each message sent that has yet to be acknowledged
-    // with a receipt. The messages are tracked per subnet and keyed by message ID.
+    // with a receipt. The messages are tracked per chain and keyed by message ID.
     // The first key is the blockchain ID, the second key is the message ID, and the value is the info
     // for the uniquely identified message.
     mapping(bytes32 destinationChainID => mapping(uint256 messageID => SentMessageInfo messageInfo))
@@ -67,7 +67,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     mapping(bytes32 sourceChainID => mapping(uint256 messageID => bytes32 messageHash))
         public receivedFailedMessageHashes;
 
-    // Tracks the relayer reward address for each message delivered from a given subnet.
+    // Tracks the relayer reward address for each message delivered from a given chain.
     // Note that these values are also used to determine if a given message has been delivered or not.
     // The first key is the blockchain ID, the second key is the message ID, and the value is the reward address
     // provided by the deliverer of the uniquely identified message.
@@ -92,7 +92,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessageInput calldata messageInput
     ) external senderNonReentrant returns (uint256) {
         // Get the outstanding receipts for messages that have been previously received
-        // from the destination subnet but not yet acknowledged, and attach the receipts
+        // from the destination chain but not yet acknowledged, and attach the receipts
         // to the Teleporter message to be sent.
         return
             _sendTeleporterMessage(
