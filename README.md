@@ -101,7 +101,7 @@ cast send --private-key 0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5c
 cast balance --rpc-url http://127.0.0.1:9652/ext/bc/C/rpc 0x333d17d3b42bf7930dbc6e852ca7bcf560a69003
 ```
 
-- After calling `./scripts/local/run.sh`, you can directly send messages between the deployed subnets . As an example, `./scripts/integration-tests/basic_send_receive.sh` can be run manually like so:
+- After calling `./scripts/local/run.sh`, you can directly send messages between the deployed subnets. As an example, `./scripts/integration-tests/basic_send_receive.sh` can be run manually like so:
 
 ```
 # Open a shell in the container
