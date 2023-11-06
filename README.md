@@ -91,6 +91,7 @@ The above steps are sufficient to run the included integration tests inside Dock
   - `./scripts/local/run.sh` usage is as follows:
   ```
     -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub
+    -p, --pause                       Pause the network on stop. Will attempt to restart the paused network on subsequent runs
     -h, --help                        Print this help message
   ```
   - Note that if `-l, --local` is not set, then the latest published `awm-relayer` image will be pulled from Dockerhub.
@@ -120,6 +121,7 @@ source vars.sh
     -t, --test <test_name>            Run a specific test. If empty, runs all tests in the ./scripts/local/integration-tests/
     -t, --test "test1 test2"          Run multiple tests. Test names must be space delimited and enclosed in quotes
     -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub
+    -p, --pause                       Pause the network on stop. Will attempt to restart the paused network on subsequent runs.
     -h, --help                        Print this help message
   ```
   - Note that if `-l, --local` is not set, then the latest published `awm-relayer` image will be pulled from Dockerhub.
