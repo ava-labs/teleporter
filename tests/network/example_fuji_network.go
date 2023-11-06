@@ -43,7 +43,7 @@ var (
 	conduitSubnetID        ids.ID
 	conduitBlockchainID    ids.ID
 
-	userAddress = common.HexToAddress("0xF0Aa98fDE5f1d08F0CCEC68A7d7A7Eae31c5E9C9")
+	userAddress = common.HexToAddress("")      // To be supplied by user
 	skHex       = strings.TrimPrefix("", "0x") // To be supplied by user
 )
 
