@@ -12,7 +12,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
  * @dev Provides a wrapper used for calling an ERC20 transferFrom method
  * to receive tokens to a contract from msg.sender.
  *
- * Checks the balance of the contract using the library before and after the call to transferFrom, and
+ * Checks the balance of the contract using the library before and after the call to safeTransferFrom, and
  * returns balance increase. Designed for safely handling ERC20 "fee on transfer" and "burn on transfer" implementations.
  *
  * Note: A reentrancy guard must always be used when calling token.safeTransferFrom in order to
@@ -24,9 +24,8 @@ library SafeERC20TransferFrom {
     using SafeERC20 for IERC20;
 
     /**
-     * @dev Checks the balance of the recipient before and after the call to transferFrom, and
-     * returns balance increase. Designed for safely handling ERC20 "fee on transfer" and
-     * "burn on transfer" implementations.
+     * @dev Checks the balance of the contract before and after the call to safeTransferFrom, and returns balance
+     * increase. Designed for safely handling ERC20 "fee on transfer" and "burn on transfer" implementations.
      */
     function safeTransferFrom(
         IERC20 erc20,
