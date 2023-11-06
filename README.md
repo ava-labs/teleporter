@@ -132,15 +132,7 @@ source vars.sh
 
 ### Run the integration tests in Docker containers
 
-- Run `./scripts/local/test.sh` to run the integration tests in Docker containers.
-  - `./scripts/local/test.sh` usage is as follows:
-  ```
-    -t, --test <test_name>            Run a specific test. If empty, runs all tests in the ./scripts/local/integration-tests/
-    -t, --test "test1 test2"          Run multiple tests. Test names must be space delimited and enclosed in quotes
-    -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub
-    -h, --help                        Print this help message
-  ```
-  - Note that if `-l, --local` is not set, then the latest published `awm-relayer` image will be pulled from Dockerhub.
+- Run `./scripts/local/test.sh` to run the integration tests in Docker containers. See the section above for usage.
 - This script performs the same setup steps as `scripts/local/run.sh` (described above), and then runs the tests in `./scripts/integration-tests/` automatically
 
 ### Additional notes
