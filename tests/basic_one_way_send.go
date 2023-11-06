@@ -4,12 +4,12 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ava-labs/subnet-evm/interfaces"
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	"github.com/ava-labs/subnet-evm/core/types"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
@@ -29,6 +29,11 @@ func BasicOneWaySend(network network.Network) {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	Expect(err).Should(BeNil())
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	Expect(err).Should(BeNil())
+
 	//
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	//
@@ -45,18 +50,9 @@ func BasicOneWaySend(network network.Network) {
 		AllowedRelayerAddresses: []common.Address{},
 		Message:                 []byte{1, 2, 3, 4},
 	}
-	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
-	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, subnetAInfo.ChainRPCClient, signedTx, true)
-
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
-	Expect(err).Should(BeNil())
-	event, err := utils.GetSendEventFromLogs(receipt.Logs, bind)
-	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
-
-	teleporterMessageID = event.Message.MessageID
+	var receipt *types.Receipt
+	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
 
 	//
 	// Relay the message to the destination
@@ -67,17 +63,7 @@ func BasicOneWaySend(network network.Network) {
 	//
 	// Check Teleporter message received on the destination
 	//
-	data, err := teleportermessenger.PackMessageReceived(subnetAInfo.BlockchainID, teleporterMessageID)
-	Expect(err).Should(BeNil())
-	callMessage := interfaces.CallMsg{
-		To:   &teleporterContractAddress,
-		Data: data,
-	}
-	result, err := subnetBInfo.ChainRPCClient.CallContract(context.Background(), callMessage, nil)
-	Expect(err).Should(BeNil())
-
-	// check the contract call result
-	delivered, err := teleportermessenger.UnpackMessageReceivedResult(result)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 }

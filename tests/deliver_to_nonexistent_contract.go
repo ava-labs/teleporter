@@ -4,14 +4,13 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	"github.com/ava-labs/subnet-evm/interfaces"
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	. "github.com/onsi/gomega"
@@ -34,6 +33,11 @@ func DeliverToNonExistentContract(network network.Network) {
 
 	deployerKey, _ := crypto.GenerateKey()
 	deployerAddress := crypto.PubkeyToAddress(deployerKey.PublicKey)
+
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	Expect(err).Should(BeNil())
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	Expect(err).Should(BeNil())
 
 	//
 	// Fund the deployer address on Subnet B
@@ -80,9 +84,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	signedTx := utils.SignTransaction(tx, fundedKey, subnetAInfo.ChainIDInt)
 	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, subnetAInfo.ChainRPCClient, signedTx, true)
 
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
-	Expect(err).Should(BeNil())
-	sendEvent, err := utils.GetSendEventFromLogs(receipt.Logs, bind)
+	sendEvent, err := utils.GetSendEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
 	Expect(err).Should(BeNil())
 	Expect(sendEvent.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -93,33 +95,21 @@ func DeliverToNonExistentContract(network network.Network) {
 	//
 
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
-	bind, err = teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
-	Expect(err).Should(BeNil())
-	receiveEvent, err := utils.GetReceiveEventFromLogs(receipt.Logs, bind)
+	receiveEvent, err := utils.GetReceiveEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
 	Expect(err).Should(BeNil())
 	deliveredTeleporterMessage := receiveEvent.Message
 
 	//
 	// Check that the message was successfully relayed
 	//
-	data, err = teleportermessenger.PackMessageReceived(subnetAInfo.BlockchainID, teleporterMessageID)
-	Expect(err).Should(BeNil())
-	callMessage := interfaces.CallMsg{
-		To:   &teleporterContractAddress,
-		Data: data,
-	}
-	result, err := subnetBInfo.ChainRPCClient.CallContract(context.Background(), callMessage, nil)
-	Expect(err).Should(BeNil())
-
-	// check the contract call result
-	delivered, err := teleportermessenger.UnpackMessageReceivedResult(result)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	//
 	// Check that the message was not successfully executed
 	//
-	executionFailedEvent, err := utils.GetMessageExecutionFailedFromLogs(receipt.Logs, bind)
+	executionFailedEvent, err := utils.GetMessageExecutionFailedFromLogs(receipt.Logs, subnetBTeleporterMessenger)
 	Expect(err).Should(BeNil())
 	Expect(executionFailedEvent.Message.MessageID).Should(Equal(deliveredTeleporterMessage.MessageID))
 
@@ -148,19 +138,9 @@ func DeliverToNonExistentContract(network network.Network) {
 	//
 	// Verify we received the expected string
 	//
-	data, err = exampleMessengerABI.Pack("getCurrentMessage", subnetAInfo.BlockchainID)
+	subnetBExampleMessenger, err := examplecrosschainmessenger.NewExampleCrossChainMessenger(exampleMessengerContractB, subnetBInfo.ChainRPCClient)
 	Expect(err).Should(BeNil())
-	callMessage = interfaces.CallMsg{
-		To:   &exampleMessengerContractB,
-		Data: data,
-	}
-	result, err = subnetBInfo.ChainRPCClient.CallContract(context.Background(), callMessage, nil)
+	res, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
 	Expect(err).Should(BeNil())
-
-	var messageInfo struct {
-		Sender  common.Address
-		Message string
-	}
-	exampleMessengerABI.UnpackIntoInterface(&messageInfo, "getCurrentMessage", result)
-	Expect(messageInfo.Message).Should(Equal(message))
+	Expect(res.Message).Should(Equal(message))
 }
