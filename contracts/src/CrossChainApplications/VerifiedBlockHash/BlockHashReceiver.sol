@@ -7,13 +7,18 @@ pragma solidity 0.8.18;
 
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
+import "../../Teleporter/upgrades/TeleporterRegistry.sol";
+import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.
  */
-contract BlockHashReceiver is ITeleporterReceiver {
-    ITeleporterMessenger public immutable teleporterMessenger;
-
+contract BlockHashReceiver is
+    ITeleporterReceiver,
+    TeleporterUpgradeable,
+    Ownable
+{
     // Source chain information
     bytes32 public immutable sourceChainID;
     address public immutable sourcePublisherContractAddress;
@@ -33,11 +38,10 @@ contract BlockHashReceiver is ITeleporterReceiver {
     );
 
     constructor(
-        address teleporterMessengerAddress,
+        address teleporterRegistryAddress,
         bytes32 publisherChainID,
         address publisherContractAddress
-    ) {
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
+    ) TeleporterUpgradeable(teleporterRegistryAddress) {
         sourceChainID = publisherChainID;
         sourcePublisherContractAddress = publisherContractAddress;
     }
@@ -57,11 +61,7 @@ contract BlockHashReceiver is ITeleporterReceiver {
         bytes32 originChainID,
         address originSenderAddress,
         bytes calldata message
-    ) external {
-        require(
-            msg.sender == address(teleporterMessenger),
-            "BlockHashReceiver: unauthorized"
-        );
+    ) external onlyAllowedTeleporter {
         require(
             originChainID == sourceChainID,
             "BlockHashReceiver: invalid source chain ID"
@@ -86,6 +86,23 @@ contract BlockHashReceiver is ITeleporterReceiver {
                 blockHash
             );
         }
+    }
+
+    /**
+     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
+     *
+     * Updates the minimum Teleporter version allowed for receiving on this contract
+     * to the latest version registered in the {TeleporterRegistry}.
+     * Restricted to only owners of the contract.
+     * Emits a {MinTeleporterVersionUpdated} event.
+     */
+    function updateMinTeleporterVersion() external override onlyOwner {
+        uint256 oldMinTeleporterVersion = minTeleporterVersion;
+        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        emit MinTeleporterVersionUpdated(
+            oldMinTeleporterVersion,
+            minTeleporterVersion
+        );
     }
 
     /**

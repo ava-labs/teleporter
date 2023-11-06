@@ -10,10 +10,13 @@ import "./BridgeToken.sol";
 import "../../Teleporter/ITeleporterMessenger.sol";
 import "../../Teleporter/ITeleporterReceiver.sol";
 import "../../Teleporter/SafeERC20TransferFrom.sol";
+import "../../Teleporter/upgrades/TeleporterRegistry.sol";
+import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
 import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev Implementation of the {IERC20Bridge} interface.
@@ -21,7 +24,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  * This implementation uses the {BridgeToken} contract to represent tokens on this chain, and uses
  * {ITeleporterMessenger} to send and receive messages to other chains.
  */
-contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
+contract ERC20Bridge is
+    IERC20Bridge,
+    ITeleporterReceiver,
+    ReentrancyGuard,
+    TeleporterUpgradeable,
+    Ownable
+{
     using SafeERC20 for IERC20;
 
     struct WrappedTokenTransferInfo {
@@ -37,9 +46,6 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     address public constant WARP_PRECOMPILE_ADDRESS =
         0x0200000000000000000000000000000000000005;
     bytes32 public immutable currentChainID;
-
-    // Used for sending and receiving Teleporter messages.
-    ITeleporterMessenger public immutable teleporterMessenger;
 
     // Tracks which bridge tokens have been submitted to be created other bridge instances.
     // (destinationChainID, destinationBridgeAddress) -> nativeTokenContract -> tokenCreationSubmitted
@@ -71,13 +77,9 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
      * @dev Initializes the Teleporter messenger used for sending and receiving messages,
      * and initializes the current chain ID.
      */
-    constructor(address teleporterMessengerAddress) {
-        require(
-            teleporterMessengerAddress != address(0),
-            "ERC20Bridge: zero teleporter messenger address"
-        );
-
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
+    constructor(
+        address teleporterRegistryAddress
+    ) TeleporterUpgradeable(teleporterRegistryAddress) {
         currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
@@ -198,6 +200,8 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
             destinationBridgeAddress != address(0),
             "ERC20Bridge: zero destination bridge address"
         );
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry
+            .getLatestTeleporter();
 
         // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
         // allow the Teleporter contract to spend it.
@@ -257,13 +261,7 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         bytes32 nativeChainID,
         address nativeBridgeAddress,
         bytes calldata message
-    ) external {
-        // Only allow the Teleporter messenger to deliver messages.
-        require(
-            msg.sender == address(teleporterMessenger),
-            "ERC20Bridge: unauthorized"
-        );
-
+    ) external onlyAllowedTeleporter {
         // Decode the payload to recover the action and corresponding function parameters
         (BridgeAction action, bytes memory actionData) = abi.decode(
             message,
@@ -324,6 +322,23 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
         } else {
             revert("ERC20Bridge: invalid action");
         }
+    }
+
+    /**
+     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
+     *
+     * Updates the minimum Teleporter version allowed for receiving on this contract
+     * to the latest version registered in the {TeleporterRegistry}.
+     * Restricted to only owners of the contract.
+     * Emits a {MinTeleporterVersionUpdated} event.
+     */
+    function updateMinTeleporterVersion() external override onlyOwner {
+        uint256 oldMinTeleporterVersion = minTeleporterVersion;
+        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        emit MinTeleporterVersionUpdated(
+            oldMinTeleporterVersion,
+            minTeleporterVersion
+        );
     }
 
     /**
@@ -573,6 +588,8 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
             destinationChainID != currentChainID,
             "ERC20Bridge: cannot bridge to same chain"
         );
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry
+            .getLatestTeleporter();
 
         // Allow the Teleporter messenger to spend the fee amount.
         if (feeAmount > 0) {
@@ -629,6 +646,9 @@ contract ERC20Bridge is IERC20Bridge, ITeleporterReceiver, ReentrancyGuard {
     function _processWrappedTokenTransfer(
         WrappedTokenTransferInfo memory wrappedTransferInfo
     ) private {
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry
+            .getLatestTeleporter();
+
         // If necessary, transfer the primary fee amount to this contract and approve the
         // Teleporter messenger to spend it when the first message back to the native subnet
         // is submitted. The secondary fee amount is then handled by the native subnet when
