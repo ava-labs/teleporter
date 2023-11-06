@@ -5,9 +5,8 @@
 
 pragma solidity 0.8.18;
 
-// A message receipt identifies the message ID that was
-// delivered and address that should be able to redeem the
-// reward for that message.
+// A message receipt identifies the message ID that was delivered
+// and the address that can redeem the reward for that message.
 struct TeleporterMessageReceipt {
     uint256 receivedMessageID;
     address relayerRewardAddress;
