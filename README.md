@@ -171,7 +171,7 @@ Next, provide the path to the `subnet-evm` repository and the path to a writeabl
 
 #### Run the E2E tests on another network
 
-The E2E tests can be run on another network by implementing the `Network` interface in `package network`. For example, the type `FujiNetwork` in `example_fuji_network.go` implements this interface, pointing to the Amplify, Bulletin, and Conduit Fuji subnets. After implementing this interface, you can run the E2E tests on this network by running a program such as:
+The E2E tests can be run on another network by implementing the `Network` interface in `package network`. For example, the type `FujiNetwork` in `example_fuji_network.go` implements this interface, pointing to the [Amplify](https://subnets-test.avax.network/amplify), [Bulletin](https://subnets-test.avax.network/bulletin), and [Conduit](https://subnets-test.avax.network/conduit) Fuji subnets. After implementing this interface, you can run the E2E tests on this network by running a program such as:
 ```go
 func main() {
   // Register a failure handler that panics
