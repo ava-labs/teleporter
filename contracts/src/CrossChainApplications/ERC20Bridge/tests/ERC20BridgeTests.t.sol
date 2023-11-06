@@ -638,33 +638,6 @@ contract ERC20BridgeTest is Test {
         new ERC20Bridge(address(0));
     }
 
-    function testUpdateMinTeleporterVersion() public {
-        // Check that updating minimum Teleporter version fails if it's not the contract owner.
-        vm.prank(address(0));
-        vm.expectRevert("Ownable: caller is not the owner");
-        erc20Bridge.updateMinTeleporterVersion();
-
-        // Check that the owner can update the minimum Teleporter version.
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
-            ),
-            abi.encode(2)
-        );
-        vm.expectCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
-            )
-        );
-
-        vm.expectEmit(true, true, true, true, address(erc20Bridge));
-        emit MinTeleporterVersionUpdated(1, 2);
-        erc20Bridge.updateMinTeleporterVersion();
-        assertEq(erc20Bridge.minTeleporterVersion(), 2);
-    }
-
     function _initMockTeleporterRegistry() internal {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,

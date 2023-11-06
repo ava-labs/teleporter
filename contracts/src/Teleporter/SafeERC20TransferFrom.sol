@@ -42,4 +42,5 @@ library SafeERC20TransferFrom {
 
         return balanceAfter - balanceBefore;
     }
+    // solhint-enable private-vars-leading-underscore
 }

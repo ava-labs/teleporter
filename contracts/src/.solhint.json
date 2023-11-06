@@ -5,15 +5,12 @@
             "error",
             "0.8.18"
         ],
-        "no-unused-vars": "warn",
+        "no-unused-vars": "error",
         "func-visibility": [
-            "warn",
+            "error",
             {
                 "ignoreConstructors": true
             }
-        ],
-        "max-line-length": [
-            "off"
         ],
         "private-vars-leading-underscore": [
             "warn",
@@ -28,7 +25,7 @@
             }
         ],
         "custom-errors": "off",
-        "ordering": "warn",
+        "ordering": "error",
         "immutable-vars-naming": [
             "warn",
             {
@@ -36,7 +33,7 @@
             }
         ],
         "func-named-parameters": [
-            "warn",
+            "error",
             5
         ],
         "one-contract-per-file": "off"

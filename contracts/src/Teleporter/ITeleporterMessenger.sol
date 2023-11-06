@@ -255,8 +255,6 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Gets the receipt at the given index in the queue for the given chain ID.
-     * @param chainID The chain ID to get the receipt queue for.
-     * @param index The index of the receipt to get, starting from 0.
      * @return The receipt requested.
      */
     function getReceiptAtIndex(

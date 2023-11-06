@@ -195,7 +195,7 @@ Let's add a function called `getCurrentMessage` that allows users or contracts t
 // Check the current message from another chain.
 function getCurrentMessage(
     bytes32 originChainID
-) external view returns (address sender, string memory message) {
+) external view returns (address, string memory) {
     Message memory messageInfo = messages[originChainID];
     return (messageInfo.sender, messageInfo.message);
 }
