@@ -115,10 +115,11 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Called by transactions to initiate the sending of a cross subnet message.
+     * @return Message ID of the message sent.
      */
     function sendCrossChainMessage(
         TeleporterMessageInput calldata messageInput
-    ) external returns (uint256 messageID);
+    ) external returns (uint256);
 
     /**
      * @dev Called by transactions to retry the sending of a cross subnet message.
@@ -139,7 +140,7 @@ interface ITeleporterMessenger {
      * the given message ID to the destination subnet.
      *
      * The fee contract address must be the same asset type as the fee asset specified in the original
-     * call to sendCrossChainMessage. Returns a failure if the message doesn't exist or there is already
+     * call to sendCrossChainMessage. Reverts if the message doesn't exist or there is already
      * receipt of delivery of the message.
      */
     function addFeeAmount(

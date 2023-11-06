@@ -74,9 +74,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         internal _relayerRewardAddresses;
 
     // Tracks the fee amounts for a given asset able to be redeemed by a given relayer.
-    // The first key is the relayer address, the second key is the fee token contract address,
+    // The first key is the relayer reward address, the second key is the fee token contract address,
     // and the value is the amount of the asset redeemable by the relayer.
-    mapping(address relayerAddress => mapping(address feeTokenContract => uint256 redeemableRewardAmount))
+    mapping(address relayerRewardAddress => mapping(address feeTokenContract => uint256 redeemableRewardAmount))
         internal _relayerRewardAmounts;
 
     /**
