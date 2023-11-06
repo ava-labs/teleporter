@@ -560,6 +560,27 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
+     * @dev Checks whether `delivererAddress` is allowed to deliver the message.
+     */
+    function _checkIsAllowedRelayer(
+        address delivererAddress,
+        address[] memory allowedRelayers
+    ) internal pure returns (bool) {
+        // An empty allowed relayers list means anyone is allowed to deliver the message.
+        if (allowedRelayers.length == 0) {
+            return true;
+        }
+
+        // Otherwise, the deliverer address must be included in allowedRelayers.
+        for (uint256 i = 0; i < allowedRelayers.length; ++i) {
+            if (allowedRelayers[i] == delivererAddress) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @dev Helper function for sending a teleporter message cross chain.
      * Constructs the teleporter message and sends it through the warp messenger precompile,
      * and performs fee transfer if necessary.
@@ -752,26 +773,5 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      */
     function _getNextMessageID(bytes32 chainID) private view returns (uint256) {
         return latestMessageIDs[chainID] + 1;
-    }
-
-    /**
-     * @dev Checks whether `delivererAddress` is allowed to deliver the message.
-     */
-    function _checkIsAllowedRelayer(
-        address delivererAddress,
-        address[] memory allowedRelayers
-    ) internal pure returns (bool) {
-        // An empty allowed relayers list means anyone is allowed to deliver the message.
-        if (allowedRelayers.length == 0) {
-            return true;
-        }
-
-        // Otherwise, the deliverer address must be included in allowedRelayers.
-        for (uint256 i = 0; i < allowedRelayers.length; ++i) {
-            if (allowedRelayers[i] == delivererAddress) {
-                return true;
-            }
-        }
-        return false;
     }
 }

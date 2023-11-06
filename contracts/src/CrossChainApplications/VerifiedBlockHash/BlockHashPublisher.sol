@@ -5,10 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/upgrades/TeleporterRegistry.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./BlockHashReceiver.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {TeleporterRegistry} from "../../Teleporter/upgrades/TeleporterRegistry.sol";
 
 /**
  * Contract that publishes the latest block hash of current chain to another chain.

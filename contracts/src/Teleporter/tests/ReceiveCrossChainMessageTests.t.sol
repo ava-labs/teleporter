@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, WarpMessage, WarpMessenger} from "./TeleporterMessengerTest.t.sol";
 
 // Tests of the logic in receiveCrossChainMessage.
 // Tests of the execution and receipts helper methods are split out into independent

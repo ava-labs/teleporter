@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
-import "forge-std/Test.sol";
+import {TeleporterMessenger} from "../TeleporterMessenger.sol";
+import {Test} from "forge-std/Test.sol";
 
 contract CheckIsAllowedRelayerTest is TeleporterMessenger, Test {
     function testIsSpecifiedAllowedRelayer() public {

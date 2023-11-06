@@ -5,11 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/ITeleporterReceiver.sol";
-import "../../Teleporter/upgrades/TeleporterRegistry.sol";
-import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {TeleporterUpgradeable} from "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.

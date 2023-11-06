@@ -5,18 +5,17 @@
 
 pragma solidity 0.8.18;
 
-import "./IERC20Bridge.sol";
-import "./BridgeToken.sol";
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/ITeleporterReceiver.sol";
-import "../../Teleporter/SafeERC20TransferFrom.sol";
-import "../../Teleporter/upgrades/TeleporterRegistry.sol";
-import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
-import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20Bridge} from "./IERC20Bridge.sol";
+import {BridgeToken} from "./BridgeToken.sol";
+import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
+import {TeleporterUpgradeable} from "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
+import {WarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
+import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev Implementation of the {IERC20Bridge} interface.
