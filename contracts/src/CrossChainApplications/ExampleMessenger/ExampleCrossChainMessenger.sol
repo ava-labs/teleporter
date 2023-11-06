@@ -76,6 +76,7 @@ contract ExampleCrossChainMessenger is
 
     /**
      * @dev Sends a message to another chain.
+     * @return The message ID of the newly sent message.
      */
     function sendMessage(
         bytes32 destinationChainID,
@@ -84,7 +85,7 @@ contract ExampleCrossChainMessenger is
         uint256 feeAmount,
         uint256 requiredGasLimit,
         string calldata message
-    ) external nonReentrant returns (uint256 messageID) {
+    ) external nonReentrant returns (uint256) {
         ITeleporterMessenger teleporterMessenger = teleporterRegistry
             .getLatestTeleporter();
         // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
@@ -144,10 +145,11 @@ contract ExampleCrossChainMessenger is
 
     /**
      * @dev Returns the current message from another chain.
+     * @return The sender of the message, and the message itself.
      */
     function getCurrentMessage(
         bytes32 originChainID
-    ) external view returns (address sender, string memory message) {
+    ) external view returns (address, string memory) {
         Message memory messageInfo = _messages[originChainID];
         return (messageInfo.sender, messageInfo.message);
     }

@@ -115,7 +115,7 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Called by transactions to initiate the sending of a cross subnet message.
-     * @return Message ID of the message sent.
+     * @return The message ID of the newly sent message.
      */
     function sendCrossChainMessage(
         TeleporterMessageInput calldata messageInput
@@ -179,13 +179,14 @@ interface ITeleporterMessenger {
      * Sends the specified message receipts in a new message (with an empty payload) back to the origin chain.
      * This is intended to be used if the message receipts are not being delivered in a timely manner by the
      * mechanism to include them in independent messages from this chain being sent back to the origin chain.
+     * @return The message ID of the newly sent message.
      */
     function sendSpecifiedReceipts(
         bytes32 originChainID,
         uint256[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
-    ) external returns (uint256 messageID);
+    ) external returns (uint256);
 
     /**
      * @dev Sends any fee amount rewards for the given fee asset out to the caller.
@@ -194,31 +195,35 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Gets the hash of a given message stored in the EVM state, if the message exists.
+     * @return The message hash
      */
     function getMessageHash(
         bytes32 destinationChainID,
         uint256 messageID
-    ) external view returns (bytes32 messageHash);
+    ) external view returns (bytes32);
 
     /**
      * @dev Checks whether or not the given message has been received by this chain.
+     * @return Boolean representing if the given message has been received.
      */
     function messageReceived(
         bytes32 originChainID,
         uint256 messageID
-    ) external view returns (bool delivered);
+    ) external view returns (bool);
 
     /**
      * @dev Returns the address the relayer reward should be sent to on the origin subnet
      * for a given message, assuming that the message has already been delivered.
+     * @return The relayer reward address for the given message.
      */
     function getRelayerRewardAddress(
         bytes32 originChainID,
         uint256 messageID
-    ) external view returns (address relayerRewardAddress);
+    ) external view returns (address);
 
     /**
-     * Gets the current reward amount of a given fee asset that is redeemable by the given relayer.
+     * @dev Gets the current reward amount of a given fee asset that is redeemable by the given relayer.
+     * @return The amount of the fee asset redeemable by the specified relayer.
      */
     function checkRelayerRewardAmount(
         address relayer,
@@ -227,31 +232,35 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Gets the fee asset and amount for a given message.
+     * @return The fee asset address and fee amount for a the given message.
      */
     function getFeeInfo(
         bytes32 destinationChainID,
         uint256 messageID
-    ) external view returns (address feeAsset, uint256 feeAmount);
+    ) external view returns (address, uint256);
 
     /**
-     * @dev Returns the next message ID to be used to send a message to the given chain ID.
+     * @dev Gets the next message ID to be used for a given chain ID.
+     * @return The next message ID to be used to send a message to the given chain ID.
      */
     function getNextMessageID(bytes32 chainID) external view returns (uint256);
 
     /**
      * @dev Gets the number of receipts that have been sent to the given destination chain ID.
+     * @return Size of the given queue.
      */
     function getReceiptQueueSize(
         bytes32 chainID
-    ) external view returns (uint256 size);
+    ) external view returns (uint256);
 
     /**
      * @dev Gets the receipt at the given index in the queue for the given chain ID.
      * @param chainID The chain ID to get the receipt queue for.
      * @param index The index of the receipt to get, starting from 0.
+     * @return The receipt requested.
      */
     function getReceiptAtIndex(
         bytes32 chainID,
         uint256 index
-    ) external view returns (TeleporterMessageReceipt memory receipt);
+    ) external view returns (TeleporterMessageReceipt memory);
 }

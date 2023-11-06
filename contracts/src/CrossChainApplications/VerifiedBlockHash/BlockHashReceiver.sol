@@ -104,13 +104,9 @@ contract BlockHashReceiver is
     }
 
     /**
-     * @dev Returns the latest block information.
+     * @return Returns the latest block height and hash.
      */
-    function getLatestBlockInfo()
-        public
-        view
-        returns (uint256 height, bytes32 hash)
-    {
+    function getLatestBlockInfo() public view returns (uint256, bytes32) {
         return (latestBlockHeight, latestBlockHash);
     }
 }
