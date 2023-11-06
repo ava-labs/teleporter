@@ -427,7 +427,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             );
         for (uint256 i = 0; i < messageIDs.length; i++) {
             uint256 receivedMessageID = messageIDs[i];
-            // Check the relayer reward address for this message.
+            // Get the relayer reward address for the message.
             address relayerRewardAddress = _relayerRewardAddresses[
                 originChainID
             ][receivedMessageID];
