@@ -16,6 +16,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var _ Network = &FujiNetwork{}
+
 // Amplify, Bulletin, Conduit subnet constants
 var (
 	teleporterContractAddress = common.HexToAddress("0x50A46AA7b2eCBe2B1AbB7df865B9A87f5eed8635")
@@ -41,7 +43,7 @@ var (
 	conduitSubnetID        ids.ID
 	conduitBlockchainID    ids.ID
 
-	userAddress = common.HexToAddress("0xF0Aa98fDE5f1d08F0CCEC68A7d7A7Eae31c5E9C9")
+	userAddress = common.HexToAddress("")      // To be supplied by user
 	skHex       = strings.TrimPrefix("", "0x") // To be supplied by user
 )
 
