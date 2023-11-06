@@ -66,18 +66,18 @@ The above steps are sufficient to run the included integration tests inside Dock
 
 - `contracts/` is a [Foundry](https://github.com/foundry-rs/foundry) project that includes the implementation of the `TeleporterMessenger` contract and example dApps that demonstrate how to write contracts that interact with Teleporter.
 - `abi-bindings/` includes Go ABI bindings for the contracts in `contracts/`.
-- `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework
+- `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
 - `utils/` includes Go utility functions for interacting with the contracts in `contracts/`. Included are Golang scripts to derive the expected EVM contract address deployed from a given EOA at a specific nonce, and also construct a transaction to deploy provided byte code to the same address on any EVM chain using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#).
 - `subnet-evm/` is the public subnet-evm repository (included as a submodule) checked out on the `warp-contract` branch with our changes.
 - `scripts/` includes bash scripts for interacting with Teleporter in various environments, as well as utility scripts.
-  - `abi_bindings.sh` generates ABI bindings for the contracts in `contracts/` and outputs them to `abi-bindings/`
-  - `lint.sh` lints the contracts in `contracts/`
-  - `scripts/local/` includes scripts for running Teleporter in Docker containers and tests in the `scripts/local/integration-tests` locally.
+  - `abi_bindings.sh` generates ABI bindings for the contracts in `contracts/` and outputs them to `abi-bindings/`.
+  - `lint.sh` lints the contracts in `contracts/`.
+  - `scripts/local/` includes scripts for running Teleporter in Docker containers and for running the tests in the `scripts/local/integration-tests` locally.
     - `scripts/local/integration-tests/` includes integration test scripts written in bash. The scripts use `foundry` to deploy smart contracts that use Teleporter, send transactions to interact with the contracts, and check that cross-chain messages have the expected effect on destination chains.
-      - *Note* These tests will be deprecated in favor of the end to end tests in `tests/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework
+      - *Note* These tests will be deprecated in favor of the end to end tests in `tests/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
     - `scripts/fuji/` includes scripts to interact with a live Teleporter deployment on Fuji subnets.
-      - `scripts/fuji/example-workflows/` includes example workflows that send transactions to interact with Teleporter contracts on Fuji subnets.
-- `docker/` includes a containerized setup for running a local setup of Teleporter
+      - `scripts/fuji/example-workflows/` includes example workflows that send transactions to interact with Teleporter contracts on [Fuji](https://docs.avax.network/learn/avalanche/fuji) subnets.
+- `docker/` includes configurations for a local, containerized setup of Teleporter.
 
 ## Run the Docker integration tests
 
@@ -102,7 +102,7 @@ cast send --private-key 0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5c
 cast balance --rpc-url http://127.0.0.1:9652/ext/bc/C/rpc 0x333d17d3b42bf7930dbc6e852ca7bcf560a69003
 ```
 
-- After calling `./scripts/local/run.sh`, you can directly send messages between the deployed subnets . As an example, `./scripts/integration-tests/basic_send_receive.sh` can be run manually like so:
+- After calling `./scripts/local/run.sh`, you can directly send messages between the deployed subnets. As an example, `./scripts/integration-tests/basic_send_receive.sh` can be run manually like so:
 
 ```
 # Open a shell in the container
@@ -139,9 +139,9 @@ source vars.sh
 
 ### Additional notes
 
-- Both the `./scripts/local/run.sh` and `./scripts/local/test.sh` scripts run local five node networks, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
+- Both the `./scripts/local/run.sh` and `./scripts/local/test.sh` scripts run five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
 - Logs from the subnets on one of the five nodes are printed to stdout when run using either script.
-- These logs can also be found at `~/.avalanche-cli/runs/network-runner-root-data_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log`, or at `/var/lib/docker/overlay2/<CONTAINER_ID>/merged/root/.avalanche-cli/....` on your local machine. You will need to be the root user to access the logs under `/var/lib`.
+- These logs can also be found at `~/.avalanche-cli/runs/network-runner-root-data_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log` in the `local_network_run` container, or at `/var/lib/docker/overlay2/<CONTAINER_ID>/merged/root/.avalanche-cli/....` on your local machine. You will need to be the root user to access the logs under `/var/lib`.
 
 ### Run tests on Fuji Testnet
 
@@ -180,7 +180,7 @@ source .env
 
 ## E2E tests
 
-E2E tests are ran as part of CI, but can also be ran locally with the `--local` flag. To run the E2E tests locally, you'll need to install Gingko following the intructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo)
+E2E tests are run as part of CI, but can also be run locally with the `--local` flag. To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo)
 
 Next, provide the path to the `subnet-evm` repository and the path to a writeable data directory (here we use the `subnet-evm` submodule and `~/tmp/e2e-test`) to use for the tests:
 ```bash

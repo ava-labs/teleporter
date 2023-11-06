@@ -152,7 +152,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-addFeeAmount}
      *
-     * Emits a {AddFeeAmount} event.
+     * Emits an {AddFeeAmount} event.
      * Requirements:
      *
      * - `additionalFeeAmount` must be non-zero.
