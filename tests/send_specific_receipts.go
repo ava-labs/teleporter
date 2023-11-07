@@ -13,10 +13,10 @@ import (
 )
 
 func SendSpecificReceiptsGinkgo() {
-	sendSpecificReceipts(&network.LocalNetwork{})
+	SendSpecificReceipts(&network.LocalNetwork{})
 }
 
-func sendSpecificReceipts(network network.Network) {
+func SendSpecificReceipts(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
@@ -84,7 +84,7 @@ func sendSpecificReceipts(network network.Network) {
 		subnetBTeleporterMessenger,
 	)
 
-	// Relay message from SubnetA to SubnetB
+	// Relay message from Subnet B to Subnet A
 	network.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetBInfo, subnetAInfo)
 	// Check delivered
 	delivered, err = subnetATeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
@@ -96,4 +96,32 @@ func sendSpecificReceipts(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(amount).Should(Equal(big.NewInt(10)))
 
+	// Send message from Subnet B to Subnet A
+	sendCrossChainMessageInput = teleportermessenger.TeleporterMessageInput{
+		DestinationChainID: subnetAInfo.BlockchainID,
+		DestinationAddress: fundedAddress,
+		FeeInfo: teleportermessenger.TeleporterFeeInfo{
+			ContractAddress: mockTokenAddress,
+			Amount:          big.NewInt(0),
+		},
+		RequiredGasLimit:        big.NewInt(1),
+		AllowedRelayerAddresses: []common.Address{},
+		Message:                 []byte{1, 2, 3, 4},
+	}
+
+	// This message will also have the same receipt as the previous message
+	receipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
+		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetBTeleporterMessenger)
+
+	// Relay message from Subnet B to Subnet A
+	network.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetBInfo, subnetAInfo)
+	// Check delivered
+	delivered, err = subnetATeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
+	Expect(err).Should(BeNil())
+	Expect(delivered).Should(BeTrue())
+
+	// Check the reward amount remains the same
+	amount, err = subnetATeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, fundedAddress, mockTokenAddress)
+	Expect(err).Should(BeNil())
+	Expect(amount).Should(Equal(big.NewInt(10)))
 }
