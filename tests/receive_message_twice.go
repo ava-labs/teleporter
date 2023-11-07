@@ -94,13 +94,6 @@ func ReceiveMessageTwice(network network.Network) {
 		AccessList: teleporterTx.AccessList(),
 	})
 
-	log.Info("debug",
-		"gas", secondTeleporterTx.Gas(),
-		"gasFeeCap", secondTeleporterTx.GasFeeCap(),
-		"gasTipCap", secondTeleporterTx.GasTipCap(),
-		"data", secondTeleporterTx.Data(),
-		"accesslist", secondTeleporterTx.AccessList(),
-	)
 	signedTx = utils.SignTransaction(secondTeleporterTx, fundedKey, subnetBInfo.ChainIDInt)
 	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, signedTx, false)
 }
