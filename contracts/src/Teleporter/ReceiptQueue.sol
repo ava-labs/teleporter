@@ -63,8 +63,7 @@ library ReceiptQueue {
     function getOutstandingReceiptsToSend(
         TeleporterMessageReceiptQueue storage queue
     ) internal returns (TeleporterMessageReceipt[] memory result) {
-        // Get the current outstanding receipts for the given chain ID.
-        // If the queue contract doesn't exist, there are no outstanding receipts to send.
+        // Calculate the result size as the minimum of the number of receipts and maximum batch size.
         uint256 resultSize = Math.min(_MAXIMUM_RECEIPT_COUNT, size(queue));
         if (resultSize == 0) {
             return new TeleporterMessageReceipt[](0);

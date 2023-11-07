@@ -54,7 +54,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
     // Tracks the message hash and fee information for each message sent that has yet to be acknowledged
     // with a receipt. The messages are tracked per chain and keyed by message ID.
-    // The first key is the blockchain ID, the second key is the message ID, and the value is the info
+    // The first key is the blockchain ID of the destination chain, the second key is the message ID, and the value is the info
     // for the uniquely identified message.
     mapping(bytes32 destinationChainID => mapping(uint256 messageID => SentMessageInfo messageInfo))
         public sentMessageInfo;
@@ -676,7 +676,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev Records the receival of a receipt for a message previsouly sent to the `destinationChainID` with the given `messageID`.
      *
-     * If a receipt was already previously received for this message or the message never existed, returns early. Otherwise, deletes
+     * Returns early if a receipt was already previously received for this message, or if the message never existed. Otherwise, deletes
      * the message information from `sentMessageInfo` and increments the reward redeemable by the specified relayer reward address.
      */
     function _markReceipt(
@@ -745,7 +745,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Call the destination address of the message with the formatted call data.
         // Only provide the required gas limit to the sub-call so that the end application
-        // cannot consume an arbitrary amount gas.
+        // cannot consume an arbitrary amount of gas.
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, ) = message.destinationAddress.call{
             gas: message.requiredGasLimit
