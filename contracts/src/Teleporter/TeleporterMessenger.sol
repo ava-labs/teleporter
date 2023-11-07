@@ -54,7 +54,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
     // Tracks the message hash and fee information for each message sent that has yet to be acknowledged
     // with a receipt. The messages are tracked per chain and keyed by message ID.
-    // The first key is the blockchain ID, the second key is the message ID, and the value is the info
+    // The first key is the blockchain ID of the destination chain, the second key is the message ID, and the value is the info
     // for the uniquely identified message.
     mapping(bytes32 destinationChainID => mapping(uint256 messageID => SentMessageInfo messageInfo))
         public sentMessageInfo;
