@@ -17,6 +17,14 @@ import {TeleporterRegistry} from "./TeleporterRegistry.sol";
  */
 abstract contract TeleporterUpgradeable {
     TeleporterRegistry public immutable teleporterRegistry;
+
+    /**
+     * @dev The minimum required Teleporter version that the contract is allowed
+     * to receive messages from. Should only be update through the `updateMinTeleporterVersion`
+     * implementation of child contracts inheriting `TeleporterUpgradeable`. The value is
+     * public because inheriting contracts must be able to update it, and it should be
+     * publicly viewable.
+     */
     uint256 public minTeleporterVersion;
 
     event MinTeleporterVersionUpdated(
