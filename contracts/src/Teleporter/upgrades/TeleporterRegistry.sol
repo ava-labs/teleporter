@@ -19,10 +19,10 @@ struct ProtocolRegistryEntry {
 
 /**
  * @dev TeleporterRegistry contract provides an upgrade mechanism for {ITeleporterMessenger} contracts
- * through Warp out-of-band messages
+ * through Warp off-chain messages
  */
 contract TeleporterRegistry {
-    // Address that the out-of-band Warp message sets as the "source" address.
+    // Address that the off-chain Warp message sets as the "source" address.
     // The address is not owned by any EOA or smart contract account, so it
     // cannot possibly be the source address of any other Warp message emitted by the VM.
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
@@ -61,7 +61,7 @@ contract TeleporterRegistry {
     }
 
     /**
-     * @dev Gets and verifies a Warp out-of-band message, and adds the new protocol version
+     * @dev Gets and verifies a Warp off-chain message, and adds the new protocol version
      * address to the registry.
      * If a version is greater than the current latest version, it will be set as the latest version.
      * If a version is less than the current latest version, it is added to the registry, but
@@ -70,7 +70,7 @@ contract TeleporterRegistry {
      * Emits a {AddProtocolVersion} event when successful.
      * Requirements:
      *
-     * - a valid Warp out-of-band message must be provided.
+     * - a valid Warp off-chain message must be provided.
      * - source chain ID must be the same as the blockchain ID of the registry.
      * - origin sender address must be the same as the `VALIDATORS_SOURCE_ADDRESS`.
      * - destination chain ID must be the same as the blockchain ID of the registry.
@@ -80,7 +80,7 @@ contract TeleporterRegistry {
      * - protocol address must not be zero address.
      */
     function addProtocolVersion(uint32 messageIndex) external {
-        // Get and validate for a Warp out-of-band message.
+        // Get and validate for a Warp off-chain message.
         (WarpMessage memory message, bool success) = WARP_MESSENGER
             .getVerifiedWarpMessage(messageIndex);
         require(success, "TeleporterRegistry: invalid warp message");
@@ -88,7 +88,7 @@ contract TeleporterRegistry {
             message.sourceChainID == blockchainID,
             "TeleporterRegistry: invalid source chain ID"
         );
-        // Check that the message is sent through a Warp out-of-band message.
+        // Check that the message is sent through a Warp off-chain message.
         require(
             message.originSenderAddress == VALIDATORS_SOURCE_ADDRESS,
             "TeleporterRegistry: invalid origin sender address"

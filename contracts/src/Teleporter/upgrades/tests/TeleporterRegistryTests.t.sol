@@ -53,7 +53,7 @@ contract TeleporterRegistryTest is Test {
 
         // Check that adding a protocol version with a version that is not the increment of the latest version succeeds
         latestVersion = teleporterRegistry.latestVersion();
-        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 2,
             teleporterAddress,
             address(teleporterRegistry)
@@ -80,7 +80,7 @@ contract TeleporterRegistryTest is Test {
         // Check that adding a protocol version with a protocol address that is not a contract address succeeds
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint32 messageIndex = 0;
-        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 2,
             address(this),
             address(teleporterRegistry)
@@ -108,7 +108,7 @@ contract TeleporterRegistryTest is Test {
         // First add to latest version by skipping a version.
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint32 messageIndex = 0;
-        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 2,
             teleporterAddress,
             address(teleporterRegistry)
@@ -132,7 +132,7 @@ contract TeleporterRegistryTest is Test {
 
         // latestVersion + 1 was skipped in previous check, is not registered, and is less than latestVersion()
         uint256 oldVersion = latestVersion + 1;
-        warpMessage = _createWarpOutofBandMessage(
+        warpMessage = _createWarpOffChainMessage(
             oldVersion,
             address(this),
             address(teleporterRegistry)
@@ -167,7 +167,7 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
 
         // Add a new version to the registiry
-        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 1,
             teleporterAddress,
             address(teleporterRegistry)
@@ -203,7 +203,7 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
 
         // Check that adding an invalid protocol address of address(0) fails
-        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 1,
             address(0),
             address(teleporterRegistry)
@@ -226,7 +226,7 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
 
         // Check that adding an invalid version of 0 fails
-        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
             0,
             teleporterAddress,
             address(teleporterRegistry)
@@ -281,7 +281,7 @@ contract TeleporterRegistryTest is Test {
     function testInvalidWarpMessage() public {
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint32 messageIndex = 0;
-        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 1,
             teleporterAddress,
             address(teleporterRegistry)
@@ -377,7 +377,7 @@ contract TeleporterRegistryTest is Test {
     ) internal {
         uint256 latestVersion = registry.latestVersion();
         uint32 messageIndex = 0;
-        WarpMessage memory warpMessage = _createWarpOutofBandMessage(
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 1,
             newProtocolAddress,
             address(registry)
@@ -400,7 +400,7 @@ contract TeleporterRegistryTest is Test {
         registry.addProtocolVersion(messageIndex);
     }
 
-    function _createWarpOutofBandMessage(
+    function _createWarpOffChainMessage(
         uint256 version,
         address protocolAddress,
         address registryAddress
