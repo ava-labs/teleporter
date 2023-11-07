@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"crypto/ecdsa"
-	"math/big"
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -71,15 +70,14 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 // Returns the receipt on the destination chain
 func RelayMessage(
 	ctx context.Context,
-	sourceBlockHash common.Hash,
-	sourceBlockNumber *big.Int,
+	sourceReceipt *types.Receipt,
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
 	expectSuccess bool,
 ) *types.Receipt {
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.ChainRPCClient.FilterLogs(ctx, interfaces.FilterQuery{
-		BlockHash: &sourceBlockHash,
+		BlockHash: &sourceReceipt.BlockHash,
 		Addresses: []common.Address{warp.Module.Address},
 	})
 	Expect(err).Should(BeNil())
@@ -97,10 +95,16 @@ func RelayMessage(
 	unsignedWarpMsg := unsignedMsg
 	log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
 
+	// Fetch the Teleporter message from the logs
+	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
+	Expect(err).Should(BeNil())
+	sendEvent, err := GetSendEventFromLogs(sourceReceipt.Logs, bind)
+	Expect(err).Should(BeNil())
+
 	// Loop over each client on chain A to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
 	// has accepted the block.
-	WaitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceBlockNumber.Uint64())
+	WaitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
 
 	// Get the aggregate signature for the Warp message
 	log.Info("Fetching aggregate signature from the source chain validators")
@@ -113,7 +117,7 @@ func RelayMessage(
 	signedTx := CreateReceiveCrossChainMessageTransaction(
 		ctx,
 		signedWarpMessageBytes,
-		big.NewInt(1),
+		sendEvent.Message.RequiredGasLimit,
 		teleporterContractAddress,
 		fundedAddress,
 		fundedKey,
@@ -128,12 +132,12 @@ func RelayMessage(
 		return nil
 	}
 
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
+	bind, err = teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
 	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	event, err := GetReceiveEventFromLogs(receipt.Logs, bind)
+	receiveEvent, err := GetReceiveEventFromLogs(receipt.Logs, bind)
 	Expect(err).Should(BeNil())
-	Expect(event.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
+	Expect(receiveEvent.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
 	return receipt
 }
 

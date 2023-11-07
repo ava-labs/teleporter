@@ -14,6 +14,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/params"
@@ -28,7 +29,7 @@ import (
 
 var (
 	NativeTransferGas                     uint64 = 21_000
-	DefaultTeleporterTransactionGas       uint64 = 200_000
+	DefaultTeleporterTransactionGas       uint64 = 300_000
 	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
 	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
 	DefaultTeleporterTransactionValue            = common.Big0
@@ -47,23 +48,82 @@ func SendTransactionAndWaitForAcceptance(
 	tx *types.Transaction,
 	expectSuccess bool) *types.Receipt {
 
-	newHeads := make(chan *types.Header, 1)
-	subA, err := wsClient.SubscribeNewHead(ctx, newHeads)
+	err := rpcClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
-	defer subA.Unsubscribe()
 
-	err = rpcClient.SendTransaction(ctx, tx)
-	Expect(err).Should(BeNil())
 	// Wait for the transaction to be accepted
-	<-newHeads
-
-	receipt, err := rpcClient.TransactionReceipt(ctx, tx.Hash())
+	receipt, err := bind.WaitMined(ctx, rpcClient, tx)
 	Expect(err).Should(BeNil())
 	if expectSuccess {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	} else {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
 	}
+
+	return receipt
+}
+
+func SendCrossChainMessageAndWaitForAcceptance(
+	ctx context.Context,
+	source SubnetTestInfo,
+	destination SubnetTestInfo,
+	input teleportermessenger.TeleporterMessageInput,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	transactor *teleportermessenger.TeleporterMessenger,
+) (*types.Receipt, *big.Int) {
+	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+
+	// Send a transaction to the Teleporter contract
+	txn, err := transactor.SendCrossChainMessage(opts, input)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be accepted
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
+	event, err := GetSendEventFromLogs(receipt.Logs, transactor)
+	Expect(err).Should(BeNil())
+	Expect(event.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
+
+	log.Info("Sending SendCrossChainMessage transaction on source chain",
+		"sourceChainID", source.BlockchainID,
+		"destinationChainID", destination.BlockchainID,
+		"txHash", txn.Hash())
+
+	return receipt, event.Message.MessageID
+}
+
+func SendAddFeeAmountAndWaitForAcceptance(
+	ctx context.Context,
+	source SubnetTestInfo,
+	destination SubnetTestInfo,
+	messageID *big.Int,
+	amount *big.Int,
+	feeContractAddress common.Address,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	transactor *teleportermessenger.TeleporterMessenger,
+) *types.Receipt {
+	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+
+	txn, err := transactor.AddFeeAmount(opts, destination.BlockchainID, messageID, feeContractAddress, amount)
+	Expect(err).Should(BeNil())
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	addFeeAmountEvent, err := GetAddFeeAmountEventFromLogs(receipt.Logs, transactor)
+	Expect(err).Should(BeNil())
+	Expect(addFeeAmountEvent.MessageID).Should(Equal(messageID))
+	Expect(addFeeAmountEvent.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
+
+	log.Info("Send AddFeeAmount transaction on source chain",
+		"messageID", messageID,
+		"sourceChainID", source.BlockchainID,
+		"destinationChainID", destination.BlockchainID)
 
 	return receipt
 }
@@ -104,6 +164,22 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 //
 // Transaction creation functions
 //
+
+func CreateTransactorOpts(ctx context.Context, subnet SubnetTestInfo, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey) *bind.TransactOpts {
+	// set up parameters
+	transactor, err := bind.NewKeyedTransactorWithChainID(
+		fundedKey, subnet.ChainIDInt)
+	Expect(err).Should(BeNil())
+
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnet.ChainRPCClient, fundedAddress)
+
+	transactor.From = fundedAddress
+	transactor.Nonce = new(big.Int).SetUint64(nonce)
+	transactor.GasTipCap = gasTipCap
+	transactor.GasFeeCap = gasFeeCap
+
+	return transactor
+}
 
 // Constructs a transaction to call sendCrossChainMessage
 // Returns the signed transaction.
@@ -290,6 +366,21 @@ func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.Teleporte
 	}
 	return nil, fmt.Errorf("failed to find SendCrossChainMessage event in receipt logs")
 }
+
+func GetAddFeeAmountEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerAddFeeAmount, error) {
+	for _, log := range logs {
+		event, err := bind.ParseAddFeeAmount(*log)
+		if err == nil {
+			return event, nil
+
+		}
+	}
+	return nil, fmt.Errorf("failed to find AddFeeAmount event in receipt logs")
+}
+
+//
+// Unexported functions
+//
 
 // Signs a transaction using the provided key for the specified chainID
 func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.Int) *types.Transaction {

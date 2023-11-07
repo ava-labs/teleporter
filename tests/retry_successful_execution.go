@@ -4,13 +4,12 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	"github.com/ava-labs/subnet-evm/interfaces"
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
 
@@ -29,39 +28,46 @@ func RetrySuccessfulExecution(network network.Network) {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	Expect(err).Should(BeNil())
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	Expect(err).Should(BeNil())
+
 	//
 	// Deploy ExampleMessenger to Subnets A and B
 	//
 	ctx := context.Background()
-	exampleMessengerABI, err := examplecrosschainmessenger.ExampleCrossChainMessengerMetaData.GetAbi()
+
+	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	_, tx, subnetAExampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsA, subnetAInfo.ChainRPCClient, subnetAInfo.TeleporterRegistryAddress)
 	Expect(err).Should(BeNil())
 
-	exampleMessengerContractA := utils.DeployContract(ctx, ExampleMessengerByteCodeFile, fundedKey, subnetAInfo, exampleMessengerABI, subnetAInfo.TeleporterRegistryAddress)
-	exampleMessengerContractB := utils.DeployContract(ctx, ExampleMessengerByteCodeFile, fundedKey, subnetBInfo, exampleMessengerABI, subnetBInfo.TeleporterRegistryAddress)
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, fundedAddress, fundedKey)
+	exampleMessengerContractB, tx, subnetBExampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsB, subnetBInfo.ChainRPCClient, subnetBInfo.TeleporterRegistryAddress)
+
+	// Wait for the transaction to be mined
+	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	//
 	// Call the example messenger contract on Subnet A
 	//
 	message := "Hello, world!"
-	data, err := exampleMessengerABI.Pack("sendMessage", subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(300000), message)
-	gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(ctx, subnetAInfo.ChainRPCClient, fundedAddress)
+	optsA = utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	tx, err = subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(300000), message)
 
-	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   subnetAInfo.ChainIDInt,
-		Nonce:     nonce,
-		To:        &exampleMessengerContractA,
-		Gas:       utils.DefaultTeleporterTransactionGas,
-		GasFeeCap: gasFeeCap,
-		GasTipCap: gasTipCap,
-		Data:      data,
-	})
-
-	signedTx := utils.SignTransaction(tx, fundedKey, subnetAInfo.ChainIDInt)
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, subnetAInfo.ChainRPCClient, signedTx, true)
-
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	// Wait for the transaction to be mined
+	receipt, err = bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
 	Expect(err).Should(BeNil())
-	event, err := utils.GetSendEventFromLogs(receipt.Logs, bind)
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	event, err := utils.GetSendEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -71,53 +77,28 @@ func RetrySuccessfulExecution(network network.Network) {
 	// Relay the message to the destination
 	//
 
-	receipt = network.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetAInfo, subnetBInfo, true)
-	bind, err = teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
-	Expect(err).Should(BeNil())
-	receiveEvent, err := utils.GetReceiveEventFromLogs(receipt.Logs, bind)
+	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receiveEvent, err := utils.GetReceiveEventFromLogs(receipt.Logs, subnetBTeleporterMessenger)
 	Expect(err).Should(BeNil())
 	deliveredTeleporterMessage := receiveEvent.Message
 
 	//
 	// Check Teleporter message received on the destination
 	//
-	data, err = teleportermessenger.PackMessageReceived(subnetAInfo.BlockchainID, teleporterMessageID)
-	Expect(err).Should(BeNil())
-	callMessage := interfaces.CallMsg{
-		To:   &teleporterContractAddress,
-		Data: data,
-	}
-	result, err := subnetBInfo.ChainRPCClient.CallContract(context.Background(), callMessage, nil)
-	Expect(err).Should(BeNil())
-
-	// check the contract call result
-	delivered, err := teleportermessenger.UnpackMessageReceivedResult(result)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	//
 	// Verify we received the expected string
 	//
-	data, err = exampleMessengerABI.Pack("getCurrentMessage", subnetAInfo.BlockchainID)
-	Expect(err).Should(BeNil())
-	callMessage = interfaces.CallMsg{
-		To:   &exampleMessengerContractB,
-		Data: data,
-	}
-	result, err = subnetBInfo.ChainRPCClient.CallContract(context.Background(), callMessage, nil)
-	Expect(err).Should(BeNil())
-
-	var messageInfo struct {
-		Sender  common.Address
-		Message string
-	}
-	exampleMessengerABI.UnpackIntoInterface(&messageInfo, "getCurrentMessage", result)
-	Expect(messageInfo.Message).Should(Equal(message))
+	res, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
+	Expect(res.Message).Should(Equal(message))
 
 	//
 	// Attempt to retry message execution
 	//
-	signedTx = utils.CreateRetryMessageExecutionTransaction(
+	signedTx := utils.CreateRetryMessageExecutionTransaction(
 		ctx,
 		subnetBInfo,
 		subnetAInfo.BlockchainID,

@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/subnet-evm/interfaces"
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -29,23 +29,16 @@ func DeliverToWrongChain(network network.Network) {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	Expect(err).Should(BeNil())
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	Expect(err).Should(BeNil())
+
 	//
 	// Get the expected teleporter message ID for Subnet B
 	//
-	teleporterABI, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
+	teleporterMessageID, err = subnetATeleporterMessenger.GetNextMessageID(&bind.CallOpts{}, subnetBInfo.BlockchainID)
 	Expect(err).Should(BeNil())
-	data, err := teleporterABI.Pack("getNextMessageID", subnetBInfo.BlockchainID)
-
-	// data, err := teleportermessenger.PackMessageReceived(subnetAInfo.BlockchainID, teleporterMessageID)
-	Expect(err).Should(BeNil())
-	callMessage := interfaces.CallMsg{
-		To:   &teleporterContractAddress,
-		Data: data,
-	}
-	result, err := subnetAInfo.ChainRPCClient.CallContract(context.Background(), callMessage, nil)
-	Expect(err).Should(BeNil())
-
-	teleporterABI.UnpackIntoInterface(&teleporterMessageID, "getNextMessageID", result)
 
 	//
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to a chain other than Subnet B
@@ -68,9 +61,7 @@ func DeliverToWrongChain(network network.Network) {
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
 	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, subnetAInfo.ChainRPCClient, signedTx, true)
 
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
-	Expect(err).Should(BeNil())
-	event, err := utils.GetSendEventFromLogs(receipt.Logs, bind)
+	event, err := utils.GetSendEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(ids.Empty[:]))
 
@@ -78,22 +69,12 @@ func DeliverToWrongChain(network network.Network) {
 	// Relay the message to the destination
 	//
 
-	network.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetAInfo, subnetBInfo, false)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
 
 	//
 	// Check that the message was not received on the Subnet B
 	//
-	data, err = teleportermessenger.PackMessageReceived(subnetAInfo.BlockchainID, teleporterMessageID)
-	Expect(err).Should(BeNil())
-	callMessage = interfaces.CallMsg{
-		To:   &teleporterContractAddress,
-		Data: data,
-	}
-	result, err = subnetBInfo.ChainRPCClient.CallContract(context.Background(), callMessage, nil)
-	Expect(err).Should(BeNil())
-
-	// check the contract call result
-	delivered, err := teleportermessenger.UnpackMessageReceivedResult(result)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
 }
