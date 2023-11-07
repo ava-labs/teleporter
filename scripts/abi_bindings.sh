@@ -4,14 +4,15 @@
 
 set -e
 
-source ./scripts/utils.sh
-
-setARCH
-
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
+
+source $TELEPORTER_PATH/scripts/constants.sh
+source $TELEPORTER_PATH/scripts/utils.sh
+
+setARCH
 
 DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken TeleporterRegistry"
 
@@ -53,12 +54,6 @@ cd $TELEPORTER_PATH/contracts
 forge build --force --extra-output-files abi
 
 contract_names=($CONTRACT_LIST)
-
-# Set the CGO flags to use the portable version of BLST
-#
-# We use "export" here instead of just setting a bash variable because we need
-# to pass this flag to all child processes spawned by the shell.
-export CGO_CFLAGS="-O -D__BLST_PORTABLE__"
 
 # If CONTRACT_LIST is empty, use DEFAULT_CONTRACT_LIST
 if [[ -z "${CONTRACT_LIST}" ]]; then
