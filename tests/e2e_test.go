@@ -47,6 +47,9 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySendGinkgo)
 	ginkgo.It("Deliver to the wrong chain", DeliverToWrongChainGinkgo)
 	ginkgo.It("Deliver to non-existent contract", DeliverToNonExistentContractGinkgo)
+	ginkgo.It("Retry successful execution", RetrySuccessfulExecutionGinkgo)
+	ginkgo.It("Unallowed relayer", UnallowedRelayerGinkgo)
+	ginkgo.It("Receive message twice", ReceiveMessageTwiceGinkgo)
 	ginkgo.It("Add additional fee amount", AddFeeAmountGinkgo)
 	ginkgo.It("Send specific receipts", SendSpecificReceiptsGinkgo)
 

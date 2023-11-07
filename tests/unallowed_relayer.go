@@ -4,7 +4,6 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
@@ -14,11 +13,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func DeliverToWrongChainGinkgo() {
-	DeliverToWrongChain(&network.LocalNetwork{})
+func UnallowedRelayerGinkgo() {
+	UnallowedRelayer(&network.LocalNetwork{})
 }
 
-func DeliverToWrongChain(network network.Network) {
+func UnallowedRelayer(network network.Network) {
 	var (
 		teleporterMessageID *big.Int
 	)
@@ -35,26 +34,23 @@ func DeliverToWrongChain(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	//
-	// Get the expected teleporter message ID for Subnet B
-	//
-	teleporterMessageID, err = subnetATeleporterMessenger.GetNextMessageID(&bind.CallOpts{}, subnetBInfo.BlockchainID)
-	Expect(err).Should(BeNil())
-
-	//
-	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to a chain other than Subnet B
+	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
+	// The Teleporter message includes an allowed relayer list that does NOT include the relayer
 	//
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationChainID: ids.Empty, // Some other chain ID
+		DestinationChainID: subnetBInfo.BlockchainID,
 		DestinationAddress: fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			ContractAddress: fundedAddress,
 			Amount:          big.NewInt(0),
 		},
-		RequiredGasLimit:        big.NewInt(1),
-		AllowedRelayerAddresses: []common.Address{},
-		Message:                 []byte{1, 2, 3, 4},
+		RequiredGasLimit: big.NewInt(1),
+		AllowedRelayerAddresses: []common.Address{
+			common.HexToAddress("0x0123456789012345678901234567890123456789"),
+		},
+		Message: []byte{1, 2, 3, 4},
 	}
 	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
@@ -63,7 +59,9 @@ func DeliverToWrongChain(network network.Network) {
 
 	event, err := utils.GetSendEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(ids.Empty[:]))
+	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
+
+	teleporterMessageID = event.Message.MessageID
 
 	//
 	// Relay the message to the destination
@@ -72,7 +70,7 @@ func DeliverToWrongChain(network network.Network) {
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
 
 	//
-	// Check that the message was not received on the Subnet B
+	// Check Teleporter message was not received on the destination
 	//
 	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
 	Expect(err).Should(BeNil())
