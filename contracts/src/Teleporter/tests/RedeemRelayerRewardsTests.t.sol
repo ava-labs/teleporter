@@ -125,11 +125,8 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
             );
 
         messageToReceive.receipts = receipts;
-        WarpMessage memory warpMessage = WarpMessage(
+        WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
-            address(teleporterMessenger),
-            MOCK_BLOCK_CHAIN_ID,
-            address(teleporterMessenger),
             abi.encode(messageToReceive)
         );
 

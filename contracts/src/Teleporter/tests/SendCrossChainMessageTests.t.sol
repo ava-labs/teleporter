@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterFeeInfo, TeleporterMessageInput, WarpMessenger, IERC20} from "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterFeeInfo, TeleporterMessageInput, IWarpMessenger, IERC20} from "./TeleporterMessengerTest.t.sol";
 
 contract SendCrossChainMessageTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -23,7 +23,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         );
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: expectedMessage.destinationAddress,
             feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
@@ -34,20 +34,16 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // We have to mock the precompile call so that the test does not revert.
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
         );
 
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(expectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(expectedMessage))
             )
         );
 
@@ -87,7 +83,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             13131313131313131313
         );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: expectedMessage.destinationAddress,
             feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
@@ -98,20 +94,16 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // We have to mock the precompile call so that the test does not revert.
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
         );
 
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(expectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(expectedMessage))
             )
         );
 

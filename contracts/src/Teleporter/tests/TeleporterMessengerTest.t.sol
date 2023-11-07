@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
-import {TeleporterMessenger, TeleporterMessage, TeleporterMessageReceipt, TeleporterMessageInput, TeleporterFeeInfo, WarpMessenger, WarpMessage} from "../TeleporterMessenger.sol";
+import {TeleporterMessenger, TeleporterMessage, TeleporterMessageReceipt, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, WarpMessage} from "../TeleporterMessenger.sol";
 import {UnitTestMockERC20} from "../../Mocks/UnitTestMockERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -16,7 +16,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract TeleporterMessengerTest is Test {
     TeleporterMessenger public teleporterMessenger;
 
-    bytes32 public constant MOCK_BLOCK_CHAIN_ID = bytes32(uint256(123456));
     bytes32 public constant DEFAULT_ORIGIN_CHAIN_ID =
         bytes32(
             hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"
@@ -84,8 +83,8 @@ contract TeleporterMessengerTest is Test {
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector),
-            abi.encode(MOCK_BLOCK_CHAIN_ID)
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
+            abi.encode(DEFAULT_DESTINATION_CHAIN_ID)
         );
 
         teleporterMessenger = new TeleporterMessenger();
@@ -98,13 +97,15 @@ contract TeleporterMessengerTest is Test {
 
     function testEmptyReceiptQueue() public {
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
+            teleporterMessenger.getReceiptQueueSize(
+                DEFAULT_DESTINATION_CHAIN_ID
+            ),
             0
         );
 
         vm.expectRevert("ReceiptQueue: index out of bounds");
         TeleporterMessageReceipt memory receipt = teleporterMessenger
-            .getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+            .getReceiptAtIndex(DEFAULT_DESTINATION_CHAIN_ID, 0);
         assertEq(receipt.receivedMessageID, 0);
         assertEq(receipt.relayerRewardAddress, address(0));
     }
@@ -119,8 +120,8 @@ contract TeleporterMessengerTest is Test {
     ) internal returns (uint256) {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
         );
 
         address feeAsset = address(0);
@@ -167,12 +168,12 @@ contract TeleporterMessengerTest is Test {
     ) internal {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (index)),
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (index)),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (index))
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (index))
         );
     }
 
@@ -277,6 +278,7 @@ contract TeleporterMessengerTest is Test {
             TeleporterMessage({
                 messageID: messageID,
                 senderAddress: address(this),
+                destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
                 destinationAddress: DEFAULT_DESTINATION_ADDRESS,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
                 allowedRelayerAddresses: new address[](0),
@@ -293,8 +295,6 @@ contract TeleporterMessengerTest is Test {
             WarpMessage({
                 sourceChainID: originChainID,
                 originSenderAddress: address(teleporterMessenger),
-                destinationChainID: MOCK_BLOCK_CHAIN_ID,
-                destinationAddress: address(teleporterMessenger),
                 payload: payload
             });
     }

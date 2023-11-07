@@ -11,7 +11,7 @@ import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from ".
 import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
-import {WarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
+import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -78,7 +78,7 @@ contract ERC20Bridge is
     constructor(
         address teleporterRegistryAddress
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
-        currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
+        currentChainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
 
