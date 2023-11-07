@@ -21,6 +21,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 library SafeERC20TransferFrom {
     using SafeERC20 for IERC20;
 
+    // solhint-disable private-vars-leading-underscore
     function safeTransferFrom(
         IERC20 erc20,
         uint256 amount
@@ -36,4 +37,5 @@ library SafeERC20TransferFrom {
 
         return balanceAfter - balanceBefore;
     }
+    // solhint-enable private-vars-leading-underscore
 }

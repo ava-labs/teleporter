@@ -24,4 +24,4 @@ jobs:
             # in subdirectories. The former only checks sol files in the current directory and directories one level down.
             - name: Run Lint
               run: |
-                  ./scripts/local/lint.sh
+                  ./scripts/lint.sh
