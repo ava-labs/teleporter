@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -125,6 +126,38 @@ func SendAddFeeAmountAndWaitForAcceptance(
 		"destinationChainID", destination.BlockchainID)
 
 	return receipt
+}
+
+func SendSpecifiedReceiptsAndWaitForAcceptance(
+	ctx context.Context,
+	originChainID ids.ID,
+	source SubnetTestInfo,
+	messageIDs []*big.Int,
+	feeInfo teleportermessenger.TeleporterFeeInfo,
+	allowedRelayerAddresses []common.Address,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	transactor *teleportermessenger.TeleporterMessenger,
+) (*types.Receipt, *big.Int) {
+	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+
+	txn, err := transactor.SendSpecifiedReceipts(opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
+	Expect(err).Should(BeNil())
+
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
+	event, err := GetSendEventFromLogs(receipt.Logs, transactor)
+	Expect(err).Should(BeNil())
+	Expect(event.DestinationChainID[:]).Should(Equal(originChainID[:]))
+
+	log.Info("Sending SendSpecifiedReceipts transaction",
+		"originChainID", originChainID,
+		"txHash", txn.Hash())
+
+	return receipt, event.Message.MessageID
 }
 
 func HttpToWebsocketURI(uri string, blockchainID string) string {
@@ -263,7 +296,7 @@ func CreateNativeTransferTransaction(
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Transaction {
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.ChainRPCClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.ChainRPCClient, fromAddress)
 
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   network.ChainIDInt,
@@ -275,7 +308,7 @@ func CreateNativeTransferTransaction(
 		Value:     amount,
 	})
 
-	return signTransaction(tx, fundedKey, network.ChainIDInt)
+	return signTransaction(tx, fromKey, network.ChainIDInt)
 }
 
 //
