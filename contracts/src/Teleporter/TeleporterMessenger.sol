@@ -674,10 +674,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Marks the receipt of a message from the given `destinationChainID` with the given `messageID`.
+     * @dev Records the receival of a receipt for a message previsouly sent to the `destinationChainID` with the given `messageID`.
      *
-     * If the receipt was already previously received for this message, returns early.
-     * If existing message is found and not yet delivered, deletes it from state and increment the fee/reward
+     * If a receipt was already previously received for this message or the message never existed, returns early. Otherwise, deletes
+     * the message information from `sentMessageInfo` and increments the reward redeemable by the specified relayer reward address.
      */
     function _markReceipt(
         bytes32 destinationChainID,
