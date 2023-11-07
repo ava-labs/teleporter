@@ -6,7 +6,6 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -31,33 +30,19 @@ func InsufficientGas(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Deploy ExampleMessenger to Subnets A
+	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
+
+	// Deploy ExampleMessenger to Subnets B
+	exampleMessengerContractB, _ := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
+
+	// Send message from SubnetA to SubnetB with 0 execution gas, which should fail to execute
+	message := "Hello, world!"
 	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	_, tx, subnetAExampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsA, subnetAInfo.ChainRPCClient, subnetAInfo.TeleporterRegistryAddress)
+	tx, err := subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
 	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-
-	// Deploy ExampleMessenger to Subnets B
-	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, fundedAddress, fundedKey)
-	exampleMessengerContractB, tx, _, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsB, subnetBInfo.ChainRPCClient, subnetBInfo.TeleporterRegistryAddress)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-
-	// Send message from SubnetA to SubnetB with 0 execution ga, which should fail to execute
-	message := "Hello, world!"
-	optsA = utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	tx, err = subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -83,7 +68,7 @@ func InsufficientGas(network network.Network) {
 
 	// Retry message execution. This will execute the message with as much gas as needed
 	// (up to the transaction gas limit), rather than using the required gas specified in the message itself.s
-	receipt = utils.RetryMessageExecution(
+	receipt = utils.RetryMessageExecutionAndWaitForAcceptance(
 		ctx, subnetAInfo.BlockchainID, subnetBInfo, failedMessageExecutionEvent.Message, fundedAddress, fundedKey, subnetBTeleporterMessenger)
 	executedEvent, err := utils.GetMessageExecutedEventFromLogs(receipt.Logs, subnetBTeleporterMessenger)
 	Expect(err).Should(BeNil())

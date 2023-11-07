@@ -128,7 +128,7 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	return receipt
 }
 
-func RetryMessageExecution(
+func RetryMessageExecutionAndWaitForAcceptance(
 	ctx context.Context,
 	originChainID ids.ID,
 	subnet SubnetTestInfo,
