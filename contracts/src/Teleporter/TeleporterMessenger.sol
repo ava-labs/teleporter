@@ -17,7 +17,7 @@ import {ReentrancyGuards} from "./ReentrancyGuards.sol";
 /**
  * @dev Implementation of the {ITeleporterMessenger} interface.
  *
- * This implementation is used to send messages cross chain using the WarpMessenger precompile,
+ * This implementation is used to send messages cross-chain using the WarpMessenger precompile,
  * and to receive messages sent from other chains. Teleporter contracts should be deployed through Nick's method
  * of universal deployer, such that the same contract is deployed at the same address on all chains.
  *
@@ -73,7 +73,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     mapping(bytes32 sourceChainID => mapping(uint256 messageID => address relayerRewardAddress))
         internal _relayerRewardAddresses;
 
-    // Tracks the fee amounts for a given asset able to be redeemed by a given relayer.
+    // Tracks the reward amounts for a given asset able to be redeemed by a given relayer.
     // The first key is the relayer reward address, the second key is the fee token contract address,
     // and the value is the amount of the asset redeemable by the relayer.
     mapping(address relayerRewardAddress => mapping(address feeTokenContract => uint256 redeemableRewardAmount))
@@ -82,8 +82,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-sendCrossChainMessage}
      *
-     * When executed, it will kick off an asynchronous event to have the validators of the chain create an
-     * aggregate BLS signature of the message.
+     * When executed, a relayer may kick off an asynchronous event to have the validators of the
+     * chain create an aggregate BLS signature of the message.
      *
      * Emits a {SendCrossChainMessage} event when message successfully gets sent.
      */
@@ -104,11 +104,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-retrySendCrossChainMessage}
      *
-     * Emits {SendCrossChainMessage} event.
+     * Emits a {SendCrossChainMessage} event.
      * Requirements:
      *
-     * - `message` must have been previously sent to the given destination chain ID.
-     * - `message` encoding must match previously sent message.
+     * - `message` must have been previously sent to the given `destinationChainID`.
+     * - `message` encoding mush match previously sent message.
      */
     function retrySendCrossChainMessage(
         bytes32 destinationChainID,
@@ -152,12 +152,12 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-addFeeAmount}
      *
-     * Emits {AddFeeAmount} event.
+     * Emits an {AddFeeAmount} event.
      * Requirements:
      *
      * - `additionalFeeAmount` must be non-zero.
-     * - message must exist and not have been delivered yet.
-     * - `feeContractAddress` must match the fee asset contract address used in the original call to sendCrossChainMessage.
+     * - `message` must exist and not have been delivered yet.
+     * - `feeContractAddress` must match the fee asset contract address used in the original call to `sendCrossChainMessage`.
      */
     function addFeeAmount(
         bytes32 destinationChainID,
@@ -219,7 +219,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-receiveCrossChainMessage}
      *
-     * Emits {ReceiveCrossChainMessage} event.
+     * Emits a {ReceiveCrossChainMessage} event.
      * Re-entrancy is explicitly disallowed between receiving functions. One message is not able to receive another message.
      * Requirements:
      *
@@ -345,7 +345,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-retryMessageExecution}
      *
-     * Reverts if the message execution fails again on specified message.
+     * A Teleporter message has an associated `requiredGasLimit` that is used to execute the message.
+     * If the `requiredGasLimit` is too low, then the message execution will fail. This method allows
+     * for retrying the execution of a message with a higher gas limit. Contrary to `receiveCrossChainMessage`,
+     * which will only use `requiredGasLimit` in the sub-call to execute the message, this method may
+     * use all of the gas available in the transaction.
+     *
+     * Reverts if the message execution fails again on the specified message.
      * Emits a {MessageExecuted} event if the retry is successful.
      * Requirements:
      *
@@ -592,7 +598,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
     /**
      * @dev Helper function for sending a teleporter message cross chain.
-     * Constructs the teleporter message and sends it through the warp messenger precompile,
+     * Constructs the Teleporter message and sends it through the Warp Messenger precompile,
      * and performs fee transfer if necessary.
      *
      * Emits a {SendCrossChainMessage} event.
@@ -668,7 +674,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Marks the receipt of a message from the given destination chain ID with the given message ID.
+     * @dev Marks the receipt of a message from the given `destinationChainID` with the given `messageID`.
      *
      * If the receipt was already previously received for this message, returns early.
      * If existing message is found and not yet delivered, deletes it from state and increment the fee/reward
@@ -779,7 +785,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Returns the next message ID to be used to send a message to the given chain ID.
+     * @dev Returns the next message ID to be used to send a message to the given `chainID`.
      */
     function _getNextMessageID(bytes32 chainID) private view returns (uint256) {
         return latestMessageIDs[chainID] + 1;
