@@ -739,7 +739,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Call the destination address of the message with the formatted call data.
         // Only provide the required gas limit to the sub-call so that the end application
-        // cannot consume an arbitrary amount gas.
+        // cannot consume an arbitrary amount of gas.
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, ) = message.destinationAddress.call{
             gas: message.requiredGasLimit
