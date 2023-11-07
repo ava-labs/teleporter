@@ -15,7 +15,7 @@
                 "strict": true
             }
         ],
-        "reason-string": ["warn", { "maxLength": 60 }],
+        "reason-string": ["warn", { "maxLength": 75 }],
         "custom-errors": "off",
         "ordering": "error",
         "immutable-vars-naming": [
@@ -26,7 +26,6 @@
         ],
         "func-named-parameters": ["error", 5],
         "no-global-import": "off",
-        "one-contract-per-file": "off",
-        "custom-errors": "off"
+        "one-contract-per-file": "off"
     }
 }

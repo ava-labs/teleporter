@@ -155,7 +155,7 @@ contract NativeTokenDestination is
 
         require(
             currentReserveImbalance == 0,
-            "NativeTokenDestination: Cannot release tokens until source contract is collateralized"
+            "NativeTokenDestination: Contract Undercollateralized"
         );
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
