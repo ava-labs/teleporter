@@ -149,6 +149,38 @@ func RetryMessageExecution(
 	return receipt
 }
 
+func SendSpecifiedReceiptsAndWaitForAcceptance(
+	ctx context.Context,
+	originChainID ids.ID,
+	source SubnetTestInfo,
+	messageIDs []*big.Int,
+	feeInfo teleportermessenger.TeleporterFeeInfo,
+	allowedRelayerAddresses []common.Address,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	transactor *teleportermessenger.TeleporterMessenger,
+) (*types.Receipt, *big.Int) {
+	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+
+	txn, err := transactor.SendSpecifiedReceipts(opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
+	Expect(err).Should(BeNil())
+
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
+	event, err := GetSendEventFromLogs(receipt.Logs, transactor)
+	Expect(err).Should(BeNil())
+	Expect(event.DestinationChainID[:]).Should(Equal(originChainID[:]))
+
+	log.Info("Sending SendSpecifiedReceipts transaction",
+		"originChainID", originChainID,
+		"txHash", txn.Hash())
+
+	return receipt, event.Message.MessageID
+}
+
 func HttpToWebsocketURI(uri string, blockchainID string) string {
 	return fmt.Sprintf("ws://%s/ext/bc/%s/ws", strings.TrimPrefix(uri, "http://"), blockchainID)
 }
