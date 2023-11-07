@@ -24,7 +24,7 @@ library SafeERC20TransferFrom {
     using SafeERC20 for IERC20;
 
     /**
-     * @dev Checks the balance of the contract before and after the call to safeTransferFrom, and returns balance
+     * @dev Checks the balance of the contract before and after the call to safeTransferFrom, and returns the balance
      * increase. Designed for safely handling ERC20 "fee on transfer" and "burn on transfer" implementations.
      */
     // solhint-disable private-vars-leading-underscore
