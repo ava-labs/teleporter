@@ -50,6 +50,7 @@ func InsufficientGas(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
+	// Send message from SubnetA to SubnetB with 0 execution ga, which should fail to execute
 	message := "Hello, world!"
 	optsA = utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
 	tx, err = subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message)
@@ -80,7 +81,8 @@ func InsufficientGas(network network.Network) {
 	Expect(failedMessageExecutionEvent.MessageID).Should(Equal(messageID))
 	Expect(failedMessageExecutionEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
 
-	// Retry message execution
+	// Retry message execution. This will execute the message with as much gas as needed
+	// (up to the transaction gas limit), rather than using the required gas specified in the message itself.s
 	receipt = utils.RetryMessageExecution(
 		ctx, subnetAInfo.BlockchainID, subnetBInfo, failedMessageExecutionEvent.Message, fundedAddress, fundedKey, subnetBTeleporterMessenger)
 	executedEvent, err := utils.GetMessageExecutedEventFromLogs(receipt.Logs, subnetBTeleporterMessenger)
