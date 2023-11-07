@@ -15,7 +15,9 @@ import (
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
+	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
+	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -28,15 +30,16 @@ const (
 )
 
 var (
-	teleporterContractAddress        common.Address
-	subnetA, subnetB                 ids.ID
-	blockchainIDA, blockchainIDB     ids.ID
-	chainANodeURIs, chainBNodeURIs   []string
-	fundedAddress                    = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
-	fundedKey                        *ecdsa.PrivateKey
-	chainAWSClient, chainBWSClient   ethclient.Client
-	chainARPCClient, chainBRPCClient ethclient.Client
-	chainAIDInt, chainBIDInt         *big.Int
+	teleporterContractAddress                              common.Address
+	subnetA, subnetB                                       ids.ID
+	blockchainIDA, blockchainIDB                           ids.ID
+	chainANodeURIs, chainBNodeURIs                         []string
+	fundedAddress                                          = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
+	fundedKey                                              *ecdsa.PrivateKey
+	chainAWSClient, chainBWSClient                         ethclient.Client
+	chainARPCClient, chainBRPCClient                       ethclient.Client
+	chainAIDInt, chainBIDInt                               *big.Int
+	teleporterRegistryAddressA, teleporterRegistryAddressB common.Address
 
 	// Internal vars only used to set up the local network
 	anrConfig           = runner.NewDefaultANRConfig()
@@ -49,12 +52,13 @@ var (
 //
 
 type SubnetTestInfo struct {
-	SubnetID       ids.ID
-	BlockchainID   ids.ID
-	ChainNodeURIs  []string
-	ChainWSClient  ethclient.Client
-	ChainRPCClient ethclient.Client
-	ChainIDInt     *big.Int
+	SubnetID                  ids.ID
+	BlockchainID              ids.ID
+	ChainNodeURIs             []string
+	ChainWSClient             ethclient.Client
+	ChainRPCClient            ethclient.Client
+	ChainIDInt                *big.Int
+	TeleporterRegistryAddress common.Address
 }
 
 func GetSubnetsInfo() []SubnetTestInfo {
@@ -66,22 +70,24 @@ func GetSubnetsInfo() []SubnetTestInfo {
 
 func GetSubnetATestInfo() SubnetTestInfo {
 	return SubnetTestInfo{
-		SubnetID:       subnetA,
-		BlockchainID:   blockchainIDA,
-		ChainNodeURIs:  chainANodeURIs,
-		ChainWSClient:  chainAWSClient,
-		ChainRPCClient: chainARPCClient,
-		ChainIDInt:     big.NewInt(0).Set(chainAIDInt),
+		SubnetID:                  subnetA,
+		BlockchainID:              blockchainIDA,
+		ChainNodeURIs:             chainANodeURIs,
+		ChainWSClient:             chainAWSClient,
+		ChainRPCClient:            chainARPCClient,
+		ChainIDInt:                big.NewInt(0).Set(chainAIDInt),
+		TeleporterRegistryAddress: teleporterRegistryAddressA,
 	}
 }
 func GetSubnetBTestInfo() SubnetTestInfo {
 	return SubnetTestInfo{
-		SubnetID:       subnetB,
-		BlockchainID:   blockchainIDB,
-		ChainNodeURIs:  chainBNodeURIs,
-		ChainWSClient:  chainBWSClient,
-		ChainRPCClient: chainBRPCClient,
-		ChainIDInt:     big.NewInt(0).Set(chainBIDInt),
+		SubnetID:                  subnetB,
+		BlockchainID:              blockchainIDB,
+		ChainNodeURIs:             chainBNodeURIs,
+		ChainWSClient:             chainBWSClient,
+		ChainRPCClient:            chainBRPCClient,
+		ChainIDInt:                big.NewInt(0).Set(chainBIDInt),
+		TeleporterRegistryAddress: teleporterRegistryAddressB,
 	}
 }
 func GetTeleporterContractAddress() common.Address {
@@ -225,7 +231,7 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 		{
 			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 			fundDeployerTx := CreateNativeTransferTransaction(ctx, subnetInfo, fundedAddress, fundedKey, deployerAddress, fundAmount)
-			SendTransactionAndWaitForAcceptance(ctx, subnetInfo.ChainWSClient, subnetInfo.ChainRPCClient, fundDeployerTx)
+			SendTransactionAndWaitForAcceptance(ctx, subnetInfo.ChainWSClient, subnetInfo.ChainRPCClient, fundDeployerTx, true)
 		}
 		log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
 
@@ -253,6 +259,44 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 	log.Info("Deployed Teleporter contracts to all subnets")
 }
 
+func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
+	log.Info("Deploying TeleporterRegistry contract to subnets")
+	ctx := context.Background()
+
+	entries := []teleporterregistry.ProtocolRegistryEntry{
+		{
+			Version:         big.NewInt(1),
+			ProtocolAddress: teleporterAddress,
+		},
+	}
+
+	subnetAInfo := GetSubnetATestInfo()
+	subnetBInfo := GetSubnetBTestInfo()
+
+	var (
+		err error
+		tx  *types.Transaction
+	)
+	optsA := CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	teleporterRegistryAddressA, tx, _, err = teleporterregistry.DeployTeleporterRegistry(optsA, subnetAInfo.ChainRPCClient, entries)
+	Expect(err).Should(BeNil())
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	optsB := CreateTransactorOpts(ctx, subnetBInfo, fundedAddress, fundedKey)
+	teleporterRegistryAddressB, tx, _, err = teleporterregistry.DeployTeleporterRegistry(optsB, subnetBInfo.ChainRPCClient, entries)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	log.Info("Deployed TeleporterRegistry contracts to all subnets")
+}
+
 func DeployMockToken(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source SubnetTestInfo) (common.Address, *exampleerc20.ExampleERC20) {
 	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
 
@@ -267,6 +311,19 @@ func DeployMockToken(ctx context.Context, fundedAddress common.Address, fundedKe
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	return address, mockToken
+}
+
+func DeployExampleCrossChainMessenger(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source SubnetTestInfo) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
+	optsA := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsA, source.ChainRPCClient, source.TeleporterRegistryAddress)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return address, exampleMessenger
 }
 
 func ExampleERC20Approve(ctx context.Context, mockToken *exampleerc20.ExampleERC20, spender common.Address, amount *big.Int, source SubnetTestInfo) {
