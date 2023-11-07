@@ -33,13 +33,15 @@ func SendSpecificReceipts(network network.Network) {
 	mockTokenAddress, mockToken := utils.DeployMockToken(context.Background(), fundedAddress, fundedKey, subnetAInfo)
 	utils.ExampleERC20Approve(ctx, mockToken, teleporterContractAddress, big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)), subnetAInfo)
 
+	relayerFeePerMessage := big.NewInt(5)
+	totalAccumulatedRelayerFee := big.NewInt(10)
 	// Send two messages from Subnet A to Subnet B
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 		DestinationChainID: subnetBInfo.BlockchainID,
 		DestinationAddress: fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			ContractAddress: mockTokenAddress,
-			Amount:          big.NewInt(5),
+			Amount:          relayerFeePerMessage,
 		},
 		RequiredGasLimit:        big.NewInt(1),
 		AllowedRelayerAddresses: []common.Address{},
@@ -94,9 +96,11 @@ func SendSpecificReceipts(network network.Network) {
 	// Check the reward amount. The reward amount should be 10
 	amount, err := subnetATeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, fundedAddress, mockTokenAddress)
 	Expect(err).Should(BeNil())
-	Expect(amount).Should(Equal(big.NewInt(10)))
+	Expect(amount).Should(Equal(totalAccumulatedRelayerFee))
 
-	// Send message from Subnet B to Subnet A
+	// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
+	// The next message from B->A will contain the same receipts that were manually sent in the above steps,
+	// but they should not be processed again on Subnet A.
 	sendCrossChainMessageInput = teleportermessenger.TeleporterMessageInput{
 		DestinationChainID: subnetAInfo.BlockchainID,
 		DestinationAddress: fundedAddress,
@@ -123,5 +127,5 @@ func SendSpecificReceipts(network network.Network) {
 	// Check the reward amount remains the same
 	amount, err = subnetATeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, fundedAddress, mockTokenAddress)
 	Expect(err).Should(BeNil())
-	Expect(amount).Should(Equal(big.NewInt(10)))
+	Expect(amount).Should(Equal(totalAccumulatedRelayerFee))
 }
