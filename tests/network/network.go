@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"crypto/ecdsa"
-	"math/big"
 
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -17,8 +16,8 @@ type Network interface {
 	GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey)
 	GetTestAccountInfo() (common.Address, *ecdsa.PrivateKey)
 	RelayMessage(ctx context.Context,
-		sourceBlockHash common.Hash,
-		sourceBlockNumber *big.Int,
+		sourceReceipt *types.Receipt,
 		source utils.SubnetTestInfo,
-		destination utils.SubnetTestInfo) *types.Receipt
+		destination utils.SubnetTestInfo,
+		expectSuccess bool) *types.Receipt
 }

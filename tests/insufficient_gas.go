@@ -47,7 +47,7 @@ func InsufficientGas(network network.Network) {
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
 
 	// Relay message from SubnetA to SubnetB
-	receipt := network.RelayMessage(ctx, sendCrossChainMsgReceipt.BlockHash, sendCrossChainMsgReceipt.BlockNumber, subnetAInfo, subnetBInfo)
+	receipt := network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
 
 	// Check Teleporter message received on the destination
 	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
@@ -63,7 +63,7 @@ func InsufficientGas(network network.Network) {
 	// Add funds to test address and retry message execution
 	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 	transferTxn := utils.CreateNativeTransferTransaction(ctx, subnetBInfo, fundedAddress, fundedKey, testAddress, fundAmount)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, transferTxn)
+	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, transferTxn, true)
 
 	// Retry message execution
 	receipt = utils.RetryMessageExecution(

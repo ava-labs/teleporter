@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"crypto/ecdsa"
-	"math/big"
 	"strings"
 	"time"
 
@@ -151,10 +150,10 @@ func (n *FujiNetwork) GetTestAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 }
 
 func (n *FujiNetwork) RelayMessage(ctx context.Context,
-	sourceBlockHash common.Hash,
-	sourceBlockNumber *big.Int,
+	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,
-	destination utils.SubnetTestInfo) *types.Receipt {
+	destination utils.SubnetTestInfo,
+	expectSuccess bool) *types.Receipt {
 
 	// Rely on a separately deployed relayer to relay the message
 	time.Sleep(20 * time.Second)
