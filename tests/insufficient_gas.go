@@ -75,7 +75,7 @@ func InsufficientGas(network network.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	// Check message execution failed event
-	failedMessageExecutionEvent, err := utils.GetMessageExecutionFailedEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
+	failedMessageExecutionEvent, err := utils.GetMessageExecutionFailedEventFromLogs(receipt.Logs, subnetBTeleporterMessenger)
 	Expect(err).Should(BeNil())
 	Expect(failedMessageExecutionEvent.MessageID).Should(Equal(messageID))
 	Expect(failedMessageExecutionEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
