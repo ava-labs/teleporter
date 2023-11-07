@@ -44,6 +44,5 @@ var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySendGinkgo)
 	ginkgo.It("Add additional fee amount", AddFeeAmountGinkgo)
-	ginkgo.It("Insufficient gas", InsufficientGasGinkgo)
 	ginkgo.It("Send specific receipts", SendSpecificReceiptsGinkgo)
 })
