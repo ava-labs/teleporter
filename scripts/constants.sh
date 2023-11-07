@@ -7,7 +7,7 @@
 
 TELEPORTER_PATH=$(
     cd "$(dirname "${BASH_SOURCE[0]}")"
-    cd ../.. && pwd
+    cd .. && pwd
 )
 
 # Set the PATHS
