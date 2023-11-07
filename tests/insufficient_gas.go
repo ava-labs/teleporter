@@ -9,21 +9,20 @@ import (
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
 func InsufficientGasGinkgo() {
-	insufficientGas(&network.LocalNetwork{})
+	InsufficientGas(&network.LocalNetwork{})
 }
 
-func insufficientGas(network network.Network) {
+func InsufficientGas(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
-	testAddress, testKey := network.GetTestAccountInfo()
+	testAddress, _ := network.GetTestAccountInfo()
 	ctx := context.Background()
 
 	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
@@ -34,7 +33,7 @@ func insufficientGas(network network.Network) {
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 		DestinationChainID: subnetBInfo.BlockchainID,
-		DestinationAddress: fundedAddress,
+		DestinationAddress: testAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			ContractAddress: fundedAddress,
 			Amount:          big.NewInt(0),
@@ -47,32 +46,30 @@ func insufficientGas(network network.Network) {
 	sendCrossChainMsgReceipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
 
-	// Remove the balance from the funded address to testAddress
-	balance, err := subnetAInfo.ChainRPCClient.BalanceAt(ctx, fundedAddress, nil)
-	balance.Sub(balance, big.NewInt(1e18))
-	Expect(err).Should(BeNil())
-
-	testAddressBalance, err := subnetAInfo.ChainRPCClient.BalanceAt(ctx, testAddress, nil)
-	Expect(err).Should(BeNil())
-	moveBalanceTx := utils.CreateNativeTransferTransaction(ctx, subnetAInfo, fundedAddress, fundedKey, testAddress, balance)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, subnetAInfo.ChainRPCClient, moveBalanceTx)
-	testAddressBalanceAfter, err := subnetAInfo.ChainRPCClient.BalanceAt(ctx, testAddress, nil)
-	Expect(err).Should(BeNil())
-	log.Info("check test address balance")
-	Expect(testAddressBalanceAfter).Should(Equal(testAddressBalance.Add(testAddressBalance, balance)))
-
 	// Relay message from SubnetA to SubnetB
-	network.RelayMessage(ctx, Receipt.BlockHash, receipt.BlockNumber, subnetAInfo, subnetBInfo)
-
-	// transfer balance back to funded address
-	moveBalanceTx2 := utils.CreateNativeTransferTransaction(ctx, subnetAInfo, testAddress, testKey, fundedAddress, balance)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, subnetAInfo.ChainRPCClient, moveBalanceTx2)
-
-	// Retry message execution
-	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
+	receipt := network.RelayMessage(ctx, sendCrossChainMsgReceipt.BlockHash, sendCrossChainMsgReceipt.BlockNumber, subnetAInfo, subnetBInfo)
 
 	// Check Teleporter message received on the destination
 	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
+
+	// Check message execution failed event
+	failedMessageExecutionEvent, err := utils.GetMessageExecutionFailedEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
+	Expect(err).Should(BeNil())
+	Expect(failedMessageExecutionEvent.MessageID).Should(Equal(messageID))
+	Expect(failedMessageExecutionEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
+
+	// Add funds to test address and retry message execution
+	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
+	transferTxn := utils.CreateNativeTransferTransaction(ctx, subnetBInfo, fundedAddress, fundedKey, testAddress, fundAmount)
+	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, transferTxn)
+
+	// Retry message execution
+	receipt = utils.RetryMessageExecution(
+		ctx, subnetAInfo.BlockchainID, subnetBInfo, failedMessageExecutionEvent.Message, fundedAddress, fundedKey, subnetBTeleporterMessenger)
+	executedEvent, err := utils.GetMessageExecutedEventFromLogs(receipt.Logs, subnetBTeleporterMessenger)
+	Expect(err).Should(BeNil())
+	Expect(executedEvent.MessageID).Should(Equal(messageID))
+	Expect(executedEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
 }

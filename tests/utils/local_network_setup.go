@@ -15,6 +15,7 @@ import (
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
+	examplemessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -292,6 +293,13 @@ func ExampleERC20Approve(ctx context.Context, mockToken *exampleerc20.ExampleERC
 	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+}
+
+func DepolyExampleMessager(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, subnet SubnetTestInfo) common.Address {
+	opts := CreateTransactorOpts(ctx, subnet, fundedAddress, fundedKey)
+
+	examplemessenger.DeployExampleCrossChainMessenger(opts, subnet.ChainRPCClient)
+
 }
 
 func TearDownNetwork() {

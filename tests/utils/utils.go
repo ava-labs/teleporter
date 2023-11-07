@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -123,6 +124,27 @@ func SendAddFeeAmountAndWaitForAcceptance(
 		"messageID", messageID,
 		"sourceChainID", source.BlockchainID,
 		"destinationChainID", destination.BlockchainID)
+
+	return receipt
+}
+
+func RetryMessageExecution(
+	ctx context.Context,
+	originChainID ids.ID,
+	subnet SubnetTestInfo,
+	message teleportermessenger.TeleporterMessage,
+	funedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	transactor *teleportermessenger.TeleporterMessenger,
+) *types.Receipt {
+	opts := CreateTransactorOpts(ctx, subnet, fundedAddress, fundedKey)
+
+	txn, err := transactor.RetryMessageExecution(opts, originChainID, message)
+	Expect(err).Should(BeNil())
+
+	receipt, err := bind.WaitMined(ctx, subnet.ChainRPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	return receipt
 }
@@ -302,6 +324,28 @@ func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.Teleporte
 		}
 	}
 	return nil, fmt.Errorf("failed to find SendCrossChainMessage event in receipt logs")
+}
+
+func GetMessageExecutionFailedEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerMessageExecutionFailed, error) {
+	for _, log := range logs {
+		event, err := bind.ParseMessageExecutionFailed(*log)
+		if err == nil {
+			return event, nil
+
+		}
+	}
+	return nil, fmt.Errorf("failed to find MessageExecutionFailed event in receipt logs")
+}
+
+func GetMessageExecutedEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerMessageExecuted, error) {
+	for _, log := range logs {
+		event, err := bind.ParseMessageExecuted(*log)
+		if err == nil {
+			return event, nil
+
+		}
+	}
+	return nil, fmt.Errorf("failed to find MessageExecuted event in receipt logs")
 }
 
 func GetAddFeeAmountEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerAddFeeAmount, error) {
