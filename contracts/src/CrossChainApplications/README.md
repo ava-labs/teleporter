@@ -20,18 +20,19 @@ This directory includes cross-chain applications that are built on top of the [T
 
 ## Getting started with an example application
 
-This section walks through how to build a cross-chain application on top of the Teleporter protocol, recreating the `ExampleCrossChainMessenger` contract that sends arbitrary string data from one chain to another.
+This section walks through how to build an example cross-chain application on top of the Teleporter protocol, recreating the `ExampleCrossChainMessenger` contract that sends arbitrary string data from one chain to another. Note that this tutorial is meant for education purposes only. The resulting code is not intended for use in production environments.
 
 ### Step 1: Create Initial Contract
 
 Create a new file called `MyExampleCrossChainMessenger.sol` in the directory that will hold the application.
 
-At the top of the file define the Solidity version to work with, and import the `ITeleporterMessenger` and `ITeleporterReceiver` interfaces.
+At the top of the file define the Solidity version to work with, and import the necessary types and interfaces.
 
 ```solidity
 pragma solidity 0.8.18;
 
-import "../../Teleporter/ITeleporterMessenger.sol";
+import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 ```
 
 Next, define the initial empty contract.
@@ -82,10 +83,10 @@ function receiveTeleporterMessage(
     bytes32 originChainID,
     address originSenderAddress,
     bytes calldata message
-) external {
+) external {}
 ```
 
-Now it's time to implement the methods, starting with `sendMessage`. First, import OpenZeppelin's `IERC20` contract, then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeContractAddress` to the Teleporter Messenger saved as a state variable. Relayer fees are an optional way to incentive relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if relaying is guaranteed, such as with a self-hosted relayer.
+Now it's time to implement the methods, starting with `sendMessage`. First, import OpenZeppelin's `IERC20` contract, then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeContractAddress` to the Teleporter Messenger saved as a state variable. Relayer fees are an optional way to incentive relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
 
 ```solidity
 // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
@@ -174,7 +175,6 @@ function receiveTeleporterMessage(
 
     // Store the message.
     messages[originChainID] = Message(originSenderAddress, abi.decode(message, (string)));
-    return true;
 }
 ```
 
