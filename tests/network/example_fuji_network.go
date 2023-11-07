@@ -142,13 +142,6 @@ func (n *FujiNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey)
 	return userAddress, key
 }
 
-func (n *FujiNetwork) GetTestAccountInfo() (common.Address, *ecdsa.PrivateKey) {
-	key, err := crypto.HexToECDSA(skHex)
-	Expect(err).Should(BeNil())
-
-	return userAddress, key
-}
-
 func (n *FujiNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,

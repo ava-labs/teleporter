@@ -23,7 +23,6 @@ func InsufficientGas(network network.Network) {
 	subnetBInfo := subnets[1]
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
-	testAddress, testKey := network.GetTestAccountInfo()
 	ctx := context.Background()
 
 	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
@@ -52,7 +51,7 @@ func InsufficientGas(network network.Network) {
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	message := "Hello, world!"
-	optsA = utils.CreateTransactorOpts(ctx, subnetAInfo, testAddress, testKey)
+	optsA = utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
 	tx, err = subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message)
 	Expect(err).Should(BeNil())
 

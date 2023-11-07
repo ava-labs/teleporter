@@ -26,7 +26,6 @@ import (
 
 const (
 	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
-	testKeyStr   = "ab1ca91a95354abfc98c8529fc001ec48b0ab461ada4e679d50bb57ba84c8602"
 )
 
 var (
@@ -40,8 +39,6 @@ var (
 	chainARPCClient, chainBRPCClient                       ethclient.Client
 	chainAIDInt, chainBIDInt                               *big.Int
 	teleporterRegistryAddressA, teleporterRegistryAddressB common.Address
-	testAddress                                            = common.HexToAddress("0xb7a2E72a5C53c93D5294f18F6BD3829d221b6D3f")
-	testKey                                                *ecdsa.PrivateKey
 
 	// Internal vars only used to set up the local network
 	anrConfig           = runner.NewDefaultANRConfig()
@@ -99,12 +96,6 @@ func GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	key, err := crypto.ToECDSA(crypto.FromECDSA(fundedKey))
 	Expect(err).Should(BeNil())
 	return fundedAddress, key
-}
-
-func GetTestAccountInfo() (common.Address, *ecdsa.PrivateKey) {
-	key, err := crypto.ToECDSA(crypto.FromECDSA(testKey))
-	Expect(err).Should(BeNil())
-	return testAddress, key
 }
 
 // SetupNetwork starts the default network and adds 10 new nodes as validators with BLS keys
@@ -170,11 +161,6 @@ func SetupNetwork(warpGenesisFile string) {
 	Expect(err).Should(BeNil())
 	SetupProposerVM(ctx, fundedKey, manager, 0)
 	SetupProposerVM(ctx, fundedKey, manager, 1)
-
-	testKey, err = crypto.HexToECDSA(testKeyStr)
-	Expect(err).Should(BeNil())
-	SetupProposerVM(ctx, testKey, manager, 0)
-	SetupProposerVM(ctx, testKey, manager, 1)
 
 	// Set up subnet URIs
 	subnetIDs := manager.GetSubnets()

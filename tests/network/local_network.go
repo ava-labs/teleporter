@@ -26,10 +26,6 @@ func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey
 	return utils.GetFundedAccountInfo()
 }
 
-func (n *LocalNetwork) GetTestAccountInfo() (common.Address, *ecdsa.PrivateKey) {
-	return utils.GetTestAccountInfo()
-}
-
 func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,
