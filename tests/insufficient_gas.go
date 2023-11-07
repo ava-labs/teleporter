@@ -53,7 +53,7 @@ func InsufficientGas(network network.Network) {
 
 	message := "Hello, world!"
 	optsA = utils.CreateTransactorOpts(ctx, subnetAInfo, testAddress, testKey)
-	tx, err = subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(20000000), message)
+	tx, err = subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(17000000), message)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
