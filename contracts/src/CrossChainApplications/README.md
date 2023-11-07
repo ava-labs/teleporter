@@ -158,7 +158,7 @@ struct Message {
     string message;
 }
 
-mapping(bytes32 => Message) messages;
+mapping(bytes32 originChainID => Message message) private _messages;
 ```
 
 Next, update `receiveTeleporterMessage` to save the message into our mapping after we receive and verify that it's sent from Teleporter. ABI decode the `message` bytes into a string.
