@@ -53,7 +53,7 @@ func InsufficientGas(network network.Network) {
 
 	message := "Hello, world!"
 	optsA = utils.CreateTransactorOpts(ctx, subnetAInfo, testAddress, testKey)
-	tx, err = subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(17000000), message)
+	tx, err = subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
@@ -81,16 +81,11 @@ func InsufficientGas(network network.Network) {
 	Expect(failedMessageExecutionEvent.MessageID).Should(Equal(messageID))
 	Expect(failedMessageExecutionEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
 
-	// // Add funds to test address and retry message execution
-	// fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
-	// transferTxn := utils.CreateNativeTransferTransaction(ctx, subnetBInfo, fundedAddress, fundedKey, testAddress, fundAmount)
-	// utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, transferTxn, true)
-
-	// // Retry message execution
-	// receipt = utils.RetryMessageExecution(
-	// 	ctx, subnetAInfo.BlockchainID, subnetBInfo, failedMessageExecutionEvent.Message, fundedAddress, fundedKey, subnetBTeleporterMessenger)
-	// executedEvent, err := utils.GetMessageExecutedEventFromLogs(receipt.Logs, subnetBTeleporterMessenger)
-	// Expect(err).Should(BeNil())
-	// Expect(executedEvent.MessageID).Should(Equal(messageID))
-	// Expect(executedEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
+	// Retry message execution
+	receipt = utils.RetryMessageExecution(
+		ctx, subnetAInfo.BlockchainID, subnetBInfo, failedMessageExecutionEvent.Message, fundedAddress, fundedKey, subnetBTeleporterMessenger)
+	executedEvent, err := utils.GetMessageExecutedEventFromLogs(receipt.Logs, subnetBTeleporterMessenger)
+	Expect(err).Should(BeNil())
+	Expect(executedEvent.MessageID).Should(Equal(messageID))
+	Expect(executedEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
 }
