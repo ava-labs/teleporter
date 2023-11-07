@@ -179,8 +179,8 @@ interface ITeleporterMessenger {
      * @dev Sends the receipts for the given `messageIDs`.
      *
      * Sends the specified message receipts in a new message (with an empty payload) back to the origin chain.
-     * This is intended to be used if the message receipts are not being delivered in a timely manner by the
-     * mechanism to include them in independent messages from this chain being sent back to the origin chain.
+     * This is intended for use in sending receipts that have not been sent in a timely manner by the standard
+     * receipt delivery mechanism.
      * @return The message ID of the newly sent message.
      */
     function sendSpecifiedReceipts(
