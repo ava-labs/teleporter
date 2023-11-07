@@ -106,7 +106,7 @@ cast balance --rpc-url http://127.0.0.1:9652/ext/bc/C/rpc 0x333d17d3b42bf7930dbc
 
 ```
 # Open a shell in the container
-docker exec -it relayer_run /bin/bash
+docker exec -it local_network_run /bin/bash
 # In the container:
 set -a                        # export all variables so child processes can access
 source vars.sh
