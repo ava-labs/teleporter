@@ -178,7 +178,7 @@ abstract contract WarpProtocolRegistry {
     }
 
     /**
-     * @dev Gets the address of a protocol version.
+     * @dev Gets the corresponding address of a protocol version.
      * Requirements:
      *
      * - `version` must be a valid version, i.e. greater than 0 and not greater than the latest version.

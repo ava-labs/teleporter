@@ -2,14 +2,13 @@
     "extends": "solhint:recommended",
     "rules": {
         "compiler-version": ["error", "0.8.18"],
-        "no-unused-vars": "warn",
+        "no-unused-vars": "error",
         "func-visibility": [
-            "warn",
+            "error",
             {
                 "ignoreConstructors": true
             }
         ],
-        "max-line-length": ["off"],
         "private-vars-leading-underscore": [
             "warn",
             {
@@ -18,14 +17,14 @@
         ],
         "reason-string": ["warn", { "maxLength": 60 }],
         "custom-errors": "off",
-        "ordering": "warn",
+        "ordering": "error",
         "immutable-vars-naming": [
             "warn",
             {
                 "immutablesAsConstants": false
             }
         ],
-        "func-named-parameters": ["warn", 5],
+        "func-named-parameters": ["error", 5],
         "no-global-import": "off",
         "one-contract-per-file": "off"
     }
