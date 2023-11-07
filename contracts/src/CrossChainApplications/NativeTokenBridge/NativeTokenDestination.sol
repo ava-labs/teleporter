@@ -154,7 +154,7 @@ contract NativeTokenDestination is
         );
 
         require(
-            currentReserveImbalance == 0,
+            currentReserveImbalance <= 0,
             "NativeTokenDestination: Contract Undercollateralized"
         );
 
