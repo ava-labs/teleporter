@@ -13,10 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const (
-	ExampleMessengerByteCodeFile = "./contracts/out/ExampleCrossChainMessenger.sol/ExampleCrossChainMessenger.json"
-)
-
 func ExampleMessengerGinkgo() {
 	ExampleMessenger(&network.LocalNetwork{})
 }
@@ -41,31 +37,36 @@ func ExampleMessenger(network network.Network) {
 	// Deploy ExampleMessenger to Subnets A and B
 	//
 	ctx := context.Background()
-	exampleMessengerABI, err := examplecrosschainmessenger.ExampleCrossChainMessengerMetaData.GetAbi()
+
+	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	_, tx, subnetAExampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsA, subnetAInfo.ChainRPCClient, subnetAInfo.TeleporterRegistryAddress)
 	Expect(err).Should(BeNil())
 
-	exampleMessengerContractA := utils.DeployContract(ctx, ExampleMessengerByteCodeFile, fundedKey, subnetAInfo, exampleMessengerABI, subnetAInfo.TeleporterRegistryAddress)
-	exampleMessengerContractB := utils.DeployContract(ctx, ExampleMessengerByteCodeFile, fundedKey, subnetBInfo, exampleMessengerABI, subnetBInfo.TeleporterRegistryAddress)
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, fundedAddress, fundedKey)
+	exampleMessengerContractB, tx, subnetBExampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsB, subnetBInfo.ChainRPCClient, subnetBInfo.TeleporterRegistryAddress)
+
+	// Wait for the transaction to be mined
+	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	//
 	// Call the example messenger contract on Subnet A
 	//
 	message := "Hello, world!"
-	data, err := exampleMessengerABI.Pack("sendMessage", subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(300000), message)
-	gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(ctx, subnetAInfo.ChainRPCClient, fundedAddress)
+	optsA = utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	tx, err = subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(300000), message)
+	Expect(err).Should(BeNil())
 
-	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   subnetAInfo.ChainIDInt,
-		Nonce:     nonce,
-		To:        &exampleMessengerContractA,
-		Gas:       utils.DefaultTeleporterTransactionGas,
-		GasFeeCap: gasFeeCap,
-		GasTipCap: gasTipCap,
-		Data:      data,
-	})
-
-	signedTx := utils.SignTransaction(tx, fundedKey, subnetAInfo.ChainIDInt)
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, subnetAInfo.ChainRPCClient, signedTx, true)
+	// Wait for the transaction to be mined
+	receipt, err = bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	event, err := utils.GetSendEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
 	Expect(err).Should(BeNil())
@@ -88,8 +89,6 @@ func ExampleMessenger(network network.Network) {
 	//
 	// Verify we received the expected string
 	//
-	subnetBExampleMessenger, err := examplecrosschainmessenger.NewExampleCrossChainMessenger(exampleMessengerContractB, subnetBInfo.ChainRPCClient)
-	Expect(err).Should(BeNil())
 	res, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
 	Expect(err).Should(BeNil())
 	Expect(res.Message).Should(Equal(message))

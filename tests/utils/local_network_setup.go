@@ -25,8 +25,7 @@ import (
 )
 
 const (
-	fundedKeyStr                   = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
-	TeleporterRegistryByteCodeFile = "./contracts/out/TeleporterRegistry.sol/TeleporterRegistry.json"
+	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
 )
 
 var (
@@ -270,11 +269,29 @@ func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
 		},
 	}
 
-	teleporterRegistryABI, err := teleporterregistry.TeleporterRegistryMetaData.GetAbi()
+	subnetAInfo := GetSubnetATestInfo()
+	subnetBInfo := GetSubnetBTestInfo()
+
+	var (
+		err error
+		tx  *types.Transaction
+	)
+	optsA := CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	teleporterRegistryAddressA, tx, _, err = teleporterregistry.DeployTeleporterRegistry(optsA, subnetAInfo.ChainRPCClient, entries)
+	Expect(err).Should(BeNil())
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	optsB := CreateTransactorOpts(ctx, subnetBInfo, fundedAddress, fundedKey)
+	teleporterRegistryAddressB, tx, _, err = teleporterregistry.DeployTeleporterRegistry(optsB, subnetBInfo.ChainRPCClient, entries)
 	Expect(err).Should(BeNil())
 
-	teleporterRegistryAddressA = DeployContract(ctx, TeleporterRegistryByteCodeFile, fundedKey, GetSubnetATestInfo(), teleporterRegistryABI, entries)
-	teleporterRegistryAddressB = DeployContract(ctx, TeleporterRegistryByteCodeFile, fundedKey, GetSubnetBTestInfo(), teleporterRegistryABI, entries)
+	// Wait for the transaction to be mined
+	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
 }
