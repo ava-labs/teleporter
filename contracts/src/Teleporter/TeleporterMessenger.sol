@@ -383,13 +383,26 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // the relayer should still receive their reward even if the message execution takes more gas than expected.
         // Require that the call be successful such that in the failure case this transaction reverts and the
         // message can be retried again if desired.
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool success, ) = message.destinationAddress.call(
-            abi.encodeCall(
-                ITeleporterReceiver.receiveTeleporterMessage,
-                (originChainID, message.senderAddress, message.message)
-            )
+        // Use assembly to make the low-level call to avoid unnecessary memory expansion of the return data
+        // due to an issue with the version of Solidity used. This prevents possible "return bomb" vectors
+        // where the external contract could for the caller to use an arbitrary amount of gas.
+        bytes memory payload = abi.encodeCall(
+            ITeleporterReceiver.receiveTeleporterMessage,
+            (originChainID, message.senderAddress, message.message)
         );
+        address target = message.destinationAddress;
+        bool success;
+        assembly {
+            success := call(
+                gas(), // gas provided to the call
+                target, // call target
+                0, // zero value
+                add(payload, 0x20), // input data
+                mload(payload), // input data length
+                0, // output
+                0 // output size
+            )
+        }
 
         require(success, "TeleporterMessenger: retry execution failed");
     }
@@ -731,18 +744,32 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             return;
         }
 
-        // Call the destination address of the message with the formatted call data.
-        // Only provide the required gas limit to the sub-call so that the end application
-        // cannot consume an arbitrary amount of gas.
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool success, ) = message.destinationAddress.call{
-            gas: message.requiredGasLimit
-        }(
-            abi.encodeCall(
-                ITeleporterReceiver.receiveTeleporterMessage,
-                (originChainID, message.senderAddress, message.message)
-            )
+        // Encode the payload by ABI encoding a call to the {receiveTeleporterMessage} function
+        // defined by the {ITeleporterReceiver} interface.
+        bytes memory payload = abi.encodeCall(
+            ITeleporterReceiver.receiveTeleporterMessage,
+            (originChainID, message.senderAddress, message.message)
         );
+
+        // Call the destination address of the message with the formatted call data. Only provide the required
+        // gas limit to the sub-call so that the end application cannot consume an arbitrary amount of gas.
+        // Use assembly to make the low-level call to avoid unnecessary memory expansion of the return data
+        // due to an issue with the version of Solidity used. This prevents possible "return bomb" vectors
+        // where the external contract could for the caller to use an arbitrary amount of gas.
+        address target = message.destinationAddress;
+        uint256 requiredGas = message.requiredGasLimit;
+        bool success;
+        assembly {
+            success := call(
+                requiredGas, // call target
+                target, // gas provided to the call
+                0, // zero value
+                add(payload, 0x20), // input data
+                mload(payload), // input data length
+                0, // output
+                0 // output size
+            )
+        }
 
         // If the execution failed, store a hash of the message in state such that its
         // execution can be retried again in the future with a higher gas limit (paid by whoever
