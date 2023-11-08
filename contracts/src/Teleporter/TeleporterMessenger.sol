@@ -391,9 +391,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Require that the call be successful such that in the failure case this transaction reverts and the
         // message can be retried again if desired.
         //
-        // Use assembly to make the low-level call to avoid unnecessary memory expansion of the return data
-        // due to an issue with the version of Solidity used. This prevents possible "return bomb" vectors
-        // where the external contract could for the caller to use an arbitrary amount of gas.
+        // Assembly is used for the low-level call to avoid unnecessary memory expansion of the return data.
+        // This prevents possible "return bomb" vectors where the external contract could force the caller
+        // to use an arbitrary amount of gas. First need to define the {target} and {success} variables to make
+        // them easily accesible within and follow the assembly block.
         address target = message.destinationAddress;
         bool success;
         // solhint-disable-next-line no-inline-assembly
@@ -402,8 +403,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 gas(), // gas provided to the call
                 target, // call target
                 0, // zero value
-                add(payload, 0x20), // input data
-                mload(payload), // input data length
+                add(payload, 0x20), // input data - 0x20 needs to be added to an array because the first 32-byte slot contains the array length (0x20 in hex is 32 in decimal).
+                mload(payload), // input data size - mload returns mem[p..(p+32)], which is the first 32-byte slot of the array. In this case, the array length.
                 0, // output
                 0 // output size
             )
@@ -759,9 +760,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Call the destination address of the message with the formatted call data. Only provide the required
         // gas limit to the sub-call so that the end application cannot consume an arbitrary amount of gas.
         //
-        // Use assembly to make the low-level call to avoid unnecessary memory expansion of the return data
-        // due to an issue with the version of Solidity used. This prevents possible "return bomb" vectors
-        // where the external contract could for the caller to use an arbitrary amount of gas.
+        // Assembly is used for the low-level call to avoid unnecessary memory expansion of the return data.
+        // This prevents possible "return bomb" vectors where the external contract could force the caller
+        // to use an arbitrary amount of gas. First need to define the {target}, {requiredGas}, and {success}
+        // variables to make them easily accesible within and follow the assembly block.
         address target = message.destinationAddress;
         uint256 requiredGas = message.requiredGasLimit;
         bool success;
@@ -771,8 +773,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 requiredGas, // call target
                 target, // gas provided to the call
                 0, // zero value
-                add(payload, 0x20), // input data
-                mload(payload), // input data length
+                add(payload, 0x20), // input data - 0x20 needs to be added to an array because the first 32-byte slot contains the array length (0x20 in hex is 32 in decimal).
+                mload(payload), // input data size - mload returns mem[p..(p+32)], which is the first 32-byte slot of the array. In this case, the array length.
                 0, // output
                 0 // output size
             )
