@@ -377,21 +377,26 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         emit MessageExecuted(originChainID, message.messageID);
         delete receivedFailedMessageHashes[originChainID][message.messageID];
 
+        // Re-encode the payload by ABI encoding a call to the {receiveTeleporterMessage} function
+        // defined by the {ITeleporterReceiver} interface.
+        bytes memory payload = abi.encodeCall(
+            ITeleporterReceiver.receiveTeleporterMessage,
+            (originChainID, message.senderAddress, message.message)
+        );
+
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
         // Use all of the gas left because this message has already been successfully delivered, and it is the
         // responsibility of the caller to provide as much gas is needed. Compared to the initial delivery, where
         // the relayer should still receive their reward even if the message execution takes more gas than expected.
         // Require that the call be successful such that in the failure case this transaction reverts and the
         // message can be retried again if desired.
+        //
         // Use assembly to make the low-level call to avoid unnecessary memory expansion of the return data
         // due to an issue with the version of Solidity used. This prevents possible "return bomb" vectors
         // where the external contract could for the caller to use an arbitrary amount of gas.
-        bytes memory payload = abi.encodeCall(
-            ITeleporterReceiver.receiveTeleporterMessage,
-            (originChainID, message.senderAddress, message.message)
-        );
         address target = message.destinationAddress;
         bool success;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             success := call(
                 gas(), // gas provided to the call
@@ -753,12 +758,14 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Call the destination address of the message with the formatted call data. Only provide the required
         // gas limit to the sub-call so that the end application cannot consume an arbitrary amount of gas.
+        //
         // Use assembly to make the low-level call to avoid unnecessary memory expansion of the return data
         // due to an issue with the version of Solidity used. This prevents possible "return bomb" vectors
         // where the external contract could for the caller to use an arbitrary amount of gas.
         address target = message.destinationAddress;
         uint256 requiredGas = message.requiredGasLimit;
         bool success;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             success := call(
                 requiredGas, // call target
