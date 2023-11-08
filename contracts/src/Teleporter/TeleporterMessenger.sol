@@ -61,7 +61,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
     // Tracks the hash of messages that have been received but whose execution has never succeeded.
     // Enables retrying of failed messages with higher gas limits. Message execution is guaranteed to
-    // succeed at most once. The first key is the blockchain ID, the second key is the message ID, and
+    // succeed at most once. The first key is the blockchain ID of the sending chain, the second key is the message ID, and
     // the value is the hash of the uniquely identified message whose execution failed.
     mapping(bytes32 sourceChainID => mapping(uint256 messageID => bytes32 messageHash))
         public receivedFailedMessageHashes;
