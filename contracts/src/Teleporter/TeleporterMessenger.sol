@@ -377,20 +377,24 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         emit MessageExecuted(originChainID, message.messageID);
         delete receivedFailedMessageHashes[originChainID][message.messageID];
 
+        // Re-encode the payload by ABI encoding a call to the {receiveTeleporterMessage} function
+        // defined by the {ITeleporterReceiver} interface.
+        bytes memory payload = abi.encodeCall(
+            ITeleporterReceiver.receiveTeleporterMessage,
+            (originChainID, message.senderAddress, message.message)
+        );
+
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
         // Use all of the gas left because this message has already been successfully delivered, and it is the
-        // responsibility of the caller to provide as much gas is needed. Compared to the initial delivery, where
+        // caller's responsibility to provide as much gas as is needed. Compared to the initial delivery, where
         // the relayer should still receive their reward even if the message execution takes more gas than expected.
         // Require that the call be successful such that in the failure case this transaction reverts and the
         // message can be retried again if desired.
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool success, ) = message.destinationAddress.call(
-            abi.encodeCall(
-                ITeleporterReceiver.receiveTeleporterMessage,
-                (originChainID, message.senderAddress, message.message)
-            )
+        bool success = _tryExecuteMessage(
+            message.destinationAddress,
+            gasleft(),
+            payload
         );
-
         require(success, "TeleporterMessenger: retry execution failed");
     }
 
@@ -731,17 +735,19 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             return;
         }
 
-        // Call the destination address of the message with the formatted call data.
-        // Only provide the required gas limit to the sub-call so that the end application
-        // cannot consume an arbitrary amount of gas.
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool success, ) = message.destinationAddress.call{
-            gas: message.requiredGasLimit
-        }(
-            abi.encodeCall(
-                ITeleporterReceiver.receiveTeleporterMessage,
-                (originChainID, message.senderAddress, message.message)
-            )
+        // Encode the payload by ABI encoding a call to the {receiveTeleporterMessage} function
+        // defined by the {ITeleporterReceiver} interface.
+        bytes memory payload = abi.encodeCall(
+            ITeleporterReceiver.receiveTeleporterMessage,
+            (originChainID, message.senderAddress, message.message)
+        );
+
+        // Call the destination address of the message with the formatted call data. Only provide the required
+        // gas limit to the sub-call so that the end application cannot consume an arbitrary amount of gas.
+        bool success = _tryExecuteMessage(
+            message.destinationAddress,
+            message.requiredGasLimit,
+            payload
         );
 
         // If the execution failed, store a hash of the message in state such that its
@@ -754,6 +760,32 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         emit MessageExecuted(originChainID, message.messageID);
+    }
+
+    function _tryExecuteMessage(
+        address target,
+        uint256 gasLimit,
+        bytes memory payload
+    ) private returns (bool) {
+        // Call the destination address of the message with the provided payload and amount of gas.
+        //
+        // Assembly is used for the low-level call to avoid unnecessary expansion of the return data in memory.
+        // This prevents possible "return bomb" vectors where the external contract could force the caller
+        // to use an arbitrary amount of gas. See Soldity issue here: https://github.com/ethereum/solidity/issues/12306
+        bool success;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            success := call(
+                gasLimit, // gas provided to the call
+                target, // call target
+                0, // zero value
+                add(payload, 0x20), // input data - 0x20 needs to be added to an array because the first 32-byte slot contains the array length (0x20 in hex is 32 in decimal).
+                mload(payload), // input data size - mload returns mem[p..(p+32)], which is the first 32-byte slot of the array. In this case, the array length.
+                0, // output
+                0 // output size
+            )
+        }
+        return success;
     }
 
     /**
