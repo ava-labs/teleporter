@@ -35,8 +35,10 @@ contract TeleporterRegistry {
     uint256 public latestVersion;
 
     // Mappings that keep track of the protocol version and corresponding contract address.
-    mapping(uint256 => address) internal _versionToAddress;
-    mapping(address => uint256) internal _addressToVersion;
+    mapping(uint256 version => address protocolAddress)
+        private _versionToAddress;
+    mapping(address protocolAddress => uint256 version)
+        private _addressToVersion;
 
     /**
      * @dev Emitted when a new protocol version is added to the registry.
