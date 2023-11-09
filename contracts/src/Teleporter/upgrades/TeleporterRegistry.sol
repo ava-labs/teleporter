@@ -150,6 +150,10 @@ contract TeleporterRegistry {
     function getVersionFromAddress(
         address protocolAddress
     ) public view returns (uint256) {
+        require(
+            protocolAddress != address(0),
+            "TeleporterRegistry: zero protocol address"
+        );
         return _addressToVersion[protocolAddress];
     }
 
