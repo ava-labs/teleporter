@@ -32,6 +32,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 1,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,
@@ -117,22 +118,19 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
     function testNoValidMessage() public {
         // Mock the call to the warp precompile to get the message failing.
-        WarpMessage memory emptyMessage = WarpMessage({
-            sourceChainID: bytes32(0),
-            originSenderAddress: address(0),
-            destinationChainID: bytes32(0),
-            destinationAddress: address(0),
-            payload: new bytes(0)
-        });
+        WarpMessage memory emptyMessage = _createDefaultWarpMessage(
+            bytes32(0),
+            new bytes(0)
+        );
 
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0)),
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (0)),
             abi.encode(emptyMessage, false)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (0))
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (0))
         );
 
         vm.expectRevert(_formatTeleporterErrorMessage("invalid warp message"));
@@ -141,12 +139,12 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Receive invalid message at index 3
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (3)),
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (3)),
             abi.encode(emptyMessage, false)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (3))
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (3))
         );
 
         vm.expectRevert(_formatTeleporterErrorMessage("invalid warp message"));
@@ -187,48 +185,21 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
                 1,
                 new bytes(0)
             );
+        bytes32 invalidDestinationChainID = bytes32(
+            hex"deadbeefcafebabedeadbeefcafebabedeadbeefcafebabedeadbeefcafebabe"
+        );
+        messageToReceive.destinationChainID = invalidDestinationChainID;
 
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
             abi.encode(messageToReceive)
         );
-        bytes32 invalidDestinationChainID = bytes32(
-            hex"deadbeefcafebabedeadbeefcafebabedeadbeefcafebabedeadbeefcafebabe"
-        );
-        warpMessage.destinationChainID = invalidDestinationChainID;
 
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         vm.expectRevert(
             _formatTeleporterErrorMessage("invalid destination chain ID")
-        );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
-    }
-
-    function testInvalidDestinationAddress() public {
-        // Construct the test message to be received.
-        TeleporterMessage
-            memory messageToReceive = _createMockTeleporterMessage(
-                1,
-                new bytes(0)
-            );
-
-        WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            abi.encode(messageToReceive)
-        );
-        address invalidDestinationAddress = 0xb73aD7e0FF026a805D1f1186EAB89E41bf01835D;
-        warpMessage.destinationAddress = invalidDestinationAddress;
-
-        // Mock the call to the warp precompile to get the message.
-        _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
-
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("invalid destination address")
         );
         teleporterMessenger.receiveCrossChainMessage(
             0,
@@ -267,6 +238,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,
