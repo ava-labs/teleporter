@@ -2,7 +2,6 @@
 name: Bug report
 about: Create a report to help us improve
 title: '[Bug]: '
-projects: ["ava-labs/23"]
 labels: bug
 assignees: ''
 

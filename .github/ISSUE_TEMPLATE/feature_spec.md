@@ -3,7 +3,6 @@ name: Feature specification
 about: Discussion on design and implementation of new features for Teleporter.
 title: ''
 labels: enhancement
-projects: ["ava-labs/23"]
 assignees: ''
 
 ---
