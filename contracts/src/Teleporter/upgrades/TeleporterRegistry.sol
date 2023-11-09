@@ -62,8 +62,8 @@ contract TeleporterRegistry {
     }
 
     /**
-     * @dev Gets and verifies a Warp off-chain message, and adds the new protocol version
-     * address to the registry.
+     * @dev Gets and verifies a Warp off-chain message, and adds the new version to procotol address mapping,
+     * specified in the Warp off-chain message, to the registry.
      * If a version is greater than the current latest version, it will be set as the latest version.
      * If a version is less than the current latest version, it is added to the registry, but
      * doesn't change the latest version.
@@ -74,11 +74,7 @@ contract TeleporterRegistry {
      * - a valid Warp off-chain message must be provided.
      * - source chain ID must be the same as the blockchain ID of the registry.
      * - origin sender address must be the same as the `VALIDATORS_SOURCE_ADDRESS`.
-     * - destination chain ID must be the same as the blockchain ID of the registry.
-     * - destination address must be the same as the address of the registry.
-     * - version must not be zero.
-     * - version must not already be registered.
-     * - protocol address must not be zero address.
+     * - destination address must be the same as the address of this registry.
      */
     function addProtocolVersion(uint32 messageIndex) external {
         // Get and validate for a Warp off-chain message.
@@ -164,7 +160,7 @@ contract TeleporterRegistry {
      * Emits a {AddProtocolVersion} event when successful.
      * Note: `protocolAddress` doesn't have to be a contract address, this is primarily
      * to support the case we want to register a new protocol address meant for a security patch
-     * before the contract is deployed, to prevent the vulnerabilitiy from being exposed before registry update.
+     * before the contract is deployed, to prevent the vulnerabilitiy from being exposed before the registry update.
      * Requirements:
      *
      * - `version` is not zero
