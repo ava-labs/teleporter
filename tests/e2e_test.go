@@ -52,6 +52,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Receive message twice", ReceiveMessageTwiceGinkgo)
 	ginkgo.It("Add additional fee amount", AddFeeAmountGinkgo)
 	ginkgo.It("Send specific receipts", SendSpecificReceiptsGinkgo)
+	ginkgo.It("Insufficient gas", InsufficientGasGinkgo)
 
 	// Cross-chain application tests
 	ginkgo.It("Example cross chain messenger", ExampleMessengerGinkgo)
