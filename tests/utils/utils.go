@@ -335,6 +335,8 @@ func CreateReceiveCrossChainMessageTransaction(
 		modifiedMessage[0] = ^modifiedMessage[0]
 		Expect(modifiedMessage[:]).ShouldNot(Equal(signedMessage.Payload[:]))
 		signedMessage.Payload = modifiedMessage
+
+		signedMessage.Initialize()
 	}
 
 	destinationTx := predicateutils.NewPredicateTx(

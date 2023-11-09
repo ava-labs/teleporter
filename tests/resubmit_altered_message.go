@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -50,36 +49,28 @@ func ResubmitAlteredMessage(network network.Network) {
 
 	// Relay the message to the destination
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
-	teleporterTx, _, err := subnetBInfo.ChainRPCClient.TransactionByHash(ctx, receipt.TxHash)
-	Expect(err).Should(BeNil())
 
-	// Check Teleporter message received on the destination
 	log.Info("Checking the message was received on the destination")
 	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
+	// Get the Teleporter message from receive event
+	event, err := utils.GetReceiveEventFromLogs(receipt.Logs, subnetBTeleporterMessenger)
+	Expect(err).Should(BeNil())
+	Expect(event.MessageID).Should(Equal(messageID))
+	teleporterMessage := event.Message
+
 	// Alter the message
-	txData := make([]byte, len(teleporterTx.Data()))
-	copy(txData, teleporterTx.Data())
-	txData[0] = ^txData[0]
-	Expect(txData[:]).ShouldNot(Equal(teleporterTx.Data()[:]))
+	alteredMessage := make([]byte, len(teleporterMessage.Message))
+	copy(alteredMessage, teleporterMessage.Message)
+	alteredMessage[0] = ^alteredMessage[0]
+	Expect(alteredMessage[:]).ShouldNot(Equal(teleporterMessage.Message[:]))
+	teleporterMessage.Message = alteredMessage
 
-	// Attempt to send the altered message
+	// Resubmit the altered message
 	log.Info("Submitting the altered Teleporter message on the destination")
-	gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(ctx, subnetBInfo.ChainRPCClient, fundedAddress)
-	secondTeleporterTx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:    subnetBInfo.ChainIDInt,
-		Nonce:      nonce,
-		To:         &teleporterContractAddress,
-		Gas:        teleporterTx.Gas(),
-		GasFeeCap:  gasFeeCap,
-		GasTipCap:  gasTipCap,
-		Value:      big.NewInt(0),
-		Data:       teleporterTx.Data(),
-		AccessList: teleporterTx.AccessList(),
-	})
-
-	signedTx := utils.SignTransaction(secondTeleporterTx, fundedKey, subnetBInfo.ChainIDInt)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, signedTx, false)
+	opts := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	_, err = subnetATeleporterMessenger.RetrySendCrossChainMessage(opts, subnetBInfo.BlockchainID, teleporterMessage)
+	Expect(err).ShouldNot(BeNil())
 }
