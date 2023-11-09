@@ -20,7 +20,7 @@ abstract contract TeleporterUpgradeable {
 
     /**
      * @dev The minimum required Teleporter version that the contract is allowed
-     * to receive messages from. Should only be update through the `updateMinTeleporterVersion`
+     * to receive messages from. Should only be updated through the `updateMinTeleporterVersion`
      * implementation of child contracts inheriting `TeleporterUpgradeable`. The value is
      * public because inheriting contracts must be able to update it, and it should be
      * publicly viewable.
