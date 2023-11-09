@@ -105,6 +105,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -166,6 +167,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: uint256(
                 bytes32(
@@ -201,6 +203,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -266,6 +269,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),

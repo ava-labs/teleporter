@@ -3,13 +3,13 @@ module github.com/ava-labs/teleporter
 go 1.20
 
 require (
-	github.com/ava-labs/avalanchego v1.10.15
+	github.com/ava-labs/avalanchego v1.10.14
 	github.com/supranational/blst v0.3.11 // indirect
 )
 
 require (
-	github.com/ava-labs/avalanche-network-runner v1.7.3-0.20231108230321-28359b636ddf
-	github.com/ava-labs/subnet-evm v0.5.6
+	github.com/ava-labs/avalanche-network-runner v1.7.3-0.20231026153158-2931f8a448d9
+	github.com/ava-labs/subnet-evm v0.5.8
 	github.com/ethereum/go-ethereum v1.12.0
 	github.com/onsi/ginkgo/v2 v2.13.0
 	github.com/onsi/gomega v1.29.0
@@ -22,7 +22,7 @@ require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.10.0 // indirect
-	github.com/ava-labs/coreth v0.12.8-rc.1 // indirect
+	github.com/ava-labs/coreth v0.12.7-rc.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.3 // indirect
@@ -70,7 +70,6 @@ require (
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/holiman/uint256 v1.2.3 // indirect
 	github.com/huin/goupnp v1.0.3 // indirect
-	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackpal/gateway v1.0.6 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
@@ -101,7 +100,6 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
-	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.16.0 // indirect

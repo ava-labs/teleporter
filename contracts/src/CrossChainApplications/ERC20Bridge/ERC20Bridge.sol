@@ -71,13 +71,13 @@ contract ERC20Bridge is
     uint256 public constant TRANSFER_BRIDGE_TOKENS_REQUIRED_GAS = 300_000;
 
     /**
-     * @dev Initializes the Teleporter messenger used for sending and receiving messages,
+     * @dev Initializes the Teleporter Messenger used for sending and receiving messages,
      * and initializes the current chain ID.
      */
     constructor(
         address teleporterRegistryAddress
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
-        currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
+        currentChainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
 
@@ -390,7 +390,7 @@ contract ERC20Bridge is
      * Emits a {CreateBridgeToken} event.
      *
      * Note: This function is only called within `receiveTeleporterMessage`, which can only be
-     * called by the Teleporter messenger.
+     * called by the Teleporter Messenger.
      */
     function _createBridgeToken(
         bytes32 nativeChainID,
@@ -438,7 +438,7 @@ contract ERC20Bridge is
      * Emits a {MintBridgeTokens} event.
      *
      * Note: This function is only called within `receiveTeleporterMessage`, which can only be
-     * called by the Teleporter messenger.
+     * called by the Teleporter Messenger.
      */
     function _mintBridgeTokens(
         bytes32 nativeChainID,
@@ -472,7 +472,7 @@ contract ERC20Bridge is
      * and optionally routing them to a different third chain.
      *
      * Note: This function is only called within `receiveTeleporterMessage`, which can only be
-     * called by the Teleporter messenger.
+     * called by the Teleporter Messenger.
      */
     function _transferBridgeTokens(
         bytes32 sourceChainID,
@@ -571,7 +571,7 @@ contract ERC20Bridge is
         ITeleporterMessenger teleporterMessenger = teleporterRegistry
             .getLatestTeleporter();
 
-        // Allow the Teleporter messenger to spend the fee amount.
+        // Allow the Teleporter Messenger to spend the fee amount.
         if (feeAmount > 0) {
             IERC20(nativeContractAddress).safeIncreaseAllowance(
                 address(teleporterMessenger),
@@ -630,7 +630,7 @@ contract ERC20Bridge is
             .getLatestTeleporter();
 
         // If necessary, transfer the primary fee amount to this contract and approve the
-        // Teleporter messenger to spend it when the first message back to the native subnet
+        // Teleporter Messenger to spend it when the first message back to the native subnet
         // is submitted. The secondary fee amount is then handled by the native subnet when
         // submitting a message to the destination chain, if applicable.
         uint256 adjustedPrimaryFeeAmount = 0;

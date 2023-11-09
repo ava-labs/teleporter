@@ -6,9 +6,9 @@ set -e
 
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
-  cd ../.. && pwd
+  cd .. && pwd
 )
 
 cd $TELEPORTER_PATH/contracts/src
-solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore
+solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
 exit 0
