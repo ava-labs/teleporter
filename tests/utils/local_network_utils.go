@@ -73,6 +73,7 @@ func RelayMessage(
 	sourceReceipt *types.Receipt,
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
+	alterMessage bool,
 	expectSuccess bool,
 ) *types.Receipt {
 	log.Info("Fetching relevant warp logs from the newly produced block")
@@ -123,6 +124,7 @@ func RelayMessage(
 		fundedKey,
 		destination.ChainRPCClient,
 		destination.ChainIDInt,
+		alterMessage,
 	)
 
 	log.Info("Sending transaction to destination chain")

@@ -30,6 +30,7 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,
 	destination utils.SubnetTestInfo,
+	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
-	return utils.RelayMessage(ctx, sourceReceipt, source, destination, expectSuccess)
+	return utils.RelayMessage(ctx, sourceReceipt, source, destination, alterMessage, expectSuccess)
 }

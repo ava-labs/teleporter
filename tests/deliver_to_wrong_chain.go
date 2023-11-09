@@ -69,7 +69,7 @@ func DeliverToWrongChain(network network.Network) {
 	// Relay the message to the destination
 	//
 
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, false)
 
 	//
 	// Check that the message was not received on the Subnet B

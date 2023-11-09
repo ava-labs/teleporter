@@ -310,6 +310,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	fundedKey *ecdsa.PrivateKey,
 	rpcClient ethclient.Client,
 	chainID *big.Int,
+	alterMessage bool,
 ) *types.Transaction {
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
@@ -326,6 +327,15 @@ func CreateReceiveCrossChainMessageTransaction(
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, rpcClient, fundedAddress)
+
+	if alterMessage {
+		// Alter the message
+		modifiedMessage := make([]byte, len(signedMessage.Payload))
+		copy(modifiedMessage, signedMessage.Payload)
+		modifiedMessage[0] = ^modifiedMessage[0]
+		Expect(modifiedMessage[:]).ShouldNot(Equal(signedMessage.Payload[:]))
+		signedMessage.Payload = modifiedMessage
+	}
 
 	destinationTx := predicateutils.NewPredicateTx(
 		chainID,

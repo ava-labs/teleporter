@@ -62,7 +62,7 @@ func ExampleMessenger(network network.Network) {
 	//
 	// Relay the message to the destination
 	//
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
 
 	//
 	// Check Teleporter message received on the destination
