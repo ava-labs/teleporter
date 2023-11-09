@@ -6,9 +6,14 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"time"
 
+	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
+	"github.com/ava-labs/avalanchego/genesis"
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/ava-labs/avalanchego/vms/platformvm"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -43,6 +48,7 @@ var (
 
 	// Internal vars only used to set up the local network
 	anrConfig           = runner.NewDefaultANRConfig()
+	anrClient           runner_sdk.Client
 	manager             = runner.NewNetworkManager(anrConfig)
 	warpChainConfigPath string
 )
@@ -163,55 +169,88 @@ func SetupNetwork(warpGenesisFile string) {
 	SetupProposerVM(ctx, fundedKey, manager, 0)
 	SetupProposerVM(ctx, fundedKey, manager, 1)
 
-	// Set up subnet URIs
+	SetSubnetValues()
+
+	// Create the ANR client
+	logLevel, err := logging.ToLevel("info")
+	Expect(err).Should(BeNil())
+
+	logFactory := logging.NewFactory(logging.Config{
+		DisplayLevel: logLevel,
+		LogLevel:     logLevel,
+	})
+	zapLog, err := logFactory.Make("main")
+	Expect(err).Should(BeNil())
+
+	anrClient, err = runner_sdk.New(runner_sdk.Config{
+		Endpoint:    "0.0.0.0:12352",
+		DialTimeout: 10 * time.Second,
+	}, zapLog)
+
+	log.Info("Finished setting up e2e test subnet variables")
+}
+
+func SetSubnetValues() {
 	subnetIDs := manager.GetSubnets()
 	Expect(len(subnetIDs)).Should(Equal(2))
 
 	subnetA = subnetIDs[0]
-	subnetADetails, ok := manager.GetSubnet(subnetA)
-	Expect(ok).Should(BeTrue())
-	Expect(len(subnetADetails.ValidatorURIs)).Should(Equal(5))
-	blockchainIDA = subnetADetails.BlockchainID
-	chainANodeURIs = append(chainANodeURIs, subnetADetails.ValidatorURIs...)
+	SetSubnetAValues(subnetA)
 
 	subnetB = subnetIDs[1]
-	subnetBDetails, ok := manager.GetSubnet(subnetB)
+	SetSubnetBValues(subnetB)
+}
+
+func SetSubnetBValues(subnetID ids.ID) {
+	var err error
+	subnetBDetails, ok := manager.GetSubnet(subnetID)
 	Expect(ok).Should(BeTrue())
 	Expect(len(subnetBDetails.ValidatorURIs)).Should(Equal(5))
 	blockchainIDB = subnetBDetails.BlockchainID
+	chainBNodeURIs = nil
 	chainBNodeURIs = append(chainBNodeURIs, subnetBDetails.ValidatorURIs...)
-
-	log.Info(
-		"Created URIs for subnets",
-		"chainAURIs", chainANodeURIs,
-		"chainBURIs", chainBNodeURIs,
-		"blockchainIDA", blockchainIDA,
-		"blockchainIDB", blockchainIDB,
-	)
-
-	chainAWSURI := HttpToWebsocketURI(chainANodeURIs[0], blockchainIDA.String())
-	chainARPCURI := HttpToRPCURI(chainANodeURIs[0], blockchainIDA.String())
-
-	log.Info("Creating ethclients for blockchainA", "wsURI", chainAWSURI, "rpcURI", chainARPCURI)
-	chainAWSClient, err = ethclient.Dial(chainAWSURI)
-	Expect(err).Should(BeNil())
-	chainARPCClient, err = ethclient.Dial(chainARPCURI)
-	Expect(err).Should(BeNil())
-	chainAIDInt, err = chainARPCClient.ChainID(context.Background())
-	Expect(err).Should(BeNil())
 
 	chainBWSURI := HttpToWebsocketURI(chainBNodeURIs[0], blockchainIDB.String())
 	chainBRPCURI := HttpToRPCURI(chainBNodeURIs[0], blockchainIDB.String())
-	log.Info("Creating ethclients for blockchainB", "wsURI", chainBWSURI, "rpcURI", chainBRPCURI)
 
+	if chainBWSClient != nil {
+		chainBWSClient.Close()
+	}
 	chainBWSClient, err = ethclient.Dial(chainBWSURI)
 	Expect(err).Should(BeNil())
+	if chainBRPCClient != nil {
+		chainBRPCClient.Close()
+	}
 	chainBRPCClient, err = ethclient.Dial(chainBRPCURI)
 	Expect(err).Should(BeNil())
 	chainBIDInt, err = chainBRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
+}
 
-	log.Info("Finished setting up e2e test subnet variables")
+func SetSubnetAValues(subnetID ids.ID) {
+	var err error
+	subnetADetails, ok := manager.GetSubnet(subnetID)
+	Expect(ok).Should(BeTrue())
+	Expect(len(subnetADetails.ValidatorURIs)).Should(Equal(5))
+	blockchainIDA = subnetADetails.BlockchainID
+	chainANodeURIs = nil
+	chainANodeURIs = append(chainANodeURIs, subnetADetails.ValidatorURIs...)
+
+	chainAWSURI := HttpToWebsocketURI(chainANodeURIs[0], blockchainIDA.String())
+	chainARPCURI := HttpToRPCURI(chainANodeURIs[0], blockchainIDA.String())
+
+	if chainAWSClient != nil {
+		chainAWSClient.Close()
+	}
+	chainAWSClient, err = ethclient.Dial(chainAWSURI)
+	Expect(err).Should(BeNil())
+	if chainARPCClient != nil {
+		chainARPCClient.Close()
+	}
+	chainARPCClient, err = ethclient.Dial(chainARPCURI)
+	Expect(err).Should(BeNil())
+	chainAIDInt, err = chainARPCClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
 }
 
 // DeployTeleporterContracts deploys the Teleporter contract to the two subnets. The caller is responsible for generating the
@@ -342,4 +381,40 @@ func TearDownNetwork() {
 	Expect(manager).ShouldNot(BeNil())
 	Expect(manager.TeardownNetwork()).Should(BeNil())
 	Expect(os.Remove(warpChainConfigPath)).Should(BeNil())
+}
+
+func RemoveSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
+	_, err := anrClient.RemoveSubnetValidator(ctx, []*rpcpb.RemoveSubnetValidatorSpec{
+		{
+			SubnetId:  subnetID.String(),
+			NodeNames: nodeNames,
+		},
+	})
+	Expect(err).Should(BeNil())
+	SetSubnetValues()
+}
+
+func AddSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
+	log.Info("debug",
+		"subnetID", subnetID.String(),
+		"nodeNames", nodeNames,
+	)
+	// Get the staking asset ID for the subnet
+	subnetInfo, ok := manager.GetSubnet(subnetID)
+	Expect(ok).Should(BeTrue())
+	pClient := platformvm.NewClient(subnetInfo.ValidatorURIs[0])
+	assetID, err := pClient.GetStakingAssetID(ctx, ids.Empty)
+	Expect(err).Should(BeNil())
+	for _, nodeName := range nodeNames {
+		_, err := anrClient.AddPermissionlessValidator(ctx, []*rpcpb.PermissionlessStakerSpec{
+			{
+				SubnetId:          subnetID.String(),
+				NodeName:          nodeName,
+				StakedTokenAmount: genesis.LocalParams.MinValidatorStake,
+				AssetId:           assetID.String(),
+			},
+		})
+		Expect(err).Should(BeNil())
+	}
+	SetSubnetValues()
 }
