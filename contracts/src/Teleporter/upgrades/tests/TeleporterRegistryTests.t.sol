@@ -350,7 +350,7 @@ contract TeleporterRegistryTest is Test {
         teleporterRegistry.addProtocolVersion(messageIndex);
 
         // Check if we have an invalid destination address
-        warpMessage = _createWarpOutofBandMessage(
+        warpMessage = _createWarpOffChainMessage(
             latestVersion + 1,
             address(this),
             teleporterAddress,

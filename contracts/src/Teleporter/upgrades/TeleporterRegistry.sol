@@ -6,6 +6,7 @@
 pragma solidity 0.8.18;
 
 import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
+import {IWarpMessenger, WarpMessage} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 
 /**
  * @dev Registry entry that represents a mapping between protocolAddress and version.
@@ -25,8 +26,8 @@ contract TeleporterRegistry {
     // cannot possibly be the source address of any other Warp message emitted by the VM.
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
 
-    WarpMessenger public constant WARP_MESSENGER =
-        WarpMessenger(0x0200000000000000000000000000000000000005);
+    IWarpMessenger public constant WARP_MESSENGER =
+        IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     bytes32 public immutable blockchainID;
 
@@ -91,18 +92,14 @@ contract TeleporterRegistry {
             message.originSenderAddress == VALIDATORS_SOURCE_ADDRESS,
             "TeleporterRegistry: invalid origin sender address"
         );
-        require(
-            message.destinationChainID == blockchainID,
-            "TeleporterRegistry: invalid destination chain ID"
-        );
-        require(
-            message.destinationAddress == address(this),
-            "TeleporterRegistry: invalid destination address"
-        );
 
-        ProtocolRegistryEntry memory entry = abi.decode(
-            message.payload,
-            (ProtocolRegistryEntry)
+        (ProtocolRegistryEntry memory entry, address destinationAddress) = abi
+            .decode(message.payload, (ProtocolRegistryEntry, address));
+
+        // Check that the message is sent to the registry.
+        require(
+            destinationAddress == address(this),
+            "TeleporterRegistry: invalid destination address"
         );
 
         _addToRegistry(entry);
