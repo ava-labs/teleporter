@@ -3,8 +3,8 @@
 # See the file LICENSE for licensing terms.
 
 # Set up the versions to be used
-AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v0.2.1'}
-SUBNET_EVM_VERSION=${SUBNET_EVM_VERSION:-'v0.5.6'}
+AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v0.2.3'}
+SUBNET_EVM_VERSION=${SUBNET_EVM_VERSION:-'v0.5.8'}
 # Don't export them as they're used in the context of other calls
-AVALANCHE_VERSION=${AVALANCHE_VERSION:-'v1.10.9'}
+AVALANCHE_VERSION=${AVALANCHE_VERSION:-'v1.10.14'}
 GINKGO_VERSION=${GINKGO_VERSION:-'v2.2.0'}

@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, TeleporterFeeInfo, IWarpMessenger, IERC20} from "./TeleporterMessengerTest.t.sol";
 
 contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -42,6 +42,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: 1,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -82,6 +83,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessage memory newExpectedMessage = TeleporterMessage({
             messageID: 2,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(0),
             requiredGasLimit: uint256(0),
             allowedRelayerAddresses: new address[](0),
@@ -132,6 +134,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: 1,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(0),
             requiredGasLimit: uint256(0),
             allowedRelayerAddresses: new address[](0),
@@ -187,8 +190,8 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
     ) private returns (uint256) {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
         );
         if (feeAmount > 0) {
             vm.mockCall(

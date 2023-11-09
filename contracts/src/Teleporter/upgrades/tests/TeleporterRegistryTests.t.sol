@@ -5,9 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import "forge-std/Test.sol";
-import "../TeleporterRegistry.sol";
-import "../../TeleporterMessenger.sol";
+import {Test} from "forge-std/Test.sol";
+import {TeleporterRegistry, ProtocolRegistryEntry} from "../TeleporterRegistry.sol";
+import {TeleporterMessenger, IWarpMessenger, WarpMessage} from "../../TeleporterMessenger.sol";
 
 contract TeleporterRegistryTest is Test {
     TeleporterRegistry public teleporterRegistry;
@@ -25,7 +25,7 @@ contract TeleporterRegistryTest is Test {
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector),
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
             abi.encode(MOCK_BLOCK_CHAIN_ID)
         );
         teleporterRegistry = new TeleporterRegistry(
@@ -55,6 +55,7 @@ contract TeleporterRegistryTest is Test {
         latestVersion = teleporterRegistry.latestVersion();
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 2,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -62,7 +63,7 @@ contract TeleporterRegistryTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
@@ -82,6 +83,7 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 2,
+            address(teleporterRegistry),
             address(this),
             address(teleporterRegistry)
         );
@@ -89,7 +91,7 @@ contract TeleporterRegistryTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
@@ -110,6 +112,7 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 2,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -117,7 +120,7 @@ contract TeleporterRegistryTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
@@ -134,6 +137,7 @@ contract TeleporterRegistryTest is Test {
         uint256 oldVersion = latestVersion + 1;
         warpMessage = _createWarpOffChainMessage(
             oldVersion,
+            address(teleporterRegistry),
             address(this),
             address(teleporterRegistry)
         );
@@ -148,7 +152,7 @@ contract TeleporterRegistryTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
@@ -169,6 +173,7 @@ contract TeleporterRegistryTest is Test {
         // Add a new version to the registiry
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 1,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -176,14 +181,17 @@ contract TeleporterRegistryTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (messageIndex))
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            )
         );
 
         teleporterRegistry.addProtocolVersion(messageIndex);
@@ -205,6 +213,7 @@ contract TeleporterRegistryTest is Test {
         // Check that adding an invalid protocol address of address(0) fails
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 1,
+            address(teleporterRegistry),
             address(0),
             address(teleporterRegistry)
         );
@@ -212,7 +221,7 @@ contract TeleporterRegistryTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
@@ -228,6 +237,7 @@ contract TeleporterRegistryTest is Test {
         // Check that adding an invalid version of 0 fails
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
             0,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -235,7 +245,7 @@ contract TeleporterRegistryTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
@@ -283,22 +293,26 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 1,
+            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
 
-        // First check if warp message is invalid from getVerifiedWarpMessage
+        // Check if warp message is invalid from getVerifiedWarpMessage
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, false)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (messageIndex))
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            )
         );
 
         vm.expectRevert(_formatRegistryErrorMessage("invalid warp message"));
@@ -309,7 +323,7 @@ contract TeleporterRegistryTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
@@ -324,7 +338,7 @@ contract TeleporterRegistryTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
@@ -335,31 +349,17 @@ contract TeleporterRegistryTest is Test {
         );
         teleporterRegistry.addProtocolVersion(messageIndex);
 
-        // Check if we have an invalid destination chain ID
-        warpMessage.originSenderAddress = teleporterRegistry
-            .VALIDATORS_SOURCE_ADDRESS();
-        warpMessage.destinationChainID = bytes32(uint256(1234567));
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
-                (messageIndex)
-            ),
-            abi.encode(warpMessage, true)
-        );
-
-        vm.expectRevert(
-            _formatRegistryErrorMessage("invalid destination chain ID")
-        );
-        teleporterRegistry.addProtocolVersion(messageIndex);
-
         // Check if we have an invalid destination address
-        warpMessage.destinationChainID = MOCK_BLOCK_CHAIN_ID;
-        warpMessage.destinationAddress = address(this);
+        warpMessage = _createWarpOutofBandMessage(
+            latestVersion + 1,
+            address(this),
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
@@ -379,20 +379,24 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + 1,
+            address(registry),
             newProtocolAddress,
             address(registry)
         );
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.getVerifiedWarpMessage,
+                IWarpMessenger.getVerifiedWarpMessage,
                 (messageIndex)
             ),
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(WarpMessenger.getVerifiedWarpMessage, (messageIndex))
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            )
         );
 
         vm.expectEmit(true, true, false, false, address(registry));
@@ -402,6 +406,7 @@ contract TeleporterRegistryTest is Test {
 
     function _createWarpOffChainMessage(
         uint256 version,
+        address destinationAddress,
         address protocolAddress,
         address registryAddress
     ) internal view returns (WarpMessage memory) {
@@ -410,13 +415,12 @@ contract TeleporterRegistryTest is Test {
                 sourceChainID: MOCK_BLOCK_CHAIN_ID,
                 originSenderAddress: TeleporterRegistry(registryAddress)
                     .VALIDATORS_SOURCE_ADDRESS(),
-                destinationChainID: MOCK_BLOCK_CHAIN_ID,
-                destinationAddress: address(registryAddress),
                 payload: abi.encode(
                     ProtocolRegistryEntry({
                         version: version,
                         protocolAddress: protocolAddress
-                    })
+                    }),
+                    destinationAddress
                 )
             });
     }

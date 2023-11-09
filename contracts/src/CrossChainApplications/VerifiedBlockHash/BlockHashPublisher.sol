@@ -5,10 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/upgrades/TeleporterRegistry.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./BlockHashReceiver.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {TeleporterRegistry} from "../../Teleporter/upgrades/TeleporterRegistry.sol";
 
 /**
  * Contract that publishes the latest block hash of current chain to another chain.
@@ -39,11 +37,12 @@ contract BlockHashPublisher {
 
     /**
      * @dev Publishes the latest block hash to another chain.
+     * @return The message of the of the message sent to publish the hash.
      */
     function publishLatestBlockHash(
         bytes32 destinationChainID,
         address destinationAddress
-    ) external returns (uint256 messageID) {
+    ) external returns (uint256) {
         // Get the latest block info. Note it must the previous block
         // because the current block hash is not available during execution.
         uint256 blockHeight = block.number - 1;
@@ -59,9 +58,8 @@ contract BlockHashPublisher {
             blockHeight,
             blockHash
         );
-        messageID = teleporterRegistry
-            .getLatestTeleporter()
-            .sendCrossChainMessage(
+        return
+            teleporterRegistry.getLatestTeleporter().sendCrossChainMessage(
                 TeleporterMessageInput({
                     destinationChainID: destinationChainID,
                     destinationAddress: destinationAddress,
