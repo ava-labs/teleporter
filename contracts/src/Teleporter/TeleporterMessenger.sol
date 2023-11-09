@@ -390,26 +390,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // the relayer should still receive their reward even if the message execution takes more gas than expected.
         // Require that the call be successful such that in the failure case this transaction reverts and the
         // message can be retried again if desired.
-        //
-        // Assembly is used for the low-level call to avoid unnecessary memory expansion of the return data.
-        // This prevents possible "return bomb" vectors where the external contract could force the caller
-        // to use an arbitrary amount of gas. First need to define the {target} and {success} variables to make
-        // them easily accesible within and follow the assembly block.
-        address target = message.destinationAddress;
-        bool success;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            success := call(
-                gas(), // gas provided to the call
-                target, // call target
-                0, // zero value
-                add(payload, 0x20), // input data - 0x20 needs to be added to an array because the first 32-byte slot contains the array length (0x20 in hex is 32 in decimal).
-                mload(payload), // input data size - mload returns mem[p..(p+32)], which is the first 32-byte slot of the array. In this case, the array length.
-                0, // output
-                0 // output size
-            )
-        }
-
+        bool success = _tryExecuteMessage(
+            message.destinationAddress,
+            gasleft(),
+            payload
+        );
         require(success, "TeleporterMessenger: retry execution failed");
     }
 
@@ -759,26 +744,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Call the destination address of the message with the formatted call data. Only provide the required
         // gas limit to the sub-call so that the end application cannot consume an arbitrary amount of gas.
-        //
-        // Assembly is used for the low-level call to avoid unnecessary memory expansion of the return data.
-        // This prevents possible "return bomb" vectors where the external contract could force the caller
-        // to use an arbitrary amount of gas. First need to define the {target}, {requiredGas}, and {success}
-        // variables to make them easily accesible within and follow the assembly block.
-        address target = message.destinationAddress;
-        uint256 requiredGas = message.requiredGasLimit;
-        bool success;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            success := call(
-                requiredGas, // call target
-                target, // gas provided to the call
-                0, // zero value
-                add(payload, 0x20), // input data - 0x20 needs to be added to an array because the first 32-byte slot contains the array length (0x20 in hex is 32 in decimal).
-                mload(payload), // input data size - mload returns mem[p..(p+32)], which is the first 32-byte slot of the array. In this case, the array length.
-                0, // output
-                0 // output size
-            )
-        }
+        bool success = _tryExecuteMessage(
+            message.destinationAddress,
+            message.requiredGasLimit,
+            payload
+        );
 
         // If the execution failed, store a hash of the message in state such that its
         // execution can be retried again in the future with a higher gas limit (paid by whoever
@@ -790,6 +760,32 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         emit MessageExecuted(originChainID, message.messageID);
+    }
+
+    function _tryExecuteMessage(
+        address target,
+        uint256 gasLimit,
+        bytes memory payload
+    ) private returns (bool) {
+        // Call the destination address of the message with the provided payload and amount of gas.
+        //
+        // Assembly is used for the low-level call to avoid unnecessary expansion of the return data in memory.
+        // This prevents possible "return bomb" vectors where the external contract could force the caller
+        // to use an arbitrary amount of gas. See Soldity issue here: https://github.com/ethereum/solidity/issues/12306
+        bool success;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            success := call(
+                gasLimit, // gas provided to the call
+                target, // call target
+                0, // zero value
+                add(payload, 0x20), // input data - 0x20 needs to be added to an array because the first 32-byte slot contains the array length (0x20 in hex is 32 in decimal).
+                mload(payload), // input data size - mload returns mem[p..(p+32)], which is the first 32-byte slot of the array. In this case, the array length.
+                0, // output
+                0 // output size
+            )
+        }
+        return success;
     }
 
     /**
