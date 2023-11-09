@@ -10,10 +10,8 @@ import (
 
 	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
-	"github.com/ava-labs/avalanchego/genesis"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -399,22 +397,12 @@ func AddSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []strin
 		"subnetID", subnetID.String(),
 		"nodeNames", nodeNames,
 	)
-	// Get the staking asset ID for the subnet
-	subnetInfo, ok := manager.GetSubnet(subnetID)
-	Expect(ok).Should(BeTrue())
-	pClient := platformvm.NewClient(subnetInfo.ValidatorURIs[0])
-	assetID, err := pClient.GetStakingAssetID(ctx, ids.Empty)
+	_, err := anrClient.AddSubnetValidators(ctx, []*rpcpb.SubnetValidatorsSpec{
+		{
+			SubnetId:  subnetID.String(),
+			NodeNames: nodeNames,
+		},
+	})
 	Expect(err).Should(BeNil())
-	for _, nodeName := range nodeNames {
-		_, err := anrClient.AddPermissionlessValidator(ctx, []*rpcpb.PermissionlessStakerSpec{
-			{
-				SubnetId:          subnetID.String(),
-				NodeName:          nodeName,
-				StakedTokenAmount: genesis.LocalParams.MinValidatorStake,
-				AssetId:           assetID.String(),
-			},
-		})
-		Expect(err).Should(BeNil())
-	}
 	SetSubnetValues()
 }
