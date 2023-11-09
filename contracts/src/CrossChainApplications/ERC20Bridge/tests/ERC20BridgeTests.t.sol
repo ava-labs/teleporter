@@ -82,7 +82,11 @@ contract ERC20BridgeTest is Test {
 
         vm.expectCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSignature("latestVersion()")
+            abi.encodeWithSelector(
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS)
+                    .latestVersion
+                    .selector
+            )
         );
 
         erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS);
@@ -638,7 +642,11 @@ contract ERC20BridgeTest is Test {
     function _initMockTeleporterRegistry() internal {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSignature("latestVersion()"),
+            abi.encodeWithSelector(
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS)
+                    .latestVersion
+                    .selector
+            ),
             abi.encode(1)
         );
 
