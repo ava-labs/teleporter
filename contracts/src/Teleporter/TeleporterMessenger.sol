@@ -386,7 +386,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
         // Use all of the gas left because this message has already been successfully delivered, and it is the
-        // responsibility of the caller to provide as much gas is needed. Compared to the initial delivery, where
+        // caller's responsibility to provide as much gas as is needed. Compared to the initial delivery, where
         // the relayer should still receive their reward even if the message execution takes more gas than expected.
         // Require that the call be successful such that in the failure case this transaction reverts and the
         // message can be retried again if desired.
