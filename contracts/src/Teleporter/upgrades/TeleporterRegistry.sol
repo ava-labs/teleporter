@@ -159,7 +159,7 @@ contract TeleporterRegistry {
      *
      * Emits a {AddProtocolVersion} event when successful.
      * Note: `protocolAddress` doesn't have to be a contract address, this is primarily
-     * to support the case we want to register a new protocol address meant for a security patch
+     * to support the case in which we want to register a new protocol address meant for a security patch
      * before the contract is deployed, to prevent the vulnerabilitiy from being exposed before the registry update.
      * Requirements:
      *
