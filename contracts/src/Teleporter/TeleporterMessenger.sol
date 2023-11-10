@@ -593,9 +593,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         for (uint256 i; i < allowedRelayers.length;) {
             if (allowedRelayers[i] == delivererAddress) {
                 return true;
-                unchecked {
-                    ++i;
-                }
+            }
+            unchecked {
+                ++i;
             }
         }
         return false;
