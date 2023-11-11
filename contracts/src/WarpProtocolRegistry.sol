@@ -5,8 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import {WarpMessage, IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 
 /**
  * @dev Registry entry that represents a mapping between protocolAddress and version.
@@ -28,8 +27,8 @@ abstract contract WarpProtocolRegistry {
     // cannot possibly be the source address of any other Warp message emitted by the VM.
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
 
-    WarpMessenger public constant WARP_MESSENGER =
-        WarpMessenger(0x0200000000000000000000000000000000000005);
+    IWarpMessenger public constant WARP_MESSENGER =
+        IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     bytes32 internal immutable _blockchainID;
 
@@ -37,8 +36,10 @@ abstract contract WarpProtocolRegistry {
     uint256 internal _latestVersion;
 
     // Mappings that keep track of the protocol version and corresponding contract address.
-    mapping(uint256 => address) internal _versionToAddress;
-    mapping(address => uint256) internal _addressToVersion;
+    mapping(uint256 version => address protocolAddress)
+        internal _versionToAddress;
+    mapping(address protocolAddress => uint256 version)
+        internal _addressToVersion;
 
     /**
      * @dev Emitted when a new protocol version is added to the registry.
@@ -94,18 +95,14 @@ abstract contract WarpProtocolRegistry {
             message.originSenderAddress == VALIDATORS_SOURCE_ADDRESS,
             "WarpProtocolRegistry: invalid origin sender address"
         );
-        require(
-            message.destinationChainID == _blockchainID,
-            "WarpProtocolRegistry: invalid destination chain ID"
-        );
-        require(
-            message.destinationAddress == address(this),
-            "WarpProtocolRegistry: invalid destination address"
-        );
 
-        ProtocolRegistryEntry memory entry = abi.decode(
-            message.payload,
-            (ProtocolRegistryEntry)
+        (ProtocolRegistryEntry memory entry, address destinationAddress) = abi
+            .decode(message.payload, (ProtocolRegistryEntry, address));
+
+        // Check that the message is sent to the registry.
+        require(
+            destinationAddress == address(this),
+            "WarpProtocolRegistry: invalid destination address"
         );
 
         _addToRegistry(entry);
@@ -180,7 +177,7 @@ abstract contract WarpProtocolRegistry {
     }
 
     /**
-     * @dev Gets the address of a protocol version.
+     * @dev Gets the corresponding address of a protocol version.
      * Requirements:
      *
      * - `version` must be a valid version, i.e. greater than 0 and not greater than the latest version.

@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt} from "./TeleporterMessengerTest.t.sol";
 
 contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -24,6 +24,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -42,6 +43,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         TeleporterMessage memory fakeMessage = TeleporterMessage({
             messageID: 354,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -64,6 +66,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         TeleporterMessage memory alteredMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),

@@ -5,23 +5,32 @@
 
 pragma solidity 0.8.18;
 
-import "./ITeleporterMessenger.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {TeleporterMessageReceipt} from "./ITeleporterMessenger.sol";
 
 /**
  * @dev ReceiptQueue is a convenience library that creates a queue-like interface of
  * TeleporterMessageReceipt structs. It provides FIFO properties.
  * Note: All functions in this library are internal so that the library is not deployed as a contract.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 library ReceiptQueue {
+    // A receipt queue represents a FIFO list of receipts.
     struct TeleporterMessageReceiptQueue {
+        // Tracks the head of the queue within the {data} mapping.
         uint256 first;
+        // Tracks the tail of the queue within the {data} mapping.
         uint256 last;
-        mapping(uint256 index => TeleporterMessageReceipt) data;
+        // Represents the elements in the queue. Each newly enqueue item is
+        // assigned an index one greater than the previous tail.
+        mapping(uint256 index => TeleporterMessageReceipt receipt) data;
     }
 
     // The maximum number of receipts to include in a single message.
     uint256 private constant _MAXIMUM_RECEIPT_COUNT = 5;
 
+    // solhint-disable private-vars-leading-underscore
     /**
      * @dev Adds a receipt to the queue.
      */
@@ -33,7 +42,7 @@ library ReceiptQueue {
     }
 
     /**
-     * @dev Removes the oldest open receipt from the queue.
+     * @dev Removes the oldest outstanding receipt from the queue.
      *
      * Requirements:
      * - The queue must be non-empty.
@@ -54,16 +63,10 @@ library ReceiptQueue {
     function getOutstandingReceiptsToSend(
         TeleporterMessageReceiptQueue storage queue
     ) internal returns (TeleporterMessageReceipt[] memory result) {
-        // Get the current outstanding receipts for the given chain ID.
-        // If the queue contract doesn't exist, there are no outstanding receipts to send.
-        uint256 resultSize = size(queue);
+        // Calculate the result size as the minimum of the number of receipts and maximum batch size.
+        uint256 resultSize = Math.min(_MAXIMUM_RECEIPT_COUNT, size(queue));
         if (resultSize == 0) {
             return new TeleporterMessageReceipt[](0);
-        }
-
-        // Calculate the result size as the minimum of the number of receipts and maximum batch size.
-        if (resultSize > _MAXIMUM_RECEIPT_COUNT) {
-            resultSize = _MAXIMUM_RECEIPT_COUNT;
         }
 
         result = new TeleporterMessageReceipt[](resultSize);
@@ -73,7 +76,7 @@ library ReceiptQueue {
     }
 
     /**
-     * @dev Returns the number of open receipts in the queue.
+     * @dev Returns the number of outstanding receipts in the queue.
      */
     function size(
         TeleporterMessageReceiptQueue storage queue
@@ -91,4 +94,5 @@ library ReceiptQueue {
         require(index < size(queue), "ReceiptQueue: index out of bounds");
         return queue.data[queue.first + index];
     }
+    // solhint-enable private-vars-leading-underscore
 }

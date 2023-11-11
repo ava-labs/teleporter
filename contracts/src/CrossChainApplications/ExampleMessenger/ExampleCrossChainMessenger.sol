@@ -5,14 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/SafeERC20TransferFrom.sol";
-import "../../Teleporter/ITeleporterReceiver.sol";
-import "../../Teleporter/upgrades/TeleporterRegistry.sol";
-import "../../Teleporter/upgrades/TeleporterUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {SafeERC20TransferFrom, SafeERC20} from "../../Teleporter/SafeERC20TransferFrom.sol";
+import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @dev ExampleCrossChainMessenger is an example contract that demonstrates how to send and receive
@@ -21,8 +19,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract ExampleCrossChainMessenger is
     ITeleporterReceiver,
     ReentrancyGuard,
-    TeleporterUpgradeable,
-    Ownable
+    TeleporterOwnerUpgradeable
 {
     using SafeERC20 for IERC20;
 
@@ -32,7 +29,7 @@ contract ExampleCrossChainMessenger is
         string message;
     }
 
-    mapping(bytes32 => Message) private _messages;
+    mapping(bytes32 originChainID => Message message) private _messages;
 
     /**
      * @dev Emitted when a message is submited to be sent.
@@ -57,7 +54,7 @@ contract ExampleCrossChainMessenger is
 
     constructor(
         address teleporterRegistryAddress
-    ) TeleporterUpgradeable(teleporterRegistryAddress) {}
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {}
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
@@ -77,6 +74,7 @@ contract ExampleCrossChainMessenger is
 
     /**
      * @dev Sends a message to another chain.
+     * @return The message ID of the newly sent message.
      */
     function sendMessage(
         bytes32 destinationChainID,
@@ -85,7 +83,7 @@ contract ExampleCrossChainMessenger is
         uint256 feeAmount,
         uint256 requiredGasLimit,
         string calldata message
-    ) external nonReentrant returns (uint256 messageID) {
+    ) external nonReentrant returns (uint256) {
         ITeleporterMessenger teleporterMessenger = teleporterRegistry
             .getLatestTeleporter();
         // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
@@ -127,28 +125,12 @@ contract ExampleCrossChainMessenger is
     }
 
     /**
-     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
-     *
-     * Updates the minimum Teleporter version allowed for receiving on this contract
-     * to the latest version registered in the {TeleporterRegistry}. Also restricts this function to
-     * the owner of this contract.
-     * Emits a {MinTeleporterVersionUpdated} event.
-     */
-    function updateMinTeleporterVersion() external override onlyOwner {
-        uint256 oldMinTeleporterVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
-        emit MinTeleporterVersionUpdated(
-            oldMinTeleporterVersion,
-            minTeleporterVersion
-        );
-    }
-
-    /**
      * @dev Returns the current message from another chain.
+     * @return The sender of the message, and the message itself.
      */
     function getCurrentMessage(
         bytes32 originChainID
-    ) external view returns (address sender, string memory message) {
+    ) external view returns (address, string memory) {
         Message memory messageInfo = _messages[originChainID];
         return (messageInfo.sender, messageInfo.message);
     }

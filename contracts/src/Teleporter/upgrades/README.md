@@ -41,7 +41,7 @@ contract ERC20Bridge is
     constructor(
         address teleporterRegistryAddress
     ) TeleporterUpgradeable(teleporterRegistryAddress) {
-        currentChainID = WarpMessenger(WARP_PRECOMPILE_ADDRESS)
+        currentChainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
     ...
@@ -52,7 +52,7 @@ The `TeleporterUpgradeable` contract saves the Teleporter registry in a state va
 
 Every derived contract of `TeleporterUpgradeable` must implement `TeleporterUpgradeable.updateMinTeleporterVersion`, which updates the `minTeleporterVersion` used by the `onlyAllowedTeleporter` modifier and emits the `MinTeleporterVersionUpdated` event. The `updateMinTeleporterVersion` function should be called by the dapp when it completes delivery of messages from the old Teleporter contract, and now wants to update the `minTeleporterVersion` to only allow the new Teleporter version.
 
-To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which would disallow messages from old Teleporter versions from being received, this function should be safeguarded with access controls. For example, the ERC20Bridge inherits `Ownable`,  and restricts the `updateMinTeleporterVersion` function call to the owner of the contract.
+To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which would disallow messages from old Teleporter versions from being received, this function should be safeguarded with access controls. For example, [TeleporterOwnerUpgrade](./TeleporterOwnerUpgradeable.sol) is a contract that inherits `TeleporterUpgradeable` and restricts `updateMinTeleporterVersion` calls to the owner of the contract. The [ERC20Bridge](../../CrossChainApplications/ERC20Bridge/ERC20Bridge.sol) contract is an example of inheriting `TeleporterOwnerUpgradeable`.
 
 ```solidity
     function updateMinTeleporterVersion() external override onlyOwner {

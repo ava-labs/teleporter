@@ -5,9 +5,11 @@
 
 pragma solidity 0.8.18;
 
-import "forge-std/Test.sol";
-import "../ERC20Bridge.sol";
-import "../../../Mocks/UnitTestMockERC20.sol";
+import {Test} from "forge-std/Test.sol";
+import {ERC20Bridge, BridgeToken, IERC20, ERC20, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, ITeleporterMessenger} from "../ERC20Bridge.sol";
+import {TeleporterRegistry} from "../../../Teleporter/upgrades/TeleporterRegistry.sol";
+import {WarpProtocolRegistry} from "../../../WarpProtocolRegistry.sol";
+import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
 
 contract ERC20BridgeTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
@@ -69,12 +71,12 @@ contract ERC20BridgeTest is Test {
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector),
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
             abi.encode(_MOCK_BLOCKCHAIN_ID)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(WarpMessenger.getBlockchainID.selector)
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
         );
 
         _initMockTeleporterRegistry();
@@ -634,33 +636,6 @@ contract ERC20BridgeTest is Test {
             "TeleporterUpgradeable: zero teleporter registry address"
         );
         new ERC20Bridge(address(0));
-    }
-
-    function testUpdateMinTeleporterVersion() public {
-        // Check that updating minimum Teleporter version fails if it's not the contract owner.
-        vm.prank(address(0));
-        vm.expectRevert("Ownable: caller is not the owner");
-        erc20Bridge.updateMinTeleporterVersion();
-
-        // Check that the owner can update the minimum Teleporter version.
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
-            ),
-            abi.encode(2)
-        );
-        vm.expectCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
-            )
-        );
-
-        vm.expectEmit(true, true, true, true, address(erc20Bridge));
-        emit MinTeleporterVersionUpdated(1, 2);
-        erc20Bridge.updateMinTeleporterVersion();
-        assertEq(erc20Bridge.minTeleporterVersion(), 2);
     }
 
     function _initMockTeleporterRegistry() internal {

@@ -5,8 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
-import "../ITeleporterReceiver.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, WarpMessage} from "./TeleporterMessengerTest.t.sol";
+import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 
 enum FlakyMessageReceiverAction {
     ReceiveMessage,
@@ -115,6 +116,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory fakeMessage = TeleporterMessage({
             messageID: 12345,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -213,6 +215,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),

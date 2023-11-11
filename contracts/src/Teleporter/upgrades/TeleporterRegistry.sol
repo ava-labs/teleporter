@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "../../WarpProtocolRegistry.sol";
-import "../ITeleporterMessenger.sol";
+import {WarpProtocolRegistry, ProtocolRegistryEntry} from "../../WarpProtocolRegistry.sol";
+import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
 
 /**
  * @dev TeleporterRegistry contract is a {WarpProtocolRegistry} and provides an upgrade

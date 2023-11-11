@@ -1,6 +1,6 @@
 ### Contract Deployment
 
-The Teleporter contract is designed to only send and receive Avalanche Warp messages to and from its own address on different chains. We ensure that the contract can be deployed to the same address on every EVM based chain by using [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c). Only allowing messages to be sent to and received from the same address guarantees that all messages use the same Teleporter message format because only the same exact contract bytecode could have been deployed to the same address.
+The `TeleporterMessenger` contract is designed to only send and receive Avalanche Warp messages to and from its own address on different chains. We ensure that the contract can be deployed to the same address on every EVM based chain by using [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c). Only allowing messages to be sent and received by the same address guarantees that all messages use the same Teleporter message format because only the same exact contract bytecode could have been deployed to the same address.
 
 This directory contains scripts written in Golang to construct a raw transaction using Nick's method that deploys the Teleporter contract, and determine the keyless address that must be prefunded in order for the transaction to be sent.
 
@@ -17,4 +17,4 @@ OR
 `go run contract-deployment/contractDeploymentTools.go deriveContractAddress 0x38545c4b331D8BFb3bee94C62D77a6735b5eF8c0 1`
 
 ## Results
-The resulting raw transaction and universal deployer address are written to standard output, as well as to `UniversalTeleporterDeployerTransaction.txt` and `UniversalTeleporterDeployerAddress.txt` respectively.
+The resulting raw transaction, `TeleporterMessenger` contract address, and universal deployer address are written to standard output, as well as to `UniversalTeleporterDeployerTransaction.txt`, `UniversalTeleporterMessengerContractAddress.txt`, and `UniversalTeleporterDeployerAddress.txt` respectively.

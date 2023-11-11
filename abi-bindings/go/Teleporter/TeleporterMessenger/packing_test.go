@@ -16,6 +16,7 @@ func createTestTeleporterMessage(messageID int64) TeleporterMessage {
 	m := TeleporterMessage{
 		MessageID:          big.NewInt(messageID),
 		SenderAddress:      common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
+		DestinationChainID: [32]byte{1, 2, 3, 4},
 		DestinationAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		RequiredGasLimit:   big.NewInt(2),
 		AllowedRelayerAddresses: []common.Address{
@@ -38,10 +39,7 @@ func TestPackUnpackTeleporterMessage(t *testing.T) {
 	)
 	message := createTestTeleporterMessage(messageID)
 
-	b, err := PackSendCrossChainMessageEvent(common.HexToHash("0x03"), message, TeleporterFeeInfo{
-		FeeTokenAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		Amount:          big.NewInt(1),
-	})
+	b, err := PackTeleporterMessage(message)
 	if err != nil {
 		t.Errorf("failed to pack teleporter message: %v", err)
 		t.FailNow()
