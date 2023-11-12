@@ -269,7 +269,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             "TeleporterMessenger: invalid destination chain ID"
         );
 
-        // Check if the message has not been delivered previously.
+        // Require that the message has not been delivered previously.
         require(
             !_messageReceived(
                 warpMessage.sourceChainID,
