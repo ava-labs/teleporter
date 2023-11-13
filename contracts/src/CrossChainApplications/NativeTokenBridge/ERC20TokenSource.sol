@@ -5,27 +5,26 @@
 
 pragma solidity 0.8.18;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "./IERC20TokenSource.sol";
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/ITeleporterReceiver.sol";
-import "../../Teleporter/SafeERC20TransferFrom.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
+import {IERC20TokenSource} from "./IERC20TokenSource.sol";
+import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ERC20TokenSource is
     ITeleporterReceiver,
     IERC20TokenSource,
     ReentrancyGuard
 {
-    using SafeERC20 for IERC20;
-
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 150_000; // TODO this is a placeholder
-    bytes32 public immutable currentBlockchainID;
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
     address public immutable erc20ContractAddress;
 
-    // Used for sending an receiving Teleporter messages.
+    // Used for sending and receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
 
     constructor(
@@ -34,35 +33,33 @@ contract ERC20TokenSource is
         address nativeTokenDestinationAddress_,
         address erc20ContractAddress_
     ) {
-        currentBlockchainID = IWarpMessenger(
-            0x0200000000000000000000000000000000000005
-        ).getBlockchainID();
-
         require(
             teleporterMessengerAddress != address(0),
-            "ERC20TokenSource: zero TeleporterMessenger Address"
+            "ERC20TokenSource: zero TeleporterMessenger address"
         );
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
         require(
             destinationBlockchainID_ != bytes32(0),
-            "ERC20TokenSource: zero Destination Chain ID"
+            "ERC20TokenSource: zero destination chain ID"
         );
         require(
-            destinationBlockchainID_ != currentBlockchainID,
-            "ERC20TokenSource: Cannot Bridge With Same Blockchain"
+            destinationBlockchainID_ !=
+                IWarpMessenger(0x0200000000000000000000000000000000000005)
+                    .getBlockchainID(),
+            "ERC20TokenSource: cannot bridge with same blockchain"
         );
         destinationBlockchainID = destinationBlockchainID_;
 
         require(
             nativeTokenDestinationAddress_ != address(0),
-            "ERC20TokenSource: zero Destination Contract Address"
+            "ERC20TokenSource: zero destination contract address"
         );
         nativeTokenDestinationAddress = nativeTokenDestinationAddress_;
 
         require(
             erc20ContractAddress_ != address(0),
-            "ERC20TokenSource: Invalid ERC20 Contract Address"
+            "ERC20TokenSource: invalid ERC20 contract address"
         );
         erc20ContractAddress = erc20ContractAddress_;
     }
@@ -80,19 +77,19 @@ contract ERC20TokenSource is
         // Only allow the Teleporter messenger to deliver messages.
         require(
             msg.sender == address(teleporterMessenger),
-            "ERC20TokenSource: Unauthorized TeleporterMessenger contract"
+            "ERC20TokenSource: unauthorized TeleporterMessenger contract"
         );
 
         // Only allow messages from the destination chain.
         require(
             senderBlockchainID == destinationBlockchainID,
-            "ERC20TokenSource: Invalid Destination Chain"
+            "ERC20TokenSource: invalid destination chain"
         );
 
         // Only allow the partner contract to send messages.
         require(
             senderAddress == nativeTokenDestinationAddress,
-            "ERC20TokenSource: Unauthorized Sender"
+            "ERC20TokenSource: unauthorized sender"
         );
 
         (address recipient, uint256 amount) = abi.decode(
@@ -101,11 +98,11 @@ contract ERC20TokenSource is
         );
         require(
             recipient != address(0),
-            "ERC20TokenSource: zero Recipient Address"
+            "ERC20TokenSource: zero recipient address"
         );
 
         // Transfer to recipient
-        IERC20(erc20ContractAddress).safeTransfer(recipient, amount);
+        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
 
         emit UnlockTokens(recipient, amount);
     }
@@ -122,7 +119,7 @@ contract ERC20TokenSource is
         // The recipient cannot be the zero address.
         require(
             recipient != address(0),
-            "ERC20TokenSource: zero Recipient Address"
+            "ERC20TokenSource: zero recipient address"
         );
 
         // Lock tokens in this contract. Supports "fee/burn on transfer" ERC20 token
@@ -141,13 +138,14 @@ contract ERC20TokenSource is
 
         // Allow the Teleporter messenger to spend the fee amount.
         if (feeAmount > 0) {
-            IERC20(erc20ContractAddress).safeIncreaseAllowance(
+            SafeERC20.safeIncreaseAllowance(
+                IERC20(erc20ContractAddress),
                 address(teleporterMessenger),
                 feeAmount
             );
         }
 
-        uint256 transferAmount = totalAmount - feeAmount;
+        uint256 transferAmount = adjustedAmount - feeAmount;
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
@@ -166,7 +164,7 @@ contract ERC20TokenSource is
         emit TransferToDestination({
             sender: msg.sender,
             recipient: recipient,
-            transferAmount: totalAmount,
+            transferAmount: transferAmount,
             feeAmount: feeAmount,
             teleporterMessageID: messageID
         });

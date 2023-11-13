@@ -123,6 +123,7 @@ func ERC20ToNativeTokenBridge() {
 	{ // Give erc20TokenSource allowance to spend all of the deployer's ERC20 Tokens
 		bal, err := exampleERC20.BalanceOf(nil, deployerAddress)
 		Expect(err).Should(BeNil())
+		Expect(bal.Div(bal, big.NewInt(10)).Uint64() > initialReserveImbalance).Should(BeTrue())
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetA.ChainID)
 		Expect(err).Should(BeNil())
@@ -140,7 +141,11 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		Expect(bal.Uint64()).Should(BeZero())
 
+		CheckReserveImbalance(initialReserveImbalance, nativeTokenDestination)
+
 		sendTokensToDestination(valueToSend1, deployerPK, tokenReceiverAddress)
+
+		CheckReserveImbalance(initialReserveImbalance - valueToSend1, nativeTokenDestination)
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
 		bal, err = subnetB.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
@@ -150,9 +155,9 @@ func ERC20ToNativeTokenBridge() {
 
 	{ // Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
-		bal, err := exampleERC20.BalanceOf(&bind.CallOpts{Accepted: true}, tokenReceiverAddress)
+		bal, err := exampleERC20.BalanceOf(&bind.CallOpts{}, tokenReceiverAddress)
 		Expect(err).Should(BeNil())
-		Expect(bal.Cmp(common.Big0)).Should(BeZero())
+		Expect(bal.Uint64()).Should(BeZero())
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainID)
 		Expect(err).Should(BeNil())
@@ -162,8 +167,10 @@ func ERC20ToNativeTokenBridge() {
 		_, err = nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, emptyDestFeeInfo, []common.Address{})
 		Expect(err).ShouldNot(BeNil())
 
+		CheckReserveImbalance(initialReserveImbalance - valueToSend1, nativeTokenDestination)
+
 		// Check we should fail to send because we're not collateralized
-		bal, err = exampleERC20.BalanceOf(&bind.CallOpts{Accepted: true}, tokenReceiverAddress)
+		bal, err = exampleERC20.BalanceOf(&bind.CallOpts{}, tokenReceiverAddress)
 		Expect(err).Should(BeNil())
 		Expect(bal.Uint64()).Should(BeZero())
 	}
@@ -175,6 +182,8 @@ func ERC20ToNativeTokenBridge() {
 		Expect(bal.Uint64()).Should(BeZero())
 
 		sendTokensToDestination(valueToSend2, deployerPK, tokenReceiverAddress)
+
+		CheckReserveImbalance(0, nativeTokenDestination)
 
 		// We should have minted the excess coins after checking the collateral
 		bal, err = subnetB.WSClient.BalanceAt(ctx, tokenReceiverAddress, nil)
@@ -207,4 +216,10 @@ func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ec
 	code, err := subnetInfo.WSClient.CodeAt(ctx, contractAddress, nil)
 	Expect(err).Should(BeNil())
 	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+}
+
+func CheckReserveImbalance(value uint64, nativeTokenDestination *nativetokendestination.NativeTokenDestination) {
+	imbalance, err := nativeTokenDestination.CurrentReserveImbalance(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	Expect(imbalance.Uint64()).Should(Equal(value))
 }

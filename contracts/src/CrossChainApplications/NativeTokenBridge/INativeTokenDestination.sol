@@ -5,11 +5,11 @@
 
 pragma solidity 0.8.18;
 
-import "../../Teleporter/ITeleporterMessenger.sol";
+import {ITeleporterMessenger, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
 
 /**
  * @dev Interface that describes functionalities for a contract that can mint native tokens when
- * paired with a {INativeTokenSource} contract that will lock tokens on another chain.
+ * paired with a {INativeTokenSource} or {IERC20TokenSource} contract that will lock tokens on another chain.
  */
 interface INativeTokenDestination {
     /**

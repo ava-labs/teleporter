@@ -5,26 +5,26 @@
 
 pragma solidity 0.8.18;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "./INativeTokenSource.sol";
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/ITeleporterReceiver.sol";
-import "../../Teleporter/SafeERC20TransferFrom.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
+import {INativeTokenSource} from "./INativeTokenSource.sol";
+import {ITeleporterMessenger, TeleporterFeeInfo, TeleporterMessageInput} from "../../Teleporter/ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
+import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract NativeTokenSource is
     ITeleporterReceiver,
     INativeTokenSource,
     ReentrancyGuard
 {
-    using SafeERC20 for IERC20;
-
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 150_000; // TODO this is a placeholder
-    bytes32 public immutable currentBlockchainID;
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
 
-    // Used for sending an receiving Teleporter messages.
+    // Used for sending and receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
 
     constructor(
@@ -32,29 +32,27 @@ contract NativeTokenSource is
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_
     ) {
-        currentBlockchainID = IWarpMessenger(
-            0x0200000000000000000000000000000000000005
-        ).getBlockchainID();
-
         require(
             teleporterMessengerAddress != address(0),
-            "NativeTokenSource: zero TeleporterMessenger Address"
+            "NativeTokenSource: zero TeleporterMessenger address"
         );
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
         require(
             destinationBlockchainID_ != bytes32(0),
-            "NativeTokenSource: zero Destination Chain ID"
+            "NativeTokenSource: zero destination chain ID"
         );
         require(
-            destinationBlockchainID_ != currentBlockchainID,
-            "NativeTokenSource: Cannot Bridge With Same Blockchain"
+            destinationBlockchainID_ !=
+                IWarpMessenger(0x0200000000000000000000000000000000000005)
+                    .getBlockchainID(),
+            "NativeTokenSource: cannot bridge with same blockchain"
         );
         destinationBlockchainID = destinationBlockchainID_;
 
         require(
             nativeTokenDestinationAddress_ != address(0),
-            "NativeTokenSource: zero Destination Contract Address"
+            "NativeTokenSource: zero destination contract address"
         );
         nativeTokenDestinationAddress = nativeTokenDestinationAddress_;
     }
@@ -72,19 +70,19 @@ contract NativeTokenSource is
         // Only allow the Teleporter messenger to deliver messages.
         require(
             msg.sender == address(teleporterMessenger),
-            "NativeTokenSource: Unauthorized TeleporterMessenger contract"
+            "NativeTokenSource: unauthorized teleporterMessenger contract"
         );
 
         // Only allow messages from the destination chain.
         require(
             senderBlockchainID == destinationBlockchainID,
-            "NativeTokenSource: Invalid Destination Chain"
+            "NativeTokenSource: invalid destination chain"
         );
 
         // Only allow the partner contract to send messages.
         require(
             senderAddress == nativeTokenDestinationAddress,
-            "NativeTokenSource: Unauthorized Sender"
+            "NativeTokenSource: unauthorized sender"
         );
 
         (address recipient, uint256 amount) = abi.decode(
@@ -93,7 +91,7 @@ contract NativeTokenSource is
         );
         require(
             recipient != address(0),
-            "NativeTokenSource: zero Recipient Address"
+            "NativeTokenSource: zero recipient address"
         );
 
         // Send to recipient
@@ -113,7 +111,7 @@ contract NativeTokenSource is
         // The recipient cannot be the zero address.
         require(
             recipient != address(0),
-            "NativeTokenSource: zero Recipient Address"
+            "NativeTokenSource: zero ercipient address"
         );
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
@@ -125,10 +123,7 @@ contract NativeTokenSource is
                 IERC20(feeInfo.contractAddress),
                 feeInfo.amount
             );
-            IERC20(feeInfo.contractAddress).safeIncreaseAllowance(
-                address(teleporterMessenger),
-                adjustedFeeAmount
-            );
+            SafeERC20.safeIncreaseAllowance(IERC20(feeInfo.contractAddress), address(teleporterMessenger), adjustedFeeAmount);
         }
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
