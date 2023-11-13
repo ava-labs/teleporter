@@ -31,7 +31,7 @@ jobs:
 
       - name: Run Snyk on Docker image
         # Dependabot isn't allowed to use the Snyk token, so skip this step.
-        if: ! startsWith(github.regf_name, 'dependabot')
+        if: ! startsWith(github.ref_name, 'dependabot')
         # TODO: Once we address the sarif upload issue below, we can re-enable
         # continue-on-error to then upload the results to github.
         # Snyk can be used to break the build when it detects vulnerabilities.
