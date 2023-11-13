@@ -50,7 +50,7 @@ func BasicOneWaySend() {
 
 	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.WSClient)
 	Expect(err).Should(BeNil())
-	event, err := utils.GetSendEventFromLogs(receipt.Logs, bind)
+	event, err := utils.GetEventFromLogs(receipt.Logs, bind.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
