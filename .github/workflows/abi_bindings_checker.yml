@@ -9,7 +9,7 @@ on:
       - "*"
 
 env:
-  GO_VERSION: "1.20.8"
+  GO_VERSION: "1.20.10"
 
 jobs:
   abi_binding:
@@ -61,5 +61,6 @@ jobs:
 
       - name: Run ABI Binding Unit Tests
         run: |
+          source scripts/constants.sh
           cd abi-bindings/go
           go test ./...

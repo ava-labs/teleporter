@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger} from "./TeleporterMessengerTest.t.sol";
 
 contract GetNextMessageIDTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -30,8 +30,8 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
 
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
         );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationChainID: chainID,
@@ -62,8 +62,8 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
 
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
         );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationChainID: chainID,

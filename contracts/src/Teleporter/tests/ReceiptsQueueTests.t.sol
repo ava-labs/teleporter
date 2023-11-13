@@ -5,8 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import "forge-std/Test.sol";
-import "../ReceiptQueue.sol";
+import {Test} from "forge-std/Test.sol";
+import {ReceiptQueue} from "../ReceiptQueue.sol";
+import {TeleporterMessageReceipt} from "../ITeleporterMessenger.sol";
 
 contract ReceiptQueueTest is Test {
     using ReceiptQueue for ReceiptQueue.TeleporterMessageReceiptQueue;
