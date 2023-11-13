@@ -33,6 +33,15 @@ func NativeTokenBridge() {
 		ctx                  = context.Background()
 		deployerAddress      = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
 		tokenReceiverAddress = common.HexToAddress("0x0123456789012345678901234567890123456789")
+
+		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
+			ContractAddress: common.Address{},
+			Amount:          common.Big0,
+		}
+		emptySourceFeeInfo = nativetokensource.TeleporterFeeInfo{
+			ContractAddress: common.Address{},
+			Amount:          common.Big0,
+		}
 	)
 
 	subnetA := utils.GetSubnetATestInfo()
@@ -76,7 +85,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		transactor.Value = new(big.Int).SetUint64(valueToSend)
 
-		tx, err := nativeTokenDestination.TransferToSource(transactor, toAddress, nativetokendestination.TeleporterFeeInfo{}, []common.Address{})
+		tx, err := nativeTokenDestination.TransferToSource(transactor, toAddress, emptyDestFeeInfo, []common.Address{})
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToSource transaction on destination chain", "sourceChainID", subnetA.BlockchainID, "txHash", tx.Hash().Hex())
 
@@ -94,7 +103,7 @@ func NativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		transactor.Value = new(big.Int).SetUint64(valueToSend)
 
-		tx, err := nativeTokenSource.TransferToDestination(transactor, toAddress, nativetokensource.TeleporterFeeInfo{}, []common.Address{})
+		tx, err := nativeTokenSource.TransferToDestination(transactor, toAddress, emptySourceFeeInfo, []common.Address{})
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToDestination transaction on source chain", "destinationChainID", subnetB.BlockchainID, "txHash", tx.Hash().Hex())
 
@@ -131,7 +140,7 @@ func NativeTokenBridge() {
 		transactor.Value = new(big.Int).SetUint64(valueToSend1)
 
 		// This transfer should revert because the bridge isn't collateralized
-		_, err = nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, nativetokendestination.TeleporterFeeInfo{}, []common.Address{})
+		_, err = nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, emptyDestFeeInfo, []common.Address{})
 		Expect(err).ShouldNot(BeNil())
 
 		// Check we should fail to send because we're not collateralized

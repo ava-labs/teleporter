@@ -36,6 +36,11 @@ func ERC20ToNativeTokenBridge() {
 		ctx                  = context.Background()
 		deployerAddress      = common.HexToAddress("0x539447ab8Be7e927bE8E005663C81ff2AE951337")
 		tokenReceiverAddress = common.HexToAddress("0x4444444444444444444444444444444444444444")
+
+		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
+			ContractAddress: common.Address{},
+			Amount:          common.Big0,
+		}
 	)
 
 	subnetA := utils.GetSubnetATestInfo()
@@ -86,7 +91,7 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		transactor.Value = new(big.Int).SetUint64(valueToSend)
 
-		tx, err := nativeTokenDestination.TransferToSource(transactor, toAddress, nativetokendestination.TeleporterFeeInfo{}, []common.Address{})
+		tx, err := nativeTokenDestination.TransferToSource(transactor, toAddress, emptyDestFeeInfo, []common.Address{})
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToSource transaction on destination chain", "sourceChainID", subnetA.BlockchainID, "txHash", tx.Hash().Hex())
 
@@ -154,7 +159,7 @@ func ERC20ToNativeTokenBridge() {
 		transactor.Value = new(big.Int).SetUint64(valueToSend1)
 
 		// This transfer should revert because the bridge isn't collateralized
-		_, err = nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, nativetokendestination.TeleporterFeeInfo{}, []common.Address{})
+		_, err = nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, emptyDestFeeInfo, []common.Address{})
 		Expect(err).ShouldNot(BeNil())
 
 		// Check we should fail to send because we're not collateralized
