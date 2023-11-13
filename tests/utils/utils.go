@@ -295,7 +295,7 @@ func RelayMessage(
 	event, err := GetReceiveEventFromLogs(receipt.Logs, bind)
 	Expect(err).Should(BeNil())
 	Expect(event.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
-	return nil
+	return receipt
 }
 
 func GetReceiveEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerReceiveCrossChainMessage, error) {
@@ -314,7 +314,6 @@ func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.Teleporte
 		event, err := bind.ParseSendCrossChainMessage(*log)
 		if err == nil {
 			return event, nil
-
 		}
 	}
 	return nil, fmt.Errorf("failed to find SendCrossChainMessage event in receipt logs")

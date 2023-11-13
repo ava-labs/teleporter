@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi"
@@ -104,7 +105,7 @@ func ERC20ToNativeTokenBridge() {
 	}
 
 	// Helper function
-	sendTokensToDestination := func(valueToSend uint64, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
+	sendTokensToDestination := func(valueToSend uint64, fromKey *ecdsa.PrivateKey, toAddress common.Address) (*types.Receipt, *types.Receipt) {
 		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetA.ChainID)
 		Expect(err).Should(BeNil())
 
@@ -112,12 +113,12 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToDestination transaction on source chain", "destinationChainID", subnetB.BlockchainID, "txHash", tx.Hash().Hex())
 
-		receipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetA.WSClient)
+		sourceChainReceipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetA.WSClient)
 		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		Expect(sourceChainReceipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-		utils.RelayMessage(ctx, receipt.BlockHash, receipt.BlockNumber, subnetA, subnetB)
-		return receipt
+		destChainReceipt := utils.RelayMessage(ctx, sourceChainReceipt.BlockHash, sourceChainReceipt.BlockNumber, subnetA, subnetB)
+		return sourceChainReceipt, destChainReceipt
 	}
 
 	{ // Give erc20TokenSource allowance to spend all of the deployer's ERC20 Tokens
@@ -143,7 +144,8 @@ func ERC20ToNativeTokenBridge() {
 
 		CheckReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
-		sendTokensToDestination(valueToSend1, deployerPK, tokenReceiverAddress)
+		sourceChainReceipt, destChainReceipt := sendTokensToDestination(valueToSend1, deployerPK, tokenReceiverAddress)
+
 
 		CheckReserveImbalance(initialReserveImbalance - valueToSend1, nativeTokenDestination)
 
@@ -181,7 +183,7 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		Expect(bal.Uint64()).Should(BeZero())
 
-		sendTokensToDestination(valueToSend2, deployerPK, tokenReceiverAddress)
+		sourceChainReceipt, destChainReceipt := sendTokensToDestination(valueToSend2, deployerPK, tokenReceiverAddress)
 
 		CheckReserveImbalance(0, nativeTokenDestination)
 
@@ -222,4 +224,14 @@ func CheckReserveImbalance(value uint64, nativeTokenDestination *nativetokendest
 	imbalance, err := nativeTokenDestination.CurrentReserveImbalance(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	Expect(imbalance.Uint64()).Should(Equal(value))
+}
+
+func GetEventFromLogs[T any](logs []*types.Log, parser func(log types.Log) (T, error)) (T, error) {
+	for _, log := range logs {
+		event, err :=parser(*log)
+		if err == nil {
+			return event, nil
+		}
+	}
+	return *new(T), fmt.Errorf("failed to find SendCrossChainMessage event in receipt logs")
 }
