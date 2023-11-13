@@ -32,7 +32,7 @@ contract NativeTokenSource is
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_
     ) {
-        currentBlockchainID = WarpMessenger(
+        currentBlockchainID = IWarpMessenger(
             0x0200000000000000000000000000000000000005
         ).getBlockchainID();
 

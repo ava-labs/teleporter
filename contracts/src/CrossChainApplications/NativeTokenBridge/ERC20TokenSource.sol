@@ -34,7 +34,7 @@ contract ERC20TokenSource is
         address nativeTokenDestinationAddress_,
         address erc20ContractAddress_
     ) {
-        currentBlockchainID = WarpMessenger(
+        currentBlockchainID = IWarpMessenger(
             0x0200000000000000000000000000000000000005
         ).getBlockchainID();
 
