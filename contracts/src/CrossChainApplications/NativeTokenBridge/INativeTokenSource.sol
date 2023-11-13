@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {ITeleporterMessenger, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
 
 /**
  * @dev Interface that describes functionalities for a contract that will lock tokens and send a

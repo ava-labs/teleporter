@@ -7,7 +7,6 @@ pragma solidity 0.8.18;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import {IAllowList} from "@subnet-evm-contracts/interfaces/IAllowList.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
 import {ITeleporterMessenger, TeleporterFeeInfo, TeleporterMessageInput} from "../../Teleporter/ITeleporterMessenger.sol";
