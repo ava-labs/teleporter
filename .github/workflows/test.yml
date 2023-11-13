@@ -15,6 +15,8 @@ jobs:
   teleporter-integration-test:
     runs-on: ubuntu-20.04
     timeout-minutes: 30
+    env:
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     steps:
       - name: Checkout repositories and submodules
         uses: actions/checkout@v4
@@ -31,7 +33,7 @@ jobs:
 
       - name: Run Snyk on Docker image
         # Dependabot isn't allowed to use the Snyk token, so skip this step.
-        if: ${{ ! startsWith(github.ref_name, 'dependabot') }}
+        if: ${{ ! startsWith(env.BRANCH_NAME, 'dependabot') }}
         # TODO: Once we address the sarif upload issue below, we can re-enable
         # continue-on-error to then upload the results to github.
         # Snyk can be used to break the build when it detects vulnerabilities.
