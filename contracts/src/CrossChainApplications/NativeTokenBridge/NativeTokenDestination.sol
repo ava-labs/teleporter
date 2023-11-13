@@ -14,6 +14,9 @@ import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+// We need IAllowList is an indirect dependency in order to compile.
+// solhint-disable-next-line
+import {IAllowList} from "@subnet-evm-contracts/interfaces/IAllowList.sol";
 
 // The address where the burned transaction fees are credited.
 // TODO implement mechanism to report burned tx fees to source chian.
