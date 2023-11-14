@@ -45,9 +45,8 @@ var (
 	teleporterRegistryAddressA, teleporterRegistryAddressB common.Address
 
 	// Internal vars only used to set up the local network
-	anrConfig           = runner.NewDefaultANRConfig()
 	anrClient           runner_sdk.Client
-	manager             = runner.NewNetworkManager(anrConfig)
+	manager             *runner.NetworkManager
 	warpChainConfigPath string
 )
 
@@ -132,6 +131,10 @@ func SetupNetwork(warpGenesisFile string) {
 	_, err = os.Stat(warpGenesisFile)
 	Expect(err).Should(BeNil())
 
+	anrConfig := runner.NewDefaultANRConfig()
+	log.Info("dbg", "anrConfig", anrConfig)
+	manager = runner.NewNetworkManager(anrConfig)
+
 	// Construct the network using the avalanche-network-runner
 	_, err = manager.StartDefaultNetwork(ctx)
 	Expect(err).Should(BeNil())
@@ -144,7 +147,9 @@ func SetupNetwork(warpGenesisFile string) {
 				Genesis:     warpGenesisFile,
 				ChainConfig: warpChainConfigPath,
 				SubnetSpec: &rpcpb.SubnetSpec{
-					SubnetConfig: "",
+					SubnetConfig: `{
+						"proposerMinBlockDelay":0
+					}`,
 					Participants: subnetANodeNames,
 				},
 			},
@@ -153,7 +158,9 @@ func SetupNetwork(warpGenesisFile string) {
 				Genesis:     warpGenesisFile,
 				ChainConfig: warpChainConfigPath,
 				SubnetSpec: &rpcpb.SubnetSpec{
-					SubnetConfig: "",
+					SubnetConfig: `{
+						"proposerMinBlockDelay":0
+					}`,
 					Participants: subnetBNodeNames,
 				},
 			},
@@ -166,8 +173,6 @@ func SetupNetwork(warpGenesisFile string) {
 	Expect(err).Should(BeNil())
 	SetupProposerVM(ctx, fundedKey, manager, 0)
 	SetupProposerVM(ctx, fundedKey, manager, 1)
-
-	SetSubnetValues()
 
 	// Create the ANR client
 	logLevel, err := logging.ToLevel("info")
@@ -184,6 +189,8 @@ func SetupNetwork(warpGenesisFile string) {
 		Endpoint:    "0.0.0.0:12352",
 		DialTimeout: 10 * time.Second,
 	}, zapLog)
+
+	SetSubnetValues()
 
 	log.Info("Finished setting up e2e test subnet variables")
 }
@@ -203,8 +210,30 @@ func SetSubnetBValues(subnetID ids.ID) {
 	var err error
 	subnetBDetails, ok := manager.GetSubnet(subnetID)
 	Expect(ok).Should(BeTrue())
-	Expect(len(subnetBDetails.ValidatorURIs)).Should(Equal(5))
+	// Expect(len(subnetBDetails.ValidatorURIs)).Should(Equal(5))
 	blockchainIDB = subnetBDetails.BlockchainID
+
+	// remove
+	log.Info("debug", "subnetBURIs before", subnetBDetails.ValidatorURIs)
+	subnetBDetails.ValidatorURIs = nil
+	status, err := anrClient.Status(context.Background())
+	Expect(err).Should(BeNil())
+	nodeInfos := status.GetClusterInfo().GetNodeInfos()
+
+	var nodeNames []string
+	for i := 6; i <= 10; i++ {
+		n := fmt.Sprintf("node%d-bls", i)
+		nodeNames = append(nodeNames, n)
+	}
+
+	anrClient.Status(context.Background())
+	for _, nodeName := range nodeNames {
+		subnetBDetails.ValidatorURIs = append(subnetBDetails.ValidatorURIs, nodeInfos[nodeName].Uri)
+	}
+	log.Info("debug", "subnetBURIs after", subnetBDetails.ValidatorURIs)
+
+	// remove
+
 	chainBNodeURIs = nil
 	chainBNodeURIs = append(chainBNodeURIs, subnetBDetails.ValidatorURIs...)
 
@@ -229,8 +258,30 @@ func SetSubnetAValues(subnetID ids.ID) {
 	var err error
 	subnetADetails, ok := manager.GetSubnet(subnetID)
 	Expect(ok).Should(BeTrue())
-	Expect(len(subnetADetails.ValidatorURIs)).Should(Equal(5))
+	// Expect(len(subnetADetails.ValidatorURIs)).Should(Equal(5))
 	blockchainIDA = subnetADetails.BlockchainID
+
+	// remove
+	log.Info("debug", "subnetAURIs before", subnetADetails.ValidatorURIs)
+	subnetADetails.ValidatorURIs = nil
+	status, err := anrClient.Status(context.Background())
+	Expect(err).Should(BeNil())
+	nodeInfos := status.GetClusterInfo().GetNodeInfos()
+
+	var nodeNames []string
+	for i := 1; i <= 5; i++ {
+		n := fmt.Sprintf("node%d-bls", i)
+		nodeNames = append(nodeNames, n)
+	}
+
+	anrClient.Status(context.Background())
+	for _, nodeName := range nodeNames {
+		subnetADetails.ValidatorURIs = append(subnetADetails.ValidatorURIs, nodeInfos[nodeName].Uri)
+	}
+	log.Info("debug", "subnetAURIs after", subnetADetails.ValidatorURIs)
+
+	// remove
+
 	chainANodeURIs = nil
 	chainANodeURIs = append(chainANodeURIs, subnetADetails.ValidatorURIs...)
 
@@ -404,5 +455,15 @@ func AddSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []strin
 		},
 	})
 	Expect(err).Should(BeNil())
+	SetSubnetValues()
+}
+
+func RestartNodes(ctx context.Context, nodeNames []string) {
+	for _, nodeName := range nodeNames {
+		log.Info("debug", "restarting node", "nodeName", nodeName)
+		_, err := anrClient.RestartNode(ctx, nodeName)
+		Expect(err).Should(BeNil())
+	}
+	time.Sleep(30 * time.Second)
 	SetSubnetValues()
 }

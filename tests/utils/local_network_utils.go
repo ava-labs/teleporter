@@ -48,7 +48,7 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 	defer cancel()
 	for i, uri := range nodeURIs {
 		chainAWSURI := HttpToWebsocketURI(uri, blockchainID.String())
-		log.Info("Creating ethclient for blockchainA", "wsURI", chainAWSURI)
+		log.Info("Creating ethclient for blockchain", "blockchainID", blockchainID.String(), "wsURI", chainAWSURI)
 		client, err := ethclient.Dial(chainAWSURI)
 		Expect(err).Should(BeNil())
 		defer client.Close()
@@ -65,15 +65,12 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 	}
 }
 
-// Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
-// Returns the receipt on the destination chain
-func RelayMessage(
+func ConstructSignedWarpMessageBytes(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
-	expectSuccess bool,
-) *types.Receipt {
+) []byte {
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.ChainRPCClient.FilterLogs(ctx, interfaces.FilterQuery{
 		BlockHash: &sourceReceipt.BlockHash,
@@ -94,12 +91,6 @@ func RelayMessage(
 	unsignedWarpMsg := unsignedMsg
 	log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
 
-	// Fetch the Teleporter message from the logs
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
-	Expect(err).Should(BeNil())
-	sendEvent, err := GetSendEventFromLogs(sourceReceipt.Logs, bind)
-	Expect(err).Should(BeNil())
-
 	// Loop over each client on chain A to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
 	// has accepted the block.
@@ -111,6 +102,27 @@ func RelayMessage(
 	Expect(err).Should(BeNil())
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
 	Expect(err).Should(BeNil())
+
+	return signedWarpMessageBytes
+}
+
+// Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
+// Returns the receipt on the destination chain
+func RelayMessage(
+	ctx context.Context,
+	sourceReceipt *types.Receipt,
+	source SubnetTestInfo,
+	destination SubnetTestInfo,
+	expectSuccess bool,
+) *types.Receipt {
+
+	// Fetch the Teleporter message from the logs
+	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
+	Expect(err).Should(BeNil())
+	sendEvent, err := GetSendEventFromLogs(sourceReceipt.Logs, bind)
+	Expect(err).Should(BeNil())
+
+	signedWarpMessageBytes := ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	signedTx := CreateReceiveCrossChainMessageTransaction(
