@@ -61,5 +61,6 @@ jobs:
 
       - name: Run ABI Binding Unit Tests
         run: |
+          source scripts/constants.sh
           cd abi-bindings/go
           go test ./...

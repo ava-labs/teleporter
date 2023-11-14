@@ -5,9 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/ITeleporterReceiver.sol";
-import "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
+import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.
@@ -83,13 +82,10 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
     }
 
     /**
-     * @dev Returns the latest block information.
+     * @dev Gets the latest received block height and hash.
+     * @return Returns the latest block height and hash.
      */
-    function getLatestBlockInfo()
-        public
-        view
-        returns (uint256 height, bytes32 hash)
-    {
+    function getLatestBlockInfo() public view returns (uint256, bytes32) {
         return (latestBlockHeight, latestBlockHash);
     }
 }

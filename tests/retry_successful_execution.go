@@ -52,7 +52,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	event, err := utils.GetSendEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
+	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -63,7 +63,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
-	receiveEvent, err := utils.GetReceiveEventFromLogs(receipt.Logs, subnetBTeleporterMessenger)
+	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBTeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	deliveredTeleporterMessage := receiveEvent.Message
 
@@ -77,8 +77,8 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 	// Verify we received the expected string
 	//
-	res, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
-	Expect(res.Message).Should(Equal(message))
+	_, currMessage, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
+	Expect(currMessage).Should(Equal(message))
 
 	//
 	// Attempt to retry message execution, which should fail
