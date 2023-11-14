@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
-	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -88,7 +87,7 @@ func RelayMessage(
 	// the log extracted from the last block.
 	txLog := logs[0]
 	log.Info("Parsing logData as unsigned warp message")
-	unsignedMsg, err := avalancheWarp.ParseUnsignedMessage(txLog.Data)
+	unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(txLog.Data)
 	Expect(err).Should(BeNil())
 
 	// Set local variables for the duration of the test
@@ -111,7 +110,7 @@ func RelayMessage(
 	log.Info("Fetching aggregate signature from the source chain validators")
 	warpClient, err := warpBackend.NewClient(source.ChainNodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
-	signedWarpMessageBytes, err := warpClient.GetAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
+	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
 	Expect(err).Should(BeNil())
 
 	// Construct the transaction to send the Warp message to the destination chain

@@ -20,6 +20,7 @@ func init() {
 	teleporterMessageType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
 		{Name: "messageID", Type: "uint256"},
 		{Name: "senderAddress", Type: "address"},
+		{Name: "destinationChainID", Type: "bytes32"},
 		{Name: "destinationAddress", Type: "address"},
 		{Name: "requiredGasLimit", Type: "uint256"},
 		{Name: "allowedRelayerAddresses", Type: "address[]"},
@@ -32,6 +33,16 @@ func init() {
 	if err != nil {
 		panic(fmt.Sprintf("failed to create TeleporterMessage ABI type: %v", err))
 	}
+}
+
+func PackTeleporterMessage(message TeleporterMessage) ([]byte, error) {
+	args := abi.Arguments{
+		{
+			Name: "teleporterMessage",
+			Type: teleporterMessageType,
+		},
+	}
+	return args.Pack(message)
 }
 
 func UnpackTeleporterMessage(messageBytes []byte) (*TeleporterMessage, error) {
@@ -103,17 +114,4 @@ func PackMessageReceivedOutput(success bool) ([]byte, error) {
 	}
 
 	return abi.PackOutput("messageReceived", success)
-}
-
-// CAUTION: PackEvent is documented as not supporting struct types, so this should only be used for testing purposes.
-// In a real setting, the Teleporter contract should pack the event.
-// PackSendCrossChainMessageEvent packs the SendCrossChainMessage event type.
-func PackSendCrossChainMessageEvent(destinationChainID common.Hash, message TeleporterMessage, feeInfo TeleporterFeeInfo) ([]byte, error) {
-	abi, err := TeleporterMessengerMetaData.GetAbi()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get abi")
-	}
-
-	_, hashes, err := abi.PackEvent("SendCrossChainMessage", destinationChainID, message.MessageID, message, feeInfo)
-	return hashes, err
 }

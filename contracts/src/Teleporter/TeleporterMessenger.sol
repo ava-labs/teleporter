@@ -17,7 +17,7 @@ import "./ReentrancyGuards.sol";
 /**
  * @dev Implementation of the {ITeleporterMessenger} interface.
  *
- * This implementation is used to send messages cross chain using the WarpMessenger precompile,
+ * This implementation is used to send messages cross chain using the IWarpMessenger precompile,
  * and to receive messages sent from other chains. Teleporter contracts should be deployed through Nick's method
  * of universal deployer, such that the same contract is deployed at the same address on all chains.
  */
@@ -30,37 +30,37 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterFeeInfo feeInfo;
     }
 
-    WarpMessenger public constant WARP_MESSENGER =
-        WarpMessenger(0x0200000000000000000000000000000000000005);
+    IWarpMessenger public constant WARP_MESSENGER =
+        IWarpMessenger(0x0200000000000000000000000000000000000005);
 
-    // Tracks the latest message ID used for a given destination subnet.
-    // Key is the destination subnet ID, and the value is the last message ID used for that subnet.
-    // Note that the first message ID used for each subnet will be 1 (not 0).
+    // Tracks the latest message ID used for a given destination chain.
+    // Key is the destination chain ID, and the value is the last message ID used for that chain.
+    // Note that the first message ID used for each chain will be 1 (not 0).
     mapping(bytes32 => uint256) public latestMessageIDs;
 
-    // Tracks the outstanding receipts to send back to a given subnet in subsequent messages sent to it.
-    // Key is the subnet ID of the other subnet, and the value is a queue of pending receipts for messages
-    // we have received from that subnet.
+    // Tracks the outstanding receipts to send back to a given chain in subsequent messages sent to it.
+    // Key is the other chain ID, and the value is a queue of pending receipts for messages
+    // we have received from that chain.
     mapping(bytes32 => ReceiptQueue.TeleporterMessageReceiptQueue)
         public outstandingReceipts;
 
     // Tracks the message hash and fee information for each message sent that we have not yet received
-    // a receipt for. The messages are tracked per subnet and keyed by message ID.
-    // The first key is the subnet ID, the second key is the message ID, and the value is the info
+    // a receipt for. The messages are tracked per chain and keyed by message ID.
+    // The first key is the chain ID, the second key is the message ID, and the value is the info
     // for the uniquely identified message.
     mapping(bytes32 => mapping(uint256 => SentMessageInfo))
         public sentMessageInfo;
 
-    // Tracks the relayer reward address for each message delivered from a given subnet.
+    // Tracks the relayer reward address for each message delivered from a given chain.
     // Note that these values are also used to determine if a given message has been delivered or not.
-    // The first key is the subnet ID, the second key is the message ID, and the value is the reward address
+    // The first key is the chain ID, the second key is the message ID, and the value is the reward address
     // provided by the deliverer of the uniquely identified message.
     mapping(bytes32 => mapping(uint256 => address))
         public relayerRewardAddresses;
 
     // Tracks the hash of messages that have been received but whose execution has never succeeded.
     // Enables retrying of failed messages with higher gas limits. Message execution is guaranteed to
-    // succeed at most once.  The first key is the subnet ID, the second key is the message ID, and
+    // succeed at most once.  The first key is the chain ID, the second key is the message ID, and
     // the value is the hash of the uniquely identified message whose execution failed.
     mapping(bytes32 => mapping(uint256 => bytes32))
         public receivedFailedMessageHashes;
@@ -70,12 +70,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // and the value is the amount of the asset owed to the relayer.
     mapping(address => mapping(address => uint256)) public relayerRewardAmounts;
 
-    // Teleporter delivers message by invoking functions of the form: funcName(bytes32 originChainID, address originSenderAddress, ...)
-    // where "..." can represent arbitrary additional parameters. Accounting for the 4 byte function selector and two 32 byte parameters,
-    // there is a minimum valid message length of 68 bytes.
-    uint256 public constant REQUIRED_ORIGIN_CHAIN_ID_START_INDEX = 4;
-    uint256 public constant MINIMUM_REQUIRED_CALL_DATA_LENGTH = 68;
-
     // The blockchain ID of the chain the contract is deployed on. Initialized lazily when receiveCrossChainMessage() is called,
     // if the value has not already been set.
     bytes32 public blockchainID;
@@ -83,8 +77,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-sendCrossChainMessage}
      *
-     * When executed, it will kick off an asynchronous event to have the validators of the chain create an
-     * aggregate BLS signature of the message.
+     * When executed, a relayer may kick off an asynchronous event to have the validators of the
+     * chain create an aggregate BLS signature of the message.
      *
      * Emits a {SendCrossChainMessage} event when message successfully gets sent.
      */
@@ -92,7 +86,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessageInput calldata messageInput
     ) external senderNonReentrant returns (uint256 messageID) {
         // Get the outstanding receipts for messages that have been previously received
-        // from the destination subnet but not yet acknowledged, and attach the receipts
+        // from the destination chain but not yet acknowledged, and attach the receipts
         // to the Teleporter message to be sent.
         return
             _sendTeleporterMessage({
@@ -110,10 +104,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-retrySendCrossChainMessage}
      *
-     * Emits {SendCrossChainMessage} event.
+     * Emits a {SendCrossChainMessage} event.
      * Requirements:
      *
-     * - `message` must have been previously sent to the given destination chain ID.
+     * - `message` must have been previously sent to the given `destinationChainID`.
      * - `message` encoding mush match previously sent message.
      */
     function retrySendCrossChainMessage(
@@ -148,22 +142,18 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Resubmit the message to the warp message precompile now that we know the exact message was
         // already submitted in the past.
-        WARP_MESSENGER.sendWarpMessage(
-            destinationChainID,
-            address(this),
-            messageBytes
-        );
+        WARP_MESSENGER.sendWarpMessage(messageBytes);
     }
 
     /**
      * @dev See {ITeleporterMessenger-addFeeAmount}
      *
-     * Emits {AddFeeAmount} event.
+     * Emits an {AddFeeAmount} event.
      * Requirements:
      *
      * - `additionalFeeAmount` must be non-zero.
-     * - message must exist and not have been delivered yet.
-     * - `feeContractAddress` must match the fee asset contract address used in the original call to sendCrossChainMessage.
+     * - `message` must exist and not have been delivered yet.
+     * - `feeContractAddress` must match the fee asset contract address used in the original call to `sendCrossChainMessage`.
      */
     function addFeeAmount(
         bytes32 destinationChainID,
@@ -225,15 +215,14 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-receiveCrossChainMessage}
      *
-     * Emits {ReceiveCrossChainMessage} event.
+     * Emits a {ReceiveCrossChainMessage} event.
      * Re-entrancy is explicitly disallowed between receiving functions. One message is not able to receive another message.
      * Requirements:
      *
      * - `relayerRewardAddress` must not be the zero address.
      * - `messageIndex` must specify a valid warp message in the transaction's storage slots.
      * - Valid warp message provided in storage slots, and sender address matches the address of this contract.
-     * - Warp message `destinationChainID` must match the `blockchainID` of this contract.
-     * - Warp message `destinationAddress` must match the address of this contract.
+     * - Teleporter message `destinationChainID` must match the `blockchainID` of this contract.
      * - Teleporter message was not previously delivered.
      * - Transaction was sent by an allowed relayer for corresponding teleporter message.
      */
@@ -268,20 +257,16 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             blockchainID = WARP_MESSENGER.getBlockchainID();
         }
 
-        // Require that the message was intended for this blockchain and teleporter contract.
-        require(
-            warpMessage.destinationChainID == blockchainID,
-            "TeleporterMessenger: invalid destination chain ID"
-        );
-        require(
-            warpMessage.destinationAddress == address(this),
-            "TeleporterMessenger: invalid destination address"
-        );
-
         // Parse the payload of the message.
         TeleporterMessage memory teleporterMessage = abi.decode(
             warpMessage.payload,
             (TeleporterMessage)
+        );
+
+        // Require that the message was intended for this blockchain.
+        require(
+            teleporterMessage.destinationChainID == blockchainID,
+            "TeleporterMessenger: invalid destination chain ID"
         );
 
         // Check the message has not been delivered before by checking that there is no relayer reward
@@ -355,7 +340,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-retryMessageExecution}
      *
-     * Reverts if the message execution fails again on specified message.
+     * A Teleporter message has an associated `requiredGasLimit` that is used to execute the message.
+     * If the `requiredGasLimit` is too low, then the message execution will fail. This method allows
+     * for retrying the execution of a message with a higher gas limit. Contrary to `receiveCrossChainMessage`,
+     * which will only use `requiredGasLimit` in the sub-call to execute the message, this method may
+     * use all of the gas available in the transaction.
+     *
+     * Reverts if the message execution fails again on the specified message.
      * Emits a {MessageExecuted} event if the retry is successful.
      * Requirements:
      *
@@ -580,7 +571,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
     /**
      * @dev Helper function for sending a teleporter message cross chain.
-     * Constructs the teleporter message and sends it through the warp messenger precompile,
+     * Constructs the Teleporter message and sends it through the Warp Messenger precompile,
      * and performs fee transfer if necessary.
      *
      * Emits a {SendCrossChainMessage} event.
@@ -601,6 +592,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessage memory teleporterMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: msg.sender,
+            destinationChainID: destinationChainID,
             destinationAddress: destinationAddress,
             requiredGasLimit: requiredGasLimit,
             allowedRelayerAddresses: allowedRelayerAddresses,
@@ -652,17 +644,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // The Teleporter contract only allows for sending messages to other instances of the same
         // contract at the same address on other EVM chains, which is why we set the destination adress
         // as the address of this contract.
-        WARP_MESSENGER.sendWarpMessage(
-            destinationChainID,
-            address(this),
-            teleporterMessageBytes
-        );
+        WARP_MESSENGER.sendWarpMessage(teleporterMessageBytes);
 
         return messageID;
     }
 
     /**
-     * @dev Marks the receipt of a message from the given destination chain ID with the given message ID.
+     * @dev Marks the receipt of a message from the given `destinationChainID` with the given `messageID`.
      *
      * It is possible that the receipt was already received for this message, in which case we return early.
      * If existing message is found and not yet delivered, we delete it from state and increment the fee/reward
@@ -774,7 +762,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Returns the next message ID to be used to send a message to the given chain ID.
+     * @dev Returns the next message ID to be used to send a message to the given `chainID`.
      */
     function _getNextMessageID(
         bytes32 chainID

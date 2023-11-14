@@ -22,6 +22,7 @@ struct TeleporterMessageInput {
 struct TeleporterMessage {
     uint256 messageID;
     address senderAddress;
+    bytes32 destinationChainID;
     address destinationAddress;
     uint256 requiredGasLimit;
     address[] allowedRelayerAddresses;
@@ -35,11 +36,11 @@ struct TeleporterFeeInfo {
 }
 
 /**
- * @dev Interface that describes functionalities for a cross chain messenger.
+ * @dev Interface that describes functionalities for a cross-chain messenger implementing the Teleporter protcol.
  */
 interface ITeleporterMessenger {
     /**
-     * @dev Emitted when sending a Teleporter message cross chain.
+     * @dev Emitted when sending a Teleporter message cross-chain.
      */
     event SendCrossChainMessage(
         bytes32 indexed destinationChainID,
@@ -50,7 +51,7 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Emitted when an additional fee amount is added to a Teleporter message that had previously
-     * been sent, but receipt not yet received.
+     * been sent, but not yet delivered to the destination chain.
      */
     event AddFeeAmount(
         bytes32 indexed destinationChainID,
@@ -59,8 +60,8 @@ interface ITeleporterMessenger {
     );
 
     /**
-     * @dev Emitted when Teleporter message is being delivered on destination chain and address,
-     * but message execution fails. Failed messages can then be retried.
+     * @dev Emitted when a Teleporter message is being delivered on the destination chain to an address,
+     * but message execution fails. Failed messages can then be retried with `retryMessageExecution`
      */
     event MessageExecutionFailed(
         bytes32 indexed originChainID,
@@ -101,19 +102,19 @@ interface ITeleporterMessenger {
     );
 
     /**
-     * @dev Called by transactions to initiate the sending of a cross subnet message.
+     * @dev Called by transactions to initiate the sending of a cross-chain message.
      */
     function sendCrossChainMessage(
         TeleporterMessageInput calldata messageInput
     ) external returns (uint256 messageID);
 
     /**
-     * @dev Called by transactions to retry the sending of a cross subnet message.
+     * @dev Called by transactions to retry the sending of a cross-chain message.
      *
      * Retriggers the sending of a message previously emitted by sendCrossChainMessage that has not yet been acknowledged
      * with a receipt from the destination chain. This may be necessary in the unlikely event that less than the required
      * threshold of stake weight successfully inserted the message in their messages DB at the time of the first submission.
-     * The message is checked to have already been previously submitted by comparing it's message hash against those kept in
+     * The message is checked to have already been previously submitted by comparing its message hash against those kept in
      * state until a receipt is received for the message.
      */
     function retrySendCrossChainMessage(
@@ -123,7 +124,7 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Adds the additional fee amount to the amount to be paid to the relayer that delivers
-     * the given message ID to the destination subnet.
+     * the given message ID to the destination chain.
      *
      * The fee contract address must be the same asset type as the fee asset specified in the original
      * call to sendCrossChainMessage. Returns a failure if the message doesn't exist or there is already
@@ -137,7 +138,7 @@ interface ITeleporterMessenger {
     ) external;
 
     /**
-     * @dev Receives a cross chain message, and marks the `relayerRewardAddress` for fee reward for a successful delivery.
+     * @dev Receives a cross-chain message, and marks the `relayerRewardAddress` for fee reward for a successful delivery.
      *
      * The message specified by `messageIndex` must be provided at that index in the access list storage slots of the transaction,
      * and is verified in the precompile predicate.
@@ -151,8 +152,10 @@ interface ITeleporterMessenger {
      * @dev Retries the execution of a previously delivered message by verifying the payload matches
      * the hash of the payload originally delivered, and calling the destination address again.
      *
-     * Intended to be used if the original required gas limit was not sufficient for the message
-     * execution. Messages are ensured to be successfully executed at most once.
+     * Intended to be used if message excution failed on initial delivery of the Teleporter message.
+     * For example, this may occur if the original required gas limit was not sufficient for the message
+     * execution, or if the destination address did not contain a contract, but a compatible contract
+     * was later deployed to that address. Messages are ensured to be successfully executed at most once.
      */
     function retryMessageExecution(
         bytes32 originChainID,
@@ -195,7 +198,7 @@ interface ITeleporterMessenger {
     ) external view returns (bool delivered);
 
     /**
-     * @dev Returns the address the relayer reward should be sent to on the origin subnet
+     * @dev Returns the address the relayer reward should be sent to on the origin chain
      * for a given message, assuming that the message has already been delivered.
      */
     function getRelayerRewardAddress(
