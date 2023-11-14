@@ -2,8 +2,14 @@
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
 
-
 set -e # Stop on first error
+
+TELEPORTER_PATH=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  cd .. && pwd
+)
+
+source $TELEPORTER_PATH/scripts/constants.sh
 
 # Needed for submodules
 git config --global --add safe.directory '*'

@@ -5,10 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import "forge-std/Test.sol";
-import "../TeleporterRegistry.sol";
-import "../../TeleporterMessenger.sol";
-import "../../../WarpProtocolRegistry.sol";
+import {Test} from "forge-std/Test.sol";
+import {TeleporterRegistry, ProtocolRegistryEntry} from "../TeleporterRegistry.sol";
+import {TeleporterMessenger, IWarpMessenger, WarpMessage} from "../../TeleporterMessenger.sol";
 
 contract TeleporterRegistryTest is Test {
     TeleporterRegistry public teleporterRegistry;
@@ -189,7 +188,10 @@ contract TeleporterRegistryTest is Test {
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (messageIndex))
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            )
         );
 
         teleporterRegistry.addProtocolVersion(messageIndex);
@@ -307,7 +309,10 @@ contract TeleporterRegistryTest is Test {
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (messageIndex))
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            )
         );
 
         vm.expectRevert(_formatRegistryErrorMessage("invalid warp message"));
@@ -388,7 +393,10 @@ contract TeleporterRegistryTest is Test {
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (messageIndex))
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            )
         );
 
         vm.expectEmit(true, true, false, false, address(registry));
@@ -408,12 +416,12 @@ contract TeleporterRegistryTest is Test {
                 originSenderAddress: TeleporterRegistry(registryAddress)
                     .VALIDATORS_SOURCE_ADDRESS(),
                 payload: abi.encode(
-                        ProtocolRegistryEntry({
-                            version: version,
-                            protocolAddress: protocolAddress
-                        }),
-                        destinationAddress
-                    )
+                    ProtocolRegistryEntry({
+                        version: version,
+                        protocolAddress: protocolAddress
+                    }),
+                    destinationAddress
+                )
             });
     }
 
