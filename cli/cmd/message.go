@@ -14,13 +14,9 @@ import (
 // messageCmd represents the message command
 var messageCmd = &cobra.Command{
 	Use:   "message",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Decodes hex encoded Teleporter message bytes into a TeleporterMessage struct",
+	Long: `Given the hex encoded bytes of a Teleporter message, this command will decode
+the bytes into a TeleporterMessage struct and print the struct fields.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		encodedMsg := args[0]
@@ -34,15 +30,5 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	decodeCmd.AddCommand(messageCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// messageCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// messageCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.AddCommand(messageCmd)
 }

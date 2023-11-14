@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
@@ -37,30 +36,39 @@ to quickly create a Cobra application.`,
 			topics = append(topics, common.HexToHash(topic))
 		}
 
-		event, err := teleporterABI.EventByID(topics[0])
+		err := FilterTeleporterEvents(topics, data)
 		cobra.CheckErr(err)
-		var out interface{}
-		switch event.Name {
-		case "SendCrossChainMessage":
-			out = new(teleportermessenger.TeleporterMessengerSendCrossChainMessage)
-		case "ReceiveCrossChainMessage":
-			out = new(teleportermessenger.TeleporterMessengerReceiveCrossChainMessage)
-		case "AddFeeAmount":
-			out = new(teleportermessenger.TeleporterMessengerAddFeeAmount)
-		case "MessageExecutedFailed":
-			out = new(teleportermessenger.TeleporterMessengerMessageExecutionFailed)
-		case "MessageExecuted":
-			out = new(teleportermessenger.TeleporterMessengerMessageExecuted)
-		case "RelayerRewardsRedeemed":
-			out = new(teleportermessenger.TeleporterMessengerRelayerRewardsRedeemed)
-		default:
-			logger.Fatal("Unknown event", zap.String("event", event.Name))
-			os.Exit(1)
-		}
-		err = UnpackEvent(out, event.Name, topics, data)
-		cobra.CheckErr(err)
-		logger.Info(fmt.Sprintf("Event %s unpacked", event.Name), zap.Any("event", out))
 	},
+}
+
+func FilterTeleporterEvents(topics []common.Hash, data []byte) error {
+	event, err := teleporterABI.EventByID(topics[0])
+	if err != nil {
+		return err
+	}
+	var out interface{}
+	switch event.Name {
+	case "SendCrossChainMessage":
+		out = new(teleportermessenger.TeleporterMessengerSendCrossChainMessage)
+	case "ReceiveCrossChainMessage":
+		out = new(teleportermessenger.TeleporterMessengerReceiveCrossChainMessage)
+	case "AddFeeAmount":
+		out = new(teleportermessenger.TeleporterMessengerAddFeeAmount)
+	case "MessageExecutedFailed":
+		out = new(teleportermessenger.TeleporterMessengerMessageExecutionFailed)
+	case "MessageExecuted":
+		out = new(teleportermessenger.TeleporterMessengerMessageExecuted)
+	case "RelayerRewardsRedeemed":
+		out = new(teleportermessenger.TeleporterMessengerRelayerRewardsRedeemed)
+	default:
+		logger.Error("Unknown event", zap.String("event", event.Name))
+		return fmt.Errorf("unknown event %s", event.Name)
+	}
+	if err = UnpackEvent(out, event.Name, topics, data); err != nil {
+		return err
+	}
+	logger.Info(fmt.Sprintf("Event %s unpacked", event.Name), zap.Any("event", out))
+	return nil
 }
 
 func UnpackEvent(out interface{}, event string, topics []common.Hash, data []byte) error {
@@ -80,7 +88,7 @@ func UnpackEvent(out interface{}, event string, topics []common.Hash, data []byt
 }
 
 func init() {
-	decodeCmd.AddCommand(eventCmd)
+	rootCmd.AddCommand(eventCmd)
 	eventCmd.PersistentFlags().StringSliceVar(&topicArgs, "topics", []string{}, "The topics of the event")
 	eventCmd.Flags().BytesHexVar(&data, "data", []byte{}, "The data of the event")
 

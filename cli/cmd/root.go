@@ -8,13 +8,16 @@ import (
 	"os"
 
 	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/ava-labs/subnet-evm/accounts/abi"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var (
-	cfgFile string
-	logger  logging.Logger
+	cfgFile       string
+	logger        logging.Logger
+	teleporterABI *abi.ABI
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -39,21 +42,31 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cli.yaml)")
 
-	logLevelArg := rootCmd.Flags().StringP("log", "l", "", "Log level")
-	if *logLevelArg == "" {
-		*logLevelArg = logging.Info.LowerString()
-	}
+	logLevelArg := rootCmd.PersistentFlags().StringP("log", "l", "", "Log level")
+	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		if *logLevelArg == "" {
+			*logLevelArg = logging.Info.LowerString()
+		}
 
-	logLevel, err := logging.ToLevel(*logLevelArg)
-	cobra.CheckErr(err)
-	logger = logging.NewLogger(
-		"teleporter-cli",
-		logging.NewWrappedCore(
-			logLevel,
-			os.Stdout,
-			logging.JSON.ConsoleEncoder(),
-		),
-	)
+		logLevel, err := logging.ToLevel(*logLevelArg)
+		if err != nil {
+			return err
+		}
+		logger = logging.NewLogger(
+			"teleporter-cli",
+			logging.NewWrappedCore(
+				logLevel,
+				os.Stdout,
+				logging.JSON.ConsoleEncoder(),
+			),
+		)
+		abi, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
+		if err != nil {
+			return err
+		}
+		teleporterABI = abi
+		return nil
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.
