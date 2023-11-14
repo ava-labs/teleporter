@@ -77,6 +77,7 @@ contract TeleporterRegistry {
      * doesn't change the latest version.
      *
      * Emits a {AddProtocolVersion} event when successful.
+     * Emits a {LatestVersionUpdated} event when a new protocol version great than the current latest version is added.
      * Requirements:
      *
      * - a valid Warp off-chain message must be provided.
@@ -175,9 +176,10 @@ contract TeleporterRegistry {
      * Updates latest version if the version is greater than the current latest version.
      *
      * Emits a {AddProtocolVersion} event when successful.
+     * Emits a {LatestVersionUpdated} event when a new protocol version great than the current latest version is added.
      * Note: `protocolAddress` doesn't have to be a contract address, this is primarily
-     * to support the case in which we want to register a new protocol address meant for a security patch
-     * before the contract is deployed, to prevent the vulnerabilitiy from being exposed before the registry update.
+     * to support the case of registering a new protocol address meant for a security patch
+     * before the contract is deployed, and prevent the vulnerabilitiy from being exposed before the registry update.
      * Requirements:
      *
      * - `version` is not zero
