@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -12,14 +12,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func InsufficientGasGinkgo() {
-	InsufficientGas(&network.LocalNetwork{})
-}
-
 func InsufficientGas(network network.Network) {
-	subnets := network.GetSubnetsInfo()
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+	subnetAInfo, subnetBInfo := network.GetSubnetInfo()
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()

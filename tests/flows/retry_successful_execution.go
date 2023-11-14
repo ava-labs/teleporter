@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -12,18 +12,12 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func RetrySuccessfulExecutionGinkgo() {
-	RetrySuccessfulExecution(&network.LocalNetwork{})
-}
-
 func RetrySuccessfulExecution(network network.Network) {
 	var (
 		teleporterMessageID *big.Int
 	)
 
-	subnets := network.GetSubnetsInfo()
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+	subnetAInfo, subnetBInfo := network.GetSubnetInfo()
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 

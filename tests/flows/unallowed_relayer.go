@@ -1,32 +1,24 @@
-package tests
+package flows
 
 import (
 	"context"
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-
 	. "github.com/onsi/gomega"
 )
 
-func ReceiveMessageTwiceGinkgo() {
-	ReceiveMessageTwice(&network.LocalNetwork{})
-}
-
-func ReceiveMessageTwice(network network.Network) {
+func UnallowedRelayer(network network.Network) {
 	var (
 		teleporterMessageID *big.Int
 	)
 
-	subnets := network.GetSubnetsInfo()
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+	subnetAInfo, subnetBInfo := network.GetSubnetInfo()
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -37,6 +29,7 @@ func ReceiveMessageTwice(network network.Network) {
 
 	//
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
+	// The Teleporter message includes an allowed relayer list that does NOT include the relayer
 	//
 	ctx := context.Background()
 
@@ -47,9 +40,11 @@ func ReceiveMessageTwice(network network.Network) {
 			ContractAddress: fundedAddress,
 			Amount:          big.NewInt(0),
 		},
-		RequiredGasLimit:        big.NewInt(1),
-		AllowedRelayerAddresses: []common.Address{},
-		Message:                 []byte{1, 2, 3, 4},
+		RequiredGasLimit: big.NewInt(1),
+		AllowedRelayerAddresses: []common.Address{
+			common.HexToAddress("0x0123456789012345678901234567890123456789"),
+		},
+		Message: []byte{1, 2, 3, 4},
 	}
 	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
@@ -66,34 +61,12 @@ func ReceiveMessageTwice(network network.Network) {
 	// Relay the message to the destination
 	//
 
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
-	teleporterTx, _, err := subnetBInfo.ChainRPCClient.TransactionByHash(ctx, receipt.TxHash)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
 
 	//
-	// Check Teleporter message received on the destination
+	// Check Teleporter message was not received on the destination
 	//
-	log.Info("Checking the message was received on the destination")
 	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
 	Expect(err).Should(BeNil())
-	Expect(delivered).Should(BeTrue())
-
-	//
-	// Attempt to send the same message again
-	//
-	log.Info("Submitting the same Teleporter message again on the destination")
-	gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(ctx, subnetBInfo.ChainRPCClient, fundedAddress)
-	secondTeleporterTx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:    subnetBInfo.ChainIDInt,
-		Nonce:      nonce,
-		To:         &teleporterContractAddress,
-		Gas:        teleporterTx.Gas(),
-		GasFeeCap:  gasFeeCap,
-		GasTipCap:  gasTipCap,
-		Value:      big.NewInt(0),
-		Data:       teleporterTx.Data(),
-		AccessList: teleporterTx.AccessList(),
-	})
-
-	signedTx = utils.SignTransaction(secondTeleporterTx, fundedKey, subnetBInfo.ChainIDInt)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, signedTx, false)
+	Expect(delivered).Should(BeFalse())
 }

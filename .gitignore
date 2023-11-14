@@ -35,7 +35,7 @@ docker-compose-run-local.yml
 # Ginkgo
 main.log
 server.log
-tests.test
+*.test
 
 # Forge documentation
 contracts/docs/

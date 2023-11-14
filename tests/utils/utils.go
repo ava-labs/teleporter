@@ -14,13 +14,18 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/params"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/x/warp"
+	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
+	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	"github.com/ava-labs/teleporter/tests/network"
+	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -65,8 +70,8 @@ func SendTransactionAndWaitForAcceptance(
 
 func SendCrossChainMessageAndWaitForAcceptance(
 	ctx context.Context,
-	source SubnetTestInfo,
-	destination SubnetTestInfo,
+	source network.SubnetTestInfo,
+	destination network.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
@@ -98,8 +103,8 @@ func SendCrossChainMessageAndWaitForAcceptance(
 
 func SendAddFeeAmountAndWaitForAcceptance(
 	ctx context.Context,
-	source SubnetTestInfo,
-	destination SubnetTestInfo,
+	source network.SubnetTestInfo,
+	destination network.SubnetTestInfo,
 	messageID *big.Int,
 	amount *big.Int,
 	feeContractAddress common.Address,
@@ -131,9 +136,9 @@ func SendAddFeeAmountAndWaitForAcceptance(
 func RetryMessageExecutionAndWaitForAcceptance(
 	ctx context.Context,
 	originChainID ids.ID,
-	subnet SubnetTestInfo,
+	subnet network.SubnetTestInfo,
 	message teleportermessenger.TeleporterMessage,
-	funedAddress common.Address,
+	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
@@ -152,7 +157,7 @@ func RetryMessageExecutionAndWaitForAcceptance(
 func SendSpecifiedReceiptsAndWaitForAcceptance(
 	ctx context.Context,
 	originChainID ids.ID,
-	source SubnetTestInfo,
+	source network.SubnetTestInfo,
 	messageIDs []*big.Int,
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
@@ -218,7 +223,7 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 // Transaction creation functions
 //
 
-func CreateTransactorOpts(ctx context.Context, subnet SubnetTestInfo, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey) *bind.TransactOpts {
+func CreateTransactorOpts(ctx context.Context, subnet network.SubnetTestInfo, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey) *bind.TransactOpts {
 	// set up parameters
 	transactor, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey, subnet.ChainIDInt)
@@ -238,7 +243,7 @@ func CreateTransactorOpts(ctx context.Context, subnet SubnetTestInfo, fundedAddr
 // Returns the signed transaction.
 func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
-	source SubnetTestInfo,
+	source network.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
@@ -266,7 +271,7 @@ func CreateSendCrossChainMessageTransaction(
 
 func CreateRetryMessageExecutionTransaction(
 	ctx context.Context,
-	subnetInfo SubnetTestInfo,
+	subnetInfo network.SubnetTestInfo,
 	originChainID ids.ID,
 	message teleportermessenger.TeleporterMessage,
 	fundedAddress common.Address,
@@ -346,7 +351,7 @@ func CreateReceiveCrossChainMessageTransaction(
 
 func CreateNativeTransferTransaction(
 	ctx context.Context,
-	network SubnetTestInfo,
+	network network.SubnetTestInfo,
 	fromAddress common.Address,
 	fromKey *ecdsa.PrivateKey,
 	recipient common.Address,
@@ -481,4 +486,69 @@ func CalculateTxParams(ctx context.Context, rpcClient ethclient.Client, fundedAd
 	gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
 
 	return gasFeeCap, gasTipCap, nonce
+}
+
+func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ecdsa.PrivateKey, subnetInfo network.SubnetTestInfo, abi *abi.ABI, constructorArgs ...interface{}) common.Address {
+	// Deploy an example ERC20 contract to be used as the source token
+	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
+	Expect(err).Should(BeNil())
+	Expect(len(byteCode) > 0).Should(BeTrue())
+	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.ChainIDInt)
+	Expect(err).Should(BeNil())
+	contractAddress, tx, _, err := bind.DeployContract(transactor, *abi, byteCode, subnetInfo.ChainRPCClient, constructorArgs...)
+	Expect(err).Should(BeNil())
+
+	// Wait for transaction, then check code was deployed
+	WaitForTransaction(ctx, tx.Hash(), subnetInfo.ChainRPCClient)
+	code, err := subnetInfo.ChainRPCClient.CodeAt(ctx, contractAddress, nil)
+	Expect(err).Should(BeNil())
+	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+
+	return contractAddress
+}
+
+func DeployMockToken(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source network.SubnetTestInfo) (common.Address, *exampleerc20.ExampleERC20) {
+	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+
+	// Deploy Mock ERC20 contract
+	address, txn, mockToken, err := exampleerc20.DeployExampleERC20(opts, source.ChainRPCClient)
+	Expect(err).Should(BeNil())
+	log.Info("Deployed Mock ERC20 contract", "address", address.Hex(), "txHash", txn.Hash().Hex())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return address, mockToken
+}
+
+func DeployExampleCrossChainMessenger(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source network.SubnetTestInfo) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
+	optsA := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsA, source.ChainRPCClient, source.TeleporterRegistryAddress)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return address, exampleMessenger
+}
+
+func ERC20Approve(ctx context.Context,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	token *exampleerc20.ExampleERC20,
+	spender common.Address,
+	amount *big.Int,
+	source network.SubnetTestInfo) {
+	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	txn, err := token.Approve(opts, spender, amount)
+	Expect(err).Should(BeNil())
+	log.Info("Approved Mock ERC20", "spender", spender.Hex(), "txHash", txn.Hash().Hex())
+
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 }

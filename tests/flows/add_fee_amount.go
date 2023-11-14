@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -12,14 +12,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func AddFeeAmountGinkgo() {
-	AddFeeAmount(&network.LocalNetwork{})
-}
-
 func AddFeeAmount(network network.Network) {
-	subnets := network.GetSubnetsInfo()
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+	subnetAInfo, subnetBInfo := network.GetSubnetInfo()
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
@@ -31,7 +25,13 @@ func AddFeeAmount(network network.Network) {
 
 	// Use mock token as the fee token
 	mockTokenAddress, mockToken := utils.DeployMockToken(context.Background(), fundedAddress, fundedKey, subnetAInfo)
-	utils.ExampleERC20Approve(ctx, mockToken, teleporterContractAddress, big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)), subnetAInfo)
+	utils.ERC20Approve(ctx,
+		fundedAddress,
+		fundedKey,
+		mockToken,
+		teleporterContractAddress,
+		big.NewInt(1e18),
+		subnetAInfo)
 
 	initFeeAmount := big.NewInt(1)
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
