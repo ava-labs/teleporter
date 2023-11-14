@@ -54,7 +54,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Send specific receipts", SendSpecificReceiptsGinkgo)
 	ginkgo.It("Insufficient gas", InsufficientGasGinkgo)
 	ginkgo.It("Resubmit altered message", ResubmitAlteredMessageGinkgo)
-	ginkgo.It("Relayer modifies message", RalyerModifiesMessageGinkgo)
+	ginkgo.It("Relayer modifies message", RelayerModifiesMessageGinkgo)
 
 	// Cross-chain application tests
 	ginkgo.It("Example cross chain messenger", ExampleMessengerGinkgo)

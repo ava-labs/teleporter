@@ -12,11 +12,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func RalyerModifiesMessageGinkgo() {
-	RalyerModifiesMessage(&network.LocalNetwork{})
+func RelayerModifiesMessageGinkgo() {
+	RelayerModifiesMessage(&network.LocalNetwork{})
 }
 
-func RalyerModifiesMessage(network network.Network) {
+func RelayerModifiesMessage(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
