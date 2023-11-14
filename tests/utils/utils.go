@@ -84,7 +84,7 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
-	event, err := GetSendEventFromLogs(receipt.Logs, transactor)
+	event, err := GetEventFromLogs(receipt.Logs, transactor.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
 
@@ -115,7 +115,7 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	addFeeAmountEvent, err := GetAddFeeAmountEventFromLogs(receipt.Logs, transactor)
+	addFeeAmountEvent, err := GetEventFromLogs(receipt.Logs, transactor.ParseAddFeeAmount)
 	Expect(err).Should(BeNil())
 	Expect(addFeeAmountEvent.MessageID).Should(Equal(messageID))
 	Expect(addFeeAmountEvent.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
@@ -170,7 +170,7 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
-	event, err := GetSendEventFromLogs(receipt.Logs, transactor)
+	event, err := GetEventFromLogs(receipt.Logs, transactor.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(originChainID[:]))
 
@@ -387,70 +387,15 @@ func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclien
 // Event getters
 //
 
-func GetReceiveEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerReceiveCrossChainMessage, error) {
+// Returns the first log in 'logs' that is successfully parsed by 'parser'
+func GetEventFromLogs[T any](logs []*types.Log, parser func(log types.Log) (T, error)) (T, error) {
 	for _, log := range logs {
-		event, err := bind.ParseReceiveCrossChainMessage(*log)
+		event, err := parser(*log)
 		if err == nil {
 			return event, nil
-
 		}
 	}
-	return nil, fmt.Errorf("failed to find ReceiveCrossChainMessage event in receipt logs")
-}
-
-func GetMessageExecutionFailedFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerMessageExecutionFailed, error) {
-	for _, log := range logs {
-		event, err := bind.ParseMessageExecutionFailed(*log)
-		if err == nil {
-			return event, nil
-
-		}
-	}
-	return nil, fmt.Errorf("failed to find MessageExecutionFailed event in receipt logs")
-}
-
-func GetSendEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerSendCrossChainMessage, error) {
-	for _, log := range logs {
-		event, err := bind.ParseSendCrossChainMessage(*log)
-		if err == nil {
-			return event, nil
-
-		}
-	}
-	return nil, fmt.Errorf("failed to find SendCrossChainMessage event in receipt logs")
-}
-
-func GetMessageExecutionFailedEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerMessageExecutionFailed, error) {
-	for _, log := range logs {
-		event, err := bind.ParseMessageExecutionFailed(*log)
-		if err == nil {
-			return event, nil
-
-		}
-	}
-	return nil, fmt.Errorf("failed to find MessageExecutionFailed event in receipt logs")
-}
-
-func GetMessageExecutedEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerMessageExecuted, error) {
-	for _, log := range logs {
-		event, err := bind.ParseMessageExecuted(*log)
-		if err == nil {
-			return event, nil
-
-		}
-	}
-	return nil, fmt.Errorf("failed to find MessageExecuted event in receipt logs")
-}
-
-func GetAddFeeAmountEventFromLogs(logs []*types.Log, bind *teleportermessenger.TeleporterMessenger) (*teleportermessenger.TeleporterMessengerAddFeeAmount, error) {
-	for _, log := range logs {
-		event, err := bind.ParseAddFeeAmount(*log)
-		if err == nil {
-			return event, nil
-
-		}
-	}
-	return nil, fmt.Errorf("failed to find AddFeeAmount event in receipt logs")
+	return *new(T), fmt.Errorf("failed to find %T event in receipt logs", *new(T))
 }
 
 //

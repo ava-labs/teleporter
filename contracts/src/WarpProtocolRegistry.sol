@@ -5,8 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import {WarpMessage, IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 
 /**
  * @dev Registry entry that represents a mapping between protocolAddress and version.
@@ -37,8 +36,10 @@ abstract contract WarpProtocolRegistry {
     uint256 internal _latestVersion;
 
     // Mappings that keep track of the protocol version and corresponding contract address.
-    mapping(uint256 => address) internal _versionToAddress;
-    mapping(address => uint256) internal _addressToVersion;
+    mapping(uint256 version => address protocolAddress)
+        internal _versionToAddress;
+    mapping(address protocolAddress => uint256 version)
+        internal _addressToVersion;
 
     /**
      * @dev Emitted when a new protocol version is added to the registry.
@@ -95,10 +96,8 @@ abstract contract WarpProtocolRegistry {
             "WarpProtocolRegistry: invalid origin sender address"
         );
 
-        (ProtocolRegistryEntry memory entry, address destinationAddress) = abi.decode(
-            message.payload,
-            (ProtocolRegistryEntry, address)
-        );
+        (ProtocolRegistryEntry memory entry, address destinationAddress) = abi
+            .decode(message.payload, (ProtocolRegistryEntry, address));
 
         // Check that the message is sent to the registry.
         require(

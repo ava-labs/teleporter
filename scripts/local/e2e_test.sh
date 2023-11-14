@@ -4,6 +4,14 @@
 
 set -e
 
+TELEPORTER_PATH=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  cd ../.. && pwd
+)
+
+source "$TELEPORTER_PATH"/scripts/constants.sh
+source "$TELEPORTER_PATH"/scripts/versions.sh
+
 SUBNET_EVM_PATH=
 LOCAL=
 DATA_DIRECTORY=
@@ -48,15 +56,6 @@ if [ "$LOCAL" = true ]; then
     export AVALANCHEGO_BUILD_PATH=$DATA_DIRECTORY/avalanchego
     export DATA_DIR=$DATA_DIRECTORY/data
 fi
-
-TELEPORTER_PATH=$(
-  cd "$(dirname "${BASH_SOURCE[0]}")"
-  cd ../.. && pwd
-)
-
-source "$TELEPORTER_PATH"/scripts/constants.sh
-
-source "$TELEPORTER_PATH"/scripts/versions.sh
 
 # Build the teleporter and cross chain apps smart contracts
 cwd=$(pwd)

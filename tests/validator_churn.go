@@ -56,7 +56,7 @@ func ValidatorChurnGinkgo() {
 	var receipt *types.Receipt
 	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
 
-	sendEvent, err := utils.GetSendEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
+	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	sentTeleporterMessage := sendEvent.Message
 
