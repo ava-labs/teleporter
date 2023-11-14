@@ -70,8 +70,8 @@ contract TeleporterRegistry {
     }
 
     /**
-     * @dev Gets and verifies a Warp off-chain message, and adds the new version to procotol address mapping,
-     * specified in the Warp off-chain message, to the registry.
+     * @dev Receives a Warp off-chain message containing a new protocol version and address to be registered,
+     * and adds the the new values to the respective mappings.
      * If a version is greater than the current latest version, it will be set as the latest version.
      * If a version is less than the current latest version, it is added to the registry, but
      * doesn't change the latest version.
