@@ -49,6 +49,14 @@ contract TeleporterRegistry {
     );
 
     /**
+     * @dev Emitted when the latest version is updated.
+     */
+    event LatestVersionUpdated(
+        uint256 indexed oldVersion,
+        uint256 indexed newVersion
+    );
+
+    /**
      * @dev Initializes the contract by setting `blockchainID` and `latestVersion`.
      * Also adds the initial protocol versions to the registry.
      */
@@ -118,7 +126,7 @@ contract TeleporterRegistry {
      * @dev Gets the {ITeleporterMessenger} contract of the given `version`.
      * Requirements:
      *
-     * - `version` must be a valid version, i.e. greater than 0 and not greater than the latest version.
+     * - `version` must be a valid version registered.
      */
     function getTeleporterFromVersion(
         uint256 version
@@ -130,22 +138,25 @@ contract TeleporterRegistry {
      * @dev Gets the address of a protocol version.
      * Requirements:
      *
-     * - `version` must be a valid version, i.e. greater than 0 and not greater than the latest version.
+     * - `version` must be a valid version registered.
      */
     function getAddressFromVersion(
         uint256 version
     ) public view returns (address) {
         require(version != 0, "TeleporterRegistry: zero version");
+        address protocolAddress = _versionToAddress[version];
         require(
-            version <= latestVersion,
-            "TeleporterRegistry: invalid version"
+            protocolAddress != address(0),
+            "TeleporterRegistry: version not found"
         );
-        return _versionToAddress[version];
+        return protocolAddress;
     }
 
     /**
      * @dev Gets the version of the given `protocolAddress`.
-     * If `protocolAddress` is not a registered protocol address, returns 0, which is an invalid version.
+     * Rrequirements:
+     *
+     * - `protocolAddress` must be a valid protocol address registered.
      */
     function getVersionFromAddress(
         address protocolAddress
@@ -154,7 +165,9 @@ contract TeleporterRegistry {
             protocolAddress != address(0),
             "TeleporterRegistry: zero protocol address"
         );
-        return _addressToVersion[protocolAddress];
+        uint256 version = _addressToVersion[protocolAddress];
+        require(version != 0, "TeleporterRegistry: protocol address not found");
+        return version;
     }
 
     /**
@@ -189,7 +202,9 @@ contract TeleporterRegistry {
 
         // Set latest version if the version is greater than the current latest version.
         if (entry.version > latestVersion) {
+            uint256 oldLatestVersion = latestVersion;
             latestVersion = entry.version;
+            emit LatestVersionUpdated(oldLatestVersion, latestVersion);
         }
     }
 }

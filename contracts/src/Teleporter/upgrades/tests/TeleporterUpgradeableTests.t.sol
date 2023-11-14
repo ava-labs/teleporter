@@ -54,9 +54,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         assertEq(app.minTeleporterVersion(), 1);
 
         vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "invalid teleporter sender"
-            )
+            _formatRegistryErrorMessage("protocol address not found")
         );
         app.teleporterCall();
 

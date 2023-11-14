@@ -22,6 +22,11 @@ contract TeleporterRegistryTest is Test {
         address indexed protocolAddress
     );
 
+    event LatestVersionUpdated(
+        uint256 indexed oldVersion,
+        uint256 indexed newVersion
+    );
+
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -144,10 +149,8 @@ contract TeleporterRegistryTest is Test {
 
         // Make sure that oldVersion is not registered, and is less than latestVersion()
         assertEq(oldVersion, teleporterRegistry.latestVersion() - 1);
-        assertEq(
-            address(0),
-            teleporterRegistry.getAddressFromVersion(oldVersion)
-        );
+        vm.expectRevert(_formatRegistryErrorMessage("version not found"));
+        teleporterRegistry.getAddressFromVersion(oldVersion);
 
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -270,7 +273,7 @@ contract TeleporterRegistryTest is Test {
         teleporterRegistry.getAddressFromVersion(0);
 
         // Check that getting a version that doesn't exist fails
-        vm.expectRevert(_formatRegistryErrorMessage("invalid version"));
+        vm.expectRevert(_formatRegistryErrorMessage("version not found"));
         teleporterRegistry.getAddressFromVersion(latestVersion + 1);
     }
 
@@ -284,8 +287,11 @@ contract TeleporterRegistryTest is Test {
             teleporterRegistry.getVersionFromAddress(teleporterAddress)
         );
 
-        // Check that getting a version of an address that doesn't exist returns 0
-        assertEq(0, teleporterRegistry.getVersionFromAddress(address(this)));
+        // Check that getting a version of an address that doesn't exist reverts
+        vm.expectRevert(
+            _formatRegistryErrorMessage("protocol address not found")
+        );
+        teleporterRegistry.getVersionFromAddress(address(this));
     }
 
     function testInvalidWarpMessage() public {
@@ -399,8 +405,10 @@ contract TeleporterRegistryTest is Test {
             )
         );
 
-        vm.expectEmit(true, true, false, false, address(registry));
+        vm.expectEmit(true, true, true, true, address(registry));
         emit AddProtocolVersion(latestVersion + 1, newProtocolAddress);
+        vm.expectEmit(true, true, true, true, address(registry));
+        emit LatestVersionUpdated(latestVersion, latestVersion + 1);
         registry.addProtocolVersion(messageIndex);
     }
 
@@ -427,7 +435,7 @@ contract TeleporterRegistryTest is Test {
 
     function _formatRegistryErrorMessage(
         string memory errorMessage
-    ) private pure returns (bytes memory) {
+    ) internal pure returns (bytes memory) {
         return bytes(string.concat("TeleporterRegistry: ", errorMessage));
     }
 }
