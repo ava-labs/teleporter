@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
@@ -69,35 +67,6 @@ func ValidatorChurnGinkgo() {
 	// Modify the validator set on Subnet A
 	//
 
-	// var nodesToRemove []string // All but one Subnet A validator nodes
-	// for i := 2; i <= 5; i++ {
-	// 	n := fmt.Sprintf("node%d-bls", i)
-	// 	nodesToRemove = append(nodesToRemove, n)
-	// }
-
-	pChainClient := platformvm.NewClient(subnetAInfo.ChainNodeURIs[0])
-	// currentVdrs, err := pChainClient.GetCurrentValidators(ctx, subnetAInfo.SubnetID, []ids.NodeID{})
-	// Expect(err).Should(BeNil())
-	// var vdrNodes []string
-	// for _, vdr := range currentVdrs {
-	// 	vdrNodes = append(vdrNodes, vdr.NodeID.String())
-	// }
-	// height, err := pChainClient.GetHeight(ctx)
-	// log.Info("dbg original nodes", "height", height, "nodes", vdrNodes)
-
-	// // Remove the nodes from the validator set
-	// log.Info("Removing nodes from the validator set", "nodes", nodesToRemove)
-	// utils.RemoveSubnetValidators(ctx, subnetAInfo.SubnetID, nodesToRemove)
-
-	currentVdrs, err := pChainClient.GetCurrentValidators(ctx, subnetAInfo.SubnetID, []ids.NodeID{})
-	Expect(err).Should(BeNil())
-	var vdrNodes []string
-	for _, vdr := range currentVdrs {
-		vdrNodes = append(vdrNodes, vdr.NodeID.String())
-	}
-	height, err := pChainClient.GetHeight(ctx)
-	log.Info("dbg after removing nodes", "height", height, "nodes", vdrNodes)
-
 	// Add new nodes to the validator set
 	log.Info("Adding nodes to the validator set")
 	var nodesToAdd []string
@@ -107,28 +76,12 @@ func ValidatorChurnGinkgo() {
 	}
 	utils.AddSubnetValidators(ctx, subnetAInfo.SubnetID, nodesToAdd)
 
-	// var originalNodes []string
-	// for i := 6; i <= 10; i++ {
-	// 	n := fmt.Sprintf("node%d-bls", i)
-	// 	originalNodes = append(originalNodes, n)
-	// }
-	// utils.RestartNodes(ctx, originalNodes)
-
-	currentVdrs, err = pChainClient.GetCurrentValidators(ctx, subnetAInfo.SubnetID, []ids.NodeID{})
-	Expect(err).Should(BeNil())
-	vdrNodes = nil
-	for _, vdr := range currentVdrs {
-		vdrNodes = append(vdrNodes, vdr.NodeID.String())
-	}
-	height, err = pChainClient.GetHeight(ctx)
-	log.Info("dbg after adding nodes", "height", height, "nodes", vdrNodes)
-
-	// time.Sleep(3 * time.Minute) // Wait for the proposervm to catch up to the P-Chain
 	// Refresh the subnet info
 	subnets = network.GetSubnetsInfo()
 	subnetAInfo = subnets[0]
 	subnetBInfo = subnets[1]
 
+	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
 	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(ctx, subnetAInfo.ChainIDInt, fundedKey, subnetAInfo.ChainWSClient)
 	Expect(err).Should(BeNil())
 	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(ctx, subnetBInfo.ChainIDInt, fundedKey, subnetBInfo.ChainWSClient)

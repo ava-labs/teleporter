@@ -43,6 +43,7 @@ var (
 	chainARPCClient, chainBRPCClient                       ethclient.Client
 	chainAIDInt, chainBIDInt                               *big.Int
 	teleporterRegistryAddressA, teleporterRegistryAddressB common.Address
+	subnetANodeNames, subnetBNodeNames                     []string
 
 	// Internal vars only used to set up the local network
 	anrClient           runner_sdk.Client
@@ -111,8 +112,6 @@ func SetupNetwork(warpGenesisFile string) {
 	var err error
 
 	// Name 10 new validators (which should have BLS key registered)
-	subnetANodeNames := []string{}
-	subnetBNodeNames := []string{}
 	for i := 1; i <= 10; i++ {
 		n := fmt.Sprintf("node%d-bls", i)
 		if i <= 5 {
@@ -147,9 +146,7 @@ func SetupNetwork(warpGenesisFile string) {
 				Genesis:     warpGenesisFile,
 				ChainConfig: warpChainConfigPath,
 				SubnetSpec: &rpcpb.SubnetSpec{
-					SubnetConfig: `{
-						"proposerMinBlockDelay":0
-					}`,
+					SubnetConfig: "",
 					Participants: subnetANodeNames,
 				},
 			},
@@ -158,9 +155,7 @@ func SetupNetwork(warpGenesisFile string) {
 				Genesis:     warpGenesisFile,
 				ChainConfig: warpChainConfigPath,
 				SubnetSpec: &rpcpb.SubnetSpec{
-					SubnetConfig: `{
-						"proposerMinBlockDelay":0
-					}`,
+					SubnetConfig: "",
 					Participants: subnetBNodeNames,
 				},
 			},
@@ -213,26 +208,16 @@ func SetSubnetBValues(subnetID ids.ID) {
 	// Expect(len(subnetBDetails.ValidatorURIs)).Should(Equal(5))
 	blockchainIDB = subnetBDetails.BlockchainID
 
-	// remove
-	log.Info("debug", "subnetBURIs before", subnetBDetails.ValidatorURIs)
+	// Reset the validator URIs, as they may have changed
 	subnetBDetails.ValidatorURIs = nil
 	status, err := anrClient.Status(context.Background())
 	Expect(err).Should(BeNil())
 	nodeInfos := status.GetClusterInfo().GetNodeInfos()
 
-	var nodeNames []string
-	for i := 6; i <= 10; i++ {
-		n := fmt.Sprintf("node%d-bls", i)
-		nodeNames = append(nodeNames, n)
-	}
-
 	anrClient.Status(context.Background())
-	for _, nodeName := range nodeNames {
+	for _, nodeName := range subnetBNodeNames {
 		subnetBDetails.ValidatorURIs = append(subnetBDetails.ValidatorURIs, nodeInfos[nodeName].Uri)
 	}
-	log.Info("debug", "subnetBURIs after", subnetBDetails.ValidatorURIs)
-
-	// remove
 
 	chainBNodeURIs = nil
 	chainBNodeURIs = append(chainBNodeURIs, subnetBDetails.ValidatorURIs...)
@@ -261,26 +246,16 @@ func SetSubnetAValues(subnetID ids.ID) {
 	// Expect(len(subnetADetails.ValidatorURIs)).Should(Equal(5))
 	blockchainIDA = subnetADetails.BlockchainID
 
-	// remove
-	log.Info("debug", "subnetAURIs before", subnetADetails.ValidatorURIs)
+	// Reset the validator URIs, as they may have changed
 	subnetADetails.ValidatorURIs = nil
 	status, err := anrClient.Status(context.Background())
 	Expect(err).Should(BeNil())
 	nodeInfos := status.GetClusterInfo().GetNodeInfos()
 
-	var nodeNames []string
-	for i := 1; i <= 5; i++ {
-		n := fmt.Sprintf("node%d-bls", i)
-		nodeNames = append(nodeNames, n)
-	}
-
 	anrClient.Status(context.Background())
-	for _, nodeName := range nodeNames {
+	for _, nodeName := range subnetANodeNames {
 		subnetADetails.ValidatorURIs = append(subnetADetails.ValidatorURIs, nodeInfos[nodeName].Uri)
 	}
-	log.Info("debug", "subnetAURIs after", subnetADetails.ValidatorURIs)
-
-	// remove
 
 	chainANodeURIs = nil
 	chainANodeURIs = append(chainANodeURIs, subnetADetails.ValidatorURIs...)
