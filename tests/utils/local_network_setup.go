@@ -205,7 +205,6 @@ func SetSubnetBValues(subnetID ids.ID) {
 	var err error
 	subnetBDetails, ok := manager.GetSubnet(subnetID)
 	Expect(ok).Should(BeTrue())
-	// Expect(len(subnetBDetails.ValidatorURIs)).Should(Equal(5))
 	blockchainIDB = subnetBDetails.BlockchainID
 
 	// Reset the validator URIs, as they may have changed
@@ -243,7 +242,6 @@ func SetSubnetAValues(subnetID ids.ID) {
 	var err error
 	subnetADetails, ok := manager.GetSubnet(subnetID)
 	Expect(ok).Should(BeTrue())
-	// Expect(len(subnetADetails.ValidatorURIs)).Should(Equal(5))
 	blockchainIDA = subnetADetails.BlockchainID
 
 	// Reset the validator URIs, as they may have changed
@@ -439,6 +437,5 @@ func RestartNodes(ctx context.Context, nodeNames []string) {
 		_, err := anrClient.RestartNode(ctx, nodeName)
 		Expect(err).Should(BeNil())
 	}
-	time.Sleep(30 * time.Second)
 	SetSubnetValues()
 }
