@@ -77,7 +77,7 @@ contract TeleporterRegistry {
      * doesn't change the latest version.
      *
      * Emits a {AddProtocolVersion} event when successful.
-     * Emits a {LatestVersionUpdated} event when a new protocol version great than the current latest version is added.
+     * Emits a {LatestVersionUpdated} event when a new protocol version greater than the current latest version is added.
      * Requirements:
      *
      * - a valid Warp off-chain message must be provided.
@@ -86,7 +86,7 @@ contract TeleporterRegistry {
      * - destination address must be the same as the address of this registry.
      */
     function addProtocolVersion(uint32 messageIndex) external {
-        // Get and validate for a Warp off-chain message.
+        // Get the verified Warp message, and check that it was sent off-chain to this registry.
         (WarpMessage memory message, bool success) = WARP_MESSENGER
             .getVerifiedWarpMessage(messageIndex);
         require(success, "TeleporterRegistry: invalid warp message");
@@ -176,7 +176,7 @@ contract TeleporterRegistry {
      * Updates latest version if the version is greater than the current latest version.
      *
      * Emits a {AddProtocolVersion} event when successful.
-     * Emits a {LatestVersionUpdated} event when a new protocol version great than the current latest version is added.
+     * Emits a {LatestVersionUpdated} event when a new protocol version greater than the current latest version is added.
      * Note: `protocolAddress` doesn't have to be a contract address, this is primarily
      * to support the case of registering a new protocol address meant for a security patch
      * before the contract is deployed, and prevent the vulnerabilitiy from being exposed before the registry update.
