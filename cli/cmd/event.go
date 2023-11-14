@@ -21,14 +21,13 @@ var (
 // eventCmd represents the event command
 var eventCmd = &cobra.Command{
 	Use:   "event",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Parses a Teleporter log's topics and data",
+	Long: `Given the topics and data of a Teleporter log, parses the log into
+	the corresponding Teleporter event. Topics are represented by a hash, and data
+	is the hex encoding of the bytes. For example:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Args: cobra.ExactArgs(0),
+	teleporter-cli event --topics topic1, topic2 --data 0x1234`,
+	Args: cobra.NoArgs,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		var topics []common.Hash
