@@ -98,7 +98,7 @@ func RelayMessage(
 	// Fetch the Teleporter message from the logs
 	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
 	Expect(err).Should(BeNil())
-	sendEvent, err := GetSendEventFromLogs(sourceReceipt.Logs, bind)
+	sendEvent, err := GetEventFromLogs(sourceReceipt.Logs, bind.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	// Loop over each client on chain A to ensure they all have time to accept the block.
@@ -142,7 +142,7 @@ func RelayMessage(
 	bind, err = teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
 	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	receiveEvent, err := GetReceiveEventFromLogs(receipt.Logs, bind)
+	receiveEvent, err := GetEventFromLogs(receipt.Logs, bind.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(receiveEvent.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
 	return receipt
