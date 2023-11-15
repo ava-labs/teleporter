@@ -71,6 +71,9 @@ func relayMessage(
 	sourceReceipt *types.Receipt,
 	source network.SubnetTestInfo,
 	destination network.SubnetTestInfo,
+	teleporterContractAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	fundedAddress common.Address,
 	expectSuccess bool,
 ) *types.Receipt {
 	log.Info("Fetching relevant warp logs from the newly produced block")

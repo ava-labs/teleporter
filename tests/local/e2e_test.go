@@ -28,32 +28,34 @@ func TestE2E(t *testing.T) {
 	ginkgo.RunSpecs(t, "Teleporter e2e test")
 }
 
+var localNetworkInstance *localNetwork
+
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
-	setUpNetwork(warpGenesisFile)
+	localNetworkInstance = newLocalNetwork(warpGenesisFile)
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
 
-	deployTeleporterContracts(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
-	deployTeleporterRegistryContracts(teleporterContractAddress)
+	localNetworkInstance.deployTeleporterContracts(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
+	localNetworkInstance.deployTeleporterRegistryContracts(teleporterContractAddress)
 	log.Info("Set up ginkgo before suite")
 })
 
-var _ = ginkgo.AfterSuite(tearDownNetwork)
+var _ = ginkgo.AfterSuite(localNetworkInstance.tearDownNetwork)
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Teleporter tests
-	ginkgo.It("Send a message from Subnet A to Subnet B", func() { flows.BasicOneWaySend(&LocalNetwork{}) })
-	ginkgo.It("Deliver to the wrong chain", func() { flows.DeliverToWrongChain(&LocalNetwork{}) })
-	ginkgo.It("Deliver to non-existent contract", func() { flows.DeliverToNonExistentContract(&LocalNetwork{}) })
-	ginkgo.It("Retry successful execution", func() { flows.RetrySuccessfulExecution(&LocalNetwork{}) })
-	ginkgo.It("Unallowed relayer", func() { flows.UnallowedRelayer(&LocalNetwork{}) })
-	ginkgo.It("Receive message twice", func() { flows.ReceiveMessageTwice(&LocalNetwork{}) })
-	ginkgo.It("Add additional fee amount", func() { flows.AddFeeAmount(&LocalNetwork{}) })
-	ginkgo.It("Send specific receipts", func() { flows.SendSpecificReceipts(&LocalNetwork{}) })
-	ginkgo.It("Insufficient gas", func() { flows.InsufficientGas(&LocalNetwork{}) })
+	ginkgo.It("Send a message from Subnet A to Subnet B", func() { flows.BasicOneWaySend(localNetworkInstance) })
+	ginkgo.It("Deliver to the wrong chain", func() { flows.DeliverToWrongChain(localNetworkInstance) })
+	ginkgo.It("Deliver to non-existent contract", func() { flows.DeliverToNonExistentContract(localNetworkInstance) })
+	ginkgo.It("Retry successful execution", func() { flows.RetrySuccessfulExecution(localNetworkInstance) })
+	ginkgo.It("Unallowed relayer", func() { flows.UnallowedRelayer(localNetworkInstance) })
+	ginkgo.It("Receive message twice", func() { flows.ReceiveMessageTwice(localNetworkInstance) })
+	ginkgo.It("Add additional fee amount", func() { flows.AddFeeAmount(localNetworkInstance) })
+	ginkgo.It("Send specific receipts", func() { flows.SendSpecificReceipts(localNetworkInstance) })
+	ginkgo.It("Insufficient gas", func() { flows.InsufficientGas(localNetworkInstance) })
 
 	// Cross-chain application tests
-	ginkgo.It("Example cross chain messenger", func() { flows.ExampleMessenger(&LocalNetwork{}) })
+	ginkgo.It("Example cross chain messenger", func() { flows.ExampleMessenger(localNetworkInstance) })
 })
