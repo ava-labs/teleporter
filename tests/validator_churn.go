@@ -11,9 +11,9 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
+	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-
 	. "github.com/onsi/gomega"
 )
 
@@ -61,7 +61,7 @@ func ValidatorChurnGinkgo() {
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessageBytes := utils.ConstructSignedWarpMessageBytes(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessageBytes := localUtils.ConstructSignedWarpMessageBytes(ctx, receipt, subnetAInfo, subnetBInfo)
 
 	//
 	// Modify the validator set on Subnet A
@@ -74,7 +74,7 @@ func ValidatorChurnGinkgo() {
 		n := fmt.Sprintf("node%d-bls", i)
 		nodesToAdd = append(nodesToAdd, n)
 	}
-	utils.AddSubnetValidators(ctx, subnetAInfo.SubnetID, nodesToAdd)
+	localUtils.AddSubnetValidators(ctx, subnetAInfo.SubnetID, nodesToAdd)
 
 	// Refresh the subnet info
 	subnets = network.GetSubnetsInfo()

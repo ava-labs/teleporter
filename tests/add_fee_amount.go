@@ -8,6 +8,7 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
+	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
@@ -30,8 +31,8 @@ func AddFeeAmount(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Use mock token as the fee token
-	mockTokenAddress, mockToken := utils.DeployMockToken(context.Background(), fundedAddress, fundedKey, subnetAInfo)
-	utils.ExampleERC20Approve(ctx, mockToken, teleporterContractAddress, big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)), subnetAInfo)
+	mockTokenAddress, mockToken := localUtils.DeployMockToken(context.Background(), fundedAddress, fundedKey, subnetAInfo)
+	localUtils.ExampleERC20Approve(ctx, mockToken, teleporterContractAddress, big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)), subnetAInfo)
 
 	initFeeAmount := big.NewInt(1)
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -51,9 +52,9 @@ func AddFeeAmount(network network.Network) {
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
 
 	// Add fee amount
-	adjustedFeeAmount := big.NewInt(2)
+	additionalFeeAmount := big.NewInt(2)
 	utils.SendAddFeeAmountAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, messageID, adjustedFeeAmount, mockTokenAddress, fundedAddress, fundedKey, subnetATeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, messageID, additionalFeeAmount, mockTokenAddress, fundedAddress, fundedKey, subnetATeleporterMessenger)
 
 	// Relay message from SubnetA to SubnetB
 	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
@@ -81,5 +82,5 @@ func AddFeeAmount(network network.Network) {
 	// Check the relayer reward amount
 	amount, err := subnetATeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, fundedAddress, mockTokenAddress)
 	Expect(err).Should(BeNil())
-	Expect(amount).Should(Equal(adjustedFeeAmount.Add(adjustedFeeAmount, initFeeAmount)))
+	Expect(amount).Should(Equal(additionalFeeAmount.Add(additionalFeeAmount, initFeeAmount)))
 }

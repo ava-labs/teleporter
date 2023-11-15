@@ -1,4 +1,4 @@
-package utils
+package localnetworkutils
 
 import (
 	"context"
@@ -17,6 +17,7 @@ import (
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	"github.com/ava-labs/subnet-evm/x/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -31,7 +32,7 @@ func SetupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *
 	Expect(ok).Should(BeTrue())
 
 	chainID := subnetDetails.BlockchainID
-	uri := HttpToWebsocketURI(subnetDetails.ValidatorURIs[0], chainID.String())
+	uri := utils.HttpToWebsocketURI(subnetDetails.ValidatorURIs[0], chainID.String())
 
 	client, err := ethclient.Dial(uri)
 	Expect(err).Should(BeNil())
@@ -47,7 +48,7 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	for i, uri := range nodeURIs {
-		chainAWSURI := HttpToWebsocketURI(uri, blockchainID.String())
+		chainAWSURI := utils.HttpToWebsocketURI(uri, blockchainID.String())
 		log.Info("Creating ethclient for blockchain", "blockchainID", blockchainID.String(), "wsURI", chainAWSURI)
 		client, err := ethclient.Dial(chainAWSURI)
 		Expect(err).Should(BeNil())
@@ -68,8 +69,8 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 func ConstructSignedWarpMessageBytes(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source SubnetTestInfo,
-	destination SubnetTestInfo,
+	source utils.SubnetTestInfo,
+	destination utils.SubnetTestInfo,
 ) []byte {
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.ChainRPCClient.FilterLogs(ctx, interfaces.FilterQuery{
@@ -111,21 +112,21 @@ func ConstructSignedWarpMessageBytes(
 func RelayMessage(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source SubnetTestInfo,
-	destination SubnetTestInfo,
+	source utils.SubnetTestInfo,
+	destination utils.SubnetTestInfo,
 	expectSuccess bool,
 ) *types.Receipt {
 
 	// Fetch the Teleporter message from the logs
 	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
 	Expect(err).Should(BeNil())
-	sendEvent, err := GetEventFromLogs(sourceReceipt.Logs, bind.ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, bind.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	signedWarpMessageBytes := ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
-	signedTx := CreateReceiveCrossChainMessageTransaction(
+	signedTx := utils.CreateReceiveCrossChainMessageTransaction(
 		ctx,
 		signedWarpMessageBytes,
 		sendEvent.Message.RequiredGasLimit,
@@ -137,7 +138,7 @@ func RelayMessage(
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt := SendTransactionAndWaitForAcceptance(ctx, destination.ChainWSClient, destination.ChainRPCClient, signedTx, expectSuccess)
+	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, destination.ChainWSClient, destination.ChainRPCClient, signedTx, expectSuccess)
 
 	if !expectSuccess {
 		return nil
@@ -146,13 +147,13 @@ func RelayMessage(
 	bind, err = teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
 	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	receiveEvent, err := GetEventFromLogs(receipt.Logs, bind.ParseReceiveCrossChainMessage)
+	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, bind.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(receiveEvent.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
 	return receipt
 }
 
-func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ecdsa.PrivateKey, subnetInfo SubnetTestInfo, abi *abi.ABI, constructorArgs ...interface{}) common.Address {
+func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ecdsa.PrivateKey, subnetInfo utils.SubnetTestInfo, abi *abi.ABI, constructorArgs ...interface{}) common.Address {
 	// Deploy an example ERC20 contract to be used as the source token
 	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
 	Expect(err).Should(BeNil())
@@ -163,7 +164,7 @@ func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ec
 	Expect(err).Should(BeNil())
 
 	// Wait for transaction, then check code was deployed
-	WaitForTransaction(ctx, tx.Hash(), subnetInfo.ChainRPCClient)
+	utils.WaitForTransaction(ctx, tx.Hash(), subnetInfo.ChainRPCClient)
 	code, err := subnetInfo.ChainRPCClient.CodeAt(ctx, contractAddress, nil)
 	Expect(err).Should(BeNil())
 	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
