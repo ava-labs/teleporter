@@ -86,7 +86,7 @@ contract TeleporterRegistry {
      * - destination address must be the same as the address of this registry.
      */
     function addProtocolVersion(uint32 messageIndex) external {
-        // Get the verified Warp message, and check that it was sent off-chain to this registry.
+        // Get the verified Warp message, and check that it was sent to this registry via a Warp off-chain message.
         (WarpMessage memory message, bool success) = WARP_MESSENGER
             .getVerifiedWarpMessage(messageIndex);
         require(success, "TeleporterRegistry: invalid warp message");
