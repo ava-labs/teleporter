@@ -8,8 +8,6 @@ services:
     build:
       context: ./
       dockerfile: ./docker/Dockerfile
-      args:
-        ARCH: ${ARCH} # set by test.sh
     container_name: local_network_test
     init: true
     working_dir: /code
@@ -35,8 +33,6 @@ services:
     build:
       context: ./
       dockerfile: ./docker/Dockerfile
-      args:
-        ARCH: ${ARCH} # set by test.sh
     container_name: test_runner
     init: true
     working_dir: /code

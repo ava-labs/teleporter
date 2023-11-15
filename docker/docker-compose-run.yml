@@ -7,8 +7,6 @@ services:
     build:
       context: ./
       dockerfile: ./docker/Dockerfile
-      args:
-        ARCH: ${ARCH} # set by run.sh
     container_name: local_network_run
     init: true
     working_dir: /code

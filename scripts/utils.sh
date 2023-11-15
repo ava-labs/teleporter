@@ -7,30 +7,29 @@ function getBlockChainIDHex() {
 }
 
 function parseContractAddress() {
-    echo $1 | $grepcmd -o -P 'Deployed to: .{42}' | sed 's/^.\{13\}//';
+    echo $1 | $(getGrep) -o -P 'Deployed to: .{42}' | sed 's/^.\{13\}//';
 }
 
 # use ggrep on arm64 otherwise grep -P returns error.
-# set ARCH before calling this function
-function setGrep() {
-    if [ "$ARCH" = 'arm64' ]; then
-        export grepcmd="ggrep"
+function getGrep() {
+    if [ $(getARCH) = arm64 ]; then
+        echo ggrep
     else
-        export grepcmd="grep"
+        echo grep
     fi
 }
 
-# Set ARCH env so as a container executes without issues in a portable way
+# Get ARCH so a container can execute without issues in a portable way
 # Should be amd64 for linux/macos x86 hosts, and arm64 for macos M1
-# It is referenced in the docker composer yaml, and then passed as a Dockerfile ARG
-function setARCH() {
-    export ARCH=$(uname -m)
-    [ $ARCH = x86_64 ] && ARCH=amd64
-    echo "ARCH set to $ARCH"
+function getARCH() {
+    ARCH=$(uname -m)
+    [ $ARCH = "x86_64" ] && ARCH=amd64
+    [ $ARCH = "aarch64" ] && ARCH=arm64
+    echo $ARCH
 }
 
 function convertToLower() {
-    if [ "$ARCH" = 'arm64' ]; then
+    if [ $(getARCH) = "arm64" ] ; then
         echo $1 | perl -ne 'print lc'
     else
         echo $1 | sed -e 's/\(.*\)/\L\1/'

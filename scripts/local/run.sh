@@ -41,11 +41,6 @@ function cleanup {
 trap cleanup SIGTERM
 trap cleanup SIGINT
 
-# Set ARCH env so as a container executes without issues in a portable way
-# Should be amd64 for linux/macos x86 hosts, and arm64 for macos M1
-# It is referenced in the docker composer yaml, and then passed as a Dockerfile ARG
-setARCH
-
 if [ -z "$LOCAL_RELAYER_IMAGE" ]; then
     echo "Using published awm-relayer image"
     docker compose -f docker/docker-compose-run.yml --project-directory ./ up --build &

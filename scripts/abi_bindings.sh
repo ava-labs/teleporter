@@ -12,8 +12,6 @@ TELEPORTER_PATH=$(
 source $TELEPORTER_PATH/scripts/constants.sh
 source $TELEPORTER_PATH/scripts/utils.sh
 
-setARCH
-
 DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken TeleporterRegistry"
 
 CONTRACT_LIST=

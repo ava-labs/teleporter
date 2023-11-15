@@ -11,9 +11,6 @@ set +a
 
 set -e # Stop on first error
 
-setARCH
-setGrep
-
 TEST_TARGET=
 HELP=
 while [ $# -gt 0 ]; do
