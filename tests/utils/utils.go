@@ -6,6 +6,7 @@ package utils
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -14,19 +15,25 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	"github.com/ava-labs/subnet-evm/accounts/abi"
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 
 	"github.com/ava-labs/subnet-evm/core/types"
+	"github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/params"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
+	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	"github.com/ava-labs/subnet-evm/x/warp"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
@@ -107,14 +114,13 @@ func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
 	source SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
-	fundedAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
+	relayerKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
 	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.WSClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.WSClient, PrivateKeyToAddress(relayerKey))
 
 	// Send a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -128,7 +134,7 @@ func CreateSendCrossChainMessageTransaction(
 		Data:      data,
 	})
 
-	return signTransaction(tx, fundedKey, source.ChainID)
+	return signTransaction(tx, relayerKey, source.ChainID)
 }
 
 // Constructs a transaction to call receiveCrossChainMessage
@@ -138,8 +144,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	warpMessageBytes []byte,
 	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
-	fundedAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
+	relayerKey *ecdsa.PrivateKey,
 	wsClient ethclient.Client,
 	chainID *big.Int,
 ) *types.Transaction {
@@ -154,10 +159,10 @@ func CreateReceiveCrossChainMessageTransaction(
 	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
 	Expect(err).Should(BeNil())
 
-	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
+	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, PrivateKeyToAddress(relayerKey))
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, wsClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, wsClient, PrivateKeyToAddress(relayerKey))
 
 	destinationTx := predicateutils.NewPredicateTx(
 		chainID,
@@ -217,8 +222,15 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 	}
 }
 
+func SendAndWaitForTransaction(ctx context.Context, tx *types.Transaction, client ethclient.Client) *types.Receipt {
+	err := client.SendTransaction(ctx, tx)
+	Expect(err).Should(BeNil())
+
+	return WaitForTransaction(ctx, tx.Hash(), client)
+}
+
 func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclient.Client) *types.Receipt {
-	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	cctx, cancel := context.WithTimeout(ctx, 20 * time.Second)
 	defer cancel()
 
 	// Loop until we find the transaction or time out
@@ -227,21 +239,23 @@ func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclien
 		if err == nil {
 			return receipt
 		} else {
+			Expect(err).ShouldNot(Equal(context.DeadlineExceeded))
 			log.Info("Waiting for transaction", "hash", txHash.Hex())
-			time.Sleep(200 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 }
 
 // Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
-// Returns the receipt on the destination chain
+// Returns the receipt on the destination chain, and an error if the teleporter message failed to execute.
 func RelayMessage(
 	ctx context.Context,
 	sourceBlockHash common.Hash,
 	sourceBlockNumber *big.Int,
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
-) *types.Receipt {
+) (*types.Receipt, error) {
+
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.WSClient.FilterLogs(ctx, interfaces.FilterQuery{
 		BlockHash: &sourceBlockHash,
@@ -278,24 +292,27 @@ func RelayMessage(
 	signedTx := CreateReceiveCrossChainMessageTransaction(
 		ctx,
 		signedWarpMessageBytes,
-		big.NewInt(1),
+		big.NewInt(200000),
 		teleporterContractAddress,
-		fundedAddress,
 		fundedKey,
 		destination.WSClient,
 		destination.ChainID,
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt := SendTransactionAndWaitForAcceptance(ctx, destination.WSClient, signedTx)
+	receipt := SendAndWaitForTransaction(ctx, signedTx, destination.WSClient)
 
 	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.WSClient)
 	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	event, err := GetEventFromLogs(receipt.Logs, bind.ParseReceiveCrossChainMessage)
+	receiveEvent, err := GetEventFromLogs(receipt.Logs, bind.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
-	return receipt
+	Expect(receiveEvent.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
+
+	// Check for a successful execution of the teleporter message.
+	_, err = GetEventFromLogs(receipt.Logs, bind.ParseMessageExecuted)
+
+	return receipt, err
 }
 
 // Returns the first log in 'logs' that is successfully parsed by 'parser'
@@ -322,15 +339,15 @@ func signTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.
 	return signedTx
 }
 
-// Returns the gasFeeCap, gasTipCap, and nonce the be used when constructing a transaction from fundedAddress
-func calculateTxParams(ctx context.Context, wsClient ethclient.Client, fundedAddress common.Address) (*big.Int, *big.Int, uint64) {
+// Returns the gasFeeCap, gasTipCap, and nonce the be used when constructing a transaction
+func calculateTxParams(ctx context.Context, wsClient ethclient.Client, sender common.Address) (*big.Int, *big.Int, uint64) {
 	baseFee, err := wsClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
 
 	gasTipCap, err := wsClient.SuggestGasTipCap(ctx)
 	Expect(err).Should(BeNil())
 
-	nonce, err := wsClient.NonceAt(ctx, fundedAddress, nil)
+	nonce, err := wsClient.NonceAt(ctx, sender, nil)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))
@@ -342,12 +359,11 @@ func calculateTxParams(ctx context.Context, wsClient ethclient.Client, fundedAdd
 func createNativeTransferTransaction(
 	ctx context.Context,
 	network SubnetTestInfo,
-	fromAddress common.Address,
-	fromKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Transaction {
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.WSClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.WSClient, PrivateKeyToAddress(senderKey))
 
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   network.ChainID,
@@ -359,5 +375,51 @@ func createNativeTransferTransaction(
 		Value:     amount,
 	})
 
-	return signTransaction(tx, fundedKey, network.ChainID)
+	return signTransaction(tx, senderKey, network.ChainID)
+}
+
+func PrivateKeyToAddress(k *ecdsa.PrivateKey) common.Address {
+	return crypto.PubkeyToAddress(k.PublicKey)
+}
+
+// Throws a Gomega error if there is a mismatch
+func CheckBalance(ctx context.Context, addr common.Address, expectedBalance uint64, wsClient ethclient.Client) {
+	bal, err :=wsClient.BalanceAt(ctx, addr, nil)
+	Expect(err).Should(BeNil())
+	Expect(bal.Uint64()).Should(Equal(expectedBalance))
+}
+
+func TraceTransaction(ctx context.Context, txHash common.Hash, subnetInfo SubnetTestInfo) string {
+	url := HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String())
+	rpcClient, err := rpc.DialContext(ctx, url)
+	Expect(err).Should(BeNil())
+	defer rpcClient.Close()
+
+	var result interface{}
+	ct := "callTracer"
+	err = rpcClient.Call(&result, "debug_traceTransaction", txHash.String(), tracers.TraceConfig{Tracer: &ct})
+	Expect(err).Should(BeNil())
+
+	jsonStr, err := json.Marshal(result)
+	Expect(err).Should(BeNil())
+
+	return string(jsonStr)
+}
+
+func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ecdsa.PrivateKey, subnetInfo SubnetTestInfo, abi *abi.ABI, constructorArgs ...interface{}) {
+	// Deploy an example ERC20 contract to be used as the source token
+	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
+	Expect(err).Should(BeNil())
+	Expect(len(byteCode) > 0).Should(BeTrue())
+	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.ChainID)
+	Expect(err).Should(BeNil())
+	contractAddress, tx, _, err := bind.DeployContract(transactor, *abi, byteCode, subnetInfo.WSClient, constructorArgs...)
+	Expect(err).Should(BeNil())
+
+	// Wait for transaction, then check code was deployed
+	receipt := WaitForTransaction(ctx, tx.Hash(), subnetInfo.WSClient)
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	code, err := subnetInfo.WSClient.CodeAt(ctx, contractAddress, nil)
+	Expect(err).Should(BeNil())
+	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 }

@@ -112,7 +112,7 @@ func SetupNetwork(warpGenesisFile string) {
 	}
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
-	_, err = f.Write([]byte(`{"warp-api-enabled": true}`))
+	_, err = f.Write([]byte(`{"warp-api-enabled": true, "eth-apis":["eth","eth-filter","net","admin","web3","internal-eth","internal-blockchain","internal-transaction","internal-debug","internal-account","internal-personal","debug","debug-tracer","debug-file-tracer","debug-handler"]}`))
 	Expect(err).Should(BeNil())
 	warpChainConfigPath = f.Name()
 
@@ -218,7 +218,7 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 		// Fund the deployer address
 		{
 			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
-			fundDeployerTx := createNativeTransferTransaction(ctx, subnetInfo, fundedAddress, fundedKey, deployerAddress, fundAmount)
+			fundDeployerTx := createNativeTransferTransaction(ctx, subnetInfo, fundedKey, deployerAddress, fundAmount)
 			SendTransactionAndWaitForAcceptance(ctx, subnetInfo.WSClient, fundDeployerTx)
 		}
 		log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
