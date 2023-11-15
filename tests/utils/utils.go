@@ -14,6 +14,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -318,6 +319,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	subnetInfo SubnetTestInfo,
+	alterMessage bool,
 ) *types.Transaction {
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
@@ -334,6 +336,10 @@ func CreateReceiveCrossChainMessageTransaction(
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
+
+	if alterMessage {
+		alterTeleporterMessage(signedMessage)
+	}
 
 	destinationTx := predicateutils.NewPredicateTx(
 		subnetInfo.ChainIDInt,
@@ -434,4 +440,25 @@ func CalculateTxParams(ctx context.Context, subnetInfo SubnetTestInfo, fundedAdd
 	gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
 
 	return gasFeeCap, gasTipCap, nonce
+}
+
+func alterTeleporterMessage(signedMessage *avalancheWarp.Message) {
+	warpMsgPayload, err := warpPayload.ParseAddressedCall(signedMessage.UnsignedMessage.Payload)
+	Expect(err).Should(BeNil())
+
+	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpMsgPayload.Payload)
+	Expect(err).Should(BeNil())
+	// Alter the message
+	teleporterMessage.Message[0] = ^teleporterMessage.Message[0]
+
+	// Pack the teleporter message
+	teleporterMessageBytes, err := teleportermessenger.PackTeleporterMessage(*teleporterMessage)
+	Expect(err).Should(BeNil())
+
+	payload, err := warpPayload.NewAddressedCall(warpMsgPayload.SourceAddress, teleporterMessageBytes)
+	Expect(err).Should(BeNil())
+
+	signedMessage.UnsignedMessage.Payload = payload.Bytes()
+
+	signedMessage.Initialize()
 }

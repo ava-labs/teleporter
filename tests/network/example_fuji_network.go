@@ -146,6 +146,7 @@ func (n *FujiNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,
 	destination utils.SubnetTestInfo,
+	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
 
 	// Rely on a separately deployed relayer to relay the message

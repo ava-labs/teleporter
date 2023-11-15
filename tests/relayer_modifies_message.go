@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -13,16 +12,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func BasicOneWaySendGinkgo() {
-	BasicOneWaySend(&network.LocalNetwork{})
+func RelayerModifiesMessageGinkgo() {
+	RelayerModifiesMessage(&network.LocalNetwork{})
 }
 
-// Tests basic one-way send from Subnet A to Subnet B
-func BasicOneWaySend(network network.Network) {
-	var (
-		teleporterMessageID *big.Int
-	)
-
+func RelayerModifiesMessage(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
@@ -34,9 +28,7 @@ func BasicOneWaySend(network network.Network) {
 	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
 	Expect(err).Should(BeNil())
 
-	//
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
-	//
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
@@ -51,19 +43,15 @@ func BasicOneWaySend(network network.Network) {
 		Message:                 []byte{1, 2, 3, 4},
 	}
 
-	var receipt *types.Receipt
-	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
+	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
 
-	//
 	// Relay the message to the destination
-	//
+	// Relayer modifies the message in flight
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, false)
 
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
-
-	//
-	// Check Teleporter message received on the destination
-	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	// Check Teleporter message was not received on the destination
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
-	Expect(delivered).Should(BeTrue())
+	Expect(delivered).Should(BeFalse())
 }

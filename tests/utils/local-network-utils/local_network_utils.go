@@ -114,6 +114,7 @@ func RelayMessage(
 	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,
 	destination utils.SubnetTestInfo,
+	alterMessage bool,
 	expectSuccess bool,
 ) *types.Receipt {
 
@@ -134,6 +135,7 @@ func RelayMessage(
 		fundedAddress,
 		fundedKey,
 		destination,
+		alterMessage,
 	)
 
 	log.Info("Sending transaction to destination chain")
