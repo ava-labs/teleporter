@@ -139,7 +139,7 @@ contract TeleporterRegistry {
      * @dev Gets the address of a protocol version.
      * Requirements:
      *
-     * - `version` must be a valid version registered.
+     * - `version` must be a valid registered version.
      */
     function getAddressFromVersion(
         uint256 version
