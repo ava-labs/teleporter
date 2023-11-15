@@ -2,7 +2,7 @@
 
 This directory contains the source code for the Teleporter CLI. The CLI is a command line interface for interacting with the Teleporter contracts. It is written with [cobra](https://github.com/spf13/cobra) commands as a Go application.
 
-## Building
+## Build
 
 To build the CLI, run `go build -o teleporter-cli` from this directory. This will create a binary called `teleporter-cli` in the current directory.
 

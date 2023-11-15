@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// Event is a Teleporter event
+// Event is a Teleporter log event
 type Event uint8
 
 const (

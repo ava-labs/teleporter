@@ -16,15 +16,12 @@ var (
 )
 
 var eventCmd = &cobra.Command{
-	Use:   "event",
+	Use:   "event --topics topic1, topic2",
 	Short: "Parses a Teleporter log's topics and data",
 	Long: `Given the topics and data of a Teleporter log, parses the log into
-	the corresponding Teleporter event. Topics are represented by a hash, and data
-	is the hex encoding of the bytes. For example:
-
-	teleporter-cli event --topics topic1, topic2 --data 0x1234`,
+the corresponding Teleporter event. Topics are represented by a hash,
+and data is the hex encoding of the bytes.`,
 	Args: cobra.NoArgs,
-
 	Run: func(cmd *cobra.Command, args []string) {
 		var topics []common.Hash
 		for _, topic := range topicArgs {
@@ -42,8 +39,8 @@ var eventCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(eventCmd)
-	eventCmd.PersistentFlags().StringSliceVar(&topicArgs, "topics", []string{}, "The topics of the event")
-	eventCmd.Flags().BytesHexVar(&data, "data", []byte{}, "The data of the event")
+	eventCmd.PersistentFlags().StringSliceVar(&topicArgs, "topics", []string{}, "Topic hashes of the event")
+	eventCmd.Flags().BytesHexVar(&data, "data", []byte{}, "Hex encoded data of the event")
 
 	err := eventCmd.MarkPersistentFlagRequired("topics")
 	cobra.CheckErr(err)

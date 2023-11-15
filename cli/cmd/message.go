@@ -12,7 +12,7 @@ import (
 )
 
 var messageCmd = &cobra.Command{
-	Use:   "message",
+	Use:   "message MESSAGE_BYTES",
 	Short: "Decodes hex encoded Teleporter message bytes into a TeleporterMessage struct",
 	Long: `Given the hex encoded bytes of a Teleporter message, this command will decode
 the bytes into a TeleporterMessage struct and print the struct fields.`,

@@ -21,8 +21,8 @@ var rootCmd = &cobra.Command{
 	Use:   "teleporter-cli",
 	Short: "A CLI that integrates with the Teleporter protocol",
 	Long: `A CLI that integrates with the Teleporter protocol, and allows you
-	to debug Teleporter on chain activity. The CLI can help decode Teleporter and Warp events,
-	as well as parsing Teleporter messages.`,
+to debug Teleporter on chain activity. The CLI can help decode
+Teleporter and Warp events, as well as parsing Teleporter messages.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -35,7 +35,8 @@ func Execute() {
 }
 
 func init() {
-	logLevelArg := rootCmd.PersistentFlags().StringP("log", "l", "", "Log level")
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
+	logLevelArg := rootCmd.PersistentFlags().StringP("log", "l", "", "Log level i.e. debug, info...")
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if *logLevelArg == "" {
 			*logLevelArg = logging.Info.LowerString()

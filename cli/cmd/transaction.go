@@ -26,13 +26,11 @@ var (
 )
 
 var transactionCmd = &cobra.Command{
-	Use:   "transaction",
+	Use:   "transaction --rpc RPC_URL --contract-address CONTRACT_ADDRESS TRANSACTION_HASH",
 	Short: "Parses relevant Teleporter logs from a transaction",
 	Long: `Given a transaction this command looks through the transaction's receipt
-	for Teleporter and Warp log events. When corresponding log events are found,
-	the command parses to log event fields to a more human readable format. For example:
-
-	teleporter-cli transaction 0x1234 --rpc $RPC_URL --contract-address 0x1234`,
+for Teleporter and Warp log events. When corresponding log events are found,
+the command parses to log event fields to a more human readable format.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		receipt, err := client.TransactionReceipt(context.Background(),
@@ -78,6 +76,7 @@ func init() {
 	err = transactionCmd.MarkPersistentFlagRequired("contract-address")
 	cobra.CheckErr(err)
 	transactionCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		// Run the persistent pre-run function of the root command if it exists.
 		if rootCmd.PersistentPreRunE != nil {
 			if err := rootCmd.PersistentPreRunE(cmd, args); err != nil {
 				return err

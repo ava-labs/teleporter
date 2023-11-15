@@ -120,7 +120,7 @@ func PackMessageReceivedOutput(success bool) ([]byte, error) {
 func UnpackEvent(out interface{}, event string, topics []common.Hash, data []byte) error {
 	teleporterABI, err := TeleporterMessengerMetaData.GetAbi()
 	if err != nil {
-		return fmt.Errorf("failed to get abi: %w", err)
+		return fmt.Errorf("failed to get abi: %v", err)
 	}
 	if len(data) > 0 {
 		if err := teleporterABI.UnpackIntoInterface(out, event, data); err != nil {
