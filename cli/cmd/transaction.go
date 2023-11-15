@@ -1,6 +1,6 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
+// (c) 2023, Ava Labs, Inc. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 package cmd
 
 import (
@@ -25,7 +25,6 @@ var (
 	client          ethclient.Client
 )
 
-// transactionCmd represents the transaction command
 var transactionCmd = &cobra.Command{
 	Use:   "transaction",
 	Short: "Parses relevant Teleporter logs from a transaction",

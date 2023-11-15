@@ -1,6 +1,6 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
+// (c) 2023, Ava Labs, Inc. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 package cmd
 
 import (
@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// messageCmd represents the message command
 var messageCmd = &cobra.Command{
 	Use:   "message",
 	Short: "Decodes hex encoded Teleporter message bytes into a TeleporterMessage struct",
