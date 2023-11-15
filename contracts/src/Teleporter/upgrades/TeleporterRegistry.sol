@@ -177,7 +177,7 @@ contract TeleporterRegistry {
      *
      * Emits a {AddProtocolVersion} event when successful.
      * Emits a {LatestVersionUpdated} event when a new protocol version greater than the current latest version is added.
-     * Note: `entry.protocolAddress` doesn't have to be a contract address, allowing a new protocol address to be registered before the contract is deployed. This may be the desired order of events to prevent publishing the patch for a vulernability in the current version before the registry is updated to the new version.
+     * Note: `entry.protocolAddress` doesn't have to be a contract address, allowing a new protocol address to be registered before the contract is deployed.
      * Requirements:
      *
      * - `entry.version` is not zero
