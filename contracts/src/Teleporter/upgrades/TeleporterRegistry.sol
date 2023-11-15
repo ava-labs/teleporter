@@ -155,7 +155,7 @@ contract TeleporterRegistry {
 
     /**
      * @dev Gets the version of the given `protocolAddress`.
-     * Rrequirements:
+     * Requirements:
      *
      * - `protocolAddress` must be a valid registered protocol address.
      */
