@@ -12,7 +12,7 @@ function parseContractAddress() {
 
 # use ggrep on arm64 otherwise grep -P returns error.
 function getGrep() {
-    if [ $(getARCH) = arm64 ]; then
+    if [ $(getARCH) = 'arm64' ]; then
         echo ggrep
     else
         echo grep
@@ -23,13 +23,13 @@ function getGrep() {
 # Should be amd64 for linux/macos x86 hosts, and arm64 for macos M1
 function getARCH() {
     ARCH=$(uname -m)
-    [ $ARCH = "x86_64" ] && ARCH=amd64
-    [ $ARCH = "aarch64" ] && ARCH=arm64
+    [ $ARCH = 'x86_64' ] && ARCH=amd64
+    [ $ARCH = 'aarch64' ] && ARCH=arm64
     echo $ARCH
 }
 
 function convertToLower() {
-    if [ $(getARCH) = "arm64" ] ; then
+    if [ $(getARCH) = 'arm64' ] ; then
         echo $1 | perl -ne 'print lc'
     else
         echo $1 | sed -e 's/\(.*\)/\L\1/'
