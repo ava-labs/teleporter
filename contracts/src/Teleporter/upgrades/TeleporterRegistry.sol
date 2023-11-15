@@ -157,7 +157,7 @@ contract TeleporterRegistry {
      * @dev Gets the version of the given `protocolAddress`.
      * Rrequirements:
      *
-     * - `protocolAddress` must be a valid protocol address registered.
+     * - `protocolAddress` must be a valid registered protocol address.
      */
     function getVersionFromAddress(
         address protocolAddress
