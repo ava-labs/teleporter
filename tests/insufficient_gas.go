@@ -9,6 +9,7 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
+	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -30,10 +31,10 @@ func InsufficientGas(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Deploy ExampleMessenger to Subnets A
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
+	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
 
 	// Deploy ExampleMessenger to Subnets B
-	exampleMessengerContractB, _ := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
+	exampleMessengerContractB, _ := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
 
 	// Send message from SubnetA to SubnetB with 0 execution gas, which should fail to execute
 	message := "Hello, world!"
