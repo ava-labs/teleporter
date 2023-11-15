@@ -9,9 +9,12 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
+	"github.com/ava-labs/subnet-evm/interfaces"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
@@ -222,7 +225,53 @@ func (n *FujiNetwork) RelayMessage(ctx context.Context,
 	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
 
-	// Rely on a separately deployed relayer to relay the message
-	time.Sleep(20 * time.Second)
+	// Set the context to expire after 20 seconds
+	var cancel context.CancelFunc
+	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
+	sourceSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
+	destinationSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, destination.ChainRPCClient)
+
+	// Get the Teleporter message ID from the receipt
+	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, sourceSubnetTeleporterMessenger.ParseSendCrossChainMessage)
+	Expect(err).Should(BeNil())
+	Expect(sendEvent.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
+
+	teleporterMessageID := sendEvent.Message.MessageID
+
+	// Block until the message with the corresponding Teleporter message ID is received on the destination chain
+	newHeads := make(chan *types.Header, 10)
+	sub, err := destination.ChainWSClient.SubscribeNewHead(cctx, newHeads)
+	Expect(err).Should(BeNil())
+	defer sub.Unsubscribe()
+
+	select {
+	case <-cctx.Done():
+		log.Error("Message was not relayed in time")
+		Expect(true).Should(BeFalse())
+	case head := <-newHeads:
+		hash := head.Hash()
+		logs, err := destination.ChainRPCClient.FilterLogs(cctx, interfaces.FilterQuery{
+			BlockHash: &hash,
+			Addresses: []common.Address{teleporterContractAddress},
+		})
+		Expect(err).Should(BeNil())
+		if len(logs) > 0 {
+			var l []*types.Log
+			for _, log := range logs {
+				l = append(l, &log)
+			}
+
+			receiveEvent, err := utils.GetEventFromLogs(l, destinationSubnetTeleporterMessenger.ParseReceiveCrossChainMessage)
+			Expect(err).Should(BeNil())
+			if receiveEvent.MessageID.Cmp(teleporterMessageID) == 0 {
+				return &types.Receipt{
+					Status: types.ReceiptStatusSuccessful,
+				}
+			}
+		}
+	}
+
 	return nil
 }
