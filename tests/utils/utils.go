@@ -330,24 +330,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, rpcClient, fundedAddress)
 
 	if alterMessage {
-		warpMsgPayload, err := warpPayload.ParseAddressedCall(signedMessage.UnsignedMessage.Payload)
-		Expect(err).Should(BeNil())
-
-		teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpMsgPayload.Payload)
-		Expect(err).Should(BeNil())
-		// Alter the message
-		teleporterMessage.Message = []byte{'a', 'b', 'c', 'd'}
-
-		// Pack the teleporter message
-		teleporterMessageBytes, err := teleportermessenger.PackTeleporterMessage(*teleporterMessage)
-		Expect(err).Should(BeNil())
-
-		payload, err := warpPayload.NewAddressedCall(warpMsgPayload.SourceAddress, teleporterMessageBytes)
-		Expect(err).Should(BeNil())
-
-		signedMessage.UnsignedMessage.Payload = payload.Bytes()
-
-		signedMessage.Initialize()
+		alterTeleporterMessage(signedMessage)
 	}
 
 	destinationTx := predicateutils.NewPredicateTx(
@@ -449,4 +432,25 @@ func CalculateTxParams(ctx context.Context, rpcClient ethclient.Client, fundedAd
 	gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
 
 	return gasFeeCap, gasTipCap, nonce
+}
+
+func alterTeleporterMessage(signedMessage *avalancheWarp.Message) {
+	warpMsgPayload, err := warpPayload.ParseAddressedCall(signedMessage.UnsignedMessage.Payload)
+	Expect(err).Should(BeNil())
+
+	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpMsgPayload.Payload)
+	Expect(err).Should(BeNil())
+	// Alter the message
+	teleporterMessage.Message[0] = ^teleporterMessage.Message[0]
+
+	// Pack the teleporter message
+	teleporterMessageBytes, err := teleportermessenger.PackTeleporterMessage(*teleporterMessage)
+	Expect(err).Should(BeNil())
+
+	payload, err := warpPayload.NewAddressedCall(warpMsgPayload.SourceAddress, teleporterMessageBytes)
+	Expect(err).Should(BeNil())
+
+	signedMessage.UnsignedMessage.Payload = payload.Bytes()
+
+	signedMessage.Initialize()
 }
