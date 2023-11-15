@@ -4,9 +4,6 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/ava-labs/subnet-evm/accounts/abi"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
@@ -34,55 +31,13 @@ var eventCmd = &cobra.Command{
 			topics = append(topics, common.HexToHash(topic))
 		}
 
-		err := FilterTeleporterEvents(topics, data)
+		event, err := teleporterABI.EventByID(topics[0])
 		cobra.CheckErr(err)
+
+		out, err := teleportermessenger.FilterTeleporterEvents(topics, data, event.Name)
+		cobra.CheckErr(err)
+		logger.Info("Parsed Teleporter event", zap.String("name", event.Name), zap.Any("event", out))
 	},
-}
-
-func FilterTeleporterEvents(topics []common.Hash, data []byte) error {
-	event, err := teleporterABI.EventByID(topics[0])
-	if err != nil {
-		return err
-	}
-	var out interface{}
-	switch event.Name {
-	case "SendCrossChainMessage":
-		out = new(teleportermessenger.TeleporterMessengerSendCrossChainMessage)
-	case "ReceiveCrossChainMessage":
-		out = new(teleportermessenger.TeleporterMessengerReceiveCrossChainMessage)
-	case "AddFeeAmount":
-		out = new(teleportermessenger.TeleporterMessengerAddFeeAmount)
-	case "MessageExecutedFailed":
-		out = new(teleportermessenger.TeleporterMessengerMessageExecutionFailed)
-	case "MessageExecuted":
-		out = new(teleportermessenger.TeleporterMessengerMessageExecuted)
-	case "RelayerRewardsRedeemed":
-		out = new(teleportermessenger.TeleporterMessengerRelayerRewardsRedeemed)
-	default:
-		logger.Error("Unknown event", zap.String("event", event.Name))
-		return fmt.Errorf("unknown event %s", event.Name)
-	}
-	if err = UnpackEvent(out, event.Name, topics, data); err != nil {
-		return err
-	}
-	logger.Info(fmt.Sprintf("Event %s unpacked", event.Name), zap.Any("event", out))
-	return nil
-}
-
-func UnpackEvent(out interface{}, event string, topics []common.Hash, data []byte) error {
-	if len(data) > 0 {
-		if err := teleporterABI.UnpackIntoInterface(out, event, data); err != nil {
-			return err
-		}
-	}
-
-	var indexed abi.Arguments
-	for _, arg := range teleporterABI.Events[event].Inputs {
-		if arg.Indexed {
-			indexed = append(indexed, arg)
-		}
-	}
-	return abi.ParseTopics(out, indexed, topics[1:])
 }
 
 func init() {

@@ -42,8 +42,12 @@ var transactionCmd = &cobra.Command{
 			if log.Address == contractAddress {
 				logger.Debug("Processing Teleporter log", zap.Any("log", log))
 
-				err := FilterTeleporterEvents(log.Topics, log.Data)
+				event, err := teleporterABI.EventByID(log.Topics[0])
 				cobra.CheckErr(err)
+
+				out, err := teleportermessenger.FilterTeleporterEvents(log.Topics, log.Data, event.Name)
+				cobra.CheckErr(err)
+				logger.Info("Parsed Teleporter event", zap.Any("event", out))
 			}
 
 			if log.Address == common.HexToAddress(warpPrecompileAddress) {
