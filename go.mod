@@ -8,7 +8,7 @@ require (
 )
 
 require (
-	github.com/ava-labs/avalanche-network-runner v1.7.3-0.20231026153158-2931f8a448d9
+	github.com/ava-labs/avalanche-network-runner v1.7.3-0.20231108230321-28359b636ddf
 	github.com/ava-labs/subnet-evm v0.5.9
 	github.com/ethereum/go-ethereum v1.12.0
 	github.com/onsi/ginkgo/v2 v2.13.0

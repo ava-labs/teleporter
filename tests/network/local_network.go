@@ -6,6 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/teleporter/tests/utils"
+	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -15,15 +16,15 @@ var _ Network = &LocalNetwork{}
 type LocalNetwork struct{}
 
 func (n *LocalNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
-	return utils.GetSubnetsInfo()
+	return localUtils.GetSubnetsInfo()
 }
 
 func (n *LocalNetwork) GetTeleporterContractAddress() common.Address {
-	return utils.GetTeleporterContractAddress()
+	return localUtils.GetTeleporterContractAddress()
 }
 
 func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
-	return utils.GetFundedAccountInfo()
+	return localUtils.GetFundedAccountInfo()
 }
 
 func (n *LocalNetwork) RelayMessage(ctx context.Context,
@@ -32,5 +33,5 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	destination utils.SubnetTestInfo,
 	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
-	return utils.RelayMessage(ctx, sourceReceipt, source, destination, alterMessage, expectSuccess)
+	return localUtils.RelayMessage(ctx, sourceReceipt, source, destination, alterMessage, expectSuccess)
 }

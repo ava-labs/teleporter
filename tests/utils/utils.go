@@ -36,6 +36,16 @@ var (
 	DefaultTeleporterTransactionValue            = common.Big0
 )
 
+type SubnetTestInfo struct {
+	SubnetID                  ids.ID
+	BlockchainID              ids.ID
+	ChainNodeURIs             []string
+	ChainWSClient             ethclient.Client
+	ChainRPCClient            ethclient.Client
+	ChainIDInt                *big.Int
+	TeleporterRegistryAddress common.Address
+}
+
 //
 // Test utility functions
 //
@@ -134,7 +144,7 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	originChainID ids.ID,
 	subnet SubnetTestInfo,
 	message teleportermessenger.TeleporterMessage,
-	funedAddress common.Address,
+	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {

@@ -10,9 +10,9 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
+	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/crypto"
-
 	. "github.com/onsi/gomega"
 )
 
@@ -52,7 +52,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	// Deploy ExampleMessenger to Subnet A, but not to Subnet B
 	// Send a message that should fail to be executed on Subnet B
 	//
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
+	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
 
 	// Derive the eventual address of the destination contract on Subnet B
 	nonce, err := subnetBInfo.ChainRPCClient.NonceAt(ctx, deployerAddress, nil)

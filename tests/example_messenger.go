@@ -9,6 +9,7 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
+	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -37,8 +38,8 @@ func ExampleMessenger(network network.Network) {
 	//
 	ctx := context.Background()
 
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
-	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
+	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
+	exampleMessengerContractB, subnetBExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
 
 	//
 	// Call the example messenger contract on Subnet A

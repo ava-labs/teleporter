@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	testUtils "github.com/ava-labs/teleporter/tests/utils"
+	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
@@ -30,17 +30,17 @@ func TestE2E(t *testing.T) {
 
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
-	testUtils.SetupNetwork(warpGenesisFile)
+	localUtils.SetupNetwork(warpGenesisFile)
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
 
-	testUtils.DeployTeleporterContracts(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
-	testUtils.DeployTeleporterRegistryContracts(teleporterContractAddress)
+	localUtils.DeployTeleporterContracts(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
+	localUtils.DeployTeleporterRegistryContracts(teleporterContractAddress)
 	log.Info("Set up ginkgo before suite")
 })
 
-var _ = ginkgo.AfterSuite(testUtils.TearDownNetwork)
+var _ = ginkgo.AfterSuite(localUtils.TearDownNetwork)
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Teleporter tests
@@ -55,6 +55,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Insufficient gas", InsufficientGasGinkgo)
 	ginkgo.It("Resubmit altered message", ResubmitAlteredMessageGinkgo)
 	ginkgo.It("Relayer modifies message", RelayerModifiesMessageGinkgo)
+	ginkgo.It("Validator churn", ValidatorChurnGinkgo)
 
 	// Cross-chain application tests
 	ginkgo.It("Example cross chain messenger", ExampleMessengerGinkgo)
