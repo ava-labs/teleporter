@@ -34,7 +34,7 @@ contract NativeTokenDestination is
     INativeMinter private immutable _nativeMinter =
         INativeMinter(0x0200000000000000000000000000000000000001);
 
-    uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 150_000; // TODO this is a placeholder
+    uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
     // The first `initialReserveImbalance` tokens sent to this subnet will not be minted.

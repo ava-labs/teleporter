@@ -93,9 +93,7 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToSource transaction on destination chain", "sourceChainID", subnetA.BlockchainID, "txHash", tx.Hash().Hex())
 
-		sourceChainReceipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetB.WSClient)
-		Expect(err).Should(BeNil())
-		Expect(sourceChainReceipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetB.WSClient)
 
 		transferEvent, err := utils.GetEventFromLogs(sourceChainReceipt.Logs, nativeTokenDestination.ParseTransferToSource)
 		Expect(err).Should(BeNil())
@@ -116,9 +114,7 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToDestination transaction on source chain", "destinationChainID", subnetB.BlockchainID, "txHash", tx.Hash().Hex())
 
-		sourceChainReceipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetA.WSClient)
-		Expect(err).Should(BeNil())
-		Expect(sourceChainReceipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetA.WSClient)
 
 		transferEvent, err := utils.GetEventFromLogs(sourceChainReceipt.Logs, erc20TokenSource.ParseTransferToDestination)
 		Expect(err).Should(BeNil())
@@ -140,9 +136,7 @@ func ERC20ToNativeTokenBridge() {
 		tx, err := exampleERC20.Approve(transactor, bridgeContractAddress, bal)
 		Expect(err).Should(BeNil())
 
-		receipt := utils.WaitForTransaction(ctx, tx.Hash(), subnetA.WSClient)
-		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetA.WSClient)
 	}
 
 	{ // Transfer some tokens A -> B
@@ -150,7 +144,7 @@ func ERC20ToNativeTokenBridge() {
 
 		utils.CheckBalance(ctx, tokenReceiverAddress, 0, subnetB.WSClient)
 
-		CheckReserveImbalance(initialReserveImbalance, nativeTokenDestination)
+		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
 		destChainReceipt := sendTokensToDestination(valueToSend1, deployerPK, tokenReceiverAddress)
 
@@ -161,7 +155,7 @@ func ERC20ToNativeTokenBridge() {
 		_, err = utils.GetEventFromLogs(destChainReceipt.Logs, nativeTokenDestination.ParseNativeTokensMinted)
 		Expect(err).ShouldNot(BeNil())
 
-		CheckReserveImbalance(initialReserveImbalance-valueToSend1, nativeTokenDestination)
+		checkReserveImbalance(initialReserveImbalance-valueToSend1, nativeTokenDestination)
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
 		utils.CheckBalance(ctx, tokenReceiverAddress, 0, subnetB.WSClient)
@@ -178,7 +172,7 @@ func ERC20ToNativeTokenBridge() {
 		_, err = nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, emptyDestFeeInfo, []common.Address{})
 		Expect(err).ShouldNot(BeNil())
 
-		CheckReserveImbalance(initialReserveImbalance-valueToSend1, nativeTokenDestination)
+		checkReserveImbalance(initialReserveImbalance-valueToSend1, nativeTokenDestination)
 
 		// Check we failed to send because we're not collateralized
 		utils.CheckBalance(ctx, tokenReceiverAddress, 0, subnetB.WSClient)
@@ -188,7 +182,7 @@ func ERC20ToNativeTokenBridge() {
 		// Check starting balance is 0
 		utils.CheckBalance(ctx, tokenReceiverAddress, 0, subnetB.WSClient)
 
-		CheckReserveImbalance(initialReserveImbalance-valueToSend1, nativeTokenDestination)
+		checkReserveImbalance(initialReserveImbalance-valueToSend1, nativeTokenDestination)
 
 		destChainReceipt := sendTokensToDestination(initialReserveImbalance, deployerPK, tokenReceiverAddress)
 
@@ -200,7 +194,7 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		Expect(mintEvent.Amount.Uint64()).Should(Equal(valueToSend1))
 
-		CheckReserveImbalance(0, nativeTokenDestination)
+		checkReserveImbalance(0, nativeTokenDestination)
 
 		// We should have minted the excess coins after checking the collateral
 		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend1, subnetB.WSClient)
@@ -209,9 +203,7 @@ func ERC20ToNativeTokenBridge() {
 	{ // Transfer tokens B -> A
 		sourceChainReceipt := sendTokensToSource(valueToReturn, deployerPK, tokenReceiverAddress)
 
-		unlockEvent, err := utils.GetEventFromLogs(sourceChainReceipt.Logs, erc20TokenSource.ParseUnlockTokens)
-		Expect(err).Should(BeNil())
-		Expect(unlockEvent.Amount.Uint64()).Should(Equal(valueToReturn))
+		checkUnlockERC20Event(sourceChainReceipt.Logs, erc20TokenSource, tokenReceiverAddress, valueToReturn)
 
 		bal, err := exampleERC20.BalanceOf(nil, tokenReceiverAddress)
 		Expect(err).Should(BeNil())
@@ -219,8 +211,15 @@ func ERC20ToNativeTokenBridge() {
 	}
 }
 
-func CheckReserveImbalance(value uint64, nativeTokenDestination *nativetokendestination.NativeTokenDestination) {
+func checkReserveImbalance(value uint64, nativeTokenDestination *nativetokendestination.NativeTokenDestination) {
 	imbalance, err := nativeTokenDestination.CurrentReserveImbalance(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	Expect(imbalance.Uint64()).Should(Equal(value))
+}
+
+func checkUnlockERC20Event(logs []*types.Log, erc20TokenSource *erc20tokensource.ERC20TokenSource, recipient common.Address, value uint64) {
+	unlockEvent, err := utils.GetEventFromLogs(logs,  erc20TokenSource.ParseUnlockTokens)
+	Expect(err).Should(BeNil())
+	Expect(unlockEvent.Recipient).Should(Equal(recipient))
+	Expect(unlockEvent.Amount.Uint64()).Should(Equal(value))
 }

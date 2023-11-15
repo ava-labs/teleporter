@@ -229,6 +229,12 @@ func SendAndWaitForTransaction(ctx context.Context, tx *types.Transaction, clien
 	return WaitForTransaction(ctx, tx.Hash(), client)
 }
 
+func WaitForTransactionSuccess(ctx context.Context, txHash common.Hash, client ethclient.Client) *types.Receipt {
+	receipt := WaitForTransaction(ctx, txHash, client)
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	return receipt
+}
+
 func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclient.Client) *types.Receipt {
 	cctx, cancel := context.WithTimeout(ctx, 20 * time.Second)
 	defer cancel()
@@ -292,7 +298,7 @@ func RelayMessage(
 	signedTx := CreateReceiveCrossChainMessageTransaction(
 		ctx,
 		signedWarpMessageBytes,
-		big.NewInt(200000),
+		big.NewInt(1),
 		teleporterContractAddress,
 		fundedKey,
 		destination.WSClient,

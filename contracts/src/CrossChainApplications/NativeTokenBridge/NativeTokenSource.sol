@@ -20,7 +20,7 @@ contract NativeTokenSource is
     INativeTokenSource,
     ReentrancyGuard
 {
-    uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 150_000; // TODO this is a placeholder
+    uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
 
