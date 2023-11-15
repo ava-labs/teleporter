@@ -21,26 +21,29 @@ var _ Network = &FujiNetwork{}
 var (
 	teleporterContractAddress = common.HexToAddress("0x50A46AA7b2eCBe2B1AbB7df865B9A87f5eed8635")
 
-	amplifySubnetIDStr     = "2PsShLjrFFwR51DMcAh8pyuwzLn1Ym3zRhuXLTmLCR1STk2mL6"
-	amplifyBlockchainIDStr = "2nFUad4Nw4pCgEF6MwYgGuKrzKbHJzM8wF29jeVUL41RWHgNRa"
-	amplifyWSURI           = "wss://subnets.avax.network/amplify/testnet/ws"
-	amplifyRPCURI          = "https://subnets.avax.network/amplify/testnet/rpc"
-	amplifySubnetID        ids.ID
-	amplifyBlockchainID    ids.ID
+	amplifySubnetIDStr               = "2PsShLjrFFwR51DMcAh8pyuwzLn1Ym3zRhuXLTmLCR1STk2mL6"
+	amplifyBlockchainIDStr           = "2nFUad4Nw4pCgEF6MwYgGuKrzKbHJzM8wF29jeVUL41RWHgNRa"
+	amplifyWSURI                     = "wss://subnets.avax.network/amplify/testnet/ws"
+	amplifyRPCURI                    = "https://subnets.avax.network/amplify/testnet/rpc"
+	amplifySubnetID                  ids.ID
+	amplifyBlockchainID              ids.ID
+	amplifyTeleporterRegistryAddress common.Address // Empty for now
 
-	bulletinSubnetIDStr     = "cbXsFGWSDWUYTmRXUoCirVDdQkZmUWrkQQYoVc2wUoDm8eFup"
-	bulletinBlockchainIDStr = "2e3RJ3ub9Pceh8fJ3HX3gZ6nSXJLvBJ9WoXLcU4nwdpZ8X2RLq"
-	bulletinWSURI           = "wss://subnets.avax.network/bulletin/testnet/ws"
-	bulletinRPCURI          = "https://subnets.avax.network/bulletin/testnet/rpc"
-	bulletinSubnetID        ids.ID
-	bulletinBlockchainID    ids.ID
+	bulletinSubnetIDStr               = "cbXsFGWSDWUYTmRXUoCirVDdQkZmUWrkQQYoVc2wUoDm8eFup"
+	bulletinBlockchainIDStr           = "2e3RJ3ub9Pceh8fJ3HX3gZ6nSXJLvBJ9WoXLcU4nwdpZ8X2RLq"
+	bulletinWSURI                     = "wss://subnets.avax.network/bulletin/testnet/ws"
+	bulletinRPCURI                    = "https://subnets.avax.network/bulletin/testnet/rpc"
+	bulletinSubnetID                  ids.ID
+	bulletinBlockchainID              ids.ID
+	bulletinTeleporterRegistryAddress common.Address // Empty for now
 
-	conduitSubnetIDStr     = "wW7JVmjXp8SKrpacGzM81RBXdfcLDVY6M2DkFyArEXgtkyozK"
-	conduitBlockchainIDStr = "9asUA3QckLh7vGnFQiiUJGPTx8KE4nFtP8c1wTWJuP8XiWW75"
-	conduitWSURI           = "wss://subnets.avax.network/conduit/testnet/ws"
-	conduitRPCURI          = "https://subnets.avax.network/conduit/testnet/rpc"
-	conduitSubnetID        ids.ID
-	conduitBlockchainID    ids.ID
+	conduitSubnetIDStr               = "wW7JVmjXp8SKrpacGzM81RBXdfcLDVY6M2DkFyArEXgtkyozK"
+	conduitBlockchainIDStr           = "9asUA3QckLh7vGnFQiiUJGPTx8KE4nFtP8c1wTWJuP8XiWW75"
+	conduitWSURI                     = "wss://subnets.avax.network/conduit/testnet/ws"
+	conduitRPCURI                    = "https://subnets.avax.network/conduit/testnet/rpc"
+	conduitSubnetID                  ids.ID
+	conduitBlockchainID              ids.ID
+	conduitTeleporterRegistryAddress common.Address // Empty for now
 
 	userAddress = common.HexToAddress("")      // To be supplied by user
 	skHex       = strings.TrimPrefix("", "0x") // To be supplied by user
@@ -78,9 +81,75 @@ func init() {
 }
 
 // Implements Network, pointing to subnets deployed on Fuji
-type FujiNetwork struct{}
+type FujiNetwork struct {
+	amplifyInfo  utils.SubnetTestInfo
+	bulletinInfo utils.SubnetTestInfo
+	conduitInfo  utils.SubnetTestInfo
+}
+
+func NewFujiNetwork() *FujiNetwork {
+	amplifyWSClient, err := ethclient.Dial(amplifyWSURI)
+	Expect(err).Should(BeNil())
+	amplifyRPCClient, err := ethclient.Dial(amplifyRPCURI)
+	Expect(err).Should(BeNil())
+	amplifyChainIDInt, err := amplifyRPCClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
+
+	bulletinWSClient, err := ethclient.Dial(bulletinWSURI)
+	Expect(err).Should(BeNil())
+	bulletinRPCClient, err := ethclient.Dial(bulletinRPCURI)
+	Expect(err).Should(BeNil())
+	bulletinChainIDInt, err := bulletinRPCClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
+
+	conduitWSClient, err := ethclient.Dial(conduitWSURI)
+	Expect(err).Should(BeNil())
+	conduitRPCClient, err := ethclient.Dial(conduitRPCURI)
+	Expect(err).Should(BeNil())
+	conduitChainIDInt, err := conduitRPCClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
+
+	return &FujiNetwork{
+		amplifyInfo: utils.SubnetTestInfo{
+			SubnetID:                  amplifySubnetID,
+			BlockchainID:              amplifyBlockchainID,
+			ChainIDInt:                amplifyChainIDInt,
+			ChainWSClient:             amplifyWSClient,
+			ChainRPCClient:            amplifyRPCClient,
+			TeleporterRegistryAddress: amplifyTeleporterRegistryAddress,
+		},
+		bulletinInfo: utils.SubnetTestInfo{
+			SubnetID:                  bulletinSubnetID,
+			BlockchainID:              bulletinBlockchainID,
+			ChainIDInt:                bulletinChainIDInt,
+			ChainWSClient:             bulletinWSClient,
+			ChainRPCClient:            bulletinRPCClient,
+			TeleporterRegistryAddress: bulletinTeleporterRegistryAddress,
+		},
+		conduitInfo: utils.SubnetTestInfo{
+			SubnetID:                  conduitSubnetID,
+			BlockchainID:              conduitBlockchainID,
+			ChainIDInt:                conduitChainIDInt,
+			ChainWSClient:             conduitWSClient,
+			ChainRPCClient:            conduitRPCClient,
+			TeleporterRegistryAddress: conduitTeleporterRegistryAddress,
+		},
+	}
+}
+
+func (n *FujiNetwork) CloseNetworkConnections() {
+	n.amplifyInfo.ChainWSClient.Close()
+	n.amplifyInfo.ChainRPCClient.Close()
+	n.bulletinInfo.ChainWSClient.Close()
+	n.bulletinInfo.ChainRPCClient.Close()
+	n.conduitInfo.ChainWSClient.Close()
+	n.conduitInfo.ChainRPCClient.Close()
+}
 
 func (n *FujiNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
+	// Close any open clients
+	n.CloseNetworkConnections()
+
 	amplifyWSClient, err := ethclient.Dial(amplifyWSURI)
 	Expect(err).Should(BeNil())
 	amplifyRPCClient, err := ethclient.Dial(amplifyRPCURI)
@@ -123,6 +192,10 @@ func (n *FujiNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
 		ChainWSClient:  conduitWSClient,
 		ChainRPCClient: conduitRPCClient,
 	}
+
+	n.amplifyInfo = amplifyInfo
+	n.bulletinInfo = bulletinInfo
+	n.conduitInfo = conduitInfo
 
 	return []utils.SubnetTestInfo{
 		amplifyInfo,
