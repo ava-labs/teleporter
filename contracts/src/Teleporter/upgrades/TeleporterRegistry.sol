@@ -127,7 +127,7 @@ contract TeleporterRegistry {
      * @dev Gets the {ITeleporterMessenger} contract of the given `version`.
      * Requirements:
      *
-     * - `version` must be a valid version registered.
+     * - `version` must be a valid registered version.
      */
     function getTeleporterFromVersion(
         uint256 version
