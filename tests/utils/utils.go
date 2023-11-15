@@ -53,16 +53,15 @@ type SubnetTestInfo struct {
 // Returns the new head
 func SendTransactionAndWaitForAcceptance(
 	ctx context.Context,
-	wsClient ethclient.Client,
-	rpcClient ethclient.Client,
+	subnetInfo SubnetTestInfo,
 	tx *types.Transaction,
 	expectSuccess bool) *types.Receipt {
 
-	err := rpcClient.SendTransaction(ctx, tx)
+	err := subnetInfo.ChainRPCClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be accepted
-	receipt, err := bind.WaitMined(ctx, rpcClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnetInfo.ChainRPCClient, tx)
 	Expect(err).Should(BeNil())
 	if expectSuccess {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
@@ -234,7 +233,7 @@ func CreateTransactorOpts(ctx context.Context, subnet SubnetTestInfo, fundedAddr
 		fundedKey, subnet.ChainIDInt)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnet.ChainRPCClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnet, fundedAddress)
 
 	transactor.From = fundedAddress
 	transactor.Nonce = new(big.Int).SetUint64(nonce)
@@ -257,7 +256,7 @@ func CreateSendCrossChainMessageTransaction(
 	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, source.ChainRPCClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, source, fundedAddress)
 
 	// Send a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -292,7 +291,7 @@ func CreateRetryMessageExecutionTransaction(
 	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit) // TODO: replace with actual number of signers
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo.ChainRPCClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
 
 	// Send a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -318,8 +317,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	teleporterContractAddress common.Address,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	rpcClient ethclient.Client,
-	chainID *big.Int,
+	subnetInfo SubnetTestInfo,
 ) *types.Transaction {
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
@@ -335,10 +333,10 @@ func CreateReceiveCrossChainMessageTransaction(
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, rpcClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
 
 	destinationTx := predicateutils.NewPredicateTx(
-		chainID,
+		subnetInfo.ChainIDInt,
 		nonce,
 		&teleporterContractAddress,
 		gasLimit,
@@ -351,21 +349,21 @@ func CreateReceiveCrossChainMessageTransaction(
 		signedMessage.Bytes(),
 	)
 
-	return SignTransaction(destinationTx, fundedKey, chainID)
+	return SignTransaction(destinationTx, fundedKey, subnetInfo.ChainIDInt)
 }
 
 func CreateNativeTransferTransaction(
 	ctx context.Context,
-	network SubnetTestInfo,
+	subnetInfo SubnetTestInfo,
 	fromAddress common.Address,
 	fromKey *ecdsa.PrivateKey,
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Transaction {
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, network.ChainRPCClient, fromAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fromAddress)
 
 	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   network.ChainIDInt,
+		ChainID:   subnetInfo.ChainIDInt,
 		Nonce:     nonce,
 		To:        &recipient,
 		Gas:       NativeTransferGas,
@@ -374,16 +372,16 @@ func CreateNativeTransferTransaction(
 		Value:     amount,
 	})
 
-	return SignTransaction(tx, fromKey, network.ChainIDInt)
+	return SignTransaction(tx, fromKey, subnetInfo.ChainIDInt)
 }
 
-func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclient.Client) *types.Receipt {
+func WaitForTransaction(ctx context.Context, txHash common.Hash, subnetInfo SubnetTestInfo) *types.Receipt {
 	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	// Loop until we find the transaction or time out
 	for {
-		receipt, err := client.TransactionReceipt(cctx, txHash)
+		receipt, err := subnetInfo.ChainRPCClient.TransactionReceipt(cctx, txHash)
 		if err == nil {
 			return receipt
 		} else {
@@ -422,14 +420,14 @@ func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.
 }
 
 // Returns the gasFeeCap, gasTipCap, and nonce the be used when constructing a transaction from fundedAddress
-func CalculateTxParams(ctx context.Context, rpcClient ethclient.Client, fundedAddress common.Address) (*big.Int, *big.Int, uint64) {
-	baseFee, err := rpcClient.EstimateBaseFee(ctx)
+func CalculateTxParams(ctx context.Context, subnetInfo SubnetTestInfo, fundedAddress common.Address) (*big.Int, *big.Int, uint64) {
+	baseFee, err := subnetInfo.ChainRPCClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
 
-	gasTipCap, err := rpcClient.SuggestGasTipCap(ctx)
+	gasTipCap, err := subnetInfo.ChainRPCClient.SuggestGasTipCap(ctx)
 	Expect(err).Should(BeNil())
 
-	nonce, err := rpcClient.NonceAt(ctx, fundedAddress, nil)
+	nonce, err := subnetInfo.ChainRPCClient.NonceAt(ctx, fundedAddress, nil)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))

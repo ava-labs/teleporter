@@ -46,7 +46,7 @@ func DeliverToNonExistentContract(network network.Network) {
 
 	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 	fundDeployerTx := utils.CreateNativeTransferTransaction(ctx, subnetBInfo, fundedAddress, fundedKey, deployerAddress, fundAmount)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, fundDeployerTx, true)
+	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo, fundDeployerTx, true)
 
 	//
 	// Deploy ExampleMessenger to Subnet A, but not to Subnet B

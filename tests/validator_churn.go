@@ -98,12 +98,11 @@ func ValidatorChurnGinkgo() {
 		teleporterContractAddress,
 		fundedAddress,
 		fundedKey,
-		subnetBInfo.ChainRPCClient,
-		subnetBInfo.ChainIDInt,
+		subnetBInfo,
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt = utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, signedTx, false)
+	receipt = utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo, signedTx, false)
 
 	// Verify the message was not delivered
 	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)

@@ -133,12 +133,11 @@ func RelayMessage(
 		teleporterContractAddress,
 		fundedAddress,
 		fundedKey,
-		destination.ChainRPCClient,
-		destination.ChainIDInt,
+		destination,
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, destination.ChainWSClient, destination.ChainRPCClient, signedTx, expectSuccess)
+	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, destination, signedTx, expectSuccess)
 
 	if !expectSuccess {
 		return nil
@@ -164,7 +163,7 @@ func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ec
 	Expect(err).Should(BeNil())
 
 	// Wait for transaction, then check code was deployed
-	utils.WaitForTransaction(ctx, tx.Hash(), subnetInfo.ChainRPCClient)
+	utils.WaitForTransaction(ctx, tx.Hash(), subnetInfo)
 	code, err := subnetInfo.ChainRPCClient.CodeAt(ctx, contractAddress, nil)
 	Expect(err).Should(BeNil())
 	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode

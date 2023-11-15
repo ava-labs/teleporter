@@ -54,7 +54,7 @@ func ReceiveMessageTwice(network network.Network) {
 	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.ChainWSClient, subnetAInfo.ChainRPCClient, signedTx, true)
+	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo, signedTx, true)
 
 	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
@@ -81,7 +81,7 @@ func ReceiveMessageTwice(network network.Network) {
 	// Attempt to send the same message again
 	//
 	log.Info("Submitting the same Teleporter message again on the destination")
-	gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(ctx, subnetBInfo.ChainRPCClient, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(ctx, subnetBInfo, fundedAddress)
 	secondTeleporterTx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:    subnetBInfo.ChainIDInt,
 		Nonce:      nonce,
@@ -95,5 +95,5 @@ func ReceiveMessageTwice(network network.Network) {
 	})
 
 	signedTx = utils.SignTransaction(secondTeleporterTx, fundedKey, subnetBInfo.ChainIDInt)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, signedTx, false)
+	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo, signedTx, false)
 }
