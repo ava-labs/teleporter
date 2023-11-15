@@ -12,6 +12,7 @@ import (
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/ava-labs/avalanchego/utils/set"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -34,17 +35,13 @@ const (
 )
 
 var (
-	teleporterContractAddress                              common.Address
-	subnetA, subnetB                                       ids.ID
-	blockchainIDA, blockchainIDB                           ids.ID
-	chainANodeURIs, chainBNodeURIs                         []string
-	fundedAddress                                          = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
-	fundedKey                                              *ecdsa.PrivateKey
-	chainAWSClient, chainBWSClient                         ethclient.Client
-	chainARPCClient, chainBRPCClient                       ethclient.Client
-	chainAIDInt, chainBIDInt                               *big.Int
-	teleporterRegistryAddressA, teleporterRegistryAddressB common.Address
-	subnetANodeNames, subnetBNodeNames                     []string
+	teleporterContractAddress common.Address
+	subnetA, subnetB          ids.ID
+	subnetsInfo               map[ids.ID]*utils.SubnetTestInfo = make(map[ids.ID]*utils.SubnetTestInfo)
+	subnetNodeNames           map[ids.ID][]string              = make(map[ids.ID][]string)
+
+	fundedAddress = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
+	fundedKey     *ecdsa.PrivateKey
 
 	// Internal vars only used to set up the local network
 	anrClient           runner_sdk.Client
@@ -58,33 +55,11 @@ var (
 
 func GetSubnetsInfo() []utils.SubnetTestInfo {
 	return []utils.SubnetTestInfo{
-		GetSubnetATestInfo(),
-		GetSubnetBTestInfo(),
+		*subnetsInfo[subnetA],
+		*subnetsInfo[subnetB],
 	}
 }
 
-func GetSubnetATestInfo() utils.SubnetTestInfo {
-	return utils.SubnetTestInfo{
-		SubnetID:                  subnetA,
-		BlockchainID:              blockchainIDA,
-		ChainNodeURIs:             chainANodeURIs,
-		ChainWSClient:             chainAWSClient,
-		ChainRPCClient:            chainARPCClient,
-		ChainIDInt:                big.NewInt(0).Set(chainAIDInt),
-		TeleporterRegistryAddress: teleporterRegistryAddressA,
-	}
-}
-func GetSubnetBTestInfo() utils.SubnetTestInfo {
-	return utils.SubnetTestInfo{
-		SubnetID:                  subnetB,
-		BlockchainID:              blockchainIDB,
-		ChainNodeURIs:             chainBNodeURIs,
-		ChainWSClient:             chainBWSClient,
-		ChainRPCClient:            chainBRPCClient,
-		ChainIDInt:                big.NewInt(0).Set(chainBIDInt),
-		TeleporterRegistryAddress: teleporterRegistryAddressB,
-	}
-}
 func GetTeleporterContractAddress() common.Address {
 	return teleporterContractAddress
 }
@@ -103,6 +78,8 @@ func SetupNetwork(warpGenesisFile string) {
 	var err error
 
 	// Name 10 new validators (which should have BLS key registered)
+	var subnetANodeNames []string
+	var subnetBNodeNames []string
 	for i := 1; i <= 10; i++ {
 		n := fmt.Sprintf("node%d-bls", i)
 		if i <= 5 {
@@ -111,6 +88,7 @@ func SetupNetwork(warpGenesisFile string) {
 			subnetBNodeNames = append(subnetBNodeNames, n)
 		}
 	}
+
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
 	_, err = f.Write([]byte(`{"warp-api-enabled": true}`))
@@ -176,7 +154,18 @@ func SetupNetwork(warpGenesisFile string) {
 		DialTimeout: 10 * time.Second,
 	}, zapLog)
 
-	SetSubnetValues()
+	// On initial startup, we need to first set the subnet node names
+	// before calling setSubnetValues for the two subnets
+	subnetIDs := manager.GetSubnets()
+	Expect(len(subnetIDs)).Should(Equal(2))
+	subnetA = subnetIDs[0]
+	subnetB = subnetIDs[1]
+
+	subnetNodeNames[subnetA] = subnetANodeNames
+	subnetNodeNames[subnetB] = subnetBNodeNames
+
+	setSubnetValues(subnetA)
+	setSubnetValues(subnetB)
 
 	log.Info("Finished setting up e2e test subnet variables")
 }
@@ -186,84 +175,57 @@ func SetSubnetValues() {
 	Expect(len(subnetIDs)).Should(Equal(2))
 
 	subnetA = subnetIDs[0]
-	SetSubnetAValues(subnetA)
+	setSubnetValues(subnetA)
 
 	subnetB = subnetIDs[1]
-	SetSubnetBValues(subnetB)
+	setSubnetValues(subnetB)
 }
 
-func SetSubnetBValues(subnetID ids.ID) {
-	var err error
-	subnetBDetails, ok := manager.GetSubnet(subnetID)
+func setSubnetValues(subnetID ids.ID) {
+	subnetDetails, ok := manager.GetSubnet(subnetID)
 	Expect(ok).Should(BeTrue())
-	blockchainIDB = subnetBDetails.BlockchainID
+	blockchainID := subnetDetails.BlockchainID
 
 	// Reset the validator URIs, as they may have changed
-	subnetBDetails.ValidatorURIs = nil
+	subnetDetails.ValidatorURIs = nil
 	status, err := anrClient.Status(context.Background())
 	Expect(err).Should(BeNil())
 	nodeInfos := status.GetClusterInfo().GetNodeInfos()
 
-	anrClient.Status(context.Background())
-	for _, nodeName := range subnetBNodeNames {
-		subnetBDetails.ValidatorURIs = append(subnetBDetails.ValidatorURIs, nodeInfos[nodeName].Uri)
+	for _, nodeName := range subnetNodeNames[subnetID] {
+		subnetDetails.ValidatorURIs = append(subnetDetails.ValidatorURIs, nodeInfos[nodeName].Uri)
 	}
+	var chainNodeURIs []string
+	chainNodeURIs = append(chainNodeURIs, subnetDetails.ValidatorURIs...)
 
-	chainBNodeURIs = nil
-	chainBNodeURIs = append(chainBNodeURIs, subnetBDetails.ValidatorURIs...)
+	chainWSURI := utils.HttpToWebsocketURI(chainNodeURIs[0], blockchainID.String())
+	chainRPCURI := utils.HttpToRPCURI(chainNodeURIs[0], blockchainID.String())
 
-	chainBWSURI := utils.HttpToWebsocketURI(chainBNodeURIs[0], blockchainIDB.String())
-	chainBRPCURI := utils.HttpToRPCURI(chainBNodeURIs[0], blockchainIDB.String())
-
-	if chainBWSClient != nil {
-		chainBWSClient.Close()
+	if subnetsInfo[subnetID] != nil && subnetsInfo[subnetID].ChainWSClient != nil {
+		subnetsInfo[subnetID].ChainWSClient.Close()
 	}
-	chainBWSClient, err = ethclient.Dial(chainBWSURI)
+	chainWSClient, err := ethclient.Dial(chainWSURI)
 	Expect(err).Should(BeNil())
-	if chainBRPCClient != nil {
-		chainBRPCClient.Close()
+	if subnetsInfo[subnetID] != nil && subnetsInfo[subnetID].ChainRPCClient != nil {
+		subnetsInfo[subnetID].ChainRPCClient.Close()
 	}
-	chainBRPCClient, err = ethclient.Dial(chainBRPCURI)
+	chainRPCClient, err := ethclient.Dial(chainRPCURI)
 	Expect(err).Should(BeNil())
-	chainBIDInt, err = chainBRPCClient.ChainID(context.Background())
+	chainIDInt, err := chainRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
-}
 
-func SetSubnetAValues(subnetID ids.ID) {
-	var err error
-	subnetADetails, ok := manager.GetSubnet(subnetID)
-	Expect(ok).Should(BeTrue())
-	blockchainIDA = subnetADetails.BlockchainID
-
-	// Reset the validator URIs, as they may have changed
-	subnetADetails.ValidatorURIs = nil
-	status, err := anrClient.Status(context.Background())
-	Expect(err).Should(BeNil())
-	nodeInfos := status.GetClusterInfo().GetNodeInfos()
-
-	anrClient.Status(context.Background())
-	for _, nodeName := range subnetANodeNames {
-		subnetADetails.ValidatorURIs = append(subnetADetails.ValidatorURIs, nodeInfos[nodeName].Uri)
+	// Set the new values in the subnetsInfo map
+	if subnetsInfo[subnetID] == nil {
+		subnetsInfo[subnetID] = &utils.SubnetTestInfo{}
 	}
+	subnetsInfo[subnetID].SubnetID = subnetID
+	subnetsInfo[subnetID].BlockchainID = blockchainID
+	subnetsInfo[subnetID].ChainNodeURIs = chainNodeURIs
+	subnetsInfo[subnetID].ChainWSClient = chainWSClient
+	subnetsInfo[subnetID].ChainRPCClient = chainRPCClient
+	subnetsInfo[subnetID].ChainIDInt = chainIDInt
 
-	chainANodeURIs = nil
-	chainANodeURIs = append(chainANodeURIs, subnetADetails.ValidatorURIs...)
-
-	chainAWSURI := utils.HttpToWebsocketURI(chainANodeURIs[0], blockchainIDA.String())
-	chainARPCURI := utils.HttpToRPCURI(chainANodeURIs[0], blockchainIDA.String())
-
-	if chainAWSClient != nil {
-		chainAWSClient.Close()
-	}
-	chainAWSClient, err = ethclient.Dial(chainAWSURI)
-	Expect(err).Should(BeNil())
-	if chainARPCClient != nil {
-		chainARPCClient.Close()
-	}
-	chainARPCClient, err = ethclient.Dial(chainARPCURI)
-	Expect(err).Should(BeNil())
-	chainAIDInt, err = chainARPCClient.ChainID(context.Background())
-	Expect(err).Should(BeNil())
+	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
 }
 
 // DeployTeleporterContracts deploys the Teleporter contract to the two subnets. The caller is responsible for generating the
@@ -322,24 +284,26 @@ func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
 		},
 	}
 
-	subnetAInfo := GetSubnetATestInfo()
-	subnetBInfo := GetSubnetBTestInfo()
+	subnetAInfo := *subnetsInfo[subnetA]
+	subnetBInfo := *subnetsInfo[subnetB]
 
 	var (
 		err error
 		tx  *types.Transaction
 	)
 	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	teleporterRegistryAddressA, tx, _, err = teleporterregistry.DeployTeleporterRegistry(optsA, subnetAInfo.ChainRPCClient, entries)
+	teleporterRegistryAddressA, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsA, subnetAInfo.ChainRPCClient, entries)
 	Expect(err).Should(BeNil())
+	subnetsInfo[subnetA].TeleporterRegistryAddress = teleporterRegistryAddressA
 	// Wait for the transaction to be mined
 	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, fundedAddress, fundedKey)
-	teleporterRegistryAddressB, tx, _, err = teleporterregistry.DeployTeleporterRegistry(optsB, subnetBInfo.ChainRPCClient, entries)
+	teleporterRegistryAddressB, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsB, subnetBInfo.ChainRPCClient, entries)
 	Expect(err).Should(BeNil())
+	subnetsInfo[subnetB].TeleporterRegistryAddress = teleporterRegistryAddressB
 
 	// Wait for the transaction to be mined
 	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
@@ -404,14 +368,17 @@ func RemoveSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []st
 		},
 	})
 	Expect(err).Should(BeNil())
+
+	// Remove the node names
+	currNodes := set.NewSet[string](len(subnetNodeNames[subnetID]))
+	currNodes.Add(subnetNodeNames[subnetID]...)
+	currNodes.Remove(nodeNames...)
+	subnetNodeNames[subnetID] = currNodes.List()
+
 	SetSubnetValues()
 }
 
 func AddSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
-	log.Info("debug",
-		"subnetID", subnetID.String(),
-		"nodeNames", nodeNames,
-	)
 	_, err := anrClient.AddSubnetValidators(ctx, []*rpcpb.SubnetValidatorsSpec{
 		{
 			SubnetId:  subnetID.String(),
@@ -419,12 +386,15 @@ func AddSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []strin
 		},
 	})
 	Expect(err).Should(BeNil())
+
+	// Add the new node names
+	subnetNodeNames[subnetID] = append(subnetNodeNames[subnetID], nodeNames...)
+
 	SetSubnetValues()
 }
 
 func RestartNodes(ctx context.Context, nodeNames []string) {
 	for _, nodeName := range nodeNames {
-		log.Info("debug", "restarting node", "nodeName", nodeName)
 		_, err := anrClient.RestartNode(ctx, nodeName)
 		Expect(err).Should(BeNil())
 	}
