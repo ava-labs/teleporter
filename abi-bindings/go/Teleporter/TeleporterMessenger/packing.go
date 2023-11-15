@@ -115,3 +115,24 @@ func PackMessageReceivedOutput(success bool) ([]byte, error) {
 
 	return abi.PackOutput("messageReceived", success)
 }
+
+// UnpackEvent unpacks the event data and topics into the provided interface
+func UnpackEvent(out interface{}, event string, topics []common.Hash, data []byte) error {
+	teleporterABI, err := TeleporterMessengerMetaData.GetAbi()
+	if err != nil {
+		return fmt.Errorf("failed to get abi: %w", err)
+	}
+	if len(data) > 0 {
+		if err := teleporterABI.UnpackIntoInterface(out, event, data); err != nil {
+			return err
+		}
+	}
+
+	var indexed abi.Arguments
+	for _, arg := range teleporterABI.Events[event].Inputs {
+		if arg.Indexed {
+			indexed = append(indexed, arg)
+		}
+	}
+	return abi.ParseTopics(out, indexed, topics[1:])
+}
