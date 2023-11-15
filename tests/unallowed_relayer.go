@@ -67,7 +67,7 @@ func UnallowedRelayer(network network.Network) {
 	// Relay the message to the destination
 	//
 
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, false)
 
 	//
 	// Check Teleporter message was not received on the destination

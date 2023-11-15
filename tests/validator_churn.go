@@ -100,6 +100,7 @@ func ValidatorChurnGinkgo() {
 		fundedKey,
 		subnetBInfo.ChainRPCClient,
 		subnetBInfo.ChainIDInt,
+		false,
 	)
 
 	log.Info("Sending transaction to destination chain")
@@ -122,7 +123,7 @@ func ValidatorChurnGinkgo() {
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
 
 	// Verify the message was delivered
 	delivered, err = subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
