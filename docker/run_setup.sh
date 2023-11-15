@@ -98,6 +98,7 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
 
     # Deploy TeleporterMessenger contract to each chain.
     cd contracts
+    ls $HOME/.foundry/bin
     forge build
     cd ..
     go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json

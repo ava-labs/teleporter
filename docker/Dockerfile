@@ -3,6 +3,8 @@
 
 FROM ubuntu:20.04
 
+SHELL ["/bin/bash", "-c"]
+
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
@@ -31,7 +33,6 @@ RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* 
 ENV LANG en_US.utf8
 
 # Install foundry from specific commit
-SHELL ["/bin/bash", "-c"]
 ENV FOUNDRY_VERSION v0.1.0
 RUN curl -L https://raw.githubusercontent.com/ava-labs/foundry/${FOUNDRY_VERSION}/foundryup/install > /tmp/foundry-install-script && \
     sed -i 's/\/ava-labs\/foundry\/master\/foundryup/\/ava-labs\/foundry\/${FOUNDRY_VERSION}\/foundryup/g' /tmp/foundry-install-script && \
