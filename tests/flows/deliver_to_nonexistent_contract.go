@@ -28,9 +28,9 @@ func DeliverToNonExistentContract(network network.Network) {
 	deployerKey, _ := crypto.GenerateKey()
 	deployerAddress := crypto.PubkeyToAddress(deployerKey.PublicKey)
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	//
@@ -40,7 +40,7 @@ func DeliverToNonExistentContract(network network.Network) {
 
 	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 	fundDeployerTx := utils.CreateNativeTransferTransaction(ctx, subnetBInfo, fundedAddress, fundedKey, deployerAddress, fundAmount)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.ChainWSClient, subnetBInfo.ChainRPCClient, fundDeployerTx, true)
+	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.WSClient, subnetBInfo.RPCClient, fundDeployerTx, true)
 
 	//
 	// Deploy ExampleMessenger to Subnet A, but not to Subnet B
@@ -49,7 +49,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
 
 	// Derive the eventual address of the destination contract on Subnet B
-	nonce, err := subnetBInfo.ChainRPCClient.NonceAt(ctx, deployerAddress, nil)
+	nonce, err := subnetBInfo.RPCClient.NonceAt(ctx, deployerAddress, nil)
 	Expect(err).Should(BeNil())
 	destinationContractAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, nonce)
 	Expect(err).Should(BeNil())
@@ -63,7 +63,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -100,10 +100,10 @@ func DeliverToNonExistentContract(network network.Network) {
 	// Deploy the contract on Subnet B
 	//
 	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, deployerAddress, deployerKey)
-	exampleMessengerContractB, tx, subnetBExampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsB, subnetBInfo.ChainRPCClient, subnetBInfo.TeleporterRegistryAddress)
+	exampleMessengerContractB, tx, subnetBExampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsB, subnetBInfo.RPCClient, subnetBInfo.TeleporterRegistryAddress)
 
 	// Wait for the transaction to be mined
-	_, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
+	_, err = bind.WaitMined(ctx, subnetBInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -119,7 +119,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
+	receipt, err = bind.WaitMined(ctx, subnetBInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 

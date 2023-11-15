@@ -39,7 +39,7 @@ type localNetwork struct {
 	fundedKey                 *ecdsa.PrivateKey
 
 	anrConfig           runner.ANRConfig
-	manager             runner.NetworkManager
+	manager             *runner.NetworkManager
 	warpChainConfigPath string
 }
 
@@ -161,24 +161,25 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 		subnetAInfo: network.SubnetTestInfo{
 			SubnetID:                  subnetAID,
 			BlockchainID:              blockchainIDA,
-			ChainNodeURIs:             chainANodeURIs,
-			ChainWSClient:             chainAWSClient,
-			ChainRPCClient:            chainARPCClient,
-			ChainIDInt:                chainAIDInt,
+			NodeURIs:                  chainANodeURIs,
+			WSClient:                  chainAWSClient,
+			RPCClient:                 chainARPCClient,
+			EVMChainID:                chainAIDInt,
 			TeleporterRegistryAddress: common.Address{}, // Set by deployTeleporterRegistryContracts
 		},
-		subnetBInfo: network.SubnetTestInfo{SubnetID: subnetAID,
+		subnetBInfo: network.SubnetTestInfo{
+			SubnetID:                  subnetAID,
 			BlockchainID:              blockchainIDB,
-			ChainNodeURIs:             chainBNodeURIs,
-			ChainWSClient:             chainBWSClient,
-			ChainRPCClient:            chainBRPCClient,
-			ChainIDInt:                chainBIDInt,
-			TeleporterRegistryAddress: common.Address{}, // Set by deployTeleporterRegistryContracts},
+			NodeURIs:                  chainBNodeURIs,
+			WSClient:                  chainBWSClient,
+			RPCClient:                 chainBRPCClient,
+			EVMChainID:                chainBIDInt,
+			TeleporterRegistryAddress: common.Address{}, // Set by deployTeleporterRegistryContracts,
 		},
 		fundedAddress:       common.HexToAddress(fundedAddressStr),
 		fundedKey:           fundedKey,
 		anrConfig:           anrConfig,
-		manager:             *manager,
+		manager:             manager,
 		warpChainConfigPath: warpChainConfigPath,
 	}
 }
@@ -196,18 +197,18 @@ func (n *localNetwork) deployTeleporterContracts(transactionBytes []byte, deploy
 		{
 			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 			fundDeployerTx := utils.CreateNativeTransferTransaction(ctx, subnetInfo, n.fundedAddress, n.fundedKey, deployerAddress, fundAmount)
-			utils.SendTransactionAndWaitForAcceptance(ctx, subnetInfo.ChainWSClient, subnetInfo.ChainRPCClient, fundDeployerTx, true)
+			utils.SendTransactionAndWaitForAcceptance(ctx, subnetInfo.WSClient, subnetInfo.RPCClient, fundDeployerTx, true)
 		}
 		log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
 
 		// Deploy Teleporter contract
 		{
-			rpcClient, err := rpc.DialContext(ctx, utils.HttpToRPCURI(subnetInfo.ChainNodeURIs[0], subnetInfo.BlockchainID.String()))
+			rpcClient, err := rpc.DialContext(ctx, utils.HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String()))
 			Expect(err).Should(BeNil())
 			defer rpcClient.Close()
 
 			newHeads := make(chan *types.Header, 10)
-			subA, err := subnetInfo.ChainWSClient.SubscribeNewHead(ctx, newHeads)
+			subA, err := subnetInfo.WSClient.SubscribeNewHead(ctx, newHeads)
 			Expect(err).Should(BeNil())
 			defer subA.Unsubscribe()
 
@@ -215,7 +216,7 @@ func (n *localNetwork) deployTeleporterContracts(transactionBytes []byte, deploy
 			Expect(err).Should(BeNil())
 
 			<-newHeads
-			teleporterCode, err := subnetInfo.ChainRPCClient.CodeAt(ctx, n.teleporterContractAddress, nil)
+			teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, n.teleporterContractAddress, nil)
 			Expect(err).Should(BeNil())
 			Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 		}
@@ -240,19 +241,19 @@ func (n *localNetwork) deployTeleporterRegistryContracts(teleporterAddress commo
 		tx  *types.Transaction
 	)
 	optsA := utils.CreateTransactorOpts(ctx, n.subnetAInfo, n.fundedAddress, n.fundedKey)
-	teleporterRegistryAddressA, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsA, n.subnetAInfo.ChainRPCClient, entries)
+	teleporterRegistryAddressA, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsA, n.subnetAInfo.RPCClient, entries)
 	Expect(err).Should(BeNil())
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, n.subnetAInfo.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, n.subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	optsB := utils.CreateTransactorOpts(ctx, n.subnetBInfo, n.fundedAddress, n.fundedKey)
-	teleporterRegistryAddressB, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsB, n.subnetBInfo.ChainRPCClient, entries)
+	teleporterRegistryAddressB, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsB, n.subnetBInfo.RPCClient, entries)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, n.subnetBInfo.ChainRPCClient, tx)
+	receipt, err = bind.WaitMined(ctx, n.subnetBInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 

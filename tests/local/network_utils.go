@@ -77,7 +77,7 @@ func relayMessage(
 	expectSuccess bool,
 ) *types.Receipt {
 	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := source.ChainRPCClient.FilterLogs(ctx, interfaces.FilterQuery{
+	logs, err := source.RPCClient.FilterLogs(ctx, interfaces.FilterQuery{
 		BlockHash: &sourceReceipt.BlockHash,
 		Addresses: []common.Address{warp.Module.Address},
 	})
@@ -97,7 +97,7 @@ func relayMessage(
 	log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
 
 	// Fetch the Teleporter message from the logs
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
+	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.RPCClient)
 	Expect(err).Should(BeNil())
 	sendEvent, err := utils.GetSendEventFromLogs(sourceReceipt.Logs, bind)
 	Expect(err).Should(BeNil())
@@ -105,11 +105,11 @@ func relayMessage(
 	// Loop over each client on chain A to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
 	// has accepted the block.
-	waitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
+	waitForAllValidatorsToAcceptBlock(ctx, source.NodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
 
 	// Get the aggregate signature for the Warp message
 	log.Info("Fetching aggregate signature from the source chain validators")
-	warpClient, err := warpBackend.NewClient(source.ChainNodeURIs[0], source.BlockchainID.String())
+	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
 	Expect(err).Should(BeNil())
@@ -122,18 +122,18 @@ func relayMessage(
 		teleporterContractAddress,
 		fundedAddress,
 		fundedKey,
-		destination.ChainRPCClient,
-		destination.ChainIDInt,
+		destination.RPCClient,
+		destination.EVMChainID,
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, destination.ChainWSClient, destination.ChainRPCClient, signedTx, expectSuccess)
+	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, destination.WSClient, destination.RPCClient, signedTx, expectSuccess)
 
 	if !expectSuccess {
 		return nil
 	}
 
-	bind, err = teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
+	bind, err = teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.RPCClient)
 	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
 	receiveEvent, err := utils.GetReceiveEventFromLogs(receipt.Logs, bind)
