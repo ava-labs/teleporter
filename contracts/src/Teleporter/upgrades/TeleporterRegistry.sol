@@ -177,14 +177,12 @@ contract TeleporterRegistry {
      *
      * Emits a {AddProtocolVersion} event when successful.
      * Emits a {LatestVersionUpdated} event when a new protocol version greater than the current latest version is added.
-     * Note: `protocolAddress` doesn't have to be a contract address, this is primarily
-     * to support the case of registering a new protocol address meant for a security patch
-     * before the contract is deployed, and prevent the vulnerability from being exposed before the registry update.
+     * Note: `entry.protocolAddress` doesn't have to be a contract address, allowing a new protocol address to be registered before the contract is deployed. This may be the desired order of events to prevent publishing the patch for a vulernability in the current version before the registry is updated to the new version.
      * Requirements:
      *
-     * - `version` is not zero
-     * - `version` is not already registered
-     * - `protocolAddress` is not zero address
+     * - `entry.version` is not zero
+     * - `entry.version` is not already registered
+     * - `entry.protocolAddress` is not zero address
      */
     function _addToRegistry(ProtocolRegistryEntry memory entry) private {
         require(entry.version != 0, "TeleporterRegistry: zero version");
