@@ -14,6 +14,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -329,12 +330,22 @@ func CreateReceiveCrossChainMessageTransaction(
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, rpcClient, fundedAddress)
 
 	if alterMessage {
+		warpMsgPayload, err := warpPayload.ParseAddressedCall(signedMessage.UnsignedMessage.Payload)
+		Expect(err).Should(BeNil())
+
+		teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpMsgPayload.Payload)
+		Expect(err).Should(BeNil())
 		// Alter the message
-		modifiedMessage := make([]byte, len(signedMessage.Payload))
-		copy(modifiedMessage, signedMessage.Payload)
-		modifiedMessage[0] = ^modifiedMessage[0]
-		Expect(modifiedMessage[:]).ShouldNot(Equal(signedMessage.Payload[:]))
-		signedMessage.Payload = modifiedMessage
+		teleporterMessage.Message = []byte{'a', 'b', 'c', 'd'}
+
+		// Pack the teleporter message
+		teleporterMessageBytes, err := teleportermessenger.PackTeleporterMessage(*teleporterMessage)
+		Expect(err).Should(BeNil())
+
+		payload, err := warpPayload.NewAddressedCall(warpMsgPayload.SourceAddress, teleporterMessageBytes)
+		Expect(err).Should(BeNil())
+
+		signedMessage.UnsignedMessage.Payload = payload.Bytes()
 
 		signedMessage.Initialize()
 	}

@@ -126,12 +126,6 @@ func RelayMessage(
 		alterMessage,
 	)
 
-	if alterMessage {
-		err := destination.ChainRPCClient.SendTransaction(ctx, signedTx)
-		Expect(err).ShouldNot(BeNil())
-		return nil
-	}
-
 	log.Info("Sending transaction to destination chain")
 	receipt := SendTransactionAndWaitForAcceptance(ctx, destination.ChainWSClient, destination.ChainRPCClient, signedTx, expectSuccess)
 
