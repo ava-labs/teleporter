@@ -50,7 +50,7 @@ func init() {
 			logging.NewWrappedCore(
 				logLevel,
 				os.Stdout,
-				logging.JSON.ConsoleEncoder(),
+				logging.Plain.ConsoleEncoder(),
 			),
 		)
 		abi, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()

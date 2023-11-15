@@ -47,7 +47,7 @@ var transactionCmd = &cobra.Command{
 
 				out, err := teleportermessenger.FilterTeleporterEvents(log.Topics, log.Data, event.Name)
 				cobra.CheckErr(err)
-				logger.Info("Parsed Teleporter event", zap.Any("event", out))
+				logger.Info("Parsed Teleporter event", zap.String("name", event.Name), zap.Any("event", out))
 			}
 
 			if log.Address == common.HexToAddress(warpPrecompileAddress) {
