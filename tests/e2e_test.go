@@ -55,7 +55,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("ERC20 bridge multihop", ERC20BridgeMultihopGinkgo)
 
 	// Teleporter tests
-	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySendGinkgo)
+	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A", BasicSendReceiveGinkgo)
 	ginkgo.It("Deliver to the wrong chain", DeliverToWrongChainGinkgo)
 	ginkgo.It("Deliver to non-existent contract", DeliverToNonExistentContractGinkgo) // TODO: fix
 	ginkgo.It("Retry successful execution", RetrySuccessfulExecutionGinkgo)
