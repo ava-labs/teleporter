@@ -32,7 +32,7 @@ func AddFeeAmount(network network.Network) {
 
 	// Use mock token as the fee token
 	mockTokenAddress, mockToken := localUtils.DeployExampleERC20(context.Background(), fundedAddress, fundedKey, subnetAInfo)
-	localUtils.ExampleERC20Approve(ctx, mockToken, teleporterContractAddress, big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)), subnetAInfo)
+	localUtils.ExampleERC20Approve(ctx, mockToken, teleporterContractAddress, big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)), subnetAInfo, fundedAddress, fundedKey)
 
 	initFeeAmount := big.NewInt(1)
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B

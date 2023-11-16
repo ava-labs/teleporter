@@ -230,7 +230,7 @@ func setSubnetValues(subnetID ids.ID) {
 
 // DeployTeleporterContracts deploys the Teleporter contract to the two subnets. The caller is responsible for generating the
 // deployment transaction information
-func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.Address, contractAddress common.Address) {
+func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.Address, contractAddress common.Address, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey) {
 	log.Info("Deploying Teleporter contract to subnets")
 
 	subnetsInfo := GetSubnetsInfo()
@@ -273,7 +273,7 @@ func DeployTeleporterContracts(transactionBytes []byte, deployerAddress common.A
 	log.Info("Deployed Teleporter contracts to all subnets")
 }
 
-func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
+func DeployTeleporterRegistryContracts(teleporterAddress common.Address, deployerAddress common.Address, deployerKey *ecdsa.PrivateKey) {
 	log.Info("Deploying TeleporterRegistry contract to subnets")
 	ctx := context.Background()
 
@@ -291,7 +291,7 @@ func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
 		err error
 		tx  *types.Transaction
 	)
-	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, deployerAddress, deployerKey)
 	teleporterRegistryAddressA, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsA, subnetAInfo.ChainRPCClient, entries)
 	Expect(err).Should(BeNil())
 	subnetsInfo[subnetA].TeleporterRegistryAddress = teleporterRegistryAddressA
@@ -300,7 +300,7 @@ func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, fundedAddress, fundedKey)
+	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, deployerAddress, deployerKey)
 	teleporterRegistryAddressB, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsB, subnetBInfo.ChainRPCClient, entries)
 	Expect(err).Should(BeNil())
 	subnetsInfo[subnetB].TeleporterRegistryAddress = teleporterRegistryAddressB
@@ -342,9 +342,9 @@ func DeployExampleCrossChainMessenger(ctx context.Context, fundedAddress common.
 	return address, exampleMessenger
 }
 
-func ExampleERC20Approve(ctx context.Context, mockToken *exampleerc20.ExampleERC20, spender common.Address, amount *big.Int, source utils.SubnetTestInfo) {
+func ExampleERC20Approve(ctx context.Context, token *exampleerc20.ExampleERC20, spender common.Address, amount *big.Int, source utils.SubnetTestInfo, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey) {
 	opts := utils.CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
-	txn, err := mockToken.Approve(opts, spender, amount)
+	txn, err := token.Approve(opts, spender, amount)
 	Expect(err).Should(BeNil())
 	log.Info("Approved Mock ERC20", "spender", teleporterContractAddress.Hex(), "txHash", txn.Hash().Hex())
 
