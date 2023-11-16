@@ -11,7 +11,7 @@ pragma solidity 0.8.18;
  */
 interface IERC20TokenSource {
     /**
-     * @dev Emitted when ERC20 tokens are locked in this bridge contract to be bridged to the destination chain.
+     * @dev Emitted when ERC20 tokens are locked in this source contract to be transferred to the destination chain.
      */
     event TransferToDestination(
         address indexed sender,
