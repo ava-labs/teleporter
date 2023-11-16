@@ -49,5 +49,4 @@ func main() {
 	default:
 		log.Panic("Invalid command type. Supported options are \"constructKeylessTx\" and \"deriveContractAddress\".")
 	}
-
 }
