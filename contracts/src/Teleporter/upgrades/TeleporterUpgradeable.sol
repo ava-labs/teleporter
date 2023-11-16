@@ -56,7 +56,7 @@ abstract contract TeleporterUpgradeable {
         );
 
         teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        minTeleporterVersion = teleporterRegistry.latestVersion();
     }
 
     /**
