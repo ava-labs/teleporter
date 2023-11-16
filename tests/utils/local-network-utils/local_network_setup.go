@@ -19,6 +19,7 @@ import (
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
+	erc20bridge "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ERC20Bridge/ERC20Bridge"
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
@@ -36,7 +37,7 @@ const (
 
 var (
 	teleporterContractAddress common.Address
-	subnetA, subnetB          ids.ID
+	subnetA, subnetB, subnetC ids.ID
 	subnetsInfo               map[ids.ID]*utils.SubnetTestInfo = make(map[ids.ID]*utils.SubnetTestInfo)
 	subnetNodeNames           map[ids.ID][]string              = make(map[ids.ID][]string)
 
@@ -57,6 +58,7 @@ func GetSubnetsInfo() []utils.SubnetTestInfo {
 	return []utils.SubnetTestInfo{
 		*subnetsInfo[subnetA],
 		*subnetsInfo[subnetB],
+		*subnetsInfo[subnetC],
 	}
 }
 
@@ -80,12 +82,15 @@ func SetupNetwork(warpGenesisFile string) {
 	// Name 10 new validators (which should have BLS key registered)
 	var subnetANodeNames []string
 	var subnetBNodeNames []string
-	for i := 1; i <= 10; i++ {
+	var subnetCNodeNames []string
+	for i := 1; i <= 15; i++ {
 		n := fmt.Sprintf("node%d-bls", i)
 		if i <= 5 {
 			subnetANodeNames = append(subnetANodeNames, n)
-		} else {
+		} else if i <= 10 {
 			subnetBNodeNames = append(subnetBNodeNames, n)
+		} else {
+			subnetCNodeNames = append(subnetCNodeNames, n)
 		}
 	}
 
@@ -128,6 +133,15 @@ func SetupNetwork(warpGenesisFile string) {
 					Participants: subnetBNodeNames,
 				},
 			},
+			{
+				VmName:      evm.IDStr,
+				Genesis:     warpGenesisFile,
+				ChainConfig: warpChainConfigPath,
+				SubnetSpec: &rpcpb.SubnetSpec{
+					SubnetConfig: "",
+					Participants: subnetCNodeNames,
+				},
+			},
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -137,6 +151,7 @@ func SetupNetwork(warpGenesisFile string) {
 	Expect(err).Should(BeNil())
 	SetupProposerVM(ctx, fundedKey, manager, 0)
 	SetupProposerVM(ctx, fundedKey, manager, 1)
+	SetupProposerVM(ctx, fundedKey, manager, 2)
 
 	// Create the ANR client
 	logLevel, err := logging.ToLevel("info")
@@ -157,15 +172,18 @@ func SetupNetwork(warpGenesisFile string) {
 	// On initial startup, we need to first set the subnet node names
 	// before calling setSubnetValues for the two subnets
 	subnetIDs := manager.GetSubnets()
-	Expect(len(subnetIDs)).Should(Equal(2))
+	Expect(len(subnetIDs)).Should(Equal(3))
 	subnetA = subnetIDs[0]
 	subnetB = subnetIDs[1]
+	subnetC = subnetIDs[2]
 
 	subnetNodeNames[subnetA] = subnetANodeNames
 	subnetNodeNames[subnetB] = subnetBNodeNames
+	subnetNodeNames[subnetC] = subnetCNodeNames
 
 	setSubnetValues(subnetA)
 	setSubnetValues(subnetB)
+	setSubnetValues(subnetC)
 
 	log.Info("Finished setting up e2e test subnet variables")
 }
@@ -179,6 +197,9 @@ func SetSubnetValues() {
 
 	subnetB = subnetIDs[1]
 	setSubnetValues(subnetB)
+
+	subnetC = subnetIDs[2]
+	setSubnetValues(subnetC)
 }
 
 func setSubnetValues(subnetID ids.ID) {
@@ -286,6 +307,7 @@ func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
 
 	subnetAInfo := *subnetsInfo[subnetA]
 	subnetBInfo := *subnetsInfo[subnetB]
+	subnetCInfo := *subnetsInfo[subnetC]
 
 	var (
 		err error
@@ -309,6 +331,17 @@ func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
 	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	optsC := utils.CreateTransactorOpts(ctx, subnetCInfo, fundedAddress, fundedKey)
+	teleporterRegistryAddressC, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsC, subnetCInfo.ChainRPCClient, entries)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err = bind.WaitMined(ctx, subnetCInfo.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	subnetsInfo[subnetC].TeleporterRegistryAddress = teleporterRegistryAddressC
 
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
 }
@@ -340,6 +373,22 @@ func DeployExampleCrossChainMessenger(ctx context.Context, fundedAddress common.
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	return address, exampleMessenger
+}
+
+func DeployERC20Bridge(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source utils.SubnetTestInfo) (common.Address, *erc20bridge.ERC20Bridge) {
+	opts := utils.CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+
+	address, tx, erc20Bridge, err := erc20bridge.DeployERC20Bridge(opts, source.ChainRPCClient, source.TeleporterRegistryAddress)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	log.Info("Deployed ERC20 Bridge contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
+
+	return address, erc20Bridge
 }
 
 func ExampleERC20Approve(ctx context.Context, mockToken *exampleerc20.ExampleERC20, spender common.Address, amount *big.Int, source utils.SubnetTestInfo) {
