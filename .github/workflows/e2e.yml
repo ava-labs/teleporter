@@ -42,9 +42,6 @@ jobs:
           cd subnet-evm
           ./scripts/build.sh /tmp/e2e-test/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
 
-      - name: Checkout teleporter repository
-        uses: actions/checkout@v4
-
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
