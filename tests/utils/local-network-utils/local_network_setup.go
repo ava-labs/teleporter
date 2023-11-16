@@ -353,7 +353,9 @@ func DeployTeleporterRegistryContracts(
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	optsC := utils.CreateTransactorOpts(ctx, subnetCInfo, fundedAddress, fundedKey)
-	teleporterRegistryAddressC, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsC, subnetCInfo.ChainRPCClient, entries)
+	teleporterRegistryAddressC, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
+		optsC, subnetCInfo.ChainRPCClient, entries,
+	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
@@ -407,10 +409,17 @@ func DeployExampleCrossChainMessenger(
 	return address, exampleMessenger
 }
 
-func DeployERC20Bridge(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source utils.SubnetTestInfo) (common.Address, *erc20bridge.ERC20Bridge) {
+func DeployERC20Bridge(
+	ctx context.Context,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	source utils.SubnetTestInfo,
+) (common.Address, *erc20bridge.ERC20Bridge) {
 	opts := utils.CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
 
-	address, tx, erc20Bridge, err := erc20bridge.DeployERC20Bridge(opts, source.ChainRPCClient, source.TeleporterRegistryAddress)
+	address, tx, erc20Bridge, err := erc20bridge.DeployERC20Bridge(
+		opts, source.ChainRPCClient, source.TeleporterRegistryAddress,
+	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
