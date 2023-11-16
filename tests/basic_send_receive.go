@@ -41,7 +41,12 @@ func BasicOneWaySend(network network.Network) {
 	}
 
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger,
+		ctx,
+		subnetAInfo,
+		subnetBInfo,
+		sendCrossChainMessageInput,
+		fundedKey,
+		subnetAInfo.TeleporterMessenger,
 	)
 
 	//
