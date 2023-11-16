@@ -25,9 +25,13 @@ func InsufficientGas(network network.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, subnetAInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, subnetBInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
 
 	// Deploy ExampleMessenger to Subnets A
@@ -39,7 +43,9 @@ func InsufficientGas(network network.Network) {
 	// Send message from SubnetA to SubnetB with 0 execution gas, which should fail to execute
 	message := "Hello, world!"
 	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	tx, err := subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message)
+	tx, err := subnetAExampleMessenger.SendMessage(
+		optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message,
+	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
@@ -62,7 +68,9 @@ func InsufficientGas(network network.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	// Check message execution failed event
-	failedMessageExecutionEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBTeleporterMessenger.ParseMessageExecutionFailed)
+	failedMessageExecutionEvent, err := utils.GetEventFromLogs(
+		receipt.Logs, subnetBTeleporterMessenger.ParseMessageExecutionFailed,
+	)
 	Expect(err).Should(BeNil())
 	Expect(failedMessageExecutionEvent.MessageID).Should(Equal(messageID))
 	Expect(failedMessageExecutionEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
@@ -70,7 +78,14 @@ func InsufficientGas(network network.Network) {
 	// Retry message execution. This will execute the message with as much gas as needed
 	// (up to the transaction gas limit), rather than using the required gas specified in the message itself.s
 	receipt = utils.RetryMessageExecutionAndWaitForAcceptance(
-		ctx, subnetAInfo.BlockchainID, subnetBInfo, failedMessageExecutionEvent.Message, fundedAddress, fundedKey, subnetBTeleporterMessenger)
+		ctx,
+		subnetAInfo.BlockchainID,
+		subnetBInfo,
+		failedMessageExecutionEvent.Message,
+		fundedAddress,
+		fundedKey,
+		subnetBTeleporterMessenger,
+	)
 	executedEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBTeleporterMessenger.ParseMessageExecuted)
 	Expect(err).Should(BeNil())
 	Expect(executedEvent.MessageID).Should(Equal(messageID))

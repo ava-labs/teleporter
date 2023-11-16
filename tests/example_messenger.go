@@ -28,9 +28,13 @@ func ExampleMessenger(network network.Network) {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, subnetAInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, subnetBInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
 
 	//
@@ -39,14 +43,24 @@ func ExampleMessenger(network network.Network) {
 	ctx := context.Background()
 
 	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
-	exampleMessengerContractB, subnetBExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
+	exampleMessengerContractB, subnetBExampleMessenger := localUtils.DeployExampleCrossChainMessenger(
+		ctx, fundedAddress, fundedKey, subnetBInfo,
+	)
 
 	//
 	// Call the example messenger contract on Subnet A
 	//
 	message := "Hello, world!"
 	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	tx, err := subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(300000), message)
+	tx, err := subnetAExampleMessenger.SendMessage(
+		optsA,
+		subnetBInfo.BlockchainID,
+		exampleMessengerContractB,
+		fundedAddress,
+		big.NewInt(0),
+		big.NewInt(300000),
+		message,
+	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
@@ -68,7 +82,9 @@ func ExampleMessenger(network network.Network) {
 	//
 	// Check Teleporter message received on the destination
 	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 

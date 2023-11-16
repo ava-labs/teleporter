@@ -25,14 +25,34 @@ func AddFeeAmount(network network.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetAInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetBInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
 
 	// Use mock token as the fee token
-	mockTokenAddress, mockToken := localUtils.DeployMockToken(context.Background(), fundedAddress, fundedKey, subnetAInfo)
-	localUtils.ExampleERC20Approve(ctx, mockToken, teleporterContractAddress, big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)), subnetAInfo)
+	mockTokenAddress, mockToken := localUtils.DeployExampleERC20(
+		context.Background(),
+		fundedAddress,
+		fundedKey,
+		subnetAInfo,
+	)
+	localUtils.ExampleERC20Approve(
+		ctx,
+		mockToken,
+		teleporterContractAddress,
+		big.NewInt(0).Mul(big.NewInt(1e18),
+			big.NewInt(10)),
+		subnetAInfo,
+		fundedAddress,
+		fundedKey,
+	)
 
 	initFeeAmount := big.NewInt(1)
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -54,7 +74,16 @@ func AddFeeAmount(network network.Network) {
 	// Add fee amount
 	additionalFeeAmount := big.NewInt(2)
 	utils.SendAddFeeAmountAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, messageID, additionalFeeAmount, mockTokenAddress, fundedAddress, fundedKey, subnetATeleporterMessenger)
+		ctx,
+		subnetAInfo,
+		subnetBInfo,
+		messageID,
+		additionalFeeAmount,
+		mockTokenAddress,
+		fundedAddress,
+		fundedKey,
+		subnetATeleporterMessenger,
+	)
 
 	// Relay message from SubnetA to SubnetB
 	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, false, true)

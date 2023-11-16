@@ -32,11 +32,19 @@ func TestE2E(t *testing.T) {
 var _ = ginkgo.BeforeSuite(func() {
 	localUtils.SetupNetwork(warpGenesisFile)
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
+	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
+		deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
 
-	localUtils.DeployTeleporterContracts(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
-	localUtils.DeployTeleporterRegistryContracts(teleporterContractAddress)
+	fundedAddress, fundedKey := localUtils.GetFundedAccountInfo()
+	localUtils.DeployTeleporterContracts(
+		teleporterDeployerTransaction,
+		teleporterDeployerAddress,
+		teleporterContractAddress,
+		fundedAddress,
+		fundedKey,
+	)
+	localUtils.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedAddress, fundedKey)
 	log.Info("Set up ginkgo before suite")
 })
 
