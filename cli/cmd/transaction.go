@@ -59,7 +59,7 @@ the command parses to log event fields to a more human readable format.`,
 
 				teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpPayload.Payload)
 				cobra.CheckErr(err)
-				logger.Info("Parsed Teleporter message", zap.Any("message", teleporterMessage))
+				logger.Info("Parsed Teleporter message", zap.String("warpMessageID", unsignedMsg.ID().Hex()), zap.String("teleporterMessageID", teleporterMessage.MessageID.String()), zap.Any("message", teleporterMessage))
 			}
 
 		}
