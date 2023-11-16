@@ -23,7 +23,9 @@ jobs:
           submodules: recursive
 
       - name: Set Go version
-        run: GO_VERSION=$(sed -En 's/^go (.*)$/\1/p' go.mod).$(sed -En 's/\/\/ GO_PATCH_VERSION (.*)$/\1/p' go.mod) >> $GITHUB_ENV
+        run: |
+          source ./scripts/utils.sh
+          GO_VERSION=$(getGO_VERSION) >> $GITHUB_ENV
 
       - name: Setup Go
         uses: actions/setup-go@v4

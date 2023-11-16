@@ -38,5 +38,9 @@ function convertToLower() {
 }
 
 function setGO_VERSION() {
-    export GO_VERSION=$(sed -En 's/^go (.*)$/\1/p' go.mod).$(sed -En 's/\/\/ GO_PATCH_VERSION (.*)$/\1/p' go.mod)
+    export GO_VERSION=$(getGO_VERSION)
+}
+
+function getGO_VERSION() {
+    echo $(sed -En 's/^go (.*)$/\1/p' go.mod).$(sed -En 's/\/\/ GO_PATCH_VERSION (.*)$/\1/p' go.mod)
 }
