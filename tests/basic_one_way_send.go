@@ -29,9 +29,13 @@ func BasicOneWaySend(network network.Network) {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, subnetAInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, subnetBInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
 
 	//
@@ -52,7 +56,9 @@ func BasicOneWaySend(network network.Network) {
 	}
 
 	var receipt *types.Receipt
-	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
+	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger,
+	)
 
 	//
 	// Relay the message to the destination
@@ -63,7 +69,9 @@ func BasicOneWaySend(network network.Network) {
 	//
 	// Check Teleporter message received on the destination
 	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 }

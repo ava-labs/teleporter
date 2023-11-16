@@ -30,9 +30,13 @@ func ValidatorChurnGinkgo() {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.ChainRPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, subnetAInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.ChainRPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, subnetBInfo.ChainRPCClient,
+	)
 	Expect(err).Should(BeNil())
 
 	ctx := context.Background()
@@ -54,7 +58,15 @@ func ValidatorChurnGinkgo() {
 	}
 
 	var receipt *types.Receipt
-	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
+	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
+		ctx,
+		subnetAInfo,
+		subnetBInfo,
+		sendCrossChainMessageInput,
+		fundedAddress,
+		fundedKey,
+		subnetATeleporterMessenger,
+	)
 
 	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
@@ -82,9 +94,13 @@ func ValidatorChurnGinkgo() {
 	subnetBInfo = subnets[1]
 
 	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
-	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(ctx, subnetAInfo.ChainIDInt, fundedKey, subnetAInfo.ChainWSClient)
+	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
+		ctx, subnetAInfo.ChainIDInt, fundedKey, subnetAInfo.ChainWSClient,
+	)
 	Expect(err).Should(BeNil())
-	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(ctx, subnetBInfo.ChainIDInt, fundedKey, subnetBInfo.ChainWSClient)
+	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
+		ctx, subnetBInfo.ChainIDInt, fundedKey, subnetBInfo.ChainWSClient,
+	)
 	Expect(err).Should(BeNil())
 
 	//
@@ -106,7 +122,9 @@ func ValidatorChurnGinkgo() {
 	receipt = utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo, signedTx, false)
 
 	// Verify the message was not delivered
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
 
@@ -115,7 +133,10 @@ func ValidatorChurnGinkgo() {
 	//
 	log.Info("Retrying message sending on source chain")
 	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	tx, err := subnetATeleporterMessenger.RetrySendCrossChainMessage(optsA, subnetBInfo.BlockchainID, sentTeleporterMessage)
+	tx, err := subnetATeleporterMessenger.RetrySendCrossChainMessage(
+		optsA, subnetBInfo.BlockchainID, sentTeleporterMessage,
+	)
+	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
 	receipt, err = bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
@@ -125,7 +146,9 @@ func ValidatorChurnGinkgo() {
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
 
 	// Verify the message was delivered
-	delivered, err = subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	delivered, err = subnetBTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 

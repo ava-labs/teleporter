@@ -25,3 +25,25 @@ jobs:
             - name: Run Lint
               run: |
                   ./scripts/lint.sh
+
+    golangci:
+        runs-on: ubuntu-20.04
+
+        steps:
+        - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+            path: teleporter
+
+        - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+            go-version: '1.20.10'
+            check-latest: true
+
+        - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+            version: v1.51
+            working-directory: ./teleporter/tests
+            args: --timeout 10m
