@@ -49,6 +49,7 @@ type localNetwork struct {
 func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	anrConfig := runner.NewDefaultANRConfig()
 	manager := runner.NewNetworkManager(anrConfig)
+	Expect(manager).ShouldNot(BeNil())
 
 	ctx := context.Background()
 	var err error
@@ -174,7 +175,6 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	Expect(err).Should(BeNil())
 
 	log.Info("Finished setting up e2e test subnet variables")
-
 	return &localNetwork{
 		teleporterContractAddress: common.Address{}, // Set by deployTeleporterContracts
 		subnetAInfo: network.SubnetTestInfo{
@@ -305,7 +305,6 @@ func (n *localNetwork) RelayMessage(ctx context.Context,
 }
 
 func (n *localNetwork) tearDownNetwork() {
-	log.Info("Tearing down network")
 	Expect(n.manager).ShouldNot(BeNil())
 	Expect(n.manager.TeardownNetwork()).Should(BeNil())
 	Expect(os.Remove(n.warpChainConfigPath)).Should(BeNil())

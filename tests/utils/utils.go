@@ -19,7 +19,6 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	"github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/params"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/x/warp"
@@ -505,46 +504,6 @@ func ERC20Approve(ctx context.Context,
 	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-}
-
-func ConstructSignedWarpMessageBytes(
-	ctx context.Context,
-	sourceReceipt *types.Receipt,
-	source network.SubnetTestInfo,
-) []byte {
-	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := source.RPCClient.FilterLogs(ctx, interfaces.FilterQuery{
-		BlockHash: &sourceReceipt.BlockHash,
-		Addresses: []common.Address{warp.Module.Address},
-	})
-	Expect(err).Should(BeNil())
-	Expect(len(logs)).Should(Equal(1))
-
-	// Check for relevant warp log from subscription and ensure that it matches
-	// the log extracted from the last block.
-	txLog := logs[0]
-	log.Info("Parsing logData as unsigned warp message")
-	unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(txLog.Data)
-	Expect(err).Should(BeNil())
-
-	// Set local variables for the duration of the test
-	unsignedWarpMessageID := unsignedMsg.ID()
-	unsignedWarpMsg := unsignedMsg
-	log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
-
-	// Loop over each client on chain A to ensure they all have time to accept the block.
-	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
-	// has accepted the block.
-	waitForAllValidatorsToAcceptBlock(ctx, source.NodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
-
-	// Get the aggregate signature for the Warp message
-	log.Info("Fetching aggregate signature from the source chain validators")
-	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
-	Expect(err).Should(BeNil())
-	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
-	Expect(err).Should(BeNil())
-
-	return signedWarpMessageBytes
 }
 
 func alterTeleporterMessage(signedMessage *avalancheWarp.Message) {
