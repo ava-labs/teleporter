@@ -11,24 +11,23 @@ on:
 jobs:
   solhint:
     runs-on: ubuntu-20.04
-      steps:
-        - name: Checkout teleporter
-          uses: actions/checkout@v4
+    steps:
+    - name: Checkout teleporter
+      uses: actions/checkout@v4
 
-        - name: Install solhint
-          run: |
-            npm install solhint -g
-            solhint --version
+    - name: Install solhint
+      run: |
+        npm install solhint -g
+        solhint --version
 
-        # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
-        # in subdirectories. The former only checks sol files in the current directory and directories one level down.
-        - name: Run Lint
-          run: |
-            ./scripts/lint.sh
+    # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
+    # in subdirectories. The former only checks sol files in the current directory and directories one level down.
+    - name: Run Lint
+      run: |
+        ./scripts/lint.sh
 
   golangci:
     runs-on: ubuntu-20.04
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
