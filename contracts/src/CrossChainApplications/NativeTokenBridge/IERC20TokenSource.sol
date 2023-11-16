@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 /**
  * @dev Interface that describes functionalities for a contract that will lock ERC20 tokens and send a
- * Teleporter message to a NativeTokenDestination contract to mint native tokens on that chain.
+ * Teleporter message to a {INativeTokenDestination} contract to mint native tokens on that chain.
  */
 interface IERC20TokenSource {
     /**
