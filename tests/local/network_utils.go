@@ -162,14 +162,25 @@ func relayMessage(
 	return receipt
 }
 
-func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ecdsa.PrivateKey, subnetInfo network.SubnetTestInfo, abi *abi.ABI, constructorArgs ...interface{}) common.Address {
+func DeployContract(
+	ctx context.Context,
+	byteCodeFileName string,
+	deployerPK *ecdsa.PrivateKey,
+	subnetInfo network.SubnetTestInfo,
+	abi *abi.ABI,
+	constructorArgs ...interface{}) common.Address {
 	// Deploy an example ERC20 contract to be used as the source token
 	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
 	Expect(err).Should(BeNil())
 	Expect(len(byteCode) > 0).Should(BeTrue())
 	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	contractAddress, tx, _, err := bind.DeployContract(transactor, *abi, byteCode, subnetInfo.RPCClient, constructorArgs...)
+	contractAddress, tx, _, err := bind.DeployContract(
+		transactor,
+		*abi,
+		byteCode,
+		subnetInfo.RPCClient,
+		constructorArgs...)
 	Expect(err).Should(BeNil())
 
 	// Wait for transaction, then check code was deployed

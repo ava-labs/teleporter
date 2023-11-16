@@ -21,9 +21,13 @@ func RetrySuccessfulExecution(network network.Network) {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.RPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.RPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetBInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	//
@@ -32,7 +36,11 @@ func RetrySuccessfulExecution(network network.Network) {
 	ctx := context.Background()
 
 	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
-	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
+	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
+		ctx,
+		fundedAddress,
+		fundedKey,
+		subnetBInfo)
 
 	//
 	// Call the example messenger contract on Subnet A

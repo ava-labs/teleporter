@@ -205,7 +205,10 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	}
 }
 
-func (n *localNetwork) deployTeleporterContracts(transactionBytes []byte, deployerAddress common.Address, contractAddress common.Address) {
+func (n *localNetwork) deployTeleporterContracts(
+	transactionBytes []byte,
+	deployerAddress common.Address,
+	contractAddress common.Address) {
 	log.Info("Deploying Teleporter contract to subnets")
 
 	// Set the package level teleporterContractAddress
@@ -217,7 +220,13 @@ func (n *localNetwork) deployTeleporterContracts(transactionBytes []byte, deploy
 		// Fund the deployer address
 		{
 			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
-			fundDeployerTx := utils.CreateNativeTransferTransaction(ctx, subnetInfo, n.fundedAddress, n.fundedKey, deployerAddress, fundAmount)
+			fundDeployerTx := utils.CreateNativeTransferTransaction(
+				ctx,
+				subnetInfo,
+				n.fundedAddress,
+				n.fundedKey,
+				deployerAddress,
+				fundAmount)
 			utils.SendTransactionAndWaitForAcceptance(ctx, subnetInfo.RPCClient, fundDeployerTx, true)
 		}
 		log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
@@ -262,7 +271,10 @@ func (n *localNetwork) deployTeleporterRegistryContracts(teleporterAddress commo
 		tx  *types.Transaction
 	)
 	optsA := utils.CreateTransactorOpts(ctx, n.subnetAInfo, n.fundedAddress, n.fundedKey)
-	teleporterRegistryAddressA, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsA, n.subnetAInfo.RPCClient, entries)
+	teleporterRegistryAddressA, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
+		optsA,
+		n.subnetAInfo.RPCClient,
+		entries)
 	Expect(err).Should(BeNil())
 	// Wait for the transaction to be mined
 	receipt, err := bind.WaitMined(ctx, n.subnetAInfo.RPCClient, tx)
@@ -270,7 +282,10 @@ func (n *localNetwork) deployTeleporterRegistryContracts(teleporterAddress commo
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	optsB := utils.CreateTransactorOpts(ctx, n.subnetBInfo, n.fundedAddress, n.fundedKey)
-	teleporterRegistryAddressB, tx, _, err := teleporterregistry.DeployTeleporterRegistry(optsB, n.subnetBInfo.RPCClient, entries)
+	teleporterRegistryAddressB, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
+		optsB,
+		n.subnetBInfo.RPCClient,
+		entries)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
@@ -301,7 +316,16 @@ func (n *localNetwork) RelayMessage(ctx context.Context,
 	destination network.SubnetTestInfo,
 	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
-	return relayMessage(ctx, sourceReceipt, source, destination, n.teleporterContractAddress, n.fundedAddress, n.fundedKey, alterMessage, expectSuccess)
+	return relayMessage(
+		ctx,
+		sourceReceipt,
+		source,
+		destination,
+		n.teleporterContractAddress,
+		n.fundedAddress,
+		n.fundedKey,
+		alterMessage,
+		expectSuccess)
 }
 
 func (n *localNetwork) tearDownNetwork() {

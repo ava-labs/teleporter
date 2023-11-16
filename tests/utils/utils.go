@@ -224,7 +224,11 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 // Transaction creation functions
 //
 
-func CreateTransactorOpts(ctx context.Context, network network.SubnetTestInfo, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey) *bind.TransactOpts {
+func CreateTransactorOpts(
+	ctx context.Context,
+	network network.SubnetTestInfo,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey) *bind.TransactOpts {
 	// set up parameters
 	transactor, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey, network.EVMChainID)
@@ -423,7 +427,10 @@ func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.
 }
 
 // Returns the gasFeeCap, gasTipCap, and nonce the be used when constructing a transaction from fundedAddress
-func CalculateTxParams(ctx context.Context, rpcClient ethclient.Client, fundedAddress common.Address) (*big.Int, *big.Int, uint64) {
+func CalculateTxParams(
+	ctx context.Context,
+	rpcClient ethclient.Client,
+	fundedAddress common.Address) (*big.Int, *big.Int, uint64) {
 	baseFee, err := rpcClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
 
@@ -439,14 +446,25 @@ func CalculateTxParams(ctx context.Context, rpcClient ethclient.Client, fundedAd
 	return gasFeeCap, gasTipCap, nonce
 }
 
-func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ecdsa.PrivateKey, subnetInfo network.SubnetTestInfo, abi *abi.ABI, constructorArgs ...interface{}) common.Address {
+func DeployContract(
+	ctx context.Context,
+	byteCodeFileName string,
+	deployerPK *ecdsa.PrivateKey,
+	subnetInfo network.SubnetTestInfo,
+	abi *abi.ABI,
+	constructorArgs ...interface{}) common.Address {
 	// Deploy an example ERC20 contract to be used as the source token
 	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
 	Expect(err).Should(BeNil())
 	Expect(len(byteCode) > 0).Should(BeTrue())
 	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	contractAddress, tx, _, err := bind.DeployContract(transactor, *abi, byteCode, subnetInfo.RPCClient, constructorArgs...)
+	contractAddress, tx, _, err := bind.DeployContract(
+		transactor,
+		*abi,
+		byteCode,
+		subnetInfo.RPCClient,
+		constructorArgs...)
 	Expect(err).Should(BeNil())
 
 	// Wait for transaction, then check code was deployed
@@ -458,7 +476,11 @@ func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ec
 	return contractAddress
 }
 
-func DeployMockToken(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source network.SubnetTestInfo) (common.Address, *exampleerc20.ExampleERC20) {
+func DeployMockToken(
+	ctx context.Context,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	source network.SubnetTestInfo) (common.Address, *exampleerc20.ExampleERC20) {
 	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
 
 	// Deploy Mock ERC20 contract
@@ -474,11 +496,18 @@ func DeployMockToken(ctx context.Context, fundedAddress common.Address, fundedKe
 	return address, mockToken
 }
 
-func DeployExampleCrossChainMessenger(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source network.SubnetTestInfo) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
+func DeployExampleCrossChainMessenger(
+	ctx context.Context,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	source network.SubnetTestInfo) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
 	optsA := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
 
 	// Deploy the example messenger contract
-	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsA, source.RPCClient, source.TeleporterRegistryAddress)
+	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(
+		optsA,
+		source.RPCClient,
+		source.TeleporterRegistryAddress)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined

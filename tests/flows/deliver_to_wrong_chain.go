@@ -24,11 +24,11 @@ func DeliverToWrongChain(network network.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetAInfo.ChainRPCClient,
+		teleporterContractAddress, subnetAInfo.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetBInfo.ChainRPCClient,
+		teleporterContractAddress, subnetBInfo.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 
@@ -58,7 +58,11 @@ func DeliverToWrongChain(network network.Network) {
 		ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress,
 	)
 
-	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
+	log.Info("Sending Teleporter transaction on source chain",
+		"destinationChainID",
+		subnetBInfo.BlockchainID,
+		"txHash",
+		signedTx.Hash())
 	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.RPCClient, signedTx, true)
 
 	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)

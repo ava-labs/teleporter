@@ -27,9 +27,13 @@ func DeliverToNonExistentContract(network network.Network) {
 	deployerKey, _ := crypto.GenerateKey()
 	deployerAddress := crypto.PubkeyToAddress(deployerKey.PublicKey)
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.RPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.RPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetBInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	//
@@ -38,7 +42,13 @@ func DeliverToNonExistentContract(network network.Network) {
 	ctx := context.Background()
 
 	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
-	fundDeployerTx := utils.CreateNativeTransferTransaction(ctx, subnetBInfo, fundedAddress, fundedKey, deployerAddress, fundAmount)
+	fundDeployerTx := utils.CreateNativeTransferTransaction(
+		ctx,
+		subnetBInfo,
+		fundedAddress,
+		fundedKey,
+		deployerAddress,
+		fundAmount)
 	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.RPCClient, fundDeployerTx, true)
 
 	//
@@ -114,7 +124,14 @@ func DeliverToNonExistentContract(network network.Network) {
 	// Deploy the contract on Subnet B
 	//
 	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, deployerAddress, deployerKey)
-	exampleMessengerContractB, tx, subnetBExampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(optsB, subnetBInfo.RPCClient, subnetBInfo.TeleporterRegistryAddress)
+	exampleMessengerContractB,
+		tx,
+		subnetBExampleMessenger,
+		err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(
+		optsB,
+		subnetBInfo.RPCClient,
+		subnetBInfo.TeleporterRegistryAddress)
+	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
 	_, err = bind.WaitMined(ctx, subnetBInfo.RPCClient, tx)

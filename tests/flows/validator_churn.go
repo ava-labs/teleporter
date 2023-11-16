@@ -25,7 +25,10 @@ type constructSignedWarpMessageFunc func(
 type addSubnetAValidatorsFunc func(context.Context, []string)
 
 // TODO: Disallow this test from being run on anything but a local network, since it manipulates the validator set
-func ValidatorChurn(network network.Network, constructSignedMessageFunc constructSignedWarpMessageFunc, addSubnetAValidatorsFunc addSubnetAValidatorsFunc) {
+func ValidatorChurn(
+	network network.Network,
+	constructSignedMessageFunc constructSignedWarpMessageFunc,
+	addSubnetAValidatorsFunc addSubnetAValidatorsFunc) {
 	var (
 		teleporterMessageID *big.Int
 	)
@@ -34,9 +37,13 @@ func ValidatorChurn(network network.Network, constructSignedMessageFunc construc
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.RPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.RPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetBInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	ctx := context.Background()

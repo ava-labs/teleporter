@@ -18,9 +18,13 @@ func SendSpecificReceipts(network network.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.RPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.RPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetBInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	// Use mock token as the fee token

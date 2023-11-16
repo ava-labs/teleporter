@@ -23,9 +23,13 @@ func BasicOneWaySend(network network.Network) {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.RPCClient)
+	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetAInfo.RPCClient)
 	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetBInfo.RPCClient)
+	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress,
+		subnetBInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	//

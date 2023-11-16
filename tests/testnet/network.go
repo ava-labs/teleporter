@@ -58,6 +58,9 @@ func initializeSubnetInfo(subnetPrefix string) (network.SubnetTestInfo, error) {
 
 	wsURLStr := os.Getenv(subnetPrefix + wsURLSuffix)
 	wsClient, err := ethclient.Dial(wsURLStr)
+	if err != nil {
+		return network.SubnetTestInfo{}, err
+	}
 
 	evmChainID, err := rpcClient.ChainID(context.Background())
 	if err != nil {
@@ -108,7 +111,6 @@ func NewTestNetwork() (*testNetwork, error) {
 		fundedAddress:             common.HexToAddress(fundedAddressStr),
 		fundedKey:                 fundedKey,
 	}, nil
-
 }
 
 func (n *testNetwork) GetSubnetInfo() (network.SubnetTestInfo, network.SubnetTestInfo) {

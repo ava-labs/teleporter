@@ -36,11 +36,17 @@ var _ = ginkgo.BeforeSuite(func() {
 	localNetworkInstance = newLocalNetwork(warpGenesisFile)
 
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
+	teleporterDeployerTransaction,
+		teleporterDeployerAddress,
+		teleporterContractAddress,
+		err := deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
 
 	// Deploy Teleporter to the local networks
-	localNetworkInstance.deployTeleporterContracts(teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress)
+	localNetworkInstance.deployTeleporterContracts(
+		teleporterDeployerTransaction,
+		teleporterDeployerAddress,
+		teleporterContractAddress)
 	localNetworkInstance.deployTeleporterRegistryContracts(teleporterContractAddress)
 	// ginkgo.DeferCleanup(localNetworkInstance.tearDownNetwork)
 	log.Info("Set up ginkgo before suite")
