@@ -57,7 +57,6 @@ func SendTransactionAndWaitForAcceptance(
 	subnetInfo SubnetTestInfo,
 	tx *types.Transaction,
 	expectSuccess bool) *types.Receipt {
-
 	err := subnetInfo.ChainRPCClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
 
@@ -228,7 +227,12 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 // Transaction creation functions
 //
 
-func CreateTransactorOpts(ctx context.Context, subnet SubnetTestInfo, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey) *bind.TransactOpts {
+func CreateTransactorOpts(
+	ctx context.Context,
+	subnet SubnetTestInfo,
+	fundedAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+) *bind.TransactOpts {
 	// set up parameters
 	transactor, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey, subnet.ChainIDInt)
@@ -289,7 +293,8 @@ func CreateRetryMessageExecutionTransaction(
 	data, err := teleporterABI.Pack("retryMessageExecution", originChainID, message)
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit) // TODO: replace with actual number of signers
+	// TODO: replace with actual number of signers
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
@@ -426,7 +431,11 @@ func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.
 }
 
 // Returns the gasFeeCap, gasTipCap, and nonce the be used when constructing a transaction from fundedAddress
-func CalculateTxParams(ctx context.Context, subnetInfo SubnetTestInfo, fundedAddress common.Address) (*big.Int, *big.Int, uint64) {
+func CalculateTxParams(
+	ctx context.Context,
+	subnetInfo SubnetTestInfo,
+	fundedAddress common.Address,
+) (*big.Int, *big.Int, uint64) {
 	baseFee, err := subnetInfo.ChainRPCClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
 

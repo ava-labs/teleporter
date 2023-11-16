@@ -224,17 +224,24 @@ func (n *FujiNetwork) RelayMessage(ctx context.Context,
 	destination utils.SubnetTestInfo,
 	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
-
 	// Set the context to expire after 20 seconds
 	var cancel context.CancelFunc
 	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	sourceSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
-	destinationSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, destination.ChainRPCClient)
+	sourceSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, source.ChainRPCClient,
+	)
+	Expect(err).Should(BeNil())
+	destinationSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, destination.ChainRPCClient,
+	)
+	Expect(err).Should(BeNil())
 
 	// Get the Teleporter message ID from the receipt
-	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, sourceSubnetTeleporterMessenger.ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(
+		sourceReceipt.Logs, sourceSubnetTeleporterMessenger.ParseSendCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	Expect(sendEvent.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
 

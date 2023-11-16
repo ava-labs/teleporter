@@ -90,7 +90,11 @@ func ConstructSignedWarpMessageBytes(
 	// Set local variables for the duration of the test
 	unsignedWarpMessageID := unsignedMsg.ID()
 	unsignedWarpMsg := unsignedMsg
-	log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
+	log.Info(
+		"Parsed unsignedWarpMsg",
+		"unsignedWarpMessageID", unsignedWarpMessageID,
+		"unsignedWarpMessage", unsignedWarpMsg,
+	)
 
 	// Loop over each client on chain A to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
@@ -101,7 +105,9 @@ func ConstructSignedWarpMessageBytes(
 	log.Info("Fetching aggregate signature from the source chain validators")
 	warpClient, err := warpBackend.NewClient(source.ChainNodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
-	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
+	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
+		ctx, unsignedWarpMessageID, params.WarpQuorumDenominator,
+	)
 	Expect(err).Should(BeNil())
 
 	return signedWarpMessageBytes
@@ -117,7 +123,6 @@ func RelayMessage(
 	alterMessage bool,
 	expectSuccess bool,
 ) *types.Receipt {
-
 	// Fetch the Teleporter message from the logs
 	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
 	Expect(err).Should(BeNil())
@@ -154,14 +159,23 @@ func RelayMessage(
 	return receipt
 }
 
-func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ecdsa.PrivateKey, subnetInfo utils.SubnetTestInfo, abi *abi.ABI, constructorArgs ...interface{}) common.Address {
+func DeployContract(
+	ctx context.Context,
+	byteCodeFileName string,
+	deployerPK *ecdsa.PrivateKey,
+	subnetInfo utils.SubnetTestInfo,
+	abi *abi.ABI,
+	constructorArgs ...interface{},
+) common.Address {
 	// Deploy an example ERC20 contract to be used as the source token
 	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
 	Expect(err).Should(BeNil())
 	Expect(len(byteCode) > 0).Should(BeTrue())
 	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.ChainIDInt)
 	Expect(err).Should(BeNil())
-	contractAddress, tx, _, err := bind.DeployContract(transactor, *abi, byteCode, subnetInfo.ChainRPCClient, constructorArgs...)
+	contractAddress, tx, _, err := bind.DeployContract(
+		transactor, *abi, byteCode, subnetInfo.ChainRPCClient, constructorArgs...,
+	)
 	Expect(err).Should(BeNil())
 
 	// Wait for transaction, then check code was deployed
