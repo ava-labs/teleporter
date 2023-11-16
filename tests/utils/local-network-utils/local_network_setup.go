@@ -313,11 +313,11 @@ func DeployTeleporterRegistryContracts(teleporterAddress common.Address) {
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
 }
 
-func DeployMockToken(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source utils.SubnetTestInfo) (common.Address, *exampleerc20.ExampleERC20) {
+func DeployExampleERC20(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source utils.SubnetTestInfo) (common.Address, *exampleerc20.ExampleERC20) {
 	opts := utils.CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
 
 	// Deploy Mock ERC20 contract
-	address, txn, mockToken, err := exampleerc20.DeployExampleERC20(opts, source.ChainRPCClient)
+	address, txn, token, err := exampleerc20.DeployExampleERC20(opts, source.ChainRPCClient)
 	Expect(err).Should(BeNil())
 	log.Info("Deployed Mock ERC20 contract", "address", address.Hex(), "txHash", txn.Hash().Hex())
 
@@ -326,7 +326,7 @@ func DeployMockToken(ctx context.Context, fundedAddress common.Address, fundedKe
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	return address, mockToken
+	return address, token
 }
 
 func DeployExampleCrossChainMessenger(ctx context.Context, fundedAddress common.Address, fundedKey *ecdsa.PrivateKey, source utils.SubnetTestInfo) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {

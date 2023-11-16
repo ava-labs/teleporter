@@ -31,7 +31,7 @@ func SendSpecificReceipts(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Use mock token as the fee token
-	mockTokenAddress, mockToken := localUtils.DeployMockToken(context.Background(), fundedAddress, fundedKey, subnetAInfo)
+	mockTokenAddress, mockToken := localUtils.DeployExampleERC20(context.Background(), fundedAddress, fundedKey, subnetAInfo)
 	localUtils.ExampleERC20Approve(ctx, mockToken, teleporterContractAddress, big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)), subnetAInfo)
 
 	relayerFeePerMessage := big.NewInt(5)
