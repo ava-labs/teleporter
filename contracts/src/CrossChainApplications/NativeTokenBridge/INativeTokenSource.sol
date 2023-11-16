@@ -8,7 +8,7 @@ pragma solidity 0.8.18;
 import {TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
 
 /**
- * @dev Interface that describes functionalities for a contract that will lock tokens and send a
+ * @dev Interface that describes functionalities for a contract that will lock native tokens on the source chain and send a
  * Teleporter message to a {INativeTokenDestination} contract to mint native tokens on the destination chain.
  */
 interface INativeTokenSource {
