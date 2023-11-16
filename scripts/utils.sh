@@ -36,3 +36,7 @@ function convertToLower() {
         echo $1 | sed -e 's/\(.*\)/\L\1/'
     fi
 }
+
+function setGO_VERSION() {
+    export GO_VERSION=$(sed -En 's/^go (.*)$/\1/p' go.mod).$(sed -En 's/\/\/ GO_PATCH_VERSION (.*)$/\1/p' go.mod)
+}
