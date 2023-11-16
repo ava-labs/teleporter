@@ -15,7 +15,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
 
     function updateMinTeleporterVersion() external override {
         uint256 oldMinTeleporterVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        minTeleporterVersion = teleporterRegistry.latestVersion();
         emit MinTeleporterVersionUpdated(
             oldMinTeleporterVersion,
             minTeleporterVersion
@@ -54,9 +54,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         assertEq(app.minTeleporterVersion(), 1);
 
         vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "invalid teleporter sender"
-            )
+            _formatRegistryErrorMessage("protocol address not found")
         );
         app.teleporterCall();
 

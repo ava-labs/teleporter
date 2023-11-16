@@ -37,8 +37,8 @@ type ProtocolRegistryEntry struct {
 
 // TeleporterRegistryMetaData contains all meta data concerning the TeleporterRegistry contract.
 var TeleporterRegistryMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"internalType\":\"structProtocolRegistryEntry[]\",\"name\":\"initialEntries\",\"type\":\"tuple[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"AddProtocolVersion\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"VALIDATORS_SOURCE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractIWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"addProtocolVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getAddressFromVersion\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLatestTeleporter\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLatestVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getTeleporterFromVersion\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"getVersionFromAddress\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
-	Bin: "0x60a06040523480156200001157600080fd5b5060405162000db038038062000db0833981016040819052620000349162000357565b807302000000000000000000000000000000000000056001600160a01b0316634213cf786040518163ffffffff1660e01b8152600401602060405180830381865afa15801562000088573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190620000ae919062000449565b60805260008080555b81518110156200010357620000ee828281518110620000da57620000da62000463565b60200260200101516200010c60201b60201c565b80620000fa8162000479565b915050620000b7565b505050620004a1565b80516000036200016e5760405162461bcd60e51b815260206004820152602260248201527f5761727050726f746f636f6c52656769737472793a207a65726f20766572736960448201526137b760f11b60648201526084015b60405180910390fd5b80516000908152600160205260409020546001600160a01b031615620001ec5760405162461bcd60e51b815260206004820152602c60248201527f5761727050726f746f636f6c52656769737472793a2076657273696f6e20616c60448201526b72656164792065786973747360a01b606482015260840162000165565b60208101516001600160a01b03166200025c5760405162461bcd60e51b815260206004820152602b60248201527f5761727050726f746f636f6c52656769737472793a207a65726f2070726f746f60448201526a636f6c206164647265737360a81b606482015260840162000165565b602081810180518351600090815260018452604080822080546001600160a01b0319166001600160a01b039485161790558551845184168352600290955280822094909455915184519351911692917fa5eed93d951a9603d5f7c0a57de79a299dd3dbd5e51429be209d8053a42ab43a91a360005481511115620002e05780516000555b50565b634e487b7160e01b600052604160045260246000fd5b604080519081016001600160401b03811182821017156200031e576200031e620002e3565b60405290565b604051601f8201601f191681016001600160401b03811182821017156200034f576200034f620002e3565b604052919050565b600060208083850312156200036b57600080fd5b82516001600160401b03808211156200038357600080fd5b818501915085601f8301126200039857600080fd5b815181811115620003ad57620003ad620002e3565b620003bd848260051b0162000324565b818152848101925060069190911b830184019087821115620003de57600080fd5b928401925b818410156200043e5760408489031215620003fe5760008081fd5b62000408620002f9565b84518152858501516001600160a01b0381168114620004275760008081fd5b8187015283526040939093019291840191620003e3565b979650505050505050565b6000602082840312156200045c57600080fd5b5051919050565b634e487b7160e01b600052603260045260246000fd5b6000600182016200049a57634e487b7160e01b600052601160045260246000fd5b5060010190565b6080516108f3620004bd600039600061021e01526108f36000f3fe608060405234801561001057600080fd5b50600436106100885760003560e01c806346f9ef491161005b57806346f9ef49146100c45780634c1f08ce146100ec578063b771b3bc14610115578063d820e64f1461012357600080fd5b80630731775d1461008d5780630e6d1de9146100b2578063215abce9146100c457806341f34ed9146100d7575b600080fd5b610095600081565b6040516001600160a01b0390911681526020015b60405180910390f35b6000545b6040519081526020016100a9565b6100956100d23660046105fa565b61012b565b6100ea6100e5366004610613565b61013c565b005b6100b66100fa366004610655565b6001600160a01b031660009081526002602052604090205490565b6100956005600160991b0181565b6100956103b9565b6000610136826103cb565b92915050565b6040516306f8253560e41b815263ffffffff8216600482015260009081906005600160991b0190636f82535090602401600060405180830381865afa158015610189573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526101b191908101906106f7565b915091508061021a5760405162461bcd60e51b815260206004820152602a60248201527f5761727050726f746f636f6c52656769737472793a20696e76616c69642077616044820152697270206d65737361676560b01b60648201526084015b60405180910390fd5b81517f0000000000000000000000000000000000000000000000000000000000000000146102a05760405162461bcd60e51b815260206004820152602d60248201527f5761727050726f746f636f6c52656769737472793a20696e76616c696420736f60448201526c1d5c98d94818da185a5b881251609a1b6064820152608401610211565b60208201516001600160a01b0316156103175760405162461bcd60e51b815260206004820152603360248201527f5761727050726f746f636f6c52656769737472793a20696e76616c6964206f726044820152726967696e2073656e646572206164647265737360681b6064820152608401610211565b600080836040015180602001905181019061033291906107ff565b90925090506001600160a01b03811630146103a95760405162461bcd60e51b815260206004820152603160248201527f5761727050726f746f636f6c52656769737472793a20696e76616c69642064656044820152707374696e6174696f6e206164647265737360781b6064820152608401610211565b6103b282610469565b5050505050565b60006103c66000546103cb565b905090565b6000816000036103ed5760405162461bcd60e51b81526004016102119061087b565b60005482111561044d5760405162461bcd60e51b815260206004820152602560248201527f5761727050726f746f636f6c52656769737472793a20696e76616c69642076656044820152643939b4b7b760d91b6064820152608401610211565b506000908152600160205260409020546001600160a01b031690565b805160000361048a5760405162461bcd60e51b81526004016102119061087b565b80516000908152600160205260409020546001600160a01b0316156105065760405162461bcd60e51b815260206004820152602c60248201527f5761727050726f746f636f6c52656769737472793a2076657273696f6e20616c60448201526b72656164792065786973747360a01b6064820152608401610211565b60208101516001600160a01b03166105745760405162461bcd60e51b815260206004820152602b60248201527f5761727050726f746f636f6c52656769737472793a207a65726f2070726f746f60448201526a636f6c206164647265737360a81b6064820152608401610211565b602081810180518351600090815260018452604080822080546001600160a01b0319166001600160a01b039485161790558551845184168352600290955280822094909455915184519351911692917fa5eed93d951a9603d5f7c0a57de79a299dd3dbd5e51429be209d8053a42ab43a91a3600054815111156105f75780516000555b50565b60006020828403121561060c57600080fd5b5035919050565b60006020828403121561062557600080fd5b813563ffffffff8116811461063957600080fd5b9392505050565b6001600160a01b03811681146105f757600080fd5b60006020828403121561066757600080fd5b813561063981610640565b634e487b7160e01b600052604160045260246000fd5b6040516060810167ffffffffffffffff811182821017156106ab576106ab610672565b60405290565b604051601f8201601f1916810167ffffffffffffffff811182821017156106da576106da610672565b604052919050565b805180151581146106f257600080fd5b919050565b6000806040838503121561070a57600080fd5b825167ffffffffffffffff8082111561072257600080fd5b908401906060828703121561073657600080fd5b61073e610688565b8251815260208084015161075181610640565b8282015260408401518381111561076757600080fd5b80850194505087601f85011261077c57600080fd5b83518381111561078e5761078e610672565b6107a0601f8201601f191683016106b1565b935080845288828287010111156107b657600080fd5b60005b818110156107d45785810183015185820184015282016107b9565b506000828286010152508260408301528195506107f28188016106e2565b9450505050509250929050565b600080828403606081121561081357600080fd5b604081121561082157600080fd5b506040516040810181811067ffffffffffffffff8211171561084557610845610672565b60405283518152602084015161085a81610640565b6020820152604084015190925061087081610640565b809150509250929050565b60208082526022908201527f5761727050726f746f636f6c52656769737472793a207a65726f20766572736960408201526137b760f11b60608201526080019056fea2646970667358221220719a5eac310eb6a3f15ee6b043872832d7eb60a42cb1077d95cf9a35ff984ab664736f6c63430008120033",
+	ABI: "[{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"internalType\":\"structProtocolRegistryEntry[]\",\"name\":\"initialEntries\",\"type\":\"tuple[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"AddProtocolVersion\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newVersion\",\"type\":\"uint256\"}],\"name\":\"LatestVersionUpdated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"VALIDATORS_SOURCE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractIWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"addProtocolVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"blockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getAddressFromVersion\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLatestTeleporter\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getTeleporterFromVersion\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"getVersionFromAddress\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	Bin: "0x60a06040523480156200001157600080fd5b5060405162000ef438038062000ef4833981016040819052620000349162000377565b7302000000000000000000000000000000000000056001600160a01b0316634213cf786040518163ffffffff1660e01b8152600401602060405180830381865afa15801562000087573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190620000ad919062000469565b60805260008080555b81518110156200010257620000ed828281518110620000d957620000d962000483565b60200260200101516200010a60201b60201c565b80620000f98162000499565b915050620000b6565b5050620004c1565b8051600003620001615760405162461bcd60e51b815260206004820181905260248201527f54656c65706f7274657252656769737472793a207a65726f2076657273696f6e60448201526064015b60405180910390fd5b80516000908152600160205260409020546001600160a01b031615620001dd5760405162461bcd60e51b815260206004820152602a60248201527f54656c65706f7274657252656769737472793a2076657273696f6e20616c72656044820152696164792065786973747360b01b606482015260840162000158565b60208101516001600160a01b03166200024b5760405162461bcd60e51b815260206004820152602960248201527f54656c65706f7274657252656769737472793a207a65726f2070726f746f636f6044820152686c206164647265737360b81b606482015260840162000158565b602081810180518351600090815260018452604080822080546001600160a01b0319166001600160a01b039485161790558551845184168352600290955280822094909455915184519351911692917fa5eed93d951a9603d5f7c0a57de79a299dd3dbd5e51429be209d8053a42ab43a91a36000548151111562000300576000805482518083556040519192909183917f30623e953733f6474dabdfbef1103ce15ab73cdc77c6dfad0f9874d167e8a9b091a3505b50565b634e487b7160e01b600052604160045260246000fd5b604080519081016001600160401b03811182821017156200033e576200033e62000303565b60405290565b604051601f8201601f191681016001600160401b03811182821017156200036f576200036f62000303565b604052919050565b600060208083850312156200038b57600080fd5b82516001600160401b0380821115620003a357600080fd5b818501915085601f830112620003b857600080fd5b815181811115620003cd57620003cd62000303565b620003dd848260051b0162000344565b818152848101925060069190911b830184019087821115620003fe57600080fd5b928401925b818410156200045e57604084890312156200041e5760008081fd5b6200042862000319565b84518152858501516001600160a01b0381168114620004475760008081fd5b818701528352604093909301929184019162000403565b979650505050505050565b6000602082840312156200047c57600080fd5b5051919050565b634e487b7160e01b600052603260045260246000fd5b600060018201620004ba57634e487b7160e01b600052601160045260246000fd5b5060010190565b608051610a10620004e46000396000818161013501526102500152610a106000f3fe608060405234801561001057600080fd5b50600436106100935760003560e01c80634c1f08ce116100665780634c1f08ce146100f8578063b771b3bc14610119578063c07f47d414610127578063d127dc9b14610130578063d820e64f1461015757600080fd5b80630731775d14610098578063215abce9146100bd57806341f34ed9146100d057806346f9ef49146100e5575b600080fd5b6100a0600081565b6040516001600160a01b0390911681526020015b60405180910390f35b6100a06100cb366004610710565b61015f565b6100e36100de366004610729565b610170565b005b6100a06100f3366004610710565b6103e5565b61010b61010636600461076b565b6104aa565b6040519081526020016100b4565b6100a06005600160991b0181565b61010b60005481565b61010b7f000000000000000000000000000000000000000000000000000000000000000081565b6100a0610552565b600061016a826103e5565b92915050565b6040516306f8253560e41b815263ffffffff8216600482015260009081906005600160991b0190636f82535090602401600060405180830381865afa1580156101bd573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526101e5919081019061080d565b915091508061024c5760405162461bcd60e51b815260206004820152602860248201527f54656c65706f7274657252656769737472793a20696e76616c69642077617270604482015267206d65737361676560c01b60648201526084015b60405180910390fd5b81517f0000000000000000000000000000000000000000000000000000000000000000146102d05760405162461bcd60e51b815260206004820152602b60248201527f54656c65706f7274657252656769737472793a20696e76616c696420736f757260448201526a18d94818da185a5b88125160aa1b6064820152608401610243565b60208201516001600160a01b0316156103455760405162461bcd60e51b815260206004820152603160248201527f54656c65706f7274657252656769737472793a20696e76616c6964206f726967604482015270696e2073656e646572206164647265737360781b6064820152608401610243565b60008083604001518060200190518101906103609190610915565b90925090506001600160a01b03811630146103d55760405162461bcd60e51b815260206004820152602f60248201527f54656c65706f7274657252656769737472793a20696e76616c6964206465737460448201526e696e6174696f6e206164647265737360881b6064820152608401610243565b6103de82610564565b5050505050565b6000816000036104375760405162461bcd60e51b815260206004820181905260248201527f54656c65706f7274657252656769737472793a207a65726f2076657273696f6e6044820152606401610243565b6000828152600160205260409020546001600160a01b03168061016a5760405162461bcd60e51b815260206004820152602560248201527f54656c65706f7274657252656769737472793a2076657273696f6e206e6f7420604482015264199bdd5b9960da1b6064820152608401610243565b60006001600160a01b0382166104d25760405162461bcd60e51b815260040161024390610991565b6001600160a01b0382166000908152600260205260408120549081900361016a5760405162461bcd60e51b815260206004820152602e60248201527f54656c65706f7274657252656769737472793a2070726f746f636f6c2061646460448201526d1c995cdcc81b9bdd08199bdd5b9960921b6064820152608401610243565b600061055f6000546103e5565b905090565b80516000036105b55760405162461bcd60e51b815260206004820181905260248201527f54656c65706f7274657252656769737472793a207a65726f2076657273696f6e6044820152606401610243565b80516000908152600160205260409020546001600160a01b03161561062f5760405162461bcd60e51b815260206004820152602a60248201527f54656c65706f7274657252656769737472793a2076657273696f6e20616c72656044820152696164792065786973747360b01b6064820152608401610243565b60208101516001600160a01b03166106595760405162461bcd60e51b815260040161024390610991565b602081810180518351600090815260018452604080822080546001600160a01b0319166001600160a01b039485161790558551845184168352600290955280822094909455915184519351911692917fa5eed93d951a9603d5f7c0a57de79a299dd3dbd5e51429be209d8053a42ab43a91a36000548151111561070d576000805482518083556040519192909183917f30623e953733f6474dabdfbef1103ce15ab73cdc77c6dfad0f9874d167e8a9b091a3505b50565b60006020828403121561072257600080fd5b5035919050565b60006020828403121561073b57600080fd5b813563ffffffff8116811461074f57600080fd5b9392505050565b6001600160a01b038116811461070d57600080fd5b60006020828403121561077d57600080fd5b813561074f81610756565b634e487b7160e01b600052604160045260246000fd5b6040516060810167ffffffffffffffff811182821017156107c1576107c1610788565b60405290565b604051601f8201601f1916810167ffffffffffffffff811182821017156107f0576107f0610788565b604052919050565b8051801515811461080857600080fd5b919050565b6000806040838503121561082057600080fd5b825167ffffffffffffffff8082111561083857600080fd5b908401906060828703121561084c57600080fd5b61085461079e565b8251815260208084015161086781610756565b8282015260408401518381111561087d57600080fd5b80850194505087601f85011261089257600080fd5b8351838111156108a4576108a4610788565b6108b6601f8201601f191683016107c7565b935080845288828287010111156108cc57600080fd5b60005b818110156108ea5785810183015185820184015282016108cf565b506000828286010152508260408301528195506109088188016107f8565b9450505050509250929050565b600080828403606081121561092957600080fd5b604081121561093757600080fd5b506040516040810181811067ffffffffffffffff8211171561095b5761095b610788565b60405283518152602084015161097081610756565b6020820152604084015190925061098681610756565b809150509250929050565b60208082526029908201527f54656c65706f7274657252656769737472793a207a65726f2070726f746f636f6040820152686c206164647265737360b81b60608201526080019056fea264697066735822122018587a32f2d8211e73e3e02322828d6d4cb60e1ec6451130f3035c2e9f7d9f5764736f6c63430008120033",
 }
 
 // TeleporterRegistryABI is the input ABI used to generate the binding from.
@@ -270,6 +270,37 @@ func (_TeleporterRegistry *TeleporterRegistryCallerSession) WARPMESSENGER() (com
 	return _TeleporterRegistry.Contract.WARPMESSENGER(&_TeleporterRegistry.CallOpts)
 }
 
+// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
+//
+// Solidity: function blockchainID() view returns(bytes32)
+func (_TeleporterRegistry *TeleporterRegistryCaller) BlockchainID(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _TeleporterRegistry.contract.Call(opts, &out, "blockchainID")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
+//
+// Solidity: function blockchainID() view returns(bytes32)
+func (_TeleporterRegistry *TeleporterRegistrySession) BlockchainID() ([32]byte, error) {
+	return _TeleporterRegistry.Contract.BlockchainID(&_TeleporterRegistry.CallOpts)
+}
+
+// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
+//
+// Solidity: function blockchainID() view returns(bytes32)
+func (_TeleporterRegistry *TeleporterRegistryCallerSession) BlockchainID() ([32]byte, error) {
+	return _TeleporterRegistry.Contract.BlockchainID(&_TeleporterRegistry.CallOpts)
+}
+
 // GetAddressFromVersion is a free data retrieval call binding the contract method 0x46f9ef49.
 //
 // Solidity: function getAddressFromVersion(uint256 version) view returns(address)
@@ -332,37 +363,6 @@ func (_TeleporterRegistry *TeleporterRegistryCallerSession) GetLatestTeleporter(
 	return _TeleporterRegistry.Contract.GetLatestTeleporter(&_TeleporterRegistry.CallOpts)
 }
 
-// GetLatestVersion is a free data retrieval call binding the contract method 0x0e6d1de9.
-//
-// Solidity: function getLatestVersion() view returns(uint256)
-func (_TeleporterRegistry *TeleporterRegistryCaller) GetLatestVersion(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _TeleporterRegistry.contract.Call(opts, &out, "getLatestVersion")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// GetLatestVersion is a free data retrieval call binding the contract method 0x0e6d1de9.
-//
-// Solidity: function getLatestVersion() view returns(uint256)
-func (_TeleporterRegistry *TeleporterRegistrySession) GetLatestVersion() (*big.Int, error) {
-	return _TeleporterRegistry.Contract.GetLatestVersion(&_TeleporterRegistry.CallOpts)
-}
-
-// GetLatestVersion is a free data retrieval call binding the contract method 0x0e6d1de9.
-//
-// Solidity: function getLatestVersion() view returns(uint256)
-func (_TeleporterRegistry *TeleporterRegistryCallerSession) GetLatestVersion() (*big.Int, error) {
-	return _TeleporterRegistry.Contract.GetLatestVersion(&_TeleporterRegistry.CallOpts)
-}
-
 // GetTeleporterFromVersion is a free data retrieval call binding the contract method 0x215abce9.
 //
 // Solidity: function getTeleporterFromVersion(uint256 version) view returns(address)
@@ -423,6 +423,37 @@ func (_TeleporterRegistry *TeleporterRegistrySession) GetVersionFromAddress(prot
 // Solidity: function getVersionFromAddress(address protocolAddress) view returns(uint256)
 func (_TeleporterRegistry *TeleporterRegistryCallerSession) GetVersionFromAddress(protocolAddress common.Address) (*big.Int, error) {
 	return _TeleporterRegistry.Contract.GetVersionFromAddress(&_TeleporterRegistry.CallOpts, protocolAddress)
+}
+
+// LatestVersion is a free data retrieval call binding the contract method 0xc07f47d4.
+//
+// Solidity: function latestVersion() view returns(uint256)
+func (_TeleporterRegistry *TeleporterRegistryCaller) LatestVersion(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _TeleporterRegistry.contract.Call(opts, &out, "latestVersion")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// LatestVersion is a free data retrieval call binding the contract method 0xc07f47d4.
+//
+// Solidity: function latestVersion() view returns(uint256)
+func (_TeleporterRegistry *TeleporterRegistrySession) LatestVersion() (*big.Int, error) {
+	return _TeleporterRegistry.Contract.LatestVersion(&_TeleporterRegistry.CallOpts)
+}
+
+// LatestVersion is a free data retrieval call binding the contract method 0xc07f47d4.
+//
+// Solidity: function latestVersion() view returns(uint256)
+func (_TeleporterRegistry *TeleporterRegistryCallerSession) LatestVersion() (*big.Int, error) {
+	return _TeleporterRegistry.Contract.LatestVersion(&_TeleporterRegistry.CallOpts)
 }
 
 // AddProtocolVersion is a paid mutator transaction binding the contract method 0x41f34ed9.
@@ -593,6 +624,159 @@ func (_TeleporterRegistry *TeleporterRegistryFilterer) WatchAddProtocolVersion(o
 func (_TeleporterRegistry *TeleporterRegistryFilterer) ParseAddProtocolVersion(log types.Log) (*TeleporterRegistryAddProtocolVersion, error) {
 	event := new(TeleporterRegistryAddProtocolVersion)
 	if err := _TeleporterRegistry.contract.UnpackLog(event, "AddProtocolVersion", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// TeleporterRegistryLatestVersionUpdatedIterator is returned from FilterLatestVersionUpdated and is used to iterate over the raw logs and unpacked data for LatestVersionUpdated events raised by the TeleporterRegistry contract.
+type TeleporterRegistryLatestVersionUpdatedIterator struct {
+	Event *TeleporterRegistryLatestVersionUpdated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *TeleporterRegistryLatestVersionUpdatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(TeleporterRegistryLatestVersionUpdated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(TeleporterRegistryLatestVersionUpdated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *TeleporterRegistryLatestVersionUpdatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *TeleporterRegistryLatestVersionUpdatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// TeleporterRegistryLatestVersionUpdated represents a LatestVersionUpdated event raised by the TeleporterRegistry contract.
+type TeleporterRegistryLatestVersionUpdated struct {
+	OldVersion *big.Int
+	NewVersion *big.Int
+	Raw        types.Log // Blockchain specific contextual infos
+}
+
+// FilterLatestVersionUpdated is a free log retrieval operation binding the contract event 0x30623e953733f6474dabdfbef1103ce15ab73cdc77c6dfad0f9874d167e8a9b0.
+//
+// Solidity: event LatestVersionUpdated(uint256 indexed oldVersion, uint256 indexed newVersion)
+func (_TeleporterRegistry *TeleporterRegistryFilterer) FilterLatestVersionUpdated(opts *bind.FilterOpts, oldVersion []*big.Int, newVersion []*big.Int) (*TeleporterRegistryLatestVersionUpdatedIterator, error) {
+
+	var oldVersionRule []interface{}
+	for _, oldVersionItem := range oldVersion {
+		oldVersionRule = append(oldVersionRule, oldVersionItem)
+	}
+	var newVersionRule []interface{}
+	for _, newVersionItem := range newVersion {
+		newVersionRule = append(newVersionRule, newVersionItem)
+	}
+
+	logs, sub, err := _TeleporterRegistry.contract.FilterLogs(opts, "LatestVersionUpdated", oldVersionRule, newVersionRule)
+	if err != nil {
+		return nil, err
+	}
+	return &TeleporterRegistryLatestVersionUpdatedIterator{contract: _TeleporterRegistry.contract, event: "LatestVersionUpdated", logs: logs, sub: sub}, nil
+}
+
+// WatchLatestVersionUpdated is a free log subscription operation binding the contract event 0x30623e953733f6474dabdfbef1103ce15ab73cdc77c6dfad0f9874d167e8a9b0.
+//
+// Solidity: event LatestVersionUpdated(uint256 indexed oldVersion, uint256 indexed newVersion)
+func (_TeleporterRegistry *TeleporterRegistryFilterer) WatchLatestVersionUpdated(opts *bind.WatchOpts, sink chan<- *TeleporterRegistryLatestVersionUpdated, oldVersion []*big.Int, newVersion []*big.Int) (event.Subscription, error) {
+
+	var oldVersionRule []interface{}
+	for _, oldVersionItem := range oldVersion {
+		oldVersionRule = append(oldVersionRule, oldVersionItem)
+	}
+	var newVersionRule []interface{}
+	for _, newVersionItem := range newVersion {
+		newVersionRule = append(newVersionRule, newVersionItem)
+	}
+
+	logs, sub, err := _TeleporterRegistry.contract.WatchLogs(opts, "LatestVersionUpdated", oldVersionRule, newVersionRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(TeleporterRegistryLatestVersionUpdated)
+				if err := _TeleporterRegistry.contract.UnpackLog(event, "LatestVersionUpdated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseLatestVersionUpdated is a log parse operation binding the contract event 0x30623e953733f6474dabdfbef1103ce15ab73cdc77c6dfad0f9874d167e8a9b0.
+//
+// Solidity: event LatestVersionUpdated(uint256 indexed oldVersion, uint256 indexed newVersion)
+func (_TeleporterRegistry *TeleporterRegistryFilterer) ParseLatestVersionUpdated(log types.Log) (*TeleporterRegistryLatestVersionUpdated, error) {
+	event := new(TeleporterRegistryLatestVersionUpdated)
+	if err := _TeleporterRegistry.contract.UnpackLog(event, "LatestVersionUpdated", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

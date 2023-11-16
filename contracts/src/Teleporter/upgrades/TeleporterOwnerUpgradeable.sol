@@ -28,7 +28,7 @@ abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, Ownable {
      */
     function updateMinTeleporterVersion() external override onlyOwner {
         uint256 oldMinTeleporterVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.getLatestVersion();
+        minTeleporterVersion = teleporterRegistry.latestVersion();
         if (minTeleporterVersion > oldMinTeleporterVersion) {
             emit MinTeleporterVersionUpdated(
                 oldMinTeleporterVersion,
