@@ -5,9 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "forge-std/Test.sol";
-import "../TeleporterOwnerUpgradeable.sol";
-import "./TeleporterUpgradeableTests.t.sol";
+import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
+import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
     constructor(

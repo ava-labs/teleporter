@@ -5,8 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {TeleporterMessengerTest, TeleporterMessageReceipt, TeleporterMessage, WarpMessage} from "./TeleporterMessengerTest.t.sol";
 
 contract MarkReceiptTest is TeleporterMessengerTest {
     struct FeeRewardInfo {

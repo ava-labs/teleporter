@@ -13,13 +13,15 @@ pragma solidity 0.8.18;
  *
  * Calls between send and receive functions should also be allowed, but not in the case it ends up being a recursive
  * send or receive call. For example the following should fail: send -> receive -> send.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 abstract contract ReentrancyGuards {
     // Send and Receive reentrancy guards
     uint256 internal constant _NOT_ENTERED = 1;
     uint256 internal constant _ENTERED = 2;
-    uint256 internal _sendEntered;
-    uint256 internal _receiveEntered;
+    uint256 private _sendEntered;
+    uint256 private _receiveEntered;
 
     // senderNonReentrant modifier makes sure we can not reenter between sender calls.
     // This modifier should be used for messenger sender functions that have external calls and do not want to allow

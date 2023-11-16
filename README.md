@@ -198,7 +198,9 @@ func main() {
 	})
 
   // Run the test, composing it with the Network implementation
-	tests.BasicOneWaySend(&network.FujiNetwork{})
+  network := network.NewFujiNetwork()
+  defer network.CloseNetworkConnections()
+	tests.BasicOneWaySend(network)
 }
 ```
 

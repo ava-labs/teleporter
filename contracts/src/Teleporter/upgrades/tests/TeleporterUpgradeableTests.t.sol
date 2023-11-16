@@ -5,10 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "forge-std/Test.sol";
-import "../TeleporterRegistry.sol";
-import "../TeleporterUpgradeable.sol";
-import "./TeleporterRegistryTests.t.sol";
+import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
+import {TeleporterRegistryTest, TeleporterMessenger} from "./TeleporterRegistryTests.t.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
     constructor(

@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterUpgradeable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {TeleporterUpgradeable} from "./TeleporterUpgradeable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev Contract that implements the {TeleporterUpgradeable} interface and allows

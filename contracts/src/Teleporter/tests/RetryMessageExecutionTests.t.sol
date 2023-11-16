@@ -5,8 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
-import "../ITeleporterReceiver.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, WarpMessage} from "./TeleporterMessengerTest.t.sol";
+import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 
 enum FlakyMessageReceiverAction {
     ReceiveMessage,

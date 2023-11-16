@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"time"
 
+	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
+	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -38,7 +41,7 @@ type localNetwork struct {
 	fundedAddress             common.Address
 	fundedKey                 *ecdsa.PrivateKey
 
-	anrConfig           runner.ANRConfig
+	anrClient           runner_sdk.Client
 	manager             *runner.NetworkManager
 	warpChainConfigPath string
 }
@@ -106,6 +109,22 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	setupProposerVM(ctx, fundedKey, manager, 0)
 	setupProposerVM(ctx, fundedKey, manager, 1)
 
+	// Create the ANR client
+	logLevel, err := logging.ToLevel("info")
+	Expect(err).Should(BeNil())
+
+	logFactory := logging.NewFactory(logging.Config{
+		DisplayLevel: logLevel,
+		LogLevel:     logLevel,
+	})
+	zapLog, err := logFactory.Make("main")
+	Expect(err).Should(BeNil())
+	anrClient, err := runner_sdk.New(runner_sdk.Config{
+		Endpoint:    "0.0.0.0:12352",
+		DialTimeout: 10 * time.Second,
+	}, zapLog)
+	Expect(err).Should(BeNil())
+
 	// Set up subnet URIs
 	subnetIDs := manager.GetSubnets()
 	Expect(len(subnetIDs)).Should(Equal(2))
@@ -162,6 +181,7 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 			SubnetID:                  subnetAID,
 			BlockchainID:              blockchainIDA,
 			NodeURIs:                  chainANodeURIs,
+			NodeNames:                 subnetANodeNames,
 			WSClient:                  chainAWSClient,
 			RPCClient:                 chainARPCClient,
 			EVMChainID:                chainAIDInt,
@@ -171,6 +191,7 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 			SubnetID:                  subnetAID,
 			BlockchainID:              blockchainIDB,
 			NodeURIs:                  chainBNodeURIs,
+			NodeNames:                 subnetBNodeNames,
 			WSClient:                  chainBWSClient,
 			RPCClient:                 chainBRPCClient,
 			EVMChainID:                chainBIDInt,
@@ -178,7 +199,7 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 		},
 		fundedAddress:       common.HexToAddress(fundedAddressStr),
 		fundedKey:           fundedKey,
-		anrConfig:           anrConfig,
+		anrClient:           anrClient,
 		manager:             manager,
 		warpChainConfigPath: warpChainConfigPath,
 	}
@@ -197,7 +218,7 @@ func (n *localNetwork) deployTeleporterContracts(transactionBytes []byte, deploy
 		{
 			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 			fundDeployerTx := utils.CreateNativeTransferTransaction(ctx, subnetInfo, n.fundedAddress, n.fundedKey, deployerAddress, fundAmount)
-			utils.SendTransactionAndWaitForAcceptance(ctx, subnetInfo.WSClient, subnetInfo.RPCClient, fundDeployerTx, true)
+			utils.SendTransactionAndWaitForAcceptance(ctx, subnetInfo.RPCClient, fundDeployerTx, true)
 		}
 		log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
 
@@ -278,8 +299,9 @@ func (n *localNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source network.SubnetTestInfo,
 	destination network.SubnetTestInfo,
+	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
-	return relayMessage(ctx, sourceReceipt, source, destination, n.teleporterContractAddress, n.fundedKey, n.fundedAddress, expectSuccess)
+	return relayMessage(ctx, sourceReceipt, source, destination, n.teleporterContractAddress, n.fundedAddress, n.fundedKey, alterMessage, expectSuccess)
 }
 
 func (n *localNetwork) tearDownNetwork() {
@@ -287,4 +309,64 @@ func (n *localNetwork) tearDownNetwork() {
 	Expect(n.manager).ShouldNot(BeNil())
 	Expect(n.manager.TeardownNetwork()).Should(BeNil())
 	Expect(os.Remove(n.warpChainConfigPath)).Should(BeNil())
+}
+
+func (n *localNetwork) getCurrentSubnetValues(subnetInfo network.SubnetTestInfo) network.SubnetTestInfo {
+	subnetDetails, ok := n.manager.GetSubnet(subnetInfo.SubnetID)
+	Expect(ok).Should(BeTrue())
+	blockchainID := subnetDetails.BlockchainID
+
+	// Reset the validator URIs, as they may have changed
+	subnetDetails.ValidatorURIs = nil
+	status, err := n.anrClient.Status(context.Background())
+	Expect(err).Should(BeNil())
+	nodeInfos := status.GetClusterInfo().GetNodeInfos()
+
+	for _, nodeName := range subnetInfo.NodeNames {
+		subnetDetails.ValidatorURIs = append(subnetDetails.ValidatorURIs, nodeInfos[nodeName].Uri)
+	}
+	var nodeURIs []string
+	nodeURIs = append(nodeURIs, subnetDetails.ValidatorURIs...)
+
+	wsURI := utils.HttpToWebsocketURI(nodeURIs[0], blockchainID.String())
+	rpcURI := utils.HttpToRPCURI(nodeURIs[0], blockchainID.String())
+
+	if subnetInfo.WSClient != nil {
+		subnetInfo.WSClient.Close()
+	}
+	wsClient, err := ethclient.Dial(wsURI)
+	Expect(err).Should(BeNil())
+	if subnetInfo.RPCClient != nil {
+		subnetInfo.RPCClient.Close()
+	}
+	rpcClient, err := ethclient.Dial(rpcURI)
+	Expect(err).Should(BeNil())
+	evmChainID, err := rpcClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
+
+	return network.SubnetTestInfo{
+		SubnetID:                  subnetInfo.SubnetID,
+		BlockchainID:              subnetInfo.BlockchainID,
+		NodeURIs:                  nodeURIs,
+		NodeNames:                 subnetInfo.NodeNames,
+		WSClient:                  wsClient,
+		RPCClient:                 rpcClient,
+		EVMChainID:                evmChainID,
+		TeleporterRegistryAddress: subnetInfo.TeleporterRegistryAddress,
+	}
+}
+
+func (n *localNetwork) addSubnetAValidators(ctx context.Context, nodeNames []string) {
+	_, err := n.anrClient.AddSubnetValidators(ctx, []*rpcpb.SubnetValidatorsSpec{
+		{
+			SubnetId:  n.subnetAInfo.SubnetID.String(),
+			NodeNames: nodeNames,
+		},
+	})
+	Expect(err).Should(BeNil())
+
+	// Add the new node names
+	n.subnetAInfo.NodeNames = append(n.subnetAInfo.NodeNames, nodeNames...)
+
+	n.subnetAInfo = n.getCurrentSubnetValues(n.subnetAInfo)
 }

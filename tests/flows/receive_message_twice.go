@@ -48,9 +48,9 @@ func ReceiveMessageTwice(network network.Network) {
 	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress)
 
 	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.WSClient, subnetAInfo.RPCClient, signedTx, true)
+	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo.RPCClient, signedTx, true)
 
-	event, err := utils.GetSendEventFromLogs(receipt.Logs, subnetATeleporterMessenger)
+	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -59,8 +59,7 @@ func ReceiveMessageTwice(network network.Network) {
 	//
 	// Relay the message to the destination
 	//
-
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
 	teleporterTx, _, err := subnetBInfo.RPCClient.TransactionByHash(ctx, receipt.TxHash)
 
 	//
@@ -89,5 +88,5 @@ func ReceiveMessageTwice(network network.Network) {
 	})
 
 	signedTx = utils.SignTransaction(secondTeleporterTx, fundedKey, subnetBInfo.EVMChainID)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.WSClient, subnetBInfo.RPCClient, signedTx, false)
+	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.RPCClient, signedTx, false)
 }

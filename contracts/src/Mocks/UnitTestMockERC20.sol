@@ -7,8 +7,8 @@ pragma solidity 0.8.18;
 
 // A mock contract for use in unit tests.
 contract UnitTestMockERC20 {
-    mapping(address => uint256) public mockBalances;
-    mapping(address => uint256) public feeOnTransferSenders;
+    mapping(address account => uint256 balance) public mockBalances;
+    mapping(address sender => uint256 feeAmount) public feeOnTransferSenders;
 
     // If an address on feeOnTransferSenders is the sender address in a transferFrom call,
     // the amount credited to the receiving account is reduced by the feeAmount set for the

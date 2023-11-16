@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterRegistry.sol";
+import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
@@ -17,6 +17,14 @@ import "./TeleporterRegistry.sol";
  */
 abstract contract TeleporterUpgradeable {
     TeleporterRegistry public immutable teleporterRegistry;
+
+    /**
+     * @dev The minimum required Teleporter version that the contract is allowed
+     * to receive messages from. Should only be updated through the `updateMinTeleporterVersion`
+     * implementation of child contracts inheriting `TeleporterUpgradeable`. The value is
+     * public because inheriting contracts must be able to update it, and it should be
+     * publicly viewable.
+     */
     uint256 public minTeleporterVersion;
 
     event MinTeleporterVersionUpdated(

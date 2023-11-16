@@ -55,6 +55,11 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Add additional fee amount", func() { flows.AddFeeAmount(localNetworkInstance) })
 	ginkgo.It("Send specific receipts", func() { flows.SendSpecificReceipts(localNetworkInstance) })
 	ginkgo.It("Insufficient gas", func() { flows.InsufficientGas(localNetworkInstance) })
+	ginkgo.It("Resubmit altered message", func() { flows.ResubmitAlteredMessage(localNetworkInstance) })
+	ginkgo.It("Relayer modifies message", func() { flows.RelayerModifiesMessage(localNetworkInstance) })
+	ginkgo.It("Validator churn", func() {
+		flows.ValidatorChurn(localNetworkInstance, constructSignedWarpMessageBytes, localNetworkInstance.addSubnetAValidators)
+	})
 
 	// Cross-chain application tests
 	ginkgo.It("Example cross chain messenger", func() { flows.ExampleMessenger(localNetworkInstance) })

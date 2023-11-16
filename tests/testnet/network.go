@@ -127,6 +127,7 @@ func (n *testNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source network.SubnetTestInfo,
 	destination network.SubnetTestInfo,
+	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
 	// Rely on a separately deployed relayer to relay the message
 	time.Sleep(10 * time.Second)

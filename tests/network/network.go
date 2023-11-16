@@ -15,6 +15,7 @@ type SubnetTestInfo struct {
 	SubnetID                  ids.ID
 	BlockchainID              ids.ID
 	NodeURIs                  []string
+	NodeNames                 []string
 	WSClient                  ethclient.Client
 	RPCClient                 ethclient.Client
 	EVMChainID                *big.Int
@@ -30,5 +31,6 @@ type Network interface {
 		sourceReceipt *types.Receipt,
 		source SubnetTestInfo,
 		destination SubnetTestInfo,
+		alterMessage bool,
 		expectSuccess bool) *types.Receipt
 }

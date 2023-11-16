@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterFeeInfo, TeleporterMessageInput, IWarpMessenger, IERC20} from "./TeleporterMessengerTest.t.sol";
 
 contract SendCrossChainMessageTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
