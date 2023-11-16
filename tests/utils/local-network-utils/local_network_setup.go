@@ -191,7 +191,7 @@ func SetupNetwork(warpGenesisFile string) {
 
 func SetSubnetValues() {
 	subnetIDs := manager.GetSubnets()
-	Expect(len(subnetIDs)).Should(Equal(2))
+	Expect(len(subnetIDs)).Should(Equal(3))
 
 	subnetA = subnetIDs[0]
 	setSubnetValues(subnetA)

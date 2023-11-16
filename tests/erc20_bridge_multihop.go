@@ -40,7 +40,7 @@ func ERC20BridgeMultihop(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Deploy an ERC20 to subnet A
-	nativeERC20Address, nativeERC20 := localUtils.DeployMockToken(context.Background(), fundedAddress, fundedKey, subnetAInfo)
+	nativeERC20Address, nativeERC20 := localUtils.DeployExampleERC20(context.Background(), fundedAddress, fundedKey, subnetAInfo)
 
 	// Deploy the ERC20 bridge to subnet A
 	erc20BridgeAddressA, erc20BridgeA := localUtils.DeployERC20Bridge(ctx, fundedAddress, fundedKey, subnetAInfo)
@@ -50,7 +50,7 @@ func ERC20BridgeMultihop(network network.Network) {
 	erc20BridgeAddressC, erc20BridgeC := localUtils.DeployERC20Bridge(ctx, fundedAddress, fundedKey, subnetCInfo)
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10000000000000))
-	localUtils.ExampleERC20Approve(ctx, nativeERC20, erc20BridgeAddressA, amount, subnetAInfo)
+	localUtils.ExampleERC20Approve(ctx, nativeERC20, erc20BridgeAddressA, amount, subnetAInfo, fundedAddress, fundedKey)
 
 	// Sent a transaction on Subnet A to add support for the the ERC20 token to the bridge on Subnet B
 	createBridgeTokenMessageFeeAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1))
