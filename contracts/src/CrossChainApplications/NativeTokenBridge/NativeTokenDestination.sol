@@ -202,7 +202,7 @@ contract NativeTokenDestination is
     }
 
     function totalSupply() external view returns (uint256) {
-        uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance -
+        uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance +
             address(BLACKHOLE_ADDRESS).balance;
         require(
             burned <= totalMinted + initialReserveImbalance,
