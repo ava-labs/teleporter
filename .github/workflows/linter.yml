@@ -1,27 +1,50 @@
 name: Linter
 
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches:
-            - "*"
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
 
 jobs:
-    solhint:
-        runs-on: ubuntu-20.04
-        steps:
-            - name: Checkout teleporter
-              uses: actions/checkout@v4
+  solhint:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout teleporter
+      uses: actions/checkout@v4
 
-            - name: Install solhint
-              run: |
-                  npm install solhint -g
-                  solhint --version
+    - name: Install solhint
+      run: |
+        npm install solhint -g
+        solhint --version
 
-            # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
-            # in subdirectories. The former only checks sol files in the current directory and directories one level down.
-            - name: Run Lint
-              run: |
-                  ./scripts/lint.sh
+    # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
+    # in subdirectories. The former only checks sol files in the current directory and directories one level down.
+    - name: Run Lint
+      run: |
+        ./scripts/lint.sh
+
+  golangci:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        path: teleporter
+        submodules: recursive
+
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20.10'
+        check-latest: true
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: v1.54
+        # To reproduce the linter locally, make sure to run golangci-lint from teleporter/tests
+        working-directory: ./teleporter/tests
+        args: --timeout 10m

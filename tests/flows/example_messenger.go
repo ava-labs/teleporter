@@ -39,7 +39,15 @@ func ExampleMessenger(network network.Network) {
 	//
 	message := "Hello, world!"
 	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	tx, err := subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(300000), message)
+	tx, err := subnetAExampleMessenger.SendMessage(
+		optsA,
+		subnetBInfo.BlockchainID,
+		exampleMessengerContractB,
+		fundedAddress,
+		big.NewInt(0),
+		big.NewInt(300000),
+		message,
+	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
@@ -61,7 +69,9 @@ func ExampleMessenger(network network.Network) {
 	//
 	// Check Teleporter message received on the destination
 	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 

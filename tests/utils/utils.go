@@ -52,7 +52,6 @@ func SendTransactionAndWaitForAcceptance(
 	rpcClient ethclient.Client,
 	tx *types.Transaction,
 	expectSuccess bool) *types.Receipt {
-
 	err := rpcClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
 
@@ -286,7 +285,8 @@ func CreateRetryMessageExecutionTransaction(
 	data, err := teleporterABI.Pack("retryMessageExecution", originChainID, message)
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit) // TODO: replace with actual number of signers
+	// TODO: replace with actual number of signers
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo.RPCClient, fundedAddress)

@@ -39,7 +39,16 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 	message := "Hello, world!"
 	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	tx, err := subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(300000), message)
+	tx, err := subnetAExampleMessenger.SendMessage(
+		optsA,
+		subnetBInfo.BlockchainID,
+		exampleMessengerContractB,
+		fundedAddress,
+		big.NewInt(0),
+		big.NewInt(300000),
+		message,
+	)
+	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
 	receipt, err := bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
@@ -64,7 +73,9 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 	// Check Teleporter message received on the destination
 	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -72,6 +83,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	// Verify we received the expected string
 	//
 	_, currMessage, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
+	Expect(err).Should(BeNil())
 	Expect(currMessage).Should(Equal(message))
 
 	//

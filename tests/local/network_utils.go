@@ -90,7 +90,11 @@ func constructSignedWarpMessageBytes(
 	// Set local variables for the duration of the test
 	unsignedWarpMessageID := unsignedMsg.ID()
 	unsignedWarpMsg := unsignedMsg
-	log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
+	log.Info(
+		"Parsed unsignedWarpMsg",
+		"unsignedWarpMessageID", unsignedWarpMessageID,
+		"unsignedWarpMessage", unsignedWarpMsg,
+	)
 
 	// Loop over each client on chain A to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
@@ -101,7 +105,9 @@ func constructSignedWarpMessageBytes(
 	log.Info("Fetching aggregate signature from the source chain validators")
 	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
-	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
+	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
+		ctx, unsignedWarpMessageID, params.WarpQuorumDenominator,
+	)
 	Expect(err).Should(BeNil())
 
 	return signedWarpMessageBytes
@@ -120,7 +126,6 @@ func relayMessage(
 	alterMessage bool,
 	expectSuccess bool,
 ) *types.Receipt {
-
 	// Fetch the Teleporter message from the logs
 	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.RPCClient)
 	Expect(err).Should(BeNil())

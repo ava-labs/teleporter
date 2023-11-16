@@ -58,7 +58,15 @@ func ValidatorChurn(network network.Network, constructSignedMessageFunc construc
 	}
 
 	var receipt *types.Receipt
-	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
+	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
+		ctx,
+		subnetAInfo,
+		subnetBInfo,
+		sendCrossChainMessageInput,
+		fundedAddress,
+		fundedKey,
+		subnetATeleporterMessenger,
+	)
 
 	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
@@ -108,7 +116,9 @@ func ValidatorChurn(network network.Network, constructSignedMessageFunc construc
 	receipt = utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo.RPCClient, signedTx, false)
 
 	// Verify the message was not delivered
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
 
@@ -117,7 +127,10 @@ func ValidatorChurn(network network.Network, constructSignedMessageFunc construc
 	//
 	log.Info("Retrying message sending on source chain")
 	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	tx, err := subnetATeleporterMessenger.RetrySendCrossChainMessage(optsA, subnetBInfo.BlockchainID, sentTeleporterMessage)
+	tx, err := subnetATeleporterMessenger.RetrySendCrossChainMessage(
+		optsA, subnetBInfo.BlockchainID, sentTeleporterMessage,
+	)
+	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
 	receipt, err = bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
@@ -127,7 +140,9 @@ func ValidatorChurn(network network.Network, constructSignedMessageFunc construc
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
 
 	// Verify the message was delivered
-	delivered, err = subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	delivered, err = subnetBTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 

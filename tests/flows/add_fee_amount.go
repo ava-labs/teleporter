@@ -53,7 +53,16 @@ func AddFeeAmount(network network.Network) {
 	// Add fee amount
 	additionalFeeAmount := big.NewInt(2)
 	utils.SendAddFeeAmountAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, messageID, additionalFeeAmount, mockTokenAddress, fundedAddress, fundedKey, subnetATeleporterMessenger)
+		ctx,
+		subnetAInfo,
+		subnetBInfo,
+		messageID,
+		additionalFeeAmount,
+		mockTokenAddress,
+		fundedAddress,
+		fundedKey,
+		subnetATeleporterMessenger,
+	)
 
 	// Relay message from SubnetA to SubnetB
 	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, false, true)

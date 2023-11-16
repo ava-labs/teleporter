@@ -58,7 +58,15 @@ func DeliverToNonExistentContract(network network.Network) {
 	//
 	message := "Hello, world!"
 	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	tx, err := subnetAExampleMessenger.SendMessage(optsA, subnetBInfo.BlockchainID, destinationContractAddress, fundedAddress, big.NewInt(0), big.NewInt(300000), message)
+	tx, err := subnetAExampleMessenger.SendMessage(
+		optsA,
+		subnetBInfo.BlockchainID,
+		destinationContractAddress,
+		fundedAddress,
+		big.NewInt(0),
+		big.NewInt(300000),
+		message,
+	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
@@ -84,14 +92,21 @@ func DeliverToNonExistentContract(network network.Network) {
 	//
 	// Check that the message was successfully relayed
 	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID)
+	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+		&bind.CallOpts{},
+		subnetAInfo.BlockchainID,
+		teleporterMessageID,
+	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	//
 	// Check that the message was not successfully executed
 	//
-	executionFailedEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBTeleporterMessenger.ParseMessageExecutionFailed)
+	executionFailedEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		subnetBTeleporterMessenger.ParseMessageExecutionFailed,
+	)
 	Expect(err).Should(BeNil())
 	Expect(executionFailedEvent.Message.MessageID).Should(Equal(deliveredTeleporterMessage.MessageID))
 
