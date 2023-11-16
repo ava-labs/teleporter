@@ -311,6 +311,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 receipt.receivedMessageID,
                 receipt.relayerRewardAddress
             );
+
+            // Using unchecked block to optimize gas usage by skipping the integer overflow check. 
+            // Since we are incrementing the loop counter, we know that it will never overflow and can safely skip the check.
             unchecked {
                 ++i;
             }
@@ -445,6 +448,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 relayerRewardAddress: relayerRewardAddress
             });
 
+            // Using unchecked block to optimize gas usage by skipping the integer overflow check. 
+            // Since we are incrementing the loop counter, we know that it will never overflow and can safely skip the check.
             unchecked {
                 ++i;
             }
@@ -594,6 +599,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             if (allowedRelayers[i] == delivererAddress) {
                 return true;
             }
+
+            // Using unchecked block to optimize gas usage by skipping the integer overflow check. 
+            // Since we are incrementing the loop counter, we know that it will never overflow and can safely skip the check.
             unchecked {
                 ++i;
             }
