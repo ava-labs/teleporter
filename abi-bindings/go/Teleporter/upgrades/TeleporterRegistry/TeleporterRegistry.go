@@ -37,7 +37,7 @@ type ProtocolRegistryEntry struct {
 
 // TeleporterRegistryMetaData contains all meta data concerning the TeleporterRegistry contract.
 var TeleporterRegistryMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"internalType\":\"structProtocolRegistryEntry[]\",\"name\":\"initialEntries\",\"type\":\"tuple[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"AddProtocolVersion\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"VALIDATORS_SOURCE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractIWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"addProtocolVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getAddressFromVersion\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLatestTeleporter\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLatestVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getTeleporterFromVersion\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"getVersionFromAddress\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"internalType\":\"structProtocolRegistryEntry[]\",\"name\":\"initialEntries\",\"type\":\"tuple[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"AddProtocolVersion\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newVersion\",\"type\":\"uint256\"}],\"name\":\"LatestVersionUpdated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"VALIDATORS_SOURCE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractIWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"}],\"name\":\"addProtocolVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"blockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getAddressFromVersion\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getLatestTeleporter\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"getTeleporterFromVersion\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"protocolAddress\",\"type\":\"address\"}],\"name\":\"getVersionFromAddress\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // TeleporterRegistryABI is the input ABI used to generate the binding from.
@@ -248,6 +248,37 @@ func (_TeleporterRegistry *TeleporterRegistryCallerSession) WARPMESSENGER() (com
 	return _TeleporterRegistry.Contract.WARPMESSENGER(&_TeleporterRegistry.CallOpts)
 }
 
+// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
+//
+// Solidity: function blockchainID() view returns(bytes32)
+func (_TeleporterRegistry *TeleporterRegistryCaller) BlockchainID(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _TeleporterRegistry.contract.Call(opts, &out, "blockchainID")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
+//
+// Solidity: function blockchainID() view returns(bytes32)
+func (_TeleporterRegistry *TeleporterRegistrySession) BlockchainID() ([32]byte, error) {
+	return _TeleporterRegistry.Contract.BlockchainID(&_TeleporterRegistry.CallOpts)
+}
+
+// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
+//
+// Solidity: function blockchainID() view returns(bytes32)
+func (_TeleporterRegistry *TeleporterRegistryCallerSession) BlockchainID() ([32]byte, error) {
+	return _TeleporterRegistry.Contract.BlockchainID(&_TeleporterRegistry.CallOpts)
+}
+
 // GetAddressFromVersion is a free data retrieval call binding the contract method 0x46f9ef49.
 //
 // Solidity: function getAddressFromVersion(uint256 version) view returns(address)
@@ -310,37 +341,6 @@ func (_TeleporterRegistry *TeleporterRegistryCallerSession) GetLatestTeleporter(
 	return _TeleporterRegistry.Contract.GetLatestTeleporter(&_TeleporterRegistry.CallOpts)
 }
 
-// GetLatestVersion is a free data retrieval call binding the contract method 0x0e6d1de9.
-//
-// Solidity: function getLatestVersion() view returns(uint256)
-func (_TeleporterRegistry *TeleporterRegistryCaller) GetLatestVersion(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _TeleporterRegistry.contract.Call(opts, &out, "getLatestVersion")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// GetLatestVersion is a free data retrieval call binding the contract method 0x0e6d1de9.
-//
-// Solidity: function getLatestVersion() view returns(uint256)
-func (_TeleporterRegistry *TeleporterRegistrySession) GetLatestVersion() (*big.Int, error) {
-	return _TeleporterRegistry.Contract.GetLatestVersion(&_TeleporterRegistry.CallOpts)
-}
-
-// GetLatestVersion is a free data retrieval call binding the contract method 0x0e6d1de9.
-//
-// Solidity: function getLatestVersion() view returns(uint256)
-func (_TeleporterRegistry *TeleporterRegistryCallerSession) GetLatestVersion() (*big.Int, error) {
-	return _TeleporterRegistry.Contract.GetLatestVersion(&_TeleporterRegistry.CallOpts)
-}
-
 // GetTeleporterFromVersion is a free data retrieval call binding the contract method 0x215abce9.
 //
 // Solidity: function getTeleporterFromVersion(uint256 version) view returns(address)
@@ -401,6 +401,37 @@ func (_TeleporterRegistry *TeleporterRegistrySession) GetVersionFromAddress(prot
 // Solidity: function getVersionFromAddress(address protocolAddress) view returns(uint256)
 func (_TeleporterRegistry *TeleporterRegistryCallerSession) GetVersionFromAddress(protocolAddress common.Address) (*big.Int, error) {
 	return _TeleporterRegistry.Contract.GetVersionFromAddress(&_TeleporterRegistry.CallOpts, protocolAddress)
+}
+
+// LatestVersion is a free data retrieval call binding the contract method 0xc07f47d4.
+//
+// Solidity: function latestVersion() view returns(uint256)
+func (_TeleporterRegistry *TeleporterRegistryCaller) LatestVersion(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _TeleporterRegistry.contract.Call(opts, &out, "latestVersion")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// LatestVersion is a free data retrieval call binding the contract method 0xc07f47d4.
+//
+// Solidity: function latestVersion() view returns(uint256)
+func (_TeleporterRegistry *TeleporterRegistrySession) LatestVersion() (*big.Int, error) {
+	return _TeleporterRegistry.Contract.LatestVersion(&_TeleporterRegistry.CallOpts)
+}
+
+// LatestVersion is a free data retrieval call binding the contract method 0xc07f47d4.
+//
+// Solidity: function latestVersion() view returns(uint256)
+func (_TeleporterRegistry *TeleporterRegistryCallerSession) LatestVersion() (*big.Int, error) {
+	return _TeleporterRegistry.Contract.LatestVersion(&_TeleporterRegistry.CallOpts)
 }
 
 // AddProtocolVersion is a paid mutator transaction binding the contract method 0x41f34ed9.
@@ -571,6 +602,159 @@ func (_TeleporterRegistry *TeleporterRegistryFilterer) WatchAddProtocolVersion(o
 func (_TeleporterRegistry *TeleporterRegistryFilterer) ParseAddProtocolVersion(log types.Log) (*TeleporterRegistryAddProtocolVersion, error) {
 	event := new(TeleporterRegistryAddProtocolVersion)
 	if err := _TeleporterRegistry.contract.UnpackLog(event, "AddProtocolVersion", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// TeleporterRegistryLatestVersionUpdatedIterator is returned from FilterLatestVersionUpdated and is used to iterate over the raw logs and unpacked data for LatestVersionUpdated events raised by the TeleporterRegistry contract.
+type TeleporterRegistryLatestVersionUpdatedIterator struct {
+	Event *TeleporterRegistryLatestVersionUpdated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *TeleporterRegistryLatestVersionUpdatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(TeleporterRegistryLatestVersionUpdated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(TeleporterRegistryLatestVersionUpdated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *TeleporterRegistryLatestVersionUpdatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *TeleporterRegistryLatestVersionUpdatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// TeleporterRegistryLatestVersionUpdated represents a LatestVersionUpdated event raised by the TeleporterRegistry contract.
+type TeleporterRegistryLatestVersionUpdated struct {
+	OldVersion *big.Int
+	NewVersion *big.Int
+	Raw        types.Log // Blockchain specific contextual infos
+}
+
+// FilterLatestVersionUpdated is a free log retrieval operation binding the contract event 0x30623e953733f6474dabdfbef1103ce15ab73cdc77c6dfad0f9874d167e8a9b0.
+//
+// Solidity: event LatestVersionUpdated(uint256 indexed oldVersion, uint256 indexed newVersion)
+func (_TeleporterRegistry *TeleporterRegistryFilterer) FilterLatestVersionUpdated(opts *bind.FilterOpts, oldVersion []*big.Int, newVersion []*big.Int) (*TeleporterRegistryLatestVersionUpdatedIterator, error) {
+
+	var oldVersionRule []interface{}
+	for _, oldVersionItem := range oldVersion {
+		oldVersionRule = append(oldVersionRule, oldVersionItem)
+	}
+	var newVersionRule []interface{}
+	for _, newVersionItem := range newVersion {
+		newVersionRule = append(newVersionRule, newVersionItem)
+	}
+
+	logs, sub, err := _TeleporterRegistry.contract.FilterLogs(opts, "LatestVersionUpdated", oldVersionRule, newVersionRule)
+	if err != nil {
+		return nil, err
+	}
+	return &TeleporterRegistryLatestVersionUpdatedIterator{contract: _TeleporterRegistry.contract, event: "LatestVersionUpdated", logs: logs, sub: sub}, nil
+}
+
+// WatchLatestVersionUpdated is a free log subscription operation binding the contract event 0x30623e953733f6474dabdfbef1103ce15ab73cdc77c6dfad0f9874d167e8a9b0.
+//
+// Solidity: event LatestVersionUpdated(uint256 indexed oldVersion, uint256 indexed newVersion)
+func (_TeleporterRegistry *TeleporterRegistryFilterer) WatchLatestVersionUpdated(opts *bind.WatchOpts, sink chan<- *TeleporterRegistryLatestVersionUpdated, oldVersion []*big.Int, newVersion []*big.Int) (event.Subscription, error) {
+
+	var oldVersionRule []interface{}
+	for _, oldVersionItem := range oldVersion {
+		oldVersionRule = append(oldVersionRule, oldVersionItem)
+	}
+	var newVersionRule []interface{}
+	for _, newVersionItem := range newVersion {
+		newVersionRule = append(newVersionRule, newVersionItem)
+	}
+
+	logs, sub, err := _TeleporterRegistry.contract.WatchLogs(opts, "LatestVersionUpdated", oldVersionRule, newVersionRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(TeleporterRegistryLatestVersionUpdated)
+				if err := _TeleporterRegistry.contract.UnpackLog(event, "LatestVersionUpdated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseLatestVersionUpdated is a log parse operation binding the contract event 0x30623e953733f6474dabdfbef1103ce15ab73cdc77c6dfad0f9874d167e8a9b0.
+//
+// Solidity: event LatestVersionUpdated(uint256 indexed oldVersion, uint256 indexed newVersion)
+func (_TeleporterRegistry *TeleporterRegistryFilterer) ParseLatestVersionUpdated(log types.Log) (*TeleporterRegistryLatestVersionUpdated, error) {
+	event := new(TeleporterRegistryLatestVersionUpdated)
+	if err := _TeleporterRegistry.contract.UnpackLog(event, "LatestVersionUpdated", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
