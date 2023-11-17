@@ -1,6 +1,6 @@
 module github.com/ava-labs/teleporter
 
-go 1.20
+go 1.20.10
 
 require (
 	github.com/ava-labs/avalanchego v1.10.15
