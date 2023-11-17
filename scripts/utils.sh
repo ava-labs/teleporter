@@ -42,5 +42,5 @@ function setGO_VERSION() {
 }
 
 function getGO_VERSION() {
-    echo $(sed -En 's/^go (.*)$/\1/p' go.mod).$(sed -En 's/\/\/ GO_PATCH_VERSION (.*)$/\1/p' go.mod)
+    echo $(grep -m1 go go.mod | cut -d ' ' -f2).$(grep -m1 GO_PATCH_VERSION go.mod | cut -d ' ' -f3)
 }
