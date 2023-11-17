@@ -24,6 +24,6 @@ function getDepVersion() {
 }
 
 # Don't export them as they're used in the context of other calls
-AWM_RELAYER_VERSION=v0.2.3
+AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v0.2.3'}
 AVALANCHE_VERSION=${AVALANCHE_VERSION:-$(getDepVersion github.com/ava-labs/avalanchego)}
 GINKGO_VERSION=${GINKGO_VERSION:-$(getDepVersion github.com/onsi/ginkgo/v2)}
