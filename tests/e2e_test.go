@@ -52,6 +52,7 @@ var _ = ginkgo.AfterSuite(localUtils.TearDownNetwork)
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Teleporter tests
+	ginkgo.It("ERC20 bridge multihop", ERC20BridgeMultihopGinkgo)
 	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySendGinkgo)
 	ginkgo.It("Deliver to the wrong chain", DeliverToWrongChainGinkgo)
 	ginkgo.It("Deliver to non-existent contract", DeliverToNonExistentContractGinkgo)
@@ -67,5 +68,4 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 
 	// Cross-chain application tests
 	ginkgo.It("Example cross chain messenger", ExampleMessengerGinkgo)
-	ginkgo.It("ERC20 bridge multihop", ERC20BridgeMultihopGinkgo)
 })
