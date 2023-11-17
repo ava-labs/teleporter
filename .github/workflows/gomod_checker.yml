@@ -28,4 +28,4 @@ jobs:
 
       - run: go mod tidy
       - run: git --no-pager diff -- go.mod go.sum  # This prints the diff
-      - run: git --no-pager diff --quiet -- go.mod go.sum  g# This errors if there is a diff
+      - run: git --no-pager diff --quiet -- go.mod go.sum  # This errors if there is a diff
