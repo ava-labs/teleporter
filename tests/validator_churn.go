@@ -82,7 +82,7 @@ func ValidatorChurnGinkgo() {
 	// Add new nodes to the validator set
 	log.Info("Adding nodes to the validator set")
 	var nodesToAdd []string
-	for i := 16; i <= 20; i++ {
+	for i := 15; i <= 19; i++ {
 		n := fmt.Sprintf("node%d-bls", i)
 		nodesToAdd = append(nodesToAdd, n)
 	}
