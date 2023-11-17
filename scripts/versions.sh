@@ -15,7 +15,7 @@ function setGO_VERSION() {
 }
 
 function getGO_VERSION() {
-    echo $(grep -m1 go $TELEPORTER_PATH/go.mod | cut -d ' ' -f2).$(grep -m1 GO_PATCH_VERSION $TELEPORTER_PATH/go.mod | cut -d ' ' -f3)
+    echo $(getDepVersion go).$(grep -m1 GO_PATCH_VERSION $TELEPORTER_PATH/go.mod | cut -d ' ' -f3)
 }
 
 # Pass in the full name of the dependency
