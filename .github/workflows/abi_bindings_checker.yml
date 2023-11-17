@@ -8,9 +8,6 @@ on:
     branches:
       - "*"
 
-env:
-  GO_VERSION: "1.20.10"
-
 jobs:
   abi_binding:
     name: abi_binding
@@ -25,7 +22,7 @@ jobs:
 
       - name: Set Go version
         run: |
-          source ./scripts/utils.sh
+          source ./scripts/versions.sh
           GO_VERSION=$(getGO_VERSION) >> $GITHUB_ENV
 
       - name: Setup Go
@@ -62,7 +59,7 @@ jobs:
 
       - name: Set Go version
         run: |
-          source ./scripts/utils.sh
+          source ./scripts/versions.sh
           GO_VERSION=$(getGO_VERSION) >> $GITHUB_ENV
 
       - name: Setup Go

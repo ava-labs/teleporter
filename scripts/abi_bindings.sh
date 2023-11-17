@@ -11,6 +11,7 @@ TELEPORTER_PATH=$(
 
 source $TELEPORTER_PATH/scripts/constants.sh
 source $TELEPORTER_PATH/scripts/utils.sh
+source $TELEPORTER_PATH/scripts/versions.sh
 
 setARCH
 setGO_VERSION

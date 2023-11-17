@@ -10,6 +10,14 @@ TELEPORTER_PATH=$(
   cd .. && pwd
 )
 
+function setGO_VERSION() {
+    export GO_VERSION=$(getGO_VERSION)
+}
+
+function getGO_VERSION() {
+    echo $(grep -m1 go $TELEPORTER_PATH/go.mod | cut -d ' ' -f2).$(grep -m1 GO_PATCH_VERSION $TELEPORTER_PATH/go.mod | cut -d ' ' -f3)
+}
+
 # Pass in the full name of the dependency
 function getDepVersion() {
     grep -m1 $1 $TELEPORTER_PATH/go.mod | cut -d ' ' -f2

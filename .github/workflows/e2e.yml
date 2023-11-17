@@ -24,7 +24,7 @@ jobs:
 
       - name: Set Go version
         run: |
-          source ./scripts/utils.sh
+          source ./scripts/versions.sh
           GO_VERSION=$(getGO_VERSION) >> $GITHUB_ENV
 
       - name: Setup Go

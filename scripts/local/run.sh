@@ -5,6 +5,7 @@
 set -e # Stop on first error
 
 source ./scripts/utils.sh
+source ./scripts/versions.sh
 
 LOCAL_RELAYER_IMAGE=
 RUN_STOP_FLAG="-c"

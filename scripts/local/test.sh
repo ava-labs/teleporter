@@ -4,6 +4,7 @@
 
 set -e # Stop on first error
 source ./scripts/utils.sh
+source ./scripts/versions.sh
 
 TEST_TARGET=
 LOCAL_RELAYER_IMAGE=

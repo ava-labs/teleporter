@@ -36,11 +36,3 @@ function convertToLower() {
         echo $1 | sed -e 's/\(.*\)/\L\1/'
     fi
 }
-
-function setGO_VERSION() {
-    export GO_VERSION=$(getGO_VERSION)
-}
-
-function getGO_VERSION() {
-    echo $(grep -m1 go go.mod | cut -d ' ' -f2).$(grep -m1 GO_PATCH_VERSION go.mod | cut -d ' ' -f3)
-}
