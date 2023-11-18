@@ -27,7 +27,7 @@ jobs:
 
       - name: Download awm-relayer image
         run: |
-          docker pull avaplatform/awm-relayer:${RELAYER_VERSION}
+          docker pull avaplatform/awm-relayer:${{ AWM_RELAYER_VERSION }}
 
       - name: Teleporter Integration Tests
         run: |
