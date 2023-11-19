@@ -206,7 +206,7 @@ contract ERC20BridgeTest is Test {
                 destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
                 destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: address(mockERC20),
+                    feeTokenAddress: address(mockERC20),
                     amount: 0
                 }),
                 requiredGasLimit: erc20Bridge.MINT_BRIDGE_TOKENS_REQUIRED_GAS(),
@@ -321,7 +321,7 @@ contract ERC20BridgeTest is Test {
                 destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
                 destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: address(mockERC20),
+                    feeTokenAddress: address(mockERC20),
                     amount: feeAmount
                 }),
                 requiredGasLimit: erc20Bridge.MINT_BRIDGE_TOKENS_REQUIRED_GAS(),
@@ -424,7 +424,7 @@ contract ERC20BridgeTest is Test {
                 destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
                 destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: address(mockERC20),
+                    feeTokenAddress: address(mockERC20),
                     amount: bridgeFeeAmount
                 }),
                 requiredGasLimit: erc20Bridge.MINT_BRIDGE_TOKENS_REQUIRED_GAS(),
@@ -705,7 +705,7 @@ contract ERC20BridgeTest is Test {
                 destinationChainID: destinationChainID,
                 destinationAddress: destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: address(0),
+                    feeTokenAddress: address(0),
                     amount: 0
                 }),
                 requiredGasLimit: erc20Bridge

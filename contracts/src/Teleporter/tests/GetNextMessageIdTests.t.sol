@@ -37,7 +37,7 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
             destinationChainID: chainID,
             destinationAddress: address(0),
             feeInfo: TeleporterFeeInfo({
-                contractAddress: address(0),
+                feeTokenAddress: address(0),
                 amount: uint256(0)
             }),
             requiredGasLimit: 1e6,
@@ -69,7 +69,7 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
             destinationChainID: chainID,
             destinationAddress: address(0),
             feeInfo: TeleporterFeeInfo({
-                contractAddress: address(0),
+                feeTokenAddress: address(0),
                 amount: uint256(0)
             }),
             requiredGasLimit: 1e6,
