@@ -34,6 +34,9 @@ const (
 	wsURLSuffix                     = "_ws"
 	userAddress                     = "user_address"
 	userPrivateKey                  = "user_private_key"
+
+	receiveCrossChainMessageEventName      = "ReceiveCrossChainMessage"
+	receiveCrossChainMessageLookBackBlocks = 500
 )
 
 var _ network.Network = &testNetwork{}
@@ -172,8 +175,8 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	}
 
 	var startBlock uint64
-	if currentBlockHeight > 500 {
-		startBlock = currentBlockHeight - 500
+	if currentBlockHeight > receiveCrossChainMessageLookBackBlocks {
+		startBlock = currentBlockHeight - receiveCrossChainMessageLookBackBlocks
 	} else {
 		startBlock = 0
 	}
@@ -188,7 +191,7 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 		FromBlock: big.NewInt(int64(startBlock)),
 		Addresses: []common.Address{n.teleporterContractAddress},
 		Topics: [][]common.Hash{
-			{abi.Events["ReceiveCrossChainMessage"].ID},
+			{abi.Events[receiveCrossChainMessageEventName].ID},
 			{common.BytesToHash(sourceBlockchainID[:])},
 			{common.BigToHash(teleporterMessageID)},
 		},
@@ -238,5 +241,7 @@ func (n *testNetwork) RelayMessage(
 
 	receipt, err := n.getMessageDeliveryTransactionReceipt(cctx, source.BlockchainID, destination, teleporterMessageID)
 	Expect(err).Should(BeNil())
+	Expect(receipt).ShouldNot(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	return receipt
 }
