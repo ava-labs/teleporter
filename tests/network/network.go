@@ -27,6 +27,7 @@ type Network interface {
 	GetSubnetInfo() (SubnetTestInfo, SubnetTestInfo)
 	GetTeleporterContractAddress() common.Address
 	GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey)
+
 	RelayMessage(ctx context.Context,
 		sourceReceipt *types.Receipt,
 		source SubnetTestInfo,
