@@ -6,7 +6,6 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -123,14 +122,8 @@ func DeliverToNonExistentContract(network network.Network) {
 	//
 	// Deploy the contract on Subnet B
 	//
-	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, deployerAddress, deployerKey)
-	exampleMessengerContractB, tx, subnetBExampleMessenger, err :=
-		examplecrosschainmessenger.DeployExampleCrossChainMessenger(
-			optsB,
-			subnetBInfo.ChainRPCClient,
-			subnetBInfo.TeleporterRegistryAddress,
-		)
-	Expect(err).Should(BeNil())
+	exampleMessengerContractB, subnetBExampleMessenger :=
+		localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
 
 	// Wait for the transaction to be mined
 	_, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
