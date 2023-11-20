@@ -76,7 +76,7 @@ func InsufficientGas(network network.Network) {
 	Expect(failedMessageExecutionEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
 
 	// Retry message execution. This will execute the message with as much gas as needed
-	// (up to the transaction gas limit), rather than using the required gas specified in the message itself.s
+	// (up to the transaction gas limit), rather than using the required gas specified in the message itself.
 	receipt = utils.RetryMessageExecutionAndWaitForAcceptance(
 		ctx,
 		subnetAInfo.BlockchainID,
