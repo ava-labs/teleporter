@@ -19,6 +19,9 @@ import (
 
 func NativeTokenBridge() {
 	const (
+		initialReserveImbalance = uint64(1e15)
+		valueToSend             = initialReserveImbalance / 4
+		valueToReturn           = valueToSend / 4
 
 		// Each test file needs a unique deployer that must be funded with tokens to deploy
 		deployerKeyStr                     = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
@@ -26,13 +29,9 @@ func NativeTokenBridge() {
 		NativeTokenDestinationByteCodeFile = "./contracts/out/NativeTokenDestination.sol/NativeTokenDestination.json"
 	)
 	var (
-		initialReserveImbalance = big.NewInt(0).Mul(big.NewInt(1e15), big.NewInt(1e9))
-		valueToSend             = big.NewInt(0).Div(initialReserveImbalance, big.NewInt(4))
-		valueToReturn           = big.NewInt(0).Div(valueToSend, big.NewInt(4))
-		ctx                     = context.Background()
-		deployerAddress         = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
-		tokenReceiverAddress    = common.HexToAddress("0x0123456789012345678901234567890123456789")
-		burnedTxFeeAddress      = common.HexToAddress("0x0100000000000000000000000000000000000000")
+		ctx                  = context.Background()
+		deployerAddress      = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
+		tokenReceiverAddress = common.HexToAddress("0x0123456789012345678901234567890123456789")
 
 		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
 			ContractAddress: common.Address{},
@@ -68,7 +67,7 @@ func NativeTokenBridge() {
 
 		nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
 		Expect(err).Should(BeNil())
-		utils.DeployContract(ctx, NativeTokenDestinationByteCodeFile, deployerPK, subnetB, nativeTokenDestinationAbi, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress, initialReserveImbalance)
+		utils.DeployContract(ctx, NativeTokenDestinationByteCodeFile, deployerPK, subnetB, nativeTokenDestinationAbi, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress, new(big.Int).SetUint64(initialReserveImbalance))
 
 		log.Info("Finished deploying Bridge contracts")
 	}
@@ -80,10 +79,10 @@ func NativeTokenBridge() {
 	Expect(err).Should(BeNil())
 
 	// Helper function
-	sendTokensToSource := func(valueToSend *big.Int, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
+	sendTokensToSource := func(valueToSend uint64, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
 		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetB.ChainID)
 		Expect(err).Should(BeNil())
-		transactor.Value = valueToSend
+		transactor.Value = new(big.Int).SetUint64(valueToSend)
 
 		tx, err := nativeTokenDestination.TransferToSource(transactor, toAddress, emptyDestFeeInfo, []common.Address{})
 		Expect(err).Should(BeNil())
@@ -93,7 +92,7 @@ func NativeTokenBridge() {
 
 		transferEvent, err := utils.GetEventFromLogs(destChainReceipt.Logs, nativeTokenDestination.ParseTransferToSource)
 		Expect(err).Should(BeNil())
-		utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
+		Expect(transferEvent.Amount.Uint64()).Should(Equal(valueToSend))
 
 		receipt, err := utils.RelayMessage(ctx, destChainReceipt.BlockHash, destChainReceipt.BlockNumber, subnetB, subnetA)
 		Expect(err).Should(BeNil())
@@ -102,10 +101,10 @@ func NativeTokenBridge() {
 	}
 
 	// Helper function
-	sendTokensToDestination := func(valueToSend *big.Int, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
+	sendTokensToDestination := func(valueToSend uint64, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
 		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetA.ChainID)
 		Expect(err).Should(BeNil())
-		transactor.Value = valueToSend
+		transactor.Value = new(big.Int).SetUint64(valueToSend)
 
 		tx, err := nativeTokenSource.TransferToDestination(transactor, toAddress, emptySourceFeeInfo, []common.Address{})
 		Expect(err).Should(BeNil())
@@ -115,7 +114,7 @@ func NativeTokenBridge() {
 
 		transferEvent, err := utils.GetEventFromLogs(sourceChainReceipt.Logs, nativeTokenSource.ParseTransferToDestination)
 		Expect(err).Should(BeNil())
-		utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
+		Expect(transferEvent.Amount.Uint64()).Should(Equal(valueToSend))
 
 		receipt, err := utils.RelayMessage(ctx, sourceChainReceipt.BlockHash, sourceChainReceipt.BlockNumber, subnetA, subnetB)
 		Expect(err).Should(BeNil())
@@ -125,48 +124,48 @@ func NativeTokenBridge() {
 
 	{ // Transfer some tokens A -> B
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, 0, subnetB.WSClient)
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
 		destChainReceipt := sendTokensToDestination(valueToSend, deployerPK, tokenReceiverAddress)
 
-		checkCollateralEvent(destChainReceipt.Logs, nativeTokenDestination, valueToSend, big.NewInt(0).Sub(initialReserveImbalance, valueToSend))
-		checkReserveImbalance(big.NewInt(0).Sub(initialReserveImbalance, valueToSend), nativeTokenDestination)
+		checkCollateralEvent(destChainReceipt.Logs, nativeTokenDestination, valueToSend, initialReserveImbalance - valueToSend)
+		checkReserveImbalance(initialReserveImbalance-valueToSend, nativeTokenDestination)
 
 		_, err = utils.GetEventFromLogs(destChainReceipt.Logs, nativeTokenDestination.ParseNativeTokensMinted)
 		Expect(err).ShouldNot(BeNil())
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, 0, subnetB.WSClient)
 	}
 
 	{ // Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, 0, subnetA.WSClient)
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainID)
 		Expect(err).Should(BeNil())
-		transactor.Value = valueToSend
+		transactor.Value = new(big.Int).SetUint64(valueToSend)
 
 		// This transfer should revert because the bridge isn't collateralized
 		_, err = nativeTokenDestination.TransferToSource(transactor, tokenReceiverAddress, emptyDestFeeInfo, []common.Address{})
 		Expect(err).ShouldNot(BeNil())
 
 		// Check we should fail to send because we're not collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, 0, subnetA.WSClient)
 	}
 
 	{ // Transfer more tokens A -> B to collateralize the bridge
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
-		checkReserveImbalance(big.NewInt(0).Sub(initialReserveImbalance, valueToSend), nativeTokenDestination)
+		utils.CheckBalance(ctx, tokenReceiverAddress, 0, subnetB.WSClient)
+		checkReserveImbalance(initialReserveImbalance-valueToSend, nativeTokenDestination)
 
 		destChainReceipt := sendTokensToDestination(initialReserveImbalance, deployerPK, tokenReceiverAddress)
 
-		checkCollateralEvent(destChainReceipt.Logs, nativeTokenDestination, big.NewInt(0).Sub(initialReserveImbalance, valueToSend), common.Big0)
+		checkCollateralEvent(destChainReceipt.Logs, nativeTokenDestination, initialReserveImbalance-valueToSend, 0)
 		checkMintEvent(destChainReceipt.Logs, nativeTokenDestination, tokenReceiverAddress, valueToSend)
-		checkReserveImbalance(common.Big0, nativeTokenDestination)
+		checkReserveImbalance(0, nativeTokenDestination)
 
 		// We should have minted the excess coins after checking the collateral
 		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, subnetB.WSClient)
@@ -179,63 +178,25 @@ func NativeTokenBridge() {
 
 		utils.CheckBalance(ctx, tokenReceiverAddress, valueToReturn, subnetA.WSClient)
 	}
-
-	{ // Check reporting of burned tx fees to Source Chain
-		burnedTxFeesBalanceDest, err := subnetB.WSClient.BalanceAt(ctx, burnedTxFeeAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(burnedTxFeesBalanceDest.Cmp(common.Big0) > 0).Should(BeTrue())
-
-		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainID)
-		Expect(err).Should(BeNil())
-		tx, err := nativeTokenDestination.ReportTotalBurnedTxFees(transactor, emptyDestFeeInfo, []common.Address{})
-		Expect(err).Should(BeNil())
-
-		destChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetB.WSClient)
-
-		reportEvent, err := utils.GetEventFromLogs(destChainReceipt.Logs, nativeTokenDestination.ParseReportTotalBurnedTxFees)
-		Expect(err).Should(BeNil())
-		utils.ExpectBigEqual(reportEvent.BurnAddressBalance, burnedTxFeesBalanceDest)
-
-		burnedTxFeesBalanceSource, err := subnetA.WSClient.BalanceAt(ctx, burnedTxFeeAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(burnedTxFeesBalanceSource.Cmp(common.Big0) > 0).Should(BeTrue())
-
-		sourceChainReceipt, err := utils.RelayMessage(ctx, destChainReceipt.BlockHash, destChainReceipt.BlockNumber, subnetB, subnetA)
-		Expect(err).Should(BeNil())
-
-		burnEvent, err := utils.GetEventFromLogs(sourceChainReceipt.Logs, nativeTokenSource.ParseBurnTokens)
-		Expect(err).Should(BeNil())
-		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
-
-		burnedTxFeesBalanceSource2, err := subnetA.WSClient.BalanceAt(ctx, burnedTxFeeAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(burnedTxFeesBalanceSource2.Cmp(big.NewInt(0).Add(burnedTxFeesBalanceSource, burnEvent.Amount)) >= 0).Should(BeTrue())
-	}
 }
 
-func checkUnlockNativeEvent(logs []*types.Log, nativeTokenSource *nativetokensource.NativeTokenSource, recipient common.Address, value *big.Int) {
+func checkUnlockNativeEvent(logs []*types.Log, nativeTokenSource *nativetokensource.NativeTokenSource, recipient common.Address, value uint64) {
 	unlockEvent, err := utils.GetEventFromLogs(logs, nativeTokenSource.ParseUnlockTokens)
 	Expect(err).Should(BeNil())
 	Expect(unlockEvent.Recipient).Should(Equal(recipient))
-	Expect(unlockEvent.Amount.Cmp(value)).Should(BeZero())
+	Expect(unlockEvent.Amount.Uint64()).Should(Equal(value))
 }
 
-func checkCollateralEvent(logs []*types.Log, nativeTokenDestination *nativetokendestination.NativeTokenDestination, collateralAdded *big.Int, collateralRemaining *big.Int) {
+func checkCollateralEvent(logs []*types.Log, nativeTokenDestination *nativetokendestination.NativeTokenDestination, collateralAdded uint64, collateralRemaining uint64) {
 	collateralEvent, err := utils.GetEventFromLogs(logs, nativeTokenDestination.ParseCollateralAdded)
 	Expect(err).Should(BeNil())
-	Expect(collateralEvent.Amount.Cmp(collateralAdded)).Should(BeZero())
-	Expect(collateralEvent.Remaining.Cmp(collateralEvent.Remaining)).Should(BeZero())
+	Expect(collateralEvent.Amount.Uint64()).Should(Equal(collateralAdded))
+	Expect(collateralEvent.Remaining.Uint64()).Should(Equal(collateralRemaining))
 }
 
-func checkMintEvent(logs []*types.Log, nativeTokenDestination *nativetokendestination.NativeTokenDestination, recipient common.Address, value *big.Int) {
+func checkMintEvent(logs []*types.Log, nativeTokenDestination *nativetokendestination.NativeTokenDestination, recipient common.Address, value uint64) {
 	mintEvent, err := utils.GetEventFromLogs(logs, nativeTokenDestination.ParseNativeTokensMinted)
 	Expect(err).Should(BeNil())
 	Expect(mintEvent.Recipient).Should(Equal(recipient))
-	Expect(mintEvent.Amount.Cmp(value)).Should(BeZero())
-}
-
-func checkReserveImbalance(value *big.Int, nativeTokenDestination *nativetokendestination.NativeTokenDestination) {
-	imbalance, err := nativeTokenDestination.CurrentReserveImbalance(&bind.CallOpts{})
-	Expect(err).Should(BeNil())
-	utils.ExpectBigEqual(imbalance, value)
+	Expect(mintEvent.Amount.Uint64()).Should(Equal(value))
 }

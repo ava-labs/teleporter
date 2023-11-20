@@ -236,7 +236,7 @@ func WaitForTransactionSuccess(ctx context.Context, txHash common.Hash, client e
 }
 
 func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclient.Client) *types.Receipt {
-	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	cctx, cancel := context.WithTimeout(ctx, 20 * time.Second)
 	defer cancel()
 
 	// Loop until we find the transaction or time out
@@ -312,12 +312,7 @@ func RelayMessage(
 	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
 	receiveEvent, err := GetEventFromLogs(receipt.Logs, bind.ParseReceiveCrossChainMessage)
-	if err != nil {
-		// If we didn't find the ReceiveCrossChainMessage event, trace the transaction.
-		// We compare it with the empty string so that ginkgo will print it out for us.
-		trace := TraceTransaction(ctx, receipt.TxHash, destination)
-		Expect(trace).Should(Equal(""))
-	}
+	Expect(err).Should(BeNil())
 	Expect(receiveEvent.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
 
 	// Check for a successful execution of the teleporter message.
@@ -394,10 +389,10 @@ func PrivateKeyToAddress(k *ecdsa.PrivateKey) common.Address {
 }
 
 // Throws a Gomega error if there is a mismatch
-func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big.Int, wsClient ethclient.Client) {
-	bal, err := wsClient.BalanceAt(ctx, addr, nil)
+func CheckBalance(ctx context.Context, addr common.Address, expectedBalance uint64, wsClient ethclient.Client) {
+	bal, err :=wsClient.BalanceAt(ctx, addr, nil)
 	Expect(err).Should(BeNil())
-	ExpectBigEqual(bal, expectedBalance)
+	Expect(bal.Uint64()).Should(Equal(expectedBalance))
 }
 
 func TraceTransaction(ctx context.Context, txHash common.Hash, subnetInfo SubnetTestInfo) string {
@@ -433,17 +428,4 @@ func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ec
 	code, err := subnetInfo.WSClient.CodeAt(ctx, contractAddress, nil)
 	Expect(err).Should(BeNil())
 	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-}
-
-func ExpectBigEqual(v1 *big.Int, v2 *big.Int) {
-	// Compare strings, so gomega will print the numbers if they differ
-	Expect(v1.String()).Should(Equal(v2.String()))
-}
-
-func BigIntSub(v1 *big.Int, v2 *big.Int) *big.Int {
-	return big.NewInt(0).Sub(v1, v2)
-}
-
-func BigIntMul(v1 *big.Int, v2 *big.Int) *big.Int {
-	return big.NewInt(0).Mul(v1, v2)
 }

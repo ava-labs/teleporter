@@ -735,36 +735,29 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             return;
         }
 
-        // // Encode the payload by ABI encoding a call to the {receiveTeleporterMessage} function
-        // // defined by the {ITeleporterReceiver} interface.
-        // bytes memory payload = abi.encodeCall(
-        //     ITeleporterReceiver.receiveTeleporterMessage,
-        //     (originChainID, message.senderAddress, message.message)
-        // );
+        // Encode the payload by ABI encoding a call to the {receiveTeleporterMessage} function
+        // defined by the {ITeleporterReceiver} interface.
+        bytes memory payload = abi.encodeCall(
+            ITeleporterReceiver.receiveTeleporterMessage,
+            (originChainID, message.senderAddress, message.message)
+        );
 
-        // // Call the destination address of the message with the formatted call data. Only provide the required
-        // // gas limit to the sub-call so that the end application cannot consume an arbitrary amount of gas.
-        // bool success = _tryExecuteMessage(
-        //     message.destinationAddress,
-        //     message.requiredGasLimit,
-        //     payload
-        // );
+        // Call the destination address of the message with the formatted call data. Only provide the required
+        // gas limit to the sub-call so that the end application cannot consume an arbitrary amount of gas.
+        bool success = _tryExecuteMessage(
+            message.destinationAddress,
+            message.requiredGasLimit,
+            payload
+        );
 
-        ITeleporterReceiver(message.destinationAddress)
-            .receiveTeleporterMessage(
-                originChainID,
-                message.senderAddress,
-                message.message
-            );
-
-        // // If the execution failed, store a hash of the message in state such that its
-        // // execution can be retried again in the future with a higher gas limit (paid by whoever
-        // // retries).Either way, the message will now be considered "delivered" since the relayer
-        // // provided enough gas to meet the required gas limit.
-        // if (!success) {
-        //     _storeFailedMessageExecution(originChainID, message);
-        //     return;
-        // }
+        // If the execution failed, store a hash of the message in state such that its
+        // execution can be retried again in the future with a higher gas limit (paid by whoever
+        // retries).Either way, the message will now be considered "delivered" since the relayer
+        // provided enough gas to meet the required gas limit.
+        if (!success) {
+            _storeFailedMessageExecution(originChainID, message);
+            return;
+        }
 
         emit MessageExecuted(originChainID, message.messageID);
     }
