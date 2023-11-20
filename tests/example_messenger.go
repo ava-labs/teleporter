@@ -10,6 +10,7 @@ import (
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
+	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
 
@@ -52,7 +53,7 @@ func ExampleMessenger(network network.Network) {
 		optsA,
 		subnetBInfo.BlockchainID,
 		exampleMessengerContractB,
-		fundedAddress,
+		common.BigToAddress(common.Big0),
 		big.NewInt(0),
 		big.NewInt(300000),
 		message,
