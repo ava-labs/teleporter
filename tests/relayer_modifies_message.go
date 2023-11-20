@@ -38,7 +38,7 @@ func RelayerModifiesMessage(network network.Network) {
 	}
 
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetAInfo.TeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Relay the message to the destination
 	// Relayer modifies the message in flight

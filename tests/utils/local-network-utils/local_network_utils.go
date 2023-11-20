@@ -137,7 +137,6 @@ func RelayMessage(
 		signedWarpMessageBytes,
 		sendEvent.Message.RequiredGasLimit,
 		teleporterContractAddress,
-		fundedAddress,
 		fundedKey,
 		destination,
 		alterMessage,

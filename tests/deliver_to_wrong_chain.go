@@ -62,7 +62,6 @@ func DeliverToWrongChain(network network.Network) {
 		subnetAInfo,
 		subnetBInfo,
 		sendCrossChainMessageInput,
-		fundedAddress,
 		fundedKey,
 		subnetAInfo.TeleporterMessenger,
 	)

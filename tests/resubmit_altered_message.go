@@ -39,7 +39,7 @@ func ResubmitAlteredMessage(network network.Network) {
 	}
 
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetAInfo.TeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Relay the message to the destination
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)

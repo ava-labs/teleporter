@@ -63,7 +63,7 @@ func SendSpecificReceipts(network network.Network) {
 
 	// Send first message from Subnet A to Subnet B with fee amount 5
 	sendCrossChainMsgReceipt, messageID1 := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetAInfo.TeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Relay message from SubnetA to SubnetB
 	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, false, true)
@@ -74,7 +74,7 @@ func SendSpecificReceipts(network network.Network) {
 
 	// Send second message from Subnet A to Subnet B with fee amount 5
 	sendCrossChainMsgReceipt, messageID2 := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetAInfo.TeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Relay message from SubnetA to SubnetB
 	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, false, true)
@@ -94,7 +94,6 @@ func SendSpecificReceipts(network network.Network) {
 			Amount:          big.NewInt(0),
 		},
 		[]common.Address{},
-		fundedAddress,
 		fundedKey,
 		subnetBInfo.TeleporterMessenger,
 	)
@@ -128,7 +127,7 @@ func SendSpecificReceipts(network network.Network) {
 
 	// This message will also have the same receipt as the previous message
 	receipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetBInfo.TeleporterMessenger)
+		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedKey, subnetBInfo.TeleporterMessenger)
 
 	// Relay message from Subnet B to Subnet A
 	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, false, true)

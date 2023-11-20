@@ -50,7 +50,6 @@ func ValidatorChurnGinkgo() {
 		subnetAInfo,
 		subnetBInfo,
 		sendCrossChainMessageInput,
-		fundedAddress,
 		fundedKey,
 		subnetAInfo.TeleporterMessenger,
 	)
@@ -100,7 +99,6 @@ func ValidatorChurnGinkgo() {
 		signedWarpMessageBytes,
 		sendEvent.Message.RequiredGasLimit,
 		teleporterContractAddress,
-		fundedAddress,
 		fundedKey,
 		subnetBInfo,
 		false,

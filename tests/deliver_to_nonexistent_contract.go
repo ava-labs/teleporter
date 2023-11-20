@@ -36,7 +36,7 @@ func DeliverToNonExistentContract(network network.Network) {
 
 	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 	fundDeployerTx := utils.CreateNativeTransferTransaction(
-		ctx, subnetBInfo, fundedAddress, fundedKey, deployerAddress, fundAmount,
+		ctx, subnetBInfo, fundedKey, deployerAddress, fundAmount,
 	)
 	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo, fundDeployerTx, true)
 
@@ -134,7 +134,6 @@ func DeliverToNonExistentContract(network network.Network) {
 		subnetAInfo.BlockchainID,
 		subnetBInfo,
 		deliveredTeleporterMessage,
-		fundedAddress,
 		fundedKey,
 		subnetBInfo.TeleporterMessenger,
 	)

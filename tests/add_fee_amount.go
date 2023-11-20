@@ -58,7 +58,7 @@ func AddFeeAmount(network network.Network) {
 	}
 
 	sendCrossChainMsgReceipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetAInfo.TeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Add fee amount
 	additionalFeeAmount := big.NewInt(2)
@@ -69,7 +69,6 @@ func AddFeeAmount(network network.Network) {
 		messageID,
 		additionalFeeAmount,
 		mockTokenAddress,
-		fundedAddress,
 		fundedKey,
 		subnetAInfo.TeleporterMessenger,
 	)
@@ -87,7 +86,7 @@ func AddFeeAmount(network network.Network) {
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 
 	sendCrossChainMsgReceipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetBInfo.TeleporterMessenger)
+		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedKey, subnetBInfo.TeleporterMessenger)
 
 	// Relay message from SubnetB to SubnetA
 	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetBInfo, subnetAInfo, false, true)

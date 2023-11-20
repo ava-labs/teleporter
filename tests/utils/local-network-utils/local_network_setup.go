@@ -41,8 +41,7 @@ var (
 	subnetsInfo               map[ids.ID]*utils.SubnetTestInfo = make(map[ids.ID]*utils.SubnetTestInfo)
 	subnetNodeNames           map[ids.ID][]string              = make(map[ids.ID][]string)
 
-	fundedAddress = common.HexToAddress("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC")
-	fundedKey     *ecdsa.PrivateKey
+	fundedKey *ecdsa.PrivateKey
 
 	// Internal vars only used to set up the local network
 	anrClient           runner_sdk.Client
@@ -65,9 +64,8 @@ func GetTeleporterContractAddress() common.Address {
 	return teleporterContractAddress
 }
 func GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
-	key, err := crypto.ToECDSA(crypto.FromECDSA(fundedKey))
-	Expect(err).Should(BeNil())
-	return fundedAddress, key
+	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
+	return fundedAddress, fundedKey
 }
 
 // SetupNetwork starts the default network and adds 10 new nodes as validators with BLS keys
@@ -254,7 +252,7 @@ func DeployTeleporterContracts(
 		{
 			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
 			fundDeployerTx := utils.CreateNativeTransferTransaction(
-				ctx, subnetInfo, fundedAddress, fundedKey, deployerAddress, fundAmount,
+				ctx, subnetInfo, fundedKey, deployerAddress, fundAmount,
 			)
 			utils.SendTransactionAndWaitForAcceptance(ctx, subnetInfo, fundDeployerTx, true)
 		}

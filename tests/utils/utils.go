@@ -24,6 +24,7 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
@@ -78,7 +79,6 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
@@ -113,7 +113,6 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	messageID *big.Int,
 	amount *big.Int,
 	feeContractAddress common.Address,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
@@ -145,7 +144,6 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	originChainID ids.ID,
 	subnet SubnetTestInfo,
 	message teleportermessenger.TeleporterMessage,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
@@ -169,7 +167,6 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	messageIDs []*big.Int,
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
@@ -238,10 +235,10 @@ func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
 	source SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
+	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
 	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
@@ -267,10 +264,10 @@ func CreateRetryMessageExecutionTransaction(
 	subnetInfo SubnetTestInfo,
 	originChainID ids.ID,
 	message teleportermessenger.TeleporterMessage,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
+	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
 	teleporterABI, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
 
@@ -283,7 +280,7 @@ func CreateRetryMessageExecutionTransaction(
 
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
 
-	// Send a transaction to the Teleporter contract
+	// Sign a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   subnetInfo.ChainIDInt,
 		Nonce:     nonce,
@@ -305,11 +302,11 @@ func CreateReceiveCrossChainMessageTransaction(
 	warpMessageBytes []byte,
 	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	subnetInfo SubnetTestInfo,
 	alterMessage bool,
 ) *types.Transaction {
+	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
 	signedMessage, err := avalancheWarp.ParseMessage(warpMessageBytes)
@@ -350,11 +347,11 @@ func CreateReceiveCrossChainMessageTransaction(
 func CreateNativeTransferTransaction(
 	ctx context.Context,
 	subnetInfo SubnetTestInfo,
-	fromAddress common.Address,
 	fromKey *ecdsa.PrivateKey,
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Transaction {
+	fromAddress := crypto.PubkeyToAddress(fromKey.PublicKey)
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fromAddress)
 
 	tx := types.NewTx(&types.DynamicFeeTx{

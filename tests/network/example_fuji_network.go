@@ -51,8 +51,7 @@ var (
 	conduitTeleporterRegistryAddress common.Address // Empty for now
 	conduitTeleporterMessenger       *teleportermessenger.TeleporterMessenger
 
-	userAddress = common.HexToAddress("")      // To be supplied by user
-	skHex       = strings.TrimPrefix("", "0x") // To be supplied by user
+	skHex = strings.TrimPrefix("", "0x") // To be supplied by user
 )
 
 func init() {
@@ -181,6 +180,7 @@ func (n *FujiNetwork) GetTeleporterContractAddress() common.Address {
 func (n *FujiNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	key, err := crypto.HexToECDSA(skHex)
 	Expect(err).Should(BeNil())
+	userAddress := crypto.PubkeyToAddress(key.PublicKey)
 
 	return userAddress, key
 }

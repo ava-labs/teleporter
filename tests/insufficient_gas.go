@@ -74,7 +74,6 @@ func InsufficientGas(network network.Network) {
 		subnetAInfo.BlockchainID,
 		subnetBInfo,
 		failedMessageExecutionEvent.Message,
-		fundedAddress,
 		fundedKey,
 		subnetBInfo.TeleporterMessenger,
 	)

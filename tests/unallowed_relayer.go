@@ -48,7 +48,7 @@ func UnallowedRelayer(network network.Network) {
 		"destinationChainID", subnetBInfo.BlockchainID,
 	)
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetAInfo.TeleporterMessenger,
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger,
 	)
 
 	//
