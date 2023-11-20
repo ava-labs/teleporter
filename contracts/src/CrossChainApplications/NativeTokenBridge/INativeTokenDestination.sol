@@ -33,6 +33,14 @@ interface INativeTokenDestination {
     event NativeTokensMinted(address indexed recipient, uint256 amount);
 
     /**
+     * @dev Emitted when minting reporting total burned tx fees to source chain.
+     */
+    event ReportTotalBurnedTxFees(
+        uint256 burnAddressBalance,
+        uint256 indexed teleporterMessageID
+    );
+
+    /**
      * @dev Burns native tokens on the destination contract chain, and sends a message to the source
      * contract to unlock corresponding tokens.
      */

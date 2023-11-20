@@ -37,7 +37,7 @@ type TeleporterFeeInfo struct {
 
 // NativeTokenDestinationMetaData contains all meta data concerning the NativeTokenDestination contract.
 var NativeTokenDestinationMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenSourceAddress_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"initialReserveImbalance_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"addedBy\",\"type\":\"address\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"NativeTokensMinted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"initialReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isCollateralized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenSourceAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalMinted\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenSourceAddress_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"initialReserveImbalance_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"addedBy\",\"type\":\"address\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"NativeTokensMinted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"burnAddressBalance\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"ReportTotalBurnedTxFees\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"REPORT_BURNED_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"initialReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isCollateralized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenSourceAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"reportTotalBurnedTxFees\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalMinted\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // NativeTokenDestinationABI is the input ABI used to generate the binding from.
@@ -184,6 +184,37 @@ func (_NativeTokenDestination *NativeTokenDestinationTransactorRaw) Transfer(opt
 // Transact invokes the (paid) contract method with params as input values.
 func (_NativeTokenDestination *NativeTokenDestinationTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _NativeTokenDestination.Contract.contract.Transact(opts, method, params...)
+}
+
+// REPORTBURNEDTOKENSREQUIREDGAS is a free data retrieval call binding the contract method 0xd3095126.
+//
+// Solidity: function REPORT_BURNED_TOKENS_REQUIRED_GAS() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationCaller) REPORTBURNEDTOKENSREQUIREDGAS(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _NativeTokenDestination.contract.Call(opts, &out, "REPORT_BURNED_TOKENS_REQUIRED_GAS")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// REPORTBURNEDTOKENSREQUIREDGAS is a free data retrieval call binding the contract method 0xd3095126.
+//
+// Solidity: function REPORT_BURNED_TOKENS_REQUIRED_GAS() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationSession) REPORTBURNEDTOKENSREQUIREDGAS() (*big.Int, error) {
+	return _NativeTokenDestination.Contract.REPORTBURNEDTOKENSREQUIREDGAS(&_NativeTokenDestination.CallOpts)
+}
+
+// REPORTBURNEDTOKENSREQUIREDGAS is a free data retrieval call binding the contract method 0xd3095126.
+//
+// Solidity: function REPORT_BURNED_TOKENS_REQUIRED_GAS() view returns(uint256)
+func (_NativeTokenDestination *NativeTokenDestinationCallerSession) REPORTBURNEDTOKENSREQUIREDGAS() (*big.Int, error) {
+	return _NativeTokenDestination.Contract.REPORTBURNEDTOKENSREQUIREDGAS(&_NativeTokenDestination.CallOpts)
 }
 
 // TRANSFERNATIVETOKENSREQUIREDGAS is a free data retrieval call binding the contract method 0xab285230.
@@ -486,6 +517,27 @@ func (_NativeTokenDestination *NativeTokenDestinationTransactorSession) ReceiveT
 	return _NativeTokenDestination.Contract.ReceiveTeleporterMessage(&_NativeTokenDestination.TransactOpts, senderBlockchainID, senderAddress, message)
 }
 
+// ReportTotalBurnedTxFees is a paid mutator transaction binding the contract method 0x3a94fe51.
+//
+// Solidity: function reportTotalBurnedTxFees((address,uint256) feeInfo, address[] allowedRelayerAddresses) returns()
+func (_NativeTokenDestination *NativeTokenDestinationTransactor) ReportTotalBurnedTxFees(opts *bind.TransactOpts, feeInfo TeleporterFeeInfo, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
+	return _NativeTokenDestination.contract.Transact(opts, "reportTotalBurnedTxFees", feeInfo, allowedRelayerAddresses)
+}
+
+// ReportTotalBurnedTxFees is a paid mutator transaction binding the contract method 0x3a94fe51.
+//
+// Solidity: function reportTotalBurnedTxFees((address,uint256) feeInfo, address[] allowedRelayerAddresses) returns()
+func (_NativeTokenDestination *NativeTokenDestinationSession) ReportTotalBurnedTxFees(feeInfo TeleporterFeeInfo, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
+	return _NativeTokenDestination.Contract.ReportTotalBurnedTxFees(&_NativeTokenDestination.TransactOpts, feeInfo, allowedRelayerAddresses)
+}
+
+// ReportTotalBurnedTxFees is a paid mutator transaction binding the contract method 0x3a94fe51.
+//
+// Solidity: function reportTotalBurnedTxFees((address,uint256) feeInfo, address[] allowedRelayerAddresses) returns()
+func (_NativeTokenDestination *NativeTokenDestinationTransactorSession) ReportTotalBurnedTxFees(feeInfo TeleporterFeeInfo, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
+	return _NativeTokenDestination.Contract.ReportTotalBurnedTxFees(&_NativeTokenDestination.TransactOpts, feeInfo, allowedRelayerAddresses)
+}
+
 // TransferToSource is a paid mutator transaction binding the contract method 0x75846562.
 //
 // Solidity: function transferToSource(address recipient, (address,uint256) feeInfo, address[] allowedRelayerAddresses) payable returns()
@@ -782,6 +834,151 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchNativeTokens
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseNativeTokensMinted(log types.Log) (*NativeTokenDestinationNativeTokensMinted, error) {
 	event := new(NativeTokenDestinationNativeTokensMinted)
 	if err := _NativeTokenDestination.contract.UnpackLog(event, "NativeTokensMinted", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// NativeTokenDestinationReportTotalBurnedTxFeesIterator is returned from FilterReportTotalBurnedTxFees and is used to iterate over the raw logs and unpacked data for ReportTotalBurnedTxFees events raised by the NativeTokenDestination contract.
+type NativeTokenDestinationReportTotalBurnedTxFeesIterator struct {
+	Event *NativeTokenDestinationReportTotalBurnedTxFees // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *NativeTokenDestinationReportTotalBurnedTxFeesIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(NativeTokenDestinationReportTotalBurnedTxFees)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(NativeTokenDestinationReportTotalBurnedTxFees)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *NativeTokenDestinationReportTotalBurnedTxFeesIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *NativeTokenDestinationReportTotalBurnedTxFeesIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// NativeTokenDestinationReportTotalBurnedTxFees represents a ReportTotalBurnedTxFees event raised by the NativeTokenDestination contract.
+type NativeTokenDestinationReportTotalBurnedTxFees struct {
+	BurnAddressBalance  *big.Int
+	TeleporterMessageID *big.Int
+	Raw                 types.Log // Blockchain specific contextual infos
+}
+
+// FilterReportTotalBurnedTxFees is a free log retrieval operation binding the contract event 0x2550fa6041684d40e635e29e93dde9017d70c25b46aa88393317b5182ed6ae7c.
+//
+// Solidity: event ReportTotalBurnedTxFees(uint256 burnAddressBalance, uint256 indexed teleporterMessageID)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterReportTotalBurnedTxFees(opts *bind.FilterOpts, teleporterMessageID []*big.Int) (*NativeTokenDestinationReportTotalBurnedTxFeesIterator, error) {
+
+	var teleporterMessageIDRule []interface{}
+	for _, teleporterMessageIDItem := range teleporterMessageID {
+		teleporterMessageIDRule = append(teleporterMessageIDRule, teleporterMessageIDItem)
+	}
+
+	logs, sub, err := _NativeTokenDestination.contract.FilterLogs(opts, "ReportTotalBurnedTxFees", teleporterMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return &NativeTokenDestinationReportTotalBurnedTxFeesIterator{contract: _NativeTokenDestination.contract, event: "ReportTotalBurnedTxFees", logs: logs, sub: sub}, nil
+}
+
+// WatchReportTotalBurnedTxFees is a free log subscription operation binding the contract event 0x2550fa6041684d40e635e29e93dde9017d70c25b46aa88393317b5182ed6ae7c.
+//
+// Solidity: event ReportTotalBurnedTxFees(uint256 burnAddressBalance, uint256 indexed teleporterMessageID)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchReportTotalBurnedTxFees(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationReportTotalBurnedTxFees, teleporterMessageID []*big.Int) (event.Subscription, error) {
+
+	var teleporterMessageIDRule []interface{}
+	for _, teleporterMessageIDItem := range teleporterMessageID {
+		teleporterMessageIDRule = append(teleporterMessageIDRule, teleporterMessageIDItem)
+	}
+
+	logs, sub, err := _NativeTokenDestination.contract.WatchLogs(opts, "ReportTotalBurnedTxFees", teleporterMessageIDRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(NativeTokenDestinationReportTotalBurnedTxFees)
+				if err := _NativeTokenDestination.contract.UnpackLog(event, "ReportTotalBurnedTxFees", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseReportTotalBurnedTxFees is a log parse operation binding the contract event 0x2550fa6041684d40e635e29e93dde9017d70c25b46aa88393317b5182ed6ae7c.
+//
+// Solidity: event ReportTotalBurnedTxFees(uint256 burnAddressBalance, uint256 indexed teleporterMessageID)
+func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseReportTotalBurnedTxFees(log types.Log) (*NativeTokenDestinationReportTotalBurnedTxFees, error) {
+	event := new(NativeTokenDestinationReportTotalBurnedTxFees)
+	if err := _NativeTokenDestination.contract.UnpackLog(event, "ReportTotalBurnedTxFees", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

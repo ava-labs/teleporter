@@ -8,6 +8,7 @@ pragma solidity 0.8.18;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {IERC20TokenSource} from "./IERC20TokenSource.sol";
+import {ITokenSource} from "./ITokenSource.sol";
 import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
@@ -17,9 +18,17 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 contract ERC20TokenSource is
     ITeleporterReceiver,
     IERC20TokenSource,
+    ITokenSource,
     ReentrancyGuard
 {
+    // Designated Blackhole Address. Tokens are sent here to be "burned" before sending an unlock
+    // message to the source chain. Different from the burned tx fee address so they can be
+    // tracked separately.
+    address public constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000001;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
+    // Used to keep track of tokens burned through transactions on the destination chain. They can
+    // be reported to this contract to burn an equivalent number of tokens on this chain.
+    uint256 public destinationChainBurnedBalance = 0;
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
     address public immutable erc20ContractAddress;
@@ -92,10 +101,31 @@ contract ERC20TokenSource is
             "ERC20TokenSource: unauthorized sender"
         );
 
-        (address recipient, uint256 amount) = abi.decode(
+        // Decode the payload to recover the action and corresponding function parameters
+        (SourceAction action, bytes memory actionData) = abi.decode(
             message,
-            (address, uint256)
+            (SourceAction, bytes)
         );
+
+        // Route to the appropriate function.
+        if (action == SourceAction.Unlock) {
+            (address recipient, uint256 amount) = abi.decode(
+                actionData,
+                (address, uint256)
+            );
+            _unlockTokens(recipient, amount);
+        } else if (action == SourceAction.Burn) {
+            uint256 newBurnBalance = abi.decode(actionData, (uint256));
+            _burnTokens(newBurnBalance);
+        } else {
+            revert("ERC20TokenSource: invalid action");
+        }
+    }
+
+    /**
+     * @dev Unlocks tokens to recipient.
+     */
+    function _unlockTokens(address recipient, uint256 amount) private {
         require(
             recipient != address(0),
             "ERC20TokenSource: zero recipient address"
@@ -105,6 +135,19 @@ contract ERC20TokenSource is
         SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
 
         emit UnlockTokens(recipient, amount);
+    }
+
+    /**
+     * @dev Sends tokens to BLACKHOLE_ADDRESS.
+     */
+    function _burnTokens(uint256 newBurnBalance) private {
+        if (newBurnBalance > destinationChainBurnedBalance) {
+            uint256 difference = newBurnBalance - destinationChainBurnedBalance;
+
+            SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BLACKHOLE_ADDRESS, difference);
+            destinationChainBurnedBalance = newBurnBalance;
+            emit BurnTokens(difference);
+        }
     }
 
     /**

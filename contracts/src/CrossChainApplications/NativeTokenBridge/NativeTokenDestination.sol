@@ -9,6 +9,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
+import {ITokenSource} from "./ITokenSource.sol";
 import {ITeleporterMessenger, TeleporterFeeInfo, TeleporterMessageInput} from "../../Teleporter/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
@@ -35,6 +36,7 @@ contract NativeTokenDestination is
         INativeMinter(0x0200000000000000000000000000000000000001);
 
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
+    uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 20_000;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
     // The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
@@ -84,7 +86,7 @@ contract NativeTokenDestination is
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
      *
-     * Receives a Teleporter message and routes to the appropriate internal function call.
+     * Receives a Teleporter message.
      */
     function receiveTeleporterMessage(
         bytes32 senderBlockchainID,
@@ -194,7 +196,10 @@ contract NativeTokenDestination is
                 feeInfo: feeInfo,
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(recipient, msg.value)
+                message: abi.encode(
+                    ITokenSource.SourceAction.Unlock,
+                    abi.encode(recipient, msg.value)
+                )
             })
         );
 
@@ -206,10 +211,44 @@ contract NativeTokenDestination is
         });
     }
 
+    /**
+     * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
+     */
+    function reportTotalBurnedTxFees(
+        TeleporterFeeInfo calldata feeInfo,
+        address[] calldata allowedRelayerAddresses
+    ) external {
+        uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
+        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+            TeleporterMessageInput({
+                destinationChainID: sourceBlockchainID,
+                destinationAddress: nativeTokenSourceAddress,
+                feeInfo: feeInfo,
+                requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
+                allowedRelayerAddresses: allowedRelayerAddresses,
+                message: abi.encode(
+                    ITokenSource.SourceAction.Burn,
+                    abi.encode(totalBurnedTxFees)
+                )
+            })
+        );
+
+        emit ReportTotalBurnedTxFees({
+            burnAddressBalance: totalBurnedTxFees,
+            teleporterMessageID: messageID
+        });
+    }
+
+    /**
+     * @dev See {INativeTokenDestination-isCollateralized}.
+     */
     function isCollateralized() external view returns (bool) {
         return currentReserveImbalance == 0;
     }
 
+    /**
+     * @dev See {INativeTokenDestination-totalSupply}.
+     */
     function totalSupply() external view returns (uint256) {
         uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance +
             address(BLACKHOLE_ADDRESS).balance;

@@ -22,11 +22,6 @@ interface IERC20TokenSource {
     );
 
     /**
-     * @dev Emitted when tokens are unlocked on this chain.
-     */
-    event UnlockTokens(address recipient, uint256 amount);
-
-    /**
      * @dev Locks ERC20 tokens on the source contract chain, and sends a message to the destination
      * contract to mint corresponding tokens.
      */
