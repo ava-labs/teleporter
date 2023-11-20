@@ -25,6 +25,13 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Checkout subnet-evm
+        uses: actions/checkout@v4
+        with:
+          repository: ava-labs/subnet-evm
+          path: subnet-evm
+          ref: v0.5.9
+
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
