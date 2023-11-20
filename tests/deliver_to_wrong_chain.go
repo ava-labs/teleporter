@@ -10,6 +10,7 @@ import (
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
@@ -45,9 +46,13 @@ func DeliverToWrongChain(network network.Network) {
 	//
 	ctx := context.Background()
 
+	destinationAddressKey, err := crypto.GenerateKey()
+	Expect(err).Should(BeNil())
+	destinationAddress := crypto.PubkeyToAddress(destinationAddressKey.PublicKey)
+
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 		DestinationChainID: ids.Empty, // Some other chain ID
-		DestinationAddress: fundedAddress,
+		DestinationAddress: destinationAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			ContractAddress: fundedAddress,
 			Amount:          big.NewInt(0),
