@@ -268,9 +268,9 @@ func DeployTeleporterContracts(
 			defer rpcClient.Close()
 
 			newHeads := make(chan *types.Header, 10)
-			subA, err := subnetInfo.ChainWSClient.SubscribeNewHead(ctx, newHeads)
+			sub, err := subnetInfo.ChainWSClient.SubscribeNewHead(ctx, newHeads)
 			Expect(err).Should(BeNil())
-			defer subA.Unsubscribe()
+			defer sub.Unsubscribe()
 
 			err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
 			Expect(err).Should(BeNil())
