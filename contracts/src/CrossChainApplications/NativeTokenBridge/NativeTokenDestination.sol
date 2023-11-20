@@ -19,24 +19,23 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 // solhint-disable-next-line no-unused-import
 import {IAllowList} from "@subnet-evm-contracts/interfaces/IAllowList.sol";
 
-// The address where the burned transaction fees are credited.
-// TODO implement mechanism to report burned tx fees to source chian.
-address constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
-// Designated Blackhole Address. Tokens are sent here to be "burned" before sending an unlock
-// message to the source chain. Different from the burned tx fee address so they can be
-// tracked separately.
-address constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000001;
-
 contract NativeTokenDestination is
     ITeleporterReceiver,
     INativeTokenDestination,
     ReentrancyGuard
 {
+    // The address where the burned transaction fees are credited.
+    address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
+    // Designated Blackhole Address. Tokens are sent here to be "burned" before sending an unlock
+    // message to the source chain. Different from the burned tx fee address so they can be
+    // tracked separately.
+    address public constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000001;
+
     INativeMinter private immutable _nativeMinter =
         INativeMinter(0x0200000000000000000000000000000000000001);
 
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
-    uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 20_000;
+    uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 50_000;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
     // The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
@@ -252,6 +251,9 @@ contract NativeTokenDestination is
     function totalSupply() external view returns (uint256) {
         uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance +
             address(BLACKHOLE_ADDRESS).balance;
+
+        // This scenario should never happen, but this check will prevent an underflow
+        // where the contract would return a garbage value.
         require(
             burned <= totalMinted + initialReserveImbalance,
             "NativeTokenDestination: FATAL - contract has tokens unaccounted for"
