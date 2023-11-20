@@ -18,10 +18,6 @@ func ExampleMessengerGinkgo() {
 }
 
 func ExampleMessenger(network network.Network) {
-	var (
-		teleporterMessageID *big.Int
-	)
-
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
@@ -72,7 +68,7 @@ func ExampleMessenger(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
-	teleporterMessageID = event.Message.MessageID
+	teleporterMessageID := event.Message.MessageID
 
 	//
 	// Relay the message to the destination

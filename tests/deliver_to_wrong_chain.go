@@ -19,10 +19,6 @@ func DeliverToWrongChainGinkgo() {
 }
 
 func DeliverToWrongChain(network network.Network) {
-	var (
-		teleporterMessageID *big.Int
-	)
-
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
@@ -41,7 +37,7 @@ func DeliverToWrongChain(network network.Network) {
 	//
 	// Get the expected teleporter message ID for Subnet B
 	//
-	teleporterMessageID, err = subnetATeleporterMessenger.GetNextMessageID(&bind.CallOpts{}, subnetBInfo.BlockchainID)
+	teleporterMessageID, err := subnetATeleporterMessenger.GetNextMessageID(&bind.CallOpts{}, subnetBInfo.BlockchainID)
 	Expect(err).Should(BeNil())
 
 	//

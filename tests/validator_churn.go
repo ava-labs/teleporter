@@ -20,9 +20,6 @@ import (
 // Disallow this test from being run on anything but a local network, since it manipulates the validator set
 func ValidatorChurnGinkgo() {
 	network := &network.LocalNetwork{}
-	var (
-		teleporterMessageID *big.Int
-	)
 
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
@@ -57,8 +54,7 @@ func ValidatorChurnGinkgo() {
 		Message:                 []byte{1, 2, 3, 4},
 	}
 
-	var receipt *types.Receipt
-	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
+	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
 		subnetAInfo,
 		subnetBInfo,

@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -19,10 +18,6 @@ func BasicOneWaySendGinkgo() {
 
 // Tests basic one-way send from Subnet A to Subnet B
 func BasicOneWaySend(network network.Network) {
-	var (
-		teleporterMessageID *big.Int
-	)
-
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
@@ -55,8 +50,7 @@ func BasicOneWaySend(network network.Network) {
 		Message:                 []byte{1, 2, 3, 4},
 	}
 
-	var receipt *types.Receipt
-	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
+	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger,
 	)
 

@@ -21,10 +21,6 @@ func DeliverToNonExistentContractGinkgo() {
 }
 
 func DeliverToNonExistentContract(network network.Network) {
-	var (
-		teleporterMessageID *big.Int
-	)
-
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
@@ -92,7 +88,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(sendEvent.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
-	teleporterMessageID = sendEvent.Message.MessageID
+	teleporterMessageID := sendEvent.Message.MessageID
 
 	//
 	// Relay the message to the destination
