@@ -51,6 +51,10 @@ var _ = ginkgo.BeforeSuite(func() {
 var _ = ginkgo.AfterSuite(localUtils.TearDownNetwork)
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
+	// Cross-chain application tests
+	ginkgo.It("Example cross chain messenger", ExampleMessengerGinkgo)
+	ginkgo.It("ERC20 bridge multihop", ERC20BridgeMultihopGinkgo)
+
 	// Teleporter tests
 	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySendGinkgo)
 	ginkgo.It("Deliver to the wrong chain", DeliverToWrongChainGinkgo)
@@ -64,8 +68,4 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Resubmit altered message", ResubmitAlteredMessageGinkgo)
 	ginkgo.It("Relayer modifies message", RelayerModifiesMessageGinkgo)
 	ginkgo.It("Validator churn", ValidatorChurnGinkgo)
-
-	// Cross-chain application tests
-	ginkgo.It("Example cross chain messenger", ExampleMessengerGinkgo)
-	ginkgo.It("ERC20 bridge multihop", ERC20BridgeMultihopGinkgo)
 })
