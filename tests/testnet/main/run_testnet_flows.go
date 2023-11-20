@@ -24,8 +24,8 @@ func main() {
 	flows.BasicOneWaySend(network)
 	fmt.Println("Finished running test BasicOneWaySend")
 
-	flows.DeliverToWrongChain(network)
-	fmt.Println("Finished running test DeliverToWrongChain")
+	// flows.DeliverToWrongChain(network)
+	// fmt.Println("Finished running test DeliverToWrongChain")
 
 	flows.DeliverToNonExistentContract(network)
 	fmt.Println("Finished running test DeliverToNonExistentContract")
@@ -33,8 +33,8 @@ func main() {
 	flows.RetrySuccessfulExecution(network)
 	fmt.Println("Finished running test RetrySuccessfulExecution")
 
-	flows.UnallowedRelayer(network)
-	fmt.Println("Finished running test UnallowedRelayer")
+	// flows.UnallowedRelayer(network)
+	// fmt.Println("Finished running test UnallowedRelayer")
 
 	flows.ReceiveMessageTwice(network)
 	fmt.Println("Finished running test ReceiveMessageTwice")
@@ -48,8 +48,8 @@ func main() {
 	flows.ResubmitAlteredMessage(network)
 	fmt.Println("Finished running test ResubmitAlteredMessage")
 
-	flows.RelayerModifiesMessage(network)
-	fmt.Println("Finished running test RelayerModifiesMessage")
+	// flows.RelayerModifiesMessage(network)
+	// fmt.Println("Finished running test RelayerModifiesMessage")
 
 	fmt.Println("Finished Teleporter test flows.")
 

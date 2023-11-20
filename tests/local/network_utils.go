@@ -10,14 +10,14 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	"github.com/ava-labs/subnet-evm/interfaces"
+	subnetevminterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/params"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	"github.com/ava-labs/subnet-evm/x/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -70,10 +70,10 @@ func waitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 func constructSignedWarpMessageBytes(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source network.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
 ) []byte {
 	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := source.RPCClient.FilterLogs(ctx, interfaces.FilterQuery{
+	logs, err := source.RPCClient.FilterLogs(ctx, subnetevminterfaces.FilterQuery{
 		BlockHash: &sourceReceipt.BlockHash,
 		Addresses: []common.Address{warp.Module.Address},
 	})
@@ -118,8 +118,8 @@ func constructSignedWarpMessageBytes(
 func relayMessage(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source network.SubnetTestInfo,
-	destination network.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	teleporterContractAddress common.Address,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
@@ -166,7 +166,7 @@ func DeployContract(
 	ctx context.Context,
 	byteCodeFileName string,
 	deployerPK *ecdsa.PrivateKey,
-	subnetInfo network.SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	abi *abi.ABI,
 	constructorArgs ...interface{}) common.Address {
 	// Deploy an example ERC20 contract to be used as the source token

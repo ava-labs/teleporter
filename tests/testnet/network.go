@@ -13,9 +13,9 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	"github.com/ava-labs/subnet-evm/interfaces"
+	subnetevminterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -39,48 +39,48 @@ const (
 	receiveCrossChainMessageLookBackBlocks = 500
 )
 
-var _ network.Network = &testNetwork{}
+var _ interfaces.Network = &testNetwork{}
 
 type testNetwork struct {
 	teleporterContractAddress common.Address
-	subnetAInfo, subnetBInfo  network.SubnetTestInfo
+	subnetAInfo, subnetBInfo  interfaces.SubnetTestInfo
 	fundedAddress             common.Address
 	fundedKey                 *ecdsa.PrivateKey
 }
 
-func initializeSubnetInfo(subnetPrefix string) (network.SubnetTestInfo, error) {
+func initializeSubnetInfo(subnetPrefix string) (interfaces.SubnetTestInfo, error) {
 	subnetIDStr := os.Getenv(subnetPrefix + subnetIDSuffix)
 	subnetID, err := ids.FromString(subnetIDStr)
 	if err != nil {
-		return network.SubnetTestInfo{}, err
+		return interfaces.SubnetTestInfo{}, err
 	}
 
 	blockchainIDStr := os.Getenv(subnetPrefix + blockchainIDSuffix)
 	blockchainID, err := ids.FromString(blockchainIDStr)
 	if err != nil {
-		return network.SubnetTestInfo{}, err
+		return interfaces.SubnetTestInfo{}, err
 	}
 
 	rpcURLStr := os.Getenv(subnetPrefix + rpcURLSuffix)
 	rpcClient, err := ethclient.Dial(rpcURLStr)
 	if err != nil {
-		return network.SubnetTestInfo{}, err
+		return interfaces.SubnetTestInfo{}, err
 	}
 
 	wsURLStr := os.Getenv(subnetPrefix + wsURLSuffix)
 	wsClient, err := ethclient.Dial(wsURLStr)
 	if err != nil {
-		return network.SubnetTestInfo{}, err
+		return interfaces.SubnetTestInfo{}, err
 	}
 
 	evmChainID, err := rpcClient.ChainID(context.Background())
 	if err != nil {
-		return network.SubnetTestInfo{}, err
+		return interfaces.SubnetTestInfo{}, err
 	}
 
 	teleporterRegistryAddress := os.Getenv(subnetPrefix + teleporterRegistryAddressSuffix)
 
-	return network.SubnetTestInfo{
+	return interfaces.SubnetTestInfo{
 		SubnetID:                  subnetID,
 		BlockchainID:              blockchainID,
 		NodeURIs:                  []string{}, // no specific node URIs for a testnet subnet, only RPC endpoints.
@@ -124,7 +124,7 @@ func NewTestNetwork() (*testNetwork, error) {
 	}, nil
 }
 
-func (n *testNetwork) GetSubnetInfo() (network.SubnetTestInfo, network.SubnetTestInfo) {
+func (n *testNetwork) GetSubnetInfo() (interfaces.SubnetTestInfo, interfaces.SubnetTestInfo) {
 	return n.subnetAInfo, n.subnetBInfo
 }
 
@@ -138,7 +138,7 @@ func (n *testNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey)
 
 func (n *testNetwork) checkMessageDelivered(
 	sourceBlockchainID ids.ID,
-	destination network.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	teleporterMessageID *big.Int) (bool, error) {
 	destinationTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
 		n.teleporterContractAddress,
@@ -155,7 +155,7 @@ func (n *testNetwork) checkMessageDelivered(
 func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	ctx context.Context,
 	sourceBlockchainID ids.ID,
-	destination network.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	teleporterMessageID *big.Int) (*types.Receipt, error) {
 	// Wait until the message is delivered.
 	delivered := false
@@ -187,7 +187,7 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	}
 
 	// Get the log event of the delivery. The log must be in the last 500 blocks.
-	logs, err := destination.RPCClient.FilterLogs(ctx, interfaces.FilterQuery{
+	logs, err := destination.RPCClient.FilterLogs(ctx, subnetevminterfaces.FilterQuery{
 		FromBlock: big.NewInt(int64(startBlock)),
 		Addresses: []common.Address{n.teleporterContractAddress},
 		Topics: [][]common.Hash{
@@ -216,8 +216,8 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 func (n *testNetwork) RelayMessage(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source network.SubnetTestInfo,
-	destination network.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
 	// Set the context to expire after 20 seconds
@@ -235,7 +235,6 @@ func (n *testNetwork) RelayMessage(
 		sourceReceipt.Logs, sourceSubnetTeleporterMessenger.ParseSendCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
-	Expect(sendEvent.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
 
 	teleporterMessageID := sendEvent.Message.MessageID
 

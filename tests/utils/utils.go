@@ -25,7 +25,7 @@ import (
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -69,8 +69,8 @@ func SendTransactionAndWaitForAcceptance(
 
 func SendCrossChainMessageAndWaitForAcceptance(
 	ctx context.Context,
-	source network.SubnetTestInfo,
-	destination network.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
@@ -104,8 +104,8 @@ func SendCrossChainMessageAndWaitForAcceptance(
 
 func SendAddFeeAmountAndWaitForAcceptance(
 	ctx context.Context,
-	source network.SubnetTestInfo,
-	destination network.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	messageID *big.Int,
 	amount *big.Int,
 	feeContractAddress common.Address,
@@ -137,7 +137,7 @@ func SendAddFeeAmountAndWaitForAcceptance(
 func RetryMessageExecutionAndWaitForAcceptance(
 	ctx context.Context,
 	originChainID ids.ID,
-	subnet network.SubnetTestInfo,
+	subnet interfaces.SubnetTestInfo,
 	message teleportermessenger.TeleporterMessage,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
@@ -158,7 +158,7 @@ func RetryMessageExecutionAndWaitForAcceptance(
 func SendSpecifiedReceiptsAndWaitForAcceptance(
 	ctx context.Context,
 	originChainID ids.ID,
-	source network.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
 	messageIDs []*big.Int,
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
@@ -226,7 +226,7 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 
 func CreateTransactorOpts(
 	ctx context.Context,
-	network network.SubnetTestInfo,
+	network interfaces.SubnetTestInfo,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey) *bind.TransactOpts {
 	// set up parameters
@@ -248,7 +248,7 @@ func CreateTransactorOpts(
 // Returns the signed transaction.
 func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
-	source network.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
@@ -276,7 +276,7 @@ func CreateSendCrossChainMessageTransaction(
 
 func CreateRetryMessageExecutionTransaction(
 	ctx context.Context,
-	subnetInfo network.SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	originChainID ids.ID,
 	message teleportermessenger.TeleporterMessage,
 	fundedAddress common.Address,
@@ -319,7 +319,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	teleporterContractAddress common.Address,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	subnetInfo network.SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	alterMessage bool,
 ) *types.Transaction {
 	// Construct the transaction to send the Warp message to the destination chain
@@ -361,7 +361,7 @@ func CreateReceiveCrossChainMessageTransaction(
 
 func CreateNativeTransferTransaction(
 	ctx context.Context,
-	network network.SubnetTestInfo,
+	network interfaces.SubnetTestInfo,
 	fromAddress common.Address,
 	fromKey *ecdsa.PrivateKey,
 	recipient common.Address,
@@ -450,7 +450,7 @@ func DeployContract(
 	ctx context.Context,
 	byteCodeFileName string,
 	deployerPK *ecdsa.PrivateKey,
-	subnetInfo network.SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	abi *abi.ABI,
 	constructorArgs ...interface{}) common.Address {
 	// Deploy an example ERC20 contract to be used as the source token
@@ -480,7 +480,7 @@ func DeployMockToken(
 	ctx context.Context,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	source network.SubnetTestInfo) (common.Address, *exampleerc20.ExampleERC20) {
+	source interfaces.SubnetTestInfo) (common.Address, *exampleerc20.ExampleERC20) {
 	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
 
 	// Deploy Mock ERC20 contract
@@ -500,7 +500,7 @@ func DeployExampleCrossChainMessenger(
 	ctx context.Context,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	source network.SubnetTestInfo) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
+	source interfaces.SubnetTestInfo) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
 	optsA := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
 
 	// Deploy the example messenger contract
@@ -524,7 +524,7 @@ func ERC20Approve(ctx context.Context,
 	token *exampleerc20.ExampleERC20,
 	spender common.Address,
 	amount *big.Int,
-	source network.SubnetTestInfo) {
+	source interfaces.SubnetTestInfo) {
 	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
 	txn, err := token.Approve(opts, spender, amount)
 	Expect(err).Should(BeNil())

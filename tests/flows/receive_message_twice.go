@@ -7,7 +7,7 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func ReceiveMessageTwice(network network.Network) {
+func ReceiveMessageTwice(network interfaces.Network) {
 	var (
 		teleporterMessageID *big.Int
 	)

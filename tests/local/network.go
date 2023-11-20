@@ -18,7 +18,7 @@ import (
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -27,7 +27,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ network.Network = &localNetwork{}
+var _ interfaces.Network = &localNetwork{}
 
 const (
 	fundedKeyStr     = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
@@ -37,7 +37,7 @@ const (
 // Implements Network, pointing to the network setup in local_network_setup.go
 type localNetwork struct {
 	teleporterContractAddress common.Address
-	subnetAInfo, subnetBInfo  network.SubnetTestInfo
+	subnetAInfo, subnetBInfo  interfaces.SubnetTestInfo
 	fundedAddress             common.Address
 	fundedKey                 *ecdsa.PrivateKey
 
@@ -177,7 +177,7 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	log.Info("Finished setting up e2e test subnet variables")
 	return &localNetwork{
 		teleporterContractAddress: common.Address{}, // Set by deployTeleporterContracts
-		subnetAInfo: network.SubnetTestInfo{
+		subnetAInfo: interfaces.SubnetTestInfo{
 			SubnetID:                  subnetAID,
 			BlockchainID:              blockchainIDA,
 			NodeURIs:                  chainANodeURIs,
@@ -187,7 +187,7 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 			EVMChainID:                chainAIDInt,
 			TeleporterRegistryAddress: common.Address{}, // Set by deployTeleporterRegistryContracts
 		},
-		subnetBInfo: network.SubnetTestInfo{
+		subnetBInfo: interfaces.SubnetTestInfo{
 			SubnetID:                  subnetAID,
 			BlockchainID:              blockchainIDB,
 			NodeURIs:                  chainBNodeURIs,
@@ -216,7 +216,7 @@ func (n *localNetwork) deployTeleporterContracts(
 
 	ctx := context.Background()
 
-	for _, subnetInfo := range []network.SubnetTestInfo{n.subnetAInfo, n.subnetBInfo} {
+	for _, subnetInfo := range []interfaces.SubnetTestInfo{n.subnetAInfo, n.subnetBInfo} {
 		// Fund the deployer address
 		{
 			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
@@ -298,7 +298,7 @@ func (n *localNetwork) deployTeleporterRegistryContracts(teleporterAddress commo
 	n.subnetBInfo.TeleporterRegistryAddress = teleporterRegistryAddressB
 }
 
-func (n *localNetwork) GetSubnetInfo() (network.SubnetTestInfo, network.SubnetTestInfo) {
+func (n *localNetwork) GetSubnetInfo() (interfaces.SubnetTestInfo, interfaces.SubnetTestInfo) {
 	return n.subnetAInfo, n.subnetBInfo
 }
 
@@ -312,8 +312,8 @@ func (n *localNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey
 
 func (n *localNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source network.SubnetTestInfo,
-	destination network.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
 	return relayMessage(
@@ -334,7 +334,7 @@ func (n *localNetwork) tearDownNetwork() {
 	Expect(os.Remove(n.warpChainConfigPath)).Should(BeNil())
 }
 
-func (n *localNetwork) getCurrentSubnetValues(subnetInfo network.SubnetTestInfo) network.SubnetTestInfo {
+func (n *localNetwork) getCurrentSubnetValues(subnetInfo interfaces.SubnetTestInfo) interfaces.SubnetTestInfo {
 	subnetDetails, ok := n.manager.GetSubnet(subnetInfo.SubnetID)
 	Expect(ok).Should(BeTrue())
 	blockchainID := subnetDetails.BlockchainID
@@ -367,7 +367,7 @@ func (n *localNetwork) getCurrentSubnetValues(subnetInfo network.SubnetTestInfo)
 	evmChainID, err := rpcClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
 
-	return network.SubnetTestInfo{
+	return interfaces.SubnetTestInfo{
 		SubnetID:                  subnetInfo.SubnetID,
 		BlockchainID:              subnetInfo.BlockchainID,
 		NodeURIs:                  nodeURIs,

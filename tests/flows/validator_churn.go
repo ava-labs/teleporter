@@ -9,7 +9,7 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -19,14 +19,14 @@ import (
 type constructSignedWarpMessageFunc func(
 	context.Context,
 	*types.Receipt,
-	network.SubnetTestInfo,
+	interfaces.SubnetTestInfo,
 ) []byte
 
 type addSubnetAValidatorsFunc func(context.Context, []string)
 
 // TODO: Disallow this test from being run on anything but a local network, since it manipulates the validator set
 func ValidatorChurn(
-	network network.Network,
+	network interfaces.Network,
 	constructSignedMessageFunc constructSignedWarpMessageFunc,
 	addSubnetAValidatorsFunc addSubnetAValidatorsFunc) {
 	var (
