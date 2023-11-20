@@ -268,10 +268,8 @@ func CreateRetryMessageExecutionTransaction(
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
 	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
-	teleporterABI, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
-	Expect(err).Should(BeNil())
 
-	data, err := teleporterABI.Pack("retryMessageExecution", originChainID, message)
+	data, err := teleportermessenger.PackRetryMessageExecution(originChainID, message)
 	Expect(err).Should(BeNil())
 
 	// TODO: replace with actual number of signers
