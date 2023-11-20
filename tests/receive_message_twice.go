@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -64,9 +63,7 @@ func ReceiveMessageTwice(network network.Network) {
 	// Relay the message to the destination
 	//
 
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
-	teleporterTx, _, err := subnetBInfo.ChainRPCClient.TransactionByHash(ctx, receipt.TxHash)
-	Expect(err).Should(BeNil())
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
 
 	//
 	// Check Teleporter message received on the destination
@@ -81,20 +78,6 @@ func ReceiveMessageTwice(network network.Network) {
 	//
 	// Attempt to send the same message again
 	//
-	log.Info("Submitting the same Teleporter message again on the destination")
-	gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(ctx, subnetBInfo, fundedAddress)
-	secondTeleporterTx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:    subnetBInfo.ChainIDInt,
-		Nonce:      nonce,
-		To:         &teleporterContractAddress,
-		Gas:        teleporterTx.Gas(),
-		GasFeeCap:  gasFeeCap,
-		GasTipCap:  gasTipCap,
-		Value:      big.NewInt(0),
-		Data:       teleporterTx.Data(),
-		AccessList: teleporterTx.AccessList(),
-	})
-
-	signedTx := utils.SignTransaction(secondTeleporterTx, fundedKey, subnetBInfo.ChainIDInt)
-	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo, signedTx, false)
+	log.Info("Relaying the same Teleporter message again on the destination")
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, false)
 }
