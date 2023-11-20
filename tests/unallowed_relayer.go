@@ -52,22 +52,14 @@ func UnallowedRelayer(network network.Network) {
 		},
 		Message: []byte{1, 2, 3, 4},
 	}
-	signedTx := utils.CreateSendCrossChainMessageTransaction(
-		ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress,
-	)
 
 	log.Info(
 		"Sending Teleporter transaction on source chain",
 		"destinationChainID", subnetBInfo.BlockchainID,
-		"txHash", signedTx.Hash(),
 	)
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo, signedTx, true)
-
-	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
-	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
-
-	teleporterMessageID := event.Message.MessageID
+	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger,
+	)
 
 	//
 	// Relay the message to the destination
