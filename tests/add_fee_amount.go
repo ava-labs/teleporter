@@ -93,7 +93,7 @@ func AddFeeAmount(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	// Send message from SubnetB to SubnetA
+	// Send message from SubnetB to SubnetA. This will include the receipt for the previous message from A->B
 	sendCrossChainMessageInput.DestinationChainID = subnetAInfo.BlockchainID
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 
