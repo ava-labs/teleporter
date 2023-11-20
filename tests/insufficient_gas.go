@@ -38,7 +38,8 @@ func InsufficientGas(network network.Network) {
 	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
 
 	// Deploy ExampleMessenger to Subnets B
-	exampleMessengerContractB, _ := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
+	exampleMessengerContractB, subnetBExampleMessenger :=
+		localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
 
 	// Send message from SubnetA to SubnetB with 0 execution gas, which should fail to execute
 	message := "Hello, world!"
@@ -90,4 +91,11 @@ func InsufficientGas(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(executedEvent.MessageID).Should(Equal(messageID))
 	Expect(executedEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
+
+	//
+	// Verify we received the expected string
+	//
+	_, currMessage, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
+	Expect(err).Should(BeNil())
+	Expect(currMessage).Should(Equal(message))
 }
