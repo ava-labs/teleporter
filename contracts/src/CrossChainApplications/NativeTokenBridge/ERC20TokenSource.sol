@@ -74,40 +74,6 @@ contract ERC20TokenSource is
     }
 
     /**
-     * @dev Unlocks tokens to recipient.
-     */
-    function _unlockTokens(address recipient, uint256 amount) private {
-        require(
-            recipient != address(0),
-            "ERC20TokenSource: zero recipient address"
-        );
-
-        // Transfer to recipient
-        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
-
-        emit UnlockTokens(recipient, amount);
-    }
-
-    /**
-     * @dev Sends tokens to BLACKHOLE_ADDRESS.
-     */
-    function _burnTokens(uint256 amount) private {
-        payable(BLACKHOLE_ADDRESS).transfer(amount);
-        emit BurnTokens(amount);
-    }
-
-    /**
-     * @dev Update destinationChainBurnedBalance sent from destination chain
-     */
-    function _updateDestinationChainBurnedBalance(uint256 newBurnBalance) private {
-        if (newBurnBalance > destinationChainBurnedBalance) {
-            uint256 difference = newBurnBalance - destinationChainBurnedBalance;
-            _burnTokens(difference);
-            destinationChainBurnedBalance = newBurnBalance;
-        }
-    }
-
-    /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
      *
      * Receives a Teleporter message and routes to the appropriate internal function call.
@@ -218,4 +184,39 @@ contract ERC20TokenSource is
             teleporterMessageID: messageID
         });
     }
+
+    /**
+     * @dev Unlocks tokens to recipient.
+     */
+    function _unlockTokens(address recipient, uint256 amount) private {
+        require(
+            recipient != address(0),
+            "ERC20TokenSource: zero recipient address"
+        );
+
+        // Transfer to recipient
+        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
+
+        emit UnlockTokens(recipient, amount);
+    }
+
+    /**
+     * @dev Sends tokens to BLACKHOLE_ADDRESS.
+     */
+    function _burnTokens(uint256 amount) private {
+            SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BLACKHOLE_ADDRESS, amount);
+            emit BurnTokens(amount);
+        }
+
+    /**
+     * @dev Update destinationChainBurnedBalance sent from destination chain
+     */
+    function _updateDestinationChainBurnedBalance(uint256 newBurnBalance) private {
+        if (newBurnBalance > destinationChainBurnedBalance) {
+            uint256 difference = newBurnBalance - destinationChainBurnedBalance;
+            _burnTokens(difference);
+            destinationChainBurnedBalance = newBurnBalance;
+        }
+    }
 }
+
