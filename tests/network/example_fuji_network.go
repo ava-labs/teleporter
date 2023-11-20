@@ -150,60 +150,10 @@ func (n *FujiNetwork) CloseNetworkConnections() {
 }
 
 func (n *FujiNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
-	// Close any open clients
-	n.CloseNetworkConnections()
-
-	amplifyWSClient, err := ethclient.Dial(amplifyWSURI)
-	Expect(err).Should(BeNil())
-	amplifyRPCClient, err := ethclient.Dial(amplifyRPCURI)
-	Expect(err).Should(BeNil())
-	amplifyChainIDInt, err := amplifyRPCClient.ChainID(context.Background())
-	Expect(err).Should(BeNil())
-
-	bulletinWSClient, err := ethclient.Dial(bulletinWSURI)
-	Expect(err).Should(BeNil())
-	bulletinRPCClient, err := ethclient.Dial(bulletinRPCURI)
-	Expect(err).Should(BeNil())
-	bulletinChainIDInt, err := bulletinRPCClient.ChainID(context.Background())
-	Expect(err).Should(BeNil())
-
-	conduitWSClient, err := ethclient.Dial(conduitWSURI)
-	Expect(err).Should(BeNil())
-	conduitRPCClient, err := ethclient.Dial(conduitRPCURI)
-	Expect(err).Should(BeNil())
-	conduitChainIDInt, err := conduitRPCClient.ChainID(context.Background())
-	Expect(err).Should(BeNil())
-
-	amplifyInfo := utils.SubnetTestInfo{
-		SubnetID:       amplifySubnetID,
-		BlockchainID:   amplifyBlockchainID,
-		ChainIDInt:     amplifyChainIDInt,
-		ChainWSClient:  amplifyWSClient,
-		ChainRPCClient: amplifyRPCClient,
-	}
-	bulletinInfo := utils.SubnetTestInfo{
-		SubnetID:       bulletinSubnetID,
-		BlockchainID:   bulletinBlockchainID,
-		ChainIDInt:     bulletinChainIDInt,
-		ChainWSClient:  bulletinWSClient,
-		ChainRPCClient: bulletinRPCClient,
-	}
-	conduitInfo := utils.SubnetTestInfo{
-		SubnetID:       conduitSubnetID,
-		BlockchainID:   conduitBlockchainID,
-		ChainIDInt:     conduitChainIDInt,
-		ChainWSClient:  conduitWSClient,
-		ChainRPCClient: conduitRPCClient,
-	}
-
-	n.amplifyInfo = amplifyInfo
-	n.bulletinInfo = bulletinInfo
-	n.conduitInfo = conduitInfo
-
 	return []utils.SubnetTestInfo{
-		amplifyInfo,
-		bulletinInfo,
-		conduitInfo,
+		n.amplifyInfo,
+		n.bulletinInfo,
+		n.conduitInfo,
 	}
 }
 
