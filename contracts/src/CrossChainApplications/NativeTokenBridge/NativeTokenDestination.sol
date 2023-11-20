@@ -119,12 +119,16 @@ contract NativeTokenDestination is
         );
         require(amount != 0, "NativeTokenDestination: zero transfer value");
 
+        // If the contract has not yet been collateralized, we will deduct as many tokens
+        // as needed from the transfer as needed. If there are any excess tokens, they will
+        // be minted and sent to the recipient.
         uint256 adjustedAmount = amount;
         if (currentReserveImbalance > 0) {
             if (amount > currentReserveImbalance) {
                 emit CollateralAdded({
                     amount: currentReserveImbalance,
-                    remaining: 0
+                    remaining: 0,
+                    addedBy: senderAddress
                 });
                 adjustedAmount = amount - currentReserveImbalance;
                 currentReserveImbalance = 0;
@@ -132,7 +136,8 @@ contract NativeTokenDestination is
                 currentReserveImbalance -= amount;
                 emit CollateralAdded({
                     amount: amount,
-                    remaining: currentReserveImbalance
+                    remaining: currentReserveImbalance,
+                    addedBy: senderAddress
                 });
                 return;
             }
@@ -172,7 +177,11 @@ contract NativeTokenDestination is
                 IERC20(feeInfo.contractAddress),
                 feeInfo.amount
             );
-            SafeERC20.safeIncreaseAllowance(IERC20(feeInfo.contractAddress), address(teleporterMessenger), adjustedFeeAmount);
+            SafeERC20.safeIncreaseAllowance(
+                IERC20(feeInfo.contractAddress),
+                address(teleporterMessenger),
+                adjustedFeeAmount
+            );
         }
 
         // Burn native token by sending to BLACKHOLE_ADDRESS

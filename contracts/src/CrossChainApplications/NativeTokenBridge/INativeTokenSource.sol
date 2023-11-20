@@ -19,7 +19,7 @@ interface INativeTokenSource {
         address indexed sender,
         address indexed recipient,
         uint256 amount,
-        uint256 teleporterMessageID
+        uint256 indexed teleporterMessageID
     );
 
     /**
