@@ -1,21 +1,28 @@
-# Native-to-Native Token Bridge
+# Native Token Bridge
 
-A pair of smart contracts built on top of Teleporter to support using an ERC20 token or the native token of any `subnet-evm` chain as the native token for a given subnet.
+A set of smart contracts - one `NativeTokenDestination` contract and one "TokenSource" contract, which can be either a `NativeTokenSource` contract or an `ERC20TokenSource` contract.  These contracts are built on top of Teleporter to support using an ERC20 token or the native token of any `subnet-evm` chain as the native token for a given subnet.
 
 ## Design
-The native-to-native bridge is implemented using two primary contracts.
+### `NativeTokenDestination`
+    - Lives on the Destination chain. Pairs with exactly one `NativeTokenSource` OR `ERC20TokenSource` contract on a different chain.
+    - Mints and burns native tokens on the Destination chain corresponding to locks and unlocks on the source chain.
+    - `transferToSource`: transfers all tokens paid to this function call to `recipient` on the source chain by burning the tokens and instructing the source chain to unlock. Optionally takes the address of an ERC20 contract `feeContractAddress` as well as an amount `feeAmount` that will be used as the relayer-incentivisation for the teleporter cross-chain call. Also allows for the caller to specify `allowedRelayerAddresses`.
+    - `receiveTeleporterMessage`: mints tokens on the destination chain when instructed to by the `NativeTokenDestination` contract.
+    - `reportTotalBurnedTxFees` sends the balance of `BURNED_TX_FEES_ADDRESS` to the source chain. The source chain can then burn tokens to match the amount that has been burned in transaction fees on this chain. Always reports the total tokens ever burned, so this number is monotonically increasing.
+    - `isCollateralized`: returns true if `currentReserveImbalance == 0`, meaning that enough tokens have been sent from the source chain to offset the `initialReserveImbalance`. If true, all tokens sent to the destination chain will be minted, and burning/unlocking tokens will be enabled.
+    - `totalSupply`: Returns the best estimate of available native tokens on this chain. Equal to the `initialReserveImbalance` + `all tokens minted` - `all tokens in known burn address`. Known burn addresses include the burn address for this contract used when burning/unlocking, and the address for burned transaction fees.
+
 ### `NativeTokenSource`
     - Lives on the Source chain. Pairs with exactly one `NativeTokenDestination` contract on a different chain.
     - Locks and unlocks native tokens on the Source chain corresponding to mints and burns on the destination chain.
     - `transferToDestination`: transfers all tokens paid to this function call to `recipient` on the destination chain by locking them and instructing the destination chain to mint. Optionally takes the address of an ERC20 contract `feeContractAddress` as well as an amount `feeAmount` that will be used as the relayer-incentivisation for the teleporter cross-chain call. Also allows for the caller to specify `allowedRelayerAddresses`.
-    - `receiveTeleporterMessage`: unlocks tokens on the source chain when instructed to by the `NativeTokenDestination` contract.
-### `NativeTokenDestination`
-    - Lives on the Destination chain. Pairs with exactly one `NativeTokenSource` contract on a different chain.
-    - Mints and burns native tokens on the Destination chain corresponding to locks and unlocks on the source chain.
-    - `transferToSource`: transfers all tokens paid to this function call to `recipient` on the source chain by burning the tokens and instructing the source chain to unlock. Optionally takes the address of an ERC20 contract `feeContractAddress` as well as an amount `feeAmount` that will be used as the relayer-incentivisation for the teleporter cross-chain call. Also allows for the caller to specify `allowedRelayerAddresses`.
-    - `receiveTeleporterMessage`: mints tokens on the destination chain when instructed to by the `NativeTokenDestination` contract.
-    - `isCollateralized`: returns true if `currentReserveImbalance == 0`, meaning that enough tokens have been sent from the source chain to offset the `initialReserveImbalance`. If true, all tokens sent to the destination chain will be minted, and burning/unlocking tokens will be enabled.
-    - `totalSupply`: Returns the best estimate of available native tokens on this chain. Equal to the `initialReserveImbalance` + `all tokens minted` - `all tokens in known burn address`. Known burn addresses include the burn address for this contract used when burning/unlocking, and the address for burned transaction fees.
+    - `receiveTeleporterMessage`: unlocks tokens on the source chain when instructed to by the `NativeTokenDestination` contract, or accepts a new total of tokens burned as tx fees on the destination chain, and burns and equivalent number of native tokens on this chain.
+
+### `ERC20TokenSource`
+    - Lives on the Source chain. Pairs with exactly one `NativeTokenDestination` contract on a different chain.
+    - Locks and unlocks ERC20 tokens on the Source chain corresponding to mints and burns on the destination chain.
+    - `transferToDestination`: transfers all tokens paid to this function call to `recipient` on the destination chain by locking them and instructing the destination chain to mint. Optionally takes an amount `feeAmount` that will be used as the relayer-incentivisation for the teleporter cross-chain call, using the same ERC20 contract that this contract was initialized with. Also allows for the caller to specify `allowedRelayerAddresses`.
+    - `receiveTeleporterMessage`: unlocks tokens on the source chain when instructed to by the `NativeTokenDestination` contract, or accepts a new total of tokens burned as tx fees on the destination chain, and burns and equivalent number of ERC20 tokens on this chain.
 
 ### `Collateralizing the bridge`
     - On initialization, the bridge will be undercollateralized by exactly the number of tokens minted in the genesis block on the destination chain. These tokens could theoretically be sent through the bridge, with no corresponding tokens able to be unlocked on the source chain. In order to avoid this problem, the `NativeTokenDestination` contract is initialized with the value for `initialReserveImbalance`, which should correspond to the number of tokens allocated in the genesis block for the destination chain. If `initialReserveImbalance` is not properly set, behaviour of this contract is undefined. The `NativeTokenDestination` contract will not mint tokens until it has received confirmation that at least `initialReserveImbalance` tokens have been locked on the source chain. It should be up to the contract deployer to ensure that the bridge is properly collateralized. Burning/unlocking is disabled until the bridge is properly collateralized.
@@ -23,7 +30,7 @@ The native-to-native bridge is implemented using two primary contracts.
 ### `Burning tokens spent as fees`
     - As tokens are burned for transaction fees on the destination chain, contract owners may want to relay this information to the source chain in order to burn an equivalent number of locked tokens there because these tokens will never be bridged back.
     - The address for burned transaction fees is `0x0100000000000000000000000000000000000000`. When transferring token to the source chain, the "burned" tokens are sent here so that `0x0100000000000000000000000000000000000000` will only include burned transaction fees (or tokens others have decided to burn outside of this contract) so that this number can be reported to the source chain to burn an equivalent numbers of locked tokens.
-    - `TODO` explain implementation.
+    - Anyone on the destination can call `reportTotalBurnedTxFees`, which will provide the source chain with the total number of tokens burned in transactions on this chain.
 
 ## `Setup`
     - `TeleporterMessenger` must be deployed on both chains, and the address must be passed to the constructor of both contracts.
@@ -31,4 +38,4 @@ The native-to-native bridge is implemented using two primary contracts.
     - Both `NativeTokenSource` and `NativeTokenDestination` need to be deployed to addresses known beforehand. Each address must be passed to the constructor of the other contract. To do this, you will need a known EOA, and preferably use the first transaction from the EOA (nonce 0) to deploy the contract on each chain. It is advised to allocate tokens to the EOA in the destination subnet genesis file so that it can easily deploy the contract.
     - Both contracts need to be initialized with `teleporterMessengerAddress`, which is the only address they will accept function calls from.
     - `NativeTokenDestination` needs to be intialized with `initialReserveImbalance`, which should equal the number of tokens allocated in the genesis file for the destination chain. If `initialReserveImbalance` is not properly set, behavior of these contracts in undefined.
-    - On the source chain, at least `initialReserveImbalance` tokens need to be transferred to `NativeTokenSource` using `transferToSource` in order to properly collateralize the bridge and allow regular functionality in both directions. The first `initialReserveImbalance` tokens will not be delivered to the recipient, but any excess will be delivered. Burning/unlocking is disabled until the bridge is fully collateralized.
+    - On the source chain, at least `initialReserveImbalance` tokens need to be transferred to `TokenSource` using `transferToSource` in order to properly collateralize the bridge and allow regular functionality in both directions. The first `initialReserveImbalance` tokens will not be delivered to the recipient, but any excess will be delivered. Burning/unlocking is disabled until the bridge is fully collateralized.
