@@ -28,9 +28,9 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 	ctx := context.Background()
 
-	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
+	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
 	exampleMessengerContractB, subnetBExampleMessenger := localUtils.DeployExampleCrossChainMessenger(
-		ctx, fundedAddress, fundedKey, subnetBInfo,
+		ctx, fundedKey, subnetBInfo,
 	)
 
 	//

@@ -36,15 +36,14 @@ var _ = ginkgo.BeforeSuite(func() {
 		deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
 
-	fundedAddress, fundedKey := localUtils.GetFundedAccountInfo()
+	_, fundedKey := localUtils.GetFundedAccountInfo()
 	localUtils.DeployTeleporterContracts(
 		teleporterDeployerTransaction,
 		teleporterDeployerAddress,
 		teleporterContractAddress,
-		fundedAddress,
 		fundedKey,
 	)
-	localUtils.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedAddress, fundedKey)
+	localUtils.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
 	log.Info("Set up ginkgo before suite")
 })
 
@@ -54,7 +53,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Teleporter tests
 	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySendGinkgo)
 	ginkgo.It("Deliver to the wrong chain", DeliverToWrongChainGinkgo)
-	// ginkgo.It("Deliver to non-existent contract", DeliverToNonExistentContractGinkgo) // TODO: fix
+	ginkgo.It("Deliver to non-existent contract", DeliverToNonExistentContractGinkgo) // TODO: fix
 	ginkgo.It("Retry successful execution", RetrySuccessfulExecutionGinkgo)
 	ginkgo.It("Unallowed relayer", UnallowedRelayerGinkgo)
 	ginkgo.It("Receive message twice", ReceiveMessageTwiceGinkgo)

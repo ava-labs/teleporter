@@ -41,7 +41,7 @@ var (
 	subnetsInfo               map[ids.ID]*utils.SubnetTestInfo = make(map[ids.ID]*utils.SubnetTestInfo)
 	subnetNodeNames           map[ids.ID][]string              = make(map[ids.ID][]string)
 
-	fundedKey *ecdsa.PrivateKey
+	globalFundedKey *ecdsa.PrivateKey
 
 	// Internal vars only used to set up the local network
 	anrClient           runner_sdk.Client
@@ -64,8 +64,8 @@ func GetTeleporterContractAddress() common.Address {
 	return teleporterContractAddress
 }
 func GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
-	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
-	return fundedAddress, fundedKey
+	fundedAddress := crypto.PubkeyToAddress(globalFundedKey.PublicKey)
+	return fundedAddress, globalFundedKey
 }
 
 // SetupNetwork starts the default network and adds 10 new nodes as validators with BLS keys
@@ -132,10 +132,10 @@ func SetupNetwork(warpGenesisFile string) {
 	Expect(err).Should(BeNil())
 
 	// Issue transactions to activate the proposerVM fork on the chains
-	fundedKey, err = crypto.HexToECDSA(fundedKeyStr)
+	globalFundedKey, err = crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
-	SetupProposerVM(ctx, fundedKey, manager, 0)
-	SetupProposerVM(ctx, fundedKey, manager, 1)
+	SetupProposerVM(ctx, globalFundedKey, manager, 0)
+	SetupProposerVM(ctx, globalFundedKey, manager, 1)
 
 	// Create the ANR client
 	logLevel, err := logging.ToLevel("info")
@@ -235,7 +235,6 @@ func DeployTeleporterContracts(
 	transactionBytes []byte,
 	deployerAddress common.Address,
 	contractAddress common.Address,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 ) {
 	log.Info("Deploying Teleporter contract to subnets")
@@ -292,7 +291,6 @@ func DeployTeleporterContracts(
 
 func DeployTeleporterRegistryContracts(
 	teleporterAddress common.Address,
-	deployerAddress common.Address,
 	deployerKey *ecdsa.PrivateKey,
 ) {
 	log.Info("Deploying TeleporterRegistry contract to subnets")
@@ -342,7 +340,6 @@ func DeployTeleporterRegistryContracts(
 
 func DeployExampleERC20(
 	ctx context.Context,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	source utils.SubnetTestInfo,
 ) (common.Address, *exampleerc20.ExampleERC20) {
@@ -364,19 +361,19 @@ func DeployExampleERC20(
 
 func DeployExampleCrossChainMessenger(
 	ctx context.Context,
-	fundedAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
-	source utils.SubnetTestInfo,
+	deployerKey *ecdsa.PrivateKey,
+	subnet utils.SubnetTestInfo,
 ) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
-	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		deployerKey, subnet.ChainIDInt)
 	Expect(err).Should(BeNil())
 	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(
-		optsA, source.ChainRPCClient, source.TeleporterRegistryAddress,
+		opts, subnet.ChainRPCClient, subnet.TeleporterRegistryAddress,
 	)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnet.ChainRPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -389,7 +386,6 @@ func ExampleERC20Approve(
 	spender common.Address,
 	amount *big.Int,
 	source utils.SubnetTestInfo,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 ) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)

@@ -24,11 +24,11 @@ func InsufficientGas(network network.Network) {
 	ctx := context.Background()
 
 	// Deploy ExampleMessenger to Subnets A
-	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
+	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
 
 	// Deploy ExampleMessenger to Subnets B
 	exampleMessengerContractB, subnetBExampleMessenger :=
-		localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetBInfo)
+		localUtils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetBInfo)
 
 	// Send message from SubnetA to SubnetB with 0 execution gas, which should fail to execute
 	message := "Hello, world!"

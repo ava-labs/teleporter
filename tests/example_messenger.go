@@ -22,16 +22,16 @@ func ExampleMessenger(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
-	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+	_, fundedKey := network.GetFundedAccountInfo()
 
 	//
 	// Deploy ExampleMessenger to Subnets A and B
 	//
 	ctx := context.Background()
 
-	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
+	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
 	exampleMessengerContractB, subnetBExampleMessenger := localUtils.DeployExampleCrossChainMessenger(
-		ctx, fundedAddress, fundedKey, subnetBInfo,
+		ctx, fundedKey, subnetBInfo,
 	)
 
 	//
