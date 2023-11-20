@@ -140,11 +140,15 @@ func SendSpecificReceipts(network network.Network) {
 		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetBTeleporterMessenger)
 
 	// Relay message from Subnet B to Subnet A
-	network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, false, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, false, true)
 	// Check delivered
 	delivered, err = subnetATeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
+	// Get the Teleporter message from receive event and confirm that the receipts are delivered again
+	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseReceiveCrossChainMessage)
+	Expect(receiveEvent.Message.Receipts[0].ReceivedMessageID).Should(Equal(messageID1))
+	Expect(receiveEvent.Message.Receipts[1].ReceivedMessageID).Should(Equal(messageID2))
 
 	// Check the reward amount remains the same
 	amount, err = subnetATeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, fundedAddress, mockTokenAddress)
