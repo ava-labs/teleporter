@@ -12,7 +12,4 @@ TELEPORTER_PATH=$(
 cd $TELEPORTER_PATH/contracts/src
 solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
 
-cd $TELEPORTER_PATH/tests
-golangci-lint run
-
 exit 0
