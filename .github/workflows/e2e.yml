@@ -13,6 +13,7 @@ on:
 
 env:
   GO_VERSION: "1.20.10"
+  SUBNET_EVM_VERSION: "0.5.9"
 
 jobs:
   e2e_tests:
@@ -30,7 +31,7 @@ jobs:
         with:
           repository: ava-labs/subnet-evm
           path: subnet-evm
-          ref: v0.5.9
+          ref: ${{ env.SUBNET_EVM_VERSION }}
 
       - name: Setup Go
         uses: actions/setup-go@v4
