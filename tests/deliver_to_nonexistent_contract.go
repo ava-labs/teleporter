@@ -144,14 +144,15 @@ func DeliverToNonExistentContract(network network.Network) {
 	// Call retryMessageExecution on Subnet B
 	//
 
-	optsB = utils.CreateTransactorOpts(ctx, subnetBInfo, fundedAddress, fundedKey)
-	tx, err = subnetBTeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	receipt = utils.RetryMessageExecutionAndWaitForAcceptance(
+		ctx,
+		subnetAInfo.BlockchainID,
+		subnetBInfo,
+		deliveredTeleporterMessage,
+		fundedAddress,
+		fundedKey,
+		subnetBTeleporterMessenger,
+	)
 
 	//
 	// Verify we received the expected string
