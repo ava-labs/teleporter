@@ -10,7 +10,6 @@ import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.so
 import {INativeTokenSource} from "./INativeTokenSource.sol";
 import {ITokenSource} from "./ITokenSource.sol";
 import {ITeleporterMessenger, TeleporterFeeInfo, TeleporterMessageInput} from "../../Teleporter/ITeleporterMessenger.sol";
-import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
@@ -19,7 +18,6 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 contract NativeTokenSource is
     ITeleporterReceiver,
-    TeleporterOwnerUpgradeable,
     INativeTokenSource,
     ITokenSource,
     ReentrancyGuard
@@ -27,8 +25,7 @@ contract NativeTokenSource is
     // Designated Blackhole Address. Tokens are sent here to be "burned" before sending an unlock
     // message to the source chain. Different from the burned tx fee address so they can be
     // tracked separately.
-    address public constant BLACKHOLE_ADDRESS =
-        0x0100000000000000000000000000000000000001;
+    address public constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000001;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     // Used to keep track of tokens burned through transactions on the destination chain. They can
     // be reported to this contract to burn an equivalent number of tokens on this chain.
@@ -36,15 +33,19 @@ contract NativeTokenSource is
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
 
+    // Used for sending and receiving Teleporter messages.
+    ITeleporterMessenger public immutable teleporterMessenger;
+
     constructor(
-        address teleporterRegistryAddress,
+        address teleporterMessengerAddress,
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
+    ) {
         require(
-            teleporterRegistryAddress != address(0),
-            "NativeTokenSource: zero TeleporterRegistry address"
+            teleporterMessengerAddress != address(0),
+            "NativeTokenSource: zero TeleporterMessenger address"
         );
+        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
         require(
             destinationBlockchainID_ != bytes32(0),
@@ -74,7 +75,13 @@ contract NativeTokenSource is
         bytes32 senderBlockchainID,
         address senderAddress,
         bytes calldata message
-    ) external onlyAllowedTeleporter nonReentrant {
+    ) external nonReentrant {
+        // Only allow the Teleporter messenger to deliver messages.
+        require(
+            msg.sender == address(teleporterMessenger),
+            "NativeTokenSource: unauthorized teleporterMessenger contract"
+        );
+
         // Only allow messages from the destination chain.
         require(
             senderBlockchainID == destinationBlockchainID,
@@ -116,9 +123,6 @@ contract NativeTokenSource is
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
-
         // The recipient cannot be the zero address.
         require(
             recipient != address(0),
@@ -134,11 +138,7 @@ contract NativeTokenSource is
                 IERC20(feeInfo.contractAddress),
                 feeInfo.amount
             );
-            SafeERC20.safeIncreaseAllowance(
-                IERC20(feeInfo.contractAddress),
-                address(teleporterMessenger),
-                adjustedFeeAmount
-            );
+            SafeERC20.safeIncreaseAllowance(IERC20(feeInfo.contractAddress), address(teleporterMessenger), adjustedFeeAmount);
         }
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
@@ -186,9 +186,7 @@ contract NativeTokenSource is
     /**
      * @dev Update destinationChainBurnedBalance sent from destination chain
      */
-    function _updateDestinationChainBurnedBalance(
-        uint256 newBurnBalance
-    ) private {
+    function _updateDestinationChainBurnedBalance(uint256 newBurnBalance) private {
         if (newBurnBalance > destinationChainBurnedBalance) {
             uint256 difference = newBurnBalance - destinationChainBurnedBalance;
             _burnTokens(difference);

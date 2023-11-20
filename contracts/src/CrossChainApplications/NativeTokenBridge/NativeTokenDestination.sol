@@ -11,7 +11,6 @@ import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol"
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
 import {ITokenSource} from "./ITokenSource.sol";
 import {ITeleporterMessenger, TeleporterFeeInfo, TeleporterMessageInput} from "../../Teleporter/ITeleporterMessenger.sol";
-import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -30,7 +29,6 @@ address constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000001;
 
 contract NativeTokenDestination is
     ITeleporterReceiver,
-    TeleporterOwnerUpgradeable,
     INativeTokenDestination,
     ReentrancyGuard
 {
@@ -48,16 +46,20 @@ contract NativeTokenDestination is
     uint256 public currentReserveImbalance;
     uint256 public totalMinted = 0;
 
+    // Used for sending and receiving Teleporter messages.
+    ITeleporterMessenger public immutable teleporterMessenger;
+
     constructor(
-        address teleporterRegistryAddress,
+        address teleporterMessengerAddress,
         bytes32 sourceBlockchainID_,
         address nativeTokenSourceAddress_,
         uint256 initialReserveImbalance_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
+    ) {
         require(
-            teleporterRegistryAddress != address(0),
-            "NativeTokenSource: zero TeleporterRegistry address"
+            teleporterMessengerAddress != address(0),
+            "NativeTokenDestination: zero TeleporterMessenger address"
         );
+        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
         require(
             sourceBlockchainID_ != bytes32(0),
@@ -90,7 +92,13 @@ contract NativeTokenDestination is
         bytes32 senderBlockchainID,
         address senderAddress,
         bytes calldata message
-    ) external onlyAllowedTeleporter nonReentrant {
+    ) external nonReentrant {
+        // Only allow the Teleporter messenger to deliver messages.
+        require(
+            msg.sender == address(teleporterMessenger),
+            "NativeTokenDestination: unauthorized TeleporterMessenger contract"
+        );
+
         // Only allow messages from the source chain.
         require(
             senderBlockchainID == sourceBlockchainID,
@@ -151,9 +159,6 @@ contract NativeTokenDestination is
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
-
         // The recipient cannot be the zero address.
         require(
             recipient != address(0),
@@ -213,9 +218,6 @@ contract NativeTokenDestination is
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
-
         uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
