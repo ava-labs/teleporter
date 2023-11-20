@@ -10,9 +10,9 @@ import (
 )
 
 func runFlow(flowName string, flow func(interfaces.Network), network interfaces.Network) {
-	log.Println("Running test ", flowName)
+	log.Println("Running test", flowName)
 	flow(network)
-	log.Println("Finished running test ", flowName)
+	log.Println("Finished running test", flowName)
 }
 
 func main() {
