@@ -6,6 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
+	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -55,7 +56,7 @@ func ExampleMessenger(network network.Network) {
 		exampleMessengerContractB,
 		common.BigToAddress(common.Big0),
 		big.NewInt(0),
-		big.NewInt(300000),
+		examplecrosschainmessenger.SendMessageRequiredGas,
 		message,
 	)
 	Expect(err).Should(BeNil())
