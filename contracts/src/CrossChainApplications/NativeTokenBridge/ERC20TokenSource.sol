@@ -74,6 +74,34 @@ contract ERC20TokenSource is
     }
 
     /**
+     * @dev Unlocks tokens to recipient.
+     */
+    function _unlockTokens(address recipient, uint256 amount) private {
+        require(
+            recipient != address(0),
+            "ERC20TokenSource: zero recipient address"
+        );
+
+        // Transfer to recipient
+        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
+
+        emit UnlockTokens(recipient, amount);
+    }
+
+    /**
+     * @dev Sends tokens to BLACKHOLE_ADDRESS.
+     */
+    function _burnTokens(uint256 newBurnBalance) private {
+        if (newBurnBalance > destinationChainBurnedBalance) {
+            uint256 difference = newBurnBalance - destinationChainBurnedBalance;
+
+            SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BLACKHOLE_ADDRESS, difference);
+            destinationChainBurnedBalance = newBurnBalance;
+            emit BurnTokens(difference);
+        }
+    }
+
+    /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
      *
      * Receives a Teleporter message and routes to the appropriate internal function call.
@@ -119,34 +147,6 @@ contract ERC20TokenSource is
             _burnTokens(newBurnBalance);
         } else {
             revert("ERC20TokenSource: invalid action");
-        }
-    }
-
-    /**
-     * @dev Unlocks tokens to recipient.
-     */
-    function _unlockTokens(address recipient, uint256 amount) private {
-        require(
-            recipient != address(0),
-            "ERC20TokenSource: zero recipient address"
-        );
-
-        // Transfer to recipient
-        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
-
-        emit UnlockTokens(recipient, amount);
-    }
-
-    /**
-     * @dev Sends tokens to BLACKHOLE_ADDRESS.
-     */
-    function _burnTokens(uint256 newBurnBalance) private {
-        if (newBurnBalance > destinationChainBurnedBalance) {
-            uint256 difference = newBurnBalance - destinationChainBurnedBalance;
-
-            SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BLACKHOLE_ADDRESS, difference);
-            destinationChainBurnedBalance = newBurnBalance;
-            emit BurnTokens(difference);
         }
     }
 

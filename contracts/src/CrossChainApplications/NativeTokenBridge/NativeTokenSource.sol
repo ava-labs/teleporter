@@ -67,6 +67,34 @@ contract NativeTokenSource is
     }
 
     /**
+     * @dev Unlocks tokens to recipient.
+     */
+    function _unlockTokens(address recipient, uint256 amount) private {
+        require(
+            recipient != address(0),
+            "ERC20TokenSource: zero recipient address"
+        );
+
+        // Transfer to recipient
+        payable(recipient).transfer(amount);
+
+        emit UnlockTokens(recipient, amount);
+    }
+
+    /**
+     * @dev Sends tokens to BLACKHOLE_ADDRESS.
+     */
+    function _burnTokens(uint256 newBurnBalance) private {
+        if (newBurnBalance > destinationChainBurnedBalance) {
+            uint256 difference = newBurnBalance - destinationChainBurnedBalance;
+
+            payable(BLACKHOLE_ADDRESS).transfer(difference);
+            destinationChainBurnedBalance = newBurnBalance;
+            emit BurnTokens(difference);
+        }
+    }
+
+    /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
      *
      * Receives a Teleporter message and routes to the appropriate internal function call.
@@ -112,34 +140,6 @@ contract NativeTokenSource is
             _burnTokens(newBurnBalance);
         } else {
             revert("NativeTokenSource: invalid action");
-        }
-    }
-
-    /**
-     * @dev Unlocks tokens to recipient.
-     */
-    function _unlockTokens(address recipient, uint256 amount) private {
-        require(
-            recipient != address(0),
-            "ERC20TokenSource: zero recipient address"
-        );
-
-        // Transfer to recipient
-        payable(recipient).transfer(amount);
-
-        emit UnlockTokens(recipient, amount);
-    }
-
-    /**
-     * @dev Sends tokens to BLACKHOLE_ADDRESS.
-     */
-    function _burnTokens(uint256 newBurnBalance) private {
-        if (newBurnBalance > destinationChainBurnedBalance) {
-            uint256 difference = newBurnBalance - destinationChainBurnedBalance;
-
-            payable(BLACKHOLE_ADDRESS).transfer(difference);
-            destinationChainBurnedBalance = newBurnBalance;
-            emit BurnTokens(difference);
         }
     }
 
