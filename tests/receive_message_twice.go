@@ -95,6 +95,6 @@ func ReceiveMessageTwice(network network.Network) {
 		AccessList: teleporterTx.AccessList(),
 	})
 
-	signedTx = utils.SignTransaction(secondTeleporterTx, fundedKey, subnetBInfo.ChainIDInt)
+	signedTx := utils.SignTransaction(secondTeleporterTx, fundedKey, subnetBInfo.ChainIDInt)
 	utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo, signedTx, false)
 }
