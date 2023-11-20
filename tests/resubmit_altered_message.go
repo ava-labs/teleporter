@@ -69,7 +69,8 @@ func ResubmitAlteredMessage(network network.Network) {
 	tx, err := subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(opts, subnetBInfo.BlockchainID, teleporterMessage)
 	Expect(err).ShouldNot(BeNil())
 
-	// TODO: Why is tx nil?
+	// We expect the tx to be nil because the Warp message failed verification, which happens in the predicate
+	// In that case, the block is never built, and the transaction is never mined
 	Expect(tx).Should(BeNil())
 	// receipt, err = bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
 	// Expect(err).Should(BeNil())
