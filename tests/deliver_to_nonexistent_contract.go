@@ -31,7 +31,8 @@ func DeliverToNonExistentContract(network network.Network) {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	deployerKey, _ := crypto.GenerateKey()
+	deployerKey, err := crypto.GenerateKey()
+	Expect(err).Should(BeNil())
 	deployerAddress := crypto.PubkeyToAddress(deployerKey.PublicKey)
 
 	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
