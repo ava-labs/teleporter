@@ -10,6 +10,7 @@ import (
 	"github.com/ava-labs/teleporter/tests/utils"
 	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
 
@@ -51,10 +52,15 @@ func SendSpecificReceipts(network network.Network) {
 
 	relayerFeePerMessage := big.NewInt(5)
 	totalAccumulatedRelayerFee := big.NewInt(10)
+
+	destinationKey, err := crypto.GenerateKey()
+	Expect(err).Should(BeNil())
+	destinationAddress := crypto.PubkeyToAddress(destinationKey.PublicKey)
+
 	// Send two messages from Subnet A to Subnet B
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 		DestinationChainID: subnetBInfo.BlockchainID,
-		DestinationAddress: fundedAddress,
+		DestinationAddress: destinationAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			ContractAddress: mockTokenAddress,
 			Amount:          relayerFeePerMessage,
@@ -119,7 +125,7 @@ func SendSpecificReceipts(network network.Network) {
 	// but they should not be processed again on Subnet A.
 	sendCrossChainMessageInput = teleportermessenger.TeleporterMessageInput{
 		DestinationChainID: subnetAInfo.BlockchainID,
-		DestinationAddress: fundedAddress,
+		DestinationAddress: destinationAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			ContractAddress: mockTokenAddress,
 			Amount:          big.NewInt(0),
