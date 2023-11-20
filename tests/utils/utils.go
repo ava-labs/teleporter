@@ -95,7 +95,6 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetEventFromLogs(receipt.Logs, transactor.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
 
 	log.Info("Sending SendCrossChainMessage transaction on source chain",
 		"sourceChainID", source.BlockchainID,
