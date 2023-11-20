@@ -66,7 +66,8 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
-	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	receiveEvent, err :=
+		utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	deliveredTeleporterMessage := receiveEvent.Message
 
@@ -91,7 +92,8 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.ChainIDInt)
 	Expect(err).Should(BeNil())
-	tx, err = subnetBInfo.TeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)
+	tx, err =
+		subnetBInfo.TeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)
 	Expect(err).Should(Not(BeNil()))
 	Expect(tx).Should(BeNil())
 

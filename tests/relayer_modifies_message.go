@@ -53,7 +53,8 @@ func RelayerModifiesMessageGinkgo() {
 	relayAlteredMessage(ctx, receipt, subnetAInfo, subnetBInfo, fundedKey, network.GetTeleporterContractAddress())
 
 	// Check Teleporter message was not received on the destination
-	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+	delivered, err :=
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
 }

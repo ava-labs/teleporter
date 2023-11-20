@@ -124,6 +124,7 @@ func NewFujiNetwork() *FujiNetwork {
 	conduitTeleporterMessenger, err = teleportermessenger.NewTeleporterMessenger(
 		teleporterContractAddress, conduitRPCClient,
 	)
+	Expect(err).Should(BeNil())
 
 	return &FujiNetwork{
 		amplifyInfo: utils.SubnetTestInfo{

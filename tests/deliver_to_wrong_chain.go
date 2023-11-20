@@ -28,7 +28,8 @@ func DeliverToWrongChain(network network.Network) {
 	//
 	// Get the expected teleporter message ID for Subnet B
 	//
-	teleporterMessageID, err := subnetAInfo.TeleporterMessenger.GetNextMessageID(&bind.CallOpts{}, subnetBInfo.BlockchainID)
+	teleporterMessageID, err :=
+		subnetAInfo.TeleporterMessenger.GetNextMessageID(&bind.CallOpts{}, subnetBInfo.BlockchainID)
 	Expect(err).Should(BeNil())
 
 	//
