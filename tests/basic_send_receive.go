@@ -8,6 +8,7 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
+	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
@@ -25,6 +26,7 @@ func BasicSendReceive(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
+	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
@@ -32,12 +34,28 @@ func BasicSendReceive(network network.Network) {
 	//
 	ctx := context.Background()
 
+	feeAmount := big.NewInt(1)
+	feeTokenAddress, feeToken := localUtils.DeployExampleERC20(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+	)
+	localUtils.ExampleERC20Approve(
+		ctx,
+		feeToken,
+		teleporterContractAddress,
+		big.NewInt(0).Mul(big.NewInt(1e18),
+			big.NewInt(10)),
+		subnetAInfo,
+		fundedKey,
+	)
+
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 		DestinationChainID: subnetBInfo.BlockchainID,
 		DestinationAddress: fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
-			FeeTokenAddress: fundedAddress,
-			Amount:          big.NewInt(0),
+			FeeTokenAddress: feeTokenAddress,
+			Amount:          feeAmount,
 		},
 		RequiredGasLimit:        big.NewInt(1),
 		AllowedRelayerAddresses: []common.Address{},
@@ -71,7 +89,9 @@ func BasicSendReceive(network network.Network) {
 	//
 	// Send a transaction to Subnet B to issue a Warp Message from the Teleporter contract to Subnet A
 	//
+
 	sendCrossChainMessageInput.DestinationChainID = subnetAInfo.BlockchainID
+	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,
 		subnetBInfo,
@@ -94,4 +114,8 @@ func BasicSendReceive(network network.Network) {
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
+
+	utils.RedeemRelayerRewardsAndConfirm(
+		ctx, subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
+	)
 }

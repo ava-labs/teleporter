@@ -100,4 +100,8 @@ func AddFeeAmount(network network.Network) {
 		subnetAInfo.TeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, fundedAddress, mockTokenAddress)
 	Expect(err).Should(BeNil())
 	Expect(amount).Should(Equal(additionalFeeAmount.Add(additionalFeeAmount, initFeeAmount)))
+
+	utils.RedeemRelayerRewardsAndConfirm(
+		ctx, subnetAInfo, mockToken, mockTokenAddress, fundedKey, amount,
+	)
 }
