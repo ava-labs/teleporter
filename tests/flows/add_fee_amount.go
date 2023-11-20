@@ -52,7 +52,13 @@ func AddFeeAmount(network interfaces.Network) {
 	}
 
 	sendCrossChainMsgReceipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
+		ctx,
+		subnetAInfo,
+		subnetBInfo,
+		sendCrossChainMessageInput,
+		fundedAddress,
+		fundedKey,
+		subnetATeleporterMessenger)
 
 	// Add fee amount
 	additionalFeeAmount := big.NewInt(2)
@@ -81,7 +87,13 @@ func AddFeeAmount(network interfaces.Network) {
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 
 	sendCrossChainMsgReceipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetBTeleporterMessenger)
+		ctx,
+		subnetBInfo,
+		subnetAInfo,
+		sendCrossChainMessageInput,
+		fundedAddress,
+		fundedKey,
+		subnetBTeleporterMessenger)
 
 	// Relay message from SubnetB to SubnetA
 	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetBInfo, subnetAInfo, false, true)

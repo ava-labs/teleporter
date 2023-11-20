@@ -1,12 +1,19 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/ava-labs/teleporter/tests/flows"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/testnet"
 	"github.com/onsi/gomega"
 )
+
+func runFlow(flowName string, flow func(interfaces.Network), network interfaces.Network) {
+	log.Println("Running test ", flowName)
+	flow(network)
+	log.Println("Finished running test ", flowName)
+}
 
 func main() {
 	// Register a failure handler that panics
@@ -21,42 +28,20 @@ func main() {
 	}
 
 	// Run the Teleporter test flows.
-	flows.BasicOneWaySend(network)
-	fmt.Println("Finished running test BasicOneWaySend")
-
-	// flows.DeliverToWrongChain(network)
-	// fmt.Println("Finished running test DeliverToWrongChain")
-
-	flows.DeliverToNonExistentContract(network)
-	fmt.Println("Finished running test DeliverToNonExistentContract")
-
-	flows.RetrySuccessfulExecution(network)
-	fmt.Println("Finished running test RetrySuccessfulExecution")
-
-	// flows.UnallowedRelayer(network)
-	// fmt.Println("Finished running test UnallowedRelayer")
-
-	flows.ReceiveMessageTwice(network)
-	fmt.Println("Finished running test ReceiveMessageTwice")
-
-	flows.AddFeeAmount(network)
-	fmt.Println("Finished running test AddFeeAmount")
-
-	flows.InsufficientGas(network)
-	fmt.Println("Finished running test InsufficientGas")
-
-	flows.ResubmitAlteredMessage(network)
-	fmt.Println("Finished running test ResubmitAlteredMessage")
-
-	// flows.RelayerModifiesMessage(network)
-	// fmt.Println("Finished running test RelayerModifiesMessage")
-
-	fmt.Println("Finished Teleporter test flows.")
+	runFlow("BasicOneWaySend", flows.BasicOneWaySend, network)
+	// runFlow("DeliverToWrongChain", flows.DeliverToWrongChain, network)
+	runFlow("DeliverToNonExistentContract", flows.DeliverToNonExistentContract, network)
+	runFlow("RetrySuccessfulExecution", flows.RetrySuccessfulExecution, network)
+	// runFlow("UnallowedRelayer", flows.UnallowedRelayer, network)
+	runFlow("ReceiveMessageTwice", flows.ReceiveMessageTwice, network)
+	runFlow("AddFeeAmount", flows.AddFeeAmount, network)
+	runFlow("InsufficientGas", flows.InsufficientGas, network)
+	runFlow("ResubmitAlteredMessage", flows.ResubmitAlteredMessage, network)
+	// runFlow("RelayerModifiesMessage", flows.RelayerModifiesMessage, network)
+	runFlow("BasicOneWaySend", flows.BasicOneWaySend, network)
+	log.Println("Finished Teleporter test flows")
 
 	// Run the cross-chain application test flows.
-	flows.ExampleMessenger(network)
-	fmt.Println("Finished running test ExampleMessenger")
-
-	fmt.Println("Finished cross-chain application test flows.")
-
+	runFlow("ExampleMessenger", flows.ExampleMessenger, network)
+	log.Println("Finished cross-chain application test flows")
 }
