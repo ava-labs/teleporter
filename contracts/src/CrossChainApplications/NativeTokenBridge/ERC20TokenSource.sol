@@ -91,13 +91,19 @@ contract ERC20TokenSource is
     /**
      * @dev Sends tokens to BLACKHOLE_ADDRESS.
      */
-    function _burnTokens(uint256 newBurnBalance) private {
+    function _burnTokens(uint256 amount) private {
+        payable(BLACKHOLE_ADDRESS).transfer(amount);
+        emit BurnTokens(amount);
+    }
+
+    /**
+     * @dev Update destinationChainBurnedBalance sent from destination chain
+     */
+    function _updateDestinationChainBurnedBalance(uint256 newBurnBalance) private {
         if (newBurnBalance > destinationChainBurnedBalance) {
             uint256 difference = newBurnBalance - destinationChainBurnedBalance;
-
-            SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BLACKHOLE_ADDRESS, difference);
+            _burnTokens(difference);
             destinationChainBurnedBalance = newBurnBalance;
-            emit BurnTokens(difference);
         }
     }
 
@@ -144,7 +150,7 @@ contract ERC20TokenSource is
             _unlockTokens(recipient, amount);
         } else if (action == SourceAction.Burn) {
             uint256 newBurnBalance = abi.decode(actionData, (uint256));
-            _burnTokens(newBurnBalance);
+            _updateDestinationChainBurnedBalance(newBurnBalance);
         } else {
             revert("ERC20TokenSource: invalid action");
         }

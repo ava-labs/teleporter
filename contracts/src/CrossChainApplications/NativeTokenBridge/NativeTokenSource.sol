@@ -84,13 +84,19 @@ contract NativeTokenSource is
     /**
      * @dev Sends tokens to BLACKHOLE_ADDRESS.
      */
-    function _burnTokens(uint256 newBurnBalance) private {
+    function _burnTokens(uint256 amount) private {
+        payable(BLACKHOLE_ADDRESS).transfer(amount);
+        emit BurnTokens(amount);
+    }
+
+    /**
+     * @dev Update destinationChainBurnedBalance sent from destination chain
+     */
+    function _updateDestinationChainBurnedBalance(uint256 newBurnBalance) private {
         if (newBurnBalance > destinationChainBurnedBalance) {
             uint256 difference = newBurnBalance - destinationChainBurnedBalance;
-
-            payable(BLACKHOLE_ADDRESS).transfer(difference);
+            _burnTokens(difference);
             destinationChainBurnedBalance = newBurnBalance;
-            emit BurnTokens(difference);
         }
     }
 
@@ -137,7 +143,7 @@ contract NativeTokenSource is
             _unlockTokens(recipient, amount);
         } else if (action == SourceAction.Burn) {
             uint256 newBurnBalance = abi.decode(actionData, (uint256));
-            _burnTokens(newBurnBalance);
+            _updateDestinationChainBurnedBalance(newBurnBalance);
         } else {
             revert("NativeTokenSource: invalid action");
         }
