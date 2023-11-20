@@ -101,7 +101,6 @@ func ValidatorChurnGinkgo() {
 		teleporterContractAddress,
 		fundedKey,
 		subnetBInfo,
-		false,
 	)
 
 	log.Info("Sending transaction to destination chain")
@@ -130,7 +129,7 @@ func ValidatorChurnGinkgo() {
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	// Verify the message was delivered
 	delivered, err = subnetBInfo.TeleporterMessenger.MessageReceived(

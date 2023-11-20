@@ -53,7 +53,7 @@ func ReceiveMessageTwice(network network.Network) {
 	// Relay the message to the destination
 	//
 
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	//
 	// Check Teleporter message received on the destination
@@ -69,5 +69,5 @@ func ReceiveMessageTwice(network network.Network) {
 	// Attempt to send the same message again
 	//
 	log.Info("Relaying the same Teleporter message again on the destination")
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, false)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
 }

@@ -189,7 +189,6 @@ func (n *FujiNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,
 	destination utils.SubnetTestInfo,
-	alterMessage bool,
 	expectSuccess bool) *types.Receipt {
 	// Set the context to expire after 20 seconds
 	var cancel context.CancelFunc

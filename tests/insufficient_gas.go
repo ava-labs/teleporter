@@ -52,7 +52,7 @@ func InsufficientGas(network network.Network) {
 	messageID := event.Message.MessageID
 
 	// Relay message from SubnetA to SubnetB
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	// Check Teleporter message received on the destination
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)

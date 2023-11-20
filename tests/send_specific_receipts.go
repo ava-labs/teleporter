@@ -65,7 +65,7 @@ func SendSpecificReceipts(network network.Network) {
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Relay message from SubnetA to SubnetB
-	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, false, true)
+	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
 	// Check messge delivered
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID1)
 	Expect(err).Should(BeNil())
@@ -76,7 +76,7 @@ func SendSpecificReceipts(network network.Network) {
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Relay message from SubnetA to SubnetB
-	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, false, true)
+	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
 	// Check delivered
 	delivered, err = subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID2)
 	Expect(err).Should(BeNil())
@@ -98,7 +98,7 @@ func SendSpecificReceipts(network network.Network) {
 	)
 
 	// Relay message from Subnet B to Subnet A
-	network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, false, true)
+	network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 	// Check delivered
 	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
@@ -129,7 +129,7 @@ func SendSpecificReceipts(network network.Network) {
 		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedKey, subnetBInfo.TeleporterMessenger)
 
 	// Relay message from Subnet B to Subnet A
-	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, false, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 	// Check delivered
 	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())

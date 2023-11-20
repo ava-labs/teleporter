@@ -119,7 +119,6 @@ func RelayMessage(
 	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,
 	destination utils.SubnetTestInfo,
-	alterMessage bool,
 	expectSuccess bool,
 ) *types.Receipt {
 	// Fetch the Teleporter message from the logs
@@ -137,7 +136,6 @@ func RelayMessage(
 		teleporterContractAddress,
 		globalFundedKey,
 		destination,
-		alterMessage,
 	)
 
 	log.Info("Sending transaction to destination chain")
