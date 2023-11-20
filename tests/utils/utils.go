@@ -44,6 +44,7 @@ type SubnetTestInfo struct {
 	ChainRPCClient            ethclient.Client
 	ChainIDInt                *big.Int
 	TeleporterRegistryAddress common.Address
+	TeleporterMessenger       *teleportermessenger.TeleporterMessenger
 }
 
 //
@@ -81,7 +82,8 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	// Send a transaction to the Teleporter contract
 	txn, err := transactor.SendCrossChainMessage(opts, input)
@@ -115,7 +117,9 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
-	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		fundedKey, source.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	txn, err := transactor.AddFeeAmount(opts, destination.BlockchainID, messageID, feeContractAddress, amount)
 	Expect(err).Should(BeNil())
@@ -145,7 +149,8 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
-	opts := CreateTransactorOpts(ctx, subnet, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnet.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	txn, err := transactor.RetryMessageExecution(opts, originChainID, message)
 	Expect(err).Should(BeNil())
@@ -168,7 +173,8 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	txn, err := transactor.SendSpecifiedReceipts(opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
 	Expect(err).Should(BeNil())
@@ -225,27 +231,6 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 //
 // Transaction creation functions
 //
-
-func CreateTransactorOpts(
-	ctx context.Context,
-	subnet SubnetTestInfo,
-	fundedAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
-) *bind.TransactOpts {
-	// set up parameters
-	transactor, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, subnet.ChainIDInt)
-	Expect(err).Should(BeNil())
-
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnet, fundedAddress)
-
-	transactor.From = fundedAddress
-	transactor.Nonce = new(big.Int).SetUint64(nonce)
-	transactor.GasTipCap = gasTipCap
-	transactor.GasFeeCap = gasFeeCap
-
-	return transactor
-}
 
 // Constructs a transaction to call sendCrossChainMessage
 // Returns the signed transaction.

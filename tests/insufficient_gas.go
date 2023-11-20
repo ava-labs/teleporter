@@ -6,7 +6,6 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
@@ -21,18 +20,8 @@ func InsufficientGas(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
-	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
-
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetAInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetBInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
 
 	// Deploy ExampleMessenger to Subnets A
 	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedAddress, fundedKey, subnetAInfo)
@@ -43,7 +32,9 @@ func InsufficientGas(network network.Network) {
 
 	// Send message from SubnetA to SubnetB with 0 execution gas, which should fail to execute
 	message := "Hello, world!"
-	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	optsA, err := bind.NewKeyedTransactorWithChainID(
+		fundedKey, subnetAInfo.ChainIDInt)
+	Expect(err).Should(BeNil())
 	tx, err := subnetAExampleMessenger.SendMessage(
 		optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message,
 	)
@@ -54,7 +45,7 @@ func InsufficientGas(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
+	event, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -64,13 +55,13 @@ func InsufficientGas(network network.Network) {
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
 
 	// Check Teleporter message received on the destination
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Check message execution failed event
 	failedMessageExecutionEvent, err := utils.GetEventFromLogs(
-		receipt.Logs, subnetBTeleporterMessenger.ParseMessageExecutionFailed,
+		receipt.Logs, subnetBInfo.TeleporterMessenger.ParseMessageExecutionFailed,
 	)
 	Expect(err).Should(BeNil())
 	Expect(failedMessageExecutionEvent.MessageID).Should(Equal(messageID))
@@ -85,9 +76,9 @@ func InsufficientGas(network network.Network) {
 		failedMessageExecutionEvent.Message,
 		fundedAddress,
 		fundedKey,
-		subnetBTeleporterMessenger,
+		subnetBInfo.TeleporterMessenger,
 	)
-	executedEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBTeleporterMessenger.ParseMessageExecuted)
+	executedEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseMessageExecuted)
 	Expect(err).Should(BeNil())
 	Expect(executedEvent.MessageID).Should(Equal(messageID))
 	Expect(executedEvent.OriginChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))

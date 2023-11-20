@@ -31,6 +31,7 @@ var (
 	amplifySubnetID                  ids.ID
 	amplifyBlockchainID              ids.ID
 	amplifyTeleporterRegistryAddress common.Address // Empty for now
+	amplifyTeleporterMessenger       *teleportermessenger.TeleporterMessenger
 
 	bulletinSubnetIDStr               = "cbXsFGWSDWUYTmRXUoCirVDdQkZmUWrkQQYoVc2wUoDm8eFup"
 	bulletinBlockchainIDStr           = "2e3RJ3ub9Pceh8fJ3HX3gZ6nSXJLvBJ9WoXLcU4nwdpZ8X2RLq"
@@ -39,6 +40,7 @@ var (
 	bulletinSubnetID                  ids.ID
 	bulletinBlockchainID              ids.ID
 	bulletinTeleporterRegistryAddress common.Address // Empty for now
+	bulletinTeleporterMessenger       *teleportermessenger.TeleporterMessenger
 
 	conduitSubnetIDStr               = "wW7JVmjXp8SKrpacGzM81RBXdfcLDVY6M2DkFyArEXgtkyozK"
 	conduitBlockchainIDStr           = "9asUA3QckLh7vGnFQiiUJGPTx8KE4nFtP8c1wTWJuP8XiWW75"
@@ -47,6 +49,7 @@ var (
 	conduitSubnetID                  ids.ID
 	conduitBlockchainID              ids.ID
 	conduitTeleporterRegistryAddress common.Address // Empty for now
+	conduitTeleporterMessenger       *teleportermessenger.TeleporterMessenger
 
 	userAddress = common.HexToAddress("")      // To be supplied by user
 	skHex       = strings.TrimPrefix("", "0x") // To be supplied by user
@@ -97,12 +100,20 @@ func NewFujiNetwork() *FujiNetwork {
 	Expect(err).Should(BeNil())
 	amplifyChainIDInt, err := amplifyRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
+	amplifyTeleporterMessenger, err = teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, amplifyRPCClient,
+	)
+	Expect(err).Should(BeNil())
 
 	bulletinWSClient, err := ethclient.Dial(bulletinWSURI)
 	Expect(err).Should(BeNil())
 	bulletinRPCClient, err := ethclient.Dial(bulletinRPCURI)
 	Expect(err).Should(BeNil())
 	bulletinChainIDInt, err := bulletinRPCClient.ChainID(context.Background())
+	Expect(err).Should(BeNil())
+	bulletinTeleporterMessenger, err = teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, bulletinRPCClient,
+	)
 	Expect(err).Should(BeNil())
 
 	conduitWSClient, err := ethclient.Dial(conduitWSURI)
@@ -111,6 +122,9 @@ func NewFujiNetwork() *FujiNetwork {
 	Expect(err).Should(BeNil())
 	conduitChainIDInt, err := conduitRPCClient.ChainID(context.Background())
 	Expect(err).Should(BeNil())
+	conduitTeleporterMessenger, err = teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, conduitRPCClient,
+	)
 
 	return &FujiNetwork{
 		amplifyInfo: utils.SubnetTestInfo{
@@ -120,6 +134,7 @@ func NewFujiNetwork() *FujiNetwork {
 			ChainWSClient:             amplifyWSClient,
 			ChainRPCClient:            amplifyRPCClient,
 			TeleporterRegistryAddress: amplifyTeleporterRegistryAddress,
+			TeleporterMessenger:       amplifyTeleporterMessenger,
 		},
 		bulletinInfo: utils.SubnetTestInfo{
 			SubnetID:                  bulletinSubnetID,
@@ -128,6 +143,7 @@ func NewFujiNetwork() *FujiNetwork {
 			ChainWSClient:             bulletinWSClient,
 			ChainRPCClient:            bulletinRPCClient,
 			TeleporterRegistryAddress: bulletinTeleporterRegistryAddress,
+			TeleporterMessenger:       bulletinTeleporterMessenger,
 		},
 		conduitInfo: utils.SubnetTestInfo{
 			SubnetID:                  conduitSubnetID,
@@ -136,6 +152,7 @@ func NewFujiNetwork() *FujiNetwork {
 			ChainWSClient:             conduitWSClient,
 			ChainRPCClient:            conduitRPCClient,
 			TeleporterRegistryAddress: conduitTeleporterRegistryAddress,
+			TeleporterMessenger:       conduitTeleporterMessenger,
 		},
 	}
 }
@@ -223,9 +240,10 @@ func (n *FujiNetwork) RelayMessage(ctx context.Context,
 			receiveEvent, err := utils.GetEventFromLogs(l, destinationSubnetTeleporterMessenger.ParseReceiveCrossChainMessage)
 			Expect(err).Should(BeNil())
 			if receiveEvent.MessageID.Cmp(teleporterMessageID) == 0 {
-				return &types.Receipt{
-					Status: types.ReceiptStatusSuccessful,
-				}
+				receipt, err := destination.ChainRPCClient.TransactionReceipt(cctx, receiveEvent.Raw.TxHash)
+				Expect(err).Should(BeNil())
+				Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+				return receipt
 			}
 		}
 	}

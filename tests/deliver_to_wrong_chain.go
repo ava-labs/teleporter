@@ -23,22 +23,12 @@ func DeliverToWrongChain(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
-	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
-
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetAInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetBInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
 
 	//
 	// Get the expected teleporter message ID for Subnet B
 	//
-	teleporterMessageID, err := subnetATeleporterMessenger.GetNextMessageID(&bind.CallOpts{}, subnetBInfo.BlockchainID)
+	teleporterMessageID, err := subnetAInfo.TeleporterMessenger.GetNextMessageID(&bind.CallOpts{}, subnetBInfo.BlockchainID)
 	Expect(err).Should(BeNil())
 
 	//
@@ -74,7 +64,7 @@ func DeliverToWrongChain(network network.Network) {
 		sendCrossChainMessageInput,
 		fundedAddress,
 		fundedKey,
-		subnetATeleporterMessenger,
+		subnetAInfo.TeleporterMessenger,
 	)
 
 	//
@@ -86,7 +76,7 @@ func DeliverToWrongChain(network network.Network) {
 	//
 	// Check that the message was not received on the Subnet B
 	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())

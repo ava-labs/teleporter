@@ -7,7 +7,6 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
@@ -22,17 +21,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
-	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
-
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetAInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetBInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
 
 	//
 	// Deploy ExampleMessenger to Subnets A and B
@@ -48,7 +37,8 @@ func RetrySuccessfulExecution(network network.Network) {
 	// Call the example messenger contract on Subnet A
 	//
 	message := "Hello, world!"
-	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	Expect(err).Should(BeNil())
 	tx, err := subnetAExampleMessenger.SendMessage(
 		optsA,
 		subnetBInfo.BlockchainID,
@@ -65,7 +55,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
+	event, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -76,14 +66,14 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
-	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBTeleporterMessenger.ParseReceiveCrossChainMessage)
+	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	deliveredTeleporterMessage := receiveEvent.Message
 
 	//
 	// Check Teleporter message received on the destination
 	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -99,8 +89,11 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 	// Attempt to retry message execution, which should fail
 	//
-	optsB := utils.CreateTransactorOpts(ctx, subnetBInfo, fundedAddress, fundedKey)
-	tx, err = subnetBTeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)
+	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.ChainIDInt)
+	Expect(err).Should(BeNil())
+	tx, err = subnetBInfo.TeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)
 	Expect(err).Should(Not(BeNil()))
 	Expect(tx).Should(BeNil())
+
+	// TODO: Why is tx nil?
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
@@ -24,21 +23,11 @@ func DeliverToNonExistentContract(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
-	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	deployerKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	deployerAddress := crypto.PubkeyToAddress(deployerKey.PublicKey)
-
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetAInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetBInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
 
 	//
 	// Fund the deployer address on Subnet B
@@ -67,7 +56,9 @@ func DeliverToNonExistentContract(network network.Network) {
 	// Call the example messenger contract on Subnet A
 	//
 	message := "Hello, world!"
-	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
+	optsA, err := bind.NewKeyedTransactorWithChainID(
+		fundedKey, subnetAInfo.ChainIDInt)
+	Expect(err).Should(BeNil())
 	tx, err := subnetAExampleMessenger.SendMessage(
 		optsA,
 		subnetBInfo.BlockchainID,
@@ -84,7 +75,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
-	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(sendEvent.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
@@ -95,14 +86,14 @@ func DeliverToNonExistentContract(network network.Network) {
 	//
 
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
-	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseReceiveCrossChainMessage)
+	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	deliveredTeleporterMessage := receiveEvent.Message
 
 	//
 	// Check that the message was successfully relayed
 	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},
 		subnetAInfo.BlockchainID,
 		teleporterMessageID,
@@ -115,7 +106,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	//
 	executionFailedEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		subnetBTeleporterMessenger.ParseMessageExecutionFailed,
+		subnetBInfo.TeleporterMessenger.ParseMessageExecutionFailed,
 	)
 	Expect(err).Should(BeNil())
 	Expect(executionFailedEvent.Message.MessageID).Should(Equal(deliveredTeleporterMessage.MessageID))
@@ -145,7 +136,7 @@ func DeliverToNonExistentContract(network network.Network) {
 		deliveredTeleporterMessage,
 		fundedAddress,
 		fundedKey,
-		subnetBTeleporterMessenger,
+		subnetBInfo.TeleporterMessenger,
 	)
 
 	//

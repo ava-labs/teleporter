@@ -27,15 +27,6 @@ func ValidatorChurnGinkgo() {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetAInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetBInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-
 	ctx := context.Background()
 
 	//
@@ -61,10 +52,10 @@ func ValidatorChurnGinkgo() {
 		sendCrossChainMessageInput,
 		fundedAddress,
 		fundedKey,
-		subnetATeleporterMessenger,
+		subnetAInfo.TeleporterMessenger,
 	)
 
-	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	sentTeleporterMessage := sendEvent.Message
 
@@ -119,7 +110,7 @@ func ValidatorChurnGinkgo() {
 	receipt = utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo, signedTx, false)
 
 	// Verify the message was not delivered
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -129,8 +120,9 @@ func ValidatorChurnGinkgo() {
 	// Retry sending the message, and attempt to relay again. This should succeed.
 	//
 	log.Info("Retrying message sending on source chain")
-	optsA := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	tx, err := subnetATeleporterMessenger.RetrySendCrossChainMessage(
+	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	Expect(err).Should(BeNil())
+	tx, err := subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(
 		optsA, subnetBInfo.BlockchainID, sentTeleporterMessage,
 	)
 	Expect(err).Should(BeNil())
@@ -143,7 +135,7 @@ func ValidatorChurnGinkgo() {
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
 
 	// Verify the message was delivered
-	delivered, err = subnetBTeleporterMessenger.MessageReceived(
+	delivered, err = subnetBInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
