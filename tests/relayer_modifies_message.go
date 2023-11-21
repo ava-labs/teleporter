@@ -2,35 +2,33 @@ package tests
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"math/big"
 
+	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	"github.com/ava-labs/subnet-evm/core/types"
+	predicateutils "github.com/ava-labs/subnet-evm/predicate"
+	"github.com/ava-labs/subnet-evm/x/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
+	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
+	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
+// Disallow this test from being run on anything but a local network, since it requires special behavior by the relayer
 func RelayerModifiesMessageGinkgo() {
-	RelayerModifiesMessage(&network.LocalNetwork{})
-}
-
-func RelayerModifiesMessage(network network.Network) {
+	network := &network.LocalNetwork{}
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
-	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
-
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetAInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetBInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ctx := context.Background()
@@ -48,14 +46,109 @@ func RelayerModifiesMessage(network network.Network) {
 	}
 
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Relay the message to the destination
 	// Relayer modifies the message in flight
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true, false)
+	relayAlteredMessage(ctx, receipt, subnetAInfo, subnetBInfo, fundedKey, network.GetTeleporterContractAddress())
 
 	// Check Teleporter message was not received on the destination
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+	delivered, err :=
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
+}
+
+func relayAlteredMessage(
+	ctx context.Context,
+	sourceReceipt *types.Receipt,
+	source utils.SubnetTestInfo,
+	destination utils.SubnetTestInfo,
+	fundedKey *ecdsa.PrivateKey,
+	teleporterContractAddress common.Address,
+) {
+	// Fetch the Teleporter message from the logs
+	sendEvent, err :=
+		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
+	Expect(err).Should(BeNil())
+
+	signedWarpMessageBytes := localUtils.ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
+
+	// Construct the transaction to send the Warp message to the destination chain
+	signedTx := createAlteredReceiveCrossChainMessageTransaction(
+		ctx,
+		signedWarpMessageBytes,
+		sendEvent.Message.RequiredGasLimit,
+		teleporterContractAddress,
+		fundedKey,
+		destination,
+	)
+
+	log.Info("Sending transaction to destination chain")
+	utils.SendTransactionAndWaitForAcceptance(ctx, destination, signedTx, false)
+}
+
+func createAlteredReceiveCrossChainMessageTransaction(
+	ctx context.Context,
+	warpMessageBytes []byte,
+	requiredGasLimit *big.Int,
+	teleporterContractAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+	subnetInfo utils.SubnetTestInfo,
+) *types.Transaction {
+	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
+	// Construct the transaction to send the Warp message to the destination chain
+	log.Info("Constructing transaction for the destination chain")
+	signedMessage, err := avalancheWarp.ParseMessage(warpMessageBytes)
+	Expect(err).Should(BeNil())
+
+	numSigners, err := signedMessage.Signature.NumSigners()
+	Expect(err).Should(BeNil())
+
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
+	Expect(err).Should(BeNil())
+
+	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
+	Expect(err).Should(BeNil())
+
+	gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(ctx, subnetInfo, fundedAddress)
+
+	alterTeleporterMessage(signedMessage)
+
+	destinationTx := predicateutils.NewPredicateTx(
+		subnetInfo.ChainIDInt,
+		nonce,
+		&teleporterContractAddress,
+		gasLimit,
+		gasFeeCap,
+		gasTipCap,
+		big.NewInt(0),
+		callData,
+		types.AccessList{},
+		warp.ContractAddress,
+		signedMessage.Bytes(),
+	)
+
+	return utils.SignTransaction(destinationTx, fundedKey, subnetInfo.ChainIDInt)
+}
+
+func alterTeleporterMessage(signedMessage *avalancheWarp.Message) {
+	warpMsgPayload, err := warpPayload.ParseAddressedCall(signedMessage.UnsignedMessage.Payload)
+	Expect(err).Should(BeNil())
+
+	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpMsgPayload.Payload)
+	Expect(err).Should(BeNil())
+	// Alter the message
+	teleporterMessage.Message[0] = ^teleporterMessage.Message[0]
+
+	// Pack the teleporter message
+	teleporterMessageBytes, err := teleportermessenger.PackTeleporterMessage(*teleporterMessage)
+	Expect(err).Should(BeNil())
+
+	payload, err := warpPayload.NewAddressedCall(warpMsgPayload.SourceAddress, teleporterMessageBytes)
+	Expect(err).Should(BeNil())
+
+	signedMessage.UnsignedMessage.Payload = payload.Bytes()
+
+	signedMessage.Initialize()
 }

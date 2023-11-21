@@ -18,24 +18,10 @@ func UnallowedRelayerGinkgo() {
 }
 
 func UnallowedRelayer(network network.Network) {
-	var (
-		teleporterMessageID *big.Int
-	)
-
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
-	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
-
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetAInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetBInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
 
 	//
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -56,33 +42,25 @@ func UnallowedRelayer(network network.Network) {
 		},
 		Message: []byte{1, 2, 3, 4},
 	}
-	signedTx := utils.CreateSendCrossChainMessageTransaction(
-		ctx, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, teleporterContractAddress,
-	)
 
 	log.Info(
 		"Sending Teleporter transaction on source chain",
 		"destinationChainID", subnetBInfo.BlockchainID,
-		"txHash", signedTx.Hash(),
 	)
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, subnetAInfo, signedTx, true)
-
-	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
-	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
-
-	teleporterMessageID = event.Message.MessageID
+	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger,
+	)
 
 	//
 	// Relay the message to the destination
 	//
 
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, false)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
 
 	//
 	// Check Teleporter message was not received on the destination
 	//
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(
+	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())

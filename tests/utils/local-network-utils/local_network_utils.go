@@ -16,7 +16,6 @@ import (
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	"github.com/ava-labs/subnet-evm/x/warp"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -120,13 +119,11 @@ func RelayMessage(
 	sourceReceipt *types.Receipt,
 	source utils.SubnetTestInfo,
 	destination utils.SubnetTestInfo,
-	alterMessage bool,
 	expectSuccess bool,
 ) *types.Receipt {
 	// Fetch the Teleporter message from the logs
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
-	Expect(err).Should(BeNil())
-	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, bind.ParseSendCrossChainMessage)
+	sendEvent, err :=
+		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	signedWarpMessageBytes := ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
@@ -137,10 +134,8 @@ func RelayMessage(
 		signedWarpMessageBytes,
 		sendEvent.Message.RequiredGasLimit,
 		teleporterContractAddress,
-		fundedAddress,
-		fundedKey,
+		globalFundedKey,
 		destination,
-		alterMessage,
 	)
 
 	log.Info("Sending transaction to destination chain")
@@ -150,10 +145,9 @@ func RelayMessage(
 		return nil
 	}
 
-	bind, err = teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainRPCClient)
-	Expect(err).Should(BeNil())
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, bind.ParseReceiveCrossChainMessage)
+	receiveEvent, err :=
+		utils.GetEventFromLogs(receipt.Logs, destination.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(receiveEvent.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
 	return receipt

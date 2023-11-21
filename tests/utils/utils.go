@@ -14,7 +14,6 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
-	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -24,6 +23,7 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
@@ -44,6 +44,7 @@ type SubnetTestInfo struct {
 	ChainRPCClient            ethclient.Client
 	ChainIDInt                *big.Int
 	TeleporterRegistryAddress common.Address
+	TeleporterMessenger       *teleportermessenger.TeleporterMessenger
 }
 
 //
@@ -77,11 +78,11 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	source SubnetTestInfo,
 	destination SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	// Send a transaction to the Teleporter contract
 	txn, err := transactor.SendCrossChainMessage(opts, input)
@@ -95,7 +96,6 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetEventFromLogs(receipt.Logs, transactor.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
 
 	log.Info("Sending SendCrossChainMessage transaction on source chain",
 		"sourceChainID", source.BlockchainID,
@@ -112,11 +112,12 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	messageID *big.Int,
 	amount *big.Int,
 	feeContractAddress common.Address,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
-	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		fundedKey, source.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	txn, err := transactor.AddFeeAmount(opts, destination.BlockchainID, messageID, feeContractAddress, amount)
 	Expect(err).Should(BeNil())
@@ -142,11 +143,11 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	originChainID ids.ID,
 	subnet SubnetTestInfo,
 	message teleportermessenger.TeleporterMessage,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
-	opts := CreateTransactorOpts(ctx, subnet, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnet.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	txn, err := transactor.RetryMessageExecution(opts, originChainID, message)
 	Expect(err).Should(BeNil())
@@ -165,11 +166,11 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	messageIDs []*big.Int,
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts := CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	txn, err := transactor.SendSpecifiedReceipts(opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
 	Expect(err).Should(BeNil())
@@ -227,37 +228,16 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 // Transaction creation functions
 //
 
-func CreateTransactorOpts(
-	ctx context.Context,
-	subnet SubnetTestInfo,
-	fundedAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
-) *bind.TransactOpts {
-	// set up parameters
-	transactor, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, subnet.ChainIDInt)
-	Expect(err).Should(BeNil())
-
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnet, fundedAddress)
-
-	transactor.From = fundedAddress
-	transactor.Nonce = new(big.Int).SetUint64(nonce)
-	transactor.GasTipCap = gasTipCap
-	transactor.GasFeeCap = gasFeeCap
-
-	return transactor
-}
-
 // Constructs a transaction to call sendCrossChainMessage
 // Returns the signed transaction.
 func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
 	source SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
+	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
 	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
@@ -283,14 +263,12 @@ func CreateRetryMessageExecutionTransaction(
 	subnetInfo SubnetTestInfo,
 	originChainID ids.ID,
 	message teleportermessenger.TeleporterMessage,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
-	teleporterABI, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
-	Expect(err).Should(BeNil())
+	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
 
-	data, err := teleporterABI.Pack("retryMessageExecution", originChainID, message)
+	data, err := teleportermessenger.PackRetryMessageExecution(originChainID, message)
 	Expect(err).Should(BeNil())
 
 	// TODO: replace with actual number of signers
@@ -299,7 +277,7 @@ func CreateRetryMessageExecutionTransaction(
 
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
 
-	// Send a transaction to the Teleporter contract
+	// Sign a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   subnetInfo.ChainIDInt,
 		Nonce:     nonce,
@@ -321,11 +299,10 @@ func CreateReceiveCrossChainMessageTransaction(
 	warpMessageBytes []byte,
 	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	subnetInfo SubnetTestInfo,
-	alterMessage bool,
 ) *types.Transaction {
+	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
 	signedMessage, err := avalancheWarp.ParseMessage(warpMessageBytes)
@@ -341,10 +318,6 @@ func CreateReceiveCrossChainMessageTransaction(
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
-
-	if alterMessage {
-		alterTeleporterMessage(signedMessage)
-	}
 
 	destinationTx := predicateutils.NewPredicateTx(
 		subnetInfo.ChainIDInt,
@@ -366,11 +339,11 @@ func CreateReceiveCrossChainMessageTransaction(
 func CreateNativeTransferTransaction(
 	ctx context.Context,
 	subnetInfo SubnetTestInfo,
-	fromAddress common.Address,
 	fromKey *ecdsa.PrivateKey,
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Transaction {
+	fromAddress := crypto.PubkeyToAddress(fromKey.PublicKey)
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fromAddress)
 
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -445,29 +418,8 @@ func CalculateTxParams(
 	nonce, err := subnetInfo.ChainRPCClient.NonceAt(ctx, fundedAddress, nil)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap := baseFee.Mul(baseFee, big.NewInt(2))
-	gasFeeCap.Add(gasFeeCap, big.NewInt(2500000000))
+	gasFeeCap := baseFee.Mul(baseFee, big.NewInt(gasUtils.BaseFeeFactor))
+	gasFeeCap.Add(gasFeeCap, big.NewInt(gasUtils.MaxPriorityFeePerGas))
 
 	return gasFeeCap, gasTipCap, nonce
-}
-
-func alterTeleporterMessage(signedMessage *avalancheWarp.Message) {
-	warpMsgPayload, err := warpPayload.ParseAddressedCall(signedMessage.UnsignedMessage.Payload)
-	Expect(err).Should(BeNil())
-
-	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpMsgPayload.Payload)
-	Expect(err).Should(BeNil())
-	// Alter the message
-	teleporterMessage.Message[0] = ^teleporterMessage.Message[0]
-
-	// Pack the teleporter message
-	teleporterMessageBytes, err := teleportermessenger.PackTeleporterMessage(*teleporterMessage)
-	Expect(err).Should(BeNil())
-
-	payload, err := warpPayload.NewAddressedCall(warpMsgPayload.SourceAddress, teleporterMessageBytes)
-	Expect(err).Should(BeNil())
-
-	signedMessage.UnsignedMessage.Payload = payload.Bytes()
-
-	signedMessage.Initialize()
 }

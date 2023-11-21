@@ -51,7 +51,6 @@ func ERC20BridgeMultihop(network network.Network) {
 	// Deploy an ERC20 to subnet A
 	nativeERC20Address, nativeERC20 := localUtils.DeployExampleERC20(
 		context.Background(),
-		fundedAddress,
 		fundedKey,
 		subnetAInfo,
 	)
@@ -70,7 +69,6 @@ func ERC20BridgeMultihop(network network.Network) {
 		erc20BridgeAddressA,
 		amount,
 		subnetAInfo,
-		fundedAddress,
 		fundedKey,
 	)
 
@@ -91,7 +89,7 @@ func ERC20BridgeMultihop(network network.Network) {
 	)
 
 	// Relay message
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 	// Check Teleporter message received on the destination
 	delivered, err := subnetBTeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},
@@ -128,7 +126,7 @@ func ERC20BridgeMultihop(network network.Network) {
 		subnetATeleporterMessenger,
 	)
 	// Relay message
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetCInfo, false, true)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetCInfo, true)
 	// Check Teleporter message received on the destination
 	delivered, err = subnetCTeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},
@@ -173,7 +171,7 @@ func ERC20BridgeMultihop(network network.Network) {
 	)
 
 	// Relay message
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 	// Check Teleporter message received on the destination
 	delivered, err = subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
@@ -244,7 +242,7 @@ func ERC20BridgeMultihop(network network.Network) {
 	)
 
 	// Relay message from SubnetB to SubnetA
-	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, false, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 	// Check Teleporter message received on the destination
 	delivered, err = subnetATeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},
@@ -261,7 +259,7 @@ func ERC20BridgeMultihop(network network.Network) {
 	messageID = event.Message.MessageID
 
 	// Relay message from SubnetA to SubnetC
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetCInfo, false, true)
+	network.RelayMessage(ctx, receipt, subnetAInfo, subnetCInfo, true)
 
 	// Check Teleporter message received on the destination
 	delivered, err = subnetCTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
@@ -316,7 +314,7 @@ func ERC20BridgeMultihop(network network.Network) {
 	)
 
 	// Relay message from SubnetC to SubnetA
-	network.RelayMessage(ctx, receipt, subnetCInfo, subnetAInfo, false, true)
+	network.RelayMessage(ctx, receipt, subnetCInfo, subnetAInfo, true)
 	// Check Teleporter message received on the destination
 	delivered, err = subnetATeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetCInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
@@ -352,7 +350,8 @@ func submitCreateBridgeToken(
 	transctor *erc20bridge.ERC20Bridge,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts := utils.CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	tx, err := transctor.SubmitCreateBridgeToken(
 		opts,
@@ -397,7 +396,8 @@ func bridgeToken(
 	nativeTokenChainID ids.ID,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts := utils.CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	tx, err := transctor.BridgeTokens(
 		opts,
@@ -437,7 +437,8 @@ func approveBridgeToken(
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 ) {
-	opts := utils.CreateTransactorOpts(ctx, source, fundedAddress, fundedKey)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	Expect(err).Should(BeNil())
 
 	txn, err := transtor.Approve(opts, spender, amount)
 	Expect(err).Should(BeNil())

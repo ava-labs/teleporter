@@ -21,17 +21,7 @@ func ResubmitAlteredMessage(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
-	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
-
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetAInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, subnetBInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	ctx := context.Background()
@@ -49,18 +39,19 @@ func ResubmitAlteredMessage(network network.Network) {
 	}
 
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Relay the message to the destination
-	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	log.Info("Checking the message was received on the destination")
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+	delivered, err :=
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Get the Teleporter message from receive event
-	event, err := utils.GetEventFromLogs(receipt.Logs, subnetBTeleporterMessenger.ParseReceiveCrossChainMessage)
+	event, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.MessageID).Should(Equal(messageID))
 	teleporterMessage := event.Message
@@ -73,8 +64,17 @@ func ResubmitAlteredMessage(network network.Network) {
 	teleporterMessage.Message = alteredMessage
 
 	// Resubmit the altered message
-	log.Info("Submitting the altered Teleporter message on the destination")
-	opts := utils.CreateTransactorOpts(ctx, subnetAInfo, fundedAddress, fundedKey)
-	_, err = subnetATeleporterMessenger.RetrySendCrossChainMessage(opts, subnetBInfo.BlockchainID, teleporterMessage)
+	log.Info("Submitting the altered Teleporter message on the source chain")
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	Expect(err).Should(BeNil())
+	tx, err :=
+		subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(opts, subnetBInfo.BlockchainID, teleporterMessage)
 	Expect(err).ShouldNot(BeNil())
+
+	// We expect the tx to be nil because the Warp message failed verification, which happens in the predicate
+	// In that case, the block is never built, and the transaction is never mined
+	Expect(tx).Should(BeNil())
+	// receipt, err = bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	// Expect(err).Should(BeNil())
+	// Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
 }

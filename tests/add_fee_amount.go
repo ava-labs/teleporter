@@ -25,21 +25,9 @@ func AddFeeAmount(network network.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
-	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress,
-		subnetAInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress,
-		subnetBInfo.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-
 	// Use mock token as the fee token
 	mockTokenAddress, mockToken := localUtils.DeployExampleERC20(
 		context.Background(),
-		fundedAddress,
 		fundedKey,
 		subnetAInfo,
 	)
@@ -50,7 +38,6 @@ func AddFeeAmount(network network.Network) {
 		big.NewInt(0).Mul(big.NewInt(1e18),
 			big.NewInt(10)),
 		subnetAInfo,
-		fundedAddress,
 		fundedKey,
 	)
 
@@ -69,7 +56,7 @@ func AddFeeAmount(network network.Network) {
 	}
 
 	sendCrossChainMsgReceipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetATeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
 
 	// Add fee amount
 	additionalFeeAmount := big.NewInt(2)
@@ -80,36 +67,37 @@ func AddFeeAmount(network network.Network) {
 		messageID,
 		additionalFeeAmount,
 		mockTokenAddress,
-		fundedAddress,
 		fundedKey,
-		subnetATeleporterMessenger,
+		subnetAInfo.TeleporterMessenger,
 	)
 
 	// Relay message from SubnetA to SubnetB
-	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, false, true)
+	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
 
 	// Check Teleporter message received on the destination
-	delivered, err := subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+	delivered, err :=
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	// Send message from SubnetB to SubnetA
+	// Send message from SubnetB to SubnetA. This will include the receipt for the previous message from A->B
 	sendCrossChainMessageInput.DestinationChainID = subnetAInfo.BlockchainID
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 
 	sendCrossChainMsgReceipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedAddress, fundedKey, subnetBTeleporterMessenger)
+		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedKey, subnetBInfo.TeleporterMessenger)
 
 	// Relay message from SubnetB to SubnetA
-	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetBInfo, subnetAInfo, false, true)
+	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetBInfo, subnetAInfo, true)
 
 	// Check message delivered
-	delivered, err = subnetATeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
+	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Check the relayer reward amount
-	amount, err := subnetATeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, fundedAddress, mockTokenAddress)
+	amount, err :=
+		subnetAInfo.TeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, fundedAddress, mockTokenAddress)
 	Expect(err).Should(BeNil())
 	Expect(amount).Should(Equal(additionalFeeAmount.Add(additionalFeeAmount, initFeeAmount)))
 }
