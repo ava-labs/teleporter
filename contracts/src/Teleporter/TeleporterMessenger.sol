@@ -153,12 +153,12 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      *
      * - `additionalFeeAmount` must be non-zero.
      * - `message` must exist and not have been delivered yet.
-     * - `feeContractAddress` must match the fee asset contract address used in the original call to `sendCrossChainMessage`.
+     * - `feeTokenAddress` must match the fee asset contract address used in the original call to `sendCrossChainMessage`.
      */
     function addFeeAmount(
         bytes32 destinationChainID,
         uint256 messageID,
-        address feeContractAddress,
+        address feeTokenAddress,
         uint256 additionalFeeAmount
     ) external senderNonReentrant {
         // The additional fee amount must be non-zero.
@@ -169,7 +169,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Do not allow adding a fee asset with contract address zero.
         require(
-            feeContractAddress != address(0),
+            feeTokenAddress != address(0),
             "TeleporterMessenger: zero fee asset contract address"
         );
 
@@ -190,13 +190,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         require(
             sentMessageInfo[destinationChainID][messageID]
                 .feeInfo
-                .contractAddress == feeContractAddress,
+                .feeTokenAddress == feeTokenAddress,
             "TeleporterMessenger: invalid fee asset contract address"
         );
 
         // Transfer the additional fee amount to this Teleporter instance.
         uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
-            IERC20(feeContractAddress),
+            IERC20(feeTokenAddress),
             additionalFeeAmount
         );
 
@@ -530,7 +530,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterFeeInfo memory feeInfo = sentMessageInfo[destinationChainID][
             messageID
         ].feeInfo;
-        return (feeInfo.contractAddress, feeInfo.amount);
+        return (feeInfo.feeTokenAddress, feeInfo.amount);
     }
 
     /**
@@ -629,12 +629,12 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         if (messageInput.feeInfo.amount > 0) {
             // If the fee amount is non-zero, check that the contract address is not address(0)
             require(
-                messageInput.feeInfo.contractAddress != address(0),
+                messageInput.feeInfo.feeTokenAddress != address(0),
                 "TeleporterMessenger: zero fee asset contract address"
             );
 
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(messageInput.feeInfo.contractAddress),
+                IERC20(messageInput.feeInfo.feeTokenAddress),
                 messageInput.feeInfo.amount
             );
         }
@@ -642,7 +642,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Store the fee asset and amount to be paid to the relayer of this message upon receiving the receipt.
         // Also store the message hash so that it can be retried until a receipt of its delivery is received back.
         TeleporterFeeInfo memory adjustedFeeInfo = TeleporterFeeInfo({
-            contractAddress: messageInput.feeInfo.contractAddress,
+            feeTokenAddress: messageInput.feeInfo.feeTokenAddress,
             amount: adjustedFeeAmount
         });
         sentMessageInfo[messageInput.destinationChainID][
@@ -695,7 +695,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Increment the fee/reward amount owed to the relayer for having delivered
         // the message identified in this receipt.
         _relayerRewardAmounts[relayerRewardAddress][
-            messageInfo.feeInfo.contractAddress
+            messageInfo.feeInfo.feeTokenAddress
         ] += messageInfo.feeInfo.amount;
     }
 

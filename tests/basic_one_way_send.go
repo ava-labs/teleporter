@@ -32,7 +32,7 @@ func BasicOneWaySend(network network.Network) {
 		DestinationChainID: subnetBInfo.BlockchainID,
 		DestinationAddress: fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
-			ContractAddress: fundedAddress,
+			FeeTokenAddress: fundedAddress,
 			Amount:          big.NewInt(0),
 		},
 		RequiredGasLimit:        big.NewInt(1),
