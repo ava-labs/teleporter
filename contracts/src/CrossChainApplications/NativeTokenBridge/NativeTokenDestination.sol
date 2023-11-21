@@ -35,7 +35,7 @@ contract NativeTokenDestination is
         INativeMinter(0x0200000000000000000000000000000000000001);
 
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
-    uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 50_000;
+    uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 100_000;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
     // The first `initialReserveImbalance` tokens sent to this subnet will not be minted.

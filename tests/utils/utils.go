@@ -322,6 +322,12 @@ func RelayMessage(
 
 	// Check for a successful execution of the teleporter message.
 	_, err = GetEventFromLogs(receipt.Logs, bind.ParseMessageExecuted)
+	if err != nil {
+		// If we didn't find the ReceiveCrossChainMessage event, trace the transaction.
+		// We compare it with the empty string so that ginkgo will print it out for us.
+		trace := TraceTransaction(ctx, receipt.TxHash, destination)
+		fmt.Println("TRACE ", trace)
+	}
 
 	return receipt, err
 }
