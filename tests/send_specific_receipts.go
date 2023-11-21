@@ -52,7 +52,7 @@ func SendSpecificReceipts(network network.Network) {
 		DestinationChainID: subnetBInfo.BlockchainID,
 		DestinationAddress: destinationAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
-			ContractAddress: mockTokenAddress,
+			FeeTokenAddress: mockTokenAddress,
 			Amount:          relayerFeePerMessage,
 		},
 		RequiredGasLimit:        big.NewInt(1),
@@ -91,7 +91,7 @@ func SendSpecificReceipts(network network.Network) {
 		subnetBInfo,
 		[]*big.Int{messageID1, messageID2},
 		teleportermessenger.TeleporterFeeInfo{
-			ContractAddress: mockTokenAddress,
+			FeeTokenAddress: mockTokenAddress,
 			Amount:          big.NewInt(0),
 		},
 		[]common.Address{},
@@ -119,7 +119,7 @@ func SendSpecificReceipts(network network.Network) {
 		DestinationChainID: subnetAInfo.BlockchainID,
 		DestinationAddress: destinationAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
-			ContractAddress: mockTokenAddress,
+			FeeTokenAddress: mockTokenAddress,
 			Amount:          big.NewInt(0),
 		},
 		RequiredGasLimit:        big.NewInt(1),
