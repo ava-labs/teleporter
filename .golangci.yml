@@ -4,9 +4,10 @@ run:
   timeout: 3m
   tests: true
   # skip auto-generated files.
+  skip-dirs:
+    - "abi-bindings/go"
   skip-files:
     - ".*mock.*"
-    - "abi-bindings/go/**/*.go"
 
 issues:
   # Maximum count of issues with the same text. Set to 0 to disable. Default is 3.
