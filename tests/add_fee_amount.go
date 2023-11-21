@@ -47,7 +47,7 @@ func AddFeeAmount(network network.Network) {
 		DestinationChainID: subnetBInfo.BlockchainID,
 		DestinationAddress: fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
-			ContractAddress: mockTokenAddress,
+			FeeTokenAddress: mockTokenAddress,
 			Amount:          initFeeAmount,
 		},
 		RequiredGasLimit:        big.NewInt(1),

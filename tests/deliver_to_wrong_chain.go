@@ -45,7 +45,7 @@ func DeliverToWrongChain(network network.Network) {
 		DestinationChainID: ids.Empty, // Some other chain ID
 		DestinationAddress: destinationAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
-			ContractAddress: fundedAddress,
+			FeeTokenAddress: fundedAddress,
 			Amount:          big.NewInt(0),
 		},
 		RequiredGasLimit:        big.NewInt(1),
