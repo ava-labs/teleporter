@@ -303,7 +303,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Process the receipts that were included in the teleporter message by paying the
         // fee for the messages are reward to the given relayers.
         uint256 length = teleporterMessage.receipts.length;
-        for (uint256 i; i < length;) {
+        for (uint256 i; i < length; ++i) {
             TeleporterMessageReceipt memory receipt = teleporterMessage
                 .receipts[i];
             _markReceipt(
@@ -311,12 +311,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 receipt.receivedMessageID,
                 receipt.relayerRewardAddress
             );
-
-            // Using unchecked block to optimize gas usage by skipping the integer overflow check. 
-            // Since we are incrementing the loop counter, we know that it will never overflow and can safely skip the check.
-            unchecked {
-                ++i;
-            }
         }
 
         // Store the receipt of this message delivery.
@@ -432,7 +426,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             memory receiptsToSend = new TeleporterMessageReceipt[](
                 messageIDs.length
             );
-        for (uint256 i; i < messageIDs.length;) {
+        for (uint256 i; i < messageIDs.length; ++i) {
             uint256 receivedMessageID = messageIDs[i];
             // Get the relayer reward address for the message.
             address relayerRewardAddress = _relayerRewardAddresses[
@@ -447,12 +441,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
                 receivedMessageID: receivedMessageID,
                 relayerRewardAddress: relayerRewardAddress
             });
-
-            // Using unchecked block to optimize gas usage by skipping the integer overflow check. 
-            // Since we are incrementing the loop counter, we know that it will never overflow and can safely skip the check.
-            unchecked {
-                ++i;
-            }
         }
 
         return
@@ -595,15 +583,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         // Otherwise, the deliverer address must be included in allowedRelayers.
-        for (uint256 i; i < allowedRelayers.length;) {
+        for (uint256 i; i < allowedRelayers.length; ++i) {
             if (allowedRelayers[i] == delivererAddress) {
                 return true;
-            }
-
-            // Using unchecked block to optimize gas usage by skipping the integer overflow check. 
-            // Since we are incrementing the loop counter, we know that it will never overflow and can safely skip the check.
-            unchecked {
-                ++i;
             }
         }
         return false;
@@ -789,7 +771,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         //
         // Assembly is used for the low-level call to avoid unnecessary expansion of the return data in memory.
         // This prevents possible "return bomb" vectors where the external contract could force the caller
-        // to use an arbitrary amount of gas. See Soldity issue here: https://github.com/ethereum/solidity/issues/12306
+        // to use an arbitrary amount of gas. See Solidity issue here: https://github.com/ethereum/solidity/issues/12306
         bool success;
         // solhint-disable-next-line no-inline-assembly
         assembly {
