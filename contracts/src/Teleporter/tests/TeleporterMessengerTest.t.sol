@@ -129,7 +129,7 @@ contract TeleporterMessengerTest is Test {
             feeAsset = address(_mockFeeAsset);
         }
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo({
-            contractAddress: feeAsset,
+            feeTokenAddress: feeAsset,
             amount: feeAmount
         });
 
