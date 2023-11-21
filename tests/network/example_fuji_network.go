@@ -21,6 +21,8 @@ import (
 var _ Network = &FujiNetwork{}
 
 // Amplify, Bulletin, Conduit subnet constants
+// The integration tests are currently not working against these subnets due to
+// incompatibility with the subnet-evm version deployed on them.
 var (
 	teleporterContractAddress = common.HexToAddress("0x50A46AA7b2eCBe2B1AbB7df865B9A87f5eed8635")
 
