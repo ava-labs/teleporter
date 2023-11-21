@@ -24,7 +24,6 @@ func ValidatorChurnGinkgo() {
 	subnets := network.GetSubnetsInfo()
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
-	subnetCInfo := subnets[2]
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -80,21 +79,16 @@ func ValidatorChurnGinkgo() {
 	subnets = network.GetSubnetsInfo()
 	subnetAInfo = subnets[0]
 	subnetBInfo = subnets[1]
-	subnetCInfo = subnets[2]
 
 	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
-	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
-		ctx, subnetAInfo.ChainIDInt, fundedKey, subnetAInfo.ChainWSClient,
-	)
-	Expect(err).Should(BeNil())
-	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
-		ctx, subnetBInfo.ChainIDInt, fundedKey, subnetBInfo.ChainWSClient,
-	)
-	Expect(err).Should(BeNil())
-	err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
-		ctx, subnetCInfo.ChainIDInt, fundedKey, subnetCInfo.ChainWSClient,
-	)
-	Expect(err).Should(BeNil())
+	// We have to update all subnets, not just the ones directly involved in this test to ensure that the
+	// proposer VM is updated on all subnets.
+	for _, subnetInfo := range subnets {
+		err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
+			ctx, subnetInfo.ChainIDInt, fundedKey, subnetInfo.ChainWSClient,
+		)
+		Expect(err).Should(BeNil())
+	}
 
 	//
 	// Attempt to deliver the warp message signed by the old validator set. This should fail.

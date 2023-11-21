@@ -67,4 +67,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Resubmit altered message", ResubmitAlteredMessageGinkgo)
 	ginkgo.It("Relayer modifies message", RelayerModifiesMessageGinkgo)
 	ginkgo.It("Validator churn", ValidatorChurnGinkgo)
+	// Since the validator churn test modifies the network topology, we put it last for now.
+	// It should not affect the other tests, but we get some errors if we run it before the other tests.
+	// TODO: we should fix this so that the order of the tests does not matter.
 })

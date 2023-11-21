@@ -72,7 +72,7 @@ func ERC20BridgeMultihop(network network.Network) {
 		fundedKey,
 	)
 
-	// Sent a transaction on Subnet A to add support for the the ERC20 token to the bridge on Subnet B
+	// Send a transaction on Subnet A to add support for the the ERC20 token to the bridge on Subnet B
 	createBridgeTokenMessageFeeAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1))
 	receipt, messageID := submitCreateBridgeToken(
 		ctx,
@@ -111,7 +111,7 @@ func ERC20BridgeMultihop(network network.Network) {
 	bridgeTokenB, err := bridgetoken.NewBridgeToken(bridgeTokenSubnetBAddress, subnetBInfo.ChainRPCClient)
 	Expect(err).Should(BeNil())
 
-	// Sent a transaction on Subnet B to add support for the the ERC20 token to the bridge on Subnet C
+	// Send a transaction on Subnet B to add support for the the ERC20 token to the bridge on Subnet C
 	receipt, messageID = submitCreateBridgeToken(
 		ctx,
 		subnetAInfo,
@@ -291,7 +291,7 @@ func ERC20BridgeMultihop(network network.Network) {
 		fundedAddress,
 		fundedKey)
 
-	// Sent a transaction to unwrap tokens from Subnet C back to Subnet A
+	// Send a transaction to unwrap tokens from Subnet C back to Subnet A
 	totalAmount = big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(8))
 	primaryFeeAmount = big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1))
 	secondaryFeeAmount = big.NewInt(0)
