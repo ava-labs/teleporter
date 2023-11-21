@@ -37,7 +37,7 @@ contract ExampleCrossChainMessenger is
     event SendMessage(
         bytes32 indexed destinationChainID,
         address indexed destinationAddress,
-        address feeAsset,
+        address feeTokenAddress,
         uint256 feeAmount,
         uint256 requiredGasLimit,
         string message
@@ -79,7 +79,7 @@ contract ExampleCrossChainMessenger is
     function sendMessage(
         bytes32 destinationChainID,
         address destinationAddress,
-        address feeContractAddress,
+        address feeTokenAddress,
         uint256 feeAmount,
         uint256 requiredGasLimit,
         string calldata message
@@ -91,10 +91,10 @@ contract ExampleCrossChainMessenger is
         uint256 adjustedFeeAmount = 0;
         if (feeAmount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeContractAddress),
+                IERC20(feeTokenAddress),
                 feeAmount
             );
-            IERC20(feeContractAddress).safeIncreaseAllowance(
+            IERC20(feeTokenAddress).safeIncreaseAllowance(
                 address(teleporterMessenger),
                 adjustedFeeAmount
             );
@@ -103,7 +103,7 @@ contract ExampleCrossChainMessenger is
         emit SendMessage({
             destinationChainID: destinationChainID,
             destinationAddress: destinationAddress,
-            feeAsset: feeContractAddress,
+            feeTokenAddress: feeTokenAddress,
             feeAmount: adjustedFeeAmount,
             requiredGasLimit: requiredGasLimit,
             message: message
@@ -114,7 +114,7 @@ contract ExampleCrossChainMessenger is
                     destinationChainID: destinationChainID,
                     destinationAddress: destinationAddress,
                     feeInfo: TeleporterFeeInfo({
-                        contractAddress: feeContractAddress,
+                        feeTokenAddress: feeTokenAddress,
                         amount: adjustedFeeAmount
                     }),
                     requiredGasLimit: requiredGasLimit,
