@@ -108,7 +108,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * Requirements:
      *
      * - `message` must have been previously sent to the given `destinationChainID`.
-     * - `message` encoding mush match previously sent message.
+     * - `message` encoding must match previously sent message.
      */
     function retrySendCrossChainMessage(
         bytes32 destinationChainID,
@@ -269,7 +269,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             "TeleporterMessenger: invalid destination chain ID"
         );
 
-        // Check the message has not been delivered previously.
+        // Require that the message has not been delivered previously.
         require(
             !_messageReceived(
                 warpMessage.sourceChainID,
@@ -303,7 +303,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Process the receipts that were included in the teleporter message by paying the
         // fee for the messages are reward to the given relayers.
         uint256 length = teleporterMessage.receipts.length;
-        for (uint256 i = 0; i < length; ++i) {
+        for (uint256 i; i < length; ++i) {
             TeleporterMessageReceipt memory receipt = teleporterMessage
                 .receipts[i];
             _markReceipt(
@@ -426,7 +426,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             memory receiptsToSend = new TeleporterMessageReceipt[](
                 messageIDs.length
             );
-        for (uint256 i = 0; i < messageIDs.length; i++) {
+        for (uint256 i; i < messageIDs.length; ++i) {
             uint256 receivedMessageID = messageIDs[i];
             // Get the relayer reward address for the message.
             address relayerRewardAddress = _relayerRewardAddresses[
@@ -583,7 +583,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         // Otherwise, the deliverer address must be included in allowedRelayers.
-        for (uint256 i = 0; i < allowedRelayers.length; ++i) {
+        for (uint256 i; i < allowedRelayers.length; ++i) {
             if (allowedRelayers[i] == delivererAddress) {
                 return true;
             }
@@ -625,7 +625,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // The fee is allowed to be 0 because it's possible for someone to run their own relayer and deliver their own messages,
         // which does not require further incentivization. They still must pay the transaction fee to submit the message, so
         // this is not a DOS vector in terms of being able to submit zero-fee messages.
-        uint256 adjustedFeeAmount = 0;
+        uint256 adjustedFeeAmount;
         if (messageInput.feeInfo.amount > 0) {
             // If the fee amount is non-zero, check that the contract address is not address(0)
             require(
@@ -666,7 +666,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Records the receival of a receipt for a message previsouly sent to the `destinationChainID` with the given `messageID`.
+     * @dev Records the receival of a receipt for a message previously sent to the `destinationChainID` with the given `messageID`.
      *
      * Returns early if a receipt was already previously received for this message, or if the message never existed. Otherwise, deletes
      * the message information from `sentMessageInfo` and increments the reward redeemable by the specified relayer reward address.
@@ -704,7 +704,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      *
      * Only revert in the event that the message deliverer (relayer) did not provide enough gas to handle the execution
      * (including possibly storing a failed message in state). All execution specific errors (i.e. invalid call data, etc)
-     * that are not in the relayers control are caught and handled properly.
+     * that are not in the relayer's control are caught and handled properly.
      *
      * Emits a {MessageExecuted} event if the call on destination address is successful.
      * Emits a {MessageExecutionFailed} event if the call on destination address fails with formatted call data.
@@ -752,7 +752,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // If the execution failed, store a hash of the message in state such that its
         // execution can be retried again in the future with a higher gas limit (paid by whoever
-        // retries).Either way, the message will now be considered "delivered" since the relayer
+        // retries). Either way, the message will now be considered "delivered" since the relayer
         // provided enough gas to meet the required gas limit.
         if (!success) {
             _storeFailedMessageExecution(originChainID, message);
@@ -771,7 +771,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         //
         // Assembly is used for the low-level call to avoid unnecessary expansion of the return data in memory.
         // This prevents possible "return bomb" vectors where the external contract could force the caller
-        // to use an arbitrary amount of gas. See Soldity issue here: https://github.com/ethereum/solidity/issues/12306
+        // to use an arbitrary amount of gas. See Solidity issue here: https://github.com/ethereum/solidity/issues/12306
         bool success;
         // solhint-disable-next-line no-inline-assembly
         assembly {
