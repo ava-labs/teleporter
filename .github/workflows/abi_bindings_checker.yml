@@ -23,7 +23,7 @@ jobs:
       - name: Set Go version
         run: |
           source ./scripts/versions.sh
-          GO_VERSION=$(getGO_VERSION) >> $GITHUB_ENV
+          GO_VERSION=$GO_VERSION >> $GITHUB_ENV
 
       - name: Setup Go
         uses: actions/setup-go@v4
@@ -60,7 +60,7 @@ jobs:
       - name: Set Go version
         run: |
           source ./scripts/versions.sh
-          GO_VERSION=$(getGO_VERSION) >> $GITHUB_ENV
+          GO_VERSION=$GO_VERSION >> $GITHUB_ENV
 
       - name: Setup Go
         uses: actions/setup-go@v4

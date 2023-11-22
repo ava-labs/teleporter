@@ -47,9 +47,6 @@ trap cleanup SIGINT
 # It is referenced in the docker composer yaml, and then passed as a Dockerfile ARG
 setARCH
 
-# Set GO_VERSION so the docker container can know which version to use.
-setGO_VERSION
-
 if [ -z "$LOCAL_RELAYER_IMAGE" ]; then
     echo "Using published awm-relayer image"
     docker compose -f docker/docker-compose-run.yml --project-directory ./ up --abort-on-container-exit --build &

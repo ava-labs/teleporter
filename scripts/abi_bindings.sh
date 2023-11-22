@@ -14,7 +14,6 @@ source $TELEPORTER_PATH/scripts/utils.sh
 source $TELEPORTER_PATH/scripts/versions.sh
 
 setARCH
-setGO_VERSION
 
 DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken TeleporterRegistry"
 
