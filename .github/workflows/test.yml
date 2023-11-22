@@ -10,7 +10,6 @@ on:
 
 env:
   RELAYER_VERSION: v0.2.4
-  SUBNET_EVM_VERSION: v0.5.9
 
 jobs:
   teleporter-integration-test:
@@ -23,13 +22,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Checkout subnet-evm
-        uses: actions/checkout@v4
-        with:
-          repository: ava-labs/subnet-evm
-          path: subnet-evm
-          ref: ${{ env.SUBNET_EVM_VERSION }}
 
       - name: Download awm-relayer image
         run: |
