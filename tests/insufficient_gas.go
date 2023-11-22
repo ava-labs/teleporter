@@ -76,7 +76,6 @@ func InsufficientGas(network network.Network) {
 		subnetBInfo,
 		failedMessageExecutionEvent.Message,
 		fundedKey,
-		subnetBInfo.TeleporterMessenger,
 	)
 	executedEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseMessageExecuted)
 	Expect(err).Should(BeNil())

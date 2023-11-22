@@ -51,7 +51,6 @@ func ValidatorChurnGinkgo() {
 		subnetBInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
-		subnetAInfo.TeleporterMessenger,
 	)
 
 	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)

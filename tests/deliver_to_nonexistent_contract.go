@@ -139,7 +139,6 @@ func DeliverToNonExistentContract(network network.Network) {
 		subnetBInfo,
 		deliveredTeleporterMessage,
 		fundedKey,
-		subnetBInfo.TeleporterMessenger,
 	)
 
 	//

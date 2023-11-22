@@ -39,7 +39,7 @@ func ResubmitAlteredMessage(network network.Network) {
 	}
 
 	receipt, messageID := utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey, subnetAInfo.TeleporterMessenger)
+		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey)
 
 	// Relay the message to the destination
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
@@ -74,7 +74,4 @@ func ResubmitAlteredMessage(network network.Network) {
 	// We expect the tx to be nil because the Warp message failed verification, which happens in the predicate
 	// In that case, the block is never built, and the transaction is never mined
 	Expect(tx).Should(BeNil())
-	// receipt, err = bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
-	// Expect(err).Should(BeNil())
-	// Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
 }
