@@ -114,8 +114,6 @@ else
 fi
 
 SUBNET_EVM_PATH=${SUBNET_EVM_BUILD_PATH}/subnet-evm
-SUBNET_EVM_PLUGIN_DIR=${SUBNET_EVM_BUILD_PATH}/plugins
-
 mkdir -p ${SUBNET_EVM_BUILD_PATH}
     
 cp ${BUILD_DIR}/subnet-evm ${SUBNET_EVM_PATH}
@@ -123,4 +121,3 @@ cp ${BUILD_DIR}/subnet-evm ${SUBNET_EVM_PATH}
 
 echo "Installed Subnet-EVM release ${SUBNET_EVM_VERSION}"
 echo "Subnet-EVM Path: ${SUBNET_EVM_PATH}"
-echo "Plugin Dir: ${SUBNET_EVM_PLUGIN_DIR}"
