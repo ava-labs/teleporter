@@ -29,7 +29,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	ctx := context.Background()
 
 	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
-	exampleMessengerContractB, subnetBExampleMessenger := localUtils.DeployExampleCrossChainMessenger(
+	exampleMessengerContractAddressB, subnetBExampleMessenger := localUtils.DeployExampleCrossChainMessenger(
 		ctx, fundedKey, subnetBInfo,
 	)
 
@@ -42,7 +42,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	tx, err := subnetAExampleMessenger.SendMessage(
 		optsA,
 		subnetBInfo.BlockchainID,
-		exampleMessengerContractB,
+		exampleMessengerContractAddressB,
 		fundedAddress,
 		big.NewInt(0),
 		examplecrosschainmessenger.SendMessageRequiredGas,
@@ -96,6 +96,4 @@ func RetrySuccessfulExecution(network network.Network) {
 		subnetBInfo.TeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)
 	Expect(err).Should(Not(BeNil()))
 	Expect(tx).Should(BeNil())
-
-	// TODO: Why is tx nil?
 }

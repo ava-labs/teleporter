@@ -56,11 +56,11 @@ func ERC20BridgeMultihop(network network.Network) {
 	)
 
 	// Deploy the ERC20 bridge to subnet A
-	erc20BridgeAddressA, erc20BridgeA := localUtils.DeployERC20Bridge(ctx, fundedAddress, fundedKey, subnetAInfo)
+	erc20BridgeAddressA, erc20BridgeA := localUtils.DeployERC20Bridge(ctx, fundedKey, subnetAInfo)
 	// Deploy the ERC20 bridge to subnet B
-	erc20BridgeAddressB, erc20BridgeB := localUtils.DeployERC20Bridge(ctx, fundedAddress, fundedKey, subnetBInfo)
+	erc20BridgeAddressB, erc20BridgeB := localUtils.DeployERC20Bridge(ctx, fundedKey, subnetBInfo)
 	// Deploy the ERC20 bridge to subnet C
-	erc20BridgeAddressC, erc20BridgeC := localUtils.DeployERC20Bridge(ctx, fundedAddress, fundedKey, subnetCInfo)
+	erc20BridgeAddressC, erc20BridgeC := localUtils.DeployERC20Bridge(ctx, fundedKey, subnetCInfo)
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10000000000000))
 	localUtils.ExampleERC20Approve(
@@ -150,7 +150,7 @@ func ERC20BridgeMultihop(network network.Network) {
 
 	// Send a bridge transfer for the newly added token from subnet A to subnet B
 	totalAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
-	primaryFeeAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1))
+	primaryFeeAmount := big.NewInt(1e18)
 	secondaryFeeAmount := big.NewInt(0)
 	receipt, messageID = bridgeToken(
 		ctx,
@@ -221,8 +221,8 @@ func ERC20BridgeMultihop(network network.Network) {
 
 	// Unwrap bridged tokens back to subnet A, then wrap tokens to final destination on subnet C
 	totalAmount = big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(11))
-	primaryFeeAmount = big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1))
-	secondaryFeeAmount = big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1))
+	primaryFeeAmount = big.NewInt(1e18)
+	secondaryFeeAmount = big.NewInt(1e18)
 	receipt, messageID = bridgeToken(
 		ctx,
 		subnetBInfo,
@@ -293,7 +293,7 @@ func ERC20BridgeMultihop(network network.Network) {
 
 	// Send a transaction to unwrap tokens from Subnet C back to Subnet A
 	totalAmount = big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(8))
-	primaryFeeAmount = big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1))
+	primaryFeeAmount = big.NewInt(1e18)
 	secondaryFeeAmount = big.NewInt(0)
 	receipt, messageID = bridgeToken(
 		ctx,

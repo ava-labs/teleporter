@@ -198,18 +198,9 @@ func (n *FujiNetwork) RelayMessage(ctx context.Context,
 	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	sourceSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, source.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-	destinationSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, destination.ChainRPCClient,
-	)
-	Expect(err).Should(BeNil())
-
 	// Get the Teleporter message ID from the receipt
 	sendEvent, err := utils.GetEventFromLogs(
-		sourceReceipt.Logs, sourceSubnetTeleporterMessenger.ParseSendCrossChainMessage,
+		sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
 	Expect(sendEvent.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
@@ -239,7 +230,7 @@ func (n *FujiNetwork) RelayMessage(ctx context.Context,
 				l = append(l, &log)
 			}
 
-			receiveEvent, err := utils.GetEventFromLogs(l, destinationSubnetTeleporterMessenger.ParseReceiveCrossChainMessage)
+			receiveEvent, err := utils.GetEventFromLogs(l, destination.TeleporterMessenger.ParseReceiveCrossChainMessage)
 			Expect(err).Should(BeNil())
 			if receiveEvent.MessageID.Cmp(teleporterMessageID) == 0 {
 				receipt, err := destination.ChainRPCClient.TransactionReceipt(cctx, receiveEvent.Raw.TxHash)

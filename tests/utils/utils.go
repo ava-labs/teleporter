@@ -80,13 +80,13 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	destination SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
 	fundedKey *ecdsa.PrivateKey,
-	transactor *teleportermessenger.TeleporterMessenger,
+	// transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
 	Expect(err).Should(BeNil())
 
 	// Send a transaction to the Teleporter contract
-	txn, err := transactor.SendCrossChainMessage(opts, input)
+	txn, err := source.TeleporterMessenger.SendCrossChainMessage(opts, input)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be accepted
@@ -95,7 +95,7 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
-	event, err := GetEventFromLogs(receipt.Logs, transactor.ParseSendCrossChainMessage)
+	event, err := GetEventFromLogs(receipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	log.Info("Sending SendCrossChainMessage transaction on source chain",
@@ -145,12 +145,12 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	subnet SubnetTestInfo,
 	message teleportermessenger.TeleporterMessage,
 	fundedKey *ecdsa.PrivateKey,
-	transactor *teleportermessenger.TeleporterMessenger,
+	// transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnet.ChainIDInt)
 	Expect(err).Should(BeNil())
 
-	txn, err := transactor.RetryMessageExecution(opts, originChainID, message)
+	txn, err := subnet.TeleporterMessenger.RetryMessageExecution(opts, originChainID, message)
 	Expect(err).Should(BeNil())
 
 	receipt, err := bind.WaitMined(ctx, subnet.ChainRPCClient, txn)
@@ -211,12 +211,12 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	transactor *teleportermessenger.TeleporterMessenger,
+	// transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
 	Expect(err).Should(BeNil())
 
-	txn, err := transactor.SendSpecifiedReceipts(opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
+	txn, err := source.TeleporterMessenger.SendSpecifiedReceipts(opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
 	Expect(err).Should(BeNil())
 
 	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
@@ -224,7 +224,7 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
-	event, err := GetEventFromLogs(receipt.Logs, transactor.ParseSendCrossChainMessage)
+	event, err := GetEventFromLogs(receipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationChainID[:]).Should(Equal(originChainID[:]))
 

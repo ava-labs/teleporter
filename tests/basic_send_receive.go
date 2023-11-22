@@ -68,7 +68,6 @@ func BasicSendReceive(network network.Network) {
 		subnetBInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
-		subnetAInfo.TeleporterMessenger,
 	)
 
 	//
@@ -98,7 +97,6 @@ func BasicSendReceive(network network.Network) {
 		subnetAInfo,
 		sendCrossChainMessageInput,
 		fundedKey,
-		subnetBInfo.TeleporterMessenger,
 	)
 
 	//

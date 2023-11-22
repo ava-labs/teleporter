@@ -250,7 +250,7 @@ func setSubnetValues(subnetID ids.ID) {
 	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
 }
 
-// DeployTeleporterContracts deploys the Teleporter contract to the two subnets.
+// DeployTeleporterContracts deploys the Teleporter contract to all subnets.
 // The caller is responsible for generating the deployment transaction information
 func DeployTeleporterContracts(
 	transactionBytes []byte,
@@ -324,54 +324,23 @@ func DeployTeleporterRegistryContracts(
 		},
 	}
 
-	subnetAInfo := *subnetsInfo[subnetA]
-	subnetBInfo := *subnetsInfo[subnetB]
-	subnetCInfo := *subnetsInfo[subnetC]
+	for _, subnetInfo := range GetSubnetsInfo() {
+		opts, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetInfo.ChainIDInt)
+		Expect(err).Should(BeNil())
+		teleporterRegistryAddress, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
+			opts, subnetInfo.ChainRPCClient, entries,
+		)
+		Expect(err).Should(BeNil())
 
-	var (
-		err error
-		tx  *types.Transaction
-	)
-	optsA, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetAInfo.ChainIDInt)
-	Expect(err).Should(BeNil())
-	teleporterRegistryAddressA, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
-		optsA, subnetAInfo.ChainRPCClient, entries,
-	)
-	Expect(err).Should(BeNil())
-	subnetsInfo[subnetA].TeleporterRegistryAddress = teleporterRegistryAddressA
-	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	log.Info("Deployed TeleporterRegistry contract to subnet A", "address", teleporterRegistryAddressA.Hex())
+		subnetsInfo[subnetInfo.SubnetID].TeleporterRegistryAddress = teleporterRegistryAddress
+		// Wait for the transaction to be mined
+		receipt, err := bind.WaitMined(ctx, subnetInfo.ChainRPCClient, tx)
+		Expect(err).Should(BeNil())
+		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		log.Info("Deployed TeleporterRegistry contract to subnet", subnetInfo.SubnetID.Hex(),
+			"Deploy address", teleporterRegistryAddress.Hex())
 
-	optsB, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetBInfo.ChainIDInt)
-	Expect(err).Should(BeNil())
-	teleporterRegistryAddressB, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
-		optsB, subnetBInfo.ChainRPCClient, entries,
-	)
-	Expect(err).Should(BeNil())
-	subnetsInfo[subnetB].TeleporterRegistryAddress = teleporterRegistryAddressB
-
-	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, subnetBInfo.ChainRPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	log.Info("Deployed TeleporterRegistry contract to subnet B", "address", teleporterRegistryAddressB.Hex())
-
-	optsC, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetCInfo.ChainIDInt)
-	Expect(err).Should(BeNil())
-	teleporterRegistryAddressC, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
-		optsC, subnetCInfo.ChainRPCClient, entries,
-	)
-	Expect(err).Should(BeNil())
-	subnetsInfo[subnetC].TeleporterRegistryAddress = teleporterRegistryAddressC
-
-	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, subnetCInfo.ChainRPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	log.Info("Deployed TeleporterRegistry contract to subnet C", "address", teleporterRegistryAddressC.Hex())
+	}
 
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
 }
@@ -420,7 +389,6 @@ func DeployExampleCrossChainMessenger(
 
 func DeployERC20Bridge(
 	ctx context.Context,
-	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 	source utils.SubnetTestInfo,
 ) (common.Address, *erc20bridge.ERC20Bridge) {

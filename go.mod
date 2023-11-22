@@ -1,5 +1,6 @@
 module github.com/ava-labs/teleporter
 
+// Patch version for go is set in versions.sh
 go 1.20
 
 require (
