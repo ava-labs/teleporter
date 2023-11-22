@@ -175,11 +175,11 @@ contract NativeTokenDestination is
         uint256 adjustedFeeAmount = 0;
         if (feeInfo.amount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeInfo.contractAddress),
+                IERC20(feeInfo.feeTokenAddress),
                 feeInfo.amount
             );
             SafeERC20.safeIncreaseAllowance(
-                IERC20(feeInfo.contractAddress),
+                IERC20(feeInfo.feeTokenAddress),
                 address(teleporterMessenger),
                 adjustedFeeAmount
             );

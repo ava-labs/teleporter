@@ -166,7 +166,7 @@ contract ERC20TokenSource is
                 destinationChainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: erc20ContractAddress,
+                    feeTokenAddress: erc20ContractAddress,
                     amount: feeAmount
                 }),
                 requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,
