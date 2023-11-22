@@ -16,10 +16,11 @@ BASEDIR=${BASEDIR:-"/tmp/e2e-test"}
 
 cwd=$(pwd)
 # Build the teleporter and cross chain apps smart contracts
-BASEDIR=$BASEDIR AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego ./scripts/install_avalanchego_release.sh
-BASEDIR=$BASEDIR ./scripts/install_subnetevm_release.sh
-echo "Copy ${BASEDIR}/subnet-evm/subnet-evm to ${BASEDIR}/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy"
+AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego ./scripts/install_avalanchego_release.sh
+./scripts/install_subnetevm_release.sh
+
 cp ${BASEDIR}/subnet-evm/subnet-evm ${BASEDIR}/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
+echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/plugins/"
 
 export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 export DATA_DIR=$BASEDIR/data

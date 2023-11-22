@@ -19,22 +19,17 @@ SUBNET_EVM_BUILD_PATH=${SUBNET_EVM_BUILD_PATH:-${BASEDIR}/subnet-evm}
 
 mkdir -p ${BASEDIR}
 
-# SUBNET_EVM_DOWNLOAD_URL=https://github.com/ava-labs/subnet-evm/releases/download/${SUBNET_EVM_VERSION}/avalanchego-linux-${GOARCH}-${AVALANCHEGO_VERSION}.tar.gz
-SUBNET_EVM_DOWNLOAD_URL=https://github.com/ava-labs/subnet-evm/releases/download/v0.5.9/subnet-evm_0.5.9_linux_amd64.tar.gz
+SUBNET_EVM_DOWNLOAD_URL=https://github.com/ava-labs/subnet-evm/releases/download/${SUBNET_EVM_VERSION}/subnet-evm_${SUBNET_EVM_VERSION#v}_linux_${GOARCH}.tar.gz
 SUBNET_EVM_DOWNLOAD_PATH=${BASEDIR}/subnet-evm-linux-${GOARCH}-${SUBNET_EVM_VERSION}.tar.gz
 
 if [[ ${GOOS} == "darwin" ]]; then
-  # AVAGO_DOWNLOAD_URL=https://github.com/ava-labs/avalanchego/releases/download/${AVALANCHEGO_VERSION}/avalanchego-macos-${AVALANCHEGO_VERSION}.zip
-  # AVAGO_DOWNLOAD_PATH=${BASEDIR}/avalanchego-macos-${AVALANCHEGO_VERSION}.zip
-  SUBNET_EVM_DOWNLOAD_URL=https://github.com/ava-labs/subnet-evm/releases/download/v0.5.9/subnet-evm_0.5.9_darwin_amd64.tar.gz
+  SUBNET_EVM_DOWNLOAD_URL=https://github.com/ava-labs/subnet-evm/releases/download/${SUBNET_EVM_VERSION}/subnet-evm_${SUBNET_EVM_VERSION#v}_darwin_${GOARCH}.tar.gz
   SUBNET_EVM_DOWNLOAD_PATH=${BASEDIR}/subnet-evm-darwin-${GOARCH}-${SUBNET_EVM_VERSION}.tar.gz
 fi
 
 BUILD_DIR=${SUBNET_EVM_BUILD_PATH}-${SUBNET_EVM_VERSION}
 
 extract_archive() {
-  echo ${BUILD_DIR} "BUILD DIR"
-  echo ${SUBNET_EVM_DOWNLOAD_PATH} "SUBNET_EVM_DOWNLOAD_PATH"
   mkdir -p ${BUILD_DIR}
 
   if [[ ${SUBNET_EVM_DOWNLOAD_PATH} == *.tar.gz ]]; then
@@ -44,8 +39,6 @@ extract_archive() {
     mv ${BUILD_DIR}/build/* ${BUILD_DIR}
     rm -rf ${BUILD_DIR}/build/
   fi
-
-  echo "FINISHED ARCHIVE"
 }
 
 # first check if we already have the archive
