@@ -38,7 +38,7 @@ func ERC20ToNativeTokenBridge() {
 		burnedTxFeeAddress   = common.HexToAddress("0x0100000000000000000000000000000000000000")
 
 		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
-			ContractAddress: common.Address{},
+			FeeTokenAddress: common.Address{},
 			Amount:          common.Big0,
 		}
 	)
