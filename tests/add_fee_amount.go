@@ -35,8 +35,7 @@ func AddFeeAmount(network network.Network) {
 		ctx,
 		mockToken,
 		teleporterContractAddress,
-		big.NewInt(0).Mul(big.NewInt(1e18),
-			big.NewInt(10)),
+		big.NewInt(1e18),
 		subnetAInfo,
 		fundedKey,
 	)
