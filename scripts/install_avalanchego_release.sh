@@ -14,7 +14,6 @@ source "$TELEPORTER_PATH"/scripts/constants.sh
 ############################
 # download avalanchego
 # https://github.com/ava-labs/avalanchego/releases
-AVALANCHE_VERSION=${AVALANCHEGO_VERSION:-'v1.10.15'}
 GOARCH=$(go env GOARCH)
 GOOS=$(go env GOOS)
 BASEDIR=${BASEDIR:-"/tmp/avalanchego-release"}
@@ -22,15 +21,15 @@ AVALANCHEGO_BUILD_PATH=${AVALANCHEGO_BUILD_PATH:-${BASEDIR}/avalanchego}
 
 mkdir -p ${BASEDIR}
 
-AVAGO_DOWNLOAD_URL=https://github.com/ava-labs/avalanchego/releases/download/${AVALANCHE_VERSION}/avalanchego-linux-${GOARCH}-${AVALANCHE_VERSION}.tar.gz
-AVAGO_DOWNLOAD_PATH=${BASEDIR}/avalanchego-linux-${GOARCH}-${AVALANCHE_VERSION}.tar.gz
+AVAGO_DOWNLOAD_URL=https://github.com/ava-labs/avalanchego/releases/download/${AVALANCHEGO_VERSION}/avalanchego-linux-${GOARCH}-${AVALANCHEGO_VERSION}.tar.gz
+AVAGO_DOWNLOAD_PATH=${BASEDIR}/avalanchego-linux-${GOARCH}-${AVALANCHEGO_VERSION}.tar.gz
 
 if [[ ${GOOS} == "darwin" ]]; then
-  AVAGO_DOWNLOAD_URL=https://github.com/ava-labs/avalanchego/releases/download/${AVALANCHE_VERSION}/avalanchego-macos-${AVALANCHE_VERSION}.zip
-  AVAGO_DOWNLOAD_PATH=${BASEDIR}/avalanchego-macos-${AVALANCHE_VERSION}.zip
+  AVAGO_DOWNLOAD_URL=https://github.com/ava-labs/avalanchego/releases/download/${AVALANCHEGO_VERSION}/avalanchego-macos-${AVALANCHEGO_VERSION}.zip
+  AVAGO_DOWNLOAD_PATH=${BASEDIR}/avalanchego-macos-${AVALANCHEGO_VERSION}.zip
 fi
 
-BUILD_DIR=${AVALANCHEGO_BUILD_PATH}-${AVALANCHE_VERSION}
+BUILD_DIR=${AVALANCHEGO_BUILD_PATH}-${AVALANCHEGO_VERSION}
 
 extract_archive() {
   mkdir -p ${BUILD_DIR}
@@ -47,7 +46,7 @@ extract_archive() {
 # first check if we already have the archive
 if [[ -f ${AVAGO_DOWNLOAD_PATH} ]]; then
   # if the download path already exists, extract and exit
-  echo "found avalanchego ${AVALANCHE_VERSION} at ${AVAGO_DOWNLOAD_PATH}"
+  echo "found avalanchego ${AVALANCHEGO_VERSION} at ${AVAGO_DOWNLOAD_PATH}"
 
   extract_archive
 else
@@ -76,18 +75,18 @@ else
 
     git fetch
 
-    echo "checking out ${AVALANCHE_VERSION}"
+    echo "checking out ${AVALANCHEGO_VERSION}"
 
     set +e
     # try to checkout the branch
-    git checkout origin/${AVALANCHE_VERSION} > /dev/null 2>&1
+    git checkout origin/${AVALANCHEGO_VERSION} > /dev/null 2>&1
     CHECKOUT_STATUS=$?
     set -e
 
     # if it's not a branch, try to checkout the commit
     if [[ $CHECKOUT_STATUS -ne 0 ]]; then
       set +e
-      git checkout ${AVALANCHE_VERSION} > /dev/null 2>&1
+      git checkout ${AVALANCHEGO_VERSION} > /dev/null 2>&1
       CHECKOUT_STATUS=$?
       set -e
 
@@ -124,6 +123,6 @@ mkdir -p ${AVALANCHEGO_BUILD_PATH}
 cp ${BUILD_DIR}/avalanchego ${AVALANCHEGO_PATH}
 
 
-echo "Installed AvalancheGo release ${AVALANCHE_VERSION}"
+echo "Installed AvalancheGo release ${AVALANCHEGO_VERSION}"
 echo "AvalancheGo Path: ${AVALANCHEGO_PATH}"
 echo "Plugin Dir: ${AVALANCHEGO_PLUGIN_DIR}"
