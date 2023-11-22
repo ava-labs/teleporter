@@ -11,6 +11,7 @@ TELEPORTER_PATH=$(
 
 source $TELEPORTER_PATH/scripts/constants.sh
 source $TELEPORTER_PATH/scripts/utils.sh
+source $TELEPORTER_PATH/scripts/versions.sh
 
 setARCH
 
@@ -45,7 +46,7 @@ if ! command -v forge &> /dev/null; then
 fi
 
 echo "Building subnet-evm abigen"
-go install github.com/ava-labs/subnet-evm/cmd/abigen@v0.5.9
+go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 
 # Force recompile of all contracts to prevent against using previous
 # compilations that did not generate new ABI files.
