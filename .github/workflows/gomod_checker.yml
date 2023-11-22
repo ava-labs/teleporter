@@ -1,0 +1,31 @@
+name: go.mod Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  gomod_check:
+    name: Check go.mod
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - run: |
+          source ./scripts/versions.sh
+          GO_VERSION=$GO_VERSION >> $GITHUB_ENV
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - run: go mod tidy
+      - run: git --no-pager diff -- go.mod go.sum  # This prints the diff
+      - run: git --no-pager diff --quiet -- go.mod go.sum  # This errors if there is a diff
