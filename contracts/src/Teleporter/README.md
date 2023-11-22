@@ -21,7 +21,7 @@ The `ITeleporterReceiver` interface provides a single method. All contracts that
 
 ## Data Flow
 <div align="center">
-  <img src="../../../resources/TeleporterDataFlowDiagram.png?raw=true">
+  <img src="../../../resources/TeleporterDataFlowDiagram.png?raw=true"/>
 </div>
 
 ## Properties

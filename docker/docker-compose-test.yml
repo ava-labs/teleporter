@@ -10,6 +10,7 @@ services:
       dockerfile: ./docker/Dockerfile
       args:
         ARCH: ${ARCH} # set by test.sh
+        GO_VERSION: ${GO_VERSION}  # set by test.sh
     container_name: local_network_test
     init: true
     working_dir: /code
@@ -20,7 +21,7 @@ services:
         source: ./
         target: /code/
   relayer:
-    image: avaplatform/awm-relayer:v0.2.3
+    image: avaplatform/awm-relayer:v0.2.4
     init: true
     working_dir: /code
     entrypoint: /code/docker/run_relayer.sh
@@ -37,6 +38,7 @@ services:
       dockerfile: ./docker/Dockerfile
       args:
         ARCH: ${ARCH} # set by test.sh
+        GO_VERSION: ${GO_VERSION}  # set by test.sh
     container_name: test_runner
     init: true
     working_dir: /code

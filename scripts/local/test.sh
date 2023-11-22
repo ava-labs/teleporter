@@ -4,6 +4,7 @@
 
 set -e # Stop on first error
 source ./scripts/utils.sh
+source ./scripts/versions.sh
 
 TEST_TARGET=
 LOCAL_RELAYER_IMAGE=
@@ -52,7 +53,7 @@ setARCH
 
 if [ -z "$LOCAL_RELAYER_IMAGE" ]; then
     echo "Using published awm-relayer image"
-    docker compose -f docker/docker-compose-test.yml --project-directory ./ up --build &
+    docker compose -f docker/docker-compose-test.yml --project-directory ./ up --abort-on-container-exit --build &
     dockerPid=$!
 else
     echo "Using local awm-relayer image: $LOCAL_RELAYER_IMAGE"
@@ -62,7 +63,7 @@ else
     fi
     rm -f docker/docker-compose-test-local.yml
     sed "s/<TAG>/$LOCAL_RELAYER_IMAGE/g" docker/docker-compose-test-local-template.yml > docker/docker-compose-test-local.yml
-    docker compose -f docker/docker-compose-test-local.yml --project-directory ./ up --build &
+    docker compose -f docker/docker-compose-test-local.yml --project-directory ./ up --abort-on-container-exit --build &
     dockerPid=$!
 fi
 

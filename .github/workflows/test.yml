@@ -8,9 +8,6 @@ on:
     branches:
       - "*"
 
-env:
-  RELAYER_VERSION: v0.2.3
-
 jobs:
   teleporter-integration-test:
     runs-on: ubuntu-20.04
@@ -25,7 +22,8 @@ jobs:
 
       - name: Download awm-relayer image
         run: |
-          docker pull avaplatform/awm-relayer:${RELAYER_VERSION}
+          source ./scripts/versions.sh
+          docker pull avaplatform/awm-relayer:${AWM_RELAYER_VERSION}
 
       - name: Teleporter Integration Tests
         run: |

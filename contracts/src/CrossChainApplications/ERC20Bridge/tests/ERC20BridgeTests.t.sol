@@ -8,7 +8,6 @@ pragma solidity 0.8.18;
 import {Test} from "forge-std/Test.sol";
 import {ERC20Bridge, BridgeToken, IERC20, ERC20, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, ITeleporterMessenger} from "../ERC20Bridge.sol";
 import {TeleporterRegistry} from "../../../Teleporter/upgrades/TeleporterRegistry.sol";
-import {WarpProtocolRegistry} from "../../../WarpProtocolRegistry.sol";
 import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
 
 contract ERC20BridgeTest is Test {
@@ -84,7 +83,9 @@ contract ERC20BridgeTest is Test {
         vm.expectCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS)
+                    .latestVersion
+                    .selector
             )
         );
 
@@ -205,7 +206,7 @@ contract ERC20BridgeTest is Test {
                 destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
                 destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: address(mockERC20),
+                    feeTokenAddress: address(mockERC20),
                     amount: 0
                 }),
                 requiredGasLimit: erc20Bridge.MINT_BRIDGE_TOKENS_REQUIRED_GAS(),
@@ -320,7 +321,7 @@ contract ERC20BridgeTest is Test {
                 destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
                 destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: address(mockERC20),
+                    feeTokenAddress: address(mockERC20),
                     amount: feeAmount
                 }),
                 requiredGasLimit: erc20Bridge.MINT_BRIDGE_TOKENS_REQUIRED_GAS(),
@@ -423,7 +424,7 @@ contract ERC20BridgeTest is Test {
                 destinationChainID: _DEFAULT_OTHER_CHAIN_ID,
                 destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: address(mockERC20),
+                    feeTokenAddress: address(mockERC20),
                     amount: bridgeFeeAmount
                 }),
                 requiredGasLimit: erc20Bridge.MINT_BRIDGE_TOKENS_REQUIRED_GAS(),
@@ -642,7 +643,9 @@ contract ERC20BridgeTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                WarpProtocolRegistry.getLatestVersion.selector
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS)
+                    .latestVersion
+                    .selector
             ),
             abi.encode(1)
         );
@@ -650,7 +653,7 @@ contract ERC20BridgeTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                WarpProtocolRegistry.getVersionFromAddress.selector,
+                TeleporterRegistry.getVersionFromAddress.selector,
                 (MOCK_TELEPORTER_MESSENGER_ADDRESS)
             ),
             abi.encode(1)
@@ -659,7 +662,7 @@ contract ERC20BridgeTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                WarpProtocolRegistry.getAddressFromVersion.selector,
+                TeleporterRegistry.getAddressFromVersion.selector,
                 (1)
             ),
             abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
@@ -702,7 +705,7 @@ contract ERC20BridgeTest is Test {
                 destinationChainID: destinationChainID,
                 destinationAddress: destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({
-                    contractAddress: address(0),
+                    feeTokenAddress: address(0),
                     amount: 0
                 }),
                 requiredGasLimit: erc20Bridge
