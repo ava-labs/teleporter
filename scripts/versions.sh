@@ -16,7 +16,7 @@ TELEPORTER_PATH=$(
 # Pass in the full name of the dependency.
 # Parses go.mod for a matching entry and extracts the version number.
 function getDepVersion() {
-    grep -m1 $1 $TELEPORTER_PATH/go.mod | cut -d ' ' -f2
+    grep -m1 "^\s*$1" $TELEPORTER_PATH/go.mod | cut -d ' ' -f2
 }
 
 export GO_VERSION=${GO_VERSION:-$(getDepVersion go).$GO_PATCH_VERSION}
