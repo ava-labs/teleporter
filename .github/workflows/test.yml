@@ -65,13 +65,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Checkout subnet-evm
-        uses: actions/checkout@v4
-        with:
-          repository: ava-labs/subnet-evm
-          path: subnet-evm
-          ref: ${{ env.SUBNET_EVM_VERSION }}
-
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
