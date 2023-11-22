@@ -19,6 +19,7 @@ func ResubmitAlteredMessageGinkgo() {
 
 func ResubmitAlteredMessage(network network.Network) {
 	subnets := network.GetSubnetsInfo()
+	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()

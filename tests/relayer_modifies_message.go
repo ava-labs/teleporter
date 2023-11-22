@@ -26,6 +26,7 @@ import (
 func RelayerModifiesMessageGinkgo() {
 	network := &network.LocalNetwork{}
 	subnets := network.GetSubnetsInfo()
+	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()

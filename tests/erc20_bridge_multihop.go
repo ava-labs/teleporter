@@ -25,6 +25,7 @@ func ERC20BridgeMultihopGinkgo() {
 
 func ERC20BridgeMultihop(network network.Network) {
 	subnets := network.GetSubnetsInfo()
+	Expect(len(subnets)).Should(BeNumerically(">=", 3))
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
 	subnetCInfo := subnets[2]

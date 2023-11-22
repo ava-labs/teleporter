@@ -19,6 +19,7 @@ func AddFeeAmountGinkgo() {
 
 func AddFeeAmount(network network.Network) {
 	subnets := network.GetSubnetsInfo()
+	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	subnetAInfo := subnets[0]
 	subnetBInfo := subnets[1]
 	teleporterContractAddress := network.GetTeleporterContractAddress()
