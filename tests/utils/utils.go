@@ -20,6 +20,7 @@ import (
 	"github.com/ava-labs/subnet-evm/params"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/x/warp"
+	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -155,6 +156,49 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	receipt, err := bind.WaitMined(ctx, subnet.ChainRPCClient, txn)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return receipt
+}
+
+func RedeemRelayerRewardsAndConfirm(
+	ctx context.Context,
+	subnet SubnetTestInfo,
+	feeToken *exampleerc20.ExampleERC20,
+	feeTokenAddress common.Address,
+	relayerKey *ecdsa.PrivateKey,
+	expectedAmount *big.Int,
+) *types.Receipt {
+	relayerAddress := crypto.PubkeyToAddress(relayerKey.PublicKey)
+
+	balanceBeforeRedemption, err := feeToken.BalanceOf(
+		&bind.CallOpts{}, relayerAddress,
+	)
+	Expect(err).Should(BeNil())
+
+	tx_opts, err := bind.NewKeyedTransactorWithChainID(
+		relayerKey, subnet.ChainIDInt,
+	)
+	Expect(err).Should(BeNil())
+	transaction, err := subnet.TeleporterMessenger.RedeemRelayerRewards(
+		tx_opts, feeTokenAddress,
+	)
+	Expect(err).Should(BeNil())
+	receipt, err := bind.WaitMined(ctx, subnet.ChainRPCClient, transaction)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	balanceAfterRedemption, err := feeToken.BalanceOf(
+		&bind.CallOpts{}, relayerAddress,
+	)
+	Expect(err).Should(BeNil())
+
+	Expect(balanceAfterRedemption).Should(
+		Equal(
+			big.NewInt(0).Add(
+				balanceBeforeRedemption, expectedAmount,
+			),
+		),
+	)
 
 	return receipt
 }
