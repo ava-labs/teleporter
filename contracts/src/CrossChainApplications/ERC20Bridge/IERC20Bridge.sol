@@ -11,14 +11,14 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @dev Interface that describes functionalities for a cross-chain ERC20 bridge.
  */
 interface IERC20Bridge {
-
+    /**
+     * @dev Enum representing the action to take on receiving a Teleporter message.
+     */
     enum BridgeAction {
         Create,
         Mint,
         Transfer
-    }    /**
-     * @dev Enum representing the action to take on receiving a Teleporter message.
-     */
+    }
 
     /**
      * @dev Emitted when tokens are locked in this bridge contract to be bridged to another chain.
