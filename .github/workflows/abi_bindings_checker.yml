@@ -8,24 +8,26 @@ on:
     branches:
       - "*"
 
-env:
-  GO_VERSION: 1.20.10
-
 jobs:
   abi_binding:
     name: abi_binding
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
       - name: Checkout Teleporter repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Set Go version
+        run: |
+          source ./scripts/versions.sh
+          GO_VERSION=$GO_VERSION >> $GITHUB_ENV
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -49,15 +51,20 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
       - name: Checkout repositories and submodules
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Set Go version
+        run: |
+          source ./scripts/versions.sh
+          GO_VERSION=$GO_VERSION >> $GITHUB_ENV
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Run ABI Binding Unit Tests
         run: |
