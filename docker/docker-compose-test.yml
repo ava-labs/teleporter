@@ -10,6 +10,7 @@ services:
       dockerfile: ./docker/Dockerfile
       args:
         ARCH: ${ARCH} # set by test.sh
+        GO_VERSION: ${GO_VERSION}  # set by test.sh
     container_name: local_network_test
     init: true
     working_dir: /code
@@ -37,6 +38,7 @@ services:
       dockerfile: ./docker/Dockerfile
       args:
         ARCH: ${ARCH} # set by test.sh
+        GO_VERSION: ${GO_VERSION}  # set by test.sh
     container_name: test_runner
     init: true
     working_dir: /code

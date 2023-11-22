@@ -42,7 +42,7 @@ struct TeleporterMessage {
 // The contract address is the asset contract the fee will be paid in, and
 // the amount is the amount of that specified asset.
 struct TeleporterFeeInfo {
-    address contractAddress;
+    address feeTokenAddress;
     uint256 amount;
 }
 
@@ -140,14 +140,14 @@ interface ITeleporterMessenger {
      * @dev Adds the additional fee amount to the amount to be paid to the relayer that delivers
      * the given message ID to the destination chain.
      *
-     * The fee contract address must be the same asset type as the fee asset specified in the original
+     * The fee token address must be the same asset type as the fee asset specified in the original
      * call to sendCrossChainMessage. Reverts if the message doesn't exist or there is already
      * receipt of delivery of the message.
      */
     function addFeeAmount(
         bytes32 destinationChainID,
         uint256 messageID,
-        address feeContractAddress,
+        address feeTokenAddress,
         uint256 additionalFeeAmount
     ) external;
 
@@ -194,7 +194,7 @@ interface ITeleporterMessenger {
     /**
      * @dev Sends any fee amount rewards for the given fee asset out to the caller.
      */
-    function redeemRelayerRewards(address feeAsset) external;
+    function redeemRelayerRewards(address feeTokenAddress) external;
 
     /**
      * @dev Gets the hash of a given message stored in the EVM state, if the message exists.
@@ -230,12 +230,12 @@ interface ITeleporterMessenger {
      */
     function checkRelayerRewardAmount(
         address relayer,
-        address feeAsset
+        address feeTokenAddress
     ) external view returns (uint256);
 
     /**
-     * @dev Gets the fee asset and amount for a given message.
-     * @return The fee asset address and fee amount for a the given message.
+     * @dev Gets the fee token address and amount for a given message.
+     * @return The fee token address and fee amount for a the given message.
      */
     function getFeeInfo(
         bytes32 destinationChainID,

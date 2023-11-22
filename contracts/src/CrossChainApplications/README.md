@@ -68,7 +68,7 @@ To start, create the function declarations for `sendMessage`, which will send st
 function sendMessage(
     bytes32 destinationChainID,
     address destinationAddress,
-    address feeContractAddress,
+    address feeTokenAddress,
     uint256 feeAmount,
     uint256 requiredGasLimit,
     string calldata message
@@ -86,19 +86,19 @@ function receiveTeleporterMessage(
 ) external {}
 ```
 
-Now it's time to implement the methods, starting with `sendMessage`. First, import OpenZeppelin's `IERC20` contract, then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeContractAddress` to the Teleporter Messenger saved as a state variable. Relayer fees are an optional way to incentive relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
+Now it's time to implement the methods, starting with `sendMessage`. First, import OpenZeppelin's `IERC20` contract, then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeTokenAddress` to the Teleporter Messenger saved as a state variable. Relayer fees are an optional way to incentive relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
 
 ```solidity
 // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
 // allow the Teleporter contract to spend it.
 if (feeAmount > 0) {
-    IERC20 feeAsset = IERC20(feeContractAddress);
+    IERC20 feeToken = IERC20(feeTokenAddress);
     require(
-        feeAsset.transferFrom(msg.sender, address(this), feeAmount),
+        feeToken.transferFrom(msg.sender, address(this), feeAmount),
         "Failed to transfer fee amount"
     );
     require(
-        feeAsset.approve(address(teleporterMessenger), feeAmount),
+        feeToken.approve(address(teleporterMessenger), feeAmount),
         "Failed to approve fee amount"
     );
 }
@@ -116,7 +116,7 @@ return
             destinationChainID: destinationChainID,
             destinationAddress: destinationAddress,
             feeInfo: TeleporterFeeInfo({
-                contractAddress: feeContractAddress,
+                feeTokenAddress: feeTokenAddress,
                 amount: feeAmount
             }),
             requiredGasLimit: requiredGasLimit,
