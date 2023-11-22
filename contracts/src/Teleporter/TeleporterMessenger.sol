@@ -43,34 +43,34 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // Tracks the latest message ID used for a given destination chain.
     // Key is the destination blockchain ID, and the value is the last message ID used for that chain.
     // Note that the first message ID used for each chain will be 1 (not 0).
-    mapping(bytes32 destinationChainID => uint256 messageID)
+    mapping(bytes32 destinationBlockchainID => uint256 messageID)
         public latestMessageIDs;
 
     // Tracks the outstanding receipts to send back to a given chain in subsequent messages sent to that chain.
     // Key is the blockchain ID of the other chain, and the value is a queue of pending receipts for messages
     // received from that chain.
-    mapping(bytes32 sourceChainID => ReceiptQueue.TeleporterMessageReceiptQueue receiptQueue)
+    mapping(bytes32 sourceBlockchainID => ReceiptQueue.TeleporterMessageReceiptQueue receiptQueue)
         public receiptQueues;
 
     // Tracks the message hash and fee information for each message sent that has yet to be acknowledged
     // with a receipt. The messages are tracked per chain and keyed by message ID.
     // The first key is the blockchain ID of the destination chain, the second key is the message ID, and the value is the info
     // for the uniquely identified message.
-    mapping(bytes32 destinationChainID => mapping(uint256 messageID => SentMessageInfo messageInfo))
+    mapping(bytes32 destinationBlockchainID => mapping(uint256 messageID => SentMessageInfo messageInfo))
         public sentMessageInfo;
 
     // Tracks the hash of messages that have been received but whose execution has never succeeded.
     // Enables retrying of failed messages with higher gas limits. Message execution is guaranteed to
     // succeed at most once. The first key is the blockchain ID of the sending chain, the second key is the message ID, and
     // the value is the hash of the uniquely identified message whose execution failed.
-    mapping(bytes32 sourceChainID => mapping(uint256 messageID => bytes32 messageHash))
+    mapping(bytes32 sourceBlockchainID => mapping(uint256 messageID => bytes32 messageHash))
         public receivedFailedMessageHashes;
 
     // Tracks the relayer reward address for each message delivered from a given chain.
     // Note that these values are also used to determine if a given message has been delivered or not.
     // The first key is the blockchain ID, the second key is the message ID, and the value is the reward address
     // provided by the deliverer of the uniquely identified message.
-    mapping(bytes32 sourceChainID => mapping(uint256 messageID => address relayerRewardAddress))
+    mapping(bytes32 sourceBlockchainID => mapping(uint256 messageID => address relayerRewardAddress))
         internal _relayerRewardAddresses;
 
     // Tracks the reward amounts for a given asset able to be redeemed by a given relayer.
@@ -96,7 +96,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         return
             _sendTeleporterMessage(
                 messageInput,
-                receiptQueues[messageInput.destinationChainID]
+                receiptQueues[messageInput.destinationBlockchainID]
                     .getOutstandingReceiptsToSend()
             );
     }
@@ -107,16 +107,16 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * Emits a {SendCrossChainMessage} event.
      * Requirements:
      *
-     * - `message` must have been previously sent to the given `destinationChainID`.
+     * - `message` must have been previously sent to the given `destinationBlockchainID`.
      * - `message` encoding must match previously sent message.
      */
     function retrySendCrossChainMessage(
-        bytes32 destinationChainID,
+        bytes32 destinationBlockchainID,
         TeleporterMessage calldata message
     ) external senderNonReentrant {
         // Get the previously sent message hash.
         SentMessageInfo memory existingMessageInfo = sentMessageInfo[
-            destinationChainID
+            destinationBlockchainID
         ][message.messageID];
         // If the message hash is zero, the message was never sent.
         require(
@@ -134,7 +134,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Emit and make state variable changes before external calls when possible,
         // though this function is protected by sender reentrancy guard.
         emit SendCrossChainMessage(
-            destinationChainID,
+            destinationBlockchainID,
             message.messageID,
             message,
             existingMessageInfo.feeInfo
@@ -156,7 +156,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - `feeTokenAddress` must match the fee asset contract address used in the original call to `sendCrossChainMessage`.
      */
     function addFeeAmount(
-        bytes32 destinationChainID,
+        bytes32 destinationBlockchainID,
         uint256 messageID,
         address feeTokenAddress,
         uint256 additionalFeeAmount
@@ -177,7 +177,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // will be cleared from state. At this point, you can not add to its fee. This is also the
         // case if the given message never existed.
         require(
-            sentMessageInfo[destinationChainID][messageID].messageHash !=
+            sentMessageInfo[destinationBlockchainID][messageID].messageHash !=
                 bytes32(0),
             "TeleporterMessenger: message not found"
         );
@@ -188,7 +188,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // the previously submitted asset type as a defensive measure to avoid having users accidentally confuse
         // which asset they are paying.
         require(
-            sentMessageInfo[destinationChainID][messageID]
+            sentMessageInfo[destinationBlockchainID][messageID]
                 .feeInfo
                 .feeTokenAddress == feeTokenAddress,
             "TeleporterMessenger: invalid fee asset contract address"
@@ -201,14 +201,14 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         );
 
         // Store the updated fee amount, and emit it as an event.
-        sentMessageInfo[destinationChainID][messageID]
+        sentMessageInfo[destinationBlockchainID][messageID]
             .feeInfo
             .amount += adjustedAmount;
 
         emit AddFeeAmount(
-            destinationChainID,
+            destinationBlockchainID,
             messageID,
-            sentMessageInfo[destinationChainID][messageID].feeInfo
+            sentMessageInfo[destinationBlockchainID][messageID].feeInfo
         );
     }
 
@@ -222,7 +222,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - `relayerRewardAddress` must not be the zero address.
      * - `messageIndex` must specify a valid warp message in the transaction's storage slots.
      * - Valid warp message provided in storage slots, and sender address matches the address of this contract.
-     * - Teleporter message `destinationChainID` must match the `blockchainID` of this contract.
+     * - Teleporter message `destinationBlockchainID` must match the `blockchainID` of this contract.
      * - Teleporter message was not previously delivered.
      * - Transaction was sent by an allowed relayer for corresponding teleporter message.
      */
@@ -265,7 +265,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Require that the message was intended for this blockchain.
         require(
-            teleporterMessage.destinationChainID == blockchainID,
+            teleporterMessage.destinationBlockchainID == blockchainID,
             "TeleporterMessenger: invalid destination chain ID"
         );
 
@@ -349,11 +349,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - `message` must have previously failed to execute, and matches the hash of the failed message.
      */
     function retryMessageExecution(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         TeleporterMessage calldata message
     ) external receiverNonReentrant {
         // Check that the hash of the payload provided matches the hash of the payload that previously failed to execute.
-        bytes32 failedMessageHash = receivedFailedMessageHashes[originChainID][
+        bytes32 failedMessageHash = receivedFailedMessageHashes[originBlockchainID][
             message.messageID
         ];
         require(
@@ -374,14 +374,14 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Clear the failed message hash from state prior to retrying its execution to redundantly prevent
         // reentrance attacks (on top of the nonReentrant guard).
-        emit MessageExecuted(originChainID, message.messageID);
-        delete receivedFailedMessageHashes[originChainID][message.messageID];
+        emit MessageExecuted(originBlockchainID, message.messageID);
+        delete receivedFailedMessageHashes[originBlockchainID][message.messageID];
 
         // Re-encode the payload by ABI encoding a call to the {receiveTeleporterMessage} function
         // defined by the {ITeleporterReceiver} interface.
         bytes memory payload = abi.encodeCall(
             ITeleporterReceiver.receiveTeleporterMessage,
-            (originChainID, message.senderAddress, message.message)
+            (originBlockchainID, message.senderAddress, message.message)
         );
 
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
@@ -416,7 +416,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - `messageIDs` must all be valid and have existing receipts.
      */
     function sendSpecifiedReceipts(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         uint256[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
@@ -430,7 +430,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             uint256 receivedMessageID = messageIDs[i];
             // Get the relayer reward address for the message.
             address relayerRewardAddress = _relayerRewardAddresses[
-                originChainID
+                originBlockchainID
             ][receivedMessageID];
             require(
                 relayerRewardAddress != address(0),
@@ -446,7 +446,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         return
             _sendTeleporterMessage(
                 TeleporterMessageInput({
-                    destinationChainID: originChainID,
+                    destinationBlockchainID: originBlockchainID,
                     destinationAddress: address(0),
                     feeInfo: feeInfo,
                     requiredGasLimit: uint256(0),
@@ -484,30 +484,30 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * See {ITeleporterMessenger-getMessageHash}
      */
     function getMessageHash(
-        bytes32 destinationChainID,
+        bytes32 destinationBlockchainID,
         uint256 messageID
     ) external view returns (bytes32) {
-        return sentMessageInfo[destinationChainID][messageID].messageHash;
+        return sentMessageInfo[destinationBlockchainID][messageID].messageHash;
     }
 
     /**
      * @dev See {ITeleporterMessenger-messageReceived}
      */
     function messageReceived(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         uint256 messageID
     ) external view returns (bool) {
-        return _messageReceived(originChainID, messageID);
+        return _messageReceived(originBlockchainID, messageID);
     }
 
     /**
      * @dev See {ITeleporterMessenger-getRelayerRewardAddress}
      */
     function getRelayerRewardAddress(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         uint256 messageID
     ) external view returns (address) {
-        return _relayerRewardAddresses[originChainID][messageID];
+        return _relayerRewardAddresses[originBlockchainID][messageID];
     }
 
     /**
@@ -524,39 +524,39 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * @dev See {ITeleporterMessenger-getFeeInfo}
      */
     function getFeeInfo(
-        bytes32 destinationChainID,
+        bytes32 destinationBlockchainID,
         uint256 messageID
     ) external view returns (address, uint256) {
-        TeleporterFeeInfo memory feeInfo = sentMessageInfo[destinationChainID][
+        TeleporterFeeInfo memory feeInfo = sentMessageInfo[destinationBlockchainID][
             messageID
         ].feeInfo;
         return (feeInfo.feeTokenAddress, feeInfo.amount);
     }
 
     /**
-     * @dev Returns the next message ID to be used to send a message to the given chain ID.
+     * @dev Returns the next message ID to be used to send a message to the given blockchain ID.
      */
-    function getNextMessageID(bytes32 chainID) external view returns (uint256) {
-        return _getNextMessageID(chainID);
+    function getNextMessageID(bytes32 externalBlockchainID) external view returns (uint256) {
+        return _getNextMessageID(externalBlockchainID);
     }
 
     /**
      * @dev See {ITeleporterMessenger-getReceiptQueueSize}
      */
     function getReceiptQueueSize(
-        bytes32 chainID
+        bytes32 externalBlockchainID
     ) external view returns (uint256) {
-        return receiptQueues[chainID].size();
+        return receiptQueues[externalBlockchainID].size();
     }
 
     /**
      * @dev See {ITeleporterMessenger-getReceiptAtIndex}
      */
     function getReceiptAtIndex(
-        bytes32 chainID,
+        bytes32 externalBlockchainID,
         uint256 index
     ) external view returns (TeleporterMessageReceipt memory) {
-        return receiptQueues[chainID].getReceiptAtIndex(index);
+        return receiptQueues[externalBlockchainID].getReceiptAtIndex(index);
     }
 
     /**
@@ -564,10 +564,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * @return A boolean representing if the given message has been received or not.
      */
     function _messageReceived(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         uint256 messageID
     ) internal view returns (bool) {
-        return _relayerRewardAddresses[originChainID][messageID] != address(0);
+        return _relayerRewardAddresses[originBlockchainID][messageID] != address(0);
     }
 
     /**
@@ -603,13 +603,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessageReceipt[] memory receipts
     ) private returns (uint256) {
         // Get the message ID to use for this message.
-        uint256 messageID = _getNextMessageID(messageInput.destinationChainID);
+        uint256 messageID = _getNextMessageID(messageInput.destinationBlockchainID);
 
         // Construct and serialize the message.
         TeleporterMessage memory teleporterMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: msg.sender,
-            destinationChainID: messageInput.destinationChainID,
+            destinationBlockchainID: messageInput.destinationBlockchainID,
             destinationAddress: messageInput.destinationAddress,
             requiredGasLimit: messageInput.requiredGasLimit,
             allowedRelayerAddresses: messageInput.allowedRelayerAddresses,
@@ -619,7 +619,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes memory teleporterMessageBytes = abi.encode(teleporterMessage);
 
         // Set the message ID value as being used.
-        latestMessageIDs[messageInput.destinationChainID] = messageID;
+        latestMessageIDs[messageInput.destinationBlockchainID] = messageID;
 
         // If the fee amount is non-zero, transfer the asset into control of this TeleporterMessenger contract instance.
         // The fee is allowed to be 0 because it's possible for someone to run their own relayer and deliver their own messages,
@@ -645,7 +645,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             feeTokenAddress: messageInput.feeInfo.feeTokenAddress,
             amount: adjustedFeeAmount
         });
-        sentMessageInfo[messageInput.destinationChainID][
+        sentMessageInfo[messageInput.destinationBlockchainID][
             messageID
         ] = SentMessageInfo({
             messageHash: keccak256(teleporterMessageBytes),
@@ -653,7 +653,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         });
 
         emit SendCrossChainMessage(
-            messageInput.destinationChainID,
+            messageInput.destinationBlockchainID,
             messageID,
             teleporterMessage,
             adjustedFeeInfo
@@ -666,19 +666,19 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Records the receival of a receipt for a message previously sent to the `destinationChainID` with the given `messageID`.
+     * @dev Records the receival of a receipt for a message previously sent to the `destinationBlockchainID` with the given `messageID`.
      *
      * Returns early if a receipt was already previously received for this message, or if the message never existed. Otherwise, deletes
      * the message information from `sentMessageInfo` and increments the reward redeemable by the specified relayer reward address.
      */
     function _markReceipt(
-        bytes32 destinationChainID,
+        bytes32 destinationBlockchainID,
         uint256 messageID,
         address relayerRewardAddress
     ) private {
         // Get the information about the sent message to be marked as received.
         SentMessageInfo memory messageInfo = sentMessageInfo[
-            destinationChainID
+            destinationBlockchainID
         ][messageID];
 
         // If the message hash does not exist, it could be the case that the receipt was already
@@ -690,7 +690,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         // Delete the message information from state now that it is known to be delivered.
-        delete sentMessageInfo[destinationChainID][messageID];
+        delete sentMessageInfo[destinationBlockchainID][messageID];
 
         // Increment the fee/reward amount owed to the relayer for having delivered
         // the message identified in this receipt.
@@ -713,7 +713,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - There is enough gas left to cover `message.requiredGasLimit`.
      */
     function _handleInitialMessageExecution(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         TeleporterMessage memory message
     ) private {
         // Check that the message delivery was provided the required gas amount as specified by the sender.
@@ -731,7 +731,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // execution so that it can be retried in the future should a contract be later deployed to
         // the address.
         if (message.destinationAddress.code.length == 0) {
-            _storeFailedMessageExecution(originChainID, message);
+            _storeFailedMessageExecution(originBlockchainID, message);
             return;
         }
 
@@ -739,7 +739,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // defined by the {ITeleporterReceiver} interface.
         bytes memory payload = abi.encodeCall(
             ITeleporterReceiver.receiveTeleporterMessage,
-            (originChainID, message.senderAddress, message.message)
+            (originBlockchainID, message.senderAddress, message.message)
         );
 
         // Call the destination address of the message with the formatted call data. Only provide the required
@@ -755,11 +755,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // retries). Either way, the message will now be considered "delivered" since the relayer
         // provided enough gas to meet the required gas limit.
         if (!success) {
-            _storeFailedMessageExecution(originChainID, message);
+            _storeFailedMessageExecution(originBlockchainID, message);
             return;
         }
 
-        emit MessageExecuted(originChainID, message.messageID);
+        emit MessageExecuted(originBlockchainID, message.messageID);
     }
 
     function _tryExecuteMessage(
@@ -793,21 +793,21 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * such that the message execution can be retried by anyone in the future.
      */
     function _storeFailedMessageExecution(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         TeleporterMessage memory message
     ) private {
-        receivedFailedMessageHashes[originChainID][
+        receivedFailedMessageHashes[originBlockchainID][
             message.messageID
         ] = keccak256(abi.encode(message));
 
         // Emit a failed execution event for anyone monitoring unsuccessful messages to retry.
-        emit MessageExecutionFailed(originChainID, message.messageID, message);
+        emit MessageExecutionFailed(originBlockchainID, message.messageID, message);
     }
 
     /**
-     * @dev Returns the next message ID to be used to send a message to the given `chainID`.
+     * @dev Returns the next message ID to be used to send a message to the given `externalBlockchainID`.
      */
-    function _getNextMessageID(bytes32 chainID) private view returns (uint256) {
-        return latestMessageIDs[chainID] + 1;
+    function _getNextMessageID(bytes32 externalBlockchainID) private view returns (uint256) {
+        return latestMessageIDs[externalBlockchainID] + 1;
     }
 }

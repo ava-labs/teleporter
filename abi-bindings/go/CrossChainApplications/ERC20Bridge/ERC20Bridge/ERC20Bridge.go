@@ -31,7 +31,7 @@ var (
 
 // ERC20BridgeMetaData contains all meta data concerning the ERC20Bridge contract.
 var ERC20BridgeMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"tokenContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BridgeTokens\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"nativeChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"nativeBridgeAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"bridgeTokenAddress\",\"type\":\"address\"}],\"name\":\"CreateBridgeToken\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"MintBridgeTokens\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"SubmitCreateBridgeToken\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"CREATE_BRIDGE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MINT_BRIDGE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"TRANSFER_BRIDGE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_PRECOMPILE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenContractAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"primaryFeeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFeeAmount\",\"type\":\"uint256\"}],\"name\":\"bridgeTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nativeTokenContract\",\"type\":\"address\"}],\"name\":\"bridgedBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentChainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"nativeName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"nativeSymbol\",\"type\":\"string\"},{\"internalType\":\"uint8\",\"name\":\"nativeDecimals\",\"type\":\"uint8\"}],\"name\":\"encodeCreateBridgeTokenData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"bridgeAmount\",\"type\":\"uint256\"}],\"name\":\"encodeMintBridgeTokensData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"}],\"name\":\"encodeTransferBridgeTokensData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nativeChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nativeTokenAddress\",\"type\":\"address\"}],\"name\":\"nativeToWrappedTokens\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"bridgeTokenAddress\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nativeChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"contractERC20\",\"name\":\"nativeToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"messageFeeAsset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"messageFeeAmount\",\"type\":\"uint256\"}],\"name\":\"submitCreateBridgeToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nativeTokenContract\",\"type\":\"address\"}],\"name\":\"submittedBridgeTokenCreations\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"tokenCreationSubmitted\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"bridgeToken\",\"type\":\"address\"}],\"name\":\"wrappedTokenContracts\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"bridgeTokenExists\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"tokenContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BridgeTokens\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"nativeBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"nativeBridgeAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"bridgeTokenAddress\",\"type\":\"address\"}],\"name\":\"CreateBridgeToken\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"MintBridgeTokens\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"SubmitCreateBridgeToken\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"CREATE_BRIDGE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MINT_BRIDGE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"TRANSFER_BRIDGE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"WARP_PRECOMPILE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenContractAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"primaryFeeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFeeAmount\",\"type\":\"uint256\"}],\"name\":\"bridgeTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nativeTokenContract\",\"type\":\"address\"}],\"name\":\"bridgedBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"nativeName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"nativeSymbol\",\"type\":\"string\"},{\"internalType\":\"uint8\",\"name\":\"nativeDecimals\",\"type\":\"uint8\"}],\"name\":\"encodeCreateBridgeTokenData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"bridgeAmount\",\"type\":\"uint256\"}],\"name\":\"encodeMintBridgeTokensData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nativeContractAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"}],\"name\":\"encodeTransferBridgeTokensData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nativeBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nativeTokenAddress\",\"type\":\"address\"}],\"name\":\"nativeToWrappedTokens\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"bridgeTokenAddress\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nativeBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"contractERC20\",\"name\":\"nativeToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"messageFeeAsset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"messageFeeAmount\",\"type\":\"uint256\"}],\"name\":\"submitCreateBridgeToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nativeTokenContract\",\"type\":\"address\"}],\"name\":\"submittedBridgeTokenCreations\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"tokenCreationSubmitted\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"bridgeToken\",\"type\":\"address\"}],\"name\":\"wrappedTokenContracts\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"bridgeTokenExists\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // ERC20BridgeABI is the input ABI used to generate the binding from.
@@ -306,10 +306,10 @@ func (_ERC20Bridge *ERC20BridgeCallerSession) WARPPRECOMPILEADDRESS() (common.Ad
 
 // BridgedBalances is a free data retrieval call binding the contract method 0xb9e55da1.
 //
-// Solidity: function bridgedBalances(bytes32 destinationChainID, address destinationBridgeAddress, address nativeTokenContract) view returns(uint256 balance)
-func (_ERC20Bridge *ERC20BridgeCaller) BridgedBalances(opts *bind.CallOpts, destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (*big.Int, error) {
+// Solidity: function bridgedBalances(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeTokenContract) view returns(uint256 balance)
+func (_ERC20Bridge *ERC20BridgeCaller) BridgedBalances(opts *bind.CallOpts, destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (*big.Int, error) {
 	var out []interface{}
-	err := _ERC20Bridge.contract.Call(opts, &out, "bridgedBalances", destinationChainID, destinationBridgeAddress, nativeTokenContract)
+	err := _ERC20Bridge.contract.Call(opts, &out, "bridgedBalances", destinationBlockchainID, destinationBridgeAddress, nativeTokenContract)
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -323,24 +323,24 @@ func (_ERC20Bridge *ERC20BridgeCaller) BridgedBalances(opts *bind.CallOpts, dest
 
 // BridgedBalances is a free data retrieval call binding the contract method 0xb9e55da1.
 //
-// Solidity: function bridgedBalances(bytes32 destinationChainID, address destinationBridgeAddress, address nativeTokenContract) view returns(uint256 balance)
-func (_ERC20Bridge *ERC20BridgeSession) BridgedBalances(destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (*big.Int, error) {
-	return _ERC20Bridge.Contract.BridgedBalances(&_ERC20Bridge.CallOpts, destinationChainID, destinationBridgeAddress, nativeTokenContract)
+// Solidity: function bridgedBalances(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeTokenContract) view returns(uint256 balance)
+func (_ERC20Bridge *ERC20BridgeSession) BridgedBalances(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (*big.Int, error) {
+	return _ERC20Bridge.Contract.BridgedBalances(&_ERC20Bridge.CallOpts, destinationBlockchainID, destinationBridgeAddress, nativeTokenContract)
 }
 
 // BridgedBalances is a free data retrieval call binding the contract method 0xb9e55da1.
 //
-// Solidity: function bridgedBalances(bytes32 destinationChainID, address destinationBridgeAddress, address nativeTokenContract) view returns(uint256 balance)
-func (_ERC20Bridge *ERC20BridgeCallerSession) BridgedBalances(destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (*big.Int, error) {
-	return _ERC20Bridge.Contract.BridgedBalances(&_ERC20Bridge.CallOpts, destinationChainID, destinationBridgeAddress, nativeTokenContract)
+// Solidity: function bridgedBalances(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeTokenContract) view returns(uint256 balance)
+func (_ERC20Bridge *ERC20BridgeCallerSession) BridgedBalances(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (*big.Int, error) {
+	return _ERC20Bridge.Contract.BridgedBalances(&_ERC20Bridge.CallOpts, destinationBlockchainID, destinationBridgeAddress, nativeTokenContract)
 }
 
-// CurrentChainID is a free data retrieval call binding the contract method 0xb179e1e7.
+// CurrentBlockchainID is a free data retrieval call binding the contract method 0x4950d2d0.
 //
-// Solidity: function currentChainID() view returns(bytes32)
-func (_ERC20Bridge *ERC20BridgeCaller) CurrentChainID(opts *bind.CallOpts) ([32]byte, error) {
+// Solidity: function currentBlockchainID() view returns(bytes32)
+func (_ERC20Bridge *ERC20BridgeCaller) CurrentBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
-	err := _ERC20Bridge.contract.Call(opts, &out, "currentChainID")
+	err := _ERC20Bridge.contract.Call(opts, &out, "currentBlockchainID")
 
 	if err != nil {
 		return *new([32]byte), err
@@ -352,18 +352,18 @@ func (_ERC20Bridge *ERC20BridgeCaller) CurrentChainID(opts *bind.CallOpts) ([32]
 
 }
 
-// CurrentChainID is a free data retrieval call binding the contract method 0xb179e1e7.
+// CurrentBlockchainID is a free data retrieval call binding the contract method 0x4950d2d0.
 //
-// Solidity: function currentChainID() view returns(bytes32)
-func (_ERC20Bridge *ERC20BridgeSession) CurrentChainID() ([32]byte, error) {
-	return _ERC20Bridge.Contract.CurrentChainID(&_ERC20Bridge.CallOpts)
+// Solidity: function currentBlockchainID() view returns(bytes32)
+func (_ERC20Bridge *ERC20BridgeSession) CurrentBlockchainID() ([32]byte, error) {
+	return _ERC20Bridge.Contract.CurrentBlockchainID(&_ERC20Bridge.CallOpts)
 }
 
-// CurrentChainID is a free data retrieval call binding the contract method 0xb179e1e7.
+// CurrentBlockchainID is a free data retrieval call binding the contract method 0x4950d2d0.
 //
-// Solidity: function currentChainID() view returns(bytes32)
-func (_ERC20Bridge *ERC20BridgeCallerSession) CurrentChainID() ([32]byte, error) {
-	return _ERC20Bridge.Contract.CurrentChainID(&_ERC20Bridge.CallOpts)
+// Solidity: function currentBlockchainID() view returns(bytes32)
+func (_ERC20Bridge *ERC20BridgeCallerSession) CurrentBlockchainID() ([32]byte, error) {
+	return _ERC20Bridge.Contract.CurrentBlockchainID(&_ERC20Bridge.CallOpts)
 }
 
 // EncodeCreateBridgeTokenData is a free data retrieval call binding the contract method 0x367e9584.
@@ -430,10 +430,10 @@ func (_ERC20Bridge *ERC20BridgeCallerSession) EncodeMintBridgeTokensData(nativeC
 
 // EncodeTransferBridgeTokensData is a free data retrieval call binding the contract method 0xc60da612.
 //
-// Solidity: function encodeTransferBridgeTokensData(bytes32 destinationChainID, address destinationBridgeAddress, address nativeContractAddress, address recipient, uint256 amount, uint256 feeAmount) pure returns(bytes)
-func (_ERC20Bridge *ERC20BridgeCaller) EncodeTransferBridgeTokensData(opts *bind.CallOpts, destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeContractAddress common.Address, recipient common.Address, amount *big.Int, feeAmount *big.Int) ([]byte, error) {
+// Solidity: function encodeTransferBridgeTokensData(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeContractAddress, address recipient, uint256 amount, uint256 feeAmount) pure returns(bytes)
+func (_ERC20Bridge *ERC20BridgeCaller) EncodeTransferBridgeTokensData(opts *bind.CallOpts, destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeContractAddress common.Address, recipient common.Address, amount *big.Int, feeAmount *big.Int) ([]byte, error) {
 	var out []interface{}
-	err := _ERC20Bridge.contract.Call(opts, &out, "encodeTransferBridgeTokensData", destinationChainID, destinationBridgeAddress, nativeContractAddress, recipient, amount, feeAmount)
+	err := _ERC20Bridge.contract.Call(opts, &out, "encodeTransferBridgeTokensData", destinationBlockchainID, destinationBridgeAddress, nativeContractAddress, recipient, amount, feeAmount)
 
 	if err != nil {
 		return *new([]byte), err
@@ -447,16 +447,16 @@ func (_ERC20Bridge *ERC20BridgeCaller) EncodeTransferBridgeTokensData(opts *bind
 
 // EncodeTransferBridgeTokensData is a free data retrieval call binding the contract method 0xc60da612.
 //
-// Solidity: function encodeTransferBridgeTokensData(bytes32 destinationChainID, address destinationBridgeAddress, address nativeContractAddress, address recipient, uint256 amount, uint256 feeAmount) pure returns(bytes)
-func (_ERC20Bridge *ERC20BridgeSession) EncodeTransferBridgeTokensData(destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeContractAddress common.Address, recipient common.Address, amount *big.Int, feeAmount *big.Int) ([]byte, error) {
-	return _ERC20Bridge.Contract.EncodeTransferBridgeTokensData(&_ERC20Bridge.CallOpts, destinationChainID, destinationBridgeAddress, nativeContractAddress, recipient, amount, feeAmount)
+// Solidity: function encodeTransferBridgeTokensData(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeContractAddress, address recipient, uint256 amount, uint256 feeAmount) pure returns(bytes)
+func (_ERC20Bridge *ERC20BridgeSession) EncodeTransferBridgeTokensData(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeContractAddress common.Address, recipient common.Address, amount *big.Int, feeAmount *big.Int) ([]byte, error) {
+	return _ERC20Bridge.Contract.EncodeTransferBridgeTokensData(&_ERC20Bridge.CallOpts, destinationBlockchainID, destinationBridgeAddress, nativeContractAddress, recipient, amount, feeAmount)
 }
 
 // EncodeTransferBridgeTokensData is a free data retrieval call binding the contract method 0xc60da612.
 //
-// Solidity: function encodeTransferBridgeTokensData(bytes32 destinationChainID, address destinationBridgeAddress, address nativeContractAddress, address recipient, uint256 amount, uint256 feeAmount) pure returns(bytes)
-func (_ERC20Bridge *ERC20BridgeCallerSession) EncodeTransferBridgeTokensData(destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeContractAddress common.Address, recipient common.Address, amount *big.Int, feeAmount *big.Int) ([]byte, error) {
-	return _ERC20Bridge.Contract.EncodeTransferBridgeTokensData(&_ERC20Bridge.CallOpts, destinationChainID, destinationBridgeAddress, nativeContractAddress, recipient, amount, feeAmount)
+// Solidity: function encodeTransferBridgeTokensData(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeContractAddress, address recipient, uint256 amount, uint256 feeAmount) pure returns(bytes)
+func (_ERC20Bridge *ERC20BridgeCallerSession) EncodeTransferBridgeTokensData(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeContractAddress common.Address, recipient common.Address, amount *big.Int, feeAmount *big.Int) ([]byte, error) {
+	return _ERC20Bridge.Contract.EncodeTransferBridgeTokensData(&_ERC20Bridge.CallOpts, destinationBlockchainID, destinationBridgeAddress, nativeContractAddress, recipient, amount, feeAmount)
 }
 
 // MinTeleporterVersion is a free data retrieval call binding the contract method 0xe49cc553.
@@ -492,10 +492,10 @@ func (_ERC20Bridge *ERC20BridgeCallerSession) MinTeleporterVersion() (*big.Int, 
 
 // NativeToWrappedTokens is a free data retrieval call binding the contract method 0x65435568.
 //
-// Solidity: function nativeToWrappedTokens(bytes32 nativeChainID, address nativeBridgeAddress, address nativeTokenAddress) view returns(address bridgeTokenAddress)
-func (_ERC20Bridge *ERC20BridgeCaller) NativeToWrappedTokens(opts *bind.CallOpts, nativeChainID [32]byte, nativeBridgeAddress common.Address, nativeTokenAddress common.Address) (common.Address, error) {
+// Solidity: function nativeToWrappedTokens(bytes32 nativeBlockchainID, address nativeBridgeAddress, address nativeTokenAddress) view returns(address bridgeTokenAddress)
+func (_ERC20Bridge *ERC20BridgeCaller) NativeToWrappedTokens(opts *bind.CallOpts, nativeBlockchainID [32]byte, nativeBridgeAddress common.Address, nativeTokenAddress common.Address) (common.Address, error) {
 	var out []interface{}
-	err := _ERC20Bridge.contract.Call(opts, &out, "nativeToWrappedTokens", nativeChainID, nativeBridgeAddress, nativeTokenAddress)
+	err := _ERC20Bridge.contract.Call(opts, &out, "nativeToWrappedTokens", nativeBlockchainID, nativeBridgeAddress, nativeTokenAddress)
 
 	if err != nil {
 		return *new(common.Address), err
@@ -509,16 +509,16 @@ func (_ERC20Bridge *ERC20BridgeCaller) NativeToWrappedTokens(opts *bind.CallOpts
 
 // NativeToWrappedTokens is a free data retrieval call binding the contract method 0x65435568.
 //
-// Solidity: function nativeToWrappedTokens(bytes32 nativeChainID, address nativeBridgeAddress, address nativeTokenAddress) view returns(address bridgeTokenAddress)
-func (_ERC20Bridge *ERC20BridgeSession) NativeToWrappedTokens(nativeChainID [32]byte, nativeBridgeAddress common.Address, nativeTokenAddress common.Address) (common.Address, error) {
-	return _ERC20Bridge.Contract.NativeToWrappedTokens(&_ERC20Bridge.CallOpts, nativeChainID, nativeBridgeAddress, nativeTokenAddress)
+// Solidity: function nativeToWrappedTokens(bytes32 nativeBlockchainID, address nativeBridgeAddress, address nativeTokenAddress) view returns(address bridgeTokenAddress)
+func (_ERC20Bridge *ERC20BridgeSession) NativeToWrappedTokens(nativeBlockchainID [32]byte, nativeBridgeAddress common.Address, nativeTokenAddress common.Address) (common.Address, error) {
+	return _ERC20Bridge.Contract.NativeToWrappedTokens(&_ERC20Bridge.CallOpts, nativeBlockchainID, nativeBridgeAddress, nativeTokenAddress)
 }
 
 // NativeToWrappedTokens is a free data retrieval call binding the contract method 0x65435568.
 //
-// Solidity: function nativeToWrappedTokens(bytes32 nativeChainID, address nativeBridgeAddress, address nativeTokenAddress) view returns(address bridgeTokenAddress)
-func (_ERC20Bridge *ERC20BridgeCallerSession) NativeToWrappedTokens(nativeChainID [32]byte, nativeBridgeAddress common.Address, nativeTokenAddress common.Address) (common.Address, error) {
-	return _ERC20Bridge.Contract.NativeToWrappedTokens(&_ERC20Bridge.CallOpts, nativeChainID, nativeBridgeAddress, nativeTokenAddress)
+// Solidity: function nativeToWrappedTokens(bytes32 nativeBlockchainID, address nativeBridgeAddress, address nativeTokenAddress) view returns(address bridgeTokenAddress)
+func (_ERC20Bridge *ERC20BridgeCallerSession) NativeToWrappedTokens(nativeBlockchainID [32]byte, nativeBridgeAddress common.Address, nativeTokenAddress common.Address) (common.Address, error) {
+	return _ERC20Bridge.Contract.NativeToWrappedTokens(&_ERC20Bridge.CallOpts, nativeBlockchainID, nativeBridgeAddress, nativeTokenAddress)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -554,10 +554,10 @@ func (_ERC20Bridge *ERC20BridgeCallerSession) Owner() (common.Address, error) {
 
 // SubmittedBridgeTokenCreations is a free data retrieval call binding the contract method 0x8343f661.
 //
-// Solidity: function submittedBridgeTokenCreations(bytes32 destinationChainID, address destinationBridgeAddress, address nativeTokenContract) view returns(bool tokenCreationSubmitted)
-func (_ERC20Bridge *ERC20BridgeCaller) SubmittedBridgeTokenCreations(opts *bind.CallOpts, destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (bool, error) {
+// Solidity: function submittedBridgeTokenCreations(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeTokenContract) view returns(bool tokenCreationSubmitted)
+func (_ERC20Bridge *ERC20BridgeCaller) SubmittedBridgeTokenCreations(opts *bind.CallOpts, destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (bool, error) {
 	var out []interface{}
-	err := _ERC20Bridge.contract.Call(opts, &out, "submittedBridgeTokenCreations", destinationChainID, destinationBridgeAddress, nativeTokenContract)
+	err := _ERC20Bridge.contract.Call(opts, &out, "submittedBridgeTokenCreations", destinationBlockchainID, destinationBridgeAddress, nativeTokenContract)
 
 	if err != nil {
 		return *new(bool), err
@@ -571,16 +571,16 @@ func (_ERC20Bridge *ERC20BridgeCaller) SubmittedBridgeTokenCreations(opts *bind.
 
 // SubmittedBridgeTokenCreations is a free data retrieval call binding the contract method 0x8343f661.
 //
-// Solidity: function submittedBridgeTokenCreations(bytes32 destinationChainID, address destinationBridgeAddress, address nativeTokenContract) view returns(bool tokenCreationSubmitted)
-func (_ERC20Bridge *ERC20BridgeSession) SubmittedBridgeTokenCreations(destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (bool, error) {
-	return _ERC20Bridge.Contract.SubmittedBridgeTokenCreations(&_ERC20Bridge.CallOpts, destinationChainID, destinationBridgeAddress, nativeTokenContract)
+// Solidity: function submittedBridgeTokenCreations(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeTokenContract) view returns(bool tokenCreationSubmitted)
+func (_ERC20Bridge *ERC20BridgeSession) SubmittedBridgeTokenCreations(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (bool, error) {
+	return _ERC20Bridge.Contract.SubmittedBridgeTokenCreations(&_ERC20Bridge.CallOpts, destinationBlockchainID, destinationBridgeAddress, nativeTokenContract)
 }
 
 // SubmittedBridgeTokenCreations is a free data retrieval call binding the contract method 0x8343f661.
 //
-// Solidity: function submittedBridgeTokenCreations(bytes32 destinationChainID, address destinationBridgeAddress, address nativeTokenContract) view returns(bool tokenCreationSubmitted)
-func (_ERC20Bridge *ERC20BridgeCallerSession) SubmittedBridgeTokenCreations(destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (bool, error) {
-	return _ERC20Bridge.Contract.SubmittedBridgeTokenCreations(&_ERC20Bridge.CallOpts, destinationChainID, destinationBridgeAddress, nativeTokenContract)
+// Solidity: function submittedBridgeTokenCreations(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeTokenContract) view returns(bool tokenCreationSubmitted)
+func (_ERC20Bridge *ERC20BridgeCallerSession) SubmittedBridgeTokenCreations(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeTokenContract common.Address) (bool, error) {
+	return _ERC20Bridge.Contract.SubmittedBridgeTokenCreations(&_ERC20Bridge.CallOpts, destinationBlockchainID, destinationBridgeAddress, nativeTokenContract)
 }
 
 // TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
@@ -647,44 +647,44 @@ func (_ERC20Bridge *ERC20BridgeCallerSession) WrappedTokenContracts(bridgeToken 
 
 // BridgeTokens is a paid mutator transaction binding the contract method 0xc63d2207.
 //
-// Solidity: function bridgeTokens(bytes32 destinationChainID, address destinationBridgeAddress, address tokenContractAddress, address recipient, uint256 totalAmount, uint256 primaryFeeAmount, uint256 secondaryFeeAmount) returns()
-func (_ERC20Bridge *ERC20BridgeTransactor) BridgeTokens(opts *bind.TransactOpts, destinationChainID [32]byte, destinationBridgeAddress common.Address, tokenContractAddress common.Address, recipient common.Address, totalAmount *big.Int, primaryFeeAmount *big.Int, secondaryFeeAmount *big.Int) (*types.Transaction, error) {
-	return _ERC20Bridge.contract.Transact(opts, "bridgeTokens", destinationChainID, destinationBridgeAddress, tokenContractAddress, recipient, totalAmount, primaryFeeAmount, secondaryFeeAmount)
+// Solidity: function bridgeTokens(bytes32 destinationBlockchainID, address destinationBridgeAddress, address tokenContractAddress, address recipient, uint256 totalAmount, uint256 primaryFeeAmount, uint256 secondaryFeeAmount) returns()
+func (_ERC20Bridge *ERC20BridgeTransactor) BridgeTokens(opts *bind.TransactOpts, destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, tokenContractAddress common.Address, recipient common.Address, totalAmount *big.Int, primaryFeeAmount *big.Int, secondaryFeeAmount *big.Int) (*types.Transaction, error) {
+	return _ERC20Bridge.contract.Transact(opts, "bridgeTokens", destinationBlockchainID, destinationBridgeAddress, tokenContractAddress, recipient, totalAmount, primaryFeeAmount, secondaryFeeAmount)
 }
 
 // BridgeTokens is a paid mutator transaction binding the contract method 0xc63d2207.
 //
-// Solidity: function bridgeTokens(bytes32 destinationChainID, address destinationBridgeAddress, address tokenContractAddress, address recipient, uint256 totalAmount, uint256 primaryFeeAmount, uint256 secondaryFeeAmount) returns()
-func (_ERC20Bridge *ERC20BridgeSession) BridgeTokens(destinationChainID [32]byte, destinationBridgeAddress common.Address, tokenContractAddress common.Address, recipient common.Address, totalAmount *big.Int, primaryFeeAmount *big.Int, secondaryFeeAmount *big.Int) (*types.Transaction, error) {
-	return _ERC20Bridge.Contract.BridgeTokens(&_ERC20Bridge.TransactOpts, destinationChainID, destinationBridgeAddress, tokenContractAddress, recipient, totalAmount, primaryFeeAmount, secondaryFeeAmount)
+// Solidity: function bridgeTokens(bytes32 destinationBlockchainID, address destinationBridgeAddress, address tokenContractAddress, address recipient, uint256 totalAmount, uint256 primaryFeeAmount, uint256 secondaryFeeAmount) returns()
+func (_ERC20Bridge *ERC20BridgeSession) BridgeTokens(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, tokenContractAddress common.Address, recipient common.Address, totalAmount *big.Int, primaryFeeAmount *big.Int, secondaryFeeAmount *big.Int) (*types.Transaction, error) {
+	return _ERC20Bridge.Contract.BridgeTokens(&_ERC20Bridge.TransactOpts, destinationBlockchainID, destinationBridgeAddress, tokenContractAddress, recipient, totalAmount, primaryFeeAmount, secondaryFeeAmount)
 }
 
 // BridgeTokens is a paid mutator transaction binding the contract method 0xc63d2207.
 //
-// Solidity: function bridgeTokens(bytes32 destinationChainID, address destinationBridgeAddress, address tokenContractAddress, address recipient, uint256 totalAmount, uint256 primaryFeeAmount, uint256 secondaryFeeAmount) returns()
-func (_ERC20Bridge *ERC20BridgeTransactorSession) BridgeTokens(destinationChainID [32]byte, destinationBridgeAddress common.Address, tokenContractAddress common.Address, recipient common.Address, totalAmount *big.Int, primaryFeeAmount *big.Int, secondaryFeeAmount *big.Int) (*types.Transaction, error) {
-	return _ERC20Bridge.Contract.BridgeTokens(&_ERC20Bridge.TransactOpts, destinationChainID, destinationBridgeAddress, tokenContractAddress, recipient, totalAmount, primaryFeeAmount, secondaryFeeAmount)
+// Solidity: function bridgeTokens(bytes32 destinationBlockchainID, address destinationBridgeAddress, address tokenContractAddress, address recipient, uint256 totalAmount, uint256 primaryFeeAmount, uint256 secondaryFeeAmount) returns()
+func (_ERC20Bridge *ERC20BridgeTransactorSession) BridgeTokens(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, tokenContractAddress common.Address, recipient common.Address, totalAmount *big.Int, primaryFeeAmount *big.Int, secondaryFeeAmount *big.Int) (*types.Transaction, error) {
+	return _ERC20Bridge.Contract.BridgeTokens(&_ERC20Bridge.TransactOpts, destinationBlockchainID, destinationBridgeAddress, tokenContractAddress, recipient, totalAmount, primaryFeeAmount, secondaryFeeAmount)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 nativeChainID, address nativeBridgeAddress, bytes message) returns()
-func (_ERC20Bridge *ERC20BridgeTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, nativeChainID [32]byte, nativeBridgeAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _ERC20Bridge.contract.Transact(opts, "receiveTeleporterMessage", nativeChainID, nativeBridgeAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 nativeBlockchainID, address nativeBridgeAddress, bytes message) returns()
+func (_ERC20Bridge *ERC20BridgeTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, nativeBlockchainID [32]byte, nativeBridgeAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _ERC20Bridge.contract.Transact(opts, "receiveTeleporterMessage", nativeBlockchainID, nativeBridgeAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 nativeChainID, address nativeBridgeAddress, bytes message) returns()
-func (_ERC20Bridge *ERC20BridgeSession) ReceiveTeleporterMessage(nativeChainID [32]byte, nativeBridgeAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _ERC20Bridge.Contract.ReceiveTeleporterMessage(&_ERC20Bridge.TransactOpts, nativeChainID, nativeBridgeAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 nativeBlockchainID, address nativeBridgeAddress, bytes message) returns()
+func (_ERC20Bridge *ERC20BridgeSession) ReceiveTeleporterMessage(nativeBlockchainID [32]byte, nativeBridgeAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _ERC20Bridge.Contract.ReceiveTeleporterMessage(&_ERC20Bridge.TransactOpts, nativeBlockchainID, nativeBridgeAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 nativeChainID, address nativeBridgeAddress, bytes message) returns()
-func (_ERC20Bridge *ERC20BridgeTransactorSession) ReceiveTeleporterMessage(nativeChainID [32]byte, nativeBridgeAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _ERC20Bridge.Contract.ReceiveTeleporterMessage(&_ERC20Bridge.TransactOpts, nativeChainID, nativeBridgeAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 nativeBlockchainID, address nativeBridgeAddress, bytes message) returns()
+func (_ERC20Bridge *ERC20BridgeTransactorSession) ReceiveTeleporterMessage(nativeBlockchainID [32]byte, nativeBridgeAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _ERC20Bridge.Contract.ReceiveTeleporterMessage(&_ERC20Bridge.TransactOpts, nativeBlockchainID, nativeBridgeAddress, message)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
@@ -710,23 +710,23 @@ func (_ERC20Bridge *ERC20BridgeTransactorSession) RenounceOwnership() (*types.Tr
 
 // SubmitCreateBridgeToken is a paid mutator transaction binding the contract method 0x6c7e40d1.
 //
-// Solidity: function submitCreateBridgeToken(bytes32 destinationChainID, address destinationBridgeAddress, address nativeToken, address messageFeeAsset, uint256 messageFeeAmount) returns()
-func (_ERC20Bridge *ERC20BridgeTransactor) SubmitCreateBridgeToken(opts *bind.TransactOpts, destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeToken common.Address, messageFeeAsset common.Address, messageFeeAmount *big.Int) (*types.Transaction, error) {
-	return _ERC20Bridge.contract.Transact(opts, "submitCreateBridgeToken", destinationChainID, destinationBridgeAddress, nativeToken, messageFeeAsset, messageFeeAmount)
+// Solidity: function submitCreateBridgeToken(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeToken, address messageFeeAsset, uint256 messageFeeAmount) returns()
+func (_ERC20Bridge *ERC20BridgeTransactor) SubmitCreateBridgeToken(opts *bind.TransactOpts, destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeToken common.Address, messageFeeAsset common.Address, messageFeeAmount *big.Int) (*types.Transaction, error) {
+	return _ERC20Bridge.contract.Transact(opts, "submitCreateBridgeToken", destinationBlockchainID, destinationBridgeAddress, nativeToken, messageFeeAsset, messageFeeAmount)
 }
 
 // SubmitCreateBridgeToken is a paid mutator transaction binding the contract method 0x6c7e40d1.
 //
-// Solidity: function submitCreateBridgeToken(bytes32 destinationChainID, address destinationBridgeAddress, address nativeToken, address messageFeeAsset, uint256 messageFeeAmount) returns()
-func (_ERC20Bridge *ERC20BridgeSession) SubmitCreateBridgeToken(destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeToken common.Address, messageFeeAsset common.Address, messageFeeAmount *big.Int) (*types.Transaction, error) {
-	return _ERC20Bridge.Contract.SubmitCreateBridgeToken(&_ERC20Bridge.TransactOpts, destinationChainID, destinationBridgeAddress, nativeToken, messageFeeAsset, messageFeeAmount)
+// Solidity: function submitCreateBridgeToken(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeToken, address messageFeeAsset, uint256 messageFeeAmount) returns()
+func (_ERC20Bridge *ERC20BridgeSession) SubmitCreateBridgeToken(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeToken common.Address, messageFeeAsset common.Address, messageFeeAmount *big.Int) (*types.Transaction, error) {
+	return _ERC20Bridge.Contract.SubmitCreateBridgeToken(&_ERC20Bridge.TransactOpts, destinationBlockchainID, destinationBridgeAddress, nativeToken, messageFeeAsset, messageFeeAmount)
 }
 
 // SubmitCreateBridgeToken is a paid mutator transaction binding the contract method 0x6c7e40d1.
 //
-// Solidity: function submitCreateBridgeToken(bytes32 destinationChainID, address destinationBridgeAddress, address nativeToken, address messageFeeAsset, uint256 messageFeeAmount) returns()
-func (_ERC20Bridge *ERC20BridgeTransactorSession) SubmitCreateBridgeToken(destinationChainID [32]byte, destinationBridgeAddress common.Address, nativeToken common.Address, messageFeeAsset common.Address, messageFeeAmount *big.Int) (*types.Transaction, error) {
-	return _ERC20Bridge.Contract.SubmitCreateBridgeToken(&_ERC20Bridge.TransactOpts, destinationChainID, destinationBridgeAddress, nativeToken, messageFeeAsset, messageFeeAmount)
+// Solidity: function submitCreateBridgeToken(bytes32 destinationBlockchainID, address destinationBridgeAddress, address nativeToken, address messageFeeAsset, uint256 messageFeeAmount) returns()
+func (_ERC20Bridge *ERC20BridgeTransactorSession) SubmitCreateBridgeToken(destinationBlockchainID [32]byte, destinationBridgeAddress common.Address, nativeToken common.Address, messageFeeAsset common.Address, messageFeeAmount *big.Int) (*types.Transaction, error) {
+	return _ERC20Bridge.Contract.SubmitCreateBridgeToken(&_ERC20Bridge.TransactOpts, destinationBlockchainID, destinationBridgeAddress, nativeToken, messageFeeAsset, messageFeeAmount)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
@@ -841,7 +841,7 @@ func (it *ERC20BridgeBridgeTokensIterator) Close() error {
 // ERC20BridgeBridgeTokens represents a BridgeTokens event raised by the ERC20Bridge contract.
 type ERC20BridgeBridgeTokens struct {
 	TokenContractAddress     common.Address
-	DestinationChainID       [32]byte
+	DestinationBlockchainID  [32]byte
 	TeleporterMessageID      *big.Int
 	DestinationBridgeAddress common.Address
 	Recipient                common.Address
@@ -851,23 +851,23 @@ type ERC20BridgeBridgeTokens struct {
 
 // FilterBridgeTokens is a free log retrieval operation binding the contract event 0x97935c4470efae40c8440c3abfe968a5512232dd375cc974e712f487c2b99c31.
 //
-// Solidity: event BridgeTokens(address indexed tokenContractAddress, bytes32 indexed destinationChainID, uint256 indexed teleporterMessageID, address destinationBridgeAddress, address recipient, uint256 amount)
-func (_ERC20Bridge *ERC20BridgeFilterer) FilterBridgeTokens(opts *bind.FilterOpts, tokenContractAddress []common.Address, destinationChainID [][32]byte, teleporterMessageID []*big.Int) (*ERC20BridgeBridgeTokensIterator, error) {
+// Solidity: event BridgeTokens(address indexed tokenContractAddress, bytes32 indexed destinationBlockchainID, uint256 indexed teleporterMessageID, address destinationBridgeAddress, address recipient, uint256 amount)
+func (_ERC20Bridge *ERC20BridgeFilterer) FilterBridgeTokens(opts *bind.FilterOpts, tokenContractAddress []common.Address, destinationBlockchainID [][32]byte, teleporterMessageID []*big.Int) (*ERC20BridgeBridgeTokensIterator, error) {
 
 	var tokenContractAddressRule []interface{}
 	for _, tokenContractAddressItem := range tokenContractAddress {
 		tokenContractAddressRule = append(tokenContractAddressRule, tokenContractAddressItem)
 	}
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var teleporterMessageIDRule []interface{}
 	for _, teleporterMessageIDItem := range teleporterMessageID {
 		teleporterMessageIDRule = append(teleporterMessageIDRule, teleporterMessageIDItem)
 	}
 
-	logs, sub, err := _ERC20Bridge.contract.FilterLogs(opts, "BridgeTokens", tokenContractAddressRule, destinationChainIDRule, teleporterMessageIDRule)
+	logs, sub, err := _ERC20Bridge.contract.FilterLogs(opts, "BridgeTokens", tokenContractAddressRule, destinationBlockchainIDRule, teleporterMessageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -876,23 +876,23 @@ func (_ERC20Bridge *ERC20BridgeFilterer) FilterBridgeTokens(opts *bind.FilterOpt
 
 // WatchBridgeTokens is a free log subscription operation binding the contract event 0x97935c4470efae40c8440c3abfe968a5512232dd375cc974e712f487c2b99c31.
 //
-// Solidity: event BridgeTokens(address indexed tokenContractAddress, bytes32 indexed destinationChainID, uint256 indexed teleporterMessageID, address destinationBridgeAddress, address recipient, uint256 amount)
-func (_ERC20Bridge *ERC20BridgeFilterer) WatchBridgeTokens(opts *bind.WatchOpts, sink chan<- *ERC20BridgeBridgeTokens, tokenContractAddress []common.Address, destinationChainID [][32]byte, teleporterMessageID []*big.Int) (event.Subscription, error) {
+// Solidity: event BridgeTokens(address indexed tokenContractAddress, bytes32 indexed destinationBlockchainID, uint256 indexed teleporterMessageID, address destinationBridgeAddress, address recipient, uint256 amount)
+func (_ERC20Bridge *ERC20BridgeFilterer) WatchBridgeTokens(opts *bind.WatchOpts, sink chan<- *ERC20BridgeBridgeTokens, tokenContractAddress []common.Address, destinationBlockchainID [][32]byte, teleporterMessageID []*big.Int) (event.Subscription, error) {
 
 	var tokenContractAddressRule []interface{}
 	for _, tokenContractAddressItem := range tokenContractAddress {
 		tokenContractAddressRule = append(tokenContractAddressRule, tokenContractAddressItem)
 	}
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var teleporterMessageIDRule []interface{}
 	for _, teleporterMessageIDItem := range teleporterMessageID {
 		teleporterMessageIDRule = append(teleporterMessageIDRule, teleporterMessageIDItem)
 	}
 
-	logs, sub, err := _ERC20Bridge.contract.WatchLogs(opts, "BridgeTokens", tokenContractAddressRule, destinationChainIDRule, teleporterMessageIDRule)
+	logs, sub, err := _ERC20Bridge.contract.WatchLogs(opts, "BridgeTokens", tokenContractAddressRule, destinationBlockchainIDRule, teleporterMessageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -926,7 +926,7 @@ func (_ERC20Bridge *ERC20BridgeFilterer) WatchBridgeTokens(opts *bind.WatchOpts,
 
 // ParseBridgeTokens is a log parse operation binding the contract event 0x97935c4470efae40c8440c3abfe968a5512232dd375cc974e712f487c2b99c31.
 //
-// Solidity: event BridgeTokens(address indexed tokenContractAddress, bytes32 indexed destinationChainID, uint256 indexed teleporterMessageID, address destinationBridgeAddress, address recipient, uint256 amount)
+// Solidity: event BridgeTokens(address indexed tokenContractAddress, bytes32 indexed destinationBlockchainID, uint256 indexed teleporterMessageID, address destinationBridgeAddress, address recipient, uint256 amount)
 func (_ERC20Bridge *ERC20BridgeFilterer) ParseBridgeTokens(log types.Log) (*ERC20BridgeBridgeTokens, error) {
 	event := new(ERC20BridgeBridgeTokens)
 	if err := _ERC20Bridge.contract.UnpackLog(event, "BridgeTokens", log); err != nil {
@@ -1005,7 +1005,7 @@ func (it *ERC20BridgeCreateBridgeTokenIterator) Close() error {
 
 // ERC20BridgeCreateBridgeToken represents a CreateBridgeToken event raised by the ERC20Bridge contract.
 type ERC20BridgeCreateBridgeToken struct {
-	NativeChainID         [32]byte
+	NativeBlockchainID    [32]byte
 	NativeBridgeAddress   common.Address
 	NativeContractAddress common.Address
 	BridgeTokenAddress    common.Address
@@ -1014,12 +1014,12 @@ type ERC20BridgeCreateBridgeToken struct {
 
 // FilterCreateBridgeToken is a free log retrieval operation binding the contract event 0xe1c61a845f79534e11924517ddbedc668d0c20e467eafb4d3bd2858e2815f3b5.
 //
-// Solidity: event CreateBridgeToken(bytes32 indexed nativeChainID, address indexed nativeBridgeAddress, address indexed nativeContractAddress, address bridgeTokenAddress)
-func (_ERC20Bridge *ERC20BridgeFilterer) FilterCreateBridgeToken(opts *bind.FilterOpts, nativeChainID [][32]byte, nativeBridgeAddress []common.Address, nativeContractAddress []common.Address) (*ERC20BridgeCreateBridgeTokenIterator, error) {
+// Solidity: event CreateBridgeToken(bytes32 indexed nativeBlockchainID, address indexed nativeBridgeAddress, address indexed nativeContractAddress, address bridgeTokenAddress)
+func (_ERC20Bridge *ERC20BridgeFilterer) FilterCreateBridgeToken(opts *bind.FilterOpts, nativeBlockchainID [][32]byte, nativeBridgeAddress []common.Address, nativeContractAddress []common.Address) (*ERC20BridgeCreateBridgeTokenIterator, error) {
 
-	var nativeChainIDRule []interface{}
-	for _, nativeChainIDItem := range nativeChainID {
-		nativeChainIDRule = append(nativeChainIDRule, nativeChainIDItem)
+	var nativeBlockchainIDRule []interface{}
+	for _, nativeBlockchainIDItem := range nativeBlockchainID {
+		nativeBlockchainIDRule = append(nativeBlockchainIDRule, nativeBlockchainIDItem)
 	}
 	var nativeBridgeAddressRule []interface{}
 	for _, nativeBridgeAddressItem := range nativeBridgeAddress {
@@ -1030,7 +1030,7 @@ func (_ERC20Bridge *ERC20BridgeFilterer) FilterCreateBridgeToken(opts *bind.Filt
 		nativeContractAddressRule = append(nativeContractAddressRule, nativeContractAddressItem)
 	}
 
-	logs, sub, err := _ERC20Bridge.contract.FilterLogs(opts, "CreateBridgeToken", nativeChainIDRule, nativeBridgeAddressRule, nativeContractAddressRule)
+	logs, sub, err := _ERC20Bridge.contract.FilterLogs(opts, "CreateBridgeToken", nativeBlockchainIDRule, nativeBridgeAddressRule, nativeContractAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1039,12 +1039,12 @@ func (_ERC20Bridge *ERC20BridgeFilterer) FilterCreateBridgeToken(opts *bind.Filt
 
 // WatchCreateBridgeToken is a free log subscription operation binding the contract event 0xe1c61a845f79534e11924517ddbedc668d0c20e467eafb4d3bd2858e2815f3b5.
 //
-// Solidity: event CreateBridgeToken(bytes32 indexed nativeChainID, address indexed nativeBridgeAddress, address indexed nativeContractAddress, address bridgeTokenAddress)
-func (_ERC20Bridge *ERC20BridgeFilterer) WatchCreateBridgeToken(opts *bind.WatchOpts, sink chan<- *ERC20BridgeCreateBridgeToken, nativeChainID [][32]byte, nativeBridgeAddress []common.Address, nativeContractAddress []common.Address) (event.Subscription, error) {
+// Solidity: event CreateBridgeToken(bytes32 indexed nativeBlockchainID, address indexed nativeBridgeAddress, address indexed nativeContractAddress, address bridgeTokenAddress)
+func (_ERC20Bridge *ERC20BridgeFilterer) WatchCreateBridgeToken(opts *bind.WatchOpts, sink chan<- *ERC20BridgeCreateBridgeToken, nativeBlockchainID [][32]byte, nativeBridgeAddress []common.Address, nativeContractAddress []common.Address) (event.Subscription, error) {
 
-	var nativeChainIDRule []interface{}
-	for _, nativeChainIDItem := range nativeChainID {
-		nativeChainIDRule = append(nativeChainIDRule, nativeChainIDItem)
+	var nativeBlockchainIDRule []interface{}
+	for _, nativeBlockchainIDItem := range nativeBlockchainID {
+		nativeBlockchainIDRule = append(nativeBlockchainIDRule, nativeBlockchainIDItem)
 	}
 	var nativeBridgeAddressRule []interface{}
 	for _, nativeBridgeAddressItem := range nativeBridgeAddress {
@@ -1055,7 +1055,7 @@ func (_ERC20Bridge *ERC20BridgeFilterer) WatchCreateBridgeToken(opts *bind.Watch
 		nativeContractAddressRule = append(nativeContractAddressRule, nativeContractAddressItem)
 	}
 
-	logs, sub, err := _ERC20Bridge.contract.WatchLogs(opts, "CreateBridgeToken", nativeChainIDRule, nativeBridgeAddressRule, nativeContractAddressRule)
+	logs, sub, err := _ERC20Bridge.contract.WatchLogs(opts, "CreateBridgeToken", nativeBlockchainIDRule, nativeBridgeAddressRule, nativeContractAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1089,7 +1089,7 @@ func (_ERC20Bridge *ERC20BridgeFilterer) WatchCreateBridgeToken(opts *bind.Watch
 
 // ParseCreateBridgeToken is a log parse operation binding the contract event 0xe1c61a845f79534e11924517ddbedc668d0c20e467eafb4d3bd2858e2815f3b5.
 //
-// Solidity: event CreateBridgeToken(bytes32 indexed nativeChainID, address indexed nativeBridgeAddress, address indexed nativeContractAddress, address bridgeTokenAddress)
+// Solidity: event CreateBridgeToken(bytes32 indexed nativeBlockchainID, address indexed nativeBridgeAddress, address indexed nativeContractAddress, address bridgeTokenAddress)
 func (_ERC20Bridge *ERC20BridgeFilterer) ParseCreateBridgeToken(log types.Log) (*ERC20BridgeCreateBridgeToken, error) {
 	event := new(ERC20BridgeCreateBridgeToken)
 	if err := _ERC20Bridge.contract.UnpackLog(event, "CreateBridgeToken", log); err != nil {
@@ -1620,7 +1620,7 @@ func (it *ERC20BridgeSubmitCreateBridgeTokenIterator) Close() error {
 
 // ERC20BridgeSubmitCreateBridgeToken represents a SubmitCreateBridgeToken event raised by the ERC20Bridge contract.
 type ERC20BridgeSubmitCreateBridgeToken struct {
-	DestinationChainID       [32]byte
+	DestinationBlockchainID  [32]byte
 	DestinationBridgeAddress common.Address
 	NativeContractAddress    common.Address
 	TeleporterMessageID      *big.Int
@@ -1629,12 +1629,12 @@ type ERC20BridgeSubmitCreateBridgeToken struct {
 
 // FilterSubmitCreateBridgeToken is a free log retrieval operation binding the contract event 0x110b902745a3d7d6b66732479f01de654a3bc6e501be7c8ba2c3a6f9868cb539.
 //
-// Solidity: event SubmitCreateBridgeToken(bytes32 indexed destinationChainID, address indexed destinationBridgeAddress, address indexed nativeContractAddress, uint256 teleporterMessageID)
-func (_ERC20Bridge *ERC20BridgeFilterer) FilterSubmitCreateBridgeToken(opts *bind.FilterOpts, destinationChainID [][32]byte, destinationBridgeAddress []common.Address, nativeContractAddress []common.Address) (*ERC20BridgeSubmitCreateBridgeTokenIterator, error) {
+// Solidity: event SubmitCreateBridgeToken(bytes32 indexed destinationBlockchainID, address indexed destinationBridgeAddress, address indexed nativeContractAddress, uint256 teleporterMessageID)
+func (_ERC20Bridge *ERC20BridgeFilterer) FilterSubmitCreateBridgeToken(opts *bind.FilterOpts, destinationBlockchainID [][32]byte, destinationBridgeAddress []common.Address, nativeContractAddress []common.Address) (*ERC20BridgeSubmitCreateBridgeTokenIterator, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var destinationBridgeAddressRule []interface{}
 	for _, destinationBridgeAddressItem := range destinationBridgeAddress {
@@ -1645,7 +1645,7 @@ func (_ERC20Bridge *ERC20BridgeFilterer) FilterSubmitCreateBridgeToken(opts *bin
 		nativeContractAddressRule = append(nativeContractAddressRule, nativeContractAddressItem)
 	}
 
-	logs, sub, err := _ERC20Bridge.contract.FilterLogs(opts, "SubmitCreateBridgeToken", destinationChainIDRule, destinationBridgeAddressRule, nativeContractAddressRule)
+	logs, sub, err := _ERC20Bridge.contract.FilterLogs(opts, "SubmitCreateBridgeToken", destinationBlockchainIDRule, destinationBridgeAddressRule, nativeContractAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1654,12 +1654,12 @@ func (_ERC20Bridge *ERC20BridgeFilterer) FilterSubmitCreateBridgeToken(opts *bin
 
 // WatchSubmitCreateBridgeToken is a free log subscription operation binding the contract event 0x110b902745a3d7d6b66732479f01de654a3bc6e501be7c8ba2c3a6f9868cb539.
 //
-// Solidity: event SubmitCreateBridgeToken(bytes32 indexed destinationChainID, address indexed destinationBridgeAddress, address indexed nativeContractAddress, uint256 teleporterMessageID)
-func (_ERC20Bridge *ERC20BridgeFilterer) WatchSubmitCreateBridgeToken(opts *bind.WatchOpts, sink chan<- *ERC20BridgeSubmitCreateBridgeToken, destinationChainID [][32]byte, destinationBridgeAddress []common.Address, nativeContractAddress []common.Address) (event.Subscription, error) {
+// Solidity: event SubmitCreateBridgeToken(bytes32 indexed destinationBlockchainID, address indexed destinationBridgeAddress, address indexed nativeContractAddress, uint256 teleporterMessageID)
+func (_ERC20Bridge *ERC20BridgeFilterer) WatchSubmitCreateBridgeToken(opts *bind.WatchOpts, sink chan<- *ERC20BridgeSubmitCreateBridgeToken, destinationBlockchainID [][32]byte, destinationBridgeAddress []common.Address, nativeContractAddress []common.Address) (event.Subscription, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var destinationBridgeAddressRule []interface{}
 	for _, destinationBridgeAddressItem := range destinationBridgeAddress {
@@ -1670,7 +1670,7 @@ func (_ERC20Bridge *ERC20BridgeFilterer) WatchSubmitCreateBridgeToken(opts *bind
 		nativeContractAddressRule = append(nativeContractAddressRule, nativeContractAddressItem)
 	}
 
-	logs, sub, err := _ERC20Bridge.contract.WatchLogs(opts, "SubmitCreateBridgeToken", destinationChainIDRule, destinationBridgeAddressRule, nativeContractAddressRule)
+	logs, sub, err := _ERC20Bridge.contract.WatchLogs(opts, "SubmitCreateBridgeToken", destinationBlockchainIDRule, destinationBridgeAddressRule, nativeContractAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1704,7 +1704,7 @@ func (_ERC20Bridge *ERC20BridgeFilterer) WatchSubmitCreateBridgeToken(opts *bind
 
 // ParseSubmitCreateBridgeToken is a log parse operation binding the contract event 0x110b902745a3d7d6b66732479f01de654a3bc6e501be7c8ba2c3a6f9868cb539.
 //
-// Solidity: event SubmitCreateBridgeToken(bytes32 indexed destinationChainID, address indexed destinationBridgeAddress, address indexed nativeContractAddress, uint256 teleporterMessageID)
+// Solidity: event SubmitCreateBridgeToken(bytes32 indexed destinationBlockchainID, address indexed destinationBridgeAddress, address indexed nativeContractAddress, uint256 teleporterMessageID)
 func (_ERC20Bridge *ERC20BridgeFilterer) ParseSubmitCreateBridgeToken(log types.Log) (*ERC20BridgeSubmitCreateBridgeToken, error) {
 	event := new(ERC20BridgeSubmitCreateBridgeToken)
 	if err := _ERC20Bridge.contract.UnpackLog(event, "SubmitCreateBridgeToken", log); err != nil {

@@ -39,7 +39,7 @@ type TeleporterFeeInfo struct {
 type TeleporterMessage struct {
 	MessageID               *big.Int
 	SenderAddress           common.Address
-	DestinationChainID      [32]byte
+	DestinationBlockchainID [32]byte
 	DestinationAddress      common.Address
 	RequiredGasLimit        *big.Int
 	AllowedRelayerAddresses []common.Address
@@ -49,7 +49,7 @@ type TeleporterMessage struct {
 
 // TeleporterMessageInput is an auto generated low-level Go binding around an user-defined struct.
 type TeleporterMessageInput struct {
-	DestinationChainID      [32]byte
+	DestinationBlockchainID [32]byte
 	DestinationAddress      common.Address
 	FeeInfo                 TeleporterFeeInfo
 	RequiredGasLimit        *big.Int
@@ -65,7 +65,7 @@ type TeleporterMessageReceipt struct {
 
 // TeleporterMessengerMetaData contains all meta data concerning the TeleporterMessenger contract.
 var TeleporterMessengerMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"updatedFeeInfo\",\"type\":\"tuple\"}],\"name\":\"AddFeeAmount\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"MessageExecuted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"indexed\":false,\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"}],\"name\":\"MessageExecutionFailed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"deliverer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"rewardRedeemer\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"indexed\":false,\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"}],\"name\":\"ReceiveCrossChainMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"redeemer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"RelayerRewardsRedeemed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"indexed\":false,\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"}],\"name\":\"SendCrossChainMessage\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractIWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"additionalFeeAmount\",\"type\":\"uint256\"}],\"name\":\"addFeeAmount\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"blockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"relayer\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeAsset\",\"type\":\"address\"}],\"name\":\"checkRelayerRewardAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"getFeeInfo\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"chainID\",\"type\":\"bytes32\"}],\"name\":\"getNextMessageID\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"chainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getReceiptAtIndex\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"chainID\",\"type\":\"bytes32\"}],\"name\":\"getReceiptQueueSize\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"getRelayerRewardAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"}],\"name\":\"latestMessageIDs\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"messageReceived\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceChainID\",\"type\":\"bytes32\"}],\"name\":\"receiptQueues\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"first\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"last\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"name\":\"receiveCrossChainMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceChainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"receivedFailedMessageHashes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"feeAsset\",\"type\":\"address\"}],\"name\":\"redeemRelayerRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"}],\"name\":\"retryMessageExecution\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"}],\"name\":\"retrySendCrossChainMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"internalType\":\"structTeleporterMessageInput\",\"name\":\"messageInput\",\"type\":\"tuple\"}],\"name\":\"sendCrossChainMessage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[]\",\"name\":\"messageIDs\",\"type\":\"uint256[]\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"sendSpecifiedReceipts\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"sentMessageInfo\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"updatedFeeInfo\",\"type\":\"tuple\"}],\"name\":\"AddFeeAmount\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"MessageExecuted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"indexed\":false,\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"}],\"name\":\"MessageExecutionFailed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"deliverer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"rewardRedeemer\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"indexed\":false,\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"}],\"name\":\"ReceiveCrossChainMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"redeemer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"RelayerRewardsRedeemed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"indexed\":false,\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"}],\"name\":\"SendCrossChainMessage\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"WARP_MESSENGER\",\"outputs\":[{\"internalType\":\"contractIWarpMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"additionalFeeAmount\",\"type\":\"uint256\"}],\"name\":\"addFeeAmount\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"blockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"relayer\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeAsset\",\"type\":\"address\"}],\"name\":\"checkRelayerRewardAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"getFeeInfo\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"externalBlockchainID\",\"type\":\"bytes32\"}],\"name\":\"getNextMessageID\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"externalBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"getReceiptAtIndex\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"externalBlockchainID\",\"type\":\"bytes32\"}],\"name\":\"getReceiptQueueSize\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"getRelayerRewardAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"}],\"name\":\"latestMessageIDs\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"messageReceived\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID\",\"type\":\"bytes32\"}],\"name\":\"receiptQueues\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"first\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"last\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"messageIndex\",\"type\":\"uint32\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"name\":\"receiveCrossChainMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"receivedFailedMessageHashes\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"feeAsset\",\"type\":\"address\"}],\"name\":\"redeemRelayerRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"}],\"name\":\"retryMessageExecution\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"receivedMessageID\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayerRewardAddress\",\"type\":\"address\"}],\"internalType\":\"structTeleporterMessageReceipt[]\",\"name\":\"receipts\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"internalType\":\"structTeleporterMessage\",\"name\":\"message\",\"type\":\"tuple\"}],\"name\":\"retrySendCrossChainMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"internalType\":\"structTeleporterMessageInput\",\"name\":\"messageInput\",\"type\":\"tuple\"}],\"name\":\"sendCrossChainMessage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[]\",\"name\":\"messageIDs\",\"type\":\"uint256[]\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"sendSpecifiedReceipts\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"messageID\",\"type\":\"uint256\"}],\"name\":\"sentMessageInfo\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // TeleporterMessengerABI is the input ABI used to generate the binding from.
@@ -309,10 +309,10 @@ func (_TeleporterMessenger *TeleporterMessengerCallerSession) CheckRelayerReward
 
 // GetFeeInfo is a free data retrieval call binding the contract method 0x82f2c43a.
 //
-// Solidity: function getFeeInfo(bytes32 destinationChainID, uint256 messageID) view returns(address, uint256)
-func (_TeleporterMessenger *TeleporterMessengerCaller) GetFeeInfo(opts *bind.CallOpts, destinationChainID [32]byte, messageID *big.Int) (common.Address, *big.Int, error) {
+// Solidity: function getFeeInfo(bytes32 destinationBlockchainID, uint256 messageID) view returns(address, uint256)
+func (_TeleporterMessenger *TeleporterMessengerCaller) GetFeeInfo(opts *bind.CallOpts, destinationBlockchainID [32]byte, messageID *big.Int) (common.Address, *big.Int, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "getFeeInfo", destinationChainID, messageID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "getFeeInfo", destinationBlockchainID, messageID)
 
 	if err != nil {
 		return *new(common.Address), *new(*big.Int), err
@@ -327,24 +327,24 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) GetFeeInfo(opts *bind.Cal
 
 // GetFeeInfo is a free data retrieval call binding the contract method 0x82f2c43a.
 //
-// Solidity: function getFeeInfo(bytes32 destinationChainID, uint256 messageID) view returns(address, uint256)
-func (_TeleporterMessenger *TeleporterMessengerSession) GetFeeInfo(destinationChainID [32]byte, messageID *big.Int) (common.Address, *big.Int, error) {
-	return _TeleporterMessenger.Contract.GetFeeInfo(&_TeleporterMessenger.CallOpts, destinationChainID, messageID)
+// Solidity: function getFeeInfo(bytes32 destinationBlockchainID, uint256 messageID) view returns(address, uint256)
+func (_TeleporterMessenger *TeleporterMessengerSession) GetFeeInfo(destinationBlockchainID [32]byte, messageID *big.Int) (common.Address, *big.Int, error) {
+	return _TeleporterMessenger.Contract.GetFeeInfo(&_TeleporterMessenger.CallOpts, destinationBlockchainID, messageID)
 }
 
 // GetFeeInfo is a free data retrieval call binding the contract method 0x82f2c43a.
 //
-// Solidity: function getFeeInfo(bytes32 destinationChainID, uint256 messageID) view returns(address, uint256)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetFeeInfo(destinationChainID [32]byte, messageID *big.Int) (common.Address, *big.Int, error) {
-	return _TeleporterMessenger.Contract.GetFeeInfo(&_TeleporterMessenger.CallOpts, destinationChainID, messageID)
+// Solidity: function getFeeInfo(bytes32 destinationBlockchainID, uint256 messageID) view returns(address, uint256)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetFeeInfo(destinationBlockchainID [32]byte, messageID *big.Int) (common.Address, *big.Int, error) {
+	return _TeleporterMessenger.Contract.GetFeeInfo(&_TeleporterMessenger.CallOpts, destinationBlockchainID, messageID)
 }
 
 // GetMessageHash is a free data retrieval call binding the contract method 0x220c9568.
 //
-// Solidity: function getMessageHash(bytes32 destinationChainID, uint256 messageID) view returns(bytes32)
-func (_TeleporterMessenger *TeleporterMessengerCaller) GetMessageHash(opts *bind.CallOpts, destinationChainID [32]byte, messageID *big.Int) ([32]byte, error) {
+// Solidity: function getMessageHash(bytes32 destinationBlockchainID, uint256 messageID) view returns(bytes32)
+func (_TeleporterMessenger *TeleporterMessengerCaller) GetMessageHash(opts *bind.CallOpts, destinationBlockchainID [32]byte, messageID *big.Int) ([32]byte, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "getMessageHash", destinationChainID, messageID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "getMessageHash", destinationBlockchainID, messageID)
 
 	if err != nil {
 		return *new([32]byte), err
@@ -358,24 +358,24 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) GetMessageHash(opts *bind
 
 // GetMessageHash is a free data retrieval call binding the contract method 0x220c9568.
 //
-// Solidity: function getMessageHash(bytes32 destinationChainID, uint256 messageID) view returns(bytes32)
-func (_TeleporterMessenger *TeleporterMessengerSession) GetMessageHash(destinationChainID [32]byte, messageID *big.Int) ([32]byte, error) {
-	return _TeleporterMessenger.Contract.GetMessageHash(&_TeleporterMessenger.CallOpts, destinationChainID, messageID)
+// Solidity: function getMessageHash(bytes32 destinationBlockchainID, uint256 messageID) view returns(bytes32)
+func (_TeleporterMessenger *TeleporterMessengerSession) GetMessageHash(destinationBlockchainID [32]byte, messageID *big.Int) ([32]byte, error) {
+	return _TeleporterMessenger.Contract.GetMessageHash(&_TeleporterMessenger.CallOpts, destinationBlockchainID, messageID)
 }
 
 // GetMessageHash is a free data retrieval call binding the contract method 0x220c9568.
 //
-// Solidity: function getMessageHash(bytes32 destinationChainID, uint256 messageID) view returns(bytes32)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetMessageHash(destinationChainID [32]byte, messageID *big.Int) ([32]byte, error) {
-	return _TeleporterMessenger.Contract.GetMessageHash(&_TeleporterMessenger.CallOpts, destinationChainID, messageID)
+// Solidity: function getMessageHash(bytes32 destinationBlockchainID, uint256 messageID) view returns(bytes32)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetMessageHash(destinationBlockchainID [32]byte, messageID *big.Int) ([32]byte, error) {
+	return _TeleporterMessenger.Contract.GetMessageHash(&_TeleporterMessenger.CallOpts, destinationBlockchainID, messageID)
 }
 
 // GetNextMessageID is a free data retrieval call binding the contract method 0xdf20e8bc.
 //
-// Solidity: function getNextMessageID(bytes32 chainID) view returns(uint256)
-func (_TeleporterMessenger *TeleporterMessengerCaller) GetNextMessageID(opts *bind.CallOpts, chainID [32]byte) (*big.Int, error) {
+// Solidity: function getNextMessageID(bytes32 externalBlockchainID) view returns(uint256)
+func (_TeleporterMessenger *TeleporterMessengerCaller) GetNextMessageID(opts *bind.CallOpts, externalBlockchainID [32]byte) (*big.Int, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "getNextMessageID", chainID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "getNextMessageID", externalBlockchainID)
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -389,24 +389,24 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) GetNextMessageID(opts *bi
 
 // GetNextMessageID is a free data retrieval call binding the contract method 0xdf20e8bc.
 //
-// Solidity: function getNextMessageID(bytes32 chainID) view returns(uint256)
-func (_TeleporterMessenger *TeleporterMessengerSession) GetNextMessageID(chainID [32]byte) (*big.Int, error) {
-	return _TeleporterMessenger.Contract.GetNextMessageID(&_TeleporterMessenger.CallOpts, chainID)
+// Solidity: function getNextMessageID(bytes32 externalBlockchainID) view returns(uint256)
+func (_TeleporterMessenger *TeleporterMessengerSession) GetNextMessageID(externalBlockchainID [32]byte) (*big.Int, error) {
+	return _TeleporterMessenger.Contract.GetNextMessageID(&_TeleporterMessenger.CallOpts, externalBlockchainID)
 }
 
 // GetNextMessageID is a free data retrieval call binding the contract method 0xdf20e8bc.
 //
-// Solidity: function getNextMessageID(bytes32 chainID) view returns(uint256)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetNextMessageID(chainID [32]byte) (*big.Int, error) {
-	return _TeleporterMessenger.Contract.GetNextMessageID(&_TeleporterMessenger.CallOpts, chainID)
+// Solidity: function getNextMessageID(bytes32 externalBlockchainID) view returns(uint256)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetNextMessageID(externalBlockchainID [32]byte) (*big.Int, error) {
+	return _TeleporterMessenger.Contract.GetNextMessageID(&_TeleporterMessenger.CallOpts, externalBlockchainID)
 }
 
 // GetReceiptAtIndex is a free data retrieval call binding the contract method 0x892bf412.
 //
-// Solidity: function getReceiptAtIndex(bytes32 chainID, uint256 index) view returns((uint256,address))
-func (_TeleporterMessenger *TeleporterMessengerCaller) GetReceiptAtIndex(opts *bind.CallOpts, chainID [32]byte, index *big.Int) (TeleporterMessageReceipt, error) {
+// Solidity: function getReceiptAtIndex(bytes32 externalBlockchainID, uint256 index) view returns((uint256,address))
+func (_TeleporterMessenger *TeleporterMessengerCaller) GetReceiptAtIndex(opts *bind.CallOpts, externalBlockchainID [32]byte, index *big.Int) (TeleporterMessageReceipt, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "getReceiptAtIndex", chainID, index)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "getReceiptAtIndex", externalBlockchainID, index)
 
 	if err != nil {
 		return *new(TeleporterMessageReceipt), err
@@ -420,24 +420,24 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) GetReceiptAtIndex(opts *b
 
 // GetReceiptAtIndex is a free data retrieval call binding the contract method 0x892bf412.
 //
-// Solidity: function getReceiptAtIndex(bytes32 chainID, uint256 index) view returns((uint256,address))
-func (_TeleporterMessenger *TeleporterMessengerSession) GetReceiptAtIndex(chainID [32]byte, index *big.Int) (TeleporterMessageReceipt, error) {
-	return _TeleporterMessenger.Contract.GetReceiptAtIndex(&_TeleporterMessenger.CallOpts, chainID, index)
+// Solidity: function getReceiptAtIndex(bytes32 externalBlockchainID, uint256 index) view returns((uint256,address))
+func (_TeleporterMessenger *TeleporterMessengerSession) GetReceiptAtIndex(externalBlockchainID [32]byte, index *big.Int) (TeleporterMessageReceipt, error) {
+	return _TeleporterMessenger.Contract.GetReceiptAtIndex(&_TeleporterMessenger.CallOpts, externalBlockchainID, index)
 }
 
 // GetReceiptAtIndex is a free data retrieval call binding the contract method 0x892bf412.
 //
-// Solidity: function getReceiptAtIndex(bytes32 chainID, uint256 index) view returns((uint256,address))
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetReceiptAtIndex(chainID [32]byte, index *big.Int) (TeleporterMessageReceipt, error) {
-	return _TeleporterMessenger.Contract.GetReceiptAtIndex(&_TeleporterMessenger.CallOpts, chainID, index)
+// Solidity: function getReceiptAtIndex(bytes32 externalBlockchainID, uint256 index) view returns((uint256,address))
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetReceiptAtIndex(externalBlockchainID [32]byte, index *big.Int) (TeleporterMessageReceipt, error) {
+	return _TeleporterMessenger.Contract.GetReceiptAtIndex(&_TeleporterMessenger.CallOpts, externalBlockchainID, index)
 }
 
 // GetReceiptQueueSize is a free data retrieval call binding the contract method 0x2bc8b0bf.
 //
-// Solidity: function getReceiptQueueSize(bytes32 chainID) view returns(uint256)
-func (_TeleporterMessenger *TeleporterMessengerCaller) GetReceiptQueueSize(opts *bind.CallOpts, chainID [32]byte) (*big.Int, error) {
+// Solidity: function getReceiptQueueSize(bytes32 externalBlockchainID) view returns(uint256)
+func (_TeleporterMessenger *TeleporterMessengerCaller) GetReceiptQueueSize(opts *bind.CallOpts, externalBlockchainID [32]byte) (*big.Int, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "getReceiptQueueSize", chainID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "getReceiptQueueSize", externalBlockchainID)
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -451,24 +451,24 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) GetReceiptQueueSize(opts 
 
 // GetReceiptQueueSize is a free data retrieval call binding the contract method 0x2bc8b0bf.
 //
-// Solidity: function getReceiptQueueSize(bytes32 chainID) view returns(uint256)
-func (_TeleporterMessenger *TeleporterMessengerSession) GetReceiptQueueSize(chainID [32]byte) (*big.Int, error) {
-	return _TeleporterMessenger.Contract.GetReceiptQueueSize(&_TeleporterMessenger.CallOpts, chainID)
+// Solidity: function getReceiptQueueSize(bytes32 externalBlockchainID) view returns(uint256)
+func (_TeleporterMessenger *TeleporterMessengerSession) GetReceiptQueueSize(externalBlockchainID [32]byte) (*big.Int, error) {
+	return _TeleporterMessenger.Contract.GetReceiptQueueSize(&_TeleporterMessenger.CallOpts, externalBlockchainID)
 }
 
 // GetReceiptQueueSize is a free data retrieval call binding the contract method 0x2bc8b0bf.
 //
-// Solidity: function getReceiptQueueSize(bytes32 chainID) view returns(uint256)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetReceiptQueueSize(chainID [32]byte) (*big.Int, error) {
-	return _TeleporterMessenger.Contract.GetReceiptQueueSize(&_TeleporterMessenger.CallOpts, chainID)
+// Solidity: function getReceiptQueueSize(bytes32 externalBlockchainID) view returns(uint256)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetReceiptQueueSize(externalBlockchainID [32]byte) (*big.Int, error) {
+	return _TeleporterMessenger.Contract.GetReceiptQueueSize(&_TeleporterMessenger.CallOpts, externalBlockchainID)
 }
 
 // GetRelayerRewardAddress is a free data retrieval call binding the contract method 0x33e890fe.
 //
-// Solidity: function getRelayerRewardAddress(bytes32 originChainID, uint256 messageID) view returns(address)
-func (_TeleporterMessenger *TeleporterMessengerCaller) GetRelayerRewardAddress(opts *bind.CallOpts, originChainID [32]byte, messageID *big.Int) (common.Address, error) {
+// Solidity: function getRelayerRewardAddress(bytes32 originBlockchainID, uint256 messageID) view returns(address)
+func (_TeleporterMessenger *TeleporterMessengerCaller) GetRelayerRewardAddress(opts *bind.CallOpts, originBlockchainID [32]byte, messageID *big.Int) (common.Address, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "getRelayerRewardAddress", originChainID, messageID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "getRelayerRewardAddress", originBlockchainID, messageID)
 
 	if err != nil {
 		return *new(common.Address), err
@@ -482,24 +482,24 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) GetRelayerRewardAddress(o
 
 // GetRelayerRewardAddress is a free data retrieval call binding the contract method 0x33e890fe.
 //
-// Solidity: function getRelayerRewardAddress(bytes32 originChainID, uint256 messageID) view returns(address)
-func (_TeleporterMessenger *TeleporterMessengerSession) GetRelayerRewardAddress(originChainID [32]byte, messageID *big.Int) (common.Address, error) {
-	return _TeleporterMessenger.Contract.GetRelayerRewardAddress(&_TeleporterMessenger.CallOpts, originChainID, messageID)
+// Solidity: function getRelayerRewardAddress(bytes32 originBlockchainID, uint256 messageID) view returns(address)
+func (_TeleporterMessenger *TeleporterMessengerSession) GetRelayerRewardAddress(originBlockchainID [32]byte, messageID *big.Int) (common.Address, error) {
+	return _TeleporterMessenger.Contract.GetRelayerRewardAddress(&_TeleporterMessenger.CallOpts, originBlockchainID, messageID)
 }
 
 // GetRelayerRewardAddress is a free data retrieval call binding the contract method 0x33e890fe.
 //
-// Solidity: function getRelayerRewardAddress(bytes32 originChainID, uint256 messageID) view returns(address)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetRelayerRewardAddress(originChainID [32]byte, messageID *big.Int) (common.Address, error) {
-	return _TeleporterMessenger.Contract.GetRelayerRewardAddress(&_TeleporterMessenger.CallOpts, originChainID, messageID)
+// Solidity: function getRelayerRewardAddress(bytes32 originBlockchainID, uint256 messageID) view returns(address)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) GetRelayerRewardAddress(originBlockchainID [32]byte, messageID *big.Int) (common.Address, error) {
+	return _TeleporterMessenger.Contract.GetRelayerRewardAddress(&_TeleporterMessenger.CallOpts, originBlockchainID, messageID)
 }
 
 // LatestMessageIDs is a free data retrieval call binding the contract method 0x29ec9beb.
 //
-// Solidity: function latestMessageIDs(bytes32 destinationChainID) view returns(uint256 messageID)
-func (_TeleporterMessenger *TeleporterMessengerCaller) LatestMessageIDs(opts *bind.CallOpts, destinationChainID [32]byte) (*big.Int, error) {
+// Solidity: function latestMessageIDs(bytes32 destinationBlockchainID) view returns(uint256 messageID)
+func (_TeleporterMessenger *TeleporterMessengerCaller) LatestMessageIDs(opts *bind.CallOpts, destinationBlockchainID [32]byte) (*big.Int, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "latestMessageIDs", destinationChainID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "latestMessageIDs", destinationBlockchainID)
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -513,24 +513,24 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) LatestMessageIDs(opts *bi
 
 // LatestMessageIDs is a free data retrieval call binding the contract method 0x29ec9beb.
 //
-// Solidity: function latestMessageIDs(bytes32 destinationChainID) view returns(uint256 messageID)
-func (_TeleporterMessenger *TeleporterMessengerSession) LatestMessageIDs(destinationChainID [32]byte) (*big.Int, error) {
-	return _TeleporterMessenger.Contract.LatestMessageIDs(&_TeleporterMessenger.CallOpts, destinationChainID)
+// Solidity: function latestMessageIDs(bytes32 destinationBlockchainID) view returns(uint256 messageID)
+func (_TeleporterMessenger *TeleporterMessengerSession) LatestMessageIDs(destinationBlockchainID [32]byte) (*big.Int, error) {
+	return _TeleporterMessenger.Contract.LatestMessageIDs(&_TeleporterMessenger.CallOpts, destinationBlockchainID)
 }
 
 // LatestMessageIDs is a free data retrieval call binding the contract method 0x29ec9beb.
 //
-// Solidity: function latestMessageIDs(bytes32 destinationChainID) view returns(uint256 messageID)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) LatestMessageIDs(destinationChainID [32]byte) (*big.Int, error) {
-	return _TeleporterMessenger.Contract.LatestMessageIDs(&_TeleporterMessenger.CallOpts, destinationChainID)
+// Solidity: function latestMessageIDs(bytes32 destinationBlockchainID) view returns(uint256 messageID)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) LatestMessageIDs(destinationBlockchainID [32]byte) (*big.Int, error) {
+	return _TeleporterMessenger.Contract.LatestMessageIDs(&_TeleporterMessenger.CallOpts, destinationBlockchainID)
 }
 
 // MessageReceived is a free data retrieval call binding the contract method 0xe03555df.
 //
-// Solidity: function messageReceived(bytes32 originChainID, uint256 messageID) view returns(bool)
-func (_TeleporterMessenger *TeleporterMessengerCaller) MessageReceived(opts *bind.CallOpts, originChainID [32]byte, messageID *big.Int) (bool, error) {
+// Solidity: function messageReceived(bytes32 originBlockchainID, uint256 messageID) view returns(bool)
+func (_TeleporterMessenger *TeleporterMessengerCaller) MessageReceived(opts *bind.CallOpts, originBlockchainID [32]byte, messageID *big.Int) (bool, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "messageReceived", originChainID, messageID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "messageReceived", originBlockchainID, messageID)
 
 	if err != nil {
 		return *new(bool), err
@@ -544,27 +544,27 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) MessageReceived(opts *bin
 
 // MessageReceived is a free data retrieval call binding the contract method 0xe03555df.
 //
-// Solidity: function messageReceived(bytes32 originChainID, uint256 messageID) view returns(bool)
-func (_TeleporterMessenger *TeleporterMessengerSession) MessageReceived(originChainID [32]byte, messageID *big.Int) (bool, error) {
-	return _TeleporterMessenger.Contract.MessageReceived(&_TeleporterMessenger.CallOpts, originChainID, messageID)
+// Solidity: function messageReceived(bytes32 originBlockchainID, uint256 messageID) view returns(bool)
+func (_TeleporterMessenger *TeleporterMessengerSession) MessageReceived(originBlockchainID [32]byte, messageID *big.Int) (bool, error) {
+	return _TeleporterMessenger.Contract.MessageReceived(&_TeleporterMessenger.CallOpts, originBlockchainID, messageID)
 }
 
 // MessageReceived is a free data retrieval call binding the contract method 0xe03555df.
 //
-// Solidity: function messageReceived(bytes32 originChainID, uint256 messageID) view returns(bool)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) MessageReceived(originChainID [32]byte, messageID *big.Int) (bool, error) {
-	return _TeleporterMessenger.Contract.MessageReceived(&_TeleporterMessenger.CallOpts, originChainID, messageID)
+// Solidity: function messageReceived(bytes32 originBlockchainID, uint256 messageID) view returns(bool)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) MessageReceived(originBlockchainID [32]byte, messageID *big.Int) (bool, error) {
+	return _TeleporterMessenger.Contract.MessageReceived(&_TeleporterMessenger.CallOpts, originBlockchainID, messageID)
 }
 
 // ReceiptQueues is a free data retrieval call binding the contract method 0xe6e67bd5.
 //
-// Solidity: function receiptQueues(bytes32 sourceChainID) view returns(uint256 first, uint256 last)
-func (_TeleporterMessenger *TeleporterMessengerCaller) ReceiptQueues(opts *bind.CallOpts, sourceChainID [32]byte) (struct {
+// Solidity: function receiptQueues(bytes32 sourceBlockchainID) view returns(uint256 first, uint256 last)
+func (_TeleporterMessenger *TeleporterMessengerCaller) ReceiptQueues(opts *bind.CallOpts, sourceBlockchainID [32]byte) (struct {
 	First *big.Int
 	Last  *big.Int
 }, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "receiptQueues", sourceChainID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "receiptQueues", sourceBlockchainID)
 
 	outstruct := new(struct {
 		First *big.Int
@@ -583,30 +583,30 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) ReceiptQueues(opts *bind.
 
 // ReceiptQueues is a free data retrieval call binding the contract method 0xe6e67bd5.
 //
-// Solidity: function receiptQueues(bytes32 sourceChainID) view returns(uint256 first, uint256 last)
-func (_TeleporterMessenger *TeleporterMessengerSession) ReceiptQueues(sourceChainID [32]byte) (struct {
+// Solidity: function receiptQueues(bytes32 sourceBlockchainID) view returns(uint256 first, uint256 last)
+func (_TeleporterMessenger *TeleporterMessengerSession) ReceiptQueues(sourceBlockchainID [32]byte) (struct {
 	First *big.Int
 	Last  *big.Int
 }, error) {
-	return _TeleporterMessenger.Contract.ReceiptQueues(&_TeleporterMessenger.CallOpts, sourceChainID)
+	return _TeleporterMessenger.Contract.ReceiptQueues(&_TeleporterMessenger.CallOpts, sourceBlockchainID)
 }
 
 // ReceiptQueues is a free data retrieval call binding the contract method 0xe6e67bd5.
 //
-// Solidity: function receiptQueues(bytes32 sourceChainID) view returns(uint256 first, uint256 last)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) ReceiptQueues(sourceChainID [32]byte) (struct {
+// Solidity: function receiptQueues(bytes32 sourceBlockchainID) view returns(uint256 first, uint256 last)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) ReceiptQueues(sourceBlockchainID [32]byte) (struct {
 	First *big.Int
 	Last  *big.Int
 }, error) {
-	return _TeleporterMessenger.Contract.ReceiptQueues(&_TeleporterMessenger.CallOpts, sourceChainID)
+	return _TeleporterMessenger.Contract.ReceiptQueues(&_TeleporterMessenger.CallOpts, sourceBlockchainID)
 }
 
 // ReceivedFailedMessageHashes is a free data retrieval call binding the contract method 0xc9bb1143.
 //
-// Solidity: function receivedFailedMessageHashes(bytes32 sourceChainID, uint256 messageID) view returns(bytes32 messageHash)
-func (_TeleporterMessenger *TeleporterMessengerCaller) ReceivedFailedMessageHashes(opts *bind.CallOpts, sourceChainID [32]byte, messageID *big.Int) ([32]byte, error) {
+// Solidity: function receivedFailedMessageHashes(bytes32 sourceBlockchainID, uint256 messageID) view returns(bytes32 messageHash)
+func (_TeleporterMessenger *TeleporterMessengerCaller) ReceivedFailedMessageHashes(opts *bind.CallOpts, sourceBlockchainID [32]byte, messageID *big.Int) ([32]byte, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "receivedFailedMessageHashes", sourceChainID, messageID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "receivedFailedMessageHashes", sourceBlockchainID, messageID)
 
 	if err != nil {
 		return *new([32]byte), err
@@ -620,27 +620,27 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) ReceivedFailedMessageHash
 
 // ReceivedFailedMessageHashes is a free data retrieval call binding the contract method 0xc9bb1143.
 //
-// Solidity: function receivedFailedMessageHashes(bytes32 sourceChainID, uint256 messageID) view returns(bytes32 messageHash)
-func (_TeleporterMessenger *TeleporterMessengerSession) ReceivedFailedMessageHashes(sourceChainID [32]byte, messageID *big.Int) ([32]byte, error) {
-	return _TeleporterMessenger.Contract.ReceivedFailedMessageHashes(&_TeleporterMessenger.CallOpts, sourceChainID, messageID)
+// Solidity: function receivedFailedMessageHashes(bytes32 sourceBlockchainID, uint256 messageID) view returns(bytes32 messageHash)
+func (_TeleporterMessenger *TeleporterMessengerSession) ReceivedFailedMessageHashes(sourceBlockchainID [32]byte, messageID *big.Int) ([32]byte, error) {
+	return _TeleporterMessenger.Contract.ReceivedFailedMessageHashes(&_TeleporterMessenger.CallOpts, sourceBlockchainID, messageID)
 }
 
 // ReceivedFailedMessageHashes is a free data retrieval call binding the contract method 0xc9bb1143.
 //
-// Solidity: function receivedFailedMessageHashes(bytes32 sourceChainID, uint256 messageID) view returns(bytes32 messageHash)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) ReceivedFailedMessageHashes(sourceChainID [32]byte, messageID *big.Int) ([32]byte, error) {
-	return _TeleporterMessenger.Contract.ReceivedFailedMessageHashes(&_TeleporterMessenger.CallOpts, sourceChainID, messageID)
+// Solidity: function receivedFailedMessageHashes(bytes32 sourceBlockchainID, uint256 messageID) view returns(bytes32 messageHash)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) ReceivedFailedMessageHashes(sourceBlockchainID [32]byte, messageID *big.Int) ([32]byte, error) {
+	return _TeleporterMessenger.Contract.ReceivedFailedMessageHashes(&_TeleporterMessenger.CallOpts, sourceBlockchainID, messageID)
 }
 
 // SentMessageInfo is a free data retrieval call binding the contract method 0x66533d12.
 //
-// Solidity: function sentMessageInfo(bytes32 destinationChainID, uint256 messageID) view returns(bytes32 messageHash, (address,uint256) feeInfo)
-func (_TeleporterMessenger *TeleporterMessengerCaller) SentMessageInfo(opts *bind.CallOpts, destinationChainID [32]byte, messageID *big.Int) (struct {
+// Solidity: function sentMessageInfo(bytes32 destinationBlockchainID, uint256 messageID) view returns(bytes32 messageHash, (address,uint256) feeInfo)
+func (_TeleporterMessenger *TeleporterMessengerCaller) SentMessageInfo(opts *bind.CallOpts, destinationBlockchainID [32]byte, messageID *big.Int) (struct {
 	MessageHash [32]byte
 	FeeInfo     TeleporterFeeInfo
 }, error) {
 	var out []interface{}
-	err := _TeleporterMessenger.contract.Call(opts, &out, "sentMessageInfo", destinationChainID, messageID)
+	err := _TeleporterMessenger.contract.Call(opts, &out, "sentMessageInfo", destinationBlockchainID, messageID)
 
 	outstruct := new(struct {
 		MessageHash [32]byte
@@ -659,43 +659,43 @@ func (_TeleporterMessenger *TeleporterMessengerCaller) SentMessageInfo(opts *bin
 
 // SentMessageInfo is a free data retrieval call binding the contract method 0x66533d12.
 //
-// Solidity: function sentMessageInfo(bytes32 destinationChainID, uint256 messageID) view returns(bytes32 messageHash, (address,uint256) feeInfo)
-func (_TeleporterMessenger *TeleporterMessengerSession) SentMessageInfo(destinationChainID [32]byte, messageID *big.Int) (struct {
+// Solidity: function sentMessageInfo(bytes32 destinationBlockchainID, uint256 messageID) view returns(bytes32 messageHash, (address,uint256) feeInfo)
+func (_TeleporterMessenger *TeleporterMessengerSession) SentMessageInfo(destinationBlockchainID [32]byte, messageID *big.Int) (struct {
 	MessageHash [32]byte
 	FeeInfo     TeleporterFeeInfo
 }, error) {
-	return _TeleporterMessenger.Contract.SentMessageInfo(&_TeleporterMessenger.CallOpts, destinationChainID, messageID)
+	return _TeleporterMessenger.Contract.SentMessageInfo(&_TeleporterMessenger.CallOpts, destinationBlockchainID, messageID)
 }
 
 // SentMessageInfo is a free data retrieval call binding the contract method 0x66533d12.
 //
-// Solidity: function sentMessageInfo(bytes32 destinationChainID, uint256 messageID) view returns(bytes32 messageHash, (address,uint256) feeInfo)
-func (_TeleporterMessenger *TeleporterMessengerCallerSession) SentMessageInfo(destinationChainID [32]byte, messageID *big.Int) (struct {
+// Solidity: function sentMessageInfo(bytes32 destinationBlockchainID, uint256 messageID) view returns(bytes32 messageHash, (address,uint256) feeInfo)
+func (_TeleporterMessenger *TeleporterMessengerCallerSession) SentMessageInfo(destinationBlockchainID [32]byte, messageID *big.Int) (struct {
 	MessageHash [32]byte
 	FeeInfo     TeleporterFeeInfo
 }, error) {
-	return _TeleporterMessenger.Contract.SentMessageInfo(&_TeleporterMessenger.CallOpts, destinationChainID, messageID)
+	return _TeleporterMessenger.Contract.SentMessageInfo(&_TeleporterMessenger.CallOpts, destinationBlockchainID, messageID)
 }
 
 // AddFeeAmount is a paid mutator transaction binding the contract method 0x19570c74.
 //
-// Solidity: function addFeeAmount(bytes32 destinationChainID, uint256 messageID, address feeTokenAddress, uint256 additionalFeeAmount) returns()
-func (_TeleporterMessenger *TeleporterMessengerTransactor) AddFeeAmount(opts *bind.TransactOpts, destinationChainID [32]byte, messageID *big.Int, feeTokenAddress common.Address, additionalFeeAmount *big.Int) (*types.Transaction, error) {
-	return _TeleporterMessenger.contract.Transact(opts, "addFeeAmount", destinationChainID, messageID, feeTokenAddress, additionalFeeAmount)
+// Solidity: function addFeeAmount(bytes32 destinationBlockchainID, uint256 messageID, address feeTokenAddress, uint256 additionalFeeAmount) returns()
+func (_TeleporterMessenger *TeleporterMessengerTransactor) AddFeeAmount(opts *bind.TransactOpts, destinationBlockchainID [32]byte, messageID *big.Int, feeTokenAddress common.Address, additionalFeeAmount *big.Int) (*types.Transaction, error) {
+	return _TeleporterMessenger.contract.Transact(opts, "addFeeAmount", destinationBlockchainID, messageID, feeTokenAddress, additionalFeeAmount)
 }
 
 // AddFeeAmount is a paid mutator transaction binding the contract method 0x19570c74.
 //
-// Solidity: function addFeeAmount(bytes32 destinationChainID, uint256 messageID, address feeTokenAddress, uint256 additionalFeeAmount) returns()
-func (_TeleporterMessenger *TeleporterMessengerSession) AddFeeAmount(destinationChainID [32]byte, messageID *big.Int, feeTokenAddress common.Address, additionalFeeAmount *big.Int) (*types.Transaction, error) {
-	return _TeleporterMessenger.Contract.AddFeeAmount(&_TeleporterMessenger.TransactOpts, destinationChainID, messageID, feeTokenAddress, additionalFeeAmount)
+// Solidity: function addFeeAmount(bytes32 destinationBlockchainID, uint256 messageID, address feeTokenAddress, uint256 additionalFeeAmount) returns()
+func (_TeleporterMessenger *TeleporterMessengerSession) AddFeeAmount(destinationBlockchainID [32]byte, messageID *big.Int, feeTokenAddress common.Address, additionalFeeAmount *big.Int) (*types.Transaction, error) {
+	return _TeleporterMessenger.Contract.AddFeeAmount(&_TeleporterMessenger.TransactOpts, destinationBlockchainID, messageID, feeTokenAddress, additionalFeeAmount)
 }
 
 // AddFeeAmount is a paid mutator transaction binding the contract method 0x19570c74.
 //
-// Solidity: function addFeeAmount(bytes32 destinationChainID, uint256 messageID, address feeTokenAddress, uint256 additionalFeeAmount) returns()
-func (_TeleporterMessenger *TeleporterMessengerTransactorSession) AddFeeAmount(destinationChainID [32]byte, messageID *big.Int, feeTokenAddress common.Address, additionalFeeAmount *big.Int) (*types.Transaction, error) {
-	return _TeleporterMessenger.Contract.AddFeeAmount(&_TeleporterMessenger.TransactOpts, destinationChainID, messageID, feeTokenAddress, additionalFeeAmount)
+// Solidity: function addFeeAmount(bytes32 destinationBlockchainID, uint256 messageID, address feeTokenAddress, uint256 additionalFeeAmount) returns()
+func (_TeleporterMessenger *TeleporterMessengerTransactorSession) AddFeeAmount(destinationBlockchainID [32]byte, messageID *big.Int, feeTokenAddress common.Address, additionalFeeAmount *big.Int) (*types.Transaction, error) {
+	return _TeleporterMessenger.Contract.AddFeeAmount(&_TeleporterMessenger.TransactOpts, destinationBlockchainID, messageID, feeTokenAddress, additionalFeeAmount)
 }
 
 // ReceiveCrossChainMessage is a paid mutator transaction binding the contract method 0xccb5f809.
@@ -742,44 +742,44 @@ func (_TeleporterMessenger *TeleporterMessengerTransactorSession) RedeemRelayerR
 
 // RetryMessageExecution is a paid mutator transaction binding the contract method 0xfc2d6197.
 //
-// Solidity: function retryMessageExecution(bytes32 originChainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
-func (_TeleporterMessenger *TeleporterMessengerTransactor) RetryMessageExecution(opts *bind.TransactOpts, originChainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
-	return _TeleporterMessenger.contract.Transact(opts, "retryMessageExecution", originChainID, message)
+// Solidity: function retryMessageExecution(bytes32 originBlockchainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
+func (_TeleporterMessenger *TeleporterMessengerTransactor) RetryMessageExecution(opts *bind.TransactOpts, originBlockchainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
+	return _TeleporterMessenger.contract.Transact(opts, "retryMessageExecution", originBlockchainID, message)
 }
 
 // RetryMessageExecution is a paid mutator transaction binding the contract method 0xfc2d6197.
 //
-// Solidity: function retryMessageExecution(bytes32 originChainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
-func (_TeleporterMessenger *TeleporterMessengerSession) RetryMessageExecution(originChainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
-	return _TeleporterMessenger.Contract.RetryMessageExecution(&_TeleporterMessenger.TransactOpts, originChainID, message)
+// Solidity: function retryMessageExecution(bytes32 originBlockchainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
+func (_TeleporterMessenger *TeleporterMessengerSession) RetryMessageExecution(originBlockchainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
+	return _TeleporterMessenger.Contract.RetryMessageExecution(&_TeleporterMessenger.TransactOpts, originBlockchainID, message)
 }
 
 // RetryMessageExecution is a paid mutator transaction binding the contract method 0xfc2d6197.
 //
-// Solidity: function retryMessageExecution(bytes32 originChainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
-func (_TeleporterMessenger *TeleporterMessengerTransactorSession) RetryMessageExecution(originChainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
-	return _TeleporterMessenger.Contract.RetryMessageExecution(&_TeleporterMessenger.TransactOpts, originChainID, message)
+// Solidity: function retryMessageExecution(bytes32 originBlockchainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
+func (_TeleporterMessenger *TeleporterMessengerTransactorSession) RetryMessageExecution(originBlockchainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
+	return _TeleporterMessenger.Contract.RetryMessageExecution(&_TeleporterMessenger.TransactOpts, originBlockchainID, message)
 }
 
 // RetrySendCrossChainMessage is a paid mutator transaction binding the contract method 0xaf402850.
 //
-// Solidity: function retrySendCrossChainMessage(bytes32 destinationChainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
-func (_TeleporterMessenger *TeleporterMessengerTransactor) RetrySendCrossChainMessage(opts *bind.TransactOpts, destinationChainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
-	return _TeleporterMessenger.contract.Transact(opts, "retrySendCrossChainMessage", destinationChainID, message)
+// Solidity: function retrySendCrossChainMessage(bytes32 destinationBlockchainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
+func (_TeleporterMessenger *TeleporterMessengerTransactor) RetrySendCrossChainMessage(opts *bind.TransactOpts, destinationBlockchainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
+	return _TeleporterMessenger.contract.Transact(opts, "retrySendCrossChainMessage", destinationBlockchainID, message)
 }
 
 // RetrySendCrossChainMessage is a paid mutator transaction binding the contract method 0xaf402850.
 //
-// Solidity: function retrySendCrossChainMessage(bytes32 destinationChainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
-func (_TeleporterMessenger *TeleporterMessengerSession) RetrySendCrossChainMessage(destinationChainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
-	return _TeleporterMessenger.Contract.RetrySendCrossChainMessage(&_TeleporterMessenger.TransactOpts, destinationChainID, message)
+// Solidity: function retrySendCrossChainMessage(bytes32 destinationBlockchainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
+func (_TeleporterMessenger *TeleporterMessengerSession) RetrySendCrossChainMessage(destinationBlockchainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
+	return _TeleporterMessenger.Contract.RetrySendCrossChainMessage(&_TeleporterMessenger.TransactOpts, destinationBlockchainID, message)
 }
 
 // RetrySendCrossChainMessage is a paid mutator transaction binding the contract method 0xaf402850.
 //
-// Solidity: function retrySendCrossChainMessage(bytes32 destinationChainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
-func (_TeleporterMessenger *TeleporterMessengerTransactorSession) RetrySendCrossChainMessage(destinationChainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
-	return _TeleporterMessenger.Contract.RetrySendCrossChainMessage(&_TeleporterMessenger.TransactOpts, destinationChainID, message)
+// Solidity: function retrySendCrossChainMessage(bytes32 destinationBlockchainID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message) returns()
+func (_TeleporterMessenger *TeleporterMessengerTransactorSession) RetrySendCrossChainMessage(destinationBlockchainID [32]byte, message TeleporterMessage) (*types.Transaction, error) {
+	return _TeleporterMessenger.Contract.RetrySendCrossChainMessage(&_TeleporterMessenger.TransactOpts, destinationBlockchainID, message)
 }
 
 // SendCrossChainMessage is a paid mutator transaction binding the contract method 0x62448850.
@@ -805,23 +805,23 @@ func (_TeleporterMessenger *TeleporterMessengerTransactorSession) SendCrossChain
 
 // SendSpecifiedReceipts is a paid mutator transaction binding the contract method 0x191eb698.
 //
-// Solidity: function sendSpecifiedReceipts(bytes32 originChainID, uint256[] messageIDs, (address,uint256) feeInfo, address[] allowedRelayerAddresses) returns(uint256)
-func (_TeleporterMessenger *TeleporterMessengerTransactor) SendSpecifiedReceipts(opts *bind.TransactOpts, originChainID [32]byte, messageIDs []*big.Int, feeInfo TeleporterFeeInfo, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
-	return _TeleporterMessenger.contract.Transact(opts, "sendSpecifiedReceipts", originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
+// Solidity: function sendSpecifiedReceipts(bytes32 originBlockchainID, uint256[] messageIDs, (address,uint256) feeInfo, address[] allowedRelayerAddresses) returns(uint256)
+func (_TeleporterMessenger *TeleporterMessengerTransactor) SendSpecifiedReceipts(opts *bind.TransactOpts, originBlockchainID [32]byte, messageIDs []*big.Int, feeInfo TeleporterFeeInfo, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
+	return _TeleporterMessenger.contract.Transact(opts, "sendSpecifiedReceipts", originBlockchainID, messageIDs, feeInfo, allowedRelayerAddresses)
 }
 
 // SendSpecifiedReceipts is a paid mutator transaction binding the contract method 0x191eb698.
 //
-// Solidity: function sendSpecifiedReceipts(bytes32 originChainID, uint256[] messageIDs, (address,uint256) feeInfo, address[] allowedRelayerAddresses) returns(uint256)
-func (_TeleporterMessenger *TeleporterMessengerSession) SendSpecifiedReceipts(originChainID [32]byte, messageIDs []*big.Int, feeInfo TeleporterFeeInfo, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
-	return _TeleporterMessenger.Contract.SendSpecifiedReceipts(&_TeleporterMessenger.TransactOpts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
+// Solidity: function sendSpecifiedReceipts(bytes32 originBlockchainID, uint256[] messageIDs, (address,uint256) feeInfo, address[] allowedRelayerAddresses) returns(uint256)
+func (_TeleporterMessenger *TeleporterMessengerSession) SendSpecifiedReceipts(originBlockchainID [32]byte, messageIDs []*big.Int, feeInfo TeleporterFeeInfo, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
+	return _TeleporterMessenger.Contract.SendSpecifiedReceipts(&_TeleporterMessenger.TransactOpts, originBlockchainID, messageIDs, feeInfo, allowedRelayerAddresses)
 }
 
 // SendSpecifiedReceipts is a paid mutator transaction binding the contract method 0x191eb698.
 //
-// Solidity: function sendSpecifiedReceipts(bytes32 originChainID, uint256[] messageIDs, (address,uint256) feeInfo, address[] allowedRelayerAddresses) returns(uint256)
-func (_TeleporterMessenger *TeleporterMessengerTransactorSession) SendSpecifiedReceipts(originChainID [32]byte, messageIDs []*big.Int, feeInfo TeleporterFeeInfo, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
-	return _TeleporterMessenger.Contract.SendSpecifiedReceipts(&_TeleporterMessenger.TransactOpts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
+// Solidity: function sendSpecifiedReceipts(bytes32 originBlockchainID, uint256[] messageIDs, (address,uint256) feeInfo, address[] allowedRelayerAddresses) returns(uint256)
+func (_TeleporterMessenger *TeleporterMessengerTransactorSession) SendSpecifiedReceipts(originBlockchainID [32]byte, messageIDs []*big.Int, feeInfo TeleporterFeeInfo, allowedRelayerAddresses []common.Address) (*types.Transaction, error) {
+	return _TeleporterMessenger.Contract.SendSpecifiedReceipts(&_TeleporterMessenger.TransactOpts, originBlockchainID, messageIDs, feeInfo, allowedRelayerAddresses)
 }
 
 // TeleporterMessengerAddFeeAmountIterator is returned from FilterAddFeeAmount and is used to iterate over the raw logs and unpacked data for AddFeeAmount events raised by the TeleporterMessenger contract.
@@ -893,27 +893,27 @@ func (it *TeleporterMessengerAddFeeAmountIterator) Close() error {
 
 // TeleporterMessengerAddFeeAmount represents a AddFeeAmount event raised by the TeleporterMessenger contract.
 type TeleporterMessengerAddFeeAmount struct {
-	DestinationChainID [32]byte
-	MessageID          *big.Int
-	UpdatedFeeInfo     TeleporterFeeInfo
-	Raw                types.Log // Blockchain specific contextual infos
+	DestinationBlockchainID [32]byte
+	MessageID               *big.Int
+	UpdatedFeeInfo          TeleporterFeeInfo
+	Raw                     types.Log // Blockchain specific contextual infos
 }
 
 // FilterAddFeeAmount is a free log retrieval operation binding the contract event 0x28fe05eedf0479c9159e5b6dd2a28c93fa1a408eba22dc801fd9bc493a7fc0c2.
 //
-// Solidity: event AddFeeAmount(bytes32 indexed destinationChainID, uint256 indexed messageID, (address,uint256) updatedFeeInfo)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterAddFeeAmount(opts *bind.FilterOpts, destinationChainID [][32]byte, messageID []*big.Int) (*TeleporterMessengerAddFeeAmountIterator, error) {
+// Solidity: event AddFeeAmount(bytes32 indexed destinationBlockchainID, uint256 indexed messageID, (address,uint256) updatedFeeInfo)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterAddFeeAmount(opts *bind.FilterOpts, destinationBlockchainID [][32]byte, messageID []*big.Int) (*TeleporterMessengerAddFeeAmountIterator, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
 		messageIDRule = append(messageIDRule, messageIDItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "AddFeeAmount", destinationChainIDRule, messageIDRule)
+	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "AddFeeAmount", destinationBlockchainIDRule, messageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -922,19 +922,19 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterAddFeeAmount(opts
 
 // WatchAddFeeAmount is a free log subscription operation binding the contract event 0x28fe05eedf0479c9159e5b6dd2a28c93fa1a408eba22dc801fd9bc493a7fc0c2.
 //
-// Solidity: event AddFeeAmount(bytes32 indexed destinationChainID, uint256 indexed messageID, (address,uint256) updatedFeeInfo)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchAddFeeAmount(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerAddFeeAmount, destinationChainID [][32]byte, messageID []*big.Int) (event.Subscription, error) {
+// Solidity: event AddFeeAmount(bytes32 indexed destinationBlockchainID, uint256 indexed messageID, (address,uint256) updatedFeeInfo)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchAddFeeAmount(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerAddFeeAmount, destinationBlockchainID [][32]byte, messageID []*big.Int) (event.Subscription, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
 		messageIDRule = append(messageIDRule, messageIDItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "AddFeeAmount", destinationChainIDRule, messageIDRule)
+	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "AddFeeAmount", destinationBlockchainIDRule, messageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -968,7 +968,7 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchAddFeeAmount(opts 
 
 // ParseAddFeeAmount is a log parse operation binding the contract event 0x28fe05eedf0479c9159e5b6dd2a28c93fa1a408eba22dc801fd9bc493a7fc0c2.
 //
-// Solidity: event AddFeeAmount(bytes32 indexed destinationChainID, uint256 indexed messageID, (address,uint256) updatedFeeInfo)
+// Solidity: event AddFeeAmount(bytes32 indexed destinationBlockchainID, uint256 indexed messageID, (address,uint256) updatedFeeInfo)
 func (_TeleporterMessenger *TeleporterMessengerFilterer) ParseAddFeeAmount(log types.Log) (*TeleporterMessengerAddFeeAmount, error) {
 	event := new(TeleporterMessengerAddFeeAmount)
 	if err := _TeleporterMessenger.contract.UnpackLog(event, "AddFeeAmount", log); err != nil {
@@ -1047,26 +1047,26 @@ func (it *TeleporterMessengerMessageExecutedIterator) Close() error {
 
 // TeleporterMessengerMessageExecuted represents a MessageExecuted event raised by the TeleporterMessenger contract.
 type TeleporterMessengerMessageExecuted struct {
-	OriginChainID [32]byte
-	MessageID     *big.Int
-	Raw           types.Log // Blockchain specific contextual infos
+	OriginBlockchainID [32]byte
+	MessageID          *big.Int
+	Raw                types.Log // Blockchain specific contextual infos
 }
 
 // FilterMessageExecuted is a free log retrieval operation binding the contract event 0x5ad362d54cba0e49d358be9ce586a7136d10a2533579c4460b7e48ec273083ef.
 //
-// Solidity: event MessageExecuted(bytes32 indexed originChainID, uint256 indexed messageID)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterMessageExecuted(opts *bind.FilterOpts, originChainID [][32]byte, messageID []*big.Int) (*TeleporterMessengerMessageExecutedIterator, error) {
+// Solidity: event MessageExecuted(bytes32 indexed originBlockchainID, uint256 indexed messageID)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterMessageExecuted(opts *bind.FilterOpts, originBlockchainID [][32]byte, messageID []*big.Int) (*TeleporterMessengerMessageExecutedIterator, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
 		messageIDRule = append(messageIDRule, messageIDItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "MessageExecuted", originChainIDRule, messageIDRule)
+	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "MessageExecuted", originBlockchainIDRule, messageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1075,19 +1075,19 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterMessageExecuted(o
 
 // WatchMessageExecuted is a free log subscription operation binding the contract event 0x5ad362d54cba0e49d358be9ce586a7136d10a2533579c4460b7e48ec273083ef.
 //
-// Solidity: event MessageExecuted(bytes32 indexed originChainID, uint256 indexed messageID)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchMessageExecuted(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerMessageExecuted, originChainID [][32]byte, messageID []*big.Int) (event.Subscription, error) {
+// Solidity: event MessageExecuted(bytes32 indexed originBlockchainID, uint256 indexed messageID)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchMessageExecuted(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerMessageExecuted, originBlockchainID [][32]byte, messageID []*big.Int) (event.Subscription, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
 		messageIDRule = append(messageIDRule, messageIDItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "MessageExecuted", originChainIDRule, messageIDRule)
+	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "MessageExecuted", originBlockchainIDRule, messageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1121,7 +1121,7 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchMessageExecuted(op
 
 // ParseMessageExecuted is a log parse operation binding the contract event 0x5ad362d54cba0e49d358be9ce586a7136d10a2533579c4460b7e48ec273083ef.
 //
-// Solidity: event MessageExecuted(bytes32 indexed originChainID, uint256 indexed messageID)
+// Solidity: event MessageExecuted(bytes32 indexed originBlockchainID, uint256 indexed messageID)
 func (_TeleporterMessenger *TeleporterMessengerFilterer) ParseMessageExecuted(log types.Log) (*TeleporterMessengerMessageExecuted, error) {
 	event := new(TeleporterMessengerMessageExecuted)
 	if err := _TeleporterMessenger.contract.UnpackLog(event, "MessageExecuted", log); err != nil {
@@ -1200,27 +1200,27 @@ func (it *TeleporterMessengerMessageExecutionFailedIterator) Close() error {
 
 // TeleporterMessengerMessageExecutionFailed represents a MessageExecutionFailed event raised by the TeleporterMessenger contract.
 type TeleporterMessengerMessageExecutionFailed struct {
-	OriginChainID [32]byte
-	MessageID     *big.Int
-	Message       TeleporterMessage
-	Raw           types.Log // Blockchain specific contextual infos
+	OriginBlockchainID [32]byte
+	MessageID          *big.Int
+	Message            TeleporterMessage
+	Raw                types.Log // Blockchain specific contextual infos
 }
 
 // FilterMessageExecutionFailed is a free log retrieval operation binding the contract event 0xbedbbe6103cef0a6c9ecbf6aa23da414542c42d7918bea18aab8b601b2c3a449.
 //
-// Solidity: event MessageExecutionFailed(bytes32 indexed originChainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterMessageExecutionFailed(opts *bind.FilterOpts, originChainID [][32]byte, messageID []*big.Int) (*TeleporterMessengerMessageExecutionFailedIterator, error) {
+// Solidity: event MessageExecutionFailed(bytes32 indexed originBlockchainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterMessageExecutionFailed(opts *bind.FilterOpts, originBlockchainID [][32]byte, messageID []*big.Int) (*TeleporterMessengerMessageExecutionFailedIterator, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
 		messageIDRule = append(messageIDRule, messageIDItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "MessageExecutionFailed", originChainIDRule, messageIDRule)
+	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "MessageExecutionFailed", originBlockchainIDRule, messageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1229,19 +1229,19 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterMessageExecutionF
 
 // WatchMessageExecutionFailed is a free log subscription operation binding the contract event 0xbedbbe6103cef0a6c9ecbf6aa23da414542c42d7918bea18aab8b601b2c3a449.
 //
-// Solidity: event MessageExecutionFailed(bytes32 indexed originChainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchMessageExecutionFailed(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerMessageExecutionFailed, originChainID [][32]byte, messageID []*big.Int) (event.Subscription, error) {
+// Solidity: event MessageExecutionFailed(bytes32 indexed originBlockchainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchMessageExecutionFailed(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerMessageExecutionFailed, originBlockchainID [][32]byte, messageID []*big.Int) (event.Subscription, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
 		messageIDRule = append(messageIDRule, messageIDItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "MessageExecutionFailed", originChainIDRule, messageIDRule)
+	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "MessageExecutionFailed", originBlockchainIDRule, messageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1275,7 +1275,7 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchMessageExecutionFa
 
 // ParseMessageExecutionFailed is a log parse operation binding the contract event 0xbedbbe6103cef0a6c9ecbf6aa23da414542c42d7918bea18aab8b601b2c3a449.
 //
-// Solidity: event MessageExecutionFailed(bytes32 indexed originChainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
+// Solidity: event MessageExecutionFailed(bytes32 indexed originBlockchainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
 func (_TeleporterMessenger *TeleporterMessengerFilterer) ParseMessageExecutionFailed(log types.Log) (*TeleporterMessengerMessageExecutionFailed, error) {
 	event := new(TeleporterMessengerMessageExecutionFailed)
 	if err := _TeleporterMessenger.contract.UnpackLog(event, "MessageExecutionFailed", log); err != nil {
@@ -1354,22 +1354,22 @@ func (it *TeleporterMessengerReceiveCrossChainMessageIterator) Close() error {
 
 // TeleporterMessengerReceiveCrossChainMessage represents a ReceiveCrossChainMessage event raised by the TeleporterMessenger contract.
 type TeleporterMessengerReceiveCrossChainMessage struct {
-	OriginChainID  [32]byte
-	MessageID      *big.Int
-	Deliverer      common.Address
-	RewardRedeemer common.Address
-	Message        TeleporterMessage
-	Raw            types.Log // Blockchain specific contextual infos
+	OriginBlockchainID [32]byte
+	MessageID          *big.Int
+	Deliverer          common.Address
+	RewardRedeemer     common.Address
+	Message            TeleporterMessage
+	Raw                types.Log // Blockchain specific contextual infos
 }
 
 // FilterReceiveCrossChainMessage is a free log retrieval operation binding the contract event 0x6b013241f9192863bc66c1f1e9a01dc592c94592bfed5e1ed380808525679575.
 //
-// Solidity: event ReceiveCrossChainMessage(bytes32 indexed originChainID, uint256 indexed messageID, address indexed deliverer, address rewardRedeemer, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterReceiveCrossChainMessage(opts *bind.FilterOpts, originChainID [][32]byte, messageID []*big.Int, deliverer []common.Address) (*TeleporterMessengerReceiveCrossChainMessageIterator, error) {
+// Solidity: event ReceiveCrossChainMessage(bytes32 indexed originBlockchainID, uint256 indexed messageID, address indexed deliverer, address rewardRedeemer, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterReceiveCrossChainMessage(opts *bind.FilterOpts, originBlockchainID [][32]byte, messageID []*big.Int, deliverer []common.Address) (*TeleporterMessengerReceiveCrossChainMessageIterator, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
@@ -1380,7 +1380,7 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterReceiveCrossChain
 		delivererRule = append(delivererRule, delivererItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "ReceiveCrossChainMessage", originChainIDRule, messageIDRule, delivererRule)
+	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "ReceiveCrossChainMessage", originBlockchainIDRule, messageIDRule, delivererRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1389,12 +1389,12 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterReceiveCrossChain
 
 // WatchReceiveCrossChainMessage is a free log subscription operation binding the contract event 0x6b013241f9192863bc66c1f1e9a01dc592c94592bfed5e1ed380808525679575.
 //
-// Solidity: event ReceiveCrossChainMessage(bytes32 indexed originChainID, uint256 indexed messageID, address indexed deliverer, address rewardRedeemer, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchReceiveCrossChainMessage(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerReceiveCrossChainMessage, originChainID [][32]byte, messageID []*big.Int, deliverer []common.Address) (event.Subscription, error) {
+// Solidity: event ReceiveCrossChainMessage(bytes32 indexed originBlockchainID, uint256 indexed messageID, address indexed deliverer, address rewardRedeemer, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchReceiveCrossChainMessage(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerReceiveCrossChainMessage, originBlockchainID [][32]byte, messageID []*big.Int, deliverer []common.Address) (event.Subscription, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
@@ -1405,7 +1405,7 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchReceiveCrossChainM
 		delivererRule = append(delivererRule, delivererItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "ReceiveCrossChainMessage", originChainIDRule, messageIDRule, delivererRule)
+	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "ReceiveCrossChainMessage", originBlockchainIDRule, messageIDRule, delivererRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1439,7 +1439,7 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchReceiveCrossChainM
 
 // ParseReceiveCrossChainMessage is a log parse operation binding the contract event 0x6b013241f9192863bc66c1f1e9a01dc592c94592bfed5e1ed380808525679575.
 //
-// Solidity: event ReceiveCrossChainMessage(bytes32 indexed originChainID, uint256 indexed messageID, address indexed deliverer, address rewardRedeemer, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
+// Solidity: event ReceiveCrossChainMessage(bytes32 indexed originBlockchainID, uint256 indexed messageID, address indexed deliverer, address rewardRedeemer, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message)
 func (_TeleporterMessenger *TeleporterMessengerFilterer) ParseReceiveCrossChainMessage(log types.Log) (*TeleporterMessengerReceiveCrossChainMessage, error) {
 	event := new(TeleporterMessengerReceiveCrossChainMessage)
 	if err := _TeleporterMessenger.contract.UnpackLog(event, "ReceiveCrossChainMessage", log); err != nil {
@@ -1672,28 +1672,28 @@ func (it *TeleporterMessengerSendCrossChainMessageIterator) Close() error {
 
 // TeleporterMessengerSendCrossChainMessage represents a SendCrossChainMessage event raised by the TeleporterMessenger contract.
 type TeleporterMessengerSendCrossChainMessage struct {
-	DestinationChainID [32]byte
-	MessageID          *big.Int
-	Message            TeleporterMessage
-	FeeInfo            TeleporterFeeInfo
-	Raw                types.Log // Blockchain specific contextual infos
+	DestinationBlockchainID [32]byte
+	MessageID               *big.Int
+	Message                 TeleporterMessage
+	FeeInfo                 TeleporterFeeInfo
+	Raw                     types.Log // Blockchain specific contextual infos
 }
 
 // FilterSendCrossChainMessage is a free log retrieval operation binding the contract event 0x0563d357b89128d5a0c37c9b06420836e35d193eaf17f7960fc88e47d1e02f57.
 //
-// Solidity: event SendCrossChainMessage(bytes32 indexed destinationChainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message, (address,uint256) feeInfo)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterSendCrossChainMessage(opts *bind.FilterOpts, destinationChainID [][32]byte, messageID []*big.Int) (*TeleporterMessengerSendCrossChainMessageIterator, error) {
+// Solidity: event SendCrossChainMessage(bytes32 indexed destinationBlockchainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message, (address,uint256) feeInfo)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterSendCrossChainMessage(opts *bind.FilterOpts, destinationBlockchainID [][32]byte, messageID []*big.Int) (*TeleporterMessengerSendCrossChainMessageIterator, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
 		messageIDRule = append(messageIDRule, messageIDItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "SendCrossChainMessage", destinationChainIDRule, messageIDRule)
+	logs, sub, err := _TeleporterMessenger.contract.FilterLogs(opts, "SendCrossChainMessage", destinationBlockchainIDRule, messageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1702,19 +1702,19 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) FilterSendCrossChainMes
 
 // WatchSendCrossChainMessage is a free log subscription operation binding the contract event 0x0563d357b89128d5a0c37c9b06420836e35d193eaf17f7960fc88e47d1e02f57.
 //
-// Solidity: event SendCrossChainMessage(bytes32 indexed destinationChainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message, (address,uint256) feeInfo)
-func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchSendCrossChainMessage(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerSendCrossChainMessage, destinationChainID [][32]byte, messageID []*big.Int) (event.Subscription, error) {
+// Solidity: event SendCrossChainMessage(bytes32 indexed destinationBlockchainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message, (address,uint256) feeInfo)
+func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchSendCrossChainMessage(opts *bind.WatchOpts, sink chan<- *TeleporterMessengerSendCrossChainMessage, destinationBlockchainID [][32]byte, messageID []*big.Int) (event.Subscription, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var messageIDRule []interface{}
 	for _, messageIDItem := range messageID {
 		messageIDRule = append(messageIDRule, messageIDItem)
 	}
 
-	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "SendCrossChainMessage", destinationChainIDRule, messageIDRule)
+	logs, sub, err := _TeleporterMessenger.contract.WatchLogs(opts, "SendCrossChainMessage", destinationBlockchainIDRule, messageIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1748,7 +1748,7 @@ func (_TeleporterMessenger *TeleporterMessengerFilterer) WatchSendCrossChainMess
 
 // ParseSendCrossChainMessage is a log parse operation binding the contract event 0x0563d357b89128d5a0c37c9b06420836e35d193eaf17f7960fc88e47d1e02f57.
 //
-// Solidity: event SendCrossChainMessage(bytes32 indexed destinationChainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message, (address,uint256) feeInfo)
+// Solidity: event SendCrossChainMessage(bytes32 indexed destinationBlockchainID, uint256 indexed messageID, (uint256,address,bytes32,address,uint256,address[],(uint256,address)[],bytes) message, (address,uint256) feeInfo)
 func (_TeleporterMessenger *TeleporterMessengerFilterer) ParseSendCrossChainMessage(log types.Log) (*TeleporterMessengerSendCrossChainMessage, error) {
 	event := new(TeleporterMessengerSendCrossChainMessage)
 	if err := _TeleporterMessenger.contract.UnpackLog(event, "SendCrossChainMessage", log); err != nil {

@@ -32,7 +32,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 1,
             senderAddress: address(this),
-            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,
@@ -178,17 +178,17 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         );
     }
 
-    function testInvalidDestinationChainID() public {
+    function testInvalidDestinationBlockchainID() public {
         // Construct the test message to be received.
         TeleporterMessage
             memory messageToReceive = _createMockTeleporterMessage(
                 1,
                 new bytes(0)
             );
-        bytes32 invalidDestinationChainID = bytes32(
+        bytes32 invalidDestinationBlockchainID = bytes32(
             hex"deadbeefcafebabedeadbeefcafebabedeadbeefcafebabedeadbeefcafebabe"
         );
-        messageToReceive.destinationChainID = invalidDestinationChainID;
+        messageToReceive.destinationBlockchainID = invalidDestinationBlockchainID;
 
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
@@ -238,7 +238,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
-            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,
