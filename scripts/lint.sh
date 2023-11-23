@@ -10,6 +10,8 @@ TELEPORTER_PATH=$(
 )
 
 cd $TELEPORTER_PATH/contracts/src
+# "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
+# in subdirectories. The former only checks sol files in the current directory and directories one level down.
 solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
 
 exit 0

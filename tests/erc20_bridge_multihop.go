@@ -348,13 +348,13 @@ func submitCreateBridgeToken(
 	messageFeeAmount *big.Int,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	transctor *erc20bridge.ERC20Bridge,
+	transactor *erc20bridge.ERC20Bridge,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
 	Expect(err).Should(BeNil())
 
-	tx, err := transctor.SubmitCreateBridgeToken(
+	tx, err := transactor.SubmitCreateBridgeToken(
 		opts,
 		destinationChainID,
 		destinationBridgeAddress,
@@ -392,7 +392,7 @@ func bridgeToken(
 	secondaryFeeAmount *big.Int,
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	transctor *erc20bridge.ERC20Bridge,
+	transactor *erc20bridge.ERC20Bridge,
 	isNative bool,
 	nativeTokenChainID ids.ID,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
@@ -400,7 +400,7 @@ func bridgeToken(
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
 	Expect(err).Should(BeNil())
 
-	tx, err := transctor.BridgeTokens(
+	tx, err := transactor.BridgeTokens(
 		opts,
 		destinationChainID,
 		destinationBridgeAddress,
@@ -432,7 +432,7 @@ func approveBridgeToken(
 	ctx context.Context,
 	source utils.SubnetTestInfo,
 	bridgeTokenAddress common.Address,
-	transtor *bridgetoken.BridgeToken,
+	transactor *bridgetoken.BridgeToken,
 	amount *big.Int,
 	spender common.Address,
 	fundedAddress common.Address,
@@ -441,7 +441,7 @@ func approveBridgeToken(
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
 	Expect(err).Should(BeNil())
 
-	txn, err := transtor.Approve(opts, spender, amount)
+	txn, err := transactor.Approve(opts, spender, amount)
 	Expect(err).Should(BeNil())
 
 	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
