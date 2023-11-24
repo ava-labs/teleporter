@@ -257,7 +257,7 @@ interface ITeleporterMessenger {
     ) external view returns (uint256);
 
     /**
-     * @dev Gets the receipt at the given index in the queue for the given chain ID.
+     * @dev Gets the receipt at the given index in the queue for the given origin chain ID.
      * @return The receipt requested.
      */
     function getReceiptAtIndex(
