@@ -249,7 +249,7 @@ interface ITeleporterMessenger {
     function getNextMessageID(bytes32 blockchainID) external view returns (uint256);
 
     /**
-     * @dev Gets the number of receipts that have been sent to the given destination chain ID.
+     * @dev Gets the number of receipts that are waiting to be sent to the given origin chain ID.
      * @return Size of the given queue.
      */
     function getReceiptQueueSize(
