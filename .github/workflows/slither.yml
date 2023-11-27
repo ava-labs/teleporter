@@ -36,6 +36,7 @@ jobs:
 
       - name: Run Slither
         run: |
+          printenv
           cd contracts
           slither ./ --fail-none --sarif ./results.sarif
 
