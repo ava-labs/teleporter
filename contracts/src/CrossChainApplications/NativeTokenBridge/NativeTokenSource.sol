@@ -192,9 +192,7 @@ contract NativeTokenSource is
      * The burned total on the destination will only ever increase, but new totals may be relayed to this
      * chain out of order.
      */
-    function _updatedestinationBurnedTotal(
-        uint256 newBurnTotal
-    ) private {
+    function _updatedestinationBurnedTotal(uint256 newBurnTotal) private {
         if (newBurnTotal > destinationBurnedTotal) {
             uint256 difference = newBurnTotal - destinationBurnedTotal;
             _burnTokens(difference);

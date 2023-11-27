@@ -5,6 +5,10 @@
 
 pragma solidity 0.8.18;
 
+/**
+ * @dev Interface for common functionality needed for different `TokenSource` contracts such as 
+ * `NativeTokenSource` and `ERC20TokenSource`.
+ */
 interface ITokenSource {
     /**
      * @dev Enum representing the action to take on receiving a Teleporter message.

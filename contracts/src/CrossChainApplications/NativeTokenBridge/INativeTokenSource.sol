@@ -18,8 +18,8 @@ interface INativeTokenSource {
     event TransferToDestination(
         address indexed sender,
         address indexed recipient,
-        uint256 amount,
-        uint256 indexed teleporterMessageID
+        uint256 indexed teleporterMessageID,
+        uint256 amount
     );
 
     /**

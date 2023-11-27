@@ -18,14 +18,14 @@ interface INativeTokenDestination {
     event TransferToSource(
         address indexed sender,
         address indexed recipient,
-        uint256 amount,
-        uint256 indexed teleporterMessageID
+        uint256 indexed teleporterMessageID,
+        uint256 amount
     );
 
     /**
      * @dev Emitted when tokens are not minted in order to collateralize the source contract.
      */
-    event CollateralAdded(uint256 amount, uint256 remaining, address addedBy);
+    event CollateralAdded(uint256 amount, uint256 remaining, address sender);
 
     /**
      * @dev Emitted when minting native tokens.
@@ -33,11 +33,11 @@ interface INativeTokenDestination {
     event NativeTokensMinted(address indexed recipient, uint256 amount);
 
     /**
-     * @dev Emitted when minting reporting total burned tx fees to source chain.
+     * @dev Emitted when reporting total burned tx fees to source chain.
      */
     event ReportTotalBurnedTxFees(
-        uint256 burnAddressBalance,
-        uint256 indexed teleporterMessageID
+        uint256 indexed teleporterMessageID,
+        uint256 burnAddressBalance
     );
 
     /**
@@ -51,14 +51,14 @@ interface INativeTokenDestination {
     ) external payable;
 
     /**
-     * @dev Returns true if currentTokenImbalance is 0. When this is true, all tokens sent to
-     * this chain will be minted, and sending tokens to the source chain is allowed.
+     * @dev Returns true if the reserve imbalance for this contract has been accounted for.
+     *  When this is true, all tokens sent to this chain will be minted, and sending tokens
+     *  to the source chain is allowed.
      */
     function isCollateralized() external view returns (bool);
 
     /**
-     * @dev Returns the total number of tokens minted + initialReserveImbalance -
-     * total tokens burned through fees and transferring back to the source chain.
+     * @dev Returns a best-estimate (upper bound) of tokens in circulation on this chain.
      */
     function totalSupply() external view returns (uint256);
 }

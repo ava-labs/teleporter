@@ -29,6 +29,7 @@ contract NativeTokenDestination is
     // Designated Blackhole Address. Tokens are sent here to be "burned" before sending an unlock
     // message to the source chain. Different from the burned tx fee address so they can be
     // tracked separately.
+    // Defined at https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
     address public constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000001;
 
     INativeMinter private immutable _nativeMinter =
@@ -129,7 +130,7 @@ contract NativeTokenDestination is
                 emit CollateralAdded({
                     amount: currentReserveImbalance,
                     remaining: 0,
-                    addedBy: senderAddress
+                    sender: senderAddress
                 });
                 adjustedAmount = amount - currentReserveImbalance;
                 currentReserveImbalance = 0;
@@ -138,7 +139,7 @@ contract NativeTokenDestination is
                 emit CollateralAdded({
                     amount: amount,
                     remaining: currentReserveImbalance,
-                    addedBy: senderAddress
+                    sender: senderAddress
                 });
                 return;
             }

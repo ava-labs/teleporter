@@ -214,9 +214,7 @@ contract ERC20TokenSource is
     /**
      * @dev Update destinationBurnedTotal sent from destination chain
      */
-    function _updatedestinationBurnedTotal(
-        uint256 newBurnTotal
-    ) private {
+    function _updatedestinationBurnedTotal(uint256 newBurnTotal) private {
         if (newBurnTotal > destinationBurnedTotal) {
             uint256 difference = newBurnTotal - destinationBurnedTotal;
             _burnTokens(difference);

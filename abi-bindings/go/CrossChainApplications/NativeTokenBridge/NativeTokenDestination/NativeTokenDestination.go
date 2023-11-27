@@ -37,7 +37,7 @@ type TeleporterFeeInfo struct {
 
 // NativeTokenDestinationMetaData contains all meta data concerning the NativeTokenDestination contract.
 var NativeTokenDestinationMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenSourceAddress_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"initialReserveImbalance_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"addedBy\",\"type\":\"address\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"NativeTokensMinted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"burnAddressBalance\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"ReportTotalBurnedTxFees\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"BLACKHOLE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"BURNED_TX_FEES_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"REPORT_BURNED_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"initialReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isCollateralized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenSourceAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"reportTotalBurnedTxFees\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalMinted\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterMessengerAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID_\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"nativeTokenSourceAddress_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"initialReserveImbalance_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"NativeTokensMinted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"burnAddressBalance\",\"type\":\"uint256\"}],\"name\":\"ReportTotalBurnedTxFees\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"teleporterMessageID\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TransferToSource\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"BLACKHOLE_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"BURNED_TX_FEES_ADDRESS\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"REPORT_BURNED_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"TRANSFER_NATIVE_TOKENS_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"initialReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isCollateralized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nativeTokenSourceAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"senderBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"reportTotalBurnedTxFees\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterMessenger\",\"outputs\":[{\"internalType\":\"contractITeleporterMessenger\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalMinted\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"},{\"internalType\":\"address[]\",\"name\":\"allowedRelayerAddresses\",\"type\":\"address[]\"}],\"name\":\"transferToSource\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // NativeTokenDestinationABI is the input ABI used to generate the binding from.
@@ -692,13 +692,13 @@ func (it *NativeTokenDestinationCollateralAddedIterator) Close() error {
 type NativeTokenDestinationCollateralAdded struct {
 	Amount    *big.Int
 	Remaining *big.Int
-	AddedBy   common.Address
+	Sender    common.Address
 	Raw       types.Log // Blockchain specific contextual infos
 }
 
 // FilterCollateralAdded is a free log retrieval operation binding the contract event 0x66c12a5fefbc1f35dd64a1d9b069fc5bda187e6f68812c58a330b77b2a695ba9.
 //
-// Solidity: event CollateralAdded(uint256 amount, uint256 remaining, address addedBy)
+// Solidity: event CollateralAdded(uint256 amount, uint256 remaining, address sender)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterCollateralAdded(opts *bind.FilterOpts) (*NativeTokenDestinationCollateralAddedIterator, error) {
 
 	logs, sub, err := _NativeTokenDestination.contract.FilterLogs(opts, "CollateralAdded")
@@ -710,7 +710,7 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterCollateralA
 
 // WatchCollateralAdded is a free log subscription operation binding the contract event 0x66c12a5fefbc1f35dd64a1d9b069fc5bda187e6f68812c58a330b77b2a695ba9.
 //
-// Solidity: event CollateralAdded(uint256 amount, uint256 remaining, address addedBy)
+// Solidity: event CollateralAdded(uint256 amount, uint256 remaining, address sender)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchCollateralAdded(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationCollateralAdded) (event.Subscription, error) {
 
 	logs, sub, err := _NativeTokenDestination.contract.WatchLogs(opts, "CollateralAdded")
@@ -747,7 +747,7 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchCollateralAd
 
 // ParseCollateralAdded is a log parse operation binding the contract event 0x66c12a5fefbc1f35dd64a1d9b069fc5bda187e6f68812c58a330b77b2a695ba9.
 //
-// Solidity: event CollateralAdded(uint256 amount, uint256 remaining, address addedBy)
+// Solidity: event CollateralAdded(uint256 amount, uint256 remaining, address sender)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseCollateralAdded(log types.Log) (*NativeTokenDestinationCollateralAdded, error) {
 	event := new(NativeTokenDestinationCollateralAdded)
 	if err := _NativeTokenDestination.contract.UnpackLog(event, "CollateralAdded", log); err != nil {
@@ -971,14 +971,14 @@ func (it *NativeTokenDestinationReportTotalBurnedTxFeesIterator) Close() error {
 
 // NativeTokenDestinationReportTotalBurnedTxFees represents a ReportTotalBurnedTxFees event raised by the NativeTokenDestination contract.
 type NativeTokenDestinationReportTotalBurnedTxFees struct {
-	BurnAddressBalance  *big.Int
 	TeleporterMessageID *big.Int
+	BurnAddressBalance  *big.Int
 	Raw                 types.Log // Blockchain specific contextual infos
 }
 
 // FilterReportTotalBurnedTxFees is a free log retrieval operation binding the contract event 0x2550fa6041684d40e635e29e93dde9017d70c25b46aa88393317b5182ed6ae7c.
 //
-// Solidity: event ReportTotalBurnedTxFees(uint256 burnAddressBalance, uint256 indexed teleporterMessageID)
+// Solidity: event ReportTotalBurnedTxFees(uint256 indexed teleporterMessageID, uint256 burnAddressBalance)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterReportTotalBurnedTxFees(opts *bind.FilterOpts, teleporterMessageID []*big.Int) (*NativeTokenDestinationReportTotalBurnedTxFeesIterator, error) {
 
 	var teleporterMessageIDRule []interface{}
@@ -995,7 +995,7 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterReportTotal
 
 // WatchReportTotalBurnedTxFees is a free log subscription operation binding the contract event 0x2550fa6041684d40e635e29e93dde9017d70c25b46aa88393317b5182ed6ae7c.
 //
-// Solidity: event ReportTotalBurnedTxFees(uint256 burnAddressBalance, uint256 indexed teleporterMessageID)
+// Solidity: event ReportTotalBurnedTxFees(uint256 indexed teleporterMessageID, uint256 burnAddressBalance)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchReportTotalBurnedTxFees(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationReportTotalBurnedTxFees, teleporterMessageID []*big.Int) (event.Subscription, error) {
 
 	var teleporterMessageIDRule []interface{}
@@ -1037,7 +1037,7 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchReportTotalB
 
 // ParseReportTotalBurnedTxFees is a log parse operation binding the contract event 0x2550fa6041684d40e635e29e93dde9017d70c25b46aa88393317b5182ed6ae7c.
 //
-// Solidity: event ReportTotalBurnedTxFees(uint256 burnAddressBalance, uint256 indexed teleporterMessageID)
+// Solidity: event ReportTotalBurnedTxFees(uint256 indexed teleporterMessageID, uint256 burnAddressBalance)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseReportTotalBurnedTxFees(log types.Log) (*NativeTokenDestinationReportTotalBurnedTxFees, error) {
 	event := new(NativeTokenDestinationReportTotalBurnedTxFees)
 	if err := _NativeTokenDestination.contract.UnpackLog(event, "ReportTotalBurnedTxFees", log); err != nil {
@@ -1118,14 +1118,14 @@ func (it *NativeTokenDestinationTransferToSourceIterator) Close() error {
 type NativeTokenDestinationTransferToSource struct {
 	Sender              common.Address
 	Recipient           common.Address
-	Amount              *big.Int
 	TeleporterMessageID *big.Int
+	Amount              *big.Int
 	Raw                 types.Log // Blockchain specific contextual infos
 }
 
 // FilterTransferToSource is a free log retrieval operation binding the contract event 0x0322cbb1d3c23f6dbf1deddb3b4ef3ce0f93ae6eec7b44e4f395804104466d14.
 //
-// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, uint256 indexed teleporterMessageID)
+// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 indexed teleporterMessageID, uint256 amount)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterTransferToSource(opts *bind.FilterOpts, sender []common.Address, recipient []common.Address, teleporterMessageID []*big.Int) (*NativeTokenDestinationTransferToSourceIterator, error) {
 
 	var senderRule []interface{}
@@ -1136,7 +1136,6 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterTransferToS
 	for _, recipientItem := range recipient {
 		recipientRule = append(recipientRule, recipientItem)
 	}
-
 	var teleporterMessageIDRule []interface{}
 	for _, teleporterMessageIDItem := range teleporterMessageID {
 		teleporterMessageIDRule = append(teleporterMessageIDRule, teleporterMessageIDItem)
@@ -1151,7 +1150,7 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) FilterTransferToS
 
 // WatchTransferToSource is a free log subscription operation binding the contract event 0x0322cbb1d3c23f6dbf1deddb3b4ef3ce0f93ae6eec7b44e4f395804104466d14.
 //
-// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, uint256 indexed teleporterMessageID)
+// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 indexed teleporterMessageID, uint256 amount)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchTransferToSource(opts *bind.WatchOpts, sink chan<- *NativeTokenDestinationTransferToSource, sender []common.Address, recipient []common.Address, teleporterMessageID []*big.Int) (event.Subscription, error) {
 
 	var senderRule []interface{}
@@ -1162,7 +1161,6 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchTransferToSo
 	for _, recipientItem := range recipient {
 		recipientRule = append(recipientRule, recipientItem)
 	}
-
 	var teleporterMessageIDRule []interface{}
 	for _, teleporterMessageIDItem := range teleporterMessageID {
 		teleporterMessageIDRule = append(teleporterMessageIDRule, teleporterMessageIDItem)
@@ -1202,7 +1200,7 @@ func (_NativeTokenDestination *NativeTokenDestinationFilterer) WatchTransferToSo
 
 // ParseTransferToSource is a log parse operation binding the contract event 0x0322cbb1d3c23f6dbf1deddb3b4ef3ce0f93ae6eec7b44e4f395804104466d14.
 //
-// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 amount, uint256 indexed teleporterMessageID)
+// Solidity: event TransferToSource(address indexed sender, address indexed recipient, uint256 indexed teleporterMessageID, uint256 amount)
 func (_NativeTokenDestination *NativeTokenDestinationFilterer) ParseTransferToSource(log types.Log) (*NativeTokenDestinationTransferToSource, error) {
 	event := new(NativeTokenDestinationTransferToSource)
 	if err := _NativeTokenDestination.contract.UnpackLog(event, "TransferToSource", log); err != nil {
