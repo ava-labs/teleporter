@@ -36,7 +36,7 @@ jobs:
 
       - name: Run Slither
         run: |
-          cat ~/.bashrcg
+          cat ~/.bashrc
           cd contracts
           slither ./ --fail-none --sarif ./results.sarif
 
