@@ -37,7 +37,7 @@ contract ExampleCrossChainMessenger {
 }
 ```
 
-### Step 3: Send and Receive
+## Step 3: Send and Receive
 
 Now that `MyExampleCrossChainMessenger` has an instantiation of `ITeleporterMessenger`, the next step is to add in functionality of sending and receiving arbitrary string data between chains.
 
