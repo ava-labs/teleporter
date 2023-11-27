@@ -12,7 +12,7 @@ sed -i "s/\/ava-labs\/foundry\/master\/foundryup/\/ava-labs\/foundry\/${FOUNDRY_
 cat /tmp/foundry-install-script | bash
 echo "export PATH=\"$PATH:$HOME/.foundry/bin\"" >> ~/.bashrc
 source ~/.bashrc
-export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin
+export PATH=$PATH:$HOME/.foundry/bin:$HOME/.foundry:$HOME/.cargo/bin
 ls $HOME/.foundry
 ls $HOME/.foundry/bin
 which foundryup
