@@ -21,7 +21,7 @@ Next, define the initial empty contract.
 contract MyExampleCrossChainMessenger {}
 ```
 
-### Step 2: Integrating Teleporter Messenger
+## Step 2: Integrating Teleporter Messenger
 
 Now that the initial empty `MyExampleCrossChainMessenger` is defined, it's time to integrate the `ITeleporterMessenger` that will provide the functionality to deliver cross chain messages.
 
