@@ -40,8 +40,7 @@ fi
 
 if ! command -v forge &> /dev/null; then
     echo "forge not found, installing"
-    curl -L https://foundry.paradigm.xyz | bash
-    source $HOME/.bashrc
+    $TELEPORTER_PATH/scripts/install_foundry.sh
     foundryup
 fi
 
