@@ -12,6 +12,8 @@ updates:
     ignore:
       # Update go-ethereum only via subnet-evm or avalanchego
       - dependency-name: "go-ethereum"
+      - dependency-name: "subnet-evm"
+      - dependency-name: "avalanchego"
   - package-ecosystem: "docker"
     directory: "/docker"
     schedule:
