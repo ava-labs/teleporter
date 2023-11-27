@@ -28,7 +28,7 @@ contract NativeTokenSource is
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     // Used to keep track of tokens burned through transactions on the destination chain. They can
     // be reported to this contract to burn an equivalent number of tokens on this chain.
-    uint256 public destinationChainBurnedBalance = 0;
+    uint256 public destinationBurnedTotal = 0;
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
 
@@ -108,7 +108,7 @@ contract NativeTokenSource is
             _unlockTokens(recipient, amount);
         } else if (action == SourceAction.Burn) {
             uint256 newBurnBalance = abi.decode(actionData, (uint256));
-            _updateDestinationChainBurnedBalance(newBurnBalance);
+            _updatedestinationBurnedTotal(newBurnBalance);
         } else {
             revert("NativeTokenSource: invalid action");
         }
@@ -187,15 +187,15 @@ contract NativeTokenSource is
     }
 
     /**
-     * @dev Update destinationChainBurnedBalance sent from destination chain
+     * @dev Update destinationBurnedTotal sent from destination chain
      */
-    function _updateDestinationChainBurnedBalance(
+    function _updatedestinationBurnedTotal(
         uint256 newBurnBalance
     ) private {
-        if (newBurnBalance > destinationChainBurnedBalance) {
-            uint256 difference = newBurnBalance - destinationChainBurnedBalance;
+        if (newBurnBalance > destinationBurnedTotal) {
+            uint256 difference = newBurnBalance - destinationBurnedTotal;
             _burnTokens(difference);
-            destinationChainBurnedBalance = newBurnBalance;
+            destinationBurnedTotal = newBurnBalance;
         }
     }
 }
