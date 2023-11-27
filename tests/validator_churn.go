@@ -18,7 +18,7 @@ import (
 )
 
 // Disallow this test from being run on anything but a local network, since it manipulates the validator set
-func ValidatorChurnGinkgo() {
+func ValidatorChurn() {
 	network := &network.LocalNetwork{}
 
 	subnets := network.GetSubnetsInfo()

@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/ava-labs/teleporter/tests/network"
 	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
@@ -55,18 +56,40 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("ERC20 bridge multihop", ERC20BridgeMultihopGinkgo)
 
 	// Teleporter tests
-	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A", BasicSendReceiveGinkgo)
-	ginkgo.It("Deliver to the wrong chain", DeliverToWrongChainGinkgo)
-	ginkgo.It("Deliver to non-existent contract", DeliverToNonExistentContractGinkgo) // TODO: fix
-	ginkgo.It("Retry successful execution", RetrySuccessfulExecutionGinkgo)
-	ginkgo.It("Unallowed relayer", UnallowedRelayerGinkgo)
-	ginkgo.It("Receive message twice", ReceiveMessageTwiceGinkgo)
-	ginkgo.It("Add additional fee amount", AddFeeAmountGinkgo)
-	ginkgo.It("Send specific receipts", SendSpecificReceiptsGinkgo)
-	ginkgo.It("Insufficient gas", InsufficientGasGinkgo)
-	ginkgo.It("Resubmit altered message", ResubmitAlteredMessageGinkgo)
-	ginkgo.It("Relayer modifies message", RelayerModifiesMessageGinkgo)
-	ginkgo.It("Validator churn", ValidatorChurnGinkgo)
+	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A", func() {
+		BasicSendReceive(&network.LocalNetwork{})
+	})
+	ginkgo.It("Deliver to the wrong chain", func() {
+		DeliverToWrongChain(&network.LocalNetwork{})
+	})
+	ginkgo.It("Deliver to non-existent contract", func() {
+		DeliverToNonExistentContract(&network.LocalNetwork{})
+	})
+	ginkgo.It("Retry successful execution", func() {
+		RetrySuccessfulExecution(&network.LocalNetwork{})
+	})
+	ginkgo.It("Unallowed relayer", func() {
+		UnallowedRelayer(&network.LocalNetwork{})
+	})
+	ginkgo.It("Receive message twice", func() {
+		ReceiveMessageTwice(&network.LocalNetwork{})
+	})
+	ginkgo.It("Add additional fee amount", func() {
+		AddFeeAmount(&network.LocalNetwork{})
+	})
+	ginkgo.It("Send specific receipts", func() {
+		SendSpecificReceipts(&network.LocalNetwork{})
+	})
+	ginkgo.It("Insufficient gas", func() {
+		InsufficientGas(&network.LocalNetwork{})
+	})
+	ginkgo.It("Resubmit altered message", func() {
+		ResubmitAlteredMessage(&network.LocalNetwork{})
+	})
+
+	// The following tests require special behavior by the relayer, so we only run them on a local network
+	ginkgo.It("Relayer modifies message", RelayerModifiesMessage)
+	ginkgo.It("Validator churn", ValidatorChurn)
 	// Since the validator churn test modifies the network topology, we put it last for now.
 	// It should not affect the other tests, but we get some errors if we run it before the other tests.
 	// TODO: we should fix this so that the order of the tests does not matter.

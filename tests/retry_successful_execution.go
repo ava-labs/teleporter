@@ -13,10 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func RetrySuccessfulExecutionGinkgo() {
-	RetrySuccessfulExecution(&network.LocalNetwork{})
-}
-
 func RetrySuccessfulExecution(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))

@@ -23,7 +23,7 @@ import (
 )
 
 // Disallow this test from being run on anything but a local network, since it requires special behavior by the relayer
-func RelayerModifiesMessageGinkgo() {
+func RelayerModifiesMessage() {
 	network := &network.LocalNetwork{}
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))

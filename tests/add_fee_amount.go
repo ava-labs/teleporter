@@ -13,10 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func AddFeeAmountGinkgo() {
-	AddFeeAmount(&network.LocalNetwork{})
-}
-
 func AddFeeAmount(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))

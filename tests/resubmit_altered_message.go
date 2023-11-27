@@ -13,10 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func ResubmitAlteredMessageGinkgo() {
-	ResubmitAlteredMessage(&network.LocalNetwork{})
-}
-
 func ResubmitAlteredMessage(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))

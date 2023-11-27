@@ -15,10 +15,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func DeliverToWrongChainGinkgo() {
-	DeliverToWrongChain(&network.LocalNetwork{})
-}
-
 func DeliverToWrongChain(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))

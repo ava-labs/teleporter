@@ -14,10 +14,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func SendSpecificReceiptsGinkgo() {
-	SendSpecificReceipts(&network.LocalNetwork{})
-}
-
 func SendSpecificReceipts(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))

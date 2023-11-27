@@ -17,10 +17,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func DeliverToNonExistentContractGinkgo() {
-	DeliverToNonExistentContract(&network.LocalNetwork{})
-}
-
 func DeliverToNonExistentContract(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))

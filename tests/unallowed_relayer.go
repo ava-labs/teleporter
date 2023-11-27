@@ -13,10 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func UnallowedRelayerGinkgo() {
-	UnallowedRelayer(&network.LocalNetwork{})
-}
-
 func UnallowedRelayer(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))

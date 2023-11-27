@@ -13,10 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func BasicSendReceiveGinkgo() {
-	BasicSendReceive(&network.LocalNetwork{})
-}
-
 // Tests basic one-way send from Subnet A to Subnet B and vice versa
 func BasicSendReceive(network network.Network) {
 	var (

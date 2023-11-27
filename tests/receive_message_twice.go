@@ -14,10 +14,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func ReceiveMessageTwiceGinkgo() {
-	ReceiveMessageTwice(&network.LocalNetwork{})
-}
-
 func ReceiveMessageTwice(network network.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))
