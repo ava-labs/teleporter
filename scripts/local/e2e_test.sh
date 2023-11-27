@@ -15,7 +15,7 @@ source "$TELEPORTER_PATH"/scripts/versions.sh
 BASEDIR=${BASEDIR:-"/tmp/e2e-test"}
 
 cwd=$(pwd)
-# Build the teleporter and cross chain apps smart contracts
+# Install the avalanchego and subnetevm binaries
 BASEDIR=$BASEDIR AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego ./scripts/install_avalanchego_release.sh
 BASEDIR=$BASEDIR ./scripts/install_subnetevm_release.sh
 
