@@ -7,12 +7,12 @@ set -ex
 FOUNDRY_VERSION=v0.1.0
 curl -L https://raw.githubusercontent.com/ava-labs/foundry/${FOUNDRY_VERSION}/foundryup/install > /tmp/foundry-install-script
 sed -i "s/\/ava-labs\/foundry\/master\/foundryup/\/ava-labs\/foundry\/${FOUNDRY_VERSION}\/foundryup/g" /tmp/foundry-install-script
-mkdir -p $HOME/.foundry/bin
+mkdir -p $XDG_CONFIG_HOME/.foundry/bin
 cat /tmp/foundry-install-script | bash
-echo "export PATH=$PATH:$HOME/.foundry/bin" >> ~/.bashrc
+echo "export PATH=$PATH:$XDG_CONFIG_HOME/.foundry/bin" >> ~/.bashrc
 cat ~/.bashrc
 source ~/.bashrc
-ls $HOME/.foundry/bin
-export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin
+ls $XDG_CONFIG_HOME/.foundry/bin
+export PATH=$PATH:$XDG_CONFIG_HOME/.foundry/bin:$XDG_CONFIG_HOME/.cargo/bin
 printenv
 foundryup --version ${FOUNDRY_VERSION}
