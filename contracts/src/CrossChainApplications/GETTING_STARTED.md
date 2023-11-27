@@ -125,7 +125,7 @@ function receiveTeleporterMessage(
 
 The base of sending and receiving messages cross chain is complete. `MyExampleCrossChainMessenger` can now be expanded with functionality that saves the received messages, and allows users to query for the latest message received from a specified chain.
 
-### Step 4: Storing the Message
+## Step 4: Storing the Message
 
 Start by defining the `struct` for how to save our messages. It saves the string message itself and the address of the sender.
 
