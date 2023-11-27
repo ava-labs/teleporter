@@ -28,7 +28,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: "1.20.8"
 
       - name: Install Foundry
         run: ./scripts/install_foundry.sh
