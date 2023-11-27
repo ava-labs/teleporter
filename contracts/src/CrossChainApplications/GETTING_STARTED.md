@@ -172,7 +172,7 @@ function getCurrentMessage(
 
 There we have it, a simple cross chain messenger built on top of Teleporter! Full example [here](./ExampleMessenger/ExampleCrossChainMessenger.sol).
 
-### Step 5: Testing
+## Step 5: Testing
 
 For testing, `scripts/local/test.sh` sets up a local Avalanche network with three subnets deployed with Teleporter, and a relayer to deliver Teleporter messages. To add an integration test simply add a new test script under `integration-tests`. An integration test for `ExampleCrossChainMessenger` is already included (`scripts/local/integration_tests/example_messenger.sh`), which performs the following steps:
 
