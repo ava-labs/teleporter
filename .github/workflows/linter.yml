@@ -27,8 +27,10 @@ jobs:
   golangci:
     runs-on: ubuntu-20.04
     steps:
-    - name: Checkout teleporter
-      uses: actions/checkout@v4
+    - name: Checkout repositories and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
     - name: Set Go version
       run: |
