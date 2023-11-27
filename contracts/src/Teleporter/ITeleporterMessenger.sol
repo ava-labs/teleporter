@@ -246,14 +246,14 @@ interface ITeleporterMessenger {
      * @dev Gets the next message ID to be used for a given chain ID.
      * @return The next message ID to be used to send a message to the given chain ID.
      */
-    function getNextMessageID(bytes32 blockchainID) external view returns (uint256);
+    function getNextMessageID(bytes32 destinationBlockchainID) external view returns (uint256);
 
     /**
      * @dev Gets the number of receipts that are waiting to be sent to the given origin chain ID.
      * @return Size of the given queue.
      */
     function getReceiptQueueSize(
-        bytes32 blockchainID
+        bytes32 originBlockchainID
     ) external view returns (uint256);
 
     /**
@@ -261,7 +261,7 @@ interface ITeleporterMessenger {
      * @return The receipt requested.
      */
     function getReceiptAtIndex(
-        bytes32 blockchainID,
+        bytes32 originBlockchainID,
         uint256 index
     ) external view returns (TeleporterMessageReceipt memory);
 }

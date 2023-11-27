@@ -536,27 +536,27 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev Returns the next message ID to be used to send a message to the given blockchain ID.
      */
-    function getNextMessageID(bytes32 externalBlockchainID) external view returns (uint256) {
-        return _getNextMessageID(externalBlockchainID);
+    function getNextMessageID(bytes32 destinationBlockchainID) external view returns (uint256) {
+        return _getNextMessageID(destinationBlockchainID);
     }
 
     /**
      * @dev See {ITeleporterMessenger-getReceiptQueueSize}
      */
     function getReceiptQueueSize(
-        bytes32 externalBlockchainID
+        bytes32 originBlockchainID
     ) external view returns (uint256) {
-        return receiptQueues[externalBlockchainID].size();
+        return receiptQueues[originBlockchainID].size();
     }
 
     /**
      * @dev See {ITeleporterMessenger-getReceiptAtIndex}
      */
     function getReceiptAtIndex(
-        bytes32 externalBlockchainID,
+        bytes32 originBlockchainID,
         uint256 index
     ) external view returns (TeleporterMessageReceipt memory) {
-        return receiptQueues[externalBlockchainID].getReceiptAtIndex(index);
+        return receiptQueues[originBlockchainID].getReceiptAtIndex(index);
     }
 
     /**
@@ -805,9 +805,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Returns the next message ID to be used to send a message to the given `externalBlockchainID`.
+     * @dev Returns the next message ID to be used to send a message to the given `originBlockchainID`.
      */
-    function _getNextMessageID(bytes32 externalBlockchainID) private view returns (uint256) {
-        return latestMessageIDs[externalBlockchainID] + 1;
+    function _getNextMessageID(bytes32 originBlockchainID) private view returns (uint256) {
+        return latestMessageIDs[originBlockchainID] + 1;
     }
 }
