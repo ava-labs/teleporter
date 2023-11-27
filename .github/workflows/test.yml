@@ -64,9 +64,7 @@ jobs:
           submodules: recursive
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+        run: ./scripts/install_foundry.sh
 
       - name: Run unit tests
         run: |

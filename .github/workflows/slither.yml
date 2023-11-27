@@ -32,9 +32,7 @@ jobs:
           pip install slither-analyzer
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+        run: ./scripts/install_foundry.sh
 
       - name: Run Slither
         run: |
