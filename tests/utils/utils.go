@@ -216,7 +216,8 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
 	Expect(err).Should(BeNil())
 
-	txn, err := source.TeleporterMessenger.SendSpecifiedReceipts(opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
+	txn, err := source.TeleporterMessenger.SendSpecifiedReceipts(
+		opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
 	Expect(err).Should(BeNil())
 
 	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)

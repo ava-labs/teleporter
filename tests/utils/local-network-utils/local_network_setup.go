@@ -339,7 +339,6 @@ func DeployTeleporterRegistryContracts(
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 		log.Info("Deployed TeleporterRegistry contract to subnet", subnetInfo.SubnetID.Hex(),
 			"Deploy address", teleporterRegistryAddress.Hex())
-
 	}
 
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
