@@ -68,5 +68,6 @@ jobs:
 
       - name: Run unit tests
         run: |
+          export PATH=$PATH:$HOME/.foundry/bin
           cd contracts/
           forge test -vvv
