@@ -2,7 +2,7 @@
 
 This section walks through how to build an example cross-chain application on top of the Teleporter protocol, recreating the `ExampleCrossChainMessenger` contract that sends arbitrary string data from one chain to another. Note that this tutorial is meant for education purposes only. The resulting code is not intended for use in production environments.
 
-### Step 1: Create Initial Contract
+## Step 1: Create Initial Contract
 
 Create a new file called `MyExampleCrossChainMessenger.sol` in the directory that will hold the application.
 
