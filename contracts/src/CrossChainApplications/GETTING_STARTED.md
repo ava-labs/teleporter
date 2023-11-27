@@ -66,23 +66,40 @@ function receiveTeleporterMessage(
 ) external {}
 ```
 
-Now it's time to implement the methods, starting with `sendMessage`. First, import OpenZeppelin's `IERC20` contract, then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeTokenAddress` to the Teleporter Messenger saved as a state variable. Relayer fees are an optional way to incentive relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
+Now it's time to implement the methods, starting with `sendMessage`. First, add the import for OpenZeppelin's `IERC20` contract to the top of your contract.
 
 ```solidity
-// For non-zero fee amounts, transfer the fee into the control of this contract first, and then
-// allow the Teleporter contract to spend it.
-if (feeAmount > 0) {
-    IERC20 feeToken = IERC20(feeTokenAddress);
-    require(
-        feeToken.transferFrom(msg.sender, address(this), feeAmount),
-        "Failed to transfer fee amount"
-    );
-    require(
-        feeToken.approve(address(teleporterMessenger), feeAmount),
-        "Failed to approve fee amount"
-    );
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+```
+
+Then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeTokenAddress` to the Teleporter Messenger saved as a state variable.
+
+```solidity
+function sendMessage(
+    bytes32 destinationChainID,
+    address destinationAddress,
+    address feeTokenAddress,
+    uint256 feeAmount,
+    uint256 requiredGasLimit,
+    string calldata message
+) external returns (uint256 messageID) {
+    // For non-zero fee amounts, first transfer the fee into the control of this contract,
+    // then allow the Teleporter contract to spend it.
+    if (feeAmount > 0) {
+        IERC20 feeToken = IERC20(feeTokenAddress);
+        require(
+            feeToken.transferFrom(msg.sender, address(this), feeAmount),
+            "Failed to transfer fee amount"
+        );
+        require(
+            feeToken.approve(address(teleporterMessenger), feeAmount),
+            "Failed to approve fee amount"
+        );
+    }
 }
 ```
+
+Note: Relayer fees are an optional way to incentive relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
 
 Next, add the call to the `TeleporterMessenger` contract with the message data to be executed when delivered to the destination address. In `sendMessage`, form a `TeleporterMessageInput` and call `sendCrossChainMessage` on the `TeleporterMessenger` instance to start the cross chain messaging process.
 
