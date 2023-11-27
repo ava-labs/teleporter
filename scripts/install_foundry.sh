@@ -9,6 +9,6 @@ curl -L https://raw.githubusercontent.com/ava-labs/foundry/${FOUNDRY_VERSION}/fo
 sed -i "s/\/ava-labs\/foundry\/master\/foundryup/\/ava-labs\/foundry\/${FOUNDRY_VERSION}\/foundryup/g" /tmp/foundry-install-script
 cat /tmp/foundry-install-script | bash
 echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc
-source ~/.bashrc
+source $HOME/.bashrc
 export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin
 foundryup --version ${FOUNDRY_VERSION}
