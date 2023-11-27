@@ -70,7 +70,6 @@ func BasicSendReceive(network network.Network) {
 	//
 	// Relay the message to the destination
 	//
-
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	//
@@ -85,7 +84,6 @@ func BasicSendReceive(network network.Network) {
 	//
 	// Send a transaction to Subnet B to issue a Warp Message from the Teleporter contract to Subnet A
 	//
-
 	sendCrossChainMessageInput.DestinationChainID = subnetAInfo.BlockchainID
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(

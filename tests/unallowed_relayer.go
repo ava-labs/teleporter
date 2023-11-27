@@ -51,7 +51,6 @@ func UnallowedRelayer(network network.Network) {
 	//
 	// Relay the message to the destination
 	//
-
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
 
 	//

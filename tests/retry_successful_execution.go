@@ -61,7 +61,6 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 	// Relay the message to the destination
 	//
-
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 	receiveEvent, err :=
 		utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
