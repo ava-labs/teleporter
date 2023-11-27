@@ -10,6 +10,7 @@ sed -i "s/\/ava-labs\/foundry\/master\/foundryup/\/ava-labs\/foundry\/${FOUNDRY_
 mkdir -p $HOME/.foundry/bin
 cat /tmp/foundry-install-script | bash
 echo "export PATH=\"$PATH:$HOME/.foundry/bin\"" >> ~/.bashrc
+cat ~/.bashrc
 source ~/.bashrc
 ls $HOME/.foundry/bin
 export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin
