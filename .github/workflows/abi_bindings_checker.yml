@@ -35,6 +35,7 @@ jobs:
 
       - name: Generate ABI Go bindings
         run: |
+          export PATH=$PATH:$HOME/.foundry/bin
           export GOPATH=$HOME/go
           export PATH="$PATH:$GOPATH/bin"
           ./scripts/abi_bindings.sh

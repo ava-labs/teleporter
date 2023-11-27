@@ -15,8 +15,6 @@ source $TELEPORTER_PATH/scripts/versions.sh
 
 setARCH
 
-export PATH=$PATH:$HOME/.foundry/bin
-
 DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken TeleporterRegistry"
 
 CONTRACT_LIST=
