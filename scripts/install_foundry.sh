@@ -13,6 +13,7 @@ cat /tmp/foundry-install-script | bash
 echo "export PATH=\"$PATH:$HOME/.foundry/bin\"" >> ~/.bashrc
 source ~/.bashrc
 export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin
-which forge
+ls $HOME/.foundry
+ls $HOME/.foundry/bin
 which foundryup
 foundryup --version ${FOUNDRY_VERSION}
