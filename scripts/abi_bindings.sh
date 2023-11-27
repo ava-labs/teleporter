@@ -41,7 +41,6 @@ fi
 if ! command -v forge &> /dev/null; then
     echo "forge not found, installing"
     $TELEPORTER_PATH/scripts/install_foundry.sh
-    foundryup
 fi
 
 echo "Building subnet-evm abigen"
