@@ -22,8 +22,8 @@ interface IERC20TokenSource {
     );
 
     /**
-     * @dev Locks ERC20 tokens on the source contract chain, and sends a message to the destination
-     * contract to mint corresponding tokens.
+     * @dev Locks ERC20 tokens on the source contract chain, and sends a message to mint the
+     * corresponding native tokens on the destination chain.
      */
     function transferToDestination(
         address recipient,
