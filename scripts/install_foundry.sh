@@ -8,7 +8,7 @@ FOUNDRY_VERSION=v0.1.0
 curl -L https://raw.githubusercontent.com/ava-labs/foundry/${FOUNDRY_VERSION}/foundryup/install > /tmp/foundry-install-script
 sed -i "s/\/ava-labs\/foundry\/master\/foundryup/\/ava-labs\/foundry\/${FOUNDRY_VERSION}\/foundryup/g" /tmp/foundry-install-script
 mkdir -p $HOME/.foundry/bin
-cmd /tmp/foundry-install-script | bash
+cat /tmp/foundry-install-script | bash
 echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"" >> ~/.bashrc
 source ~/.bashrc
 ls $HOME/.foundry/bin
