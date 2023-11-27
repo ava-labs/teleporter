@@ -15,6 +15,8 @@ source $TELEPORTER_PATH/scripts/versions.sh
 
 setARCH
 
+export PATH=$PATH:$HOME/.foundry/bin
+
 DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken TeleporterRegistry"
 
 CONTRACT_LIST=
@@ -40,8 +42,7 @@ fi
 
 if ! command -v forge &> /dev/null; then
     echo "forge not found, installing"
-    curl -L https://foundry.paradigm.xyz | bash
-    source $HOME/.bashrc
+    $TELEPORTER_PATH/scripts/install_foundry.sh
     foundryup
 fi
 
