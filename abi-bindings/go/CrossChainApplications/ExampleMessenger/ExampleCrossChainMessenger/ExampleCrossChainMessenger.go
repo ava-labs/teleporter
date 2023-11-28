@@ -31,7 +31,7 @@ var (
 
 // ExampleCrossChainMessengerMetaData contains all meta data concerning the ExampleCrossChainMessenger contract.
 var ExampleCrossChainMessengerMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"ReceiveMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"SendMessage\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"}],\"name\":\"getCurrentMessage\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"sendMessage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"ReceiveMessage\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"SendMessage\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"}],\"name\":\"getCurrentMessage\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"name\":\"sendMessage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // ExampleCrossChainMessengerABI is the input ABI used to generate the binding from.
@@ -182,10 +182,10 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorRaw) Tran
 
 // GetCurrentMessage is a free data retrieval call binding the contract method 0xb33fead4.
 //
-// Solidity: function getCurrentMessage(bytes32 originChainID) view returns(address, string)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCaller) GetCurrentMessage(opts *bind.CallOpts, originChainID [32]byte) (common.Address, string, error) {
+// Solidity: function getCurrentMessage(bytes32 originBlockchainID) view returns(address, string)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCaller) GetCurrentMessage(opts *bind.CallOpts, originBlockchainID [32]byte) (common.Address, string, error) {
 	var out []interface{}
-	err := _ExampleCrossChainMessenger.contract.Call(opts, &out, "getCurrentMessage", originChainID)
+	err := _ExampleCrossChainMessenger.contract.Call(opts, &out, "getCurrentMessage", originBlockchainID)
 
 	if err != nil {
 		return *new(common.Address), *new(string), err
@@ -200,16 +200,16 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCaller) GetCurrentM
 
 // GetCurrentMessage is a free data retrieval call binding the contract method 0xb33fead4.
 //
-// Solidity: function getCurrentMessage(bytes32 originChainID) view returns(address, string)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) GetCurrentMessage(originChainID [32]byte) (common.Address, string, error) {
-	return _ExampleCrossChainMessenger.Contract.GetCurrentMessage(&_ExampleCrossChainMessenger.CallOpts, originChainID)
+// Solidity: function getCurrentMessage(bytes32 originBlockchainID) view returns(address, string)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) GetCurrentMessage(originBlockchainID [32]byte) (common.Address, string, error) {
+	return _ExampleCrossChainMessenger.Contract.GetCurrentMessage(&_ExampleCrossChainMessenger.CallOpts, originBlockchainID)
 }
 
 // GetCurrentMessage is a free data retrieval call binding the contract method 0xb33fead4.
 //
-// Solidity: function getCurrentMessage(bytes32 originChainID) view returns(address, string)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerSession) GetCurrentMessage(originChainID [32]byte) (common.Address, string, error) {
-	return _ExampleCrossChainMessenger.Contract.GetCurrentMessage(&_ExampleCrossChainMessenger.CallOpts, originChainID)
+// Solidity: function getCurrentMessage(bytes32 originBlockchainID) view returns(address, string)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerSession) GetCurrentMessage(originBlockchainID [32]byte) (common.Address, string, error) {
+	return _ExampleCrossChainMessenger.Contract.GetCurrentMessage(&_ExampleCrossChainMessenger.CallOpts, originBlockchainID)
 }
 
 // MinTeleporterVersion is a free data retrieval call binding the contract method 0xe49cc553.
@@ -307,23 +307,23 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerCallerSession) Tele
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _ExampleCrossChainMessenger.contract.Transact(opts, "receiveTeleporterMessage", originChainID, originSenderAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes message) returns()
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, originBlockchainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.contract.Transact(opts, "receiveTeleporterMessage", originBlockchainID, originSenderAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) ReceiveTeleporterMessage(originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _ExampleCrossChainMessenger.Contract.ReceiveTeleporterMessage(&_ExampleCrossChainMessenger.TransactOpts, originChainID, originSenderAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes message) returns()
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) ReceiveTeleporterMessage(originBlockchainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.ReceiveTeleporterMessage(&_ExampleCrossChainMessenger.TransactOpts, originBlockchainID, originSenderAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorSession) ReceiveTeleporterMessage(originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _ExampleCrossChainMessenger.Contract.ReceiveTeleporterMessage(&_ExampleCrossChainMessenger.TransactOpts, originChainID, originSenderAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes message) returns()
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorSession) ReceiveTeleporterMessage(originBlockchainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.ReceiveTeleporterMessage(&_ExampleCrossChainMessenger.TransactOpts, originBlockchainID, originSenderAddress, message)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
@@ -349,23 +349,23 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorSession) 
 
 // SendMessage is a paid mutator transaction binding the contract method 0xf63d09d7.
 //
-// Solidity: function sendMessage(bytes32 destinationChainID, address destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactor) SendMessage(opts *bind.TransactOpts, destinationChainID [32]byte, destinationAddress common.Address, feeTokenAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
-	return _ExampleCrossChainMessenger.contract.Transact(opts, "sendMessage", destinationChainID, destinationAddress, feeTokenAddress, feeAmount, requiredGasLimit, message)
+// Solidity: function sendMessage(bytes32 destinationBlockchainID, address destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactor) SendMessage(opts *bind.TransactOpts, destinationBlockchainID [32]byte, destinationAddress common.Address, feeTokenAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.contract.Transact(opts, "sendMessage", destinationBlockchainID, destinationAddress, feeTokenAddress, feeAmount, requiredGasLimit, message)
 }
 
 // SendMessage is a paid mutator transaction binding the contract method 0xf63d09d7.
 //
-// Solidity: function sendMessage(bytes32 destinationChainID, address destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) SendMessage(destinationChainID [32]byte, destinationAddress common.Address, feeTokenAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
-	return _ExampleCrossChainMessenger.Contract.SendMessage(&_ExampleCrossChainMessenger.TransactOpts, destinationChainID, destinationAddress, feeTokenAddress, feeAmount, requiredGasLimit, message)
+// Solidity: function sendMessage(bytes32 destinationBlockchainID, address destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerSession) SendMessage(destinationBlockchainID [32]byte, destinationAddress common.Address, feeTokenAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.SendMessage(&_ExampleCrossChainMessenger.TransactOpts, destinationBlockchainID, destinationAddress, feeTokenAddress, feeAmount, requiredGasLimit, message)
 }
 
 // SendMessage is a paid mutator transaction binding the contract method 0xf63d09d7.
 //
-// Solidity: function sendMessage(bytes32 destinationChainID, address destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorSession) SendMessage(destinationChainID [32]byte, destinationAddress common.Address, feeTokenAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
-	return _ExampleCrossChainMessenger.Contract.SendMessage(&_ExampleCrossChainMessenger.TransactOpts, destinationChainID, destinationAddress, feeTokenAddress, feeAmount, requiredGasLimit, message)
+// Solidity: function sendMessage(bytes32 destinationBlockchainID, address destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message) returns(uint256)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerTransactorSession) SendMessage(destinationBlockchainID [32]byte, destinationAddress common.Address, feeTokenAddress common.Address, feeAmount *big.Int, requiredGasLimit *big.Int, message string) (*types.Transaction, error) {
+	return _ExampleCrossChainMessenger.Contract.SendMessage(&_ExampleCrossChainMessenger.TransactOpts, destinationBlockchainID, destinationAddress, feeTokenAddress, feeAmount, requiredGasLimit, message)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
@@ -785,7 +785,7 @@ func (it *ExampleCrossChainMessengerReceiveMessageIterator) Close() error {
 
 // ExampleCrossChainMessengerReceiveMessage represents a ReceiveMessage event raised by the ExampleCrossChainMessenger contract.
 type ExampleCrossChainMessengerReceiveMessage struct {
-	OriginChainID       [32]byte
+	OriginBlockchainID  [32]byte
 	OriginSenderAddress common.Address
 	Message             string
 	Raw                 types.Log // Blockchain specific contextual infos
@@ -793,19 +793,19 @@ type ExampleCrossChainMessengerReceiveMessage struct {
 
 // FilterReceiveMessage is a free log retrieval operation binding the contract event 0x1f5c800b5f2b573929a7948f82a199c2a212851b53a6c5bd703ece23999d24aa.
 //
-// Solidity: event ReceiveMessage(bytes32 indexed originChainID, address indexed originSenderAddress, string message)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) FilterReceiveMessage(opts *bind.FilterOpts, originChainID [][32]byte, originSenderAddress []common.Address) (*ExampleCrossChainMessengerReceiveMessageIterator, error) {
+// Solidity: event ReceiveMessage(bytes32 indexed originBlockchainID, address indexed originSenderAddress, string message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) FilterReceiveMessage(opts *bind.FilterOpts, originBlockchainID [][32]byte, originSenderAddress []common.Address) (*ExampleCrossChainMessengerReceiveMessageIterator, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var originSenderAddressRule []interface{}
 	for _, originSenderAddressItem := range originSenderAddress {
 		originSenderAddressRule = append(originSenderAddressRule, originSenderAddressItem)
 	}
 
-	logs, sub, err := _ExampleCrossChainMessenger.contract.FilterLogs(opts, "ReceiveMessage", originChainIDRule, originSenderAddressRule)
+	logs, sub, err := _ExampleCrossChainMessenger.contract.FilterLogs(opts, "ReceiveMessage", originBlockchainIDRule, originSenderAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -814,19 +814,19 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) FilterRec
 
 // WatchReceiveMessage is a free log subscription operation binding the contract event 0x1f5c800b5f2b573929a7948f82a199c2a212851b53a6c5bd703ece23999d24aa.
 //
-// Solidity: event ReceiveMessage(bytes32 indexed originChainID, address indexed originSenderAddress, string message)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) WatchReceiveMessage(opts *bind.WatchOpts, sink chan<- *ExampleCrossChainMessengerReceiveMessage, originChainID [][32]byte, originSenderAddress []common.Address) (event.Subscription, error) {
+// Solidity: event ReceiveMessage(bytes32 indexed originBlockchainID, address indexed originSenderAddress, string message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) WatchReceiveMessage(opts *bind.WatchOpts, sink chan<- *ExampleCrossChainMessengerReceiveMessage, originBlockchainID [][32]byte, originSenderAddress []common.Address) (event.Subscription, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var originSenderAddressRule []interface{}
 	for _, originSenderAddressItem := range originSenderAddress {
 		originSenderAddressRule = append(originSenderAddressRule, originSenderAddressItem)
 	}
 
-	logs, sub, err := _ExampleCrossChainMessenger.contract.WatchLogs(opts, "ReceiveMessage", originChainIDRule, originSenderAddressRule)
+	logs, sub, err := _ExampleCrossChainMessenger.contract.WatchLogs(opts, "ReceiveMessage", originBlockchainIDRule, originSenderAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -860,7 +860,7 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) WatchRece
 
 // ParseReceiveMessage is a log parse operation binding the contract event 0x1f5c800b5f2b573929a7948f82a199c2a212851b53a6c5bd703ece23999d24aa.
 //
-// Solidity: event ReceiveMessage(bytes32 indexed originChainID, address indexed originSenderAddress, string message)
+// Solidity: event ReceiveMessage(bytes32 indexed originBlockchainID, address indexed originSenderAddress, string message)
 func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) ParseReceiveMessage(log types.Log) (*ExampleCrossChainMessengerReceiveMessage, error) {
 	event := new(ExampleCrossChainMessengerReceiveMessage)
 	if err := _ExampleCrossChainMessenger.contract.UnpackLog(event, "ReceiveMessage", log); err != nil {
@@ -939,30 +939,30 @@ func (it *ExampleCrossChainMessengerSendMessageIterator) Close() error {
 
 // ExampleCrossChainMessengerSendMessage represents a SendMessage event raised by the ExampleCrossChainMessenger contract.
 type ExampleCrossChainMessengerSendMessage struct {
-	DestinationChainID [32]byte
-	DestinationAddress common.Address
-	FeeTokenAddress    common.Address
-	FeeAmount          *big.Int
-	RequiredGasLimit   *big.Int
-	Message            string
-	Raw                types.Log // Blockchain specific contextual infos
+	DestinationBlockchainID [32]byte
+	DestinationAddress      common.Address
+	FeeTokenAddress         common.Address
+	FeeAmount               *big.Int
+	RequiredGasLimit        *big.Int
+	Message                 string
+	Raw                     types.Log // Blockchain specific contextual infos
 }
 
 // FilterSendMessage is a free log retrieval operation binding the contract event 0xa06eff1edd0c66b8dc96d086dda7ba263edf88d7417e6cb15073b5e7bff8a8ca.
 //
-// Solidity: event SendMessage(bytes32 indexed destinationChainID, address indexed destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) FilterSendMessage(opts *bind.FilterOpts, destinationChainID [][32]byte, destinationAddress []common.Address) (*ExampleCrossChainMessengerSendMessageIterator, error) {
+// Solidity: event SendMessage(bytes32 indexed destinationBlockchainID, address indexed destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) FilterSendMessage(opts *bind.FilterOpts, destinationBlockchainID [][32]byte, destinationAddress []common.Address) (*ExampleCrossChainMessengerSendMessageIterator, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var destinationAddressRule []interface{}
 	for _, destinationAddressItem := range destinationAddress {
 		destinationAddressRule = append(destinationAddressRule, destinationAddressItem)
 	}
 
-	logs, sub, err := _ExampleCrossChainMessenger.contract.FilterLogs(opts, "SendMessage", destinationChainIDRule, destinationAddressRule)
+	logs, sub, err := _ExampleCrossChainMessenger.contract.FilterLogs(opts, "SendMessage", destinationBlockchainIDRule, destinationAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -971,19 +971,19 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) FilterSen
 
 // WatchSendMessage is a free log subscription operation binding the contract event 0xa06eff1edd0c66b8dc96d086dda7ba263edf88d7417e6cb15073b5e7bff8a8ca.
 //
-// Solidity: event SendMessage(bytes32 indexed destinationChainID, address indexed destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message)
-func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) WatchSendMessage(opts *bind.WatchOpts, sink chan<- *ExampleCrossChainMessengerSendMessage, destinationChainID [][32]byte, destinationAddress []common.Address) (event.Subscription, error) {
+// Solidity: event SendMessage(bytes32 indexed destinationBlockchainID, address indexed destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message)
+func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) WatchSendMessage(opts *bind.WatchOpts, sink chan<- *ExampleCrossChainMessengerSendMessage, destinationBlockchainID [][32]byte, destinationAddress []common.Address) (event.Subscription, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var destinationAddressRule []interface{}
 	for _, destinationAddressItem := range destinationAddress {
 		destinationAddressRule = append(destinationAddressRule, destinationAddressItem)
 	}
 
-	logs, sub, err := _ExampleCrossChainMessenger.contract.WatchLogs(opts, "SendMessage", destinationChainIDRule, destinationAddressRule)
+	logs, sub, err := _ExampleCrossChainMessenger.contract.WatchLogs(opts, "SendMessage", destinationBlockchainIDRule, destinationAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1017,7 +1017,7 @@ func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) WatchSend
 
 // ParseSendMessage is a log parse operation binding the contract event 0xa06eff1edd0c66b8dc96d086dda7ba263edf88d7417e6cb15073b5e7bff8a8ca.
 //
-// Solidity: event SendMessage(bytes32 indexed destinationChainID, address indexed destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message)
+// Solidity: event SendMessage(bytes32 indexed destinationBlockchainID, address indexed destinationAddress, address feeTokenAddress, uint256 feeAmount, uint256 requiredGasLimit, string message)
 func (_ExampleCrossChainMessenger *ExampleCrossChainMessengerFilterer) ParseSendMessage(log types.Log) (*ExampleCrossChainMessengerSendMessage, error) {
 	event := new(ExampleCrossChainMessengerSendMessage)
 	if err := _ExampleCrossChainMessenger.contract.UnpackLog(event, "SendMessage", log); err != nil {

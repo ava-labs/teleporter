@@ -29,13 +29,13 @@ contract ExampleCrossChainMessenger is
         string message;
     }
 
-    mapping(bytes32 originChainID => Message message) private _messages;
+    mapping(bytes32 originBlockchainID => Message message) private _messages;
 
     /**
      * @dev Emitted when a message is submited to be sent.
      */
     event SendMessage(
-        bytes32 indexed destinationChainID,
+        bytes32 indexed destinationBlockchainID,
         address indexed destinationAddress,
         address feeTokenAddress,
         uint256 feeAmount,
@@ -47,7 +47,7 @@ contract ExampleCrossChainMessenger is
      * @dev Emitted when a new message is received from a given chain ID.
      */
     event ReceiveMessage(
-        bytes32 indexed originChainID,
+        bytes32 indexed originBlockchainID,
         address indexed originSenderAddress,
         string message
     );
@@ -62,14 +62,14 @@ contract ExampleCrossChainMessenger is
      * Receives a message from another chain.
      */
     function receiveTeleporterMessage(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         address originSenderAddress,
         bytes calldata message
     ) external onlyAllowedTeleporter {
         // Store the message.
         string memory messageString = abi.decode(message, (string));
-        _messages[originChainID] = Message(originSenderAddress, messageString);
-        emit ReceiveMessage(originChainID, originSenderAddress, messageString);
+        _messages[originBlockchainID] = Message(originSenderAddress, messageString);
+        emit ReceiveMessage(originBlockchainID, originSenderAddress, messageString);
     }
 
     /**
@@ -77,7 +77,7 @@ contract ExampleCrossChainMessenger is
      * @return The message ID of the newly sent message.
      */
     function sendMessage(
-        bytes32 destinationChainID,
+        bytes32 destinationBlockchainID,
         address destinationAddress,
         address feeTokenAddress,
         uint256 feeAmount,
@@ -101,7 +101,7 @@ contract ExampleCrossChainMessenger is
         }
 
         emit SendMessage({
-            destinationChainID: destinationChainID,
+            destinationBlockchainID: destinationBlockchainID,
             destinationAddress: destinationAddress,
             feeTokenAddress: feeTokenAddress,
             feeAmount: adjustedFeeAmount,
@@ -111,7 +111,7 @@ contract ExampleCrossChainMessenger is
         return
             teleporterMessenger.sendCrossChainMessage(
                 TeleporterMessageInput({
-                    destinationChainID: destinationChainID,
+                    destinationBlockchainID: destinationBlockchainID,
                     destinationAddress: destinationAddress,
                     feeInfo: TeleporterFeeInfo({
                         feeTokenAddress: feeTokenAddress,
@@ -129,9 +129,9 @@ contract ExampleCrossChainMessenger is
      * @return The sender of the message, and the message itself.
      */
     function getCurrentMessage(
-        bytes32 originChainID
+        bytes32 originBlockchainID
     ) external view returns (address, string memory) {
-        Message memory messageInfo = _messages[originChainID];
+        Message memory messageInfo = _messages[originBlockchainID];
         return (messageInfo.sender, messageInfo.message);
     }
 }

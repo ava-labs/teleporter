@@ -278,7 +278,7 @@ func RelayMessage(
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetEventFromLogs(receipt.Logs, bind.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
+	Expect(event.OriginBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
 	return nil
 }
 

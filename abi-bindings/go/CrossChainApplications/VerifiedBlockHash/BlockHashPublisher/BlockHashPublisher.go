@@ -31,7 +31,7 @@ var (
 
 // BlockHashPublisherMetaData contains all meta data concerning the BlockHashPublisher contract.
 var BlockHashPublisherMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"PublishBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"}],\"name\":\"publishLatestBlockHash\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"PublishBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationAddress\",\"type\":\"address\"}],\"name\":\"publishLatestBlockHash\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // BlockHashPublisherABI is the input ABI used to generate the binding from.
@@ -244,23 +244,23 @@ func (_BlockHashPublisher *BlockHashPublisherCallerSession) TeleporterRegistry()
 
 // PublishLatestBlockHash is a paid mutator transaction binding the contract method 0x82ab2b86.
 //
-// Solidity: function publishLatestBlockHash(bytes32 destinationChainID, address destinationAddress) returns(uint256)
-func (_BlockHashPublisher *BlockHashPublisherTransactor) PublishLatestBlockHash(opts *bind.TransactOpts, destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
-	return _BlockHashPublisher.contract.Transact(opts, "publishLatestBlockHash", destinationChainID, destinationAddress)
+// Solidity: function publishLatestBlockHash(bytes32 destinationBlockchainID, address destinationAddress) returns(uint256)
+func (_BlockHashPublisher *BlockHashPublisherTransactor) PublishLatestBlockHash(opts *bind.TransactOpts, destinationBlockchainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
+	return _BlockHashPublisher.contract.Transact(opts, "publishLatestBlockHash", destinationBlockchainID, destinationAddress)
 }
 
 // PublishLatestBlockHash is a paid mutator transaction binding the contract method 0x82ab2b86.
 //
-// Solidity: function publishLatestBlockHash(bytes32 destinationChainID, address destinationAddress) returns(uint256)
-func (_BlockHashPublisher *BlockHashPublisherSession) PublishLatestBlockHash(destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.PublishLatestBlockHash(&_BlockHashPublisher.TransactOpts, destinationChainID, destinationAddress)
+// Solidity: function publishLatestBlockHash(bytes32 destinationBlockchainID, address destinationAddress) returns(uint256)
+func (_BlockHashPublisher *BlockHashPublisherSession) PublishLatestBlockHash(destinationBlockchainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
+	return _BlockHashPublisher.Contract.PublishLatestBlockHash(&_BlockHashPublisher.TransactOpts, destinationBlockchainID, destinationAddress)
 }
 
 // PublishLatestBlockHash is a paid mutator transaction binding the contract method 0x82ab2b86.
 //
-// Solidity: function publishLatestBlockHash(bytes32 destinationChainID, address destinationAddress) returns(uint256)
-func (_BlockHashPublisher *BlockHashPublisherTransactorSession) PublishLatestBlockHash(destinationChainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
-	return _BlockHashPublisher.Contract.PublishLatestBlockHash(&_BlockHashPublisher.TransactOpts, destinationChainID, destinationAddress)
+// Solidity: function publishLatestBlockHash(bytes32 destinationBlockchainID, address destinationAddress) returns(uint256)
+func (_BlockHashPublisher *BlockHashPublisherTransactorSession) PublishLatestBlockHash(destinationBlockchainID [32]byte, destinationAddress common.Address) (*types.Transaction, error) {
+	return _BlockHashPublisher.Contract.PublishLatestBlockHash(&_BlockHashPublisher.TransactOpts, destinationBlockchainID, destinationAddress)
 }
 
 // BlockHashPublisherPublishBlockHashIterator is returned from FilterPublishBlockHash and is used to iterate over the raw logs and unpacked data for PublishBlockHash events raised by the BlockHashPublisher contract.
@@ -332,21 +332,21 @@ func (it *BlockHashPublisherPublishBlockHashIterator) Close() error {
 
 // BlockHashPublisherPublishBlockHash represents a PublishBlockHash event raised by the BlockHashPublisher contract.
 type BlockHashPublisherPublishBlockHash struct {
-	DestinationChainID [32]byte
-	DestinationAddress common.Address
-	BlockHeight        *big.Int
-	BlockHash          [32]byte
-	Raw                types.Log // Blockchain specific contextual infos
+	DestinationBlockchainID [32]byte
+	DestinationAddress      common.Address
+	BlockHeight             *big.Int
+	BlockHash               [32]byte
+	Raw                     types.Log // Blockchain specific contextual infos
 }
 
 // FilterPublishBlockHash is a free log retrieval operation binding the contract event 0xe13623d33d18131ce960c33b1282ceac1fe7b5ccfcf7f8c0f6dad32dd61e3bdd.
 //
-// Solidity: event PublishBlockHash(bytes32 indexed destinationChainID, address indexed destinationAddress, uint256 indexed blockHeight, bytes32 blockHash)
-func (_BlockHashPublisher *BlockHashPublisherFilterer) FilterPublishBlockHash(opts *bind.FilterOpts, destinationChainID [][32]byte, destinationAddress []common.Address, blockHeight []*big.Int) (*BlockHashPublisherPublishBlockHashIterator, error) {
+// Solidity: event PublishBlockHash(bytes32 indexed destinationBlockchainID, address indexed destinationAddress, uint256 indexed blockHeight, bytes32 blockHash)
+func (_BlockHashPublisher *BlockHashPublisherFilterer) FilterPublishBlockHash(opts *bind.FilterOpts, destinationBlockchainID [][32]byte, destinationAddress []common.Address, blockHeight []*big.Int) (*BlockHashPublisherPublishBlockHashIterator, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var destinationAddressRule []interface{}
 	for _, destinationAddressItem := range destinationAddress {
@@ -357,7 +357,7 @@ func (_BlockHashPublisher *BlockHashPublisherFilterer) FilterPublishBlockHash(op
 		blockHeightRule = append(blockHeightRule, blockHeightItem)
 	}
 
-	logs, sub, err := _BlockHashPublisher.contract.FilterLogs(opts, "PublishBlockHash", destinationChainIDRule, destinationAddressRule, blockHeightRule)
+	logs, sub, err := _BlockHashPublisher.contract.FilterLogs(opts, "PublishBlockHash", destinationBlockchainIDRule, destinationAddressRule, blockHeightRule)
 	if err != nil {
 		return nil, err
 	}
@@ -366,12 +366,12 @@ func (_BlockHashPublisher *BlockHashPublisherFilterer) FilterPublishBlockHash(op
 
 // WatchPublishBlockHash is a free log subscription operation binding the contract event 0xe13623d33d18131ce960c33b1282ceac1fe7b5ccfcf7f8c0f6dad32dd61e3bdd.
 //
-// Solidity: event PublishBlockHash(bytes32 indexed destinationChainID, address indexed destinationAddress, uint256 indexed blockHeight, bytes32 blockHash)
-func (_BlockHashPublisher *BlockHashPublisherFilterer) WatchPublishBlockHash(opts *bind.WatchOpts, sink chan<- *BlockHashPublisherPublishBlockHash, destinationChainID [][32]byte, destinationAddress []common.Address, blockHeight []*big.Int) (event.Subscription, error) {
+// Solidity: event PublishBlockHash(bytes32 indexed destinationBlockchainID, address indexed destinationAddress, uint256 indexed blockHeight, bytes32 blockHash)
+func (_BlockHashPublisher *BlockHashPublisherFilterer) WatchPublishBlockHash(opts *bind.WatchOpts, sink chan<- *BlockHashPublisherPublishBlockHash, destinationBlockchainID [][32]byte, destinationAddress []common.Address, blockHeight []*big.Int) (event.Subscription, error) {
 
-	var destinationChainIDRule []interface{}
-	for _, destinationChainIDItem := range destinationChainID {
-		destinationChainIDRule = append(destinationChainIDRule, destinationChainIDItem)
+	var destinationBlockchainIDRule []interface{}
+	for _, destinationBlockchainIDItem := range destinationBlockchainID {
+		destinationBlockchainIDRule = append(destinationBlockchainIDRule, destinationBlockchainIDItem)
 	}
 	var destinationAddressRule []interface{}
 	for _, destinationAddressItem := range destinationAddress {
@@ -382,7 +382,7 @@ func (_BlockHashPublisher *BlockHashPublisherFilterer) WatchPublishBlockHash(opt
 		blockHeightRule = append(blockHeightRule, blockHeightItem)
 	}
 
-	logs, sub, err := _BlockHashPublisher.contract.WatchLogs(opts, "PublishBlockHash", destinationChainIDRule, destinationAddressRule, blockHeightRule)
+	logs, sub, err := _BlockHashPublisher.contract.WatchLogs(opts, "PublishBlockHash", destinationBlockchainIDRule, destinationAddressRule, blockHeightRule)
 	if err != nil {
 		return nil, err
 	}
@@ -416,7 +416,7 @@ func (_BlockHashPublisher *BlockHashPublisherFilterer) WatchPublishBlockHash(opt
 
 // ParsePublishBlockHash is a log parse operation binding the contract event 0xe13623d33d18131ce960c33b1282ceac1fe7b5ccfcf7f8c0f6dad32dd61e3bdd.
 //
-// Solidity: event PublishBlockHash(bytes32 indexed destinationChainID, address indexed destinationAddress, uint256 indexed blockHeight, bytes32 blockHash)
+// Solidity: event PublishBlockHash(bytes32 indexed destinationBlockchainID, address indexed destinationAddress, uint256 indexed blockHeight, bytes32 blockHash)
 func (_BlockHashPublisher *BlockHashPublisherFilterer) ParsePublishBlockHash(log types.Log) (*BlockHashPublisherPublishBlockHash, error) {
 	event := new(BlockHashPublisherPublishBlockHash)
 	if err := _BlockHashPublisher.contract.UnpackLog(event, "PublishBlockHash", log); err != nil {
