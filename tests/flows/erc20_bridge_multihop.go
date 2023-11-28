@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -11,19 +11,14 @@ import (
 	bridgetoken "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ERC20Bridge/BridgeToken"
 	erc20bridge "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ERC20Bridge/ERC20Bridge"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
-func ERC20BridgeMultihopGinkgo() {
-	ERC20BridgeMultihop(&network.LocalNetwork{})
-}
-
-func ERC20BridgeMultihop(network network.Network) {
+func ERC20BridgeMultihop(network interfaces.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 3))
 	subnetAInfo := subnets[0]
@@ -50,21 +45,21 @@ func ERC20BridgeMultihop(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Deploy an ERC20 to subnet A
-	nativeERC20Address, nativeERC20 := localUtils.DeployExampleERC20(
+	nativeERC20Address, nativeERC20 := utils.DeployExampleERC20(
 		context.Background(),
 		fundedKey,
 		subnetAInfo,
 	)
 
 	// Deploy the ERC20 bridge to subnet A
-	erc20BridgeAddressA, erc20BridgeA := localUtils.DeployERC20Bridge(ctx, fundedKey, subnetAInfo)
+	erc20BridgeAddressA, erc20BridgeA := utils.DeployERC20Bridge(ctx, fundedKey, subnetAInfo)
 	// Deploy the ERC20 bridge to subnet B
-	erc20BridgeAddressB, erc20BridgeB := localUtils.DeployERC20Bridge(ctx, fundedKey, subnetBInfo)
+	erc20BridgeAddressB, erc20BridgeB := utils.DeployERC20Bridge(ctx, fundedKey, subnetBInfo)
 	// Deploy the ERC20 bridge to subnet C
-	erc20BridgeAddressC, erc20BridgeC := localUtils.DeployERC20Bridge(ctx, fundedKey, subnetCInfo)
+	erc20BridgeAddressC, erc20BridgeC := utils.DeployERC20Bridge(ctx, fundedKey, subnetCInfo)
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10000000000000))
-	localUtils.ExampleERC20Approve(
+	utils.ERC20Approve(
 		ctx,
 		nativeERC20,
 		erc20BridgeAddressA,
@@ -340,7 +335,7 @@ func ERC20BridgeMultihop(network network.Network) {
 
 func submitCreateBridgeToken(
 	ctx context.Context,
-	source utils.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
 	destinationChainID ids.ID,
 	destinationBridgeAddress common.Address,
 	nativeToken common.Address,
@@ -382,7 +377,7 @@ func submitCreateBridgeToken(
 
 func bridgeToken(
 	ctx context.Context,
-	source utils.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
 	destinationChainID ids.ID,
 	destinationBridgeAddress common.Address,
 	nativeToken common.Address,
@@ -430,7 +425,7 @@ func bridgeToken(
 
 func approveBridgeToken(
 	ctx context.Context,
-	source utils.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
 	bridgeTokenAddress common.Address,
 	transactor *bridgetoken.BridgeToken,
 	amount *big.Int,

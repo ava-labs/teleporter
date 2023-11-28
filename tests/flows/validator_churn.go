@@ -1,26 +1,25 @@
-package tests
+package flows
 
 import (
 	"context"
 	"fmt"
 	"math/big"
 
+	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
-// Disallow this test from being run on anything but a local network, since it manipulates the validator set
-func ValidatorChurn() {
-	network := &network.LocalNetwork{}
+type addSubnetValidatorsFunc func(ctx context.Context, subnetID ids.ID, nodeNames []string)
 
+func ValidatorChurn(network interfaces.Network, constructSignedMessageFunc constructSignedMessageFunc, addSubnetValidatorsFunc addSubnetValidatorsFunc) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	subnetAInfo := subnets[0]
@@ -59,7 +58,7 @@ func ValidatorChurn() {
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessageBytes := localUtils.ConstructSignedWarpMessageBytes(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessageBytes := constructSignedMessageFunc(ctx, receipt, subnetAInfo, subnetBInfo)
 
 	//
 	// Modify the validator set on Subnet A
@@ -73,7 +72,7 @@ func ValidatorChurn() {
 		n := fmt.Sprintf("node%d-bls", i)
 		nodesToAdd = append(nodesToAdd, n)
 	}
-	localUtils.AddSubnetValidators(ctx, subnetAInfo.SubnetID, nodesToAdd)
+	addSubnetValidatorsFunc(ctx, subnetAInfo.SubnetID, nodesToAdd)
 
 	// Refresh the subnet info
 	subnets = network.GetSubnetsInfo()

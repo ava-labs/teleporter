@@ -1,4 +1,4 @@
-package localnetworkutils
+package local
 
 import (
 	"context"
@@ -19,11 +19,9 @@ import (
 	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
-	erc20bridge "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ERC20Bridge/ERC20Bridge"
-	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
-	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -39,8 +37,8 @@ const (
 var (
 	teleporterContractAddress common.Address
 	subnetA, subnetB, subnetC ids.ID
-	subnetsInfo               map[ids.ID]*utils.SubnetTestInfo = make(map[ids.ID]*utils.SubnetTestInfo)
-	subnetNodeNames           map[ids.ID][]string              = make(map[ids.ID][]string)
+	subnetsInfo               map[ids.ID]*interfaces.SubnetTestInfo = make(map[ids.ID]*interfaces.SubnetTestInfo)
+	subnetNodeNames           map[ids.ID][]string                   = make(map[ids.ID][]string)
 
 	globalFundedKey *ecdsa.PrivateKey
 
@@ -54,18 +52,18 @@ var (
 // Global test state getters. Should be called within a test spec, after SetupNetwork has been called
 //
 
-func GetSubnetsInfo() []utils.SubnetTestInfo {
-	return []utils.SubnetTestInfo{
+func getSubnetsInfo() []interfaces.SubnetTestInfo {
+	return []interfaces.SubnetTestInfo{
 		*subnetsInfo[subnetA],
 		*subnetsInfo[subnetB],
 		*subnetsInfo[subnetC],
 	}
 }
 
-func GetTeleporterContractAddress() common.Address {
+func getTeleporterContractAddress() common.Address {
 	return teleporterContractAddress
 }
-func GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
+func getFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	fundedAddress := crypto.PubkeyToAddress(globalFundedKey.PublicKey)
 	return fundedAddress, globalFundedKey
 }
@@ -237,7 +235,7 @@ func setSubnetValues(subnetID ids.ID) {
 
 	// Set the new values in the subnetsInfo map
 	if subnetsInfo[subnetID] == nil {
-		subnetsInfo[subnetID] = &utils.SubnetTestInfo{}
+		subnetsInfo[subnetID] = &interfaces.SubnetTestInfo{}
 	}
 	subnetsInfo[subnetID].SubnetID = subnetID
 	subnetsInfo[subnetID].BlockchainID = blockchainID
@@ -252,7 +250,7 @@ func setSubnetValues(subnetID ids.ID) {
 
 // DeployTeleporterContracts deploys the Teleporter contract to all subnets.
 // The caller is responsible for generating the deployment transaction information
-func DeployTeleporterContracts(
+func deployTeleporterContracts(
 	transactionBytes []byte,
 	deployerAddress common.Address,
 	contractAddress common.Address,
@@ -260,7 +258,7 @@ func DeployTeleporterContracts(
 ) {
 	log.Info("Deploying Teleporter contract to subnets")
 
-	subnetsInfoList := GetSubnetsInfo()
+	subnetsInfoList := getSubnetsInfo()
 
 	// Set the package level teleporterContractAddress
 	teleporterContractAddress = contractAddress
@@ -310,7 +308,7 @@ func DeployTeleporterContracts(
 	log.Info("Deployed Teleporter contracts to all subnets")
 }
 
-func DeployTeleporterRegistryContracts(
+func deployTeleporterRegistryContracts(
 	teleporterAddress common.Address,
 	deployerKey *ecdsa.PrivateKey,
 ) {
@@ -324,7 +322,7 @@ func DeployTeleporterRegistryContracts(
 		},
 	}
 
-	for _, subnetInfo := range GetSubnetsInfo() {
+	for _, subnetInfo := range getSubnetsInfo() {
 		opts, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetInfo.ChainIDInt)
 		Expect(err).Should(BeNil())
 		teleporterRegistryAddress, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
@@ -344,90 +342,7 @@ func DeployTeleporterRegistryContracts(
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
 }
 
-func DeployExampleERC20(
-	ctx context.Context,
-	fundedKey *ecdsa.PrivateKey,
-	source utils.SubnetTestInfo,
-) (common.Address, *exampleerc20.ExampleERC20) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
-	Expect(err).Should(BeNil())
-
-	// Deploy Mock ERC20 contract
-	address, txn, token, err := exampleerc20.DeployExampleERC20(opts, source.ChainRPCClient)
-	Expect(err).Should(BeNil())
-	log.Info("Deployed Mock ERC20 contract", "address", address.Hex(), "txHash", txn.Hash().Hex())
-
-	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-
-	return address, token
-}
-
-func DeployExampleCrossChainMessenger(
-	ctx context.Context,
-	deployerKey *ecdsa.PrivateKey,
-	subnet utils.SubnetTestInfo,
-) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
-	opts, err := bind.NewKeyedTransactorWithChainID(
-		deployerKey, subnet.ChainIDInt)
-	Expect(err).Should(BeNil())
-	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(
-		opts, subnet.ChainRPCClient, subnet.TeleporterRegistryAddress,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, subnet.ChainRPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-
-	return address, exampleMessenger
-}
-
-func DeployERC20Bridge(
-	ctx context.Context,
-	fundedKey *ecdsa.PrivateKey,
-	source utils.SubnetTestInfo,
-) (common.Address, *erc20bridge.ERC20Bridge) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
-	Expect(err).Should(BeNil())
-	address, tx, erc20Bridge, err := erc20bridge.DeployERC20Bridge(
-		opts, source.ChainRPCClient, source.TeleporterRegistryAddress,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-
-	log.Info("Deployed ERC20 Bridge contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
-
-	return address, erc20Bridge
-}
-
-func ExampleERC20Approve(
-	ctx context.Context,
-	token *exampleerc20.ExampleERC20,
-	spender common.Address,
-	amount *big.Int,
-	source utils.SubnetTestInfo,
-	fundedKey *ecdsa.PrivateKey,
-) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
-	Expect(err).Should(BeNil())
-	txn, err := token.Approve(opts, spender, amount)
-	Expect(err).Should(BeNil())
-	log.Info("Approved Mock ERC20", "spender", teleporterContractAddress.Hex(), "txHash", txn.Hash().Hex())
-
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-}
-
-func TearDownNetwork() {
+func tearDownNetwork() {
 	log.Info("Tearing down network")
 	Expect(manager).ShouldNot(BeNil())
 	Expect(manager.TeardownNetwork()).Should(BeNil())

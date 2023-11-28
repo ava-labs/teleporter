@@ -89,9 +89,9 @@ func init() {
 
 // Implements Network, pointing to subnets deployed on Fuji
 type FujiNetwork struct {
-	amplifyInfo  utils.SubnetTestInfo
-	bulletinInfo utils.SubnetTestInfo
-	conduitInfo  utils.SubnetTestInfo
+	amplifyInfo  interfaces.SubnetTestInfo
+	bulletinInfo interfaces.SubnetTestInfo
+	conduitInfo  interfaces.SubnetTestInfo
 }
 
 func NewFujiNetwork() *FujiNetwork {
@@ -129,7 +129,7 @@ func NewFujiNetwork() *FujiNetwork {
 	Expect(err).Should(BeNil())
 
 	return &FujiNetwork{
-		amplifyInfo: utils.SubnetTestInfo{
+		amplifyInfo: interfaces.SubnetTestInfo{
 			SubnetID:                  amplifySubnetID,
 			BlockchainID:              amplifyBlockchainID,
 			ChainIDInt:                amplifyChainIDInt,
@@ -138,7 +138,7 @@ func NewFujiNetwork() *FujiNetwork {
 			TeleporterRegistryAddress: amplifyTeleporterRegistryAddress,
 			TeleporterMessenger:       amplifyTeleporterMessenger,
 		},
-		bulletinInfo: utils.SubnetTestInfo{
+		bulletinInfo: interfaces.SubnetTestInfo{
 			SubnetID:                  bulletinSubnetID,
 			BlockchainID:              bulletinBlockchainID,
 			ChainIDInt:                bulletinChainIDInt,
@@ -147,7 +147,7 @@ func NewFujiNetwork() *FujiNetwork {
 			TeleporterRegistryAddress: bulletinTeleporterRegistryAddress,
 			TeleporterMessenger:       bulletinTeleporterMessenger,
 		},
-		conduitInfo: utils.SubnetTestInfo{
+		conduitInfo: interfaces.SubnetTestInfo{
 			SubnetID:                  conduitSubnetID,
 			BlockchainID:              conduitBlockchainID,
 			ChainIDInt:                conduitChainIDInt,
@@ -168,8 +168,8 @@ func (n *FujiNetwork) CloseNetworkConnections() {
 	n.conduitInfo.ChainRPCClient.Close()
 }
 
-func (n *FujiNetwork) GetSubnetsInfo() []utils.SubnetTestInfo {
-	return []utils.SubnetTestInfo{
+func (n *FujiNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
+	return []interfaces.SubnetTestInfo{
 		n.amplifyInfo,
 		n.bulletinInfo,
 		n.conduitInfo,
@@ -190,8 +190,8 @@ func (n *FujiNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey)
 
 func (n *FujiNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source utils.SubnetTestInfo,
-	destination utils.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	expectSuccess bool) *types.Receipt {
 	// Set the context to expire after 20 seconds
 	var cancel context.CancelFunc

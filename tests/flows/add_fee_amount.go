@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -6,14 +6,13 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
 
-func AddFeeAmount(network network.Network) {
+func AddFeeAmount(network interfaces.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	subnetAInfo := subnets[0]
@@ -23,12 +22,12 @@ func AddFeeAmount(network network.Network) {
 	ctx := context.Background()
 
 	// Use mock token as the fee token
-	mockTokenAddress, mockToken := localUtils.DeployExampleERC20(
+	mockTokenAddress, mockToken := utils.DeployExampleERC20(
 		context.Background(),
 		fundedKey,
 		subnetAInfo,
 	)
-	localUtils.ExampleERC20Approve(
+	utils.ERC20Approve(
 		ctx,
 		mockToken,
 		teleporterContractAddress,

@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -7,9 +7,8 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -17,7 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func DeliverToNonExistentContract(network network.Network) {
+func DeliverToNonExistentContract(network interfaces.Network) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	subnetAInfo := subnets[0]
@@ -45,7 +44,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	// Send a message that should fail to be executed on Subnet B
 	//
 	log.Info("Deploying ExampleMessenger to Subnet A")
-	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
+	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
 
 	// Derive the eventual address of the destination contract on Subnet B
 	nonce, err := subnetBInfo.ChainRPCClient.NonceAt(ctx, deployerAddress, nil)
@@ -121,7 +120,7 @@ func DeliverToNonExistentContract(network network.Network) {
 	//
 	log.Info("Deploying the contract on Subnet B")
 	exampleMessengerContractB, subnetBExampleMessenger :=
-		localUtils.DeployExampleCrossChainMessenger(ctx, deployerKey, subnetBInfo)
+		utils.DeployExampleCrossChainMessenger(ctx, deployerKey, subnetBInfo)
 
 	// Confirm that it was deployed at the expected address
 	Expect(exampleMessengerContractB).Should(Equal(destinationContractAddress))

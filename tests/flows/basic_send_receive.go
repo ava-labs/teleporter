@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -6,15 +6,14 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
 
 // Tests basic one-way send from Subnet A to Subnet B and vice versa
-func BasicSendReceive(network network.Network) {
+func BasicSendReceive(network interfaces.Network) {
 	var (
 		teleporterMessageID *big.Int
 	)
@@ -32,12 +31,12 @@ func BasicSendReceive(network network.Network) {
 	ctx := context.Background()
 
 	feeAmount := big.NewInt(1)
-	feeTokenAddress, feeToken := localUtils.DeployExampleERC20(
+	feeTokenAddress, feeToken := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		subnetAInfo,
 	)
-	localUtils.ExampleERC20Approve(
+	utils.ERC20Approve(
 		ctx,
 		feeToken,
 		teleporterContractAddress,

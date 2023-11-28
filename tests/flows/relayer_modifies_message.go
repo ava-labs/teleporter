@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -12,9 +12,8 @@ import (
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/x/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -22,9 +21,15 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+type constructSignedMessageFunc func(
+	ctx context.Context,
+	sourceReceipt *types.Receipt,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+) []byte
+
 // Disallow this test from being run on anything but a local network, since it requires special behavior by the relayer
-func RelayerModifiesMessage() {
-	network := &network.LocalNetwork{}
+func RelayerModifiesMessage(network interfaces.Network, constructSignedMessageFunc constructSignedMessageFunc) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	subnetAInfo := subnets[0]
@@ -51,7 +56,7 @@ func RelayerModifiesMessage() {
 
 	// Relay the message to the destination
 	// Relayer modifies the message in flight
-	relayAlteredMessage(ctx, receipt, subnetAInfo, subnetBInfo, fundedKey, network.GetTeleporterContractAddress())
+	relayAlteredMessage(ctx, receipt, subnetAInfo, subnetBInfo, fundedKey, network.GetTeleporterContractAddress(), constructSignedMessageFunc)
 
 	// Check Teleporter message was not received on the destination
 	delivered, err :=
@@ -63,17 +68,18 @@ func RelayerModifiesMessage() {
 func relayAlteredMessage(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source utils.SubnetTestInfo,
-	destination utils.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	fundedKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
+	constructSignedMessageFunc constructSignedMessageFunc,
 ) {
 	// Fetch the Teleporter message from the logs
 	sendEvent, err :=
 		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessageBytes := localUtils.ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
+	signedWarpMessageBytes := constructSignedMessageFunc(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	signedTx := createAlteredReceiveCrossChainMessageTransaction(
@@ -95,7 +101,7 @@ func createAlteredReceiveCrossChainMessageTransaction(
 	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	subnetInfo utils.SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 ) *types.Transaction {
 	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
 	// Construct the transaction to send the Warp message to the destination chain

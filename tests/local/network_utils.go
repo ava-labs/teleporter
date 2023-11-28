@@ -1,4 +1,4 @@
-package localnetworkutils
+package local
 
 import (
 	"context"
@@ -10,12 +10,13 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	"github.com/ava-labs/subnet-evm/interfaces"
+	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/params"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	"github.com/ava-labs/subnet-evm/x/warp"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -68,11 +69,11 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 func ConstructSignedWarpMessageBytes(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source utils.SubnetTestInfo,
-	destination utils.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 ) []byte {
 	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := source.ChainRPCClient.FilterLogs(ctx, interfaces.FilterQuery{
+	logs, err := source.ChainRPCClient.FilterLogs(ctx, subnetEvmInterfaces.FilterQuery{
 		BlockHash: &sourceReceipt.BlockHash,
 		Addresses: []common.Address{warp.Module.Address},
 	})
@@ -114,11 +115,11 @@ func ConstructSignedWarpMessageBytes(
 
 // Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
 // Returns the receipt on the destination chain
-func RelayMessage(
+func relayMessage(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
-	source utils.SubnetTestInfo,
-	destination utils.SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	expectSuccess bool,
 ) *types.Receipt {
 	// Fetch the Teleporter message from the logs
@@ -157,7 +158,7 @@ func DeployContract(
 	ctx context.Context,
 	byteCodeFileName string,
 	deployerPK *ecdsa.PrivateKey,
-	subnetInfo utils.SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	abi *abi.ABI,
 	constructorArgs ...interface{},
 ) common.Address {
