@@ -155,9 +155,10 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	subnetCID := subnetIDs[2]
 
 	res := &localNetwork{
-		subnetAID: subnetAID,
-		subnetBID: subnetBID,
-		subnetCID: subnetCID,
+		subnetAID:   subnetAID,
+		subnetBID:   subnetBID,
+		subnetCID:   subnetCID,
+		subnetsInfo: make(map[ids.ID]*interfaces.SubnetTestInfo),
 		subnetNodeNames: map[ids.ID][]string{
 			subnetAID: subnetANodeNames,
 			subnetBID: subnetBNodeNames,
