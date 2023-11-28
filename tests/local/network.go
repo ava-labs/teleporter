@@ -30,10 +30,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ interfaces.Network = &LocalNetwork{}
+var _ interfaces.Network = &localNetwork{}
 
 // Implements Network, pointing to the network setup in local_network_setup.go
-type LocalNetwork struct {
+type localNetwork struct {
 	teleporterContractAddress       common.Address
 	subnetAID, subnetBID, subnetCID ids.ID
 	subnetsInfo                     map[ids.ID]*interfaces.SubnetTestInfo
@@ -51,7 +51,7 @@ const (
 	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
 )
 
-func newLocalNetwork(warpGenesisFile string) *LocalNetwork {
+func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	ctx := context.Background()
 	var err error
 
@@ -154,7 +154,7 @@ func newLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	subnetBID := subnetIDs[1]
 	subnetCID := subnetIDs[2]
 
-	res := &LocalNetwork{
+	res := &localNetwork{
 		subnetAID: subnetAID,
 		subnetBID: subnetBID,
 		subnetCID: subnetCID,
@@ -174,7 +174,7 @@ func newLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	return res
 }
 
-func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
+func (n *localNetwork) setSubnetValues(subnetID ids.ID) {
 	subnetDetails, ok := n.manager.GetSubnet(subnetID)
 	Expect(ok).Should(BeTrue())
 	blockchainID := subnetDetails.BlockchainID
@@ -224,7 +224,7 @@ func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
 
 // deployTeleporterContracts deploys the Teleporter contract to all subnets.
 // The caller is responsible for generating the deployment transaction information
-func (n *LocalNetwork) deployTeleporterContracts(
+func (n *localNetwork) deployTeleporterContracts(
 	transactionBytes []byte,
 	deployerAddress common.Address,
 	contractAddress common.Address,
@@ -282,7 +282,7 @@ func (n *LocalNetwork) deployTeleporterContracts(
 	log.Info("Deployed Teleporter contracts to all subnets")
 }
 
-func (n *LocalNetwork) deployTeleporterRegistryContracts(
+func (n *localNetwork) deployTeleporterRegistryContracts(
 	teleporterAddress common.Address,
 	deployerKey *ecdsa.PrivateKey,
 ) {
@@ -316,7 +316,7 @@ func (n *LocalNetwork) deployTeleporterRegistryContracts(
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
 }
 
-func (n *LocalNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
+func (n *localNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
 	return []interfaces.SubnetTestInfo{
 		*n.subnetsInfo[n.subnetAID],
 		*n.subnetsInfo[n.subnetBID],
@@ -324,16 +324,16 @@ func (n *LocalNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
 	}
 }
 
-func (n *LocalNetwork) GetTeleporterContractAddress() common.Address {
+func (n *localNetwork) GetTeleporterContractAddress() common.Address {
 	return n.teleporterContractAddress
 }
 
-func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
+func (n *localNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
 	fundedAddress := crypto.PubkeyToAddress(n.globalFundedKey.PublicKey)
 	return fundedAddress, n.globalFundedKey
 }
 
-func (n *LocalNetwork) RelayMessage(ctx context.Context,
+func (n *localNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
@@ -341,7 +341,7 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	return relayMessage(ctx, n.teleporterContractAddress, n.globalFundedKey, sourceReceipt, source, destination, expectSuccess)
 }
 
-func (n *LocalNetwork) setAllSubnetValues() {
+func (n *localNetwork) setAllSubnetValues() {
 	subnetIDs := n.manager.GetSubnets()
 	Expect(len(subnetIDs)).Should(Equal(3))
 
@@ -355,14 +355,14 @@ func (n *LocalNetwork) setAllSubnetValues() {
 	n.setSubnetValues(n.subnetCID)
 }
 
-func (n *LocalNetwork) tearDownNetwork() {
+func (n *localNetwork) tearDownNetwork() {
 	log.Info("Tearing down network")
 	Expect(n.manager).ShouldNot(BeNil())
 	Expect(n.manager.TeardownNetwork()).Should(BeNil())
 	Expect(os.Remove(n.warpChainConfigPath)).Should(BeNil())
 }
 
-func (n *LocalNetwork) removeSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
+func (n *localNetwork) removeSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
 	_, err := n.anrClient.RemoveSubnetValidator(ctx, []*rpcpb.RemoveSubnetValidatorSpec{
 		{
 			SubnetId:  subnetID.String(),
@@ -380,7 +380,7 @@ func (n *LocalNetwork) removeSubnetValidators(ctx context.Context, subnetID ids.
 	n.setAllSubnetValues()
 }
 
-func (n *LocalNetwork) addSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
+func (n *localNetwork) addSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
 	_, err := n.anrClient.AddSubnetValidators(ctx, []*rpcpb.SubnetValidatorsSpec{
 		{
 			SubnetId:  subnetID.String(),
@@ -395,7 +395,7 @@ func (n *LocalNetwork) addSubnetValidators(ctx context.Context, subnetID ids.ID,
 	n.setAllSubnetValues()
 }
 
-func (n *LocalNetwork) restartNodes(ctx context.Context, nodeNames []string) {
+func (n *localNetwork) restartNodes(ctx context.Context, nodeNames []string) {
 	for _, nodeName := range nodeNames {
 		_, err := n.anrClient.RestartNode(ctx, nodeName)
 		Expect(err).Should(BeNil())

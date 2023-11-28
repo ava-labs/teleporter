@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	localNetwork *LocalNetwork
+	localNetworkInstance *localNetwork
 )
 
 func TestE2E(t *testing.T) {
@@ -34,64 +34,66 @@ func TestE2E(t *testing.T) {
 
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
-	localNetwork = newLocalNetwork(warpGenesisFile)
+	localNetworkInstance = newLocalNetwork(warpGenesisFile)
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
 		deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
 	Expect(err).Should(BeNil())
 
-	_, fundedKey := localNetwork.GetFundedAccountInfo()
-	localNetwork.deployTeleporterContracts(
+	_, fundedKey := localNetworkInstance.GetFundedAccountInfo()
+	localNetworkInstance.deployTeleporterContracts(
 		teleporterDeployerTransaction,
 		teleporterDeployerAddress,
 		teleporterContractAddress,
 		fundedKey,
 	)
-	localNetwork.deployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
+	localNetworkInstance.deployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
 	log.Info("Set up ginkgo before suite")
 })
 
-var _ = ginkgo.AfterSuite(localNetwork.tearDownNetwork)
+var _ = ginkgo.AfterSuite(func() {
+	localNetworkInstance.tearDownNetwork()
+})
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Cross-chain application tests
 	ginkgo.It("Example cross chain messenger", func() {
-		flows.ExampleMessenger(&LocalNetwork{})
+		flows.ExampleMessenger(&localNetwork{})
 	})
 	ginkgo.It("ERC20 bridge multihop", func() {
-		flows.ERC20BridgeMultihop(&LocalNetwork{})
+		flows.ERC20BridgeMultihop(&localNetwork{})
 	})
 
 	// Teleporter tests
 	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A", func() {
-		flows.BasicSendReceive(&LocalNetwork{})
+		flows.BasicSendReceive(&localNetwork{})
 	})
 	ginkgo.It("Deliver to the wrong chain", func() {
-		flows.DeliverToWrongChain(&LocalNetwork{})
+		flows.DeliverToWrongChain(&localNetwork{})
 	})
 	ginkgo.It("Deliver to non-existent contract", func() {
-		flows.DeliverToNonExistentContract(&LocalNetwork{})
+		flows.DeliverToNonExistentContract(&localNetwork{})
 	})
 	ginkgo.It("Retry successful execution", func() {
-		flows.RetrySuccessfulExecution(&LocalNetwork{})
+		flows.RetrySuccessfulExecution(&localNetwork{})
 	})
 	ginkgo.It("Unallowed relayer", func() {
-		flows.UnallowedRelayer(&LocalNetwork{})
+		flows.UnallowedRelayer(&localNetwork{})
 	})
 	ginkgo.It("Receive message twice", func() {
-		flows.ReceiveMessageTwice(&LocalNetwork{})
+		flows.ReceiveMessageTwice(&localNetwork{})
 	})
 	ginkgo.It("Add additional fee amount", func() {
-		flows.AddFeeAmount(&LocalNetwork{})
+		flows.AddFeeAmount(&localNetwork{})
 	})
 	ginkgo.It("Send specific receipts", func() {
-		flows.SendSpecificReceipts(&LocalNetwork{})
+		flows.SendSpecificReceipts(&localNetwork{})
 	})
 	ginkgo.It("Insufficient gas", func() {
-		flows.InsufficientGas(&LocalNetwork{})
+		flows.InsufficientGas(&localNetwork{})
 	})
 	ginkgo.It("Resubmit altered message", func() {
-		flows.ResubmitAlteredMessage(&LocalNetwork{})
+		flows.ResubmitAlteredMessage(&localNetwork{})
 	})
 
 	// The following tests require special behavior by the relayer, so we only run them on a local network
