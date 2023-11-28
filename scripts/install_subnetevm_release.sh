@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
+
+# Following script is adapted from https://github.com/ava-labs/subnet-evm/blob/master/scripts/install_avalanchego_release.sh
 set -e
 
 # Load the versions
