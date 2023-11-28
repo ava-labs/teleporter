@@ -40,8 +40,8 @@ func AddFeeAmount(network network.Network) {
 	initFeeAmount := big.NewInt(1)
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationChainID: subnetBInfo.BlockchainID,
-		DestinationAddress: fundedAddress,
+		DestinationBlockchainID: subnetBInfo.BlockchainID,
+		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: mockTokenAddress,
 			Amount:          initFeeAmount,
@@ -77,7 +77,7 @@ func AddFeeAmount(network network.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	// Send message from SubnetB to SubnetA. This will include the receipt for the previous message from A->B
-	sendCrossChainMessageInput.DestinationChainID = subnetAInfo.BlockchainID
+	sendCrossChainMessageInput.DestinationBlockchainID = subnetAInfo.BlockchainID
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 
 	sendCrossChainMsgReceipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(

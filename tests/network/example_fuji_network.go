@@ -203,7 +203,7 @@ func (n *FujiNetwork) RelayMessage(ctx context.Context,
 		sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
-	Expect(sendEvent.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
+	Expect(sendEvent.DestinationBlockchainID[:]).Should(Equal(destination.BlockchainID[:]))
 
 	teleporterMessageID := sendEvent.Message.MessageID
 

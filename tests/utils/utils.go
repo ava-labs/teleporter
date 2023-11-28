@@ -129,7 +129,7 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	addFeeAmountEvent, err := GetEventFromLogs(receipt.Logs, transactor.ParseAddFeeAmount)
 	Expect(err).Should(BeNil())
 	Expect(addFeeAmountEvent.MessageID).Should(Equal(messageID))
-	Expect(addFeeAmountEvent.DestinationChainID[:]).Should(Equal(destination.BlockchainID[:]))
+	Expect(addFeeAmountEvent.DestinationBlockchainID[:]).Should(Equal(destination.BlockchainID[:]))
 
 	log.Info("Send AddFeeAmount transaction on source chain",
 		"messageID", messageID,
@@ -227,7 +227,7 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetEventFromLogs(receipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(originChainID[:]))
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(originChainID[:]))
 
 	log.Info("Sending SendSpecifiedReceipts transaction",
 		"originChainID", originChainID,
