@@ -174,7 +174,7 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	// Check all the settings of the new bridge token are correct.
-	actualNativeChainID, err := bridgeTokenB.NativeChainID(&bind.CallOpts{})
+	actualNativeChainID, err := bridgeTokenB.NativeBlockchainID(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	Expect(actualNativeChainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
 
@@ -251,7 +251,7 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	// Get the sendCrossChainMessage event from SubnetA to SubnetC
 	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(subnetCInfo.BlockchainID[:]))
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetCInfo.BlockchainID[:]))
 	messageID = event.Message.MessageID
 
 	// Relay message from SubnetA to SubnetC
@@ -366,7 +366,7 @@ func submitCreateBridgeToken(
 
 	event, err := utils.GetEventFromLogs(receipt.Logs, teleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(destinationChainID[:]))
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(destinationChainID[:]))
 
 	log.Info("Successfully SubmitCreateBridgeToken",
 		"txHash", tx.Hash().Hex(),
@@ -415,9 +415,9 @@ func bridgeToken(
 	event, err := utils.GetEventFromLogs(receipt.Logs, teleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	if isNative {
-		Expect(event.DestinationChainID[:]).Should(Equal(destinationChainID[:]))
+		Expect(event.DestinationBlockchainID[:]).Should(Equal(destinationChainID[:]))
 	} else {
-		Expect(event.DestinationChainID[:]).Should(Equal(nativeTokenChainID[:]))
+		Expect(event.DestinationBlockchainID[:]).Should(Equal(nativeTokenChainID[:]))
 	}
 
 	return receipt, event.Message.MessageID

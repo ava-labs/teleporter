@@ -43,7 +43,7 @@ In order to confirm delivery of a Teleporter message from a source chain to a de
 - A relayer delivers the message on Chain B by calling `receiveCrossChainMessage` and providing its address, `0x123...`
 - The Teleporter contract on Chain B stores the relayer address in a receipt for the message ID.
 - Some time later, a separate Teleporter message is sent from Chain B to Chain A. The Teleporter contract on Chain B includes the receipt for the original message in this new message.
-- When this new message is delivered on Chain A, the Teleporter contract on Chain A reads the receipt and marks the original message (message ID `1`) as delivered by address `0x123...`.
+- When this new message is delivered on Chain A, the Teleporter contract on Chain A reads the receipt and attributes the rewards for delivering the original message (message ID `1`) to the address `0x123...`.
 - Address `0x123...` may now call `redeemRelayerRewards` on Chain A, which transfers the `10` `USDC` to its address. If it tries to do this before the receipt is received on Chain A, the call will fail.
 
 It is possible for receipts to get "stuck" on the destination chain in the event that Teleporter traffic between two chains is skewed in one direction. In such a scenario, incoming messages on one chain may cause the rate at which receipts are generated to outpace the rate at which they are sent back to the other chain. To mitigate this, the method `sendSpecifiedReceipts` can be called to immediately send the receipts associated with the given message IDs back to the original chain.

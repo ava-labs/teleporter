@@ -40,8 +40,8 @@ func RelayerModifiesMessage(network interfaces.Network, constructSignedMessageFu
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationChainID: subnetBInfo.BlockchainID,
-		DestinationAddress: fundedAddress,
+		DestinationBlockchainID: subnetBInfo.BlockchainID,
+		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
 			Amount:          big.NewInt(0),

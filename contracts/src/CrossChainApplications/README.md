@@ -66,7 +66,7 @@ To start, create the function declarations for `sendMessage`, which will send st
 ```solidity
 // Send a new message to another chain.
 function sendMessage(
-    bytes32 destinationChainID,
+    bytes32 destinationBlockchainID,
     address destinationAddress,
     address feeTokenAddress,
     uint256 feeAmount,
@@ -80,7 +80,7 @@ function sendMessage(
 ```solidity
 // Receive a new message from another chain.
 function receiveTeleporterMessage(
-    bytes32 originChainID,
+    bytes32 originBlockchainID,
     address originSenderAddress,
     bytes calldata message
 ) external {}
@@ -113,7 +113,7 @@ Next, add the call to the `TeleporterMessenger` contract with the message data t
 return
     teleporterMessenger.sendCrossChainMessage(
         TeleporterMessageInput({
-            destinationChainID: destinationChainID,
+            destinationBlockchainID: destinationBlockchainID,
             destinationAddress: destinationAddress,
             feeInfo: TeleporterFeeInfo({
                 feeTokenAddress: feeTokenAddress,
@@ -131,7 +131,7 @@ With the sending side complete, the next step is to implement `ITeleporterReceiv
 ```solidity
 // Receive a new message from another chain.
 function receiveTeleporterMessage(
-    bytes32 originChainID,
+    bytes32 originBlockchainID,
     address originSenderAddress,
     bytes calldata message
 ) external {
@@ -149,7 +149,7 @@ The base of sending and receiving messages cross chain is complete. `MyExampleCr
 
 Start by defining the `struct` for how to save our messages. It saves the string message itself and the address of the sender.
 
-A map will also be added where the key is the `originChainID`, and the value is the latest `message` sent from that chain.
+A map will also be added where the key is the `originBlockchainID`, and the value is the latest `message` sent from that chain.
 
 ```solidity
 // Messages sent to this contract.
@@ -158,7 +158,7 @@ struct Message {
     string message;
 }
 
-mapping(bytes32 originChainID => Message message) private _messages;
+mapping(bytes32 originBlockchainID => Message message) private _messages;
 ```
 
 Next, update `receiveTeleporterMessage` to save the message into our mapping after we receive and verify that it's sent from Teleporter. ABI decode the `message` bytes into a string.
@@ -166,7 +166,7 @@ Next, update `receiveTeleporterMessage` to save the message into our mapping aft
 ```solidity
 // Receive a new message from another chain.
 function receiveTeleporterMessage(
-    bytes32 originChainID,
+    bytes32 originBlockchainID,
     address originSenderAddress,
     bytes calldata message
 ) external {
@@ -174,7 +174,7 @@ function receiveTeleporterMessage(
     require(msg.sender == address(teleporterMessenger), "Unauthorized.");
 
     // Store the message.
-    messages[originChainID] = Message(originSenderAddress, abi.decode(message, (string)));
+    messages[originBlockchainID] = Message(originSenderAddress, abi.decode(message, (string)));
 }
 ```
 
@@ -183,9 +183,9 @@ Next, add a function called `getCurrentMessage` that allows users or contracts t
 ```solidity
 // Check the current message from another chain.
 function getCurrentMessage(
-    bytes32 originChainID
+    bytes32 originBlockchainID
 ) external view returns (address, string memory) {
-    Message memory messageInfo = messages[originChainID];
+    Message memory messageInfo = messages[originBlockchainID];
     return (messageInfo.sender, messageInfo.message);
 }
 ```

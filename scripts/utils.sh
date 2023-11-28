@@ -2,7 +2,7 @@
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
 
-function getBlockChainIDHex() {
+function getBlockchainIDHex() {
     python3 -c "import base58,sys; sys.stdout.write(base58.b58decode(b'$1').hex()[:-8])";
 }
 
