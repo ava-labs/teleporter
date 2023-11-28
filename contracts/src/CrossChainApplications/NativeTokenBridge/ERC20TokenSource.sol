@@ -22,6 +22,8 @@ contract ERC20TokenSource is
     ReentrancyGuard
 {
     // The address where the burned transaction fees are credited.
+    gs// Defined as BLACKHOLE_ADDRESS at 
+    // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
     address public constant BURNED_TX_FEES_ADDRESS =
         0x0100000000000000000000000000000000000000;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
