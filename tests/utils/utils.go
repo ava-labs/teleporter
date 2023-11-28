@@ -318,7 +318,7 @@ func RelayMessage(
 		trace := TraceTransaction(ctx, receipt.TxHash, destination)
 		Expect(trace).Should(Equal(""))
 	}
-	Expect(receiveEvent.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
+	Expect(receiveEvent.OriginBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
 
 	// Check for a successful execution of the teleporter message.
 	_, err = GetEventFromLogs(receipt.Logs, bind.ParseMessageExecuted)
