@@ -40,9 +40,7 @@ fi
 
 if ! command -v forge &> /dev/null; then
     echo "forge not found, installing"
-    curl -L https://foundry.paradigm.xyz | bash
-    source $HOME/.bashrc
-    foundryup
+    $TELEPORTER_PATH/scripts/install_foundry.sh
 fi
 
 echo "Building subnet-evm abigen"

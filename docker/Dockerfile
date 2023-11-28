@@ -13,6 +13,8 @@ ARG ARCH=amd64
 
 ARG GO_VERSION
 
+COPY ../scripts/install_foundry.sh /scripts/install_foundry.sh
+
 # defaults to grep running in a container.
 ENV grepcmd=grep
 
@@ -40,14 +42,7 @@ ENV LANG en_US.utf8
 
 # Install foundry from specific commit
 SHELL ["/bin/bash", "-c"]
-ENV FOUNDRY_VERSION v0.1.0
-RUN curl -L https://raw.githubusercontent.com/ava-labs/foundry/${FOUNDRY_VERSION}/foundryup/install > /tmp/foundry-install-script && \
-    sed -i 's/\/ava-labs\/foundry\/master\/foundryup/\/ava-labs\/foundry\/${FOUNDRY_VERSION}\/foundryup/g' /tmp/foundry-install-script && \
-    cat /tmp/foundry-install-script | bash && \
-    echo "export PATH=\"$PATH:/$HOME/.foundry/bin\"">> ~/.bashrc && \
-    source ~/.bashrc && \
-    export PATH=$PATH:$HOME/.foundry/bin:$HOME/.cargo/bin && \
-    foundryup --version ${FOUNDRY_VERSION}
+RUN ./scripts/install_foundry.sh
 
 # Install python base58 decode library
 RUN apt-get update && \
