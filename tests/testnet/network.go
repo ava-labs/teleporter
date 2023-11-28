@@ -48,7 +48,7 @@ type testNetwork struct {
 	fundedKey                 *ecdsa.PrivateKey
 }
 
-func initializeSubnetInfo(subnetPrefix string) (interfaces.SubnetTestInfo, error) {
+func initializeSubnetInfo(subnetPrefix string, teleporterContractAddress common.Address) (interfaces.SubnetTestInfo, error) {
 	subnetIDStr := os.Getenv(subnetPrefix + subnetIDSuffix)
 	subnetID, err := ids.FromString(subnetIDStr)
 	if err != nil {
@@ -80,6 +80,13 @@ func initializeSubnetInfo(subnetPrefix string) (interfaces.SubnetTestInfo, error
 
 	teleporterRegistryAddress := os.Getenv(subnetPrefix + teleporterRegistryAddressSuffix)
 
+	teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, rpcClient,
+	)
+	if err != nil {
+		return interfaces.SubnetTestInfo{}, err
+	}
+
 	return interfaces.SubnetTestInfo{
 		SubnetID:                  subnetID,
 		BlockchainID:              blockchainID,
@@ -88,20 +95,22 @@ func initializeSubnetInfo(subnetPrefix string) (interfaces.SubnetTestInfo, error
 		WSClient:                  wsClient,
 		EVMChainID:                evmChainID,
 		TeleporterRegistryAddress: common.HexToAddress(teleporterRegistryAddress),
+		TeleporterMessenger:       teleporterMessenger,
 	}, nil
 }
 
 func NewTestNetwork() (*testNetwork, error) {
 	teleporterContractAddressStr := os.Getenv(teleporterContractAddress)
 	fmt.Println("Using Teleporter contract address:", teleporterContractAddressStr)
+	teleporterContractAddress := common.HexToAddress(teleporterContractAddressStr)
 
-	subnetAInfo, err := initializeSubnetInfo(subnetAPrefix)
+	subnetAInfo, err := initializeSubnetInfo(subnetAPrefix, teleporterContractAddress)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println("Using subnet A info:", subnetAInfo)
 
-	subnetBInfo, err := initializeSubnetInfo(subnetBPrefix)
+	subnetBInfo, err := initializeSubnetInfo(subnetBPrefix, teleporterContractAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +125,7 @@ func NewTestNetwork() (*testNetwork, error) {
 	}
 
 	return &testNetwork{
-		teleporterContractAddress: common.HexToAddress(teleporterContractAddressStr),
+		teleporterContractAddress: teleporterContractAddress,
 		subnetAInfo:               subnetAInfo,
 		subnetBInfo:               subnetBInfo,
 		fundedAddress:             common.HexToAddress(fundedAddressStr),
