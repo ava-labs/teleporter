@@ -7,7 +7,7 @@ The native-to-native bridge is implemented using two primary contracts.
 ### `NativeTokenSource`
     - Lives on the Source chain. Pairs with exactly one `NativeTokenDestination` contract on a different chain.
     - Locks and unlocks native tokens on the Source chain corresponding to mints and burns on the destination chain.
-    - `transferToDestination`: transfers all tokens paid to this function call to `recipient` on the destination chain by locking them and instructing the destination chain to mint. Optionally takes the address of an ERC20 contract `feeContractAddress` as well as an amount `feeAmount` that will be used as the relayer-incentivisation for the teleporter cross-chain call. Also allows for the caller to specify `allowedRelayerAddresses`.
+    - `transferToDestination`: transfers all tokens paid to this function call to `recipient` on the destination chain by locking them and instructing the destination chain to mint. Optionally takes the address of an ERC20 contract `feeContractAddress` as well as an amount `feeAmount` that will be used as the relayer-incentivization for the teleporter cross-chain call. Also allows for the caller to specify `allowedRelayerAddresses`.
     - `receiveTeleporterMessage`: unlocks tokens on the source chain when instructed to by the `NativeTokenDestination` contract.
 ### `NativeTokenDestination`
     - Lives on the Destination chain. Pairs with exactly one `NativeTokenSource` contract on a different chain.
