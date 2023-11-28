@@ -58,47 +58,51 @@ var _ = ginkgo.AfterSuite(func() {
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Cross-chain application tests
 	ginkgo.It("Example cross chain messenger", func() {
-		flows.ExampleMessenger(&localNetwork{})
+		flows.ExampleMessenger(localNetworkInstance)
 	})
 	ginkgo.It("ERC20 bridge multihop", func() {
-		flows.ERC20BridgeMultihop(&localNetwork{})
+		flows.ERC20BridgeMultihop(localNetworkInstance)
 	})
 
 	// Teleporter tests
 	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A", func() {
-		flows.BasicSendReceive(&localNetwork{})
+		flows.BasicSendReceive(localNetworkInstance)
 	})
 	ginkgo.It("Deliver to the wrong chain", func() {
-		flows.DeliverToWrongChain(&localNetwork{})
+		flows.DeliverToWrongChain(localNetworkInstance)
 	})
 	ginkgo.It("Deliver to non-existent contract", func() {
-		flows.DeliverToNonExistentContract(&localNetwork{})
+		flows.DeliverToNonExistentContract(localNetworkInstance)
 	})
 	ginkgo.It("Retry successful execution", func() {
-		flows.RetrySuccessfulExecution(&localNetwork{})
+		flows.RetrySuccessfulExecution(localNetworkInstance)
 	})
 	ginkgo.It("Unallowed relayer", func() {
-		flows.UnallowedRelayer(&localNetwork{})
+		flows.UnallowedRelayer(localNetworkInstance)
 	})
 	ginkgo.It("Receive message twice", func() {
-		flows.ReceiveMessageTwice(&localNetwork{})
+		flows.ReceiveMessageTwice(localNetworkInstance)
 	})
 	ginkgo.It("Add additional fee amount", func() {
-		flows.AddFeeAmount(&localNetwork{})
+		flows.AddFeeAmount(localNetworkInstance)
 	})
 	ginkgo.It("Send specific receipts", func() {
-		flows.SendSpecificReceipts(&localNetwork{})
+		flows.SendSpecificReceipts(localNetworkInstance)
 	})
 	ginkgo.It("Insufficient gas", func() {
-		flows.InsufficientGas(&localNetwork{})
+		flows.InsufficientGas(localNetworkInstance)
 	})
 	ginkgo.It("Resubmit altered message", func() {
-		flows.ResubmitAlteredMessage(&localNetwork{})
+		flows.ResubmitAlteredMessage(localNetworkInstance)
 	})
 
 	// The following tests require special behavior by the relayer, so we only run them on a local network
-	ginkgo.It("Relayer modifies message", flows.RelayerModifiesMessage)
-	ginkgo.It("Validator churn", flows.ValidatorChurn)
+	ginkgo.It("Relayer modifies message", func() {
+		flows.RelayerModifiesMessage(localNetworkInstance, constructSignedWarpMessageBytes)
+	})
+	ginkgo.It("Validator churn", func() {
+		flows.ValidatorChurn(localNetworkInstance, constructSignedWarpMessageBytes, localNetworkInstance.addSubnetValidators)
+	})
 	// Since the validator churn test modifies the network topology, we put it last for now.
 	// It should not affect the other tests, but we get some errors if we run it before the other tests.
 	// TODO: we should fix this so that the order of the tests does not matter.
