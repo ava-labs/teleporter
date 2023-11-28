@@ -13,7 +13,7 @@ import {ERC20, ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensio
 contract BridgeToken is ERC20Burnable {
     address public immutable bridgeContract;
 
-    bytes32 public immutable nativeChainID;
+    bytes32 public immutable nativeBlockchainID;
     address public immutable nativeBridge;
     address public immutable nativeAsset;
 
@@ -23,7 +23,7 @@ contract BridgeToken is ERC20Burnable {
      * @dev Initializes a BridgeToken instance.
      */
     constructor(
-        bytes32 sourceChainID,
+        bytes32 sourceBlockchainID,
         address sourceBridge,
         address sourceAsset,
         string memory tokenName,
@@ -31,7 +31,7 @@ contract BridgeToken is ERC20Burnable {
         uint8 tokenDecimals
     ) ERC20(tokenName, tokenSymbol) {
         require(
-            sourceChainID != bytes32(0),
+            sourceBlockchainID != bytes32(0),
             "BridgeToken: zero source chain id"
         );
         require(
@@ -43,7 +43,7 @@ contract BridgeToken is ERC20Burnable {
             "BridgeToken: zero source asset address"
         );
         bridgeContract = msg.sender;
-        nativeChainID = sourceChainID;
+        nativeBlockchainID = sourceBlockchainID;
         nativeBridge = sourceBridge;
         nativeAsset = sourceAsset;
         _decimals = tokenDecimals;

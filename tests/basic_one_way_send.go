@@ -33,7 +33,7 @@ func BasicOneWaySend() {
 	ctx := context.Background()
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationChainID: subnetBInfo.BlockchainID,
+		DestinationBlockchainID: subnetBInfo.BlockchainID,
 		DestinationAddress: fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
@@ -45,14 +45,14 @@ func BasicOneWaySend() {
 	}
 	signedTx := utils.CreateSendCrossChainMessageTransaction(ctx, subnetAInfo, sendCrossChainMessageInput, fundedKey, teleporterContractAddress)
 
-	log.Info("Sending Teleporter transaction on source chain", "destinationChainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
+	log.Info("Sending Teleporter transaction on source chain", "destinationBlockchainID", subnetBInfo.BlockchainID, "txHash", signedTx.Hash())
 	receipt := utils.SendAndWaitForTransaction(ctx, signedTx, subnetAInfo.WSClient)
 
 	teleporterMessengerA, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, subnetAInfo.WSClient)
 	Expect(err).Should(BeNil())
 	event, err := utils.GetEventFromLogs(receipt.Logs, teleporterMessengerA.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
 	teleporterMessageID = event.Message.MessageID
 

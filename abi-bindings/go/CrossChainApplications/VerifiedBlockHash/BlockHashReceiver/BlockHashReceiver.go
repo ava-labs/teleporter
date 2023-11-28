@@ -31,7 +31,7 @@ var (
 
 // BlockHashReceiverMetaData contains all meta data concerning the BlockHashReceiver contract.
 var BlockHashReceiverMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"publisherChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"publisherContractAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getLatestBlockInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originChainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceChainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourcePublisherContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"publisherBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"publisherContractAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getLatestBlockInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourcePublisherContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // BlockHashReceiverABI is the input ABI used to generate the binding from.
@@ -336,12 +336,12 @@ func (_BlockHashReceiver *BlockHashReceiverCallerSession) Owner() (common.Addres
 	return _BlockHashReceiver.Contract.Owner(&_BlockHashReceiver.CallOpts)
 }
 
-// SourceChainID is a free data retrieval call binding the contract method 0x4c335368.
+// SourceBlockchainID is a free data retrieval call binding the contract method 0x29b7b3fd.
 //
-// Solidity: function sourceChainID() view returns(bytes32)
-func (_BlockHashReceiver *BlockHashReceiverCaller) SourceChainID(opts *bind.CallOpts) ([32]byte, error) {
+// Solidity: function sourceBlockchainID() view returns(bytes32)
+func (_BlockHashReceiver *BlockHashReceiverCaller) SourceBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
-	err := _BlockHashReceiver.contract.Call(opts, &out, "sourceChainID")
+	err := _BlockHashReceiver.contract.Call(opts, &out, "sourceBlockchainID")
 
 	if err != nil {
 		return *new([32]byte), err
@@ -353,18 +353,18 @@ func (_BlockHashReceiver *BlockHashReceiverCaller) SourceChainID(opts *bind.Call
 
 }
 
-// SourceChainID is a free data retrieval call binding the contract method 0x4c335368.
+// SourceBlockchainID is a free data retrieval call binding the contract method 0x29b7b3fd.
 //
-// Solidity: function sourceChainID() view returns(bytes32)
-func (_BlockHashReceiver *BlockHashReceiverSession) SourceChainID() ([32]byte, error) {
-	return _BlockHashReceiver.Contract.SourceChainID(&_BlockHashReceiver.CallOpts)
+// Solidity: function sourceBlockchainID() view returns(bytes32)
+func (_BlockHashReceiver *BlockHashReceiverSession) SourceBlockchainID() ([32]byte, error) {
+	return _BlockHashReceiver.Contract.SourceBlockchainID(&_BlockHashReceiver.CallOpts)
 }
 
-// SourceChainID is a free data retrieval call binding the contract method 0x4c335368.
+// SourceBlockchainID is a free data retrieval call binding the contract method 0x29b7b3fd.
 //
-// Solidity: function sourceChainID() view returns(bytes32)
-func (_BlockHashReceiver *BlockHashReceiverCallerSession) SourceChainID() ([32]byte, error) {
-	return _BlockHashReceiver.Contract.SourceChainID(&_BlockHashReceiver.CallOpts)
+// Solidity: function sourceBlockchainID() view returns(bytes32)
+func (_BlockHashReceiver *BlockHashReceiverCallerSession) SourceBlockchainID() ([32]byte, error) {
+	return _BlockHashReceiver.Contract.SourceBlockchainID(&_BlockHashReceiver.CallOpts)
 }
 
 // SourcePublisherContractAddress is a free data retrieval call binding the contract method 0x79a0710c.
@@ -431,23 +431,23 @@ func (_BlockHashReceiver *BlockHashReceiverCallerSession) TeleporterRegistry() (
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
-func (_BlockHashReceiver *BlockHashReceiverTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _BlockHashReceiver.contract.Transact(opts, "receiveTeleporterMessage", originChainID, originSenderAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes message) returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactor) ReceiveTeleporterMessage(opts *bind.TransactOpts, originBlockchainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _BlockHashReceiver.contract.Transact(opts, "receiveTeleporterMessage", originBlockchainID, originSenderAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
-func (_BlockHashReceiver *BlockHashReceiverSession) ReceiveTeleporterMessage(originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _BlockHashReceiver.Contract.ReceiveTeleporterMessage(&_BlockHashReceiver.TransactOpts, originChainID, originSenderAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes message) returns()
+func (_BlockHashReceiver *BlockHashReceiverSession) ReceiveTeleporterMessage(originBlockchainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.ReceiveTeleporterMessage(&_BlockHashReceiver.TransactOpts, originBlockchainID, originSenderAddress, message)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
 //
-// Solidity: function receiveTeleporterMessage(bytes32 originChainID, address originSenderAddress, bytes message) returns()
-func (_BlockHashReceiver *BlockHashReceiverTransactorSession) ReceiveTeleporterMessage(originChainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
-	return _BlockHashReceiver.Contract.ReceiveTeleporterMessage(&_BlockHashReceiver.TransactOpts, originChainID, originSenderAddress, message)
+// Solidity: function receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes message) returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactorSession) ReceiveTeleporterMessage(originBlockchainID [32]byte, originSenderAddress common.Address, message []byte) (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.ReceiveTeleporterMessage(&_BlockHashReceiver.TransactOpts, originBlockchainID, originSenderAddress, message)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
@@ -888,7 +888,7 @@ func (it *BlockHashReceiverReceiveBlockHashIterator) Close() error {
 
 // BlockHashReceiverReceiveBlockHash represents a ReceiveBlockHash event raised by the BlockHashReceiver contract.
 type BlockHashReceiverReceiveBlockHash struct {
-	OriginChainID       [32]byte
+	OriginBlockchainID  [32]byte
 	OriginSenderAddress common.Address
 	BlockHeight         *big.Int
 	BlockHash           [32]byte
@@ -897,12 +897,12 @@ type BlockHashReceiverReceiveBlockHash struct {
 
 // FilterReceiveBlockHash is a free log retrieval operation binding the contract event 0x0bca78aa82d7575f42e4b4b2fe04765a4b2f3661786403788ce987e065ac590d.
 //
-// Solidity: event ReceiveBlockHash(bytes32 indexed originChainID, address indexed originSenderAddress, uint256 indexed blockHeight, bytes32 blockHash)
-func (_BlockHashReceiver *BlockHashReceiverFilterer) FilterReceiveBlockHash(opts *bind.FilterOpts, originChainID [][32]byte, originSenderAddress []common.Address, blockHeight []*big.Int) (*BlockHashReceiverReceiveBlockHashIterator, error) {
+// Solidity: event ReceiveBlockHash(bytes32 indexed originBlockchainID, address indexed originSenderAddress, uint256 indexed blockHeight, bytes32 blockHash)
+func (_BlockHashReceiver *BlockHashReceiverFilterer) FilterReceiveBlockHash(opts *bind.FilterOpts, originBlockchainID [][32]byte, originSenderAddress []common.Address, blockHeight []*big.Int) (*BlockHashReceiverReceiveBlockHashIterator, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var originSenderAddressRule []interface{}
 	for _, originSenderAddressItem := range originSenderAddress {
@@ -913,7 +913,7 @@ func (_BlockHashReceiver *BlockHashReceiverFilterer) FilterReceiveBlockHash(opts
 		blockHeightRule = append(blockHeightRule, blockHeightItem)
 	}
 
-	logs, sub, err := _BlockHashReceiver.contract.FilterLogs(opts, "ReceiveBlockHash", originChainIDRule, originSenderAddressRule, blockHeightRule)
+	logs, sub, err := _BlockHashReceiver.contract.FilterLogs(opts, "ReceiveBlockHash", originBlockchainIDRule, originSenderAddressRule, blockHeightRule)
 	if err != nil {
 		return nil, err
 	}
@@ -922,12 +922,12 @@ func (_BlockHashReceiver *BlockHashReceiverFilterer) FilterReceiveBlockHash(opts
 
 // WatchReceiveBlockHash is a free log subscription operation binding the contract event 0x0bca78aa82d7575f42e4b4b2fe04765a4b2f3661786403788ce987e065ac590d.
 //
-// Solidity: event ReceiveBlockHash(bytes32 indexed originChainID, address indexed originSenderAddress, uint256 indexed blockHeight, bytes32 blockHash)
-func (_BlockHashReceiver *BlockHashReceiverFilterer) WatchReceiveBlockHash(opts *bind.WatchOpts, sink chan<- *BlockHashReceiverReceiveBlockHash, originChainID [][32]byte, originSenderAddress []common.Address, blockHeight []*big.Int) (event.Subscription, error) {
+// Solidity: event ReceiveBlockHash(bytes32 indexed originBlockchainID, address indexed originSenderAddress, uint256 indexed blockHeight, bytes32 blockHash)
+func (_BlockHashReceiver *BlockHashReceiverFilterer) WatchReceiveBlockHash(opts *bind.WatchOpts, sink chan<- *BlockHashReceiverReceiveBlockHash, originBlockchainID [][32]byte, originSenderAddress []common.Address, blockHeight []*big.Int) (event.Subscription, error) {
 
-	var originChainIDRule []interface{}
-	for _, originChainIDItem := range originChainID {
-		originChainIDRule = append(originChainIDRule, originChainIDItem)
+	var originBlockchainIDRule []interface{}
+	for _, originBlockchainIDItem := range originBlockchainID {
+		originBlockchainIDRule = append(originBlockchainIDRule, originBlockchainIDItem)
 	}
 	var originSenderAddressRule []interface{}
 	for _, originSenderAddressItem := range originSenderAddress {
@@ -938,7 +938,7 @@ func (_BlockHashReceiver *BlockHashReceiverFilterer) WatchReceiveBlockHash(opts 
 		blockHeightRule = append(blockHeightRule, blockHeightItem)
 	}
 
-	logs, sub, err := _BlockHashReceiver.contract.WatchLogs(opts, "ReceiveBlockHash", originChainIDRule, originSenderAddressRule, blockHeightRule)
+	logs, sub, err := _BlockHashReceiver.contract.WatchLogs(opts, "ReceiveBlockHash", originBlockchainIDRule, originSenderAddressRule, blockHeightRule)
 	if err != nil {
 		return nil, err
 	}
@@ -972,7 +972,7 @@ func (_BlockHashReceiver *BlockHashReceiverFilterer) WatchReceiveBlockHash(opts 
 
 // ParseReceiveBlockHash is a log parse operation binding the contract event 0x0bca78aa82d7575f42e4b4b2fe04765a4b2f3661786403788ce987e065ac590d.
 //
-// Solidity: event ReceiveBlockHash(bytes32 indexed originChainID, address indexed originSenderAddress, uint256 indexed blockHeight, bytes32 blockHash)
+// Solidity: event ReceiveBlockHash(bytes32 indexed originBlockchainID, address indexed originSenderAddress, uint256 indexed blockHeight, bytes32 blockHash)
 func (_BlockHashReceiver *BlockHashReceiverFilterer) ParseReceiveBlockHash(log types.Log) (*BlockHashReceiverReceiveBlockHash, error) {
 	event := new(BlockHashReceiverReceiveBlockHash)
 	if err := _BlockHashReceiver.contract.UnpackLog(event, "ReceiveBlockHash", log); err != nil {

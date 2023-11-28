@@ -23,7 +23,7 @@ contract NativeTokenSource is
     ReentrancyGuard
 {
     // The address where the burned transaction fees are credited.
-    // Defined as BLACKHOLE_ADDRESS at 
+    // Defined as BLACKHOLE_ADDRESS at
     // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
     address public constant BURNED_TX_FEES_ADDRESS =
         0x0100000000000000000000000000000000000000;
@@ -148,7 +148,7 @@ contract NativeTokenSource is
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
-                destinationChainID: destinationBlockchainID,
+                destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,
                 feeInfo: feeInfo,
                 requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,

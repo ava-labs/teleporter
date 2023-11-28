@@ -192,7 +192,7 @@ contract NativeTokenDestination is
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
-                destinationChainID: sourceBlockchainID,
+                destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
                 feeInfo: feeInfo,
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
@@ -222,7 +222,7 @@ contract NativeTokenDestination is
         uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
-                destinationChainID: sourceBlockchainID,
+                destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
                 feeInfo: feeInfo,
                 requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
