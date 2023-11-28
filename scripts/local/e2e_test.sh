@@ -12,7 +12,7 @@ TELEPORTER_PATH=$(
 source "$TELEPORTER_PATH"/scripts/constants.sh
 source "$TELEPORTER_PATH"/scripts/versions.sh
 
-BASEDIR=${BASEDIR:-"/tmp/e2e-test"}
+BASEDIR=${BASEDIR:-"~/tmp/e2e-test"}
 
 cwd=$(pwd)
 # Install the avalanchego and subnetevm binaries
@@ -23,7 +23,6 @@ cp ${BASEDIR}/subnet-evm/subnet-evm ${BASEDIR}/avalanchego/plugins/srEXiWaHuhNyG
 echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/plugins/"
 
 export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
-export DATA_DIR=$BASEDIR/data
 
 cd $TELEPORTER_PATH/contracts
 if command -v forge &> /dev/null; then
