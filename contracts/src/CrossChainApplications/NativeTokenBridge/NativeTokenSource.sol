@@ -179,7 +179,7 @@ contract NativeTokenSource is
     }
 
     /**
-     * @dev Sends tokens to BLACKHOLE_ADDRESS.
+     * @dev Sends tokens to BURN_FOR_TRANSFER_ADDRESS.
      */
     function _burnTokens(uint256 amount) private {
         payable(BURNED_TX_FEES_ADDRESS).transfer(amount);

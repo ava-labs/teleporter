@@ -200,7 +200,7 @@ contract ERC20TokenSource is
     }
 
     /**
-     * @dev Sends tokens to BLACKHOLE_ADDRESS.
+     * @dev Sends tokens to BURN_FOR_TRANSFER_ADDRESS.
      */
     function _burnTokens(uint256 amount) private {
         SafeERC20.safeTransfer(

@@ -26,11 +26,10 @@ contract NativeTokenDestination is
 {
     // The address where the burned transaction fees are credited.
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
-    // Designated Blackhole Address. Tokens are sent here to be "burned" before sending an unlock
-    // message to the source chain. Different from the burned tx fee address so they can be
-    // tracked separately.
-    // Defined at https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
-    address public constant BLACKHOLE_ADDRESS = 0x0100000000000000000000000000000000000001;
+    // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" before 
+    // sending an unlock message to the source chain. Different from the burned tx fee address so 
+    // they can be tracked separately.
+    address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000000001;
 
     INativeMinter private immutable _nativeMinter =
         INativeMinter(0x0200000000000000000000000000000000000001);
@@ -186,8 +185,8 @@ contract NativeTokenDestination is
             );
         }
 
-        // Burn native token by sending to BLACKHOLE_ADDRESS
-        payable(BLACKHOLE_ADDRESS).transfer(msg.value);
+        // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
+        payable(BURN_FOR_TRANSFER_ADDRESS).transfer(msg.value);
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
@@ -251,7 +250,7 @@ contract NativeTokenDestination is
      */
     function totalSupply() external view returns (uint256) {
         uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance +
-            address(BLACKHOLE_ADDRESS).balance;
+            address(BURN_FOR_TRANSFER_ADDRESS).balance;
 
         // This scenario should never happen, but this check will prevent an underflow
         // where the contract would return a garbage value.
