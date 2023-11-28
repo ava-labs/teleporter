@@ -84,7 +84,7 @@ func ValidatorChurn(network interfaces.Network, constructSignedMessageFunc const
 	// proposer VM is updated on all subnets.
 	for _, subnetInfo := range subnets {
 		err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
-			ctx, subnetInfo.ChainIDInt, fundedKey, subnetInfo.ChainWSClient,
+			ctx, subnetInfo.EVMChainID, fundedKey, subnetInfo.WSClient,
 		)
 		Expect(err).Should(BeNil())
 	}
@@ -116,7 +116,7 @@ func ValidatorChurn(network interfaces.Network, constructSignedMessageFunc const
 	// Retry sending the message, and attempt to relay again. This should succeed.
 	//
 	log.Info("Retrying message sending on source chain")
-	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(
 		optsA, subnetBInfo.BlockchainID, sentTeleporterMessage,
@@ -124,7 +124,7 @@ func ValidatorChurn(network interfaces.Network, constructSignedMessageFunc const
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	receipt, err = bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 

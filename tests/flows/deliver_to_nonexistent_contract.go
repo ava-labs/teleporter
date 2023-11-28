@@ -47,7 +47,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
 
 	// Derive the eventual address of the destination contract on Subnet B
-	nonce, err := subnetBInfo.ChainRPCClient.NonceAt(ctx, deployerAddress, nil)
+	nonce, err := subnetBInfo.RPCClient.NonceAt(ctx, deployerAddress, nil)
 	Expect(err).Should(BeNil())
 	destinationContractAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, nonce)
 	Expect(err).Should(BeNil())
@@ -58,7 +58,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	log.Info("Calling ExampleMessenger on Subnet A")
 	message := "Hello, world!"
 	optsA, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, subnetAInfo.ChainIDInt)
+		fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := subnetAExampleMessenger.SendMessage(
 		optsA,
@@ -72,7 +72,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 

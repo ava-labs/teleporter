@@ -34,7 +34,7 @@ func ExampleMessenger(network interfaces.Network) {
 	// Call the example messenger contract on Subnet A
 	//
 	message := "Hello, world!"
-	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := subnetAExampleMessenger.SendMessage(
 		optsA,
@@ -48,7 +48,7 @@ func ExampleMessenger(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 

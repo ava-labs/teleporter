@@ -62,7 +62,7 @@ func ResubmitAlteredMessage(network interfaces.Network) {
 
 	// Resubmit the altered message
 	log.Info("Submitting the altered Teleporter message on the source chain")
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err :=
 		subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(opts, subnetBInfo.BlockchainID, teleporterMessage)

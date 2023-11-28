@@ -30,17 +30,17 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 
 	subnetATeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
 		teleporterContractAddress,
-		subnetAInfo.ChainRPCClient,
+		subnetAInfo.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	subnetBTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
 		teleporterContractAddress,
-		subnetBInfo.ChainRPCClient,
+		subnetBInfo.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	subnetCTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
 		teleporterContractAddress,
-		subnetCInfo.ChainRPCClient,
+		subnetCInfo.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 
@@ -104,7 +104,7 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	)
 	Expect(err).Should(BeNil())
 	Expect(bridgeTokenSubnetBAddress).ShouldNot(Equal(common.Address{}))
-	bridgeTokenB, err := bridgetoken.NewBridgeToken(bridgeTokenSubnetBAddress, subnetBInfo.ChainRPCClient)
+	bridgeTokenB, err := bridgetoken.NewBridgeToken(bridgeTokenSubnetBAddress, subnetBInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	// Send a transaction on Subnet B to add support for the the ERC20 token to the bridge on Subnet C
@@ -141,7 +141,7 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	)
 	Expect(err).Should(BeNil())
 	Expect(bridgeTokenSubnetCAddress).ShouldNot(Equal(common.Address{}))
-	bridgeTokenC, err := bridgetoken.NewBridgeToken(bridgeTokenSubnetCAddress, subnetCInfo.ChainRPCClient)
+	bridgeTokenC, err := bridgetoken.NewBridgeToken(bridgeTokenSubnetCAddress, subnetCInfo.RPCClient)
 	Expect(err).Should(BeNil())
 
 	// Send a bridge transfer for the newly added token from subnet A to subnet B
@@ -346,7 +346,7 @@ func submitCreateBridgeToken(
 	transactor *erc20bridge.ERC20Bridge,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	tx, err := transactor.SubmitCreateBridgeToken(
@@ -360,7 +360,7 @@ func submitCreateBridgeToken(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, source.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -392,7 +392,7 @@ func bridgeToken(
 	nativeTokenChainID ids.ID,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	tx, err := transactor.BridgeTokens(
@@ -408,7 +408,7 @@ func bridgeToken(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, source.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -433,13 +433,13 @@ func approveBridgeToken(
 	fundedAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
 ) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	txn, err := transactor.Approve(opts, spender, amount)
 	Expect(err).Should(BeNil())
 
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 }

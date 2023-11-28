@@ -70,7 +70,7 @@ func constructSignedWarpMessageBytes(
 	destination interfaces.SubnetTestInfo,
 ) []byte {
 	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := source.ChainRPCClient.FilterLogs(ctx, subnetEvmInterfaces.FilterQuery{
+	logs, err := source.RPCClient.FilterLogs(ctx, subnetEvmInterfaces.FilterQuery{
 		BlockHash: &sourceReceipt.BlockHash,
 		Addresses: []common.Address{warp.Module.Address},
 	})
@@ -96,11 +96,11 @@ func constructSignedWarpMessageBytes(
 	// Loop over each client on chain A to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
 	// has accepted the block.
-	waitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
+	waitForAllValidatorsToAcceptBlock(ctx, source.NodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
 
 	// Get the aggregate signature for the Warp message
 	log.Info("Fetching aggregate signature from the source chain validators")
-	warpClient, err := warpBackend.NewClient(source.ChainNodeURIs[0], source.BlockchainID.String())
+	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
 		ctx, unsignedWarpMessageID, params.WarpQuorumDenominator,

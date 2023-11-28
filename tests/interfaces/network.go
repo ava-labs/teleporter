@@ -15,10 +15,10 @@ import (
 type SubnetTestInfo struct {
 	SubnetID                  ids.ID
 	BlockchainID              ids.ID
-	ChainNodeURIs             []string
-	ChainWSClient             ethclient.Client
-	ChainRPCClient            ethclient.Client
-	ChainIDInt                *big.Int
+	NodeURIs                  []string
+	WSClient                  ethclient.Client
+	RPCClient                 ethclient.Client
+	EVMChainID                *big.Int
 	TeleporterRegistryAddress common.Address
 	TeleporterMessenger       *teleportermessenger.TeleporterMessenger
 }

@@ -33,7 +33,7 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	// Call the example messenger contract on Subnet A
 	//
 	message := "Hello, world!"
-	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := subnetAExampleMessenger.SendMessage(
 		optsA,
@@ -47,7 +47,7 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -85,7 +85,7 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	//
 	// Attempt to retry message execution, which should fail
 	//
-	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.ChainIDInt)
+	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err =
 		subnetBInfo.TeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)

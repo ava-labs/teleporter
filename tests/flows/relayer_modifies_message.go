@@ -123,7 +123,7 @@ func createAlteredReceiveCrossChainMessageTransaction(
 	alterTeleporterMessage(signedMessage)
 
 	destinationTx := predicateutils.NewPredicateTx(
-		subnetInfo.ChainIDInt,
+		subnetInfo.EVMChainID,
 		nonce,
 		&teleporterContractAddress,
 		gasLimit,
@@ -136,7 +136,7 @@ func createAlteredReceiveCrossChainMessageTransaction(
 		signedMessage.Bytes(),
 	)
 
-	return utils.SignTransaction(destinationTx, fundedKey, subnetInfo.ChainIDInt)
+	return utils.SignTransaction(destinationTx, fundedKey, subnetInfo.EVMChainID)
 }
 
 func alterTeleporterMessage(signedMessage *avalancheWarp.Message) {

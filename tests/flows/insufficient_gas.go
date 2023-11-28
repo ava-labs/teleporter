@@ -29,7 +29,7 @@ func InsufficientGas(network interfaces.Network) {
 	// Send message from SubnetA to SubnetB with 0 execution gas, which should fail to execute
 	message := "Hello, world!"
 	optsA, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, subnetAInfo.ChainIDInt)
+		fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := subnetAExampleMessenger.SendMessage(
 		optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message,
@@ -37,7 +37,7 @@ func InsufficientGas(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 

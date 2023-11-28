@@ -194,13 +194,13 @@ func (n *localNetwork) setSubnetValues(subnetID ids.ID) {
 	chainWSURI := utils.HttpToWebsocketURI(chainNodeURIs[0], blockchainID.String())
 	chainRPCURI := utils.HttpToRPCURI(chainNodeURIs[0], blockchainID.String())
 
-	if n.subnetsInfo[subnetID] != nil && n.subnetsInfo[subnetID].ChainWSClient != nil {
-		n.subnetsInfo[subnetID].ChainWSClient.Close()
+	if n.subnetsInfo[subnetID] != nil && n.subnetsInfo[subnetID].WSClient != nil {
+		n.subnetsInfo[subnetID].WSClient.Close()
 	}
 	chainWSClient, err := ethclient.Dial(chainWSURI)
 	Expect(err).Should(BeNil())
-	if n.subnetsInfo[subnetID] != nil && n.subnetsInfo[subnetID].ChainRPCClient != nil {
-		n.subnetsInfo[subnetID].ChainRPCClient.Close()
+	if n.subnetsInfo[subnetID] != nil && n.subnetsInfo[subnetID].RPCClient != nil {
+		n.subnetsInfo[subnetID].RPCClient.Close()
 	}
 	chainRPCClient, err := ethclient.Dial(chainRPCURI)
 	Expect(err).Should(BeNil())
@@ -213,10 +213,10 @@ func (n *localNetwork) setSubnetValues(subnetID ids.ID) {
 	}
 	n.subnetsInfo[subnetID].SubnetID = subnetID
 	n.subnetsInfo[subnetID].BlockchainID = blockchainID
-	n.subnetsInfo[subnetID].ChainNodeURIs = chainNodeURIs
-	n.subnetsInfo[subnetID].ChainWSClient = chainWSClient
-	n.subnetsInfo[subnetID].ChainRPCClient = chainRPCClient
-	n.subnetsInfo[subnetID].ChainIDInt = chainIDInt
+	n.subnetsInfo[subnetID].NodeURIs = chainNodeURIs
+	n.subnetsInfo[subnetID].WSClient = chainWSClient
+	n.subnetsInfo[subnetID].RPCClient = chainRPCClient
+	n.subnetsInfo[subnetID].EVMChainID = chainIDInt
 
 	// TeleporterMessenger is set in DeployTeleporterContracts
 	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
@@ -254,13 +254,13 @@ func (n *localNetwork) deployTeleporterContracts(
 		{
 			rpcClient, err := rpc.DialContext(
 				ctx,
-				utils.HttpToRPCURI(subnetInfo.ChainNodeURIs[0], subnetInfo.BlockchainID.String()),
+				utils.HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String()),
 			)
 			Expect(err).Should(BeNil())
 			defer rpcClient.Close()
 
 			newHeads := make(chan *types.Header, 10)
-			sub, err := subnetInfo.ChainWSClient.SubscribeNewHead(ctx, newHeads)
+			sub, err := subnetInfo.WSClient.SubscribeNewHead(ctx, newHeads)
 			Expect(err).Should(BeNil())
 			defer sub.Unsubscribe()
 
@@ -268,12 +268,12 @@ func (n *localNetwork) deployTeleporterContracts(
 			Expect(err).Should(BeNil())
 
 			<-newHeads
-			teleporterCode, err := subnetInfo.ChainRPCClient.CodeAt(ctx, n.teleporterContractAddress, nil)
+			teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, n.teleporterContractAddress, nil)
 			Expect(err).Should(BeNil())
 			Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 		}
 		teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-			n.teleporterContractAddress, subnetInfo.ChainRPCClient,
+			n.teleporterContractAddress, subnetInfo.RPCClient,
 		)
 		Expect(err).Should(BeNil())
 		n.subnetsInfo[subnetInfo.SubnetID].TeleporterMessenger = teleporterMessenger
@@ -297,16 +297,16 @@ func (n *localNetwork) deployTeleporterRegistryContracts(
 	}
 
 	for _, subnetInfo := range n.GetSubnetsInfo() {
-		opts, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetInfo.ChainIDInt)
+		opts, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetInfo.EVMChainID)
 		Expect(err).Should(BeNil())
 		teleporterRegistryAddress, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
-			opts, subnetInfo.ChainRPCClient, entries,
+			opts, subnetInfo.RPCClient, entries,
 		)
 		Expect(err).Should(BeNil())
 
 		n.subnetsInfo[subnetInfo.SubnetID].TeleporterRegistryAddress = teleporterRegistryAddress
 		// Wait for the transaction to be mined
-		receipt, err := bind.WaitMined(ctx, subnetInfo.ChainRPCClient, tx)
+		receipt, err := bind.WaitMined(ctx, subnetInfo.RPCClient, tx)
 		Expect(err).Should(BeNil())
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 		log.Info("Deployed TeleporterRegistry contract to subnet", subnetInfo.SubnetID.Hex(),
