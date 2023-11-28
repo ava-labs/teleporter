@@ -58,7 +58,7 @@ else
 
     extract_archive
   else
-    # else the version is a git commitish (or it's invalid)
+    # else the version is a git commit (or it's invalid)
     GIT_CLONE_URL=https://github.com/ava-labs/avalanchego.git
     GIT_CLONE_PATH=${BASEDIR}/avalanchego-repo/
 

@@ -56,7 +56,7 @@ else
 
     extract_archive
   else
-    # else the version is a git commitish (or it's invalid)
+    # else the version is a git commit (or it's invalid)
     GIT_CLONE_URL=https://github.com/ava-labs/subnet-evm.git
     GIT_CLONE_PATH=${BASEDIR}/subnet-evm-repo/
     
@@ -100,7 +100,7 @@ else
     # use the commit hash instead of the branch name or tag
     BUILD_DIR=${SUBNET_EVM_BUILD_PATH}-${COMMIT}
 
-    # if the build-directory doesn't exist, build avalanchego
+    # if the build-directory doesn't exist, build subnet-evm
     if [[ ! -d ${BUILD_DIR} ]]; then    
       echo "building subnet-evm ${COMMIT} to ${BUILD_DIR}"
       ./scripts/build.sh
