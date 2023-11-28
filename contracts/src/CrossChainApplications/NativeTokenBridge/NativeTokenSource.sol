@@ -108,7 +108,7 @@ contract NativeTokenSource is
             _unlockTokens(recipient, amount);
         } else if (action == SourceAction.Burn) {
             uint256 newBurnTotal = abi.decode(actionData, (uint256));
-            _updatedestinationBurnedTotal(newBurnTotal);
+            _updateDestinationBurnedTotal(newBurnTotal);
         } else {
             revert("NativeTokenSource: invalid action");
         }
@@ -192,7 +192,7 @@ contract NativeTokenSource is
      * The burned total on the destination will only ever increase, but new totals may be relayed to this
      * chain out of order.
      */
-    function _updatedestinationBurnedTotal(uint256 newBurnTotal) private {
+    function _updateDestinationBurnedTotal(uint256 newBurnTotal) private {
         if (newBurnTotal > destinationBurnedTotal) {
             uint256 difference = newBurnTotal - destinationBurnedTotal;
             _burnTokens(difference);
