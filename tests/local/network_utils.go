@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/subnet-evm/accounts/abi"
-	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
@@ -18,7 +16,6 @@ import (
 	"github.com/ava-labs/subnet-evm/x/warp"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 
@@ -26,7 +23,7 @@ import (
 )
 
 // Issues txs to activate the proposer VM fork on the specified subnet index in the manager
-func SetupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
+func setupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
 	subnet := manager.GetSubnets()[index]
 	subnetDetails, ok := manager.GetSubnet(subnet)
 	Expect(ok).Should(BeTrue())
@@ -44,7 +41,7 @@ func SetupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *
 }
 
 // Blocks until all validators specified in nodeURIs have reached the specified block height
-func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, blockchainID ids.ID, height uint64) {
+func waitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, blockchainID ids.ID, height uint64) {
 	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	for i, uri := range nodeURIs {
@@ -66,7 +63,7 @@ func WaitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 	}
 }
 
-func ConstructSignedWarpMessageBytes(
+func constructSignedWarpMessageBytes(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
@@ -99,7 +96,7 @@ func ConstructSignedWarpMessageBytes(
 	// Loop over each client on chain A to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
 	// has accepted the block.
-	WaitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
+	waitForAllValidatorsToAcceptBlock(ctx, source.ChainNodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
 
 	// Get the aggregate signature for the Warp message
 	log.Info("Fetching aggregate signature from the source chain validators")
@@ -117,6 +114,8 @@ func ConstructSignedWarpMessageBytes(
 // Returns the receipt on the destination chain
 func relayMessage(
 	ctx context.Context,
+	teleporterContractAddress common.Address,
+	delivererKey *ecdsa.PrivateKey,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
@@ -127,7 +126,7 @@ func relayMessage(
 		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessageBytes := ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
+	signedWarpMessageBytes := constructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	signedTx := utils.CreateReceiveCrossChainMessageTransaction(
@@ -135,7 +134,7 @@ func relayMessage(
 		signedWarpMessageBytes,
 		sendEvent.Message.RequiredGasLimit,
 		teleporterContractAddress,
-		globalFundedKey,
+		delivererKey,
 		destination,
 	)
 
@@ -152,32 +151,4 @@ func relayMessage(
 	Expect(err).Should(BeNil())
 	Expect(receiveEvent.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
 	return receipt
-}
-
-func DeployContract(
-	ctx context.Context,
-	byteCodeFileName string,
-	deployerPK *ecdsa.PrivateKey,
-	subnetInfo interfaces.SubnetTestInfo,
-	abi *abi.ABI,
-	constructorArgs ...interface{},
-) common.Address {
-	// Deploy an example ERC20 contract to be used as the source token
-	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
-	Expect(err).Should(BeNil())
-	Expect(len(byteCode) > 0).Should(BeTrue())
-	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.ChainIDInt)
-	Expect(err).Should(BeNil())
-	contractAddress, tx, _, err := bind.DeployContract(
-		transactor, *abi, byteCode, subnetInfo.ChainRPCClient, constructorArgs...,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for transaction, then check code was deployed
-	utils.WaitForTransaction(ctx, tx.Hash(), subnetInfo)
-	code, err := subnetInfo.ChainRPCClient.CodeAt(ctx, contractAddress, nil)
-	Expect(err).Should(BeNil())
-	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-
-	return contractAddress
 }
