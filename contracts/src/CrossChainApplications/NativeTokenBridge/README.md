@@ -1,6 +1,6 @@
 # Native-to-Native Token Bridge
 
-A pair of smart contracts built on top of Teleporter to support using an ERC20 token or the native token of any `subnet-evm` chain as the native token for a given subnet.
+Smart contracts built on top of Teleporter to support using an ERC20 token or the native token of any EVM-based subnet as the native token for another subnet.
 
 ## Design
 The native-to-native bridge is implemented using two primary contracts.
