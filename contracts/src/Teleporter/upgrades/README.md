@@ -10,8 +10,8 @@ The `TeleporterRegistry` maintains a mapping of `TeleporterMessenger` contract v
 
 - `sourceChainAddress` must match `VALIDATORS_SOURCE_ADDRESS = address(0)`
   - The zero address can only be set as the source chain address by a Warp off-chain message, and cannot be set by an on-chain Warp message.
-- `sourceChainID` must match the blockchain ID that the registry is deployed on
-- `destinationChainID` must match the blockchain ID that the registry is deployed on
+- `sourceBlockchainID` must match the blockchain ID that the registry is deployed on
+- `destinationBlockchainID` must match the blockchain ID that the registry is deployed on
 - `destinationAddress` must match the address of the registry
 
 In the `TeleporterRegistry` contract, the `latestVersion` state variable returns the highest version number that has been registered in the registry. The `getLatestTeleporter` function returns the `ITeleporterMessenger` that is registered with the corresponding version.
@@ -41,7 +41,7 @@ contract ERC20Bridge is
     constructor(
         address teleporterRegistryAddress
     ) TeleporterUpgradeable(teleporterRegistryAddress) {
-        currentChainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
+        currentBlockchainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
     ...

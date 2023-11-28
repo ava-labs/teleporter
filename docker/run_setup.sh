@@ -157,14 +157,14 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $c_chain_url
     echo "Sent ether to relayer account on each subnet."
 
-    subnet_a_chain_id_hex=$(getBlockChainIDHex $subnet_a_chain_id)
-    subnet_b_chain_id_hex=$(getBlockChainIDHex $subnet_b_chain_id)
-    subnet_c_chain_id_hex=$(getBlockChainIDHex $subnet_c_chain_id)
-    subnet_a_subnet_id_hex=$(getBlockChainIDHex $subnet_a_subnet_id)
-    subnet_b_subnet_id_hex=$(getBlockChainIDHex $subnet_b_subnet_id)
-    subnet_c_subnet_id_hex=$(getBlockChainIDHex $subnet_c_subnet_id)
-    c_chain_chain_id_hex=$(getBlockChainIDHex $c_chain_chain_id)
-    c_chain_subnet_id_hex=$(getBlockChainIDHex $c_chain_subnet_id)
+    subnet_a_chain_id_hex=$(getBlockchainIDHex $subnet_a_chain_id)
+    subnet_b_chain_id_hex=$(getBlockchainIDHex $subnet_b_chain_id)
+    subnet_c_chain_id_hex=$(getBlockchainIDHex $subnet_c_chain_id)
+    subnet_a_subnet_id_hex=$(getBlockchainIDHex $subnet_a_subnet_id)
+    subnet_b_subnet_id_hex=$(getBlockchainIDHex $subnet_b_subnet_id)
+    subnet_c_subnet_id_hex=$(getBlockchainIDHex $subnet_c_subnet_id)
+    c_chain_chain_id_hex=$(getBlockchainIDHex $c_chain_chain_id)
+    c_chain_subnet_id_hex=$(getBlockchainIDHex $c_chain_subnet_id)
     warp_messenger_precompile_addr=0x0200000000000000000000000000000000000005
 
     # Write all vars to file so that they can be imported from another container

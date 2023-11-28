@@ -13,7 +13,7 @@ import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOw
  */
 contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
     // Source chain information
-    bytes32 public immutable sourceChainID;
+    bytes32 public immutable sourceBlockchainID;
     address public immutable sourcePublisherContractAddress;
 
     // Latest received block information
@@ -24,7 +24,7 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
      * @dev Emitted when a new block hash is received from a given origin chain ID.
      */
     event ReceiveBlockHash(
-        bytes32 indexed originChainID,
+        bytes32 indexed originBlockchainID,
         address indexed originSenderAddress,
         uint256 indexed blockHeight,
         bytes32 blockHash
@@ -32,10 +32,10 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
 
     constructor(
         address teleporterRegistryAddress,
-        bytes32 publisherChainID,
+        bytes32 publisherBlockchainID,
         address publisherContractAddress
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
-        sourceChainID = publisherChainID;
+        sourceBlockchainID = publisherBlockchainID;
         sourcePublisherContractAddress = publisherContractAddress;
     }
 
@@ -51,12 +51,12 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
      */
 
     function receiveTeleporterMessage(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         address originSenderAddress,
         bytes calldata message
     ) external onlyAllowedTeleporter {
         require(
-            originChainID == sourceChainID,
+            originBlockchainID == sourceBlockchainID,
             "BlockHashReceiver: invalid source chain ID"
         );
         require(
@@ -73,7 +73,7 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
             latestBlockHeight = blockHeight;
             latestBlockHash = blockHash;
             emit ReceiveBlockHash(
-                originChainID,
+                originBlockchainID,
                 originSenderAddress,
                 blockHeight,
                 blockHash

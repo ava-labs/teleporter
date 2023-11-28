@@ -33,12 +33,11 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+        run: ./scripts/install_foundry.sh
 
       - name: Run E2E Tests
         # Forge installs to BASE_DIR, but updates the PATH definition in $HOME/.bashrc
         run: |
+          export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
           ./scripts/local/e2e_test.sh
