@@ -117,7 +117,11 @@ func ERC20ToNativeTokenBridge(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Helper function
-	sendTokensToSource := func(valueToSend *big.Int, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
+	sendTokensToSource := func(
+		valueToSend *big.Int,
+		fromKey *ecdsa.PrivateKey,
+		toAddress common.Address,
+	) *types.Receipt {
 		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetB.ChainIDInt)
 		Expect(err).Should(BeNil())
 		transactor.Value = valueToSend
@@ -152,7 +156,11 @@ func ERC20ToNativeTokenBridge(network network.Network) {
 	}
 
 	// Helper function
-	sendTokensToDestination := func(valueToSend *big.Int, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
+	sendTokensToDestination := func(
+		valueToSend *big.Int,
+		fromKey *ecdsa.PrivateKey,
+		toAddress common.Address,
+	) *types.Receipt {
 		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetA.ChainIDInt)
 		Expect(err).Should(BeNil())
 

@@ -515,14 +515,27 @@ func TraceTransaction(ctx context.Context, txHash common.Hash, subnetInfo Subnet
 	return string(jsonStr)
 }
 
-func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ecdsa.PrivateKey, subnetInfo SubnetTestInfo, abi *abi.ABI, constructorArgs ...interface{}) {
+func DeployContract(
+	ctx context.Context,
+	byteCodeFileName string,
+	deployerPK *ecdsa.PrivateKey,
+	subnetInfo SubnetTestInfo,
+	abi *abi.ABI,
+	constructorArgs ...interface{},
+) {
 	// Deploy an example ERC20 contract to be used as the source token
 	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
 	Expect(err).Should(BeNil())
 	Expect(len(byteCode) > 0).Should(BeTrue())
 	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.ChainIDInt)
 	Expect(err).Should(BeNil())
-	contractAddress, tx, _, err := bind.DeployContract(transactor, *abi, byteCode, subnetInfo.ChainWSClient, constructorArgs...)
+	contractAddress, tx, _, err := bind.DeployContract(
+		transactor,
+		*abi,
+		byteCode,
+		subnetInfo.ChainWSClient,
+		constructorArgs...,
+	)
 	Expect(err).Should(BeNil())
 
 	// Wait for transaction, then check code was deployed
