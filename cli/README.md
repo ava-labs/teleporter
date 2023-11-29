@@ -12,6 +12,6 @@ The CLI has a number of subcommands. To see the list of subcommands, run `./tele
 
 The supported subcommands include:
 
-- `event`: given a log event's topics and data, attempts to decode into a Teleporter event in more a readable format.
+- `event`: given a log event's topics and data, attempts to decode into a Teleporter event in a more readable format.
 - `message`: given a Teleporter message encoded as a hex string, attempts to decode into a Teleporter message in a more readable format.
 - `transaction`: given a transaction hash, attempts to decode all relevant Teleporter and Warp log events in a more readable format.
