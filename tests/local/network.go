@@ -334,6 +334,12 @@ func (n *localNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey
 	return fundedAddress, n.globalFundedKey
 }
 
+func (n *localNetwork) SupportsIndependentRelaying() bool {
+	// Messages can be relayed by the test application for local
+	// networks with connections to each node.
+	return true
+}
+
 func (n *localNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,

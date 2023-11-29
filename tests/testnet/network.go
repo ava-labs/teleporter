@@ -223,6 +223,12 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	return destination.RPCClient.TransactionReceipt(ctx, logs[0].TxHash)
 }
 
+func (n *testNetwork) SupportsIndependentRelaying() bool {
+	// The test application cannot relay its own messages on testnets
+	// because it can't query validators directly for their BLS signatures.
+	return false
+}
+
 // For testnet messages, rely on a separately deployed relayer to relay the message.
 // The implementation checks for the deliver of the given message on the destination
 // within a time window of {relayWaitTime} seconds, and returns the receipt of the

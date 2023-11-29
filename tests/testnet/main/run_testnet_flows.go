@@ -28,13 +28,13 @@ func main() {
 	}
 
 	// Run the Teleporter test flows.
+	runFlow("AddFeeAmount", flows.AddFeeAmount, network)
 	runFlow("BasicSendRecevie", flows.BasicSendReceive, network)
-	// runFlow("DeliverToWrongChain", flows.DeliverToWrongChain, network)
 	runFlow("DeliverToNonExistentContract", flows.DeliverToNonExistentContract, network)
+	runFlow("DeliverToWrongChain", flows.DeliverToWrongChain, network)
 	runFlow("RetrySuccessfulExecution", flows.RetrySuccessfulExecution, network)
 	// runFlow("UnallowedRelayer", flows.UnallowedRelayer, network)
 	runFlow("ReceiveMessageTwice", flows.ReceiveMessageTwice, network)
-	runFlow("AddFeeAmount", flows.AddFeeAmount, network)
 	runFlow("InsufficientGas", flows.InsufficientGas, network)
 	runFlow("ResubmitAlteredMessage", flows.ResubmitAlteredMessage, network)
 	// runFlow("RelayerModifiesMessage", flows.RelayerModifiesMessage, network)
