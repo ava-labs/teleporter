@@ -4,7 +4,7 @@ This directory contains the source code for the Teleporter CLI. The CLI is a com
 
 ## Build
 
-To build the CLI, run `go build -o teleporter-cli` from this directory. This will create a binary called `teleporter-cli` in the current directory.
+To build the CLI, run `go build` from this directory. This will create a binary called `teleporter-cli` in the current directory.
 
 ## Usage
 

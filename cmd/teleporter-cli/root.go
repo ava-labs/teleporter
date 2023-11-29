@@ -1,7 +1,7 @@
 // (c) 2023, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package cmd
+package main
 
 import (
 	"os"
@@ -65,4 +65,8 @@ func rootPreRun(logLevelArg *string) error {
 	}
 	teleporterABI = abi
 	return nil
+}
+
+func main() {
+	Execute()
 }

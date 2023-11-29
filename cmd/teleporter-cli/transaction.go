@@ -1,7 +1,7 @@
 // (c) 2023, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package cmd
+package main
 
 import (
 	"context"
@@ -26,7 +26,7 @@ var (
 )
 
 var transactionCmd = &cobra.Command{
-	Use:   "transaction --rpc RPC_URL --teleporter-address TELEPORTER_ADDRESS TRANSACTION_HASH",
+	Use:   "transaction --rpc RPC_URL --teleporter-address CONTRACT_ADDRESS TRANSACTION_HASH",
 	Short: "Parses relevant Teleporter logs from a transaction",
 	Long: `Given a transaction this command looks through the transaction's receipt
 for Teleporter and Warp log events. When corresponding log events are found,
