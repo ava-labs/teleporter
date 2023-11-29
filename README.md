@@ -187,7 +187,24 @@ Next, provide the path to the `subnet-evm` repository and the path to a writeabl
 ./scripts/local/e2e_test.sh --local --subnet-evm ./subnet-evm --data-dir ~/tmp/e2e-test
 ```
 
-## ABI Bindings
+#### Run the E2E tests on another network
+
+The E2E tests can be run on another network by implementing the `Network` interface in [`package network`](./tests/network/network.go). For example, the type `FujiNetwork` in [`example_fuji_network.go`](./tests/network/example_fuji_network.go) implements this interface, pointing to the [Amplify](https://subnets-test.avax.network/amplify), [Bulletin](https://subnets-test.avax.network/bulletin), and [Conduit](https://subnets-test.avax.network/conduit) Fuji subnets. After implementing this interface, you can run the E2E tests on this network by running a program such as:
+```go
+func main() {
+  // Register a failure handler that panics
+	gomega.RegisterFailHandler(func(message string, callerSkip ...int) {
+		panic(message)
+	})
+
+  // Run the test, composing it with the Network implementation
+  network := network.NewFujiNetwork()
+  defer network.CloseNetworkConnections()
+	tests.BasicOneWaySend(network)
+}
+```
+
+### ABI Bindings
 
 To generate Golang ABI bindings for the Solidity smart contracts, run:
 ```bash
