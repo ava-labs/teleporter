@@ -9,9 +9,9 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	nativetokendestination "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/NativeTokenDestination"
 	nativetokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/NativeTokenSource"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
-	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -118,7 +118,7 @@ func NativeTokenBridge(network network.Network) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
 
-		receipt:= network.RelayMessage(ctx, sourceChainReceipt, subnetA, subnetB, true)
+		receipt := network.RelayMessage(ctx, sourceChainReceipt, subnetA, subnetB, true)
 
 		return receipt
 	}

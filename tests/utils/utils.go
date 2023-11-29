@@ -487,28 +487,6 @@ func CalculateTxParams(
 	return gasFeeCap, gasTipCap, nonce
 }
 
-func createNativeTransferTransaction(
-	ctx context.Context,
-	network SubnetTestInfo,
-	senderKey *ecdsa.PrivateKey,
-	recipient common.Address,
-	amount *big.Int,
-) *types.Transaction {
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, network, PrivateKeyToAddress(senderKey))
-
-	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   network.ChainIDInt,
-		Nonce:     nonce,
-		To:        &recipient,
-		Gas:       NativeTransferGas,
-		GasFeeCap: gasFeeCap,
-		GasTipCap: gasTipCap,
-		Value:     amount,
-	})
-
-	return SignTransaction(tx, senderKey, network.ChainIDInt)
-}
-
 func PrivateKeyToAddress(k *ecdsa.PrivateKey) common.Address {
 	return crypto.PubkeyToAddress(k.PublicKey)
 }

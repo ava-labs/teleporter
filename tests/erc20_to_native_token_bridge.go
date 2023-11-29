@@ -10,9 +10,9 @@ import (
 	erc20tokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/ERC20TokenSource"
 	nativetokendestination "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/NativeTokenDestination"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
-	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -28,10 +28,10 @@ func ERC20ToNativeTokenBridge(network network.Network) {
 		NativeTokenDestinationByteCodeFile = "./contracts/out/NativeTokenDestination.sol/NativeTokenDestination.json"
 	)
 	var (
-		initialReserveImbalance = big.NewInt(0).Mul(big.NewInt(1e15), big.NewInt(1e9))
-		valueToSend             = big.NewInt(0).Div(initialReserveImbalance, big.NewInt(4))
+		initialReserveImbalance      = big.NewInt(0).Mul(big.NewInt(1e15), big.NewInt(1e9))
+		valueToSend                  = big.NewInt(0).Div(initialReserveImbalance, big.NewInt(4))
 		intermediateReserveImbalance = utils.BigIntSub(initialReserveImbalance, valueToSend)
-		valueToReturn           = big.NewInt(0).Div(valueToSend, big.NewInt(4))
+		valueToReturn                = big.NewInt(0).Div(valueToSend, big.NewInt(4))
 
 		ctx                  = context.Background()
 		deployerAddress      = common.HexToAddress("0x539447ab8Be7e927bE8E005663C81ff2AE951337")
@@ -71,7 +71,7 @@ func ERC20ToNativeTokenBridge(network network.Network) {
 
 	nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	utils.DeployContract(ctx, NativeTokenDestinationByteCodeFile, deployerPK, subnetB, nativeTokenDestinationAbi, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress,initialReserveImbalance)
+	utils.DeployContract(ctx, NativeTokenDestinationByteCodeFile, deployerPK, subnetB, nativeTokenDestinationAbi, teleporterContractAddress, subnetA.BlockchainID, bridgeContractAddress, initialReserveImbalance)
 
 	exampleERC20Abi, err := exampleerc20.ExampleERC20MetaData.GetAbi()
 	Expect(err).Should(BeNil())
@@ -159,12 +159,12 @@ func ERC20ToNativeTokenBridge(network network.Network) {
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.ChainWSClient)
 	}
 
 	{ // Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.ChainWSClient)
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainIDInt)
 		Expect(err).Should(BeNil())
@@ -176,12 +176,12 @@ func ERC20ToNativeTokenBridge(network network.Network) {
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
 		// Check we failed to send because we're not collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.ChainWSClient)
 	}
 
 	{ // Transfer more tokens A -> B to collateralize the bridge
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.ChainWSClient)
 
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
@@ -237,14 +237,14 @@ func ERC20ToNativeTokenBridge(network network.Network) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
-		burnedTxFeesBalanceSource2, err :=  exampleERC20.BalanceOf(nil, burnedTxFeeAddress)
+		burnedTxFeesBalanceSource2, err := exampleERC20.BalanceOf(nil, burnedTxFeeAddress)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceSource2, burnEvent.Amount)
 	}
 }
 
 func checkUnlockERC20Event(logs []*types.Log, erc20TokenSource *erc20tokensource.ERC20TokenSource, recipient common.Address, value *big.Int) {
-	unlockEvent, err := utils.GetEventFromLogs(logs,  erc20TokenSource.ParseUnlockTokens)
+	unlockEvent, err := utils.GetEventFromLogs(logs, erc20TokenSource.ParseUnlockTokens)
 	Expect(err).Should(BeNil())
 	Expect(unlockEvent.Recipient).Should(Equal(recipient))
 	utils.ExpectBigEqual(unlockEvent.Amount, value)
