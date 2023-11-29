@@ -35,20 +35,20 @@ contract TeleporterMessengerTest is Test {
     UnitTestMockERC20 internal _mockFeeAsset;
 
     event SendCrossChainMessage(
-        bytes32 indexed destinationChainID,
+        bytes32 indexed destinationBlockchainID,
         uint256 indexed messageID,
         TeleporterMessage message,
         TeleporterFeeInfo feeInfo
     );
 
     event AddFeeAmount(
-        bytes32 indexed destinationChainID,
+        bytes32 indexed destinationBlockchainID,
         uint256 indexed messageID,
         TeleporterFeeInfo updatedFeeInfo
     );
 
     event ReceiveCrossChainMessage(
-        bytes32 indexed originChainID,
+        bytes32 indexed originBlockchainID,
         uint256 indexed messageID,
         address indexed deliverer,
         address rewardRedeemer,
@@ -56,18 +56,18 @@ contract TeleporterMessengerTest is Test {
     );
 
     event MessageExecutionFailed(
-        bytes32 indexed originChainID,
+        bytes32 indexed originBlockchainID,
         uint256 indexed messageID,
         TeleporterMessage message
     );
 
     event MessageExecuted(
-        bytes32 indexed originChainID,
+        bytes32 indexed originBlockchainID,
         uint256 indexed messageID
     );
 
     event FailedFeePayment(
-        bytes32 indexed destinationChainID,
+        bytes32 indexed destinationBlockchainID,
         uint256 indexed messageID,
         address indexed feeAsset,
         uint256 feeAmount,
@@ -115,7 +115,7 @@ contract TeleporterMessengerTest is Test {
      */
 
     function _sendTestMessageWithFee(
-        bytes32 chainID,
+        bytes32 blockchainID,
         uint256 feeAmount
     ) internal returns (uint256) {
         vm.mockCall(
@@ -134,7 +134,7 @@ contract TeleporterMessengerTest is Test {
         });
 
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: chainID,
+            destinationBlockchainID: blockchainID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             feeInfo: feeInfo,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -157,9 +157,9 @@ contract TeleporterMessengerTest is Test {
     }
 
     function _sendTestMessageWithNoFee(
-        bytes32 chainID
+        bytes32 blockchainID
     ) internal returns (uint256) {
-        return _sendTestMessageWithFee(chainID, 0);
+        return _sendTestMessageWithFee(blockchainID, 0);
     }
 
     function _setUpSuccessGetVerifiedWarpMessageMock(
@@ -178,7 +178,7 @@ contract TeleporterMessengerTest is Test {
     }
 
     function _receiveTestMessage(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         uint256 messageID,
         address relayerRewardAddress,
         TeleporterMessageReceipt[] memory receipts
@@ -194,7 +194,7 @@ contract TeleporterMessengerTest is Test {
         // Both the sender and destination address should be the teleporter contract address,
         // mocking as if the universal deployer pattern was used.
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            originChainID,
+            originBlockchainID,
             abi.encode(messageToReceive)
         );
 
@@ -278,7 +278,7 @@ contract TeleporterMessengerTest is Test {
             TeleporterMessage({
                 messageID: messageID,
                 senderAddress: address(this),
-                destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
+                destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
                 destinationAddress: DEFAULT_DESTINATION_ADDRESS,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
                 allowedRelayerAddresses: new address[](0),
@@ -288,12 +288,12 @@ contract TeleporterMessengerTest is Test {
     }
 
     function _createDefaultWarpMessage(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         bytes memory payload
     ) internal view returns (WarpMessage memory) {
         return
             WarpMessage({
-                sourceChainID: originChainID,
+                sourceChainID: originBlockchainID,
                 originSenderAddress: address(teleporterMessenger),
                 payload: payload
             });
