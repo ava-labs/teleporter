@@ -20,13 +20,13 @@ const (
 )
 
 var (
-	rpcEndpoint     string
-	contractAddress common.Address
-	client          ethclient.Client
+	rpcEndpoint       string
+	teleporterAddress common.Address
+	client            ethclient.Client
 )
 
 var transactionCmd = &cobra.Command{
-	Use:   "transaction --rpc RPC_URL --contract-address CONTRACT_ADDRESS TRANSACTION_HASH",
+	Use:   "transaction --rpc RPC_URL --teleporter-address TELEPORTER_ADDRESS TRANSACTION_HASH",
 	Short: "Parses relevant Teleporter logs from a transaction",
 	Long: `Given a transaction this command looks through the transaction's receipt
 for Teleporter and Warp log events. When corresponding log events are found,
@@ -37,7 +37,7 @@ the command parses to log event fields to a more human readable format.`,
 			common.HexToHash(args[0]))
 		cobra.CheckErr(err)
 		for _, log := range receipt.Logs {
-			if log.Address == contractAddress {
+			if log.Address == teleporterAddress {
 				logger.Debug("Processing Teleporter log", zap.Any("log", log))
 
 				event, err := teleporterABI.EventByID(log.Topics[0])
@@ -70,25 +70,29 @@ the command parses to log event fields to a more human readable format.`,
 func init() {
 	rootCmd.AddCommand(transactionCmd)
 	transactionCmd.PersistentFlags().StringVar(&rpcEndpoint, "rpc", "", "RPC endpoint to connect to the node")
-	address := transactionCmd.PersistentFlags().StringP("contract-address", "c", "", "Teleporter contract address")
+	address := transactionCmd.PersistentFlags().StringP("teleporter-address", "t", "", "Teleporter contract address")
 	err := transactionCmd.MarkPersistentFlagRequired("rpc")
 	cobra.CheckErr(err)
-	err = transactionCmd.MarkPersistentFlagRequired("contract-address")
+	err = transactionCmd.MarkPersistentFlagRequired("teleporter-address")
 	cobra.CheckErr(err)
 	transactionCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		// Run the persistent pre-run function of the root command if it exists.
-		if rootCmd.PersistentPreRunE != nil {
-			if err := rootCmd.PersistentPreRunE(cmd, args); err != nil {
-				return err
-			}
-		}
-		contractAddress = common.HexToAddress(*address)
-		c, err := ethclient.Dial(rpcEndpoint)
-		if err != nil {
+		return transactionPreRun(cmd, args, address)
+	}
+}
+
+func transactionPreRun(cmd *cobra.Command, args []string, address *string) error {
+	// Run the persistent pre-run function of the root command if it exists.
+	if rootCmd.PersistentPreRunE != nil {
+		if err := rootCmd.PersistentPreRunE(cmd, args); err != nil {
 			return err
 		}
-
-		client = c
+	}
+	teleporterAddress = common.HexToAddress(*address)
+	c, err := ethclient.Dial(rpcEndpoint)
+	if err != nil {
 		return err
 	}
+
+	client = c
+	return err
 }

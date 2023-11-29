@@ -30,7 +30,7 @@ Teleporter and Warp events, as well as parsing Teleporter messages.`,
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		os.Exit(1)
+		panic(err)
 	}
 }
 
@@ -38,27 +38,31 @@ func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	logLevelArg := rootCmd.PersistentFlags().StringP("log", "l", "", "Log level i.e. debug, info...")
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		if *logLevelArg == "" {
-			*logLevelArg = logging.Info.LowerString()
-		}
-
-		logLevel, err := logging.ToLevel(*logLevelArg)
-		if err != nil {
-			return err
-		}
-		logger = logging.NewLogger(
-			"teleporter-cli",
-			logging.NewWrappedCore(
-				logLevel,
-				os.Stdout,
-				logging.Plain.ConsoleEncoder(),
-			),
-		)
-		abi, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
-		if err != nil {
-			return err
-		}
-		teleporterABI = abi
-		return nil
+		return rootPreRun(logLevelArg)
 	}
+}
+
+func rootPreRun(logLevelArg *string) error {
+	if *logLevelArg == "" {
+		*logLevelArg = logging.Info.LowerString()
+	}
+
+	logLevel, err := logging.ToLevel(*logLevelArg)
+	if err != nil {
+		return err
+	}
+	logger = logging.NewLogger(
+		"teleporter-cli",
+		logging.NewWrappedCore(
+			logLevel,
+			os.Stdout,
+			logging.Plain.ConsoleEncoder(),
+		),
+	)
+	abi, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
+	if err != nil {
+		return err
+	}
+	teleporterABI = abi
+	return nil
 }

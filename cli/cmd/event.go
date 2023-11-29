@@ -16,7 +16,7 @@ var (
 )
 
 var eventCmd = &cobra.Command{
-	Use:   "event --topics topic1, topic2",
+	Use:   "event --topics topic1,topic2 [--data data]",
 	Short: "Parses a Teleporter log's topics and data",
 	Long: `Given the topics and data of a Teleporter log, parses the log into
 the corresponding Teleporter event. Topics are represented by a hash,
