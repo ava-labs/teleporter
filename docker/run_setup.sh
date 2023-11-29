@@ -147,18 +147,18 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     cd contracts
     registry_deploy_result_a=$(forge create --private-key $user_private_key \
         --rpc-url $subnet_a_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
-    registry_address_a=$(parseContractAddress "$registry_deploy_result_a")
-    echo "TeleporterRegistry contract deployed to subnet A at $registry_address_a."
+    subnet_a_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_a")
+    echo "TeleporterRegistry contract deployed to subnet A at $subnet_a_teleporter_registry_address."
 
     registry_deploy_result_b=$(forge create --private-key $user_private_key \
         --rpc-url $subnet_b_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
-    registry_address_b=$(parseContractAddress "$registry_deploy_result_b")
-    echo "TeleporterRegistry contract deployed to subnet B at $registry_address_b."
+    subnet_b_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_b")
+    echo "TeleporterRegistry contract deployed to subnet B at $subnet_b_teleporter_registry_address."
 
     registry_deploy_result_c=$(forge create --private-key $user_private_key \
         --rpc-url $subnet_c_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
-    registry_address_c=$(parseContractAddress "$registry_deploy_result_c")
-    echo "TeleporterRegistry contract deployed to subnet C at $registry_address_c."
+    subnet_c_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_c")
+    echo "TeleporterRegistry contract deployed to subnet C at $subnet_c_teleporter_registry_address."
     cd ..
 
     # Send tokens to cover gas costs for the relayers.

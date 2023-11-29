@@ -22,9 +22,9 @@ set -e # Stop on first error
 #   subnet_b_subnet_id_hex
 #   teleporter_contract_address
 #   warp_messenger_precompile_addr
-#   registry_address_a
-#   registry_address_b
-#   registry_address_c
+#   subnet_a_teleporter_registry_address
+#   subnet_b_teleporter_registry_address
+#   subnet_c_teleporter_registry_address
 
 # Test covers:
 # - Sending cross chain messages between two chains, by calling Teleporter contract sendCrossChainMessage function directly.
