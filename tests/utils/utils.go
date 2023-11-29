@@ -191,6 +191,11 @@ func RedeemRelayerRewardsAndConfirm(
 		),
 	)
 
+	updatedRewardAmount, err :=
+		subnet.TeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, relayerAddress, feeTokenAddress)
+	Expect(err).Should(BeNil())
+	Expect(updatedRewardAmount).Should(Equal(big.NewInt(0)))
+
 	return receipt
 }
 

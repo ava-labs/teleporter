@@ -34,7 +34,7 @@ func AddFeeAmount(network interfaces.Network) {
 	)
 
 	initFeeAmount := big.NewInt(1)
-	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
+	// Send a transaction to SubnetA to issue a Warp Message from the Teleporter contract to SubnetB
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 		DestinationBlockchainID: subnetBInfo.BlockchainID,
 		DestinationAddress:      fundedAddress,
@@ -64,13 +64,19 @@ func AddFeeAmount(network interfaces.Network) {
 	)
 
 	// Relay message from SubnetA to SubnetB
-	network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
+	deliveryReceipt := network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
+	receiveEvent, err := utils.GetEventFromLogs(deliveryReceipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	Expect(err).Should(BeNil())
 
-	// Check Teleporter message received on the destination
+	// Check Teleporter message received on the destination (SubnetB)
 	delivered, err :=
 		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
+
+	// Check the initial relayer reward amount on SubnetA.
+	initialRewardAmount, err := subnetAInfo.TeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, receiveEvent.RewardRedeemer, mockTokenAddress)
+	Expect(err).Should(BeNil())
 
 	// Send message from SubnetB to SubnetA. This will include the receipt for the previous message from A->B
 	sendCrossChainMessageInput.DestinationBlockchainID = subnetAInfo.BlockchainID
@@ -87,13 +93,17 @@ func AddFeeAmount(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	// Check the relayer reward amount
-	amount, err :=
-		subnetAInfo.TeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, fundedAddress, mockTokenAddress)
+	// Check the updated relayer reward amount
+	expectedIncrease := new(big.Int).Add(initFeeAmount, additionalFeeAmount)
+	newRewardAmount, err :=
+		subnetAInfo.TeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, receiveEvent.RewardRedeemer, mockTokenAddress)
 	Expect(err).Should(BeNil())
-	Expect(amount).Should(Equal(additionalFeeAmount.Add(additionalFeeAmount, initFeeAmount)))
+	Expect(newRewardAmount).Should(Equal(new(big.Int).Add(initialRewardAmount, expectedIncrease)))
 
-	utils.RedeemRelayerRewardsAndConfirm(
-		ctx, subnetAInfo, mockToken, mockTokenAddress, fundedKey, amount,
-	)
+	// If the funded address is the one able to redeem the rewards, do so and check the reward amount is reset.
+	if fundedAddress == receiveEvent.RewardRedeemer {
+		utils.RedeemRelayerRewardsAndConfirm(
+			ctx, subnetAInfo, mockToken, mockTokenAddress, fundedKey, newRewardAmount,
+		)
+	}
 }
