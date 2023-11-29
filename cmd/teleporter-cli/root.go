@@ -67,6 +67,14 @@ func rootPreRun(logLevelArg *string) error {
 	return nil
 }
 
+func callPersistentPreRun(cmd *cobra.Command, args []string) {
+	if parent := cmd.Parent(); parent != nil {
+		if parent.PersistentPreRun != nil {
+			parent.PersistentPreRun(parent, args)
+		}
+	}
+}
+
 func main() {
 	Execute()
 }

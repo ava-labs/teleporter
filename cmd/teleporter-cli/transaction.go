@@ -59,7 +59,10 @@ the command parses to log event fields to a more human readable format.`,
 
 				teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpPayload.Payload)
 				cobra.CheckErr(err)
-				logger.Info("Parsed Teleporter message", zap.String("warpMessageID", unsignedMsg.ID().Hex()), zap.String("teleporterMessageID", teleporterMessage.MessageID.String()), zap.Any("message", teleporterMessage))
+				logger.Info("Parsed Teleporter message",
+					zap.String("warpMessageID", unsignedMsg.ID().Hex()),
+					zap.String("teleporterMessageID", teleporterMessage.MessageID.String()),
+					zap.Any("message", teleporterMessage))
 			}
 
 		}
@@ -82,11 +85,7 @@ func init() {
 
 func transactionPreRun(cmd *cobra.Command, args []string, address *string) error {
 	// Run the persistent pre-run function of the root command if it exists.
-	if rootCmd.PersistentPreRunE != nil {
-		if err := rootCmd.PersistentPreRunE(cmd, args); err != nil {
-			return err
-		}
-	}
+	callPersistentPreRun(cmd, args)
 	teleporterAddress = common.HexToAddress(*address)
 	c, err := ethclient.Dial(rpcEndpoint)
 	if err != nil {

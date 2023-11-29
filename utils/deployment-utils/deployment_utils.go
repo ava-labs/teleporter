@@ -86,7 +86,8 @@ func ExtractByteCode(byteCodeFileName string) ([]byte, error) {
 // Constructs a keyless transaction using Nick's method
 // Optionally writes the transaction, deployer address, and contract address to file
 // Returns the transaction bytes, deployer address, and contract address
-func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byte, common.Address, common.Address, error) {
+func ConstructKeylessTransaction(byteCodeFileName string,
+	writeFile bool) ([]byte, common.Address, common.Address, error) {
 	// Convert the R and S values (which must be the same) from hex.
 	rsValue, ok := new(big.Int).SetString(rsValueHex, 16)
 	if !ok {
@@ -114,7 +115,7 @@ func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byt
 	// Recover the "sender" address of the transaction.
 	senderAddress, err := types.HomesteadSigner{}.Sender(contractCreationTx)
 	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to recover the sender address of transaction")
+		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to recover the transaction sender address")
 	}
 
 	// Serialize the raw transaction and sender address.

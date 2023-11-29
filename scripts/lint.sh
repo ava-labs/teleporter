@@ -28,7 +28,7 @@ fi
 
 function sollinter() {
     # lint solidity contracts
-    echo "Linting Teleporter Solidity contracts..."
+    echo "Linting Solidity contracts..."
     cd $TELEPORTER_PATH/contracts/src
     # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
     # in subdirectories. The former only checks sol files in the current directory and directories one level down.
@@ -39,8 +39,8 @@ function golanglinter() {
     # lint e2e tests go code
     go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
 
-    echo "Linting Teleporter E2E tests Golang code..."
-    cd $TELEPORTER_PATH/tests
+    echo "Linting Golang code..."
+    cd $TELEPORTER_PATH/
     golangci-lint run --config=$TELEPORTER_PATH/.golangci.yml ./...
 }
 
