@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func ReceiveMessageTwice(network interfaces.Network) {
+func RelayMessageTwice(network interfaces.Network) {
 	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -59,7 +59,7 @@ func ReceiveMessageTwice(network interfaces.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	//
-	// Attempt to send the same message again
+	// Attempt to send the same message again, should fail
 	//
 	log.Info("Relaying the same Teleporter message again on the destination")
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)

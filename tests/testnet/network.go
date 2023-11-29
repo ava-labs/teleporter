@@ -4,10 +4,11 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
-	"fmt"
 	"math/big"
 	"os"
 	"time"
+
+	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
@@ -49,7 +50,10 @@ type testNetwork struct {
 	fundedKey                 *ecdsa.PrivateKey
 }
 
-func initializeSubnetInfo(subnetPrefix string, teleporterContractAddress common.Address) (interfaces.SubnetTestInfo, error) {
+func initializeSubnetInfo(
+	subnetPrefix string,
+	teleporterContractAddress common.Address,
+) (interfaces.SubnetTestInfo, error) {
 	subnetIDStr := os.Getenv(subnetPrefix + subnetIDSuffix)
 	subnetID, err := ids.FromString(subnetIDStr)
 	if err != nil {
@@ -102,33 +106,32 @@ func initializeSubnetInfo(subnetPrefix string, teleporterContractAddress common.
 
 func NewTestNetwork() (*testNetwork, error) {
 	teleporterContractAddressStr := os.Getenv(teleporterContractAddress)
-	fmt.Println("Using Teleporter contract address:", teleporterContractAddressStr)
 	teleporterContractAddress := common.HexToAddress(teleporterContractAddressStr)
+	log.Info("Set teleporter contract address", "teleporterContractAddress", teleporterContractAddressStr)
 
 	subnetAInfo, err := initializeSubnetInfo(subnetAPrefix, teleporterContractAddress)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Using subnet A info:", subnetAInfo)
 
 	subnetBInfo, err := initializeSubnetInfo(subnetBPrefix, teleporterContractAddress)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Using subnet B info:", subnetBInfo)
 
 	subnetCInfo, err := initializeSubnetInfo(subnetCPrefix, teleporterContractAddress)
 	if err != nil {
 		return nil, err
 	}
+	log.Info("Set testnet subnet info", subnetAPrefix, subnetAInfo, subnetBPrefix, subnetBInfo, subnetCPrefix, subnetCInfo)
 
 	fundedAddressStr := os.Getenv(userAddress)
-	fmt.Println("Using user funded address:", fundedAddressStr)
 	fundedKeyStr := os.Getenv(userPrivateKey)
 	fundedKey, err := crypto.HexToECDSA(fundedKeyStr)
 	if err != nil {
 		return nil, err
 	}
+	log.Info("Set user funded address", "address", fundedAddressStr)
 
 	return &testNetwork{
 		teleporterContractAddress: teleporterContractAddress,

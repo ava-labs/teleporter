@@ -53,7 +53,14 @@ func RelayerModifiesMessage(network interfaces.Network, constructSignedMessageFu
 
 	// Relay the message to the destination
 	// Relayer modifies the message in flight
-	relayAlteredMessage(ctx, receipt, subnetAInfo, subnetBInfo, fundedKey, network.GetTeleporterContractAddress(), constructSignedMessageFunc)
+	relayAlteredMessage(
+		ctx,
+		receipt,
+		subnetAInfo,
+		subnetBInfo,
+		fundedKey,
+		network.GetTeleporterContractAddress(),
+		constructSignedMessageFunc)
 
 	// Check Teleporter message was not received on the destination
 	delivered, err :=

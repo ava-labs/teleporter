@@ -40,8 +40,8 @@ type Network interface {
 	// connections with each validator.
 	SupportsIndependentRelaying() bool
 
-	// For implementations where SupportsIndependentRelaying() is true, relays the specified message between the two subnets,
-	// and returns the receipt of the transaction the message was delivered in.
+	// For implementations where SupportsIndependentRelaying() is true, relays the specified message between the
+	// two subnets,and returns the receipt of the transaction the message was delivered in.
 	// For implementations where SupportsIndependentRelaying() is false, waits for the specific message to be relayed
 	// by an external relayer, and returns the receipt of the transaction the message was delivered in.
 	RelayMessage(ctx context.Context,

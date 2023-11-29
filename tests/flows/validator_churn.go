@@ -24,7 +24,11 @@ const (
 
 type addSubnetValidatorsFunc func(ctx context.Context, subnetID ids.ID, nodeNames []string)
 
-func ValidatorChurn(network interfaces.Network, constructSignedMessageFunc constructSignedMessageFunc, addSubnetValidatorsFunc addSubnetValidatorsFunc) {
+func ValidatorChurn(
+	network interfaces.Network,
+	constructSignedMessageFunc constructSignedMessageFunc,
+	addSubnetValidatorsFunc addSubnetValidatorsFunc,
+) {
 	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()

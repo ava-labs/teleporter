@@ -80,8 +80,8 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Unallowed relayer", func() {
 		flows.UnallowedRelayer(localNetworkInstance)
 	})
-	ginkgo.It("Receive message twice", func() {
-		flows.ReceiveMessageTwice(localNetworkInstance)
+	ginkgo.It("Relay message twice", func() {
+		flows.RelayMessageTwice(localNetworkInstance)
 	})
 	ginkgo.It("Add additional fee amount", func() {
 		flows.AddFeeAmount(localNetworkInstance)

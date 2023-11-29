@@ -65,7 +65,9 @@ func AddFeeAmount(network interfaces.Network) {
 
 	// Relay message from SubnetA to SubnetB
 	deliveryReceipt := network.RelayMessage(ctx, sendCrossChainMsgReceipt, subnetAInfo, subnetBInfo, true)
-	receiveEvent, err := utils.GetEventFromLogs(deliveryReceipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	receiveEvent, err := utils.GetEventFromLogs(
+		deliveryReceipt.Logs,
+		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	// Check Teleporter message received on the destination (SubnetB)
@@ -75,7 +77,10 @@ func AddFeeAmount(network interfaces.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	// Check the initial relayer reward amount on SubnetA.
-	initialRewardAmount, err := subnetAInfo.TeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, receiveEvent.RewardRedeemer, mockTokenAddress)
+	initialRewardAmount, err := subnetAInfo.TeleporterMessenger.CheckRelayerRewardAmount(
+		&bind.CallOpts{},
+		receiveEvent.RewardRedeemer,
+		mockTokenAddress)
 	Expect(err).Should(BeNil())
 
 	// Send message from SubnetB to SubnetA. This will include the receipt for the previous message from A->B
@@ -95,8 +100,10 @@ func AddFeeAmount(network interfaces.Network) {
 
 	// Check the updated relayer reward amount
 	expectedIncrease := new(big.Int).Add(initFeeAmount, additionalFeeAmount)
-	newRewardAmount, err :=
-		subnetAInfo.TeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, receiveEvent.RewardRedeemer, mockTokenAddress)
+	newRewardAmount, err := subnetAInfo.TeleporterMessenger.CheckRelayerRewardAmount(
+		&bind.CallOpts{},
+		receiveEvent.RewardRedeemer,
+		mockTokenAddress)
 	Expect(err).Should(BeNil())
 	Expect(newRewardAmount).Should(Equal(new(big.Int).Add(initialRewardAmount, expectedIncrease)))
 

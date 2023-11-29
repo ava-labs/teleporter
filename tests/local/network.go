@@ -12,7 +12,6 @@ import (
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/set"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -345,7 +344,14 @@ func (n *localNetwork) RelayMessage(ctx context.Context,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
 	expectSuccess bool) *types.Receipt {
-	return relayMessage(ctx, n.teleporterContractAddress, n.globalFundedKey, sourceReceipt, source, destination, expectSuccess)
+	return relayMessage(
+		ctx,
+		n.teleporterContractAddress,
+		n.globalFundedKey,
+		sourceReceipt,
+		source,
+		destination,
+		expectSuccess)
 }
 
 func (n *localNetwork) setAllSubnetValues() {
@@ -369,24 +375,6 @@ func (n *localNetwork) tearDownNetwork() {
 	Expect(os.Remove(n.warpChainConfigPath)).Should(BeNil())
 }
 
-func (n *localNetwork) removeSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
-	_, err := n.anrClient.RemoveSubnetValidator(ctx, []*rpcpb.RemoveSubnetValidatorSpec{
-		{
-			SubnetId:  subnetID.String(),
-			NodeNames: nodeNames,
-		},
-	})
-	Expect(err).Should(BeNil())
-
-	// Remove the node names
-	currNodes := set.NewSet[string](len(n.subnetNodeNames[subnetID]))
-	currNodes.Add(n.subnetNodeNames[subnetID]...)
-	currNodes.Remove(nodeNames...)
-	n.subnetNodeNames[subnetID] = currNodes.List()
-
-	n.setAllSubnetValues()
-}
-
 func (n *localNetwork) addSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
 	_, err := n.anrClient.AddSubnetValidators(ctx, []*rpcpb.SubnetValidatorsSpec{
 		{
@@ -398,15 +386,6 @@ func (n *localNetwork) addSubnetValidators(ctx context.Context, subnetID ids.ID,
 
 	// Add the new node names
 	n.subnetNodeNames[subnetID] = append(n.subnetNodeNames[subnetID], nodeNames...)
-
-	n.setAllSubnetValues()
-}
-
-func (n *localNetwork) restartNodes(ctx context.Context, nodeNames []string) {
-	for _, nodeName := range nodeNames {
-		_, err := n.anrClient.RestartNode(ctx, nodeName)
-		Expect(err).Should(BeNil())
-	}
 
 	n.setAllSubnetValues()
 }

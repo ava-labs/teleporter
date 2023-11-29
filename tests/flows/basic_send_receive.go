@@ -63,7 +63,9 @@ func BasicSendReceive(network interfaces.Network) {
 	// Relay the message to the destination
 	//
 	deliveryReceipt := network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
-	receiveEvent, err := utils.GetEventFromLogs(deliveryReceipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	receiveEvent, err := utils.GetEventFromLogs(
+		deliveryReceipt.Logs,
+		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	//
