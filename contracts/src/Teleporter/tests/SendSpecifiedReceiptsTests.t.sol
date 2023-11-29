@@ -42,7 +42,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: 1,
             senderAddress: address(this),
-            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -83,7 +83,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessage memory newExpectedMessage = TeleporterMessage({
             messageID: 2,
             senderAddress: address(this),
-            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(0),
             requiredGasLimit: uint256(0),
             allowedRelayerAddresses: new address[](0),
@@ -134,7 +134,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: 1,
             senderAddress: address(this),
-            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(0),
             requiredGasLimit: uint256(0),
             allowedRelayerAddresses: new address[](0),
@@ -183,7 +183,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
     }
 
     function _sendSpecifiedReceiptsWithFee(
-        bytes32 chainID,
+        bytes32 blockchainID,
         uint256[] memory messageIDs,
         address feeAddress,
         uint256 feeAmount
@@ -222,7 +222,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
 
         return
             teleporterMessenger.sendSpecifiedReceipts(
-                chainID,
+                blockchainID,
                 messageIDs,
                 feeInfo,
                 new address[](0)
@@ -230,10 +230,10 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
     }
 
     function _sendSpecifiedReceiptsWithNoFee(
-        bytes32 chainID,
+        bytes32 blockchainID,
         uint256[] memory messageIDs
     ) private returns (uint256) {
         return
-            _sendSpecifiedReceiptsWithFee(chainID, messageIDs, address(0), 0);
+            _sendSpecifiedReceiptsWithFee(blockchainID, messageIDs, address(0), 0);
     }
 }

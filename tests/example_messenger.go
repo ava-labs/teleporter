@@ -59,7 +59,7 @@ func ExampleMessenger(network network.Network) {
 
 	event, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationChainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
 	teleporterMessageID := event.Message.MessageID
 

@@ -149,7 +149,7 @@ func RelayMessage(
 	receiveEvent, err :=
 		utils.GetEventFromLogs(receipt.Logs, destination.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(receiveEvent.OriginChainID[:]).Should(Equal(source.BlockchainID[:]))
+	Expect(receiveEvent.OriginBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
 	return receipt
 }
 

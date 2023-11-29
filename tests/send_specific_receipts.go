@@ -46,8 +46,8 @@ func SendSpecificReceipts(network network.Network) {
 
 	// Send two messages from Subnet A to Subnet B
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationChainID: subnetBInfo.BlockchainID,
-		DestinationAddress: destinationAddress,
+		DestinationBlockchainID: subnetBInfo.BlockchainID,
+		DestinationAddress:      destinationAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: mockTokenAddress,
 			Amount:          relayerFeePerMessage,
@@ -112,8 +112,8 @@ func SendSpecificReceipts(network network.Network) {
 	// The next message from B->A will contain the same receipts that were manually sent in the above steps,
 	// but they should not be processed again on Subnet A.
 	sendCrossChainMessageInput = teleportermessenger.TeleporterMessageInput{
-		DestinationChainID: subnetAInfo.BlockchainID,
-		DestinationAddress: destinationAddress,
+		DestinationBlockchainID: subnetAInfo.BlockchainID,
+		DestinationAddress:      destinationAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: mockTokenAddress,
 			Amount:          big.NewInt(0),

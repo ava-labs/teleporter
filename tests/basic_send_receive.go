@@ -48,8 +48,8 @@ func BasicSendReceive(network network.Network) {
 	)
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationChainID: subnetBInfo.BlockchainID,
-		DestinationAddress: fundedAddress,
+		DestinationBlockchainID: subnetBInfo.BlockchainID,
+		DestinationAddress:      fundedAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: feeTokenAddress,
 			Amount:          feeAmount,
@@ -84,7 +84,7 @@ func BasicSendReceive(network network.Network) {
 	//
 	// Send a transaction to Subnet B to issue a Warp Message from the Teleporter contract to Subnet A
 	//
-	sendCrossChainMessageInput.DestinationChainID = subnetAInfo.BlockchainID
+	sendCrossChainMessageInput.DestinationBlockchainID = subnetAInfo.BlockchainID
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx,

@@ -39,8 +39,8 @@ func DeliverToWrongChain(network network.Network) {
 	destinationAddress := crypto.PubkeyToAddress(destinationAddressKey.PublicKey)
 
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationChainID: ids.Empty, // Some other chain ID
-		DestinationAddress: destinationAddress,
+		DestinationBlockchainID: ids.Empty, // Some other chain ID
+		DestinationAddress:      destinationAddress,
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
 			Amount:          big.NewInt(0),
