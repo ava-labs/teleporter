@@ -12,14 +12,14 @@ A `NativeTokenDestination` contract lives on the `destination chain`, which shou
 ### `TokenSource`
 Can either be a `NativeTokenSource` contract or an `ERC20TokenSource` contract. It lives on the source chain. Pairs with exactly one `NativeTokenDestination` contract on the destination chain. It locks and unlocks native tokens on the Source chain corresponding to mints and burns on the destination chain.
 - `transferToDestination`: Transfers all tokens paid to this function call to `recipient` on the destination chain by locking them and instructing the destination chain to mint. Optionally takes the address of an ERC20 contract `feeContractAddress` as well as an amount `feeAmount` that will be used as the relayer-incentivization for the teleporter cross-chain call. Also allows for the caller to specify `allowedRelayerAddresses`.
-- `receiveTeleporterMessage`: Can receive two types of messages:
+- `receiveTeleporterMessage`: Only accepts Teleporter messages from the `NativeTokenDestination` contract on the destination chain. Can receive two types of messages:
   - `Unlock`: Unlocks tokens on the source chain when instructed to by the `NativeTokenDestination` contract.
   - `Burn`: Burns tokens on the source chain when instructed to by a call to `reportTotalBurnedTxFees` on the `NativeTokenDestination` contract. This function will burn tokens equal to the increase from the highest previously reported total from the destination chain.
 
 ### `NativeTokenDestination`
 A contract that lives on the destination chain. Pairs with exactly one `TokenSource` contract on the source chain. It mints and burns native tokens on the Destination chain corresponding to locks and unlocks on the source chain.
 - `transferToSource`: Transfers all tokens paid to this function call to `recipient` on the source chain by burning the tokens and instructing the source chain to unlock. Optionally takes the address of an ERC20 contract `feeContractAddress` as well as an amount `feeAmount` that will be used as the relayer-incentivisation for the teleporter cross-chain call. Also allows for the caller to specify `allowedRelayerAddresses`.
-- `receiveTeleporterMessage`: Mints tokens on the destination chain when instructed to by the `NativeTokenDestination` contract.
+- `receiveTeleporterMessage`: Only accepts Teleporter messages from the `TokenSource` contract on the source chain. gMints tokens on the destination chain when instructed to by the `NativeTokenDestination` contract.
 - `isCollateralized`: Returns true if `currentReserveImbalance == 0`, meaning that enough tokens have been sent from the source chain to offset the `initialReserveImbalance`. If true, all tokens sent to the destination chain will be minted, and burning/unlocking tokens will be enabled.
 - `totalSupply`: Returns the best estimate of available native tokens on this chain. Equal to the `initialReserveImbalance` + `all tokens minted` - `all tokens in known burn address`. Known burn addresses include the burn address for this contract used when burning/unlocking, and the address for burned transaction fees.
 - `reportTotalBurnedTxFees`: Sends a Teleporter message to the source chain containing the total number of tokens at `0x0100000000000000000000000000000000000000`.
