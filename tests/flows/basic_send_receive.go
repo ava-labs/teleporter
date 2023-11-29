@@ -62,7 +62,9 @@ func BasicSendReceive(network interfaces.Network) {
 	//
 	// Relay the message to the destination
 	//
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	deliveryReceipt := network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receiveEvent, err := utils.GetEventFromLogs(deliveryReceipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	Expect(err).Should(BeNil())
 
 	//
 	// Check Teleporter message received on the destination
@@ -100,7 +102,11 @@ func BasicSendReceive(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	utils.RedeemRelayerRewardsAndConfirm(
-		ctx, subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
-	)
+	// If the reward address of the message from A->B is the funded address able to send
+	// transactions on subnet A, then redeem the rewards.
+	if receiveEvent.RewardRedeemer == fundedAddress {
+		utils.RedeemRelayerRewardsAndConfirm(
+			ctx, subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
+		)
+	}
 }
