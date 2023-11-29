@@ -11,9 +11,13 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
   - [Docker Setup](#docker-setup)
   - [General Setup](#general-setup)
 - [Structure](#structure)
-- [Build + Run + Test](#build--run--test)
+- [Run the Docker integration tests](#run-the-docker-integration-tests)
+  - [Start up the local testnet](#start-up-the-local-testnet)
+  - [Run the integration tests in Docker containers](#run-the-integration-tests-in-docker-containers)
+  - [Additional notes](#additional-notes)
   - [Run tests on Fuji Testnet](#run-tests-on-fuji-testnet)
-  - [E2E tests](#e2e-tests)
+- [E2E tests](#e2e-tests)
+- [ABI Bindings](#abi-bindings)
 - [Docs](#docs)
 - [Resources](#resources)
 
@@ -68,7 +72,6 @@ The above steps are sufficient to run the included integration tests inside Dock
 - `abi-bindings/` includes Go ABI bindings for the contracts in `contracts/`.
 - `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
 - `utils/` includes Go utility functions for interacting with the contracts in `contracts/`. Included are Golang scripts to derive the expected EVM contract address deployed from a given EOA at a specific nonce, and also construct a transaction to deploy provided byte code to the same address on any EVM chain using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#).
-- `subnet-evm/` is the public subnet-evm repository (included as a submodule) checked out on the `warp-contract` branch with our changes.
 - `scripts/` includes bash scripts for interacting with Teleporter in various environments, as well as utility scripts.
   - `abi_bindings.sh` generates ABI bindings for the contracts in `contracts/` and outputs them to `abi-bindings/`.
   - `lint.sh` lints the contracts in `contracts/`.
@@ -180,11 +183,11 @@ source .env
 
 ## E2E tests
 
-E2E tests are run as part of CI, but can also be run locally with the `--local` flag. To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo)
+E2E tests are run as part of CI, but can also be run locally. To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo).
 
-Next, provide the path to the `subnet-evm` repository and the path to a writeable data directory (here we use the `subnet-evm` submodule and `~/tmp/e2e-test`) to use for the tests:
+Then run the following command from the root of the repository:
 ```bash
-./scripts/local/e2e_test.sh --local --subnet-evm ./subnet-evm --data-dir ~/tmp/e2e-test
+./scripts/local/e2e_test.sh
 ```
 
 #### Run the E2E tests on another network
@@ -225,5 +228,4 @@ The auto-generated bindings should be written under the `abi-bindings/` director
 
 - List of blockchain signing cryptography algorithms [here](http://ethanfast.com/top-crypto.html).
 - Background on stateful precompiles [here](https://medium.com/avalancheavax/customizing-the-evm-with-stateful-precompiles-f44a34f39efd).
-- Tutorial on stateful precompiles [here](https://github.com/ava-labs/subnet-evm/blob/precompile-tutorial-only/cmd/README.md).
 - Background on BLS signature aggregation [here](https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html).

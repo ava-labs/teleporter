@@ -1,2 +1,2 @@
-@subnet-evm-contracts=../subnet-evm/contracts/contracts
+@subnet-evm-contracts=lib/subnet-evm/contracts/contracts
 @openzeppelin/=lib/openzeppelin-contracts/

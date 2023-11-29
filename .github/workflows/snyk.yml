@@ -10,11 +10,10 @@ jobs:
   golang-snyk:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout subnet-evm
+      - name: Checkout repositories and submodules
         uses: actions/checkout@v4
         with:
-          repository: ava-labs/subnet-evm
-          path: subnet-evm
+          submodules: recursive
 
       - name: Run Snyk
         uses: snyk/actions/golang@master
