@@ -31,7 +31,9 @@ const (
 )
 
 var (
-	vValue                   = big.NewInt(27)            // Must be less than 35 to be considered non-EIP155
+	vValue = big.NewInt(
+		27,
+	) // Must be less than 35 to be considered non-EIP155
 	contractCreationGasPrice = big.NewInt(2500000000000) // 2500 nAVAX/gas
 )
 
@@ -86,11 +88,16 @@ func ExtractByteCode(byteCodeFileName string) ([]byte, error) {
 // Constructs a keyless transaction using Nick's method
 // Optionally writes the transaction, deployer address, and contract address to file
 // Returns the transaction bytes, deployer address, and contract address
-func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byte, common.Address, common.Address, error) {
+func ConstructKeylessTransaction(
+	byteCodeFileName string,
+	writeFile bool,
+) ([]byte, common.Address, common.Address, error) {
 	// Convert the R and S values (which must be the same) from hex.
 	rsValue, ok := new(big.Int).SetString(rsValueHex, 16)
 	if !ok {
-		return nil, common.Address{}, common.Address{}, errors.New("Failed to convert R and S value to big.Int.")
+		return nil, common.Address{}, common.Address{}, errors.New(
+			"Failed to convert R and S value to big.Int.",
+		)
 	}
 
 	byteCode, err := ExtractByteCode(byteCodeFileName)
@@ -114,13 +121,19 @@ func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byt
 	// Recover the "sender" address of the transaction.
 	senderAddress, err := types.HomesteadSigner{}.Sender(contractCreationTx)
 	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to recover the sender address of transaction")
+		return nil, common.Address{}, common.Address{}, errors.Wrap(
+			err,
+			"Failed to recover the sender address of transaction",
+		)
 	}
 
 	// Serialize the raw transaction and sender address.
 	contractCreationTxBytes, err := contractCreationTx.MarshalBinary()
 	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to serialize raw transaction")
+		return nil, common.Address{}, common.Address{}, errors.Wrap(
+			err,
+			"Failed to serialize raw transaction",
+		)
 	}
 	contractCreationTxString := "0x" + hex.EncodeToString(contractCreationTxBytes)
 	senderAddressString := senderAddress.Hex() // "0x" prepended by Hex() already.
@@ -128,7 +141,10 @@ func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byt
 	// Derive the resulting contract address given that it will be deployed from the sender address using the nonce of 0.
 	contractAddress, err := DeriveEVMContractAddress(senderAddress, 0)
 	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to derive contract address")
+		return nil, common.Address{}, common.Address{}, errors.Wrap(
+			err,
+			"Failed to derive contract address",
+		)
 	}
 	contractAddressString := contractAddress.Hex() // "0x" prepended by Hex() already.
 
@@ -138,19 +154,36 @@ func ConstructKeylessTransaction(byteCodeFileName string, writeFile bool) ([]byt
 	log.Println("Teleporter Messenger Universal Contract Address: ", contractAddressString)
 
 	if writeFile {
-		err = os.WriteFile(contractCreationTxFileName, []byte(contractCreationTxString), fs.ModePerm)
+		err = os.WriteFile(
+			contractCreationTxFileName,
+			[]byte(contractCreationTxString),
+			fs.ModePerm,
+		)
 		if err != nil {
-			return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract creation tx file")
+			return nil, common.Address{}, common.Address{}, errors.Wrap(
+				err,
+				"Failed to write to contract creation tx file",
+			)
 		}
 
 		err = os.WriteFile(contractCreationAddrFileName, []byte(senderAddressString), fs.ModePerm)
 		if err != nil {
-			return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to deployer address file")
+			return nil, common.Address{}, common.Address{}, errors.Wrap(
+				err,
+				"Failed to write to deployer address file",
+			)
 		}
 
-		err = os.WriteFile(universalContractAddressFileName, []byte(contractAddressString), fs.ModePerm)
+		err = os.WriteFile(
+			universalContractAddressFileName,
+			[]byte(contractAddressString),
+			fs.ModePerm,
+		)
 		if err != nil {
-			return nil, common.Address{}, common.Address{}, errors.Wrap(err, "Failed to write to contract address")
+			return nil, common.Address{}, common.Address{}, errors.Wrap(
+				err,
+				"Failed to write to contract address",
+			)
 		}
 	}
 	return contractCreationTxBytes, senderAddress, contractAddress, nil

@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 
 	"github.com/ava-labs/avalanchego/ids"

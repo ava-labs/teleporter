@@ -14,11 +14,11 @@ import (
 
 func createTestTeleporterMessage(messageID int64) TeleporterMessage {
 	m := TeleporterMessage{
-		MessageID:          big.NewInt(messageID),
-		SenderAddress:      common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
+		MessageID:               big.NewInt(messageID),
+		SenderAddress:           common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		DestinationBlockchainID: [32]byte{1, 2, 3, 4},
-		DestinationAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		RequiredGasLimit:   big.NewInt(2),
+		DestinationAddress:      common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
+		RequiredGasLimit:        big.NewInt(2),
 		AllowedRelayerAddresses: []common.Address{
 			common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		},
