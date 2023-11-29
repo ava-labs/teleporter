@@ -13,12 +13,14 @@ import (
 	"strings"
 	"time"
 
+	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
+	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
+
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi"
-	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
-
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
@@ -27,9 +29,6 @@ import (
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/x/warp"
-	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -292,7 +291,7 @@ func CreateSendCrossChainMessageTransaction(
 	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, source.ChainWSClient, PrivateKeyToAddress(relayerKey))
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, source, PrivateKeyToAddress(relayerKey))
 
 	// Send a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -367,7 +366,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, PrivateKeyToAddress(relayerKey))
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, subnetInfo.ChainWSClient, PrivateKeyToAddress(relayerKey))
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(relayerKey))
 
 	destinationTx := predicateutils.NewPredicateTx(
 		subnetInfo.ChainIDInt,
@@ -383,7 +382,7 @@ func CreateReceiveCrossChainMessageTransaction(
 		signedMessage.Bytes(),
 	)
 
-	return SignTransaction(destinationTx, fundedKey, subnetInfo.ChainIDInt)
+	return SignTransaction(destinationTx, relayerKey, subnetInfo.ChainIDInt)
 }
 
 func CreateNativeTransferTransaction(
@@ -409,8 +408,21 @@ func CreateNativeTransferTransaction(
 	return SignTransaction(tx, fromKey, subnetInfo.ChainIDInt)
 }
 
+func SendAndWaitForTransaction(ctx context.Context, tx *types.Transaction, subnetInfo SubnetTestInfo) *types.Receipt {
+	err := subnetInfo.ChainWSClient.SendTransaction(ctx, tx)
+	Expect(err).Should(BeNil())
+
+	return WaitForTransaction(ctx, tx.Hash(), subnetInfo)
+}
+
+func WaitForTransactionSuccess(ctx context.Context, txHash common.Hash, subnetInfo SubnetTestInfo) *types.Receipt {
+	receipt := WaitForTransaction(ctx, txHash, subnetInfo)
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	return receipt
+}
+
 func WaitForTransaction(ctx context.Context, txHash common.Hash, subnetInfo SubnetTestInfo) *types.Receipt {
-	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
 	// Loop until we find the transaction or time out
@@ -419,120 +431,11 @@ func WaitForTransaction(ctx context.Context, txHash common.Hash, subnetInfo Subn
 		if err == nil {
 			return receipt
 		} else {
-			log.Info("Waiting for transaction", "hash", txHash.Hex())
-			time.Sleep(200 * time.Millisecond)
-		}
-	}
-}
-
-func SendAndWaitForTransaction(ctx context.Context, tx *types.Transaction, client ethclient.Client) *types.Receipt {
-	err := client.SendTransaction(ctx, tx)
-	Expect(err).Should(BeNil())
-
-	return WaitForTransaction(ctx, tx.Hash(), client)
-}
-
-func WaitForTransactionSuccess(ctx context.Context, txHash common.Hash, client ethclient.Client) *types.Receipt {
-	receipt := WaitForTransaction(ctx, txHash, client)
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	return receipt
-}
-
-func WaitForTransaction(ctx context.Context, txHash common.Hash, client ethclient.Client) *types.Receipt {
-	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
-	defer cancel()
-
-	// Loop until we find the transaction or time out
-	for {
-		receipt, err := client.TransactionReceipt(cctx, txHash)
-		if err == nil {
-			return receipt
-		} else {
 			Expect(err).ShouldNot(Equal(context.DeadlineExceeded))
 			log.Info("Waiting for transaction", "hash", txHash.Hex())
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
-}
-
-// Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
-// Returns the receipt on the destination chain, and an error if the teleporter message failed to execute.
-func RelayMessage(
-	ctx context.Context,
-	sourceBlockHash common.Hash,
-	sourceBlockNumber *big.Int,
-	source SubnetTestInfo,
-	destination SubnetTestInfo,
-) (*types.Receipt, error) {
-
-	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := source.ChainWSClient.FilterLogs(ctx, interfaces.FilterQuery{
-		BlockHash: &sourceBlockHash,
-		Addresses: []common.Address{warp.Module.Address},
-	})
-	Expect(err).Should(BeNil())
-	Expect(len(logs)).Should(Equal(1))
-
-	// Check for relevant warp log from subscription and ensure that it matches
-	// the log extracted from the last block.
-	txLog := logs[0]
-	log.Info("Parsing logData as unsigned warp message")
-	unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(txLog.Data)
-	Expect(err).Should(BeNil())
-
-	// Set local variables for the duration of the test
-	unsignedWarpMessageID := unsignedMsg.ID()
-	unsignedWarpMsg := unsignedMsg
-	log.Info("Parsed unsignedWarpMsg", "unsignedWarpMessageID", unsignedWarpMessageID, "unsignedWarpMessage", unsignedWarpMsg)
-
-	// Loop over each client on chain A to ensure they all have time to accept the block.
-	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
-	// has accepted the block.
-	WaitForAllValidatorsToAcceptBlock(ctx, source.NodeURIs, source.BlockchainID, sourceBlockNumber.Uint64())
-
-	// Get the aggregate signature for the Warp message
-	log.Info("Fetching aggregate signature from the source chain validators")
-	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
-	Expect(err).Should(BeNil())
-	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(ctx, unsignedWarpMessageID, params.WarpQuorumDenominator)
-	Expect(err).Should(BeNil())
-
-	// Construct the transaction to send the Warp message to the destination chain
-	signedTx := CreateReceiveCrossChainMessageTransaction(
-		ctx,
-		signedWarpMessageBytes,
-		big.NewInt(1),
-		teleporterContractAddress,
-		fundedKey,
-		destination.ChainWSClient,
-		destination.ChainIDInt,
-	)
-
-	log.Info("Sending transaction to destination chain")
-	receipt := SendAndWaitForTransaction(ctx, signedTx, destination.ChainWSClient)
-
-	bind, err := teleportermessenger.NewTeleporterMessenger(teleporterContractAddress, source.ChainWSClient)
-	Expect(err).Should(BeNil())
-	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	receiveEvent, err := GetEventFromLogs(receipt.Logs, bind.ParseReceiveCrossChainMessage)
-	if err != nil {
-		// If we didn't find the ReceiveCrossChainMessage event, trace the transaction.
-		// We compare it with the empty string so that ginkgo will print it out for us.
-		trace := TraceTransaction(ctx, receipt.TxHash, destination)
-		Expect(trace).Should(Equal(""))
-	}
-	Expect(receiveEvent.OriginBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
-
-	// Check for a successful execution of the teleporter message.
-	_, err = GetEventFromLogs(receipt.Logs, bind.ParseMessageExecuted)
-	if err != nil {
-		// If we didn't find the ReceiveCrossChainMessage event, trace the transaction.
-		// We compare it with the empty string so that ginkgo will print it out for us.
-		trace := TraceTransaction(ctx, receipt.TxHash, destination)
-		fmt.Println("TRACE ", trace)
-	}
-
-	return receipt, err
 }
 
 //
@@ -591,10 +494,10 @@ func createNativeTransferTransaction(
 	recipient common.Address,
 	amount *big.Int,
 ) *types.Transaction {
-	gasFeeCap, gasTipCap, nonce := calculateTxParams(ctx, network.ChainWSClient, PrivateKeyToAddress(senderKey))
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, network, PrivateKeyToAddress(senderKey))
 
 	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   network.ChainID,
+		ChainID:   network.ChainIDInt,
 		Nonce:     nonce,
 		To:        &recipient,
 		Gas:       NativeTransferGas,
@@ -603,7 +506,7 @@ func createNativeTransferTransaction(
 		Value:     amount,
 	})
 
-	return signTransaction(tx, senderKey, network.ChainID)
+	return SignTransaction(tx, senderKey, network.ChainIDInt)
 }
 
 func PrivateKeyToAddress(k *ecdsa.PrivateKey) common.Address {
@@ -639,7 +542,7 @@ func DeployContract(ctx context.Context, byteCodeFileName string, deployerPK *ec
 	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
 	Expect(err).Should(BeNil())
 	Expect(len(byteCode) > 0).Should(BeTrue())
-	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.ChainID)
+	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.ChainIDInt)
 	Expect(err).Should(BeNil())
 	contractAddress, tx, _, err := bind.DeployContract(transactor, *abi, byteCode, subnetInfo.ChainWSClient, constructorArgs...)
 	Expect(err).Should(BeNil())

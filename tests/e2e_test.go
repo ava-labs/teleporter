@@ -54,10 +54,12 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Cross-chain application tests
 	ginkgo.It("Example cross chain messenger", ExampleMessengerGinkgo)
 	ginkgo.It("ERC20 bridge multihop", ERC20BridgeMultihopGinkgo)
-
-	ginkgo.It("Send a message from Subnet A to Subnet B", BasicOneWaySend)
-	ginkgo.It("Send native tokens from subnet A to B and back", NativeTokenBridge)
-	ginkgo.It("Send ERC20 tokens from subnet A to Native tokens on subnet B and back", ERC20ToNativeTokenBridge)
+	ginkgo.It("Send native tokens from subnet A to B and back", func() {
+		NativeTokenBridge(&network.LocalNetwork{})
+	})
+	ginkgo.It("Send ERC20 tokens from subnet A to Native tokens on subnet B and back", func() {
+		ERC20ToNativeTokenBridge(&network.LocalNetwork{})
+	})
 
 	// Teleporter tests
 	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A", func() {

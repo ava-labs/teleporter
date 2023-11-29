@@ -12,13 +12,14 @@ import (
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
+	"github.com/ava-labs/teleporter/tests/network"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
-func ERC20ToNativeTokenBridge() {
+func ERC20ToNativeTokenBridge(network network.Network) {
 	const (
 		// Each test file needs a unique deployer that must be funded with tokens to deploy
 		deployerKeyStr                     = "ca7269c1fe2a5b86884a119aa516b8d5b641670b83aac0ebf9f2d71affcc12e4"
@@ -43,9 +44,10 @@ func ERC20ToNativeTokenBridge() {
 		}
 	)
 
-	subnetA := utils.GetSubnetATestInfo()
-	subnetB := utils.GetSubnetBTestInfo()
-	teleporterContractAddress := utils.GetTeleporterContractAddress()
+	subnets := network.GetSubnetsInfo()
+	subnetA := subnets[0]
+	subnetB := subnets[1]
+	teleporterContractAddress := network.GetTeleporterContractAddress()
 
 	// Info we need to calculate for the test
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
@@ -78,16 +80,16 @@ func ERC20ToNativeTokenBridge() {
 	log.Info("Finished deploying contracts")
 
 	// Create abi objects to call the contract with
-	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(bridgeContractAddress, subnetB.WSClient)
+	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(bridgeContractAddress, subnetB.ChainWSClient)
 	Expect(err).Should(BeNil())
-	erc20TokenSource, err := erc20tokensource.NewERC20TokenSource(bridgeContractAddress, subnetA.WSClient)
+	erc20TokenSource, err := erc20tokensource.NewERC20TokenSource(bridgeContractAddress, subnetA.ChainWSClient)
 	Expect(err).Should(BeNil())
-	exampleERC20, err := exampleerc20.NewExampleERC20(exampleERC20ContractAddress, subnetA.WSClient)
+	exampleERC20, err := exampleerc20.NewExampleERC20(exampleERC20ContractAddress, subnetA.ChainWSClient)
 	Expect(err).Should(BeNil())
 
 	// Helper function
 	sendTokensToSource := func(valueToSend *big.Int, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
-		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetB.ChainID)
+		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetB.ChainIDInt)
 		Expect(err).Should(BeNil())
 		transactor.Value = valueToSend
 
@@ -95,35 +97,33 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToSource transaction on destination chain", "sourceChainID", subnetA.BlockchainID, "txHash", tx.Hash().Hex())
 
-		sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetB.WSClient)
+		sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetB)
 
 		transferEvent, err := utils.GetEventFromLogs(sourceChainReceipt.Logs, nativeTokenDestination.ParseTransferToSource)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
 
-		receipt, err := utils.RelayMessage(ctx, sourceChainReceipt.BlockHash, sourceChainReceipt.BlockNumber, subnetB, subnetA)
-		Expect(err).Should(BeNil())
+		receipt := network.RelayMessage(ctx, sourceChainReceipt, subnetB, subnetA, true)
 
 		return receipt
 	}
 
 	// Helper function
 	sendTokensToDestination := func(valueToSend *big.Int, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
-		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetA.ChainID)
+		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetA.ChainIDInt)
 		Expect(err).Should(BeNil())
 
 		tx, err := erc20TokenSource.TransferToDestination(transactor, toAddress, valueToSend, big.NewInt(0), []common.Address{})
 		Expect(err).Should(BeNil())
 		log.Info("Sent TransferToDestination transaction on source chain", "destinationChainID", subnetB.BlockchainID, "txHash", tx.Hash().Hex())
 
-		sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetA.WSClient)
+		sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetA)
 
 		transferEvent, err := utils.GetEventFromLogs(sourceChainReceipt.Logs, erc20TokenSource.ParseTransferToDestination)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(transferEvent.TransferAmount, valueToSend)
 
-		receipt, err := utils.RelayMessage(ctx, sourceChainReceipt.BlockHash, sourceChainReceipt.BlockNumber, subnetA, subnetB)
-		Expect(err).Should(BeNil())
+		receipt := network.RelayMessage(ctx, sourceChainReceipt, subnetA, subnetB, true)
 
 		return receipt
 	}
@@ -132,18 +132,18 @@ func ERC20ToNativeTokenBridge() {
 		bal, err := exampleERC20.BalanceOf(nil, deployerAddress)
 		Expect(err).Should(BeNil())
 
-		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetA.ChainID)
+		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetA.ChainIDInt)
 		Expect(err).Should(BeNil())
 		tx, err := exampleERC20.Approve(transactor, bridgeContractAddress, bal)
 		Expect(err).Should(BeNil())
 
-		utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetA.WSClient)
+		utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetA)
 	}
 
 	{ // Transfer some tokens A -> B
 		// Check starting balance is 0
 
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.ChainWSClient)
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
@@ -159,14 +159,14 @@ func ERC20ToNativeTokenBridge() {
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.ChainWSClient)
 	}
 
 	{ // Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.ChainWSClient)
 
-		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainID)
+		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainIDInt)
 		Expect(err).Should(BeNil())
 		transactor.Value = valueToSend
 
@@ -176,12 +176,12 @@ func ERC20ToNativeTokenBridge() {
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
 		// Check we failed to send because we're not collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.ChainWSClient)
 	}
 
 	{ // Transfer more tokens A -> B to collateralize the bridge
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress,  common.Big0, subnetB.ChainWSClient)
 
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
@@ -198,7 +198,7 @@ func ERC20ToNativeTokenBridge() {
 		checkReserveImbalance(common.Big0, nativeTokenDestination)
 
 		// We should have minted the excess coins after checking the collateral
-		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, subnetB.ChainWSClient)
 	}
 
 	{ // Transfer tokens B -> A
@@ -212,16 +212,16 @@ func ERC20ToNativeTokenBridge() {
 	}
 
 	{ // Check reporting of burned tx fees to Source Chain
-		burnedTxFeesBalanceDest, err := subnetB.WSClient.BalanceAt(ctx, burnedTxFeeAddress, nil)
+		burnedTxFeesBalanceDest, err := subnetB.ChainWSClient.BalanceAt(ctx, burnedTxFeeAddress, nil)
 		Expect(err).Should(BeNil())
 		Expect(burnedTxFeesBalanceDest.Cmp(common.Big0) > 0).Should(BeTrue())
 
-		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainID)
+		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainIDInt)
 		Expect(err).Should(BeNil())
 		tx, err := nativeTokenDestination.ReportTotalBurnedTxFees(transactor, emptyDestFeeInfo, []common.Address{})
 		Expect(err).Should(BeNil())
 
-		destChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetB.WSClient)
+		destChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetB)
 
 		reportEvent, err := utils.GetEventFromLogs(destChainReceipt.Logs, nativeTokenDestination.ParseReportTotalBurnedTxFees)
 		Expect(err).Should(BeNil())
@@ -231,8 +231,7 @@ func ERC20ToNativeTokenBridge() {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceSource, common.Big0)
 
-		sourceChainReceipt, err := utils.RelayMessage(ctx, destChainReceipt.BlockHash, destChainReceipt.BlockNumber, subnetB, subnetA)
-		Expect(err).Should(BeNil())
+		sourceChainReceipt := network.RelayMessage(ctx, destChainReceipt, subnetB, subnetA, true)
 
 		burnEvent, err := utils.GetEventFromLogs(sourceChainReceipt.Logs, erc20TokenSource.ParseBurnTokens)
 		Expect(err).Should(BeNil())
