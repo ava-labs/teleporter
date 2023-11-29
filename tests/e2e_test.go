@@ -92,6 +92,9 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Resubmit altered message", func() {
 		ResubmitAlteredMessage(&network.LocalNetwork{})
 	})
+	ginkgo.It("Block hash publish and receive", func() {
+		BlockHashPublishReceive(&network.LocalNetwork{})
+	})
 
 	// The following tests require special behavior by the relayer, so we only run them on a local network
 	ginkgo.It("Relayer modifies message", RelayerModifiesMessage)
