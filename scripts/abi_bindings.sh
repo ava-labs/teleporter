@@ -44,7 +44,7 @@ if ! command -v forge &> /dev/null; then
 fi
 
 echo "Building subnet-evm abigen"
-go install $TELEPORTER_PATH/subnet-evm/cmd/abigen
+go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 
 # Force recompile of all contracts to prevent against using previous
 # compilations that did not generate new ABI files.
