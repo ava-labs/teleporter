@@ -546,5 +546,5 @@ func DeployERC20Bridge(
 func GetThreeSubnets(network interfaces.Network) (interfaces.SubnetTestInfo, interfaces.SubnetTestInfo, interfaces.SubnetTestInfo) {
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 3))
-	return subnets[0], subnets[1], subnets[3]
+	return subnets[0], subnets[1], subnets[2]
 }
