@@ -25,7 +25,6 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	"github.com/ava-labs/subnet-evm/params"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/x/warp"
@@ -36,11 +35,9 @@ import (
 )
 
 var (
-	NativeTransferGas                     uint64 = 21_000
-	DefaultTeleporterTransactionGas       uint64 = 300_000
-	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
-	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
-	DefaultTeleporterTransactionValue            = common.Big0
+	NativeTransferGas                 uint64 = 21_000
+	DefaultTeleporterTransactionGas   uint64 = 300_000
+	DefaultTeleporterTransactionValue        = common.Big0
 )
 
 type SubnetTestInfo struct {
@@ -438,10 +435,6 @@ func WaitForTransaction(ctx context.Context, txHash common.Hash, subnetInfo Subn
 	}
 }
 
-//
-// Event getters
-//
-
 // Returns the first log in 'logs' that is successfully parsed by 'parser'
 func GetEventFromLogs[T any](logs []*types.Log, parser func(log types.Log) (T, error)) (T, error) {
 	for _, log := range logs {
@@ -452,10 +445,6 @@ func GetEventFromLogs[T any](logs []*types.Log, parser func(log types.Log) (T, e
 	}
 	return *new(T), fmt.Errorf("failed to find %T event in receipt logs", *new(T))
 }
-
-//
-// Unexported functions
-//
 
 // Signs a transaction using the provided key for the specified chainID
 func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.Int) *types.Transaction {
