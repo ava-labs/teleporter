@@ -92,9 +92,9 @@ func FilterTeleporterEvents(topics []common.Hash, data []byte, event string) (in
 	case RelayerRewardsRedeemed:
 		out = new(TeleporterMessengerRelayerRewardsRedeemed)
 	default:
-		return nil, fmt.Errorf("unknown event %s", event)
+		return nil, fmt.Errorf("unknown event %s", e.String())
 	}
-	if err := UnpackEvent(out, event, topics, data); err != nil {
+	if err := UnpackEvent(out, e.String(), topics, data); err != nil {
 		return nil, err
 	}
 	return out, nil
