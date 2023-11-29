@@ -142,7 +142,7 @@ echo "Sent a transaction to bridgeTokens from Subnet A to Subnet B."
 sleep 10
 
 # Check that all the settings of the new bridge token are correct.
-actual_native_chain_id=$(cast call $bridge_token_subnet_b_contract_address "nativeChainID()(bytes32)" --rpc-url $subnet_b_url)
+actual_native_chain_id=$(cast call $bridge_token_subnet_b_contract_address "nativeBlockchainID()(bytes32)" --rpc-url $subnet_b_url)
 echo "Bridge token native chain ID: $actual_native_chain_id"
 actual_native_bridge=$(cast call $bridge_token_subnet_b_contract_address "nativeBridge()(address)" --rpc-url $subnet_b_url)
 echo "Bridge token native bridge address: $actual_native_bridge"

@@ -15,7 +15,7 @@ source $TELEPORTER_PATH/scripts/versions.sh
 
 setARCH
 
-DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken TeleporterRegistry"
+DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken TeleporterRegistry ExampleERC20"
 
 CONTRACT_LIST=
 HELP=
@@ -40,9 +40,7 @@ fi
 
 if ! command -v forge &> /dev/null; then
     echo "forge not found, installing"
-    curl -L https://foundry.paradigm.xyz | bash
-    source $HOME/.bashrc
-    foundryup
+    $TELEPORTER_PATH/scripts/install_foundry.sh
 fi
 
 echo "Building subnet-evm abigen"
@@ -52,7 +50,7 @@ go install $TELEPORTER_PATH/subnet-evm/cmd/abigen
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
 cd $TELEPORTER_PATH/contracts
-forge build --force --extra-output-files abi
+forge build --force --extra-output-files abi bin
 
 contract_names=($CONTRACT_LIST)
 
@@ -77,6 +75,7 @@ do
     mkdir -p $gen_path
     $GOPATH/bin/abigen --abi $abi_file \
                        --pkg $(convertToLower $contract_name) \
+                       --bin $TELEPORTER_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
                        --type $contract_name \
                        --out $gen_path/$contract_name.go
     echo "Done generating Go bindings for $contract_name."
