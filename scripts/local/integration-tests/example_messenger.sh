@@ -5,7 +5,7 @@
 set -e # Stop on first error
 
 # Variables provided by run_setup.sh:
-#   c_chain_url
+#   c_chain_rpc_url
 #   user_private_key
 #   user_address_bytes
 #   user_address
@@ -14,8 +14,8 @@ set -e # Stop on first error
 #   subnet_b_chain_id
 #   subnet_a_subnet_id
 #   subnet_b_subnet_id
-#   subnet_a_url
-#   subnet_b_url
+#   subnet_a_rpc_url
+#   subnet_b_rpc_url
 #   subnet_a_chain_id_hex
 #   subnet_b_chain_id_hex
 #   subnet_a_subnet_id_hex
@@ -28,27 +28,27 @@ set -e # Stop on first error
 
 # Deploy a test ERC20 on subnet A.
 cd contracts
-erc20_deploy_result=$(forge create --private-key $user_private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_a_url)
+erc20_deploy_result=$(forge create --private-key $user_private_key src/Mocks/ExampleERC20.sol:ExampleERC20 --rpc-url $subnet_a_rpc_url)
 erc20_contract_address=$(parseContractAddress "$erc20_deploy_result")
 echo "Test ERC20 contract deployed to $erc20_contract_address on Subnet A"
 
 # Deploy the example messenger application on subnet A
 example_messenger_a_deploy_result=$(forge create --private-key $user_private_key \
-    --rpc-url $subnet_a_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger --constructor-args $registry_address_a)
+    --rpc-url $subnet_a_rpc_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger --constructor-args $registry_address_a)
 example_messenger_a_contract_address=$(parseContractAddress "$example_messenger_a_deploy_result")
 echo "Example Messenger contract deployed to subnet A at $example_messenger_a_contract_address"
 
 # Deploy the example messenger application on subnet B
 example_messenger_b_deploy_result=$(forge create --private-key $user_private_key \
-    --rpc-url $subnet_b_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger --constructor-args $registry_address_b)
+    --rpc-url $subnet_b_rpc_url src/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger.sol:ExampleCrossChainMessenger --constructor-args $registry_address_b)
 example_messenger_b_contract_address=$(parseContractAddress "$example_messenger_b_deploy_result")
 echo "Example Messenger contract deployed to subnet B at $example_messenger_b_contract_address"
 
 # Approve the example messenger contract on subnet A spent ERC20 tokens from the user account we're using to send transactions
 approve_amount=100000000000000000000000
 cast send $erc20_contract_address "approve(address,uint256)(bool)" $example_messenger_a_contract_address \
-    $approve_amount --private-key $user_private_key --rpc-url $subnet_a_url
-result=$(cast call $erc20_contract_address "allowance(address,address)(uint256)" $user_address $example_messenger_a_contract_address --rpc-url $subnet_a_url)
+    $approve_amount --private-key $user_private_key --rpc-url $subnet_a_rpc_url
+result=$(cast call $erc20_contract_address "allowance(address,address)(uint256)" $user_address $example_messenger_a_contract_address --rpc-url $subnet_a_rpc_url)
 if [[ $result -ne $approve_amount ]]; then
     echo $result
     echo "Error approving example messenger contract to spend ERC20 from user account."
@@ -67,7 +67,7 @@ cast send $example_messenger_a_contract_address "sendMessage(bytes32,address,add
     $send_cross_chain_message_fee_amount \
     $send_cross_chain_message_required_gas_limit \
     "$send_cross_chain_message_message_string" \
-    --private-key $user_private_key --rpc-url $subnet_a_url
+    --private-key $user_private_key --rpc-url $subnet_a_rpc_url
 echo "Sent a transaction to sendCrossChainMessage via contract."
 
 # Wait for the cross chain message to be processed by a relayer.
@@ -79,7 +79,7 @@ function stringToLower() {
 }
 
 origin_contract_address_lower=$(stringToLower $example_messenger_a_contract_address)
-result=$(cast call $example_messenger_b_contract_address "getCurrentMessage(bytes32)(address,string)" $subnet_a_chain_id_hex --rpc-url $subnet_b_url)
+result=$(cast call $example_messenger_b_contract_address "getCurrentMessage(bytes32)(address,string)" $subnet_a_chain_id_hex --rpc-url $subnet_b_rpc_url)
 echo "Raw result is: \"$result\""
 result_arr=($result)
 

@@ -5,7 +5,7 @@
 set -e # Stop on first error
 
 # Variables provided by run_test.sh:
-#   c_chain_url
+#   c_chain_rpc_url
 #   user_private_key
 #   user_address_bytes
 #   user_address
@@ -14,8 +14,8 @@ set -e # Stop on first error
 #   subnet_b_chain_id
 #   subnet_a_subnet_id
 #   subnet_b_subnet_id
-#   subnet_a_url
-#   subnet_b_url
+#   subnet_a_rpc_url
+#   subnet_b_rpc_url
 #   subnet_a_chain_id_hex
 #   subnet_b_chain_id_hex
 #   subnet_a_subnet_id_hex
@@ -33,27 +33,27 @@ set -e # Stop on first error
 # Deploy the block hash publisher to subnet A
 cd contracts
 block_hash_publisher_deploy_result=$(forge create --private-key $user_private_key \
-    --rpc-url $subnet_a_url src/CrossChainApplications/VerifiedBlockHash/BlockHashPublisher.sol:BlockHashPublisher --constructor-args $registry_address_a )
+    --rpc-url $subnet_a_rpc_url src/CrossChainApplications/VerifiedBlockHash/BlockHashPublisher.sol:BlockHashPublisher --constructor-args $registry_address_a )
 block_hash_publisher_contract_address=$(parseContractAddress "$block_hash_publisher_deploy_result")
 echo "Block hash publisher contract deployed to subnet A at $block_hash_publisher_contract_address"
 
 # Deploy the example messenger application on subnet B
 block_hash_receiver_deploy_result=$(forge create --private-key $user_private_key \
-    --rpc-url $subnet_b_url src/CrossChainApplications/VerifiedBlockHash/BlockHashReceiver.sol:BlockHashReceiver \
+    --rpc-url $subnet_b_rpc_url src/CrossChainApplications/VerifiedBlockHash/BlockHashReceiver.sol:BlockHashReceiver \
     --constructor-args $registry_address_a $subnet_a_chain_id_hex $block_hash_publisher_contract_address)
 block_hash_receiver_contract_address=$(parseContractAddress "$block_hash_receiver_deploy_result")
 echo "Block hash receiver contract deployed to subnet B at $block_hash_receiver_contract_address"
 
 # Send a transaction to the publisher contract to publish the current block hash to subnet B
 cast send $block_hash_publisher_contract_address "publishLatestBlockHash(bytes32,address)(uint256)" $subnet_b_chain_id_hex $block_hash_receiver_contract_address \
-     --private-key $user_private_key --rpc-url $subnet_a_url
+     --private-key $user_private_key --rpc-url $subnet_a_rpc_url
 echo "Sent a transaction to publish Subnet A's latest block hash to Subnet B."
 
 # Wait for the cross chain message to be processed by a relayer.
 sleep 5
 
 # Call the receiver to see if the block hash was received.
-result=$(cast call $block_hash_receiver_contract_address "getLatestBlockInfo()(uint256,bytes32)" --rpc-url $subnet_b_url)
+result=$(cast call $block_hash_receiver_contract_address "getLatestBlockInfo()(uint256,bytes32)" --rpc-url $subnet_b_rpc_url)
 result_arr=($result)
 result_block_num=${result_arr[0]}
 result_block_hash=${result_arr[1]}

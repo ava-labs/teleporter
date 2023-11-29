@@ -26,12 +26,13 @@ import (
 const (
 	subnetAPrefix                   = "subnet_a"
 	subnetBPrefix                   = "subnet_b"
+	subnetCPrefix                   = "subnet_c"
 	teleporterContractAddress       = "teleporter_contract_address"
 	teleporterRegistryAddressSuffix = "_teleporter_registry_address"
 	subnetIDSuffix                  = "_subnet_id"
 	blockchainIDSuffix              = "_chain_id"
-	rpcURLSuffix                    = "_rpc"
-	wsURLSuffix                     = "_ws"
+	rpcURLSuffix                    = "_rpc_url"
+	wsURLSuffix                     = "_ws_url"
 	userAddress                     = "user_address"
 	userPrivateKey                  = "user_private_key"
 
@@ -43,7 +44,7 @@ var _ interfaces.Network = &testNetwork{}
 
 type testNetwork struct {
 	teleporterContractAddress common.Address
-	subnetAInfo, subnetBInfo  interfaces.SubnetTestInfo
+	subnets                   []interfaces.SubnetTestInfo
 	fundedAddress             common.Address
 	fundedKey                 *ecdsa.PrivateKey
 }
@@ -116,6 +117,11 @@ func NewTestNetwork() (*testNetwork, error) {
 	}
 	fmt.Println("Using subnet B info:", subnetBInfo)
 
+	subnetCInfo, err := initializeSubnetInfo(subnetCPrefix, teleporterContractAddress)
+	if err != nil {
+		return nil, err
+	}
+
 	fundedAddressStr := os.Getenv(userAddress)
 	fmt.Println("Using user funded address:", fundedAddressStr)
 	fundedKeyStr := os.Getenv(userPrivateKey)
@@ -126,15 +132,14 @@ func NewTestNetwork() (*testNetwork, error) {
 
 	return &testNetwork{
 		teleporterContractAddress: teleporterContractAddress,
-		subnetAInfo:               subnetAInfo,
-		subnetBInfo:               subnetBInfo,
+		subnets:                   []interfaces.SubnetTestInfo{subnetAInfo, subnetBInfo, subnetCInfo},
 		fundedAddress:             common.HexToAddress(fundedAddressStr),
 		fundedKey:                 fundedKey,
 	}, nil
 }
 
 func (n *testNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
-	return []interfaces.SubnetTestInfo{n.subnetAInfo, n.subnetBInfo}
+	return n.subnets
 }
 
 func (n *testNetwork) GetTeleporterContractAddress() common.Address {

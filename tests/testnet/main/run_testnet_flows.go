@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// Run the Teleporter test flows.
-	// runFlow("BasicOneWaySend", flows.BasicSendReceive, network)
+	runFlow("BasicSendRecevie", flows.BasicSendReceive, network)
 	// runFlow("DeliverToWrongChain", flows.DeliverToWrongChain, network)
 	runFlow("DeliverToNonExistentContract", flows.DeliverToNonExistentContract, network)
 	runFlow("RetrySuccessfulExecution", flows.RetrySuccessfulExecution, network)

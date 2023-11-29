@@ -472,7 +472,7 @@ func ERC20Approve(
 	Expect(err).Should(BeNil())
 	txn, err := token.Approve(opts, spender, amount)
 	Expect(err).Should(BeNil())
-	log.Info("Approved ERC20", "spender", "txHash", txn.Hash().Hex())
+	log.Info("Approved ERC20", "spender", spender.Hex(), "txHash", txn.Hash().Hex())
 
 	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
 	Expect(err).Should(BeNil())
@@ -541,4 +541,10 @@ func DeployERC20Bridge(
 	log.Info("Deployed ERC20 Bridge contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
 
 	return address, erc20Bridge
+}
+
+func GetThreeSubnets(network interfaces.Network) (interfaces.SubnetTestInfo, interfaces.SubnetTestInfo, interfaces.SubnetTestInfo) {
+	subnets := network.GetSubnetsInfo()
+	Expect(len(subnets)).Should(BeNumerically(">=", 3))
+	return subnets[0], subnets[1], subnets[3]
 }

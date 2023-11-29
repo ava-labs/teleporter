@@ -17,13 +17,15 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const (
+	nodesPerSubnet = 5
+	newNodeCount   = 5
+)
+
 type addSubnetValidatorsFunc func(ctx context.Context, subnetID ids.ID, nodeNames []string)
 
 func ValidatorChurn(network interfaces.Network, constructSignedMessageFunc constructSignedMessageFunc, addSubnetValidatorsFunc addSubnetValidatorsFunc) {
-	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 2))
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -65,24 +67,15 @@ func ValidatorChurn(network interfaces.Network, constructSignedMessageFunc const
 	//
 
 	// Add new nodes to the validator set
-	log.Info("Adding nodes to the validator set")
-	startingNodeId := len(subnets)*5 + 1
-	var nodesToAdd []string
-	for i := startingNodeId; i < startingNodeId+5; i++ {
-		n := fmt.Sprintf("node%d-bls", i)
-		nodesToAdd = append(nodesToAdd, n)
-	}
-	addSubnetValidatorsFunc(ctx, subnetAInfo.SubnetID, nodesToAdd)
+	addSubnetValidatorsFunc(ctx, subnetAInfo.SubnetID, constructNodesToAddNames(network))
 
 	// Refresh the subnet info
-	subnets = network.GetSubnetsInfo()
-	subnetAInfo = subnets[0]
-	subnetBInfo = subnets[1]
+	subnetAInfo, subnetBInfo, _ = utils.GetThreeSubnets(network)
 
 	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
 	// We have to update all subnets, not just the ones directly involved in this test to ensure that the
 	// proposer VM is updated on all subnets.
-	for _, subnetInfo := range subnets {
+	for _, subnetInfo := range network.GetSubnetsInfo() {
 		err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
 			ctx, subnetInfo.EVMChainID, fundedKey, subnetInfo.WSClient,
 		)
@@ -140,4 +133,17 @@ func ValidatorChurn(network interfaces.Network, constructSignedMessageFunc const
 	// The test cases now do not require any specific nodes to be validators, so leave the validator set as is.
 	// If this changes in the future, this test will need to perform cleanup by removing the nodes that were added
 	// and re-adding the nodes that were removed.
+}
+
+// Each subnet is assumed that have 5 nodes names nodeN-bls, where N is unique
+// across each subnet. Nodes to be added should thus be named nodeN-bls where
+// N starts one greater than the current total number of nodes.
+func constructNodesToAddNames(network interfaces.Network) []string {
+	startingNodeId := len(network.GetSubnetsInfo())*nodesPerSubnet + 1
+	var nodesToAdd []string
+	for i := startingNodeId; i < startingNodeId+newNodeCount; i++ {
+		n := fmt.Sprintf("node%d-bls", i)
+		nodesToAdd = append(nodesToAdd, n)
+	}
+	return nodesToAdd
 }
