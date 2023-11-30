@@ -9,7 +9,7 @@ import (
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/influxdata/influxdb-client-go/v2/internal/log"
+	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
