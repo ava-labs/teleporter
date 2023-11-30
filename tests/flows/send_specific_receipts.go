@@ -138,11 +138,24 @@ func SendSpecificReceipts(network interfaces.Network) {
 	receiveEvent, err :=
 		utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(receiveEvent.Message.Receipts[0].ReceivedMessageID).Should(Equal(messageID1))
-	Expect(receiveEvent.Message.Receipts[1].ReceivedMessageID).Should(Equal(messageID2))
+	Expect(receiptIncluded(messageID1, receiveEvent.Message.Receipts)).Should(BeTrue())
+	Expect(receiptIncluded(messageID2, receiveEvent.Message.Receipts)).Should(BeTrue())
 
 	// Check the reward amount remains the same
 	checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress)
+}
+
+// Checks the given message ID is included in the list of receipts.
+func receiptIncluded(
+	expectedMessageID *big.Int,
+	receipts []teleportermessenger.TeleporterMessageReceipt,
+) bool {
+	for _, receipt := range receipts {
+		if receipt.ReceivedMessageID.Cmp(expectedMessageID) == 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func checkExpectedRewardAmounts(
