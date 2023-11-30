@@ -8,85 +8,42 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 
 - [Overview](#overview)
 - [Setup](#setup)
-  - [Docker Setup](#docker-setup)
-  - [General Setup](#general-setup)
+  - [Initialize the repository](#initialize-the-repository)
+  - [Dependencies](#dependencies)
 - [Structure](#structure)
-- [Run the Docker integration tests](#run-the-docker-integration-tests)
+- [Run a local testnet in Docker](#run-a-local-testnet-in-docker)
   - [Start up the local testnet](#start-up-the-local-testnet)
-  - [Run the integration tests in Docker containers](#run-the-integration-tests-in-docker-containers)
   - [Additional notes](#additional-notes)
-  - [Run tests on Fuji Testnet](#run-tests-on-fuji-testnet)
 - [E2E tests](#e2e-tests)
 - [ABI Bindings](#abi-bindings)
 - [Docs](#docs)
 - [Resources](#resources)
 
 ## Setup
+### Initialize the repository
+- Get all submodules: `git submodule update --init --recursive`
 
-### Docker Setup
-
-- Install Docker:
-
-```
-sudo apt-get install \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io
-sudo systemctl start docker # Docker will start automatically on future system boots
-```
-
-- Install Docker Compose v2:
-
-```
-sudo apt-get install docker-compose-plugin
-docker compose version
-```
-
-- Set Docker to run without `sudo`:
-
-```
-sudo groupadd docker
-sudo usermod -aG docker $USER
-sudo reboot
-docker run hello-world # This should work without sudo now
-```
-
-- Note that as you develop and continuously build Docker images, it will eat up continuously more disk space. Periodically you'll want to remedy this be removing everything Docker has built: `docker system prune --all --volumes --force`
-
-### General Setup
-
-The above steps are sufficient to run the included integration tests inside Docker containers. If you wish to run them outside docker, you'll need to install the following dependencies:
-- [Foundry](https://book.getfoundry.sh/getting-started/installation)
-- [Python3](https://www.python.org/downloads/)
+### Dependencies
+- Docker and Docker Compose v2
+  - The docker image installs the following:
+    - [Foundry](https://book.getfoundry.sh/getting-started/installation)
+    - [Python3](https://www.python.org/downloads/)
+- [Ginkgo](https://onsi.github.io/ginkgo/#installing-ginkgo)
 
 ## Structure
-
 - `contracts/` is a [Foundry](https://github.com/foundry-rs/foundry) project that includes the implementation of the `TeleporterMessenger` contract and example dApps that demonstrate how to write contracts that interact with Teleporter.
 - `abi-bindings/` includes Go ABI bindings for the contracts in `contracts/`.
 - `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
 - `utils/` includes Go utility functions for interacting with the contracts in `contracts/`. Included are Golang scripts to derive the expected EVM contract address deployed from a given EOA at a specific nonce, and also construct a transaction to deploy provided byte code to the same address on any EVM chain using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#).
 - `scripts/` includes bash scripts for interacting with Teleporter in various environments, as well as utility scripts.
   - `abi_bindings.sh` generates ABI bindings for the contracts in `contracts/` and outputs them to `abi-bindings/`.
-  - `lint.sh` lints the contracts in `contracts/`.
-  - `scripts/local/` includes scripts for running Teleporter in Docker containers and for running the tests in the `scripts/local/integration-tests` locally.
-    - `scripts/local/integration-tests/` includes integration test scripts written in bash. The scripts use `foundry` to deploy smart contracts that use Teleporter, send transactions to interact with the contracts, and check that cross-chain messages have the expected effect on destination chains.
-      - *Note* These tests will be deprecated in favor of the end to end tests in `tests/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
-    - `scripts/fuji/` includes scripts to interact with a live Teleporter deployment on Fuji subnets.
-      - `scripts/fuji/example-workflows/` includes example workflows that send transactions to interact with Teleporter contracts on [Fuji](https://docs.avax.network/learn/avalanche/fuji) subnets.
+  - `lint.sh` performs Solidity and Golang linting.
+  - `scripts/local/` includes scripts for running Teleporter in Docker.
 - `docker/` includes configurations for a local, containerized setup of Teleporter.
 
-## Run the Docker integration tests
-
-- Get all submodules: `git submodule update --init --recursive`
+## Run a local testnet in Docker
 - Install Docker as described in the setup section of the README in the root of this repository.
-- If we are using a local version of the `awm-relayer` image, build it using `./scripts/build_local_image.sh` from the root of the `awm-relayer` repository.
+- If using a local version of the `awm-relayer` image, build it using `./scripts/build_local_image.sh` from the root of the `awm-relayer` repository.
 
 ### Start up the local testnet
 
@@ -105,7 +62,7 @@ cast send --private-key 0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5c
 cast balance --rpc-url http://127.0.0.1:9652/ext/bc/C/rpc 0x333d17d3b42bf7930dbc6e852ca7bcf560a69003
 ```
 
-- After calling `./scripts/local/run.sh`, you can directly send messages between the deployed subnets. As an example, `./scripts/integration-tests/basic_send_receive.sh` can be run manually like so:
+- After calling `./scripts/local/run.sh`, you can interact with the deployed Teleporter contracts directly, or deploy a cross-chain application contract such as `ExampleCrossChainMessenger`. To open a terminal in the container and initialize it with the environment variables needed to interact with the contracts, run:
 
 ```
 # Open a shell in the container
@@ -113,73 +70,22 @@ docker exec -it local_network_run /bin/bash
 # In the container:
 set -a                        # export all variables so child processes can access
 source vars.sh
-./integration-tests/basic_send_receive.sh   # run a test manually
 ```
 
 - Command line tools such as `cast` can also be used from the container.
 - Similarly, you can send the above transaction on either of the subnets by replacing the above rpc-url with the subnet's corresponding URL.
-- Run `./scripts/local/test.sh` to execute the integration test as it's run in Continuous Integration.
-  - `./scripts/local/test.sh` usage is as follows:
-  ```
-    -t, --test <test_name>            Run a specific test. If empty, runs all tests in the ./scripts/local/integration-tests/
-    -t, --test "test1 test2"          Run multiple tests. Test names must be space delimited and enclosed in quotes
-    -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub
-    -p, --pause                       Pause the network on stop. Will attempt to restart the paused network on subsequent runs
-    -h, --help                        Print this help message
-  ```
-  - Note that if `-l, --local` is not set, then the latest published `awm-relayer` image will be pulled from Dockerhub.
-- The script `./scripts/local/run_stop.sh` should be used to gracefully shut down the containers, preserving the local network state between runs. This script is called automatically at the end of `./scripts/local/test.sh`, but can be called at any time from a separate terminal to pause the network. This script should also be used with `run.sh` from a separate terminal.
+- The script `./scripts/local/run_stop.sh` should be used to gracefully shut down the containers, preserving the local network state between runs. This script is called automatically at the end of `./scripts/local/run.sh`, but can be called at any time from a separate terminal to pause the network.
   - `./scripts/local/run_stop.sh` usage is as follows:
   ```
   ./run_stop.sh             # stop the running containers and preserve the network for subsequent runs
   ./run_stop.sh -c          # stop the running containers and clean the network
   ```
 
-### Run the integration tests in Docker containers
-
-- Run `./scripts/local/test.sh` to run the integration tests in Docker containers. See the section above for usage.
-- This script performs the same setup steps as `scripts/local/run.sh` (described above), and then runs the tests in `./scripts/integration-tests/` automatically
-
 ### Additional notes
 
-- Both the `./scripts/local/run.sh` and `./scripts/local/test.sh` scripts run five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
+- The `./scripts/local/run.sh` script runs five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
 - Logs from the subnets on one of the five nodes are printed to stdout when run using either script.
 - These logs can also be found at `~/.avalanche-cli/runs/network-runner-root-data_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log` in the `local_network_run` container, or at `/var/lib/docker/overlay2/<CONTAINER_ID>/merged/root/.avalanche-cli/....` on your local machine. You will need to be the root user to access the logs under `/var/lib`.
-
-### Run tests on Fuji Testnet
-
-The following steps will allow you to run the integration tests described above and example workflows against three Fuji subnets that have AWM enabled. These workflows send transaction on each of these subnets, so you will need to fund your account with some native tokens to pay for gas fees. The three subnets are called [Amplify](https://subnets-test.avax.network/amplify), [Bulletin](https://subnets-test.avax.network/bulletin), and [Conduit](https://subnets-test.avax.network/conduit).
-
-The configuration for all the subnets is in `.env.testnet`. If needed, you can change the subnet IDs, the chain IDs, urls and teleporter contract address to match your setup.
-
-- Step 1: Fund your account on each of the three Fuji subnets using the faucet.
-  - [Amplify](https://core.app/tools/testnet-faucet/?subnet=amplify&token=amplify)
-  - [Bulletin](https://core.app/tools/testnet-faucet/?subnet=bulletin&token=bulletin)
-  - [Conduit](https://core.app/tools/testnet-faucet/?subnet=conduit&token=conduit)
-- Step 2: Set the private key and address of your testnet account.
-  ```bash
-  cp .env.example .env
-  # Edit .env to set the private key and address of your testnet account
-  ```
-- Step 3: Run tests
-  ```bash
-  ./scripts/fuji/test.sh -t <test_name>
-  ```
-
-`./scripts/fuji/test.sh` usage is as follows:
-```
-  -t, --test <test_name>            Run a specific test. If empty, runs all tests in the ./scripts/fuji/example-workflows/
-  -t, --test "test1 test2"          Run multiple tests. Test names must be space delimited and enclosed in quotes
-  -h, --help                        Print this help message
-```
-
-To setup all environment variables manually, you can run the following commands:
-```bash
-# set the subnet IDs, chain IDs, urls and teleporter contract address
-source .env.testnet
-# set the private key and address of your testnet account
-source .env
-```
 
 ## E2E tests
 
@@ -190,7 +96,7 @@ Then run the following command from the root of the repository:
 ./scripts/local/e2e_test.sh
 ```
 
-#### Run the E2E tests on another network
+### Run the E2E tests on another network
 
 The E2E tests can be run on another network by implementing the `Network` interface in [`package network`](./tests/network/network.go). For example, the type `FujiNetwork` in [`example_fuji_network.go`](./tests/network/example_fuji_network.go) implements this interface, pointing to the [Amplify](https://subnets-test.avax.network/amplify), [Bulletin](https://subnets-test.avax.network/bulletin), and [Conduit](https://subnets-test.avax.network/conduit) Fuji subnets. After implementing this interface, you can run the E2E tests on this network by running a program such as:
 ```go
@@ -207,7 +113,7 @@ func main() {
 }
 ```
 
-### ABI Bindings
+## ABI Bindings
 
 To generate Golang ABI bindings for the Solidity smart contracts, run:
 ```bash
@@ -219,8 +125,9 @@ The auto-generated bindings should be written under the `abi-bindings/` director
 ## Docs
 
 - [Teleporter Protocol Overview](./contracts/src/Teleporter/README.md)
-- [Getting Started](./contracts/src/CrossChainApplications/README.md)
-- [Contract Deployment](./contract-deployment/README.md)
+- [Cross Chain Applications](./contracts/src/CrossChainApplications/README.md)
+- [Getting Started](./contracts/src/CrossChainApplications/GETTING_STARTED.md)
+- [Contract Deployment](./utils/contract-deployment/README.md)
 - [ERC20Bridge](./contracts/src/CrossChainApplications/ERC20Bridge/README.md)
 - [VerifiedBlockHash](./contracts/src/CrossChainApplications/VerifiedBlockHash/README.md)
 
