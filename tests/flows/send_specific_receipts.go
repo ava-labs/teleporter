@@ -171,7 +171,7 @@ func clearReceiptQueue(
 			RequiredGasLimit:        big.NewInt(1),
 			FeeInfo: teleportermessenger.TeleporterFeeInfo{
 				FeeTokenAddress: common.Address{},
-				Amount:          relayerFeePerMessage,
+				Amount:          big.NewInt(0),
 			},
 			AllowedRelayerAddresses: []common.Address{},
 			Message:                 []byte{1, 2, 3, 4},
