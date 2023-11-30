@@ -338,13 +338,13 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	// Check the balance of the native token after the unwrap
 	actualNativeTokenDefaultAccountBalance, err := nativeERC20.BalanceOf(&bind.CallOpts{}, fundedAddress)
 	Expect(err).Should(BeNil())
-	expectedAmount = big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(9999999992))
+	expectedAmount = big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(9999999994))
 	Expect(actualNativeTokenDefaultAccountBalance).Should(Equal(expectedAmount))
 
 	// Check the balance of the native token for the relayer, which should have received the fee rewards
 	updatedRewardAmount, err = subnetATeleporterMessenger.CheckRelayerRewardAmount(
 		&bind.CallOpts{},
-		fundedAddress,
+		receiveEvent.RewardRedeemer,
 		nativeERC20Address,
 	)
 	Expect(err).Should(BeNil())
