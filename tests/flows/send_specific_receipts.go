@@ -169,6 +169,10 @@ func clearReceiptQueue(
 			DestinationBlockchainID: destination.BlockchainID,
 			DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
 			RequiredGasLimit:        big.NewInt(1),
+			FeeInfo: teleportermessenger.TeleporterFeeInfo{
+				FeeTokenAddress: common.Address{},
+				Amount:          relayerFeePerMessage,
+			},
 			AllowedRelayerAddresses: []common.Address{},
 			Message:                 []byte{1, 2, 3, 4},
 		}
