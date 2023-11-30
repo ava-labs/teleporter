@@ -13,7 +13,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
         address teleporterRegistryAddress
     ) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
-    function updateMinTeleporterVersion() external override {
+    function updateMinTeleporterVersion() public override {
         uint256 oldMinTeleporterVersion = minTeleporterVersion;
         minTeleporterVersion = teleporterRegistry.latestVersion();
         emit MinTeleporterVersionUpdated(

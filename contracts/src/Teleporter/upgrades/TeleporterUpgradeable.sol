@@ -67,5 +67,5 @@ abstract contract TeleporterUpgradeable {
      * from old Teleporter versions from being received, this function should be safeguarded with access
      * controls. For example, if the derived contract has an owner/admin, only they can call this function.
      */
-    function updateMinTeleporterVersion() external virtual;
+    function updateMinTeleporterVersion() public virtual;
 }

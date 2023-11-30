@@ -62,7 +62,6 @@ contract TeleporterRegistry {
      */
     constructor(ProtocolRegistryEntry[] memory initialEntries) {
         blockchainID = WARP_MESSENGER.getBlockchainID();
-        latestVersion = 0;
 
         for (uint256 i = 0; i < initialEntries.length; i++) {
             _addToRegistry(initialEntries[i]);
@@ -197,7 +196,12 @@ contract TeleporterRegistry {
         );
 
         _versionToAddress[entry.version] = entry.protocolAddress;
-        _addressToVersion[entry.protocolAddress] = entry.version;
+
+        // Since a protocol address can be registered multiple times,
+        // only update the version if the new version is greater than the current version.
+        if (entry.version > _addressToVersion[entry.protocolAddress]) {
+            _addressToVersion[entry.protocolAddress] = entry.version;
+        }
         emit AddProtocolVersion(entry.version, entry.protocolAddress);
 
         // Set latest version if the version is greater than the current latest version.

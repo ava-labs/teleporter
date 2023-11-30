@@ -169,6 +169,64 @@ contract TeleporterRegistryTest is Test {
         assertEq(oldVersion + 1, teleporterRegistry.latestVersion());
     }
 
+    function testRepeatedProtocolAddressUsesGreaterVersion() public {
+        // Check that adding the same protocol address for two versions succeeds,
+        // and returns the greater version in getVersionFromAddress.
+        uint256 latestVersion = teleporterRegistry.latestVersion();
+        uint32 messageIndex = 0;
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
+            latestVersion + 2,
+            address(teleporterRegistry),
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        teleporterRegistry.addProtocolVersion(messageIndex);
+        assertEq(latestVersion + 2, teleporterRegistry.latestVersion());
+        assertEq(
+            teleporterAddress,
+            teleporterRegistry.getAddressFromVersion(latestVersion + 2)
+        );
+
+        // latestVersion + 1 was skipped in previous check, is not registered, and is less than latestVersion()
+        uint256 oldVersion = latestVersion + 1;
+        warpMessage = _createWarpOffChainMessage(
+            oldVersion,
+            address(teleporterRegistry),
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+
+        teleporterRegistry.addProtocolVersion(messageIndex);
+        assertEq(
+            teleporterAddress,
+            teleporterRegistry.getAddressFromVersion(oldVersion)
+        );
+
+        assertEq(
+            latestVersion + 2,
+            teleporterRegistry.getVersionFromAddress(teleporterAddress)
+        );
+    }
+
     function testAddExistingVersion() public {
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint32 messageIndex = 0;
