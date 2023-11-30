@@ -9,6 +9,7 @@ import (
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/influxdata/influxdb-client-go/v2/internal/log"
 	. "github.com/onsi/gomega"
 )
 
@@ -138,6 +139,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	receiveEvent, err :=
 		utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
+	log.Info("Receipt included", "count", len(receiveEvent.Message.Receipts), "receipts", receiveEvent.Message.Receipts)
 	Expect(receiptIncluded(messageID1, receiveEvent.Message.Receipts)).Should(BeTrue())
 	Expect(receiptIncluded(messageID2, receiveEvent.Message.Receipts)).Should(BeTrue())
 
