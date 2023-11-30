@@ -15,6 +15,7 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
   - [Start up the local testnet](#start-up-the-local-testnet)
   - [Additional notes](#additional-notes)
 - [E2E tests](#e2e-tests)
+  - [Run the E2E tests on another network](#run-the-e2e-tests-on-another-network)
 - [ABI Bindings](#abi-bindings)
 - [Docs](#docs)
 - [Resources](#resources)
@@ -24,11 +25,11 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 - Get all submodules: `git submodule update --init --recursive`
 
 ### Dependencies
-- Docker and Docker Compose v2
+- [Ginkgo](https://onsi.github.io/ginkgo/#installing-ginkgo) for running the end-to-end tests
+- Docker and Docker Compose v2 for running the local test network
   - The docker image installs the following:
     - [Foundry](https://book.getfoundry.sh/getting-started/installation)
     - [Python3](https://www.python.org/downloads/)
-- [Ginkgo](https://onsi.github.io/ginkgo/#installing-ginkgo)
 
 ## Structure
 - `contracts/` is a [Foundry](https://github.com/foundry-rs/foundry) project that includes the implementation of the `TeleporterMessenger` contract and example dApps that demonstrate how to write contracts that interact with Teleporter.
@@ -42,6 +43,8 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 - `docker/` includes configurations for a local, containerized setup of Teleporter.
 
 ## Run a local testnet in Docker
+A docker setup for running a local network with Teleporter deployed is provided. This setup provides a convenient way to develop and test Teleporter as well as cross-chain applications built on top of Teleporter. Teleporter messages are relayed between subnets using [AWM Relayer](https://github.com/ava-labs/awm-relayer), a fully featured implementation of a Warp message relayer.
+
 - Install Docker as described in the setup section of the README in the root of this repository.
 - If using a local version of the `awm-relayer` image, build it using `./scripts/build_local_image.sh` from the root of the `awm-relayer` repository.
 
@@ -89,7 +92,9 @@ source vars.sh
 
 ## E2E tests
 
-E2E tests are run as part of CI, but can also be run locally. To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo).
+In addition to the docker setup, end-to-end integration tests written using Ginkgo are provided in the `tests/` directory. E2E tests are run as part of CI, but can also be run locally. Any new features or cross-chain example applications checked into the repository should be accompanied by an end-to-end tests. See the [Contribution Guide](./CONTRIBUTING.md) for additional details.
+
+To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo).
 
 Then run the following command from the root of the repository:
 ```bash
