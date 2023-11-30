@@ -2,6 +2,7 @@
 out/
 cache/
 target/
+bin/
 Cargo.lock
 
 # IDE configurations

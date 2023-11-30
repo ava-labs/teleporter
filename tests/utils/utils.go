@@ -21,6 +21,8 @@ import (
 	"github.com/ava-labs/subnet-evm/x/warp"
 	erc20bridge "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ERC20Bridge/ERC20Bridge"
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
+	blockhashpublisher "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/VerifiedBlockHash/BlockHashPublisher"
+	blockhashreceiver "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/VerifiedBlockHash/BlockHashReceiver"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -546,6 +548,54 @@ func DeployERC20Bridge(
 	log.Info("Deployed ERC20 Bridge contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
 
 	return address, erc20Bridge
+}
+
+func DeployBlockHashPublisher(
+	ctx context.Context,
+	deployerKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+) (common.Address, *blockhashpublisher.BlockHashPublisher) {
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		deployerKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, publisher, err := blockhashpublisher.DeployBlockHashPublisher(
+		opts, subnet.RPCClient, subnet.TeleporterRegistryAddress,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, subnet.RPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return address, publisher
+}
+
+func DeployBlockHashReceiver(
+	ctx context.Context,
+	deployerKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	publisherAddress common.Address,
+	publisherChainID [32]byte,
+) (common.Address, *blockhashreceiver.BlockHashReceiver) {
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		deployerKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, receiver, err := blockhashreceiver.DeployBlockHashReceiver(
+		opts,
+		subnet.RPCClient,
+		subnet.TeleporterRegistryAddress,
+		publisherChainID,
+		publisherAddress,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, subnet.RPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return address, receiver
 }
 
 func GetThreeSubnets(network interfaces.Network) (
