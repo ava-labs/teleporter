@@ -30,7 +30,7 @@ Teleporter and Warp events, as well as parsing Teleporter messages.`,
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		panic(err)
+		os.Exit(1)
 	}
 }
 
