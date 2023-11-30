@@ -32,16 +32,6 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Install AvalancheGo Release
-        run: |
-          cd subnet-evm
-          BASEDIR=/tmp/e2e-test AVALANCHEGO_BUILD_PATH=/tmp/e2e-test/avalanchego ./scripts/install_avalanchego_release.sh
-
-      - name: Build Subnet-EVM Plugin Binary
-        run: |
-          cd subnet-evm
-          ./scripts/build.sh /tmp/e2e-test/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
-
       - name: Install Foundry
         run: ./scripts/install_foundry.sh
 
@@ -50,4 +40,4 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
-          AVALANCHEGO_BUILD_PATH=/tmp/e2e-test/avalanchego DATA_DIR=/tmp/e2e-test/data ./scripts/local/e2e_test.sh
+          ./scripts/local/e2e_test.sh
