@@ -189,20 +189,15 @@ Next, provide the path to the `subnet-evm` repository and the path to a writeabl
 
 #### Run the E2E tests on another network
 
-The E2E tests can be run on another network by implementing the `Network` interface in [`package network`](./tests/network/network.go). For example, the type `FujiNetwork` in [`example_fuji_network.go`](./tests/network/example_fuji_network.go) implements this interface, pointing to the [Amplify](https://subnets-test.avax.network/amplify), [Bulletin](https://subnets-test.avax.network/bulletin), and [Conduit](https://subnets-test.avax.network/conduit) Fuji subnets. After implementing this interface, you can run the E2E tests on this network by running a program such as:
-```go
-func main() {
-  // Register a failure handler that panics
-	gomega.RegisterFailHandler(func(message string, callerSkip ...int) {
-		panic(message)
-	})
-
-  // Run the test, composing it with the Network implementation
-  network := network.NewFujiNetwork()
-  defer network.CloseNetworkConnections()
-	tests.BasicOneWaySend(network)
-}
+The same E2E test flows can be executed against external network by setting the proper environment variables in `.env.testnet` and `.env`, and running the following commands:
+```bash
+set -a
+source .env
+source .env.testnet
+go run tests/testnet/main/run_testnet_flows.go
 ```
+
+The user wallet set in `.env` must have native tokens for each of the subnets used in order for the test flows to be able to send transactions on those networks. 
 
 ### ABI Bindings
 
