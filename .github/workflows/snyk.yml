@@ -42,6 +42,13 @@ jobs:
           source ./scripts/versions.sh
           docker pull avaplatform/awm-relayer:${AWM_RELAYER_VERSION}
 
+      - name: Build local-network-image
+        run: |
+          source ./scripts/utils.sh
+          source ./scripts/versions.sh
+          setARCH
+          docker compose -f docker/docker-compose-run.yml --project-directory ./ build local_network
+
       - name: Run Snyk on Docker image
         # Dependabot isn't allowed to use the Snyk token, so skip this step.
         if: ${{ ! startsWith(env.BRANCH_NAME, 'dependabot') }}
