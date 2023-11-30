@@ -37,11 +37,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Download awm-relayer image
-        run: |
-          source ./scripts/versions.sh
-          docker pull avaplatform/awm-relayer:${AWM_RELAYER_VERSION}
-
       - name: Build local-network-image
         run: |
           source ./scripts/utils.sh
