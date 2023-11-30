@@ -41,6 +41,10 @@ const (
 	receiveCrossChainMessageLookBackBlocks = 500
 )
 
+var (
+	errInvalidPrivateKeyString = errors.New("invalid private key string")
+)
+
 var _ interfaces.Network = &testNetwork{}
 
 type testNetwork struct {
@@ -127,6 +131,12 @@ func NewTestNetwork() (*testNetwork, error) {
 
 	fundedAddressStr := os.Getenv(userAddress)
 	fundedKeyStr := os.Getenv(userPrivateKey)
+	if len(fundedKeyStr) < 64 {
+		return nil, errInvalidPrivateKeyString
+	}
+	if fundedKeyStr[0:2] == "0x" {
+		fundedKeyStr = fundedAddressStr[2:]
+	}
 	fundedKey, err := crypto.HexToECDSA(fundedKeyStr)
 	if err != nil {
 		return nil, err
