@@ -135,7 +135,7 @@ func NewTestNetwork() (*testNetwork, error) {
 		return nil, errInvalidPrivateKeyString
 	}
 	if fundedKeyStr[0:2] == "0x" {
-		fundedKeyStr = fundedAddressStr[2:]
+		fundedKeyStr = fundedKeyStr[2:]
 	}
 	fundedKey, err := crypto.HexToECDSA(fundedKeyStr)
 	if err != nil {
