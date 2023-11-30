@@ -41,7 +41,7 @@ contract ExampleCrossChainMessenger {
 
 Now that `MyExampleCrossChainMessenger` has an instantiation of `ITeleporterMessenger`, the next step is to add in functionality of sending and receiving arbitrary string data between chains.
 
-To start, create the function declarations for `sendMessage`, which will send string data cross-chain to the specified destination address' receiver. This function allows callers to specify the destination chain ID, destination address to send to, relayer fees, required gas limit for message execution on destination address, and the actual message data.
+To start, create the function declarations for `sendMessage`, which will send string data cross-chain to the specified destination address' receiver. This function allows callers to specify the destination chain ID, destination address to send to, relayer fees, required gas limit for message execution at the destination address' `receiveTeleporterMessage` function, and the actual message data.
 
 ```solidity
 // Send a new message to another chain.
@@ -83,8 +83,8 @@ function sendMessage(
     uint256 requiredGasLimit,
     string calldata message
 ) external returns (uint256 messageID) {
-    // For non-zero fee amounts, first transfer the fee into the control of this contract,
-    // then allow the Teleporter contract to spend it.
+    // For non-zero fee amounts, first transfer the fee to this contract, and then
+    // allow the Teleporter contract to spend it.
     if (feeAmount > 0) {
         IERC20 feeToken = IERC20(feeTokenAddress);
         require(
