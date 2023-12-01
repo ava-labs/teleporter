@@ -6,6 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
+import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
@@ -15,7 +16,7 @@ import {TeleporterRegistry} from "./TeleporterRegistry.sol";
  * upgrade mechanism. It provides a modifier that restricts access to only Teleporter
  * versions that are greater than or equal to `minTeleporterVersion`.
  */
-abstract contract TeleporterUpgradeable {
+abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     TeleporterRegistry public immutable teleporterRegistry;
 
     /**
@@ -25,25 +26,12 @@ abstract contract TeleporterUpgradeable {
      * public because inheriting contracts must be able to update it, and it should be
      * publicly viewable.
      */
-    uint256 public minTeleporterVersion;
+    uint256 private minTeleporterVersion;
 
     event MinTeleporterVersionUpdated(
         uint256 indexed oldMinTeleporterVersion,
         uint256 indexed newMinTeleporterVersion
     );
-
-    /**
-     * @dev Throws if called by a `msg.sender` that is not an allowed Teleporter version.
-     * Checks that `msg.sender` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
-     */
-    modifier onlyAllowedTeleporter() {
-        require(
-            teleporterRegistry.getVersionFromAddress(msg.sender) >=
-                minTeleporterVersion,
-            "TeleporterUpgradeable: invalid teleporter sender"
-        );
-        _;
-    }
 
     /**
      * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
@@ -59,6 +47,25 @@ abstract contract TeleporterUpgradeable {
         minTeleporterVersion = teleporterRegistry.latestVersion();
     }
 
+    function receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes calldata message
+    ) external {
+        // Checks that `msg.sender` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
+        require(
+            teleporterRegistry.getVersionFromAddress(msg.sender) >=
+                minTeleporterVersion,
+            "TeleporterUpgradeable: invalid teleporter sender"
+        );
+
+        _receiveTeleporterMessage(
+            originBlockchainID,
+            originSenderAddress,
+            message
+        );
+    }
+
     /**
      * @dev This is a virtual function that should be overridden to update the `minTeleporterVersion`
      * allowed for modifier `onlyAllowedTeleporter`, and emit {MinTeleporterVersionUpdated} event after.
@@ -67,5 +74,37 @@ abstract contract TeleporterUpgradeable {
      * from old Teleporter versions from being received, this function should be safeguarded with access
      * controls. For example, if the derived contract has an owner/admin, only they can call this function.
      */
-    function updateMinTeleporterVersion() public virtual;
+    function updateMinTeleporterVersion(uint256 version) public virtual {
+        _checkTeleporterUpgradeAccess();
+        _setMinTeleporterVersion(version);
+    }
+
+    function getMinTeleporterVersion() public view returns (uint256) {
+        return minTeleporterVersion;
+    }
+
+    function _receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes memory message
+    ) internal virtual;
+
+    function _checkTeleporterUpgradeAccess() internal virtual;
+
+    function _setMinTeleporterVersion(uint256 version) private {
+        uint256 latestTeleporterVersion = teleporterRegistry.latestVersion();
+        uint256 oldMinTeleporterVersion = minTeleporterVersion;
+
+        require(
+            version <= latestTeleporterVersion,
+            "TeleporterUpgradeable: invalid version"
+        );
+        require(
+            version > oldMinTeleporterVersion,
+            "TeleporterUpgradeable: not greater than current version"
+        );
+
+        minTeleporterVersion = version;
+        emit MinTeleporterVersionUpdated(oldMinTeleporterVersion, version);
+    }
 }

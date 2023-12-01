@@ -6,7 +6,6 @@
 pragma solidity 0.8.18;
 
 import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
-import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -17,7 +16,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
  * messages cross chain.
  */
 contract ExampleCrossChainMessenger is
-    ITeleporterReceiver,
     ReentrancyGuard,
     TeleporterOwnerUpgradeable
 {
@@ -55,22 +53,6 @@ contract ExampleCrossChainMessenger is
     constructor(
         address teleporterRegistryAddress
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {}
-
-    /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
-     *
-     * Receives a message from another chain.
-     */
-    function receiveTeleporterMessage(
-        bytes32 originBlockchainID,
-        address originSenderAddress,
-        bytes calldata message
-    ) external onlyAllowedTeleporter {
-        // Store the message.
-        string memory messageString = abi.decode(message, (string));
-        _messages[originBlockchainID] = Message(originSenderAddress, messageString);
-        emit ReceiveMessage(originBlockchainID, originSenderAddress, messageString);
-    }
 
     /**
      * @dev Sends a message to another chain.
@@ -133,5 +115,28 @@ contract ExampleCrossChainMessenger is
     ) external view returns (address, string memory) {
         Message memory messageInfo = _messages[originBlockchainID];
         return (messageInfo.sender, messageInfo.message);
+    }
+
+    /**
+     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     *
+     * Receives a message from another chain.
+     */
+    function _receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes memory message
+    ) internal override {
+        // Store the message.
+        string memory messageString = abi.decode(message, (string));
+        _messages[originBlockchainID] = Message(
+            originSenderAddress,
+            messageString
+        );
+        emit ReceiveMessage(
+            originBlockchainID,
+            originSenderAddress,
+            messageString
+        );
     }
 }

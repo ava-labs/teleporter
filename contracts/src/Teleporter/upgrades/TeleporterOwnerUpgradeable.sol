@@ -26,15 +26,12 @@ abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, Ownable {
      * Emits a {MinTeleporterVersionUpdated} event if the minimum Teleporter version
      * was updated.
      */
-    function updateMinTeleporterVersion() public override onlyOwner {
-        uint256 curMinTeleporterVersion = minTeleporterVersion;
-        uint256 newLatestVersion = teleporterRegistry.latestVersion();
-        if (newLatestVersion != curMinTeleporterVersion) {
-            minTeleporterVersion = newLatestVersion;
-            emit MinTeleporterVersionUpdated(
-                curMinTeleporterVersion,
-                newLatestVersion
-            );
-        }
+    // function updateMinTeleporterVersion(
+    //     uint256 version
+    // ) public override onlyOwner {
+    // }
+
+    function _checkTeleporterUpgradeAccess() internal view override {
+        _checkOwner();
     }
 }
