@@ -6,17 +6,10 @@ import (
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
-	"github.com/ava-labs/subnet-evm/params"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
-	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	"github.com/ava-labs/subnet-evm/x/warp"
-	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 
 	. "github.com/onsi/gomega"
@@ -61,94 +54,4 @@ func waitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 			}
 		}
 	}
-}
-
-func constructSignedWarpMessageBytes(
-	ctx context.Context,
-	sourceReceipt *types.Receipt,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-) []byte {
-	log.Info("Fetching relevant warp logs from the newly produced block")
-	logs, err := source.RPCClient.FilterLogs(ctx, subnetEvmInterfaces.FilterQuery{
-		BlockHash: &sourceReceipt.BlockHash,
-		Addresses: []common.Address{warp.Module.Address},
-	})
-	Expect(err).Should(BeNil())
-	Expect(len(logs)).Should(Equal(1))
-
-	// Check for relevant warp log from subscription and ensure that it matches
-	// the log extracted from the last block.
-	txLog := logs[0]
-	log.Info("Parsing logData as unsigned warp message")
-	unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(txLog.Data)
-	Expect(err).Should(BeNil())
-
-	// Set local variables for the duration of the test
-	unsignedWarpMessageID := unsignedMsg.ID()
-	unsignedWarpMsg := unsignedMsg
-	log.Info(
-		"Parsed unsignedWarpMsg",
-		"unsignedWarpMessageID", unsignedWarpMessageID,
-		"unsignedWarpMessage", unsignedWarpMsg,
-	)
-
-	// Loop over each client on chain A to ensure they all have time to accept the block.
-	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
-	// has accepted the block.
-	waitForAllValidatorsToAcceptBlock(ctx, source.NodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
-
-	// Get the aggregate signature for the Warp message
-	log.Info("Fetching aggregate signature from the source chain validators")
-	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
-	Expect(err).Should(BeNil())
-	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
-		ctx, unsignedWarpMessageID, params.WarpQuorumDenominator,
-	)
-	Expect(err).Should(BeNil())
-
-	return signedWarpMessageBytes
-}
-
-// Constructs the aggregate signature, packs the Teleporter message, and relays to the destination
-// Returns the receipt on the destination chain
-func relayMessage(
-	ctx context.Context,
-	teleporterContractAddress common.Address,
-	delivererKey *ecdsa.PrivateKey,
-	sourceReceipt *types.Receipt,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-	expectSuccess bool,
-) *types.Receipt {
-	// Fetch the Teleporter message from the logs
-	sendEvent, err :=
-		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
-	Expect(err).Should(BeNil())
-
-	signedWarpMessageBytes := constructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
-
-	// Construct the transaction to send the Warp message to the destination chain
-	signedTx := utils.CreateReceiveCrossChainMessageTransaction(
-		ctx,
-		signedWarpMessageBytes,
-		sendEvent.Message.RequiredGasLimit,
-		teleporterContractAddress,
-		delivererKey,
-		destination,
-	)
-
-	log.Info("Sending transaction to destination chain")
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, destination, signedTx, expectSuccess)
-
-	if !expectSuccess {
-		return nil
-	}
-
-	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	receiveEvent, err :=
-		utils.GetEventFromLogs(receipt.Logs, destination.TeleporterMessenger.ParseReceiveCrossChainMessage)
-	Expect(err).Should(BeNil())
-	Expect(receiveEvent.OriginBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
-	return receipt
 }

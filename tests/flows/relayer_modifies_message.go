@@ -21,15 +21,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type constructSignedMessageFunc func(
-	ctx context.Context,
-	sourceReceipt *types.Receipt,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-) []byte
-
 // Disallow this test from being run on anything but a local network, since it requires special behavior by the relayer
-func RelayerModifiesMessage(network interfaces.Network, constructSignedMessageFunc constructSignedMessageFunc) {
+func RelayerModifiesMessage(network interfaces.LocalNetwork) {
 	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -58,9 +51,7 @@ func RelayerModifiesMessage(network interfaces.Network, constructSignedMessageFu
 		receipt,
 		subnetAInfo,
 		subnetBInfo,
-		fundedKey,
-		network.GetTeleporterContractAddress(),
-		constructSignedMessageFunc)
+		network)
 
 	// Check Teleporter message was not received on the destination
 	delivered, err :=
@@ -74,23 +65,22 @@ func relayAlteredMessage(
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
-	fundedKey *ecdsa.PrivateKey,
-	teleporterContractAddress common.Address,
-	constructSignedMessageFunc constructSignedMessageFunc,
+	network interfaces.LocalNetwork,
 ) {
 	// Fetch the Teleporter message from the logs
 	sendEvent, err :=
 		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessageBytes := constructSignedMessageFunc(ctx, sourceReceipt, source, destination)
+	signedWarpMessageBytes := network.ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
+	_, fundedKey := network.GetFundedAccountInfo()
 	signedTx := createAlteredReceiveCrossChainMessageTransaction(
 		ctx,
 		signedWarpMessageBytes,
 		sendEvent.Message.RequiredGasLimit,
-		teleporterContractAddress,
+		network.GetTeleporterContractAddress(),
 		fundedKey,
 		destination,
 	)

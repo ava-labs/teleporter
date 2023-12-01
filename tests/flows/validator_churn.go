@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
@@ -22,13 +21,7 @@ const (
 	newNodeCount   = 5
 )
 
-type addSubnetValidatorsFunc func(ctx context.Context, subnetID ids.ID, nodeNames []string)
-
-func ValidatorChurn(
-	network interfaces.Network,
-	constructSignedMessageFunc constructSignedMessageFunc,
-	addSubnetValidatorsFunc addSubnetValidatorsFunc,
-) {
+func ValidatorChurn(network interfaces.LocalNetwork) {
 	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -64,14 +57,14 @@ func ValidatorChurn(
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessageBytes := constructSignedMessageFunc(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessageBytes := network.ConstructSignedWarpMessageBytes(ctx, receipt, subnetAInfo, subnetBInfo)
 
 	//
 	// Modify the validator set on Subnet A
 	//
 
 	// Add new nodes to the validator set
-	addSubnetValidatorsFunc(ctx, subnetAInfo.SubnetID, constructNodesToAddNames(network))
+	network.AddSubnetValidators(ctx, subnetAInfo.SubnetID, constructNodesToAddNames(network))
 
 	// Refresh the subnet info
 	subnetAInfo, subnetBInfo, _ = utils.GetThreeSubnets(network)

@@ -101,10 +101,10 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 
 	// The following tests require special behavior by the relayer, so we only run them on a local network
 	ginkgo.It("Relayer modifies message", func() {
-		flows.RelayerModifiesMessage(localNetworkInstance, constructSignedWarpMessageBytes)
+		flows.RelayerModifiesMessage(localNetworkInstance)
 	})
 	ginkgo.It("Validator churn", func() {
-		flows.ValidatorChurn(localNetworkInstance, constructSignedWarpMessageBytes, localNetworkInstance.addSubnetValidators)
+		flows.ValidatorChurn(localNetworkInstance)
 	})
 	// Since the validator churn test modifies the network topology, we put it last for now.
 	// It should not affect the other tests, but we get some errors if we run it before the other tests.
