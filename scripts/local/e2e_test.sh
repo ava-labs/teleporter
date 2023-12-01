@@ -12,7 +12,7 @@ TELEPORTER_PATH=$(
 source "$TELEPORTER_PATH"/scripts/constants.sh
 source "$TELEPORTER_PATH"/scripts/versions.sh
 
-BASEDIR=${BASEDIR:-"~/tmp/e2e-test"}
+BASEDIR=${BASEDIR:-"/tmp/e2e-test"}
 
 cwd=$(pwd)
 # Install the avalanchego and subnet-evm binaries
