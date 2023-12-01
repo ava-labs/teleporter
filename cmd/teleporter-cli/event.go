@@ -22,19 +22,23 @@ var eventCmd = &cobra.Command{
 the corresponding Teleporter event. Topics are represented by a hash,
 and data is the hex encoding of the bytes.`,
 	Args: cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		var topics []common.Hash
-		for _, topic := range topicArgs {
-			topics = append(topics, common.HexToHash(topic))
-		}
+	Run:  eventRun,
+}
 
-		event, err := teleporterABI.EventByID(topics[0])
-		cobra.CheckErr(err)
+func eventRun(cmd *cobra.Command, args []string) {
+	var topics []common.Hash
+	logger.Info("GOTHERE", zap.Any("topicArgs", topicArgs), zap.Int("len", len(topicArgs)))
+	for _, topic := range topicArgs {
+		topics = append(topics, common.HexToHash(topic))
+	}
 
-		out, err := teleportermessenger.FilterTeleporterEvents(topics, data, event.Name)
-		cobra.CheckErr(err)
-		logger.Info("Parsed Teleporter event", zap.String("name", event.Name), zap.Any("event", out))
-	},
+	event, err := teleporterABI.EventByID(topics[0])
+	cobra.CheckErr(err)
+
+	out, err := teleportermessenger.FilterTeleporterEvents(topics, data, event.Name)
+	cobra.CheckErr(err)
+	logger.Info("Parsed Teleporter event", zap.String("name", event.Name), zap.Any("event", out))
+	cmd.Println("Event command ran successfully")
 }
 
 func init() {

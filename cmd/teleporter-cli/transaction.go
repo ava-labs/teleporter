@@ -64,9 +64,8 @@ the command parses to log event fields to a more human readable format.`,
 					zap.String("teleporterMessageID", teleporterMessage.MessageID.String()),
 					zap.Any("message", teleporterMessage))
 			}
-
 		}
-
+		cmd.Println("Transaction command ran successfully")
 	},
 }
 

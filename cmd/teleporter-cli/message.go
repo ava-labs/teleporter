@@ -25,6 +25,7 @@ the bytes into a TeleporterMessage struct and print the struct fields.`,
 		msg, err := teleportermessenger.UnpackTeleporterMessage(b)
 		cobra.CheckErr(err)
 		logger.Info("Teleporter Message unpacked", zap.Any("message", msg))
+		cmd.Println("Message command ran successfully")
 	},
 }
 
