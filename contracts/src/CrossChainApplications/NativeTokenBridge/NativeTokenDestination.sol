@@ -140,7 +140,7 @@ contract NativeTokenDestination is
                 emit CollateralAdded({
                     amount: amount,
                     remaining: currentReserveImbalance,
-                    recipient: senderAddress
+                    recipient: recipient
                 });
                 return;
             }
