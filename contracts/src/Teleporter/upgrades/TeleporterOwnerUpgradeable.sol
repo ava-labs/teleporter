@@ -9,7 +9,7 @@ import {TeleporterUpgradeable} from "./TeleporterUpgradeable.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @dev Contract that implements the {TeleporterUpgradeable} interface and allows
+ * @dev Contract that inherits {TeleporterUpgradeable} and allows
  * only owners of the contract to update the minimum Teleporter version.
  */
 abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, Ownable {
@@ -18,20 +18,11 @@ abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, Ownable {
     ) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
     /**
-     * @dev See {TeleporterUpgradeable-updateMinTeleporterVersion}
+     * @dev See {TeleporterUpgradeable-_checkTeleporterUpgradeAccess}
      *
-     * Updates the minimum Teleporter version allowed for receiving on this contract
-     * to the latest version registered in the {TeleporterRegistry}.
-     * Restricted to only owners of the contract.
-     * Emits a {MinTeleporterVersionUpdated} event if the minimum Teleporter version
-     * was updated.
+     * Checks that the caller is the owner of the contract for upgrade access.
      */
-    // function updateMinTeleporterVersion(
-    //     uint256 version
-    // ) public override onlyOwner {
-    // }
-
-    function _checkTeleporterUpgradeAccess() internal view override {
+    function _checkTeleporterUpgradeAccess() internal view virtual override {
         _checkOwner();
     }
 }
