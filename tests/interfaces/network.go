@@ -36,7 +36,7 @@ type Network interface {
 
 	// Whether or not the funded wallet is capable of relaying messages between subnets in this network.
 	// Intended to be true for local networks where all nodes are querable by the test application for their
-	// BLS signatures, and false for testnet networks where test application does not neccarily have
+	// BLS signatures, and false for testnet networks where test application does not necessarily have
 	// connections with each validator.
 	SupportsIndependentRelaying() bool
 
