@@ -57,7 +57,7 @@ func DeliverToWrongChain(network interfaces.Network) {
 
 	if network.SupportsIndependentRelaying() {
 		//
-		// Try to relay the message to subnet B, should fail
+		// Try to relay the message to subnet C, should fail
 		//
 		network.RelayMessage(ctx, receipt, subnetAInfo, subnetCInfo, false)
 	} else {
