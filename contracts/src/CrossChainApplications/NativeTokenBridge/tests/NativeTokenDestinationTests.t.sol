@@ -29,6 +29,7 @@ contract NativeTokenDestinationTest is Test {
     uint256 private constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1000000000;
     address private constant _DEFAULT_RECIPIENT =
         0xa4CEE7d1aF6aDdDD33E3b1cC680AB84fdf1b6d1d;
+    uint256 private constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
 
     event TransferToSource(
         address indexed sender,
@@ -59,7 +60,9 @@ contract NativeTokenDestinationTest is Test {
         );
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
+            abi.encodeWithSelector(
+                ITeleporterMessenger.sendCrossChainMessage.selector
+            ),
             abi.encode(1)
         );
 
@@ -68,18 +71,18 @@ contract NativeTokenDestinationTest is Test {
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
         );
 
-        nativeTokenDestination = new NativeTokenDestination(MOCK_TELEPORTER_MESSENGER_ADDRESS, _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, _DEFAULT_INITIAL_RESERVE_IMBALANCE);
+        nativeTokenDestination = new NativeTokenDestination(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+        );
         mockERC20 = new UnitTestMockERC20();
 
         vm.mockCall(
             address(mockERC20),
             abi.encodeWithSelector(IERC20.allowance.selector),
             abi.encode(1234)
-        );
-        vm.mockCall(
-            address(mockERC20),
-            abi.encodeWithSelector(IERC20.transfer.selector),
-            abi.encode(true)
         );
         vm.mockCall(
             address(mockERC20),
@@ -90,7 +93,7 @@ contract NativeTokenDestinationTest is Test {
 
     function collateralizeBridge() public {
         uint256 amount = _DEFAULT_INITIAL_RESERVE_IMBALANCE;
-                
+
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
             amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -98,12 +101,18 @@ contract NativeTokenDestinationTest is Test {
             recipient: _DEFAULT_RECIPIENT
         });
 
+        // We shouldn't mint anything here.
+        vm.expectCall(
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(INativeMinter.mintNativeCoin.selector),
+            0
+        );
+
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        bytes memory message = abi.encode(_DEFAULT_RECIPIENT, amount);
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            message
+            abi.encode(_DEFAULT_RECIPIENT, amount)
         );
         vm.stopPrank();
     }
@@ -111,13 +120,12 @@ contract NativeTokenDestinationTest is Test {
     function testTransferToSource() public {
         collateralizeBridge();
         uint256 feeAmount = 12345;
-        uint256 amount = 1e18;
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit TransferToSource({
             sender: address(this),
             recipient: _DEFAULT_RECIPIENT,
-            amount: amount,
+            amount: _DEFAULT_TRANSFER_AMOUNT,
             teleporterMessageID: 1
         });
 
@@ -129,11 +137,12 @@ contract NativeTokenDestinationTest is Test {
                     feeTokenAddress: address(mockERC20),
                     amount: feeAmount
                 }),
-                requiredGasLimit: nativeTokenDestination.TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
+                requiredGasLimit: nativeTokenDestination
+                    .TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(
                     ITokenSource.SourceAction.Unlock,
-                    abi.encode(_DEFAULT_RECIPIENT, amount)
+                    abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
                 )
             });
 
@@ -144,14 +153,124 @@ contract NativeTokenDestinationTest is Test {
                 (expectedMessageInput)
             )
         );
-        
-        nativeTokenDestination.transferToSource{value: amount}(
-            _DEFAULT_RECIPIENT, 
+
+        nativeTokenDestination.transferToSource{value: _DEFAULT_TRANSFER_AMOUNT}(
+            _DEFAULT_RECIPIENT,
             TeleporterFeeInfo({
                 feeTokenAddress: address(mockERC20),
                 amount: feeAmount
-            }), 
+            }),
             new address[](0)
+        );
+    }
+
+    function testZeroTeleporterAddress() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero TeleporterMessenger address"));
+
+        new NativeTokenDestination(
+            address(0x0),
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+        );
+    }
+
+    function testZeroSourceChainID() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source blockchain ID"));
+
+        new NativeTokenDestination(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            bytes32(0),
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+        );
+    }
+
+    function testSameBlockchainID() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("cannot bridge with same blockchain"));
+
+        new NativeTokenDestination(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            _MOCK_BLOCKCHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+        );
+    }
+
+    function testZeroSourceContractAddress() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source contract address"));
+
+        new NativeTokenDestination(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            _DEFAULT_OTHER_CHAIN_ID,
+            address(0x0),
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+        );
+    }
+
+    function testZeroInitialReserveImbalance() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero initial reserve imbalance"));
+
+        new NativeTokenDestination(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            0
+        );
+    }
+
+    function testInvalidTeleporterAddress() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("unauthorized TeleporterMessenger contract"));
+
+        vm.prank(address(0x123));
+        nativeTokenDestination.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+        );
+    }
+
+    function testInvalidSourceBlockchain() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("invalid source chain"));
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        nativeTokenDestination.receiveTeleporterMessage(
+            _MOCK_BLOCKCHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+        );
+    }
+
+    function testInvalidSenderContract() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("unauthorized sender"));
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        nativeTokenDestination.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            address(0x123),
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+        );
+    }
+
+    function testInvalidRecipientAddress() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero recipient address"));
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        nativeTokenDestination.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(address(0x0), _DEFAULT_TRANSFER_AMOUNT)
+        );
+    }
+
+    function testInvalidTransferAmount() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero transfer value"));
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        nativeTokenDestination.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, 0)
         );
     }
 

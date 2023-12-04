@@ -64,7 +64,7 @@ contract NativeTokenDestination is
 
         require(
             sourceBlockchainID_ != bytes32(0),
-            "NativeTokenDestination: zero source chain ID"
+            "NativeTokenDestination: zero source blockchain ID"
         );
         require(
             sourceBlockchainID_ !=
@@ -79,6 +79,11 @@ contract NativeTokenDestination is
             "NativeTokenDestination: zero source contract address"
         );
         nativeTokenSourceAddress = nativeTokenSourceAddress_;
+
+        require(
+            initialReserveImbalance_ != 0,
+            "NativeTokenDestination: zero initial reserve imbalance"
+        );
 
         initialReserveImbalance = initialReserveImbalance_;
         currentReserveImbalance = initialReserveImbalance_;
