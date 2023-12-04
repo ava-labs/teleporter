@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func execute(t *testing.T, c *cobra.Command, args ...string) (string, error) {
+func executeTestCmd(t *testing.T, c *cobra.Command, args ...string) (string, error) {
 	buf := new(bytes.Buffer)
 	c.SetOut(buf)
 	c.SetErr(buf)
@@ -48,7 +48,7 @@ func TestRootCmd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := execute(t, rootCmd, tt.args...)
+			out, err := executeTestCmd(t, rootCmd, tt.args...)
 			if tt.err != nil {
 				require.ErrorContains(t, err, tt.err.Error())
 			} else {

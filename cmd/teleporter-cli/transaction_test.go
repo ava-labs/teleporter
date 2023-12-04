@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEventCmd(t *testing.T) {
+func TestTransactionCmd(t *testing.T) {
 	var tests = []struct {
 		name string
 		args []string
@@ -16,14 +16,14 @@ func TestEventCmd(t *testing.T) {
 	}{
 		{
 			name: "no args",
-			args: []string{"event"},
-			err:  fmt.Errorf("required flag(s) \"topics\" not set"),
+			args: []string{"transaction"},
+			err:  fmt.Errorf("accepts 1 arg(s), received 0"),
 		},
 		{
 			name: "help",
-			args: []string{"event", "--help"},
+			args: []string{"transaction", "--help"},
 			err:  nil,
-			out:  "Given the topics and data of a Teleporter log",
+			out:  "Given a transaction this command looks through the transaction's receipt",
 		},
 	}
 

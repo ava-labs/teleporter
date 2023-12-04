@@ -36,9 +36,11 @@ the command parses to log event fields to a more human readable format.`,
 		receipt, err := client.TransactionReceipt(context.Background(),
 			common.HexToHash(args[0]))
 		cobra.CheckErr(err)
+		cmd.Print("HELLOOOO")
+		logger.Info("TEST")
 		for _, log := range receipt.Logs {
 			if log.Address == teleporterAddress {
-				logger.Debug("Processing Teleporter log", zap.Any("log", log))
+				logger.Info("Processing Teleporter log", zap.Any("log", log))
 
 				event, err := teleporterABI.EventByID(log.Topics[0])
 				cobra.CheckErr(err)
@@ -78,13 +80,15 @@ func init() {
 	err = transactionCmd.MarkPersistentFlagRequired("teleporter-address")
 	cobra.CheckErr(err)
 	transactionCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		return transactionPreRun(cmd, args, address)
+		return transactionPreRunE(cmd, args, address)
 	}
 }
 
-func transactionPreRun(cmd *cobra.Command, args []string, address *string) error {
+func transactionPreRunE(cmd *cobra.Command, args []string, address *string) error {
 	// Run the persistent pre-run function of the root command if it exists.
-	callPersistentPreRun(cmd, args)
+	if err := callPersistentPreRunE(cmd, args); err != nil {
+		return err
+	}
 	teleporterAddress = common.HexToAddress(*address)
 	c, err := ethclient.Dial(rpcEndpoint)
 	if err != nil {

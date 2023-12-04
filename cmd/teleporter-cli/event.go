@@ -27,7 +27,6 @@ and data is the hex encoding of the bytes.`,
 
 func eventRun(cmd *cobra.Command, args []string) {
 	var topics []common.Hash
-	logger.Info("GOTHERE", zap.Any("topicArgs", topicArgs), zap.Int("len", len(topicArgs)))
 	for _, topic := range topicArgs {
 		topics = append(topics, common.HexToHash(topic))
 	}
@@ -38,7 +37,7 @@ func eventRun(cmd *cobra.Command, args []string) {
 	out, err := teleportermessenger.FilterTeleporterEvents(topics, data, event.Name)
 	cobra.CheckErr(err)
 	logger.Info("Parsed Teleporter event", zap.String("name", event.Name), zap.Any("event", out))
-	cmd.Println("Event command ran successfully")
+	cmd.Println("Event command ran successfully for", event.Name)
 }
 
 func init() {

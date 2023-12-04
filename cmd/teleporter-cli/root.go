@@ -38,11 +38,11 @@ func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	logLevelArg := rootCmd.PersistentFlags().StringP("log", "l", "", "Log level i.e. debug, info...")
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		return rootPreRun(logLevelArg)
+		return rootPreRunE(logLevelArg)
 	}
 }
 
-func rootPreRun(logLevelArg *string) error {
+func rootPreRunE(logLevelArg *string) error {
 	if *logLevelArg == "" {
 		*logLevelArg = logging.Info.LowerString()
 	}
@@ -67,12 +67,13 @@ func rootPreRun(logLevelArg *string) error {
 	return nil
 }
 
-func callPersistentPreRun(cmd *cobra.Command, args []string) {
+func callPersistentPreRunE(cmd *cobra.Command, args []string) error {
 	if parent := cmd.Parent(); parent != nil {
-		if parent.PersistentPreRun != nil {
-			parent.PersistentPreRun(parent, args)
+		if parent.PersistentPreRunE != nil {
+			return parent.PersistentPreRunE(parent, args)
 		}
 	}
+	return nil
 }
 
 func main() {
