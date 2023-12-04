@@ -47,7 +47,7 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
      *
      * Receives the latest block hash from another chain
      *

@@ -312,7 +312,7 @@ contract ERC20Bridge is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
      *
      * Receives a Teleporter message and routes to the appropriate internal function call.
      */

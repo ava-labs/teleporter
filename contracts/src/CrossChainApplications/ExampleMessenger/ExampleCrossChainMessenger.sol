@@ -118,7 +118,7 @@ contract ExampleCrossChainMessenger is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
      *
      * Receives a message from another chain.
      */
