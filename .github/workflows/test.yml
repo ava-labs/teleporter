@@ -91,7 +91,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Run ABI Binding Unit Tests
+      - name: Run Go unit tests
         run: |
           source scripts/constants.sh
           go test ./...
