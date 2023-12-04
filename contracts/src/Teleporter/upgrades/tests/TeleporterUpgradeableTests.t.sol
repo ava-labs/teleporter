@@ -13,16 +13,17 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
         address teleporterRegistryAddress
     ) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
-    function _receiveTeleporterMessage(
-        bytes32 originBlockchainID,
-        address originSenderAddress,
-        bytes memory message
-    ) internal override {}
-
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
     }
 
+    function _receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes memory message // solhint-disable-next-line no-empty-blocks
+    ) internal override {}
+
+    // solhint-disable-next-line no-empty-blocks
     function _checkTeleporterUpgradeAccess() internal override {}
 }
 

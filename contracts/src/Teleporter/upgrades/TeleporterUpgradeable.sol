@@ -23,7 +23,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * @dev The minimum required Teleporter version that the contract is allowed
      * to receive messages from. Should only be updated by `_setMinTeleporterVersion`
      */
-    uint256 private minTeleporterVersion;
+    uint256 private _minTeleporterVersion;
 
     /**
      * @dev Emitted when `minTeleporterVersion` is updated.
@@ -44,7 +44,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
         );
 
         teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        minTeleporterVersion = teleporterRegistry.latestVersion();
+        _minTeleporterVersion = teleporterRegistry.latestVersion();
     }
 
     /**
@@ -60,7 +60,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
         // Checks that `msg.sender` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
         require(
             teleporterRegistry.getVersionFromAddress(msg.sender) >=
-                minTeleporterVersion,
+                _minTeleporterVersion,
             "TeleporterUpgradeable: invalid Teleporter sender"
         );
 
@@ -88,7 +88,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * @dev Public getter for `minTeleporterVersion`.
      */
     function getMinTeleporterVersion() public view returns (uint256) {
-        return minTeleporterVersion;
+        return _minTeleporterVersion;
     }
 
     /**
@@ -120,7 +120,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      */
     function _setMinTeleporterVersion(uint256 version) internal virtual {
         uint256 latestTeleporterVersion = teleporterRegistry.latestVersion();
-        uint256 oldMinTeleporterVersion = minTeleporterVersion;
+        uint256 oldMinTeleporterVersion = _minTeleporterVersion;
 
         require(
             version <= latestTeleporterVersion,
@@ -131,7 +131,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
             "TeleporterUpgradeable: not greater than current minimum version"
         );
 
-        minTeleporterVersion = version;
+        _minTeleporterVersion = version;
         emit MinTeleporterVersionUpdated(oldMinTeleporterVersion, version);
     }
 }

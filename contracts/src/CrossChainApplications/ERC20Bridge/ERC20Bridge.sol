@@ -321,8 +321,6 @@ contract ERC20Bridge is
         address originSenderAddress,
         bytes memory message
     ) internal override {
-        bytes32 nativeBlockchainID = originBlockchainID;
-        address nativeBridgeAddress = originSenderAddress;
         // Decode the payload to recover the action and corresponding function parameters
         (BridgeAction action, bytes memory actionData) = abi.decode(
             message,
@@ -338,8 +336,8 @@ contract ERC20Bridge is
                 uint8 nativeDecimals
             ) = abi.decode(actionData, (address, string, string, uint8));
             _createBridgeToken({
-                nativeBlockchainID: nativeBlockchainID,
-                nativeBridgeAddress: nativeBridgeAddress,
+                nativeBlockchainID: originBlockchainID,
+                nativeBridgeAddress: originSenderAddress,
                 nativeContractAddress: nativeContractAddress,
                 nativeName: nativeName,
                 nativeSymbol: nativeSymbol,
@@ -352,8 +350,8 @@ contract ERC20Bridge is
                 uint256 amount
             ) = abi.decode(actionData, (address, address, uint256));
             _mintBridgeTokens(
-                nativeBlockchainID,
-                nativeBridgeAddress,
+                originBlockchainID,
+                originSenderAddress,
                 nativeContractAddress,
                 recipient,
                 amount
@@ -371,8 +369,8 @@ contract ERC20Bridge is
                     (bytes32, address, address, address, uint256, uint256)
                 );
             _transferBridgeTokens({
-                sourceBlockchainID: nativeBlockchainID,
-                sourceBridgeAddress: nativeBridgeAddress,
+                sourceBlockchainID: originBlockchainID,
+                sourceBridgeAddress: originSenderAddress,
                 destinationBlockchainID: destinationBlockchainID,
                 destinationBridgeAddress: destinationBridgeAddress,
                 nativeContractAddress: nativeContractAddress,

@@ -17,7 +17,10 @@ contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
         bytes32 originBlockchainID,
         address originSenderAddress,
         bytes memory message
-    ) internal override {}
+    ) internal override // solhint-disable-next-line no-empty-blocks
+    {
+
+    }
 }
 
 contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
