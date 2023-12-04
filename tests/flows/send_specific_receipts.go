@@ -159,7 +159,7 @@ func clearReceiptQueue(
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
 ) {
-	outstandReceiptCount := getOutstandReceiptCount(source, destination.BlockchainID)
+	outstandReceiptCount := getOutstandingReceiptCount(source, destination.BlockchainID)
 	for outstandReceiptCount.Cmp(big.NewInt(0)) != 0 {
 		log.Info("Emptying receipt queue", "remainingReceipts", outstandReceiptCount.String())
 		// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
@@ -184,12 +184,12 @@ func clearReceiptQueue(
 		// Relay message
 		network.RelayMessage(ctx, receipt, source, destination, true)
 
-		outstandReceiptCount = getOutstandReceiptCount(source, destination.BlockchainID)
+		outstandReceiptCount = getOutstandingReceiptCount(source, destination.BlockchainID)
 	}
 	log.Info("Receipt queue emptied")
 }
 
-func getOutstandReceiptCount(source interfaces.SubnetTestInfo, destinationBlockchainID ids.ID) *big.Int {
+func getOutstandingReceiptCount(source interfaces.SubnetTestInfo, destinationBlockchainID ids.ID) *big.Int {
 	size, err := source.TeleporterMessenger.GetReceiptQueueSize(&bind.CallOpts{}, destinationBlockchainID)
 	Expect(err).Should(BeNil())
 	return size

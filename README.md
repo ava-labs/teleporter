@@ -194,6 +194,7 @@ Then run the following command from the root of the repository:
 
 The same E2E test flows can be executed against external network by setting the proper environment variables in `.env.testnet` and `.env`, and running the following commands:
 ```bash
+cp .env.example .env # Set proper values after copying.
 set -a
 source .env
 source .env.testnet
