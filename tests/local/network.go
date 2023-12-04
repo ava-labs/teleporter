@@ -337,6 +337,10 @@ func (n *localNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey
 	return fundedAddress, n.globalFundedKey
 }
 
+func (n *localNetwork) IsExternalNetwork() bool {
+	return false
+}
+
 func (n *localNetwork) SupportsIndependentRelaying() bool {
 	// Messages can be relayed by the test application for local
 	// networks with connections to each node.

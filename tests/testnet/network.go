@@ -163,6 +163,10 @@ func (n *testNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey)
 	return n.fundedAddress, n.fundedKey
 }
 
+func (n *testNetwork) IsExternalNetwork() bool {
+	return true
+}
+
 func (n *testNetwork) SupportsIndependentRelaying() bool {
 	// The test application cannot relay its own messages on testnets
 	// because it can't query validators directly for their BLS signatures.

@@ -19,6 +19,9 @@ type Network interface {
 	// An address and corresponding key that has native tokens on each of the subnets in this network.
 	GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey)
 
+	// Whether or not the Avalanche network being used is available outside the scope of the test application.
+	IsExternalNetwork() bool
+
 	// Whether or not the funded wallet is capable of relaying messages between subnets in this network.
 	// Intended to be true for local networks where all nodes are querable by the test application for their
 	// BLS signatures, and false for testnet networks where test application does not necessarily have
@@ -29,7 +32,8 @@ type Network interface {
 	// two subnets,and returns the receipt of the transaction the message was delivered in.
 	// For implementations where SupportsIndependentRelaying() is false, waits for the specific message to be relayed
 	// by an external relayer, and returns the receipt of the transaction the message was delivered in.
-	RelayMessage(ctx context.Context,
+	RelayMessage(
+		ctx context.Context,
 		sourceReceipt *types.Receipt,
 		source SubnetTestInfo,
 		destination SubnetTestInfo,

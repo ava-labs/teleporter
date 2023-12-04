@@ -22,7 +22,11 @@ func SendSpecificReceipts(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
-	clearReceiptQueue(ctx, network, fundedKey, subnetBInfo, subnetAInfo)
+	// This is only done if the test non-external networks because external networks may have
+	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
+	if !network.IsExternalNetwork() {
+		clearReceiptQueue(ctx, network, fundedKey, subnetBInfo, subnetAInfo)
+	}
 
 	// Use mock token as the fee token
 	mockTokenAddress, mockToken := utils.DeployExampleERC20(
@@ -112,41 +116,45 @@ func SendSpecificReceipts(network interfaces.Network) {
 	// Check the reward amounts.
 	checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
 
-	// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
-	// The next message from B->A will contain the same receipts that were manually sent in the above steps,
-	// but they should not be processed again on Subnet A.
-	sendCrossChainMessageInput = teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: subnetAInfo.BlockchainID,
-		DestinationAddress:      destinationAddress,
-		FeeInfo: teleportermessenger.TeleporterFeeInfo{
-			FeeTokenAddress: mockTokenAddress,
-			Amount:          big.NewInt(0),
-		},
-		RequiredGasLimit:        big.NewInt(1),
-		AllowedRelayerAddresses: []common.Address{},
-		Message:                 []byte{1, 2, 3, 4},
+	// If the network is internal to the test application, send a message from Subnet B to Subnet A to trigger
+	// the "regular" method of delivering receipts. The next message from B->A will contain the same receipts
+	// that were manually sent in the above steps, but they should not be processed again on Subnet A.
+	// These checks are not performed for external networks because unrelated messages may have already changed
+	// the state of the receipt queues.
+	if !network.IsExternalNetwork() {
+		sendCrossChainMessageInput = teleportermessenger.TeleporterMessageInput{
+			DestinationBlockchainID: subnetAInfo.BlockchainID,
+			DestinationAddress:      destinationAddress,
+			FeeInfo: teleportermessenger.TeleporterFeeInfo{
+				FeeTokenAddress: mockTokenAddress,
+				Amount:          big.NewInt(0),
+			},
+			RequiredGasLimit:        big.NewInt(1),
+			AllowedRelayerAddresses: []common.Address{},
+			Message:                 []byte{1, 2, 3, 4},
+		}
+
+		// This message will also have the same receipts as the previous message
+		receipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
+			ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedKey)
+
+		// Relay message from Subnet B to Subnet A
+		receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+		// Check delivered
+		delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
+		Expect(err).Should(BeNil())
+		Expect(delivered).Should(BeTrue())
+		// Get the Teleporter message from receive event and confirm that the receipts are delivered again
+		receiveEvent, err :=
+			utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+		Expect(err).Should(BeNil())
+		log.Info("Receipt included", "count", len(receiveEvent.Message.Receipts), "receipts", receiveEvent.Message.Receipts)
+		Expect(receiptIncluded(messageID1, receiveEvent.Message.Receipts)).Should(BeTrue())
+		Expect(receiptIncluded(messageID2, receiveEvent.Message.Receipts)).Should(BeTrue())
+
+		// Check the reward amount remains the same
+		checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
 	}
-
-	// This message will also have the same receipts as the previous message
-	receipt, messageID = utils.SendCrossChainMessageAndWaitForAcceptance(
-		ctx, subnetBInfo, subnetAInfo, sendCrossChainMessageInput, fundedKey)
-
-	// Relay message from Subnet B to Subnet A
-	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
-	// Check delivered
-	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
-	Expect(err).Should(BeNil())
-	Expect(delivered).Should(BeTrue())
-	// Get the Teleporter message from receive event and confirm that the receipts are delivered again
-	receiveEvent, err :=
-		utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
-	Expect(err).Should(BeNil())
-	log.Info("Receipt included", "count", len(receiveEvent.Message.Receipts), "receipts", receiveEvent.Message.Receipts)
-	Expect(receiptIncluded(messageID1, receiveEvent.Message.Receipts)).Should(BeTrue())
-	Expect(receiptIncluded(messageID2, receiveEvent.Message.Receipts)).Should(BeTrue())
-
-	// Check the reward amount remains the same
-	checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
 }
 
 func clearReceiptQueue(
