@@ -15,10 +15,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var (
-	relayerFeePerMessage = big.NewInt(5)
-)
-
 func SendSpecificReceipts(network interfaces.Network) {
 	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
@@ -43,6 +39,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	)
 
 	// Send two messages from Subnet A to Subnet B
+	relayerFeePerMessage := big.NewInt(5)
 	destinationAddress := common.HexToAddress("0x1111111111111111111111111111111111111111")
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 		DestinationBlockchainID: subnetBInfo.BlockchainID,
@@ -113,7 +110,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	// Check the reward amounts.
-	checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress)
+	checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
 
 	// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
 	// The next message from B->A will contain the same receipts that were manually sent in the above steps,
@@ -149,7 +146,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	Expect(receiptIncluded(messageID2, receiveEvent.Message.Receipts)).Should(BeTrue())
 
 	// Check the reward amount remains the same
-	checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress)
+	checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
 }
 
 func clearReceiptQueue(
@@ -213,6 +210,7 @@ func checkExpectedRewardAmounts(
 	receiveEvent1 *teleportermessenger.TeleporterMessengerReceiveCrossChainMessage,
 	receiveEvent2 *teleportermessenger.TeleporterMessengerReceiveCrossChainMessage,
 	tokenAddress common.Address,
+	feePerMessage *big.Int,
 ) {
 	// Check the reward amounts.
 	if receiveEvent1.RewardRedeemer == receiveEvent2.RewardRedeemer {
@@ -221,19 +219,19 @@ func checkExpectedRewardAmounts(
 			receiveEvent1.RewardRedeemer,
 			tokenAddress)
 		Expect(err).Should(BeNil())
-		Expect(amount).Should(Equal(new(big.Int).Mul(relayerFeePerMessage, big.NewInt(2))))
+		Expect(amount).Should(Equal(new(big.Int).Mul(feePerMessage, big.NewInt(2))))
 	} else {
 		amount1, err := sourceSubnet.TeleporterMessenger.CheckRelayerRewardAmount(
 			&bind.CallOpts{},
 			receiveEvent1.RewardRedeemer,
 			tokenAddress)
 		Expect(err).Should(BeNil())
-		Expect(amount1).Should(Equal(relayerFeePerMessage))
+		Expect(amount1).Should(Equal(feePerMessage))
 		amount2, err := sourceSubnet.TeleporterMessenger.CheckRelayerRewardAmount(
 			&bind.CallOpts{},
 			receiveEvent2.RewardRedeemer,
 			tokenAddress)
 		Expect(err).Should(BeNil())
-		Expect(amount2).Should(Equal(relayerFeePerMessage))
+		Expect(amount2).Should(Equal(feePerMessage))
 	}
 }
