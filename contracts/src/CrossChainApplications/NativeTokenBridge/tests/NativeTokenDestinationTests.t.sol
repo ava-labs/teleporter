@@ -30,6 +30,9 @@ contract NativeTokenDestinationTest is Test {
     uint256 private constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
     uint256 private constant _DEFAULT_FEE_AMOUNT = 123456;
 
+    NativeTokenDestination public nativeTokenDestination;
+    UnitTestMockERC20 public mockERC20;
+
     event TransferToSource(
         address indexed sender,
         address indexed recipient,
@@ -42,9 +45,6 @@ contract NativeTokenDestinationTest is Test {
         uint256 indexed teleporterMessageID,
         uint256 burnAddressBalance
     );
-
-    NativeTokenDestination public nativeTokenDestination;
-    UnitTestMockERC20 public mockERC20;
 
     function setUp() public virtual {
         vm.mockCall(
