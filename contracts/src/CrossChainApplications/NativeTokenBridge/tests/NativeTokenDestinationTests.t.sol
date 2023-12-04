@@ -6,9 +6,7 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
-import {NativeTokenDestination, IERC20, ITokenSource, SafeERC20, SafeERC20TransferFrom, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, ITeleporterMessenger} from "../NativeTokenDestination.sol";
-import {INativeTokenDestination} from "../INativeTokenDestination.sol";
-import {ITeleporterReceiver} from "../../../Teleporter/ITeleporterReceiver.sol";
+import {NativeTokenDestination, IERC20, ITokenSource, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, ITeleporterMessenger} from "../NativeTokenDestination.sol";
 import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 
