@@ -30,6 +30,7 @@ contract NativeTokenDestinationTest is Test {
     address private constant _DEFAULT_RECIPIENT =
         0xa4CEE7d1aF6aDdDD33E3b1cC680AB84fdf1b6d1d;
     uint256 private constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
+    uint256 private constant _DEFAULT_FEE_AMOUNT = 123456;
 
     event TransferToSource(
         address indexed sender,
@@ -119,7 +120,6 @@ contract NativeTokenDestinationTest is Test {
 
     function testTransferToSource() public {
         collateralizeBridge();
-        uint256 feeAmount = 12345;
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit TransferToSource({
@@ -135,7 +135,7 @@ contract NativeTokenDestinationTest is Test {
                 destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
                 feeInfo: TeleporterFeeInfo({
                     feeTokenAddress: address(mockERC20),
-                    amount: feeAmount
+                    amount: _DEFAULT_FEE_AMOUNT
                 }),
                 requiredGasLimit: nativeTokenDestination
                     .TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
@@ -154,18 +154,69 @@ contract NativeTokenDestinationTest is Test {
             )
         );
 
-        nativeTokenDestination.transferToSource{value: _DEFAULT_TRANSFER_AMOUNT}(
+        nativeTokenDestination.transferToSource{
+            value: _DEFAULT_TRANSFER_AMOUNT
+        }(
             _DEFAULT_RECIPIENT,
             TeleporterFeeInfo({
                 feeTokenAddress: address(mockERC20),
-                amount: feeAmount
+                amount: _DEFAULT_FEE_AMOUNT
+            }),
+            new address[](0)
+        );
+    }
+
+    function testReportBurnedTxFees() public {
+        uint256 burnedFees = nativeTokenDestination
+            .BURNED_TX_FEES_ADDRESS()
+            .balance;
+
+        vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
+        emit ReportTotalBurnedTxFees({
+            burnAddressBalance: burnedFees,
+            teleporterMessageID: 1
+        });
+
+        TeleporterMessageInput
+            memory expectedMessageInput = TeleporterMessageInput({
+                destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
+                destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: address(mockERC20),
+                    amount: _DEFAULT_FEE_AMOUNT
+                }),
+                requiredGasLimit: nativeTokenDestination
+                    .REPORT_BURNED_TOKENS_REQUIRED_GAS(),
+                allowedRelayerAddresses: new address[](0),
+                message: abi.encode(
+                    ITokenSource.SourceAction.Burn,
+                    abi.encode(burnedFees)
+                )
+            });
+
+        vm.expectCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeCall(
+                ITeleporterMessenger.sendCrossChainMessage,
+                (expectedMessageInput)
+            )
+        );
+
+        nativeTokenDestination.reportTotalBurnedTxFees(
+            TeleporterFeeInfo({
+                feeTokenAddress: address(mockERC20),
+                amount: _DEFAULT_FEE_AMOUNT
             }),
             new address[](0)
         );
     }
 
     function testZeroTeleporterAddress() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero TeleporterMessenger address"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage(
+                "zero TeleporterMessenger address"
+            )
+        );
 
         new NativeTokenDestination(
             address(0x0),
@@ -176,7 +227,11 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testZeroSourceChainID() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source blockchain ID"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage(
+                "zero source blockchain ID"
+            )
+        );
 
         new NativeTokenDestination(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -187,7 +242,11 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testSameBlockchainID() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("cannot bridge with same blockchain"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage(
+                "cannot bridge with same blockchain"
+            )
+        );
 
         new NativeTokenDestination(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -198,7 +257,11 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testZeroSourceContractAddress() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source contract address"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage(
+                "zero source contract address"
+            )
+        );
 
         new NativeTokenDestination(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -209,7 +272,11 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testZeroInitialReserveImbalance() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero initial reserve imbalance"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage(
+                "zero initial reserve imbalance"
+            )
+        );
 
         new NativeTokenDestination(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -220,7 +287,11 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testInvalidTeleporterAddress() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("unauthorized TeleporterMessenger contract"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage(
+                "unauthorized TeleporterMessenger contract"
+            )
+        );
 
         vm.prank(address(0x123));
         nativeTokenDestination.receiveTeleporterMessage(
@@ -231,7 +302,9 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testInvalidSourceBlockchain() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("invalid source chain"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage("invalid source chain")
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenDestination.receiveTeleporterMessage(
@@ -242,7 +315,9 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testInvalidSenderContract() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("unauthorized sender"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage("unauthorized sender")
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenDestination.receiveTeleporterMessage(
@@ -253,7 +328,9 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testInvalidRecipientAddress() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero recipient address"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage("zero recipient address")
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenDestination.receiveTeleporterMessage(
@@ -264,13 +341,52 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testInvalidTransferAmount() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero transfer value"));
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage("zero transfer value")
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(_DEFAULT_RECIPIENT, 0)
+        );
+    }
+
+    function testZeroRecipient() public {
+        collateralizeBridge();
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage("zero recipient address")
+        );
+
+        nativeTokenDestination.transferToSource{
+            value: _DEFAULT_TRANSFER_AMOUNT
+        }(
+            address(0x0),
+            TeleporterFeeInfo({
+                feeTokenAddress: address(mockERC20),
+                amount: _DEFAULT_FEE_AMOUNT
+            }),
+            new address[](0)
+        );
+    }
+
+    function testUncollateralizedBridge() public {
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage(
+                "contract undercollateralized"
+            )
+        );
+
+        nativeTokenDestination.transferToSource{
+            value: _DEFAULT_TRANSFER_AMOUNT
+        }(
+            _DEFAULT_RECIPIENT,
+            TeleporterFeeInfo({
+                feeTokenAddress: address(mockERC20),
+                amount: _DEFAULT_FEE_AMOUNT
+            }),
+            new address[](0)
         );
     }
 
