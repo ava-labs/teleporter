@@ -163,6 +163,46 @@ func (n *testNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey)
 	return n.fundedAddress, n.fundedKey
 }
 
+func (n *testNetwork) SupportsIndependentRelaying() bool {
+	// The test application cannot relay its own messages on testnets
+	// because it can't query validators directly for their BLS signatures.
+	return false
+}
+
+// For testnet messages, rely on a separately deployed relayer to relay the message.
+// The implementation checks for the deliver of the given message on the destination
+// within a time window of {relayWaitTime} seconds, and returns the receipt of the
+// transaction that delivered the message.
+func (n *testNetwork) RelayMessage(ctx context.Context,
+	sourceReceipt *types.Receipt,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+	expectSuccess bool) *types.Receipt {
+	// Set the context to expire after 20 seconds
+	var cancel context.CancelFunc
+	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
+	sourceSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		n.teleporterContractAddress, source.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+
+	// Get the Teleporter message ID from the receipt
+	sendEvent, err := utils.GetEventFromLogs(
+		sourceReceipt.Logs, sourceSubnetTeleporterMessenger.ParseSendCrossChainMessage,
+	)
+	Expect(err).Should(BeNil())
+
+	teleporterMessageID := sendEvent.Message.MessageID
+
+	receipt, err := n.getMessageDeliveryTransactionReceipt(cctx, source.BlockchainID, destination, teleporterMessageID)
+	Expect(err).Should(BeNil())
+	Expect(receipt).ShouldNot(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	return receipt
+}
+
 func (n *testNetwork) checkMessageDelivered(
 	sourceBlockchainID ids.ID,
 	destination interfaces.SubnetTestInfo,
@@ -234,44 +274,4 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	}
 
 	return destination.RPCClient.TransactionReceipt(ctx, logs[0].TxHash)
-}
-
-func (n *testNetwork) SupportsIndependentRelaying() bool {
-	// The test application cannot relay its own messages on testnets
-	// because it can't query validators directly for their BLS signatures.
-	return false
-}
-
-// For testnet messages, rely on a separately deployed relayer to relay the message.
-// The implementation checks for the deliver of the given message on the destination
-// within a time window of {relayWaitTime} seconds, and returns the receipt of the
-// transaction that delivered the message.
-func (n *testNetwork) RelayMessage(ctx context.Context,
-	sourceReceipt *types.Receipt,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-	expectSuccess bool) *types.Receipt {
-	// Set the context to expire after 20 seconds
-	var cancel context.CancelFunc
-	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
-	defer cancel()
-
-	sourceSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		n.teleporterContractAddress, source.RPCClient,
-	)
-	Expect(err).Should(BeNil())
-
-	// Get the Teleporter message ID from the receipt
-	sendEvent, err := utils.GetEventFromLogs(
-		sourceReceipt.Logs, sourceSubnetTeleporterMessenger.ParseSendCrossChainMessage,
-	)
-	Expect(err).Should(BeNil())
-
-	teleporterMessageID := sendEvent.Message.MessageID
-
-	receipt, err := n.getMessageDeliveryTransactionReceipt(cctx, source.BlockchainID, destination, teleporterMessageID)
-	Expect(err).Should(BeNil())
-	Expect(receipt).ShouldNot(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	return receipt
 }
