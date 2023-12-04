@@ -141,7 +141,10 @@ func SendSpecificReceipts(network interfaces.Network) {
 		// Relay message from Subnet B to Subnet A
 		receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 		// Check delivered
-		delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
+		delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(
+			&bind.CallOpts{},
+			subnetBInfo.BlockchainID,
+			messageID)
 		Expect(err).Should(BeNil())
 		Expect(delivered).Should(BeTrue())
 		// Get the Teleporter message from receive event and confirm that the receipts are delivered again
