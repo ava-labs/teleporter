@@ -187,7 +187,7 @@ func ERC20ToNativeTokenBridge(network network.Network) {
 			erc20TokenSource.ParseTransferToDestination,
 		)
 		Expect(err).Should(BeNil())
-		utils.ExpectBigEqual(transferEvent.TransferAmount, valueToSend)
+		utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
 
 		receipt := network.RelayMessage(ctx, sourceChainReceipt, subnetA, subnetB, true)
 
