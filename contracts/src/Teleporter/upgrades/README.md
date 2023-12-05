@@ -36,7 +36,7 @@ contract ExampleApp is
     ...
     constructor(
         address teleporterRegistryAddress
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
+    ) TeleporterUpgradeable(teleporterRegistryAddress) {
         currentBlockchainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
@@ -58,7 +58,7 @@ contract ExampleApp is
 
 The `TeleporterUpgradeable` contract saves the Teleporter registry in a state variable used by the inheriting contract, and initializes a `minTeleporterVersion` to the highest `TeleporterMessenger` version registered in `TeleporterRegistry`. `TeleporterUpgradeable` also provides an initial implementation of [ITeleporterReceiver.receiveTeleporterMessage](../ITeleporterReceiver.sol) that ensures `msg.sender` is a `TeleporterMessenger` contract with a version greater than or equal to `minTeleporterVersion`. This supports the case where a dapp wants to upgrade to a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract.The dapp can override `_receiveTeleporterMessage` to implement its own logic for receiving messages from Teleporter contracts.
 
-The `TeleporterUpgradeable.updateMinTeleporterVersion` function updates the `minTeleporterVersion` used to check which Teleporter versions can deliver messages to the dapp, and emits the `MinTeleporterVersionUpdated` event. The `updateMinTeleporterVersion` function should be called by the dapp when it completes delivery of messages from the old Teleporter contract, and now wants to update the `minTeleporterVersion` to only allow the new Teleporter version. By defaut, `updateMinTeleporterVersion` can only be called with a version greater than the current `minTeleporterVersion` and less than `latestVersion` in the Teleporter registry. So this function should only be called once the dapp has confirmed it no longer needs to receive messages from the old Teleporter version.
+The `TeleporterUpgradeable.updateMinTeleporterVersion` function updates the `minTeleporterVersion` used to check which Teleporter versions can deliver messages to the dapp, and emits the `MinTeleporterVersionUpdated` event. The `updateMinTeleporterVersion` function should **ONLY** be called by the dapp when it completes delivery of messages from the old Teleporter contract, and now wants to update the `minTeleporterVersion` to only allow the new Teleporter version. By defaut, `updateMinTeleporterVersion` can only be called with a version greater than the current `minTeleporterVersion` and less than `latestVersion` in the Teleporter registry. So once this function is called, the dapp will no longer be able to receive messages from the old Teleporter contract version, unless the old version's Teleporter address was registered in the registry again with a new version.
 
 To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which would disallow messages from old Teleporter versions from being received, this function should be safeguarded with access controls. All contracts deriving from `TeleporterUpgradeable` will need to implement `TeleporterUpgradeable._checkTeleporterUpgradeAccess`. For example, [TeleporterOwnerUpgrade](./TeleporterOwnerUpgradeable.sol) is an abstract contract that inherits `TeleporterUpgradeable`, and implements `_checkTeleporterUpgradeAccess` to check whether the caller is the owner.
 
