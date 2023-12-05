@@ -106,10 +106,7 @@ Then run the following command from the root of the repository:
 The same E2E test flows can be executed against external network by setting the proper environment variables in `.env.testnet` and `.env`, and running the following commands:
 ```bash
 cp .env.example .env # Set proper values after copying.
-set -a
-source .env
-source .env.testnet
-go run tests/testnet/main/run_testnet_flows.go
+./scripts/testnet/run_testnet_e2e_flows.sh 
 ```
 
 The user wallet set in `.env` must have native tokens for each of the subnets used in order for the test flows to be able to send transactions on those networks. 

@@ -72,10 +72,10 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	// transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	// Send a transaction to the Teleporter contract
@@ -106,11 +106,11 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	messageID *big.Int,
 	amount *big.Int,
 	feeContractAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, source.EVMChainID)
+		senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	txn, err := transactor.AddFeeAmount(opts, destination.BlockchainID, messageID, feeContractAddress, amount)
@@ -137,10 +137,10 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	originChainID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	message teleportermessenger.TeleporterMessage,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	// transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnet.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	txn, err := subnet.TeleporterMessenger.RetryMessageExecution(opts, originChainID, message)
@@ -208,10 +208,10 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	messageIDs []*big.Int,
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	// transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	txn, err := source.TeleporterMessenger.SendSpecifiedReceipts(
@@ -277,10 +277,10 @@ func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
 	source interfaces.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
-	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
+	fundedAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
 	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
@@ -298,7 +298,7 @@ func CreateSendCrossChainMessageTransaction(
 		Data:      data,
 	})
 
-	return SignTransaction(tx, fundedKey, source.EVMChainID)
+	return SignTransaction(tx, senderKey, source.EVMChainID)
 }
 
 func CreateRetryMessageExecutionTransaction(
@@ -306,10 +306,10 @@ func CreateRetryMessageExecutionTransaction(
 	subnetInfo interfaces.SubnetTestInfo,
 	originChainID ids.ID,
 	message teleportermessenger.TeleporterMessage,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
-	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
+	fundedAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
 
 	data, err := teleportermessenger.PackRetryMessageExecution(originChainID, message)
 	Expect(err).Should(BeNil())
@@ -332,7 +332,7 @@ func CreateRetryMessageExecutionTransaction(
 		Data:      data,
 	})
 
-	return SignTransaction(tx, fundedKey, subnetInfo.EVMChainID)
+	return SignTransaction(tx, senderKey, subnetInfo.EVMChainID)
 }
 
 // Constructs a transaction to call receiveCrossChainMessage
@@ -342,10 +342,10 @@ func CreateReceiveCrossChainMessageTransaction(
 	warpMessageBytes []byte,
 	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnetInfo interfaces.SubnetTestInfo,
 ) *types.Transaction {
-	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
+	fundedAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
 	signedMessage, err := avalancheWarp.ParseMessage(warpMessageBytes)
@@ -376,7 +376,7 @@ func CreateReceiveCrossChainMessageTransaction(
 		signedMessage.Bytes(),
 	)
 
-	return SignTransaction(destinationTx, fundedKey, subnetInfo.EVMChainID)
+	return SignTransaction(destinationTx, senderKey, subnetInfo.EVMChainID)
 }
 
 func CreateNativeTransferTransaction(
@@ -473,9 +473,9 @@ func ERC20Approve(
 	spender common.Address,
 	amount *big.Int,
 	source interfaces.SubnetTestInfo,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 ) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 	txn, err := token.Approve(opts, spender, amount)
 	Expect(err).Should(BeNil())
@@ -488,10 +488,10 @@ func ERC20Approve(
 
 func DeployExampleERC20(
 	ctx context.Context,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	source interfaces.SubnetTestInfo,
 ) (common.Address, *exampleerc20.ExampleERC20) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	// Deploy Mock ERC20 contract
@@ -509,11 +509,11 @@ func DeployExampleERC20(
 
 func DeployExampleCrossChainMessenger(
 	ctx context.Context,
-	deployerKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 ) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
-		deployerKey, subnet.EVMChainID)
+		senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(
 		opts, subnet.RPCClient, subnet.TeleporterRegistryAddress,
@@ -530,10 +530,10 @@ func DeployExampleCrossChainMessenger(
 
 func DeployERC20Bridge(
 	ctx context.Context,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	source interfaces.SubnetTestInfo,
 ) (common.Address, *erc20bridge.ERC20Bridge) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 	address, tx, erc20Bridge, err := erc20bridge.DeployERC20Bridge(
 		opts, source.RPCClient, source.TeleporterRegistryAddress,
@@ -552,11 +552,11 @@ func DeployERC20Bridge(
 
 func DeployBlockHashPublisher(
 	ctx context.Context,
-	deployerKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 ) (common.Address, *blockhashpublisher.BlockHashPublisher) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
-		deployerKey, subnet.EVMChainID)
+		senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	address, tx, publisher, err := blockhashpublisher.DeployBlockHashPublisher(
 		opts, subnet.RPCClient, subnet.TeleporterRegistryAddress,
@@ -573,13 +573,13 @@ func DeployBlockHashPublisher(
 
 func DeployBlockHashReceiver(
 	ctx context.Context,
-	deployerKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	publisherAddress common.Address,
 	publisherChainID [32]byte,
 ) (common.Address, *blockhashreceiver.BlockHashReceiver) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
-		deployerKey, subnet.EVMChainID)
+		senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	address, tx, receiver, err := blockhashreceiver.DeployBlockHashReceiver(
 		opts,

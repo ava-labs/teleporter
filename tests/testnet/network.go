@@ -183,7 +183,6 @@ func (n *testNetwork) RelayMessage(ctx context.Context,
 	destination interfaces.SubnetTestInfo,
 	expectSuccess bool) *types.Receipt {
 	// Set the context to expire after 20 seconds
-	var cancel context.CancelFunc
 	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
@@ -257,7 +256,7 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 		return nil, err
 	}
 
-	// Get the log event of the delivery. The log must be in the last 500 blocks.
+	// Get the log event of the delivery. The log must be in the last {receiveCrossChainMessageLookBackBlocks} blocks.
 	logs, err := destination.RPCClient.FilterLogs(ctx, subnetevminterfaces.FilterQuery{
 		FromBlock: big.NewInt(int64(startBlock)),
 		Addresses: []common.Address{n.teleporterContractAddress},

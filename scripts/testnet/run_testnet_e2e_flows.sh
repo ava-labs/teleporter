@@ -1,0 +1,11 @@
+set -e
+
+TELEPORTER_PATH=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  cd ../.. && pwd
+)
+
+set -a
+source $TELEPORTER_PATH/.env
+source $TELEPORTER_PATH/.env.testnet
+go run tests/testnet/main/run_testnet_flows.go

@@ -114,6 +114,8 @@ func SendSpecificReceipts(network interfaces.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	// Check the reward amounts.
+	// Even on external networks, the relayer should only have the expected fee amount
+	// for this asset because the asset contract was newly deployed by this test.
 	checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
 
 	// If the network is internal to the test application, send a message from Subnet B to Subnet A to trigger
@@ -216,6 +218,10 @@ func receiptIncluded(
 	return false
 }
 
+// Checks that the reward redeemers specified by the two provided message receipts
+// are able to redeem the correct amount of the rewards of the given token. It is
+// assumed that the {tokenAddress} was used as the fee asset for each of the messages,
+// and that each message individually had a fee of {feePerMessage}.
 func checkExpectedRewardAmounts(
 	sourceSubnet interfaces.SubnetTestInfo,
 	receiveEvent1 *teleportermessenger.TeleporterMessengerReceiveCrossChainMessage,
@@ -224,6 +230,9 @@ func checkExpectedRewardAmounts(
 	feePerMessage *big.Int,
 ) {
 	// Check the reward amounts.
+	// If the same address is the reward redeemer for both messages,
+	// it should be able to redeem {feePerMessage}*2. Otherwise,
+	// each distinct reward redeemer should be able to redeem {feePerMessage}.
 	if receiveEvent1.RewardRedeemer == receiveEvent2.RewardRedeemer {
 		amount, err := sourceSubnet.TeleporterMessenger.CheckRelayerRewardAmount(
 			&bind.CallOpts{},
