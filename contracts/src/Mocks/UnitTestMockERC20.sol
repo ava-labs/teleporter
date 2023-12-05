@@ -31,7 +31,7 @@ contract UnitTestMockERC20 {
     }
 
     // The mock allows anyone to call transferFrom to increment the balance of the
-    // receipt address. Neither the call or sender need to have sufficient balances to send,
+    // receipt address. Neither the caller or sender need to have sufficient balances to send,
     // we just increment the balance the of the recipient.
     function transfer(
         address to,
