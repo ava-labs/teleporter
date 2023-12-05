@@ -1,4 +1,4 @@
-name: E2E and Solidity Unit Tests
+name: Tests
 
 on:
   push:
