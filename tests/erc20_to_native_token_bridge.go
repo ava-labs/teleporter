@@ -21,7 +21,8 @@ import (
 
 func ERC20ToNativeTokenBridge(network network.Network) {
 	const (
-		// Each test file needs a unique deployer that must be funded with tokens to deploy
+		// This test needs a unique deployer key, whose nonce 0 is used to deploy the bridge contract on each chain.
+		// The address of the resulting contract has been added to the genesis file as an admin for the Native Minter precompile.
 		deployerKeyStr                     = "ca7269c1fe2a5b86884a119aa516b8d5b641670b83aac0ebf9f2d71affcc12e4"
 		ExampleERC20ByteCodeFile           = "./contracts/out/ExampleERC20.sol/ExampleERC20.json"
 		ERC20TokenSourceByteCodeFile       = "./contracts/out/ERC20TokenSource.sol/ERC20TokenSource.json"
