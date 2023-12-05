@@ -104,7 +104,7 @@ func BasicSendReceive(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	// If the reward address of the message from A->B is the funded address able to send
+	// If the reward address of the message from A->B is the funded address, which is able to send
 	// transactions on subnet A, then redeem the rewards.
 	if receiveEvent.RewardRedeemer == fundedAddress {
 		utils.RedeemRelayerRewardsAndConfirm(
