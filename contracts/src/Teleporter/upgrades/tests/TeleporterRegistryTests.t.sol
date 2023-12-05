@@ -435,6 +435,71 @@ contract TeleporterRegistryTest is Test {
         teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
+    function testMaxVersionIncrement() public {
+        uint256 latestVersion = teleporterRegistry.latestVersion();
+        uint32 messageIndex = 0;
+
+        // Adding a version that matches the max version increment succeeds
+        WarpMessage memory warpMessage = _createWarpOffChainMessage(
+            latestVersion + teleporterRegistry.MAX_VERSION_INCREMENT(),
+            address(teleporterRegistry),
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            )
+        );
+
+        teleporterRegistry.addProtocolVersion(messageIndex);
+        assertEq(
+            latestVersion + teleporterRegistry.MAX_VERSION_INCREMENT(),
+            teleporterRegistry.latestVersion()
+        );
+
+        latestVersion = teleporterRegistry.latestVersion();
+        // Adding a version that is greater than the max version increment fails
+        warpMessage = _createWarpOffChainMessage(
+            latestVersion + teleporterRegistry.MAX_VERSION_INCREMENT() + 1,
+            address(teleporterRegistry),
+            teleporterAddress,
+            address(teleporterRegistry)
+        );
+
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            ),
+            abi.encode(warpMessage, true)
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(
+                IWarpMessenger.getVerifiedWarpMessage,
+                (messageIndex)
+            )
+        );
+
+        vm.expectRevert(
+            _formatRegistryErrorMessage("version increment too high")
+        );
+        teleporterRegistry.addProtocolVersion(messageIndex);
+    }
+
     function _addProtocolVersion(
         TeleporterRegistry registry,
         address newProtocolAddress
