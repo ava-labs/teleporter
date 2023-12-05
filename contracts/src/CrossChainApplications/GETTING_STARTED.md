@@ -191,24 +191,10 @@ There we have it, a simple cross chain messenger built on top of Teleporter! Ful
 
 ## Step 5: Testing
 
-For testing, `scripts/local/test.sh` sets up a local Avalanche network with three subnets deployed with Teleporter, and a relayer to deliver Teleporter messages. To add an integration test simply add a new test script under `integration-tests`. An integration test for `ExampleCrossChainMessenger` is already included (`scripts/local/integration_tests/example_messenger.sh`), which performs the following steps:
+For testing, `scripts/local/e2e_test.sh` sets up a local test environment consisting of three subnets deployed with Teleporter, and a lightweight inline relayer implementation to facilitate cross chain message delivery. An end-to-end test for `ExampleCrossChainMessenger` is included in `tests/example_messenger.go`, which performs the following:
 
 1. Deploys the [ExampleERC20](../Mocks/ExampleERC20.sol) token to subnet A.
 2. Deploys `ExampleCrossChainMessenger` to both subnets A and B.
 3. Approves the cross-chain messenger on subnet A to spend ERC20 tokens from the default address.
-4. Sends `"hello world"` from subnet A to subnet B's cross-chain messenger to receive.
+4. Sends `"Hello, world!"` from subnet A to subnet B's cross-chain messenger to receive.
 5. Calls `getCurrentMessage` on subnet B to make sure the right message and sender are received.
-
-Running `./test.sh example_messenger` at the root of the repo should yield at the end of the test:
-
-```bash
-test_runner         | Raw result is: "0x5DB9A7629912EBF95876228C24A848de0bfB43A9
-test_runner         | hello world!"
-test_runner         | The latest message from chain ID GoTmTVw77eGauaL17e1xPrtWEa72SQnvf9G8ackU6KZVGVYpz was:
-test_runner         |     Message Sender: 0x5DB9A7629912EBF95876228C24A848de0bfB43A9
-test_runner         |     Message: "hello world!"
-test_runner         | Successfully called getCurrentMessage.
-test_runner         | Done running test example_messenger.
-test_runner         |
-test_runner exited with code 0
-```
