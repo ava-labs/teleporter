@@ -21,7 +21,7 @@ RUN apt-get update && \
     apt-get clean
 
 # Install dev dependencies
-# python is used to parse JSON in run_tests.sh, and to find the proper log directory in run_setup.sh
+# python is used to parse JSON, and to find the proper log directory in run_setup.sh
 RUN apt-get install -y wget curl git python3 make gcc build-essential
 
 # Install Golang
