@@ -20,8 +20,9 @@ import (
 
 func NativeTokenBridge(network network.Network) {
 	const (
-		// This test needs a unique deployer key, whose nonce 0 is used to deploy the bridge contract on each chain.
-		// The address of the resulting contract has been added to the genesis file as an admin for the Native Minter precompile.
+		// This test needs a unique deployer key, whose nonce 0 is used to deploy the bridge contract
+		// on each chain. The address of the resulting contract has been added to the genesis file as
+		// an admin for the Native Minter precompile.
 		deployerKeyStr                     = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
 		NativeTokenSourceByteCodeFile      = "./contracts/out/NativeTokenSource.sol/NativeTokenSource.json"
 		NativeTokenDestinationByteCodeFile = "./contracts/out/NativeTokenDestination.sol/NativeTokenDestination.json"
