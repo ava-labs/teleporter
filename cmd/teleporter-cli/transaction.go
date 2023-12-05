@@ -36,8 +36,7 @@ the command parses to log event fields to a more human readable format.`,
 		receipt, err := client.TransactionReceipt(context.Background(),
 			common.HexToHash(args[0]))
 		cobra.CheckErr(err)
-		cmd.Print("HELLOOOO")
-		logger.Info("TEST")
+
 		for _, log := range receipt.Logs {
 			if log.Address == teleporterAddress {
 				logger.Info("Processing Teleporter log", zap.Any("log", log))
