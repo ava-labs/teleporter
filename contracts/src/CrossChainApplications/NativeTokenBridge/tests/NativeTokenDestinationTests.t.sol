@@ -91,8 +91,6 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function collateralizeBridge() public {
-        uint256 amount = _DEFAULT_INITIAL_RESERVE_IMBALANCE;
-
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
             amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -111,7 +109,7 @@ contract NativeTokenDestinationTest is Test {
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(_DEFAULT_RECIPIENT, amount)
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE)
         );
         vm.stopPrank();
     }
@@ -161,6 +159,47 @@ contract NativeTokenDestinationTest is Test {
                 amount: _DEFAULT_FEE_AMOUNT
             }),
             new address[](0)
+        );
+    }
+
+    function testCollateralizeBridge() public {
+        uint256 firstTransfer = _DEFAULT_INITIAL_RESERVE_IMBALANCE / 4;
+
+        vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
+        emit CollateralAdded({
+            amount: firstTransfer,
+            remaining: _DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer,
+            recipient: _DEFAULT_RECIPIENT
+        });
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        nativeTokenDestination.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, firstTransfer)
+        );
+
+        assertEq(0, _DEFAULT_RECIPIENT.balance);
+
+        vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
+        emit CollateralAdded({
+            amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer,
+            remaining: 0,
+            recipient: _DEFAULT_RECIPIENT
+        });
+        emit NativeTokensMinted(_DEFAULT_RECIPIENT, firstTransfer);
+
+        vm.expectCall(
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(INativeMinter.mintNativeCoin.selector),
+            1
+        );
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        nativeTokenDestination.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE)
         );
     }
 
