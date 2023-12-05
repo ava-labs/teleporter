@@ -31,8 +31,8 @@ var (
 
 // BlockHashReceiverMetaData contains all meta data concerning the BlockHashReceiver contract.
 var BlockHashReceiverMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"publisherBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"publisherContractAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getLatestBlockInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourcePublisherContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x60e060405234801561001057600080fd5b506040516109ec3803806109ec83398101604081905261002f916101b3565b82806001600160a01b0381166100b15760405162461bcd60e51b815260206004820152603760248201527f54656c65706f727465725570677261646561626c653a207a65726f2074656c6560448201527f706f727465722072656769737472792061646472657373000000000000000000606482015260840160405180910390fd5b6001600160a01b03811660808190526040805163301fd1f560e21b8152905163c07f47d4916004808201926020929091908290030181865afa1580156100fb573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061011f91906101ef565b6000555061012c33610145565b5060a0919091526001600160a01b031660c05250610208565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b80516001600160a01b03811681146101ae57600080fd5b919050565b6000806000606084860312156101c857600080fd5b6101d184610197565b9250602084015191506101e660408501610197565b90509250925092565b60006020828403121561020157600080fd5b5051919050565b60805160a05160c05161079a6102526000396000818161014a015261043701526000818161010201526103b501526000818160be015281816101fc01526102d4015261079a6000f3fe608060405234801561001057600080fd5b50600436106100b45760003560e01c8063b17810be11610071578063b17810be1461017d578063b6109d9d14610198578063c868efaa146101a0578063e49cc553146101b3578063f2fde38b146101bc578063f3f39ee5146101cf57600080fd5b80631a7f5bec146100b957806329b7b3fd146100fd5780636c4f6ba914610132578063715018a61461013b57806379a0710c146101455780638da5cb5b1461016c575b600080fd5b6100e07f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b6101247f000000000000000000000000000000000000000000000000000000000000000081565b6040519081526020016100f4565b61012460035481565b6101436101d8565b005b6100e07f000000000000000000000000000000000000000000000000000000000000000081565b6001546001600160a01b03166100e0565b600254600354604080519283526020830191909152016100f4565b6101436101ec565b6101436101ae366004610680565b6102bc565b61012460005481565b6101436101ca366004610707565b610542565b61012460025481565b6101e06105b8565b6101ea6000610612565b565b6101f46105b8565b6000805490507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663c07f47d46040518163ffffffff1660e01b8152600401602060405180830381865afa158015610258573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061027c9190610729565b60008190558110156102b957600054817fa9a7ef57e41f05b4c15480842f5f0c27edfcbb553fed281f7c4068452cc1c02d60405160405180910390a35b50565b60005460405163260f846760e11b81523360048201527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690634c1f08ce90602401602060405180830381865afa158015610323573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103479190610729565b10156103b35760405162461bcd60e51b815260206004820152603060248201527f54656c65706f727465725570677261646561626c653a20696e76616c6964207460448201526f32b632b837b93a32b91039b2b73232b960811b60648201526084015b60405180910390fd5b7f000000000000000000000000000000000000000000000000000000000000000084146104355760405162461bcd60e51b815260206004820152602a60248201527f426c6f636b4861736852656365697665723a20696e76616c696420736f757263604482015269194818da185a5b88125160b21b60648201526084016103aa565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316836001600160a01b0316146104d05760405162461bcd60e51b815260206004820152603160248201527f426c6f636b4861736852656365697665723a20696e76616c696420736f757263604482015270329031b430b4b710383ab13634b9b432b960791b60648201526084016103aa565b6000806104df83850185610742565b9150915060025482111561053a576002829055600381905560405181815282906001600160a01b0387169088907f0bca78aa82d7575f42e4b4b2fe04765a4b2f3661786403788ce987e065ac590d9060200160405180910390a45b505050505050565b61054a6105b8565b6001600160a01b0381166105af5760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b60648201526084016103aa565b6102b981610612565b6001546001600160a01b031633146101ea5760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657260448201526064016103aa565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b80356001600160a01b038116811461067b57600080fd5b919050565b6000806000806060858703121561069657600080fd5b843593506106a660208601610664565b9250604085013567ffffffffffffffff808211156106c357600080fd5b818701915087601f8301126106d757600080fd5b8135818111156106e657600080fd5b8860208285010111156106f857600080fd5b95989497505060200194505050565b60006020828403121561071957600080fd5b61072282610664565b9392505050565b60006020828403121561073b57600080fd5b5051919050565b6000806040838503121561075557600080fd5b5050803592602090910135915056fea26469706673582212204115606b0620484e67b400038a7121a5b12db62f6dd096d8e070da789e76e71064736f6c63430008120033",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"publisherBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"publisherContractAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getLatestBlockInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourcePublisherContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x60e060405234801561001057600080fd5b50604051610b49380380610b4983398101604081905261002f916101b3565b82806001600160a01b0381166100b15760405162461bcd60e51b815260206004820152603760248201527f54656c65706f727465725570677261646561626c653a207a65726f2074656c6560448201527f706f727465722072656769737472792061646472657373000000000000000000606482015260840160405180910390fd5b6001600160a01b03811660808190526040805163301fd1f560e21b8152905163c07f47d4916004808201926020929091908290030181865afa1580156100fb573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061011f91906101ef565b6000555061012c33610145565b5060a0919091526001600160a01b031660c05250610208565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b80516001600160a01b03811681146101ae57600080fd5b919050565b6000806000606084860312156101c857600080fd5b6101d184610197565b9250602084015191506101e660408501610197565b90509250925092565b60006020828403121561020157600080fd5b5051919050565b60805160a05160c0516108f76102526000396000818161015d0152610694015260008181610102015261061201526000818160be0152818161022201526103ca01526108f76000f3fe608060405234801561001057600080fd5b50600436106100b45760003560e01c80638da5cb5b116100715780638da5cb5b1461017f578063b17810be14610190578063c868efaa146101ab578063d2cc7a70146101be578063f2fde38b146101c6578063f3f39ee5146101d957600080fd5b80631a7f5bec146100b957806329b7b3fd146100fd5780635eb99514146101325780636c4f6ba914610147578063715018a61461015057806379a0710c14610158575b600080fd5b6100e07f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b6101247f000000000000000000000000000000000000000000000000000000000000000081565b6040519081526020016100f4565b6101456101403660046107a6565b6101e2565b005b61012460035481565b6101456101f6565b6100e07f000000000000000000000000000000000000000000000000000000000000000081565b6001546001600160a01b03166100e0565b600254600354604080519283526020830191909152016100f4565b6101456101b93660046107db565b61020a565b600054610124565b6101456101d4366004610862565b610348565b61012460025481565b6101ea6103be565b6101f3816103c6565b50565b6101fe610564565b61020860006105be565b565b60005460405163260f846760e11b81523360048201527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690634c1f08ce90602401602060405180830381865afa158015610271573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102959190610884565b10156103015760405162461bcd60e51b815260206004820152603060248201527f54656c65706f727465725570677261646561626c653a20696e76616c6964205460448201526f32b632b837b93a32b91039b2b73232b960811b60648201526084015b60405180910390fd5b610342848484848080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525061061092505050565b50505050565b610350610564565b6001600160a01b0381166103b55760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b60648201526084016102f8565b6101f3816105be565b610208610564565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663c07f47d46040518163ffffffff1660e01b8152600401602060405180830381865afa158015610426573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061044a9190610884565b600054909150818311156104ba5760405162461bcd60e51b815260206004820152603160248201527f54656c65706f727465725570677261646561626c653a20696e76616c6964205460448201527032b632b837b93a32b9103b32b939b4b7b760791b60648201526084016102f8565b80831161052f5760405162461bcd60e51b815260206004820152603f60248201527f54656c65706f727465725570677261646561626c653a206e6f7420677265617460448201527f6572207468616e2063757272656e74206d696e696d756d2076657273696f6e0060648201526084016102f8565b6000838155604051849183917fa9a7ef57e41f05b4c15480842f5f0c27edfcbb553fed281f7c4068452cc1c02d9190a3505050565b6001546001600160a01b031633146102085760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657260448201526064016102f8565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b7f000000000000000000000000000000000000000000000000000000000000000083146106925760405162461bcd60e51b815260206004820152602a60248201527f426c6f636b4861736852656365697665723a20696e76616c696420736f757263604482015269194818da185a5b88125160b21b60648201526084016102f8565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316826001600160a01b03161461072d5760405162461bcd60e51b815260206004820152603160248201527f426c6f636b4861736852656365697665723a20696e76616c696420736f757263604482015270329031b430b4b710383ab13634b9b432b960791b60648201526084016102f8565b60008082806020019051810190610744919061089d565b9150915060025482111561079f576002829055600381905560405181815282906001600160a01b0386169087907f0bca78aa82d7575f42e4b4b2fe04765a4b2f3661786403788ce987e065ac590d9060200160405180910390a45b5050505050565b6000602082840312156107b857600080fd5b5035919050565b80356001600160a01b03811681146107d657600080fd5b919050565b600080600080606085870312156107f157600080fd5b84359350610801602086016107bf565b9250604085013567ffffffffffffffff8082111561081e57600080fd5b818701915087601f83011261083257600080fd5b81358181111561084157600080fd5b88602082850101111561085357600080fd5b95989497505060200194505050565b60006020828403121561087457600080fd5b61087d826107bf565b9392505050565b60006020828403121561089657600080fd5b5051919050565b600080604083850312156108b057600080fd5b50508051602090910151909290915056fea26469706673582212209004c351a7066847095573939dbcbac0c466b5c81f267cbcabe50502384f3dae64736f6c63430008120033",
 }
 
 // BlockHashReceiverABI is the input ABI used to generate the binding from.
@@ -234,6 +234,37 @@ func (_BlockHashReceiver *BlockHashReceiverCallerSession) GetLatestBlockInfo() (
 	return _BlockHashReceiver.Contract.GetLatestBlockInfo(&_BlockHashReceiver.CallOpts)
 }
 
+// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
+//
+// Solidity: function getMinTeleporterVersion() view returns(uint256)
+func (_BlockHashReceiver *BlockHashReceiverCaller) GetMinTeleporterVersion(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _BlockHashReceiver.contract.Call(opts, &out, "getMinTeleporterVersion")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
+//
+// Solidity: function getMinTeleporterVersion() view returns(uint256)
+func (_BlockHashReceiver *BlockHashReceiverSession) GetMinTeleporterVersion() (*big.Int, error) {
+	return _BlockHashReceiver.Contract.GetMinTeleporterVersion(&_BlockHashReceiver.CallOpts)
+}
+
+// GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
+//
+// Solidity: function getMinTeleporterVersion() view returns(uint256)
+func (_BlockHashReceiver *BlockHashReceiverCallerSession) GetMinTeleporterVersion() (*big.Int, error) {
+	return _BlockHashReceiver.Contract.GetMinTeleporterVersion(&_BlockHashReceiver.CallOpts)
+}
+
 // LatestBlockHash is a free data retrieval call binding the contract method 0x6c4f6ba9.
 //
 // Solidity: function latestBlockHash() view returns(bytes32)
@@ -294,37 +325,6 @@ func (_BlockHashReceiver *BlockHashReceiverSession) LatestBlockHeight() (*big.In
 // Solidity: function latestBlockHeight() view returns(uint256)
 func (_BlockHashReceiver *BlockHashReceiverCallerSession) LatestBlockHeight() (*big.Int, error) {
 	return _BlockHashReceiver.Contract.LatestBlockHeight(&_BlockHashReceiver.CallOpts)
-}
-
-// MinTeleporterVersion is a free data retrieval call binding the contract method 0xe49cc553.
-//
-// Solidity: function minTeleporterVersion() view returns(uint256)
-func (_BlockHashReceiver *BlockHashReceiverCaller) MinTeleporterVersion(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _BlockHashReceiver.contract.Call(opts, &out, "minTeleporterVersion")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// MinTeleporterVersion is a free data retrieval call binding the contract method 0xe49cc553.
-//
-// Solidity: function minTeleporterVersion() view returns(uint256)
-func (_BlockHashReceiver *BlockHashReceiverSession) MinTeleporterVersion() (*big.Int, error) {
-	return _BlockHashReceiver.Contract.MinTeleporterVersion(&_BlockHashReceiver.CallOpts)
-}
-
-// MinTeleporterVersion is a free data retrieval call binding the contract method 0xe49cc553.
-//
-// Solidity: function minTeleporterVersion() view returns(uint256)
-func (_BlockHashReceiver *BlockHashReceiverCallerSession) MinTeleporterVersion() (*big.Int, error) {
-	return _BlockHashReceiver.Contract.MinTeleporterVersion(&_BlockHashReceiver.CallOpts)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -514,25 +514,25 @@ func (_BlockHashReceiver *BlockHashReceiverTransactorSession) TransferOwnership(
 	return _BlockHashReceiver.Contract.TransferOwnership(&_BlockHashReceiver.TransactOpts, newOwner)
 }
 
-// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
+// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0x5eb99514.
 //
-// Solidity: function updateMinTeleporterVersion() returns()
-func (_BlockHashReceiver *BlockHashReceiverTransactor) UpdateMinTeleporterVersion(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _BlockHashReceiver.contract.Transact(opts, "updateMinTeleporterVersion")
+// Solidity: function updateMinTeleporterVersion(uint256 version) returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactor) UpdateMinTeleporterVersion(opts *bind.TransactOpts, version *big.Int) (*types.Transaction, error) {
+	return _BlockHashReceiver.contract.Transact(opts, "updateMinTeleporterVersion", version)
 }
 
-// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
+// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0x5eb99514.
 //
-// Solidity: function updateMinTeleporterVersion() returns()
-func (_BlockHashReceiver *BlockHashReceiverSession) UpdateMinTeleporterVersion() (*types.Transaction, error) {
-	return _BlockHashReceiver.Contract.UpdateMinTeleporterVersion(&_BlockHashReceiver.TransactOpts)
+// Solidity: function updateMinTeleporterVersion(uint256 version) returns()
+func (_BlockHashReceiver *BlockHashReceiverSession) UpdateMinTeleporterVersion(version *big.Int) (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.UpdateMinTeleporterVersion(&_BlockHashReceiver.TransactOpts, version)
 }
 
-// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0xb6109d9d.
+// UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0x5eb99514.
 //
-// Solidity: function updateMinTeleporterVersion() returns()
-func (_BlockHashReceiver *BlockHashReceiverTransactorSession) UpdateMinTeleporterVersion() (*types.Transaction, error) {
-	return _BlockHashReceiver.Contract.UpdateMinTeleporterVersion(&_BlockHashReceiver.TransactOpts)
+// Solidity: function updateMinTeleporterVersion(uint256 version) returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactorSession) UpdateMinTeleporterVersion(version *big.Int) (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.UpdateMinTeleporterVersion(&_BlockHashReceiver.TransactOpts, version)
 }
 
 // BlockHashReceiverMinTeleporterVersionUpdatedIterator is returned from FilterMinTeleporterVersionUpdated and is used to iterate over the raw logs and unpacked data for MinTeleporterVersionUpdated events raised by the BlockHashReceiver contract.

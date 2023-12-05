@@ -92,24 +92,6 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     }
 
     /**
-     * @dev Receives Teleporter messages and handles accordingly.
-     * This function should be overridden by contracts that inherit from this contract.
-     */
-    function _receiveTeleporterMessage(
-        bytes32 originBlockchainID,
-        address originSenderAddress,
-        bytes memory message
-    ) internal virtual;
-
-    /**
-     * @dev Checks that the caller has access to update the minimum Teleporter version
-     * allowed for delivering Teleporter messages to this contract.
-     *
-     * This function should be overridden by contracts that inherit from this contract.
-     */
-    function _checkTeleporterUpgradeAccess() internal virtual;
-
-    /**
      * @dev Sets the minimum Teleporter version allowed for delivering Teleporter messages.
      * Emits a {MinTeleporterVersionUpdated} event if the minimum Teleporter version was updated.
      * Requirements:
@@ -134,4 +116,22 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
         _minTeleporterVersion = version;
         emit MinTeleporterVersionUpdated(oldMinTeleporterVersion, version);
     }
+
+    /**
+     * @dev Receives Teleporter messages and handles accordingly.
+     * This function should be overridden by contracts that inherit from this contract.
+     */
+    function _receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes memory message
+    ) internal virtual;
+
+    /**
+     * @dev Checks that the caller has access to update the minimum Teleporter version
+     * allowed for delivering Teleporter messages to this contract.
+     *
+     * This function should be overridden by contracts that inherit from this contract.
+     */
+    function _checkTeleporterUpgradeAccess() internal virtual;
 }

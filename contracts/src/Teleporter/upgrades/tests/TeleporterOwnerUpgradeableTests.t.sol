@@ -13,14 +13,15 @@ contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
         address teleporterRegistryAddress
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {}
 
+    function checkTeleporterUpgradeAccess() external view {
+        _checkTeleporterUpgradeAccess();
+    }
+
     function _receiveTeleporterMessage(
         bytes32 originBlockchainID,
         address originSenderAddress,
-        bytes memory message
-    ) internal override // solhint-disable-next-line no-empty-blocks
-    {
-
-    }
+        bytes memory message // solhint-disable-next-line no-empty-blocks
+    ) internal override {}
 }
 
 contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
@@ -107,5 +108,16 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         app.renounceOwnership();
         vm.expectRevert("Ownable: caller is not the owner");
         app.updateMinTeleporterVersion(latestVersion);
+    }
+
+    function testOwnerUpgradeAccess() public {
+        // Check that call to check upgrade access reverts for non-owners
+        vm.prank(MOCK_INVALID_OWNER_ADDRESS);
+        vm.expectRevert("Ownable: caller is not the owner");
+        app.checkTeleporterUpgradeAccess();
+
+        // Check that call to check upgrade access succeeds for owners
+        vm.prank(address(this));
+        app.checkTeleporterUpgradeAccess();
     }
 }
