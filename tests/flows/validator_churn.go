@@ -132,9 +132,9 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	// and re-adding the nodes that were removed.
 }
 
-// Each subnet is assumed that have 5 nodes names nodeN-bls, where N is unique
-// across each subnet. Nodes to be added should thus be named nodeN-bls where
-// N starts one greater than the current total number of nodes.
+// Each subnet is assumed that have {nodesPerSubnet} nodes named nodeN-bls, where
+// N is unique across each subnet. Nodes to be added should thus be named nodeN-bls
+// where N starts one greater than the current total number of nodes.
 func constructNodesToAddNames(network interfaces.Network) []string {
 	startingNodeId := len(network.GetSubnetsInfo())*nodesPerSubnet + 1
 	var nodesToAdd []string
