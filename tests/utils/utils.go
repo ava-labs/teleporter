@@ -282,13 +282,13 @@ func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
 	source SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
-	relayerKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
 	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, source, PrivateKeyToAddress(relayerKey))
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, source, PrivateKeyToAddress(senderKey))
 
 	// Send a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -302,7 +302,7 @@ func CreateSendCrossChainMessageTransaction(
 		Data:      data,
 	})
 
-	return SignTransaction(tx, relayerKey, source.ChainIDInt)
+	return SignTransaction(tx, senderKey, source.ChainIDInt)
 }
 
 func CreateRetryMessageExecutionTransaction(
@@ -310,11 +310,9 @@ func CreateRetryMessageExecutionTransaction(
 	subnetInfo SubnetTestInfo,
 	originChainID ids.ID,
 	message teleportermessenger.TeleporterMessage,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
-	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
-
 	data, err := teleportermessenger.PackRetryMessageExecution(originChainID, message)
 	Expect(err).Should(BeNil())
 
@@ -322,7 +320,7 @@ func CreateRetryMessageExecutionTransaction(
 	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(senderKey))
 
 	// Sign a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -336,7 +334,7 @@ func CreateRetryMessageExecutionTransaction(
 		Data:      data,
 	})
 
-	return SignTransaction(tx, fundedKey, subnetInfo.ChainIDInt)
+	return SignTransaction(tx, senderKey, subnetInfo.ChainIDInt)
 }
 
 // Constructs a transaction to call receiveCrossChainMessage
@@ -419,7 +417,7 @@ func WaitForTransactionSuccess(ctx context.Context, txHash common.Hash, subnetIn
 }
 
 func WaitForTransaction(ctx context.Context, txHash common.Hash, subnetInfo SubnetTestInfo) *types.Receipt {
-	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	// Loop until we find the transaction or time out
