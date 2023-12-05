@@ -25,7 +25,7 @@ interface INativeTokenDestination {
     /**
      * @dev Emitted when tokens are not minted in order to collateralize the source contract.
      */
-    event CollateralAdded(uint256 amount, uint256 remaining, address recipient);
+    event CollateralAdded(uint256 amount, uint256 remaining);
 
     /**
      * @dev Emitted when minting native tokens.

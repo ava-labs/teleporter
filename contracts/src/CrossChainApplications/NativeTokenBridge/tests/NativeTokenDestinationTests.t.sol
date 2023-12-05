@@ -39,7 +39,7 @@ contract NativeTokenDestinationTest is Test {
         uint256 indexed teleporterMessageID,
         uint256 amount
     );
-    event CollateralAdded(uint256 amount, uint256 remaining, address recipient);
+    event CollateralAdded(uint256 amount, uint256 remaining);
     event NativeTokensMinted(address indexed recipient, uint256 amount);
     event ReportTotalBurnedTxFees(
         uint256 indexed teleporterMessageID,
@@ -94,8 +94,7 @@ contract NativeTokenDestinationTest is Test {
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
             amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            remaining: 0,
-            recipient: _DEFAULT_RECIPIENT
+            remaining: 0
         });
 
         // We shouldn't mint anything here.
@@ -170,8 +169,7 @@ contract NativeTokenDestinationTest is Test {
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
             amount: firstTransfer,
-            remaining: _DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer,
-            recipient: _DEFAULT_RECIPIENT
+            remaining: _DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer
         });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -187,8 +185,7 @@ contract NativeTokenDestinationTest is Test {
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
             amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer,
-            remaining: 0,
-            recipient: _DEFAULT_RECIPIENT
+            remaining: 0
         });
         emit NativeTokensMinted(_DEFAULT_RECIPIENT, firstTransfer);
 

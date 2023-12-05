@@ -135,8 +135,7 @@ contract NativeTokenDestination is
             if (amount > currentReserveImbalance) {
                 emit CollateralAdded({
                     amount: currentReserveImbalance,
-                    remaining: 0,
-                    recipient: recipient
+                    remaining: 0
                 });
                 adjustedAmount = amount - currentReserveImbalance;
                 currentReserveImbalance = 0;
@@ -144,8 +143,7 @@ contract NativeTokenDestination is
                 currentReserveImbalance -= amount;
                 emit CollateralAdded({
                     amount: amount,
-                    remaining: currentReserveImbalance,
-                    recipient: recipient
+                    remaining: currentReserveImbalance
                 });
                 return;
             }
