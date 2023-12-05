@@ -201,7 +201,7 @@ contract ERC20Bridge is
         ITeleporterMessenger teleporterMessenger = teleporterRegistry
             .getLatestTeleporter();
 
-        // For non-zero fee amounts, transfer the fee into the control of this contract first, and then
+        // For non-zero fee amounts, first transfer the fee to this contract, and then
         // allow the Teleporter contract to spend it.
         uint256 adjustedFeeAmount = 0;
         if (messageFeeAmount > 0) {
