@@ -32,19 +32,16 @@ To start developing on Teleporter, you'll need Solidity >= v0.8.18. [Foundry](ht
 
 #### Local
 
-- Run the integration tests in Docker
+- Run the end-to-end tests
 
 ```sh
-./scripts/local/test.sh
+./scripts/local/e2e_test.sh
 ```
 
-- Run the linter
+- Run the Solidity and Golang linters
 
 ```sh
-npm install solhint
-npx solhint --version
-cd contracts
-npx solhint **/*.sol --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
+./scripts/lint.sh
 ```
 
 ### Continuous Integration (CI)
