@@ -39,6 +39,7 @@ var (
 	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
 	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
 	DefaultTeleporterTransactionValue            = common.Big0
+	ExpectedExampleERC20DeployerBalance          = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e10))
 )
 
 //
@@ -503,6 +504,12 @@ func DeployExampleERC20(
 	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	// Check that the deployer has the expected initial balance
+	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
+	balance, err := token.BalanceOf(&bind.CallOpts{}, senderAddress)
+	Expect(err).Should(BeNil())
+	Expect(balance).Should(Equal(ExpectedExampleERC20DeployerBalance))
 
 	return address, token
 }

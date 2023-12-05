@@ -39,6 +39,8 @@ const (
 
 	receiveCrossChainMessageEventName      = "ReceiveCrossChainMessage"
 	receiveCrossChainMessageLookBackBlocks = 500
+
+	privateKeyHexLength = 64
 )
 
 var (
@@ -131,11 +133,11 @@ func NewTestNetwork() (*testNetwork, error) {
 
 	fundedAddressStr := os.Getenv(userAddress)
 	fundedKeyStr := os.Getenv(userPrivateKey)
-	if len(fundedKeyStr) < 64 {
-		return nil, errInvalidPrivateKeyString
-	}
-	if fundedKeyStr[0:2] == "0x" {
+	if len(fundedKeyStr) >= 2 && fundedKeyStr[0:2] == "0x" {
 		fundedKeyStr = fundedKeyStr[2:]
+	}
+	if len(fundedKeyStr) != privateKeyHexLength {
+		return nil, errInvalidPrivateKeyString
 	}
 	fundedKey, err := crypto.HexToECDSA(fundedKeyStr)
 	if err != nil {
