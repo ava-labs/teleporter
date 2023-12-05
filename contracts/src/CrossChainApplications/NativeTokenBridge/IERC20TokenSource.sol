@@ -11,17 +11,6 @@ pragma solidity 0.8.18;
  */
 interface IERC20TokenSource {
     /**
-     * @dev Emitted when ERC20 tokens are locked in this source contract to be transferred to the destination chain.
-     */
-    event TransferToDestination(
-        address indexed sender,
-        address indexed recipient,
-        uint256 transferAmount,
-        uint256 feeAmount,
-        uint256 teleporterMessageID
-    );
-
-    /**
      * @dev Locks ERC20 tokens on the source contract chain, and sends a message to mint the
      * corresponding native tokens on the destination chain.
      */

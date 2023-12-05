@@ -17,6 +17,16 @@ interface ITokenSource {
         Unlock,
         Burn
     }
+    
+    /**
+     * @dev Emitted when native tokens are locked in the source contract to be transferred to the destination chain.
+     */
+    event TransferToDestination(
+        address indexed sender,
+        address indexed recipient,
+        uint256 indexed teleporterMessageID,
+        uint256 amount
+    );
 
     /**
      * @dev Emitted when tokens are unlocked on this chain.

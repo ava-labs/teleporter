@@ -13,16 +13,6 @@ import {TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
  */
 interface INativeTokenSource {
     /**
-     * @dev Emitted when native tokens are locked in the source contract to be transferred to the destination chain.
-     */
-    event TransferToDestination(
-        address indexed sender,
-        address indexed recipient,
-        uint256 indexed teleporterMessageID,
-        uint256 amount
-    );
-
-    /**
      * @dev Locks native tokens on the source contract chain, and sends a message to the destination
      * contract to mint corresponding tokens.
      */

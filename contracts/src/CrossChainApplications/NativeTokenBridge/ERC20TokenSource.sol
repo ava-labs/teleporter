@@ -51,7 +51,7 @@ contract ERC20TokenSource is
 
         require(
             destinationBlockchainID_ != bytes32(0),
-            "ERC20TokenSource: zero destination chain ID"
+            "ERC20TokenSource: zero destination blockchain ID"
         );
         require(
             destinationBlockchainID_ !=
@@ -69,7 +69,7 @@ contract ERC20TokenSource is
 
         require(
             erc20ContractAddress_ != address(0),
-            "ERC20TokenSource: invalid ERC20 contract address"
+            "ERC20TokenSource: zero ERC20 contract address"
         );
         erc20ContractAddress = erc20ContractAddress_;
     }
@@ -180,8 +180,7 @@ contract ERC20TokenSource is
         emit TransferToDestination({
             sender: msg.sender,
             recipient: recipient,
-            transferAmount: transferAmount,
-            feeAmount: feeAmount,
+            amount: transferAmount,
             teleporterMessageID: messageID
         });
     }
