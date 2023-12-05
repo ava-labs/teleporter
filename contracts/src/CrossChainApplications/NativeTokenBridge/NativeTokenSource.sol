@@ -110,7 +110,7 @@ contract NativeTokenSource is
             _unlockTokens(recipient, amount);
         } else if (action == SourceAction.Burn) {
             uint256 newBurnTotal = abi.decode(actionData, (uint256));
-            _updateDestinationBurnedTotal(newBurnTotal);
+            _handleBurnTokens(newBurnTotal);
         } else {
             revert("NativeTokenSource: invalid action");
         }
@@ -173,6 +173,10 @@ contract NativeTokenSource is
             recipient != address(0),
             "NativeTokenSource: zero recipient address"
         );
+        require(
+            address(this).balance >= amount,
+            "NativeTokenSource: insufficient collateral"
+        );
 
         // Transfer to recipient
         payable(recipient).transfer(amount);
@@ -181,7 +185,7 @@ contract NativeTokenSource is
     }
 
     /**
-     * @dev Sends tokens to BURN_FOR_TRANSFER_ADDRESS.
+     * @dev Sends tokens to BURNED_TX_FEES_ADDRESS.
      */
     function _burnTokens(uint256 amount) private {
         payable(BURNED_TX_FEES_ADDRESS).transfer(amount);
@@ -194,7 +198,7 @@ contract NativeTokenSource is
      * The burned total on the destination will only ever increase, but new totals may be relayed to this
      * chain out of order.
      */
-    function _updateDestinationBurnedTotal(uint256 newBurnTotal) private {
+    function _handleBurnTokens(uint256 newBurnTotal) private {
         if (newBurnTotal > destinationBurnedTotal) {
             uint256 difference = newBurnTotal - destinationBurnedTotal;
             _burnTokens(difference);

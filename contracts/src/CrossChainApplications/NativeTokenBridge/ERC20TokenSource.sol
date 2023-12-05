@@ -117,7 +117,7 @@ contract ERC20TokenSource is
             _unlockTokens(recipient, amount);
         } else if (action == SourceAction.Burn) {
             uint256 newBurnTotal = abi.decode(actionData, (uint256));
-            _updateDestinationBurnedTotal(newBurnTotal);
+            _handleBurnTokens(newBurnTotal);
         } else {
             revert("ERC20TokenSource: invalid action");
         }
@@ -201,7 +201,7 @@ contract ERC20TokenSource is
     }
 
     /**
-     * @dev Sends tokens to BURN_FOR_TRANSFER_ADDRESS.
+     * @dev Sends tokens to BURNED_TX_FEES_ADDRESS.
      */
     function _burnTokens(uint256 amount) private {
         SafeERC20.safeTransfer(
@@ -215,7 +215,7 @@ contract ERC20TokenSource is
     /**
      * @dev Update destinationBurnedTotal sent from destination chain
      */
-    function _updateDestinationBurnedTotal(uint256 newBurnTotal) private {
+    function _handleBurnTokens(uint256 newBurnTotal) private {
         if (newBurnTotal > destinationBurnedTotal) {
             uint256 difference = newBurnTotal - destinationBurnedTotal;
             _burnTokens(difference);
