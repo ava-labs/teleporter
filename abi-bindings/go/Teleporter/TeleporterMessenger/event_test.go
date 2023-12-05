@@ -4,7 +4,6 @@
 package teleportermessenger
 
 import (
-	"bytes"
 	"math/big"
 	"testing"
 
@@ -12,58 +11,60 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createTestTeleporterMessage(messageID int64) TeleporterMessage {
-	m := TeleporterMessage{
-		MessageID:               big.NewInt(messageID),
-		SenderAddress:           common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		DestinationBlockchainID: [32]byte{1, 2, 3, 4},
-		DestinationAddress:      common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		RequiredGasLimit:        big.NewInt(2),
-		AllowedRelayerAddresses: []common.Address{
-			common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		},
-		Receipts: []TeleporterMessageReceipt{
-			{
-				ReceivedMessageID:    big.NewInt(1),
-				RelayerRewardAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-			},
-		},
-		Message: []byte{1, 2, 3, 4},
-	}
-	return m
-}
-
-func TestPackUnpackTeleporterMessage(t *testing.T) {
+func TestEventString(t *testing.T) {
 	var (
-		messageID int64 = 4
+		tests = []struct {
+			event Event
+			str   string
+		}{
+			{Unknown, unknownStr},
+			{SendCrossChainMessage, sendCrossChainMessageStr},
+			{ReceiveCrossChainMessage, receiveCrossChainMessageStr},
+			{AddFeeAmount, addFeeAmountStr},
+			{MessageExecutionFailed, messageExecutionFailedStr},
+			{MessageExecuted, messageExecutedStr},
+			{RelayerRewardsRedeemed, relayerRewardsRedeemedStr},
+		}
 	)
-	message := createTestTeleporterMessage(messageID)
 
-	b, err := PackTeleporterMessage(message)
-	if err != nil {
-		t.Errorf("failed to pack teleporter message: %v", err)
-		t.FailNow()
+	for _, test := range tests {
+		t.Run(test.event.String(), func(t *testing.T) {
+			require.Equal(t, test.event.String(), test.str)
+		})
 	}
-
-	unpacked, err := UnpackTeleporterMessage(b)
-	if err != nil {
-		t.Errorf("failed to unpack teleporter message: %v", err)
-		t.FailNow()
-	}
-
-	for i := 0; i < len(message.AllowedRelayerAddresses); i++ {
-		require.Equal(t, unpacked.AllowedRelayerAddresses[i], message.AllowedRelayerAddresses[i])
-	}
-
-	for i := 0; i < len(message.Receipts); i++ {
-		require.Equal(t, message.Receipts[i].ReceivedMessageID, unpacked.Receipts[i].ReceivedMessageID)
-		require.Equal(t, message.Receipts[i].RelayerRewardAddress, unpacked.Receipts[i].RelayerRewardAddress)
-	}
-
-	require.True(t, bytes.Equal(message.Message, unpacked.Message))
 }
 
-func TestUnpackEvent(t *testing.T) {
+func TestToEvent(t *testing.T) {
+	var (
+		tests = []struct {
+			str     string
+			event   Event
+			isError bool
+		}{
+			{unknownStr, Unknown, true},
+			{sendCrossChainMessageStr, SendCrossChainMessage, false},
+			{receiveCrossChainMessageStr, ReceiveCrossChainMessage, false},
+			{addFeeAmountStr, AddFeeAmount, false},
+			{messageExecutionFailedStr, MessageExecutionFailed, false},
+			{messageExecutedStr, MessageExecuted, false},
+			{relayerRewardsRedeemedStr, RelayerRewardsRedeemed, false},
+		}
+	)
+
+	for _, test := range tests {
+		t.Run(test.str, func(t *testing.T) {
+			event, err := ToEvent(test.str)
+			if test.isError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, test.event, event)
+		})
+	}
+}
+
+func TestFilterTeleporterEvents(t *testing.T) {
 	mockBlockchainID := [32]byte{1, 2, 3, 4}
 	messageID := big.NewInt(1)
 	message := createTestTeleporterMessage(messageID.Int64())
@@ -80,7 +81,6 @@ func TestUnpackEvent(t *testing.T) {
 		tests = []struct {
 			event    Event
 			args     []interface{}
-			out      interface{}
 			expected interface{}
 		}{
 			{
@@ -91,7 +91,6 @@ func TestUnpackEvent(t *testing.T) {
 					message,
 					feeInfo,
 				},
-				out: new(TeleporterMessengerSendCrossChainMessage),
 				expected: &TeleporterMessengerSendCrossChainMessage{
 					DestinationBlockchainID: mockBlockchainID,
 					MessageID:               messageID,
@@ -108,7 +107,6 @@ func TestUnpackEvent(t *testing.T) {
 					deliverer,
 					message,
 				},
-				out: new(TeleporterMessengerReceiveCrossChainMessage),
 				expected: &TeleporterMessengerReceiveCrossChainMessage{
 					OriginBlockchainID: mockBlockchainID,
 					MessageID:          messageID,
@@ -123,7 +121,6 @@ func TestUnpackEvent(t *testing.T) {
 					mockBlockchainID,
 					messageID,
 				},
-				out: new(TeleporterMessengerMessageExecuted),
 				expected: &TeleporterMessengerMessageExecuted{
 					OriginBlockchainID: mockBlockchainID,
 					MessageID:          messageID,
@@ -137,10 +134,10 @@ func TestUnpackEvent(t *testing.T) {
 			topics, data, err := teleporterABI.PackEvent(test.event.String(), test.args...)
 			require.NoError(t, err)
 
-			err = UnpackEvent(test.out, test.event.String(), topics, data)
+			out, err := FilterTeleporterEvents(topics, data, test.event.String())
 			require.NoError(t, err)
 
-			require.Equal(t, test.expected, test.out)
+			require.Equal(t, test.expected, out)
 		})
 	}
 }
