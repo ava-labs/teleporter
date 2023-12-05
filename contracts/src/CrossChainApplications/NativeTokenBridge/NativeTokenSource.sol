@@ -50,7 +50,7 @@ contract NativeTokenSource is
 
         require(
             destinationBlockchainID_ != bytes32(0),
-            "NativeTokenSource: zero destination chain ID"
+            "NativeTokenSource: zero destination blockchain ID"
         );
         require(
             destinationBlockchainID_ !=
@@ -80,7 +80,7 @@ contract NativeTokenSource is
         // Only allow the Teleporter messenger to deliver messages.
         require(
             msg.sender == address(teleporterMessenger),
-            "NativeTokenSource: unauthorized teleporterMessenger contract"
+            "NativeTokenSource: unauthorized TeleporterMessenger contract"
         );
 
         // Only allow messages from the destination chain.
@@ -127,7 +127,7 @@ contract NativeTokenSource is
         // The recipient cannot be the zero address.
         require(
             recipient != address(0),
-            "NativeTokenSource: zero ercipient address"
+            "NativeTokenSource: zero recipient address"
         );
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
@@ -171,7 +171,7 @@ contract NativeTokenSource is
     function _unlockTokens(address recipient, uint256 amount) private {
         require(
             recipient != address(0),
-            "ERC20TokenSource: zero recipient address"
+            "NativeTokenSource: zero recipient address"
         );
 
         // Transfer to recipient
