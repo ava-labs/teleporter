@@ -49,8 +49,9 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}
+     * Requirements:
      *
-     * Checks that the caller is a Teleporter version greater than or equal to `minTeleporterVersion`.
+     * - `msg.sender` must be a Teleporter version greater than or equal to `minTeleporterVersion`.
      */
     function receiveTeleporterMessage(
         bytes32 originBlockchainID,
@@ -85,7 +86,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     }
 
     /**
-     * @dev Public getter for `minTeleporterVersion`.
+     * @dev Public getter for `_minTeleporterVersion`.
      */
     function getMinTeleporterVersion() public view returns (uint256) {
         return _minTeleporterVersion;
