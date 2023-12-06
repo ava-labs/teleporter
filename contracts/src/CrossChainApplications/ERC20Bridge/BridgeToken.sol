@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {ERC20, ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 /**
  * @dev BridgeToken is an ERC20Burnable token contract that is associated with a specific native chain bridge and asset, and is only mintable by the bridge contract on this chain.
@@ -13,40 +13,37 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 contract BridgeToken is ERC20Burnable {
     address public immutable bridgeContract;
 
-    bytes32 public immutable nativeChainID;
+    bytes32 public immutable nativeBlockchainID;
     address public immutable nativeBridge;
     address public immutable nativeAsset;
 
     uint8 private immutable _decimals;
 
-    // Errors
-    error InvalidSourceAsset();
-    error InvalidSourceBridgeAddress();
-    error InvalidSourceChainID();
-    error Unauthorized();
-
     /**
      * @dev Initializes a BridgeToken instance.
      */
     constructor(
-        bytes32 sourceChainID,
+        bytes32 sourceBlockchainID,
         address sourceBridge,
         address sourceAsset,
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals
     ) ERC20(tokenName, tokenSymbol) {
-        if (sourceChainID == bytes32(0)) {
-            revert InvalidSourceChainID();
-        }
-        if (sourceBridge == address(0)) {
-            revert InvalidSourceBridgeAddress();
-        }
-        if (sourceAsset == address(0)) {
-            revert InvalidSourceAsset();
-        }
+        require(
+            sourceBlockchainID != bytes32(0),
+            "BridgeToken: zero source chain id"
+        );
+        require(
+            sourceBridge != address(0),
+            "BridgeToken: zero source bridge address"
+        );
+        require(
+            sourceAsset != address(0),
+            "BridgeToken: zero source asset address"
+        );
         bridgeContract = msg.sender;
-        nativeChainID = sourceChainID;
+        nativeBlockchainID = sourceBlockchainID;
         nativeBridge = sourceBridge;
         nativeAsset = sourceAsset;
         _decimals = tokenDecimals;
@@ -56,9 +53,7 @@ contract BridgeToken is ERC20Burnable {
      * @dev Mints tokens to `account` if called by original `bridgeContract`.
      */
     function mint(address account, uint256 amount) public {
-        if (msg.sender != bridgeContract) {
-            revert Unauthorized();
-        }
+        require(msg.sender == bridgeContract, "BridgeToken: unauthorized");
         _mint(account, amount);
     }
 

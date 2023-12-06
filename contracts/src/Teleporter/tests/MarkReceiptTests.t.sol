@@ -5,8 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {TeleporterMessengerTest, TeleporterMessageReceipt, TeleporterMessage, WarpMessage} from "./TeleporterMessengerTest.t.sol";
 
 contract MarkReceiptTest is TeleporterMessengerTest {
     struct FeeRewardInfo {
@@ -68,11 +67,8 @@ contract MarkReceiptTest is TeleporterMessengerTest {
                 new bytes(0)
             );
         messageToReceive.receipts = receipts;
-        WarpMessage memory warpMessage = WarpMessage(
+        WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
-            address(teleporterMessenger),
-            MOCK_BLOCK_CHAIN_ID,
-            address(teleporterMessenger),
             abi.encode(messageToReceive)
         );
 
@@ -137,11 +133,8 @@ contract MarkReceiptTest is TeleporterMessengerTest {
                 new bytes(0)
             );
         messageToReceive.receipts = receipts;
-        WarpMessage memory warpMessage = WarpMessage(
+        WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
-            address(teleporterMessenger),
-            MOCK_BLOCK_CHAIN_ID,
-            address(teleporterMessenger),
             abi.encode(messageToReceive)
         );
 
@@ -196,11 +189,8 @@ contract MarkReceiptTest is TeleporterMessengerTest {
                 new bytes(0)
             );
         messageToReceive.receipts = receipts;
-        WarpMessage memory warpMessage = WarpMessage(
+        WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
-            address(teleporterMessenger),
-            MOCK_BLOCK_CHAIN_ID,
-            address(teleporterMessenger),
             abi.encode(messageToReceive)
         );
 

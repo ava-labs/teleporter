@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @dev Interface that describes functionalities for a cross-chain ERC20 bridge.
@@ -25,7 +25,7 @@ interface IERC20Bridge {
      */
     event BridgeTokens(
         address indexed tokenContractAddress,
-        bytes32 indexed destinationChainID,
+        bytes32 indexed destinationBlockchainID,
         uint256 indexed teleporterMessageID,
         address destinationBridgeAddress,
         address recipient,
@@ -36,7 +36,7 @@ interface IERC20Bridge {
      * @dev Emitted when submitting a request to create a new bridge token on another chain.
      */
     event SubmitCreateBridgeToken(
-        bytes32 indexed destinationChainID,
+        bytes32 indexed destinationBlockchainID,
         address indexed destinationBridgeAddress,
         address indexed nativeContractAddress,
         uint256 teleporterMessageID
@@ -46,7 +46,7 @@ interface IERC20Bridge {
      * @dev Emitted when creating a new bridge token.
      */
     event CreateBridgeToken(
-        bytes32 indexed nativeChainID,
+        bytes32 indexed nativeBlockchainID,
         address indexed nativeBridgeAddress,
         address indexed nativeContractAddress,
         address bridgeTokenAddress
@@ -67,7 +67,7 @@ interface IERC20Bridge {
      * This can be wrapping, unwrapping, and transferring a wrapped token between two non-native chains.
      */
     function bridgeTokens(
-        bytes32 destinationChainID,
+        bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         address tokenContractAddress,
         address recipient,
@@ -80,7 +80,7 @@ interface IERC20Bridge {
      * @dev Creates a new bridge token on another chain.
      */
     function submitCreateBridgeToken(
-        bytes32 destinationChainID,
+        bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         ERC20 nativeToken,
         address messageFeeAsset,

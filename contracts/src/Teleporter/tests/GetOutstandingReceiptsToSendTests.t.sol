@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageInput, TeleporterFeeInfo, TeleporterMessageReceipt, IWarpMessenger} from "./TeleporterMessengerTest.t.sol";
 
 contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -40,12 +40,12 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
 
         // Mock receiving each of the messages corresponding to the receipts.
-        bytes32 chainID = bytes32(
+        bytes32 blockchainID = bytes32(
             hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff"
         );
         for (uint256 i = 0; i < expectedReceipts.length; i++) {
             _receiveTestMessage(
-                chainID,
+                blockchainID,
                 expectedReceipts[i].receivedMessageID,
                 expectedReceipts[i].relayerRewardAddress,
                 new TeleporterMessageReceipt[](0)
@@ -59,34 +59,39 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceipts;
+        expectedMessage.destinationBlockchainID = blockchainID;
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
+            destinationBlockchainID: expectedMessage.destinationBlockchainID,
             destinationAddress: expectedMessage.destinationAddress,
-            feeInfo: TeleporterFeeInfo(address(0), 0),
+            feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
         });
 
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
+        );
+
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(expectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(expectedMessage))
             )
         );
 
         // Expect the SendCrossChainMessage event to be emitted.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            messageInput.destinationChainID,
+            messageInput.destinationBlockchainID,
             expectedMessage.messageID,
-            expectedMessage
+            expectedMessage,
+            feeInfo
         );
 
         // Submit the message.
@@ -98,22 +103,20 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
                 2,
                 hex"deadbeef"
             );
+        nextExpectedMessage.destinationBlockchainID = blockchainID;
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(nextExpectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(nextExpectedMessage))
             )
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            messageInput.destinationChainID,
+            messageInput.destinationBlockchainID,
             nextExpectedMessage.messageID,
-            nextExpectedMessage
+            nextExpectedMessage,
+            feeInfo
         );
 
         // Submit the new message.
@@ -161,12 +164,12 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
 
         // Mock receiving each of the messages corresponding to the receipts.
-        bytes32 chainID = bytes32(
+        bytes32 blockchainID = bytes32(
             hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff"
         );
         for (uint256 i = 0; i < expectedReceiptsBatch1.length; i++) {
             _receiveTestMessage(
-                chainID,
+                blockchainID,
                 expectedReceiptsBatch1[i].receivedMessageID,
                 expectedReceiptsBatch1[i].relayerRewardAddress,
                 new TeleporterMessageReceipt[](0)
@@ -174,7 +177,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         }
         for (uint256 i = 0; i < expectedReceiptsBatch2.length; i++) {
             _receiveTestMessage(
-                chainID,
+                blockchainID,
                 expectedReceiptsBatch2[i].receivedMessageID,
                 expectedReceiptsBatch2[i].relayerRewardAddress,
                 new TeleporterMessageReceipt[](0)
@@ -189,34 +192,39 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceiptsBatch1;
+        expectedMessage.destinationBlockchainID = blockchainID;
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
+            destinationBlockchainID: expectedMessage.destinationBlockchainID,
             destinationAddress: expectedMessage.destinationAddress,
-            feeInfo: TeleporterFeeInfo(address(0), 0),
+            feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
         });
 
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
+        );
+
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(expectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(expectedMessage))
             )
         );
 
         // Expect the SendCrossChainMessage event to be emitted.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            messageInput.destinationChainID,
+            messageInput.destinationBlockchainID,
             expectedMessage.messageID,
-            expectedMessage
+            expectedMessage,
+            feeInfo
         );
 
         // Submit the message.
@@ -229,22 +237,20 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
                 hex"deadbeef"
             );
         nextExpectedMessage.receipts = expectedReceiptsBatch2;
+        nextExpectedMessage.destinationBlockchainID = blockchainID;
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(nextExpectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(nextExpectedMessage))
             )
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            messageInput.destinationChainID,
+            messageInput.destinationBlockchainID,
             nextExpectedMessage.messageID,
-            nextExpectedMessage
+            nextExpectedMessage,
+            feeInfo
         );
 
         // Submit the new message.

@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - '*'
+      - "*"
 
 jobs:
   slither-analyze:
@@ -22,16 +22,25 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Run Slither
-        uses: crytic/slither-action@6ef3a33e56de4e8f59488cf60858b5c1bf4967c0
-        id: slither
-        continue-on-error: true
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          target: "contracts/"
-          sarif: results.sarif
-          slither-config: "contracts/slither.config.json"
+          python-version: 3.8
+
+      - name: Install Slither
+        run: |
+          pip install slither-analyzer
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+
+      - name: Run Slither
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          cd contracts
+          slither ./ --fail-none --sarif ./results.sarif
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: ${{ steps.slither.outputs.sarif }}
+          sarif_file: contracts/results.sarif

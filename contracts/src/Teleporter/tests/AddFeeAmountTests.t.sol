@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterFeeInfo, TeleporterMessageReceipt, IERC20} from "./TeleporterMessengerTest.t.sol";
 
 contract AddFeeAmountTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -42,7 +42,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
             TeleporterFeeInfo({
-                contractAddress: address(_mockFeeAsset),
+                feeTokenAddress: address(_mockFeeAsset),
                 amount: totalFeeAmount
             })
         );
@@ -64,7 +64,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Add to the fee amount of a message that doesn't exist. Expect revert.
         uint256 additionalFeeAmount = 131313;
         uint256 fakeMessageID = 13;
-        vm.expectRevert(TeleporterMessenger.MessageAlreadyDelivered.selector);
+        vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             fakeMessageID,
@@ -99,7 +99,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
 
         // Now try to add to the fee of the message. Should revert since the message receipt was received already.
         uint256 additionalFeeAmount = 131313;
-        vm.expectRevert(TeleporterMessenger.MessageAlreadyDelivered.selector);
+        vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
@@ -118,7 +118,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
 
         // Expect revert when adding 0 additional amount.
         uint256 additionalFeeAmount = 0;
-        vm.expectRevert(TeleporterMessenger.InvalidAdditionalFeeAmount.selector);
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("zero additional fee amount")
+        );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
@@ -138,7 +140,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Expect revert when using a different fee asset than originally used.
         uint256 additionalFeeAmount = 131313;
         address differentFeeAsset = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
-        vm.expectRevert(TeleporterMessenger.InvalidFeeAssetContractAddress.selector);
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("invalid fee asset contract address")
+        );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,
@@ -158,7 +162,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Expect revert when using an invalid fee asset.
         uint256 additionalFeeAmount = 131313;
         address invalidFeeAsset = address(0);
-        vm.expectRevert(TeleporterMessenger.InvalidFeeAssetContractAddress.selector);
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("zero fee asset contract address")
+        );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
             messageID,

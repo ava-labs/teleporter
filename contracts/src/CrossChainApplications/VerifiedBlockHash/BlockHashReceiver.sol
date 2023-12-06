@@ -5,17 +5,15 @@
 
 pragma solidity 0.8.18;
 
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "../../Teleporter/ITeleporterReceiver.sol";
+import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.
  */
-contract BlockHashReceiver is ITeleporterReceiver {
-    ITeleporterMessenger public immutable teleporterMessenger;
-
+contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
     // Source chain information
-    bytes32 public immutable sourceChainID;
+    bytes32 public immutable sourceBlockchainID;
     address public immutable sourcePublisherContractAddress;
 
     // Latest received block information
@@ -26,24 +24,18 @@ contract BlockHashReceiver is ITeleporterReceiver {
      * @dev Emitted when a new block hash is received from a given origin chain ID.
      */
     event ReceiveBlockHash(
-        bytes32 indexed originChainID,
+        bytes32 indexed originBlockchainID,
         address indexed originSenderAddress,
         uint256 indexed blockHeight,
         bytes32 blockHash
     );
 
-    // Errors
-    error Unauthorized();
-    error InvalidSourceChainID();
-    error InvalidSourceChainPublisher();
-
     constructor(
-        address teleporterMessengerAddress,
-        bytes32 publisherChainID,
+        address teleporterRegistryAddress,
+        bytes32 publisherBlockchainID,
         address publisherContractAddress
-    ) {
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
-        sourceChainID = publisherChainID;
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
+        sourceBlockchainID = publisherBlockchainID;
         sourcePublisherContractAddress = publisherContractAddress;
     }
 
@@ -59,21 +51,18 @@ contract BlockHashReceiver is ITeleporterReceiver {
      */
 
     function receiveTeleporterMessage(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         address originSenderAddress,
         bytes calldata message
-    ) external {
-        if (msg.sender != address(teleporterMessenger)) {
-            revert Unauthorized();
-        }
-
-        if (originChainID != sourceChainID) {
-            revert InvalidSourceChainID();
-        }
-
-        if (originSenderAddress != sourcePublisherContractAddress) {
-            revert InvalidSourceChainPublisher();
-        }
+    ) external onlyAllowedTeleporter {
+        require(
+            originBlockchainID == sourceBlockchainID,
+            "BlockHashReceiver: invalid source chain ID"
+        );
+        require(
+            originSenderAddress == sourcePublisherContractAddress,
+            "BlockHashReceiver: invalid source chain publisher"
+        );
 
         (uint256 blockHeight, bytes32 blockHash) = abi.decode(
             message,
@@ -84,7 +73,7 @@ contract BlockHashReceiver is ITeleporterReceiver {
             latestBlockHeight = blockHeight;
             latestBlockHash = blockHash;
             emit ReceiveBlockHash(
-                originChainID,
+                originBlockchainID,
                 originSenderAddress,
                 blockHeight,
                 blockHash
@@ -93,13 +82,10 @@ contract BlockHashReceiver is ITeleporterReceiver {
     }
 
     /**
-     * @dev Returns the latest block information.
+     * @dev Gets the latest received block height and hash.
+     * @return Returns the latest block height and hash.
      */
-    function getLatestBlockInfo()
-        public
-        view
-        returns (uint256 height, bytes32 hash)
-    {
+    function getLatestBlockInfo() public view returns (uint256, bytes32) {
         return (latestBlockHeight, latestBlockHash);
     }
 }

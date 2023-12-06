@@ -28,6 +28,7 @@ done
 # If clean flag is set we remove network running file to start the network from scratch
 if $clean
 then
+    echo "Cleaning network"
     rm -f NETWORK_RUNNING
 fi
 

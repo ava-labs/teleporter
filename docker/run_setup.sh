@@ -2,8 +2,15 @@
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
 
-
 set -e # Stop on first error
+
+TELEPORTER_PATH=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  cd .. && pwd
+)
+
+source $TELEPORTER_PATH/scripts/constants.sh
+source $TELEPORTER_PATH/scripts/versions.sh
 
 # Needed for submodules
 git config --global --add safe.directory '*'
@@ -21,17 +28,6 @@ rm -f $dir_prefix/NETWORK_READY
 # Set up the network if this is the first time the container is starting
 if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     rm -f $dir_prefix/vars.sh
-
-    cd subnet-evm
-
-    # Source $AVALANCHEGO_VERSION from versions.sh
-    source ./scripts/versions.sh
-
-    # Build the subnet-evm
-    export VM_BUILD_PATH=$"/tmp/subnet-evm-runner"
-    ./scripts/build.sh $VM_BUILD_PATH/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
-    cd ..
-
     echo "Avalanche cli version: $(avalanche --version --skip-update-check)"
 
     # Start the local Avalanche network
@@ -46,17 +42,17 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
 
     # Deploy three test subnets to the local network.
     echo "Creating new subnet A..."
-    avalanche subnet create subneta --force --custom --genesis ./subnetGenesis_A.json --config ./docker/defaultNodeConfig.json --vm $VM_BUILD_PATH/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy --log-level info --skip-update-check
+    avalanche subnet create subneta --force --genesis ./subnetGenesis_A.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check
     avalanche subnet configure subneta --config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
     avalanche subnet deploy subneta --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 
     echo "Creating new subnet B..."
-    avalanche subnet create subnetb --force --custom --genesis ./subnetGenesis_B.json --config ./docker/defaultNodeConfig.json --vm $VM_BUILD_PATH/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy --log-level info --skip-update-check
+    avalanche subnet create --force --genesis ./subnetGenesis_B.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check subnetb
     avalanche subnet configure subnetb --config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
     avalanche subnet deploy subnetb --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 
     echo "Creating new subnet C..."
-    avalanche subnet create subnetc --force --custom --genesis ./subnetGenesis_C.json --config ./docker/defaultNodeConfig.json --vm $VM_BUILD_PATH/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy --log-level info --skip-update-check
+    avalanche subnet create --force --genesis ./subnetGenesis_C.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check subnetc
     avalanche subnet configure subnetc --config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
     avalanche subnet deploy subnetc --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 
@@ -85,66 +81,94 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
 
     export PATH="$PATH:$HOME/.foundry/bin"
 
-    subnet_a_url="http://127.0.0.1:9650/ext/bc/$subnet_a_chain_id/rpc"
-    subnet_b_url="http://127.0.0.1:9650/ext/bc/$subnet_b_chain_id/rpc"
-    subnet_c_url="http://127.0.0.1:9650/ext/bc/$subnet_c_chain_id/rpc"
-    c_chain_url="http://127.0.0.1:9650/ext/bc/C/rpc"
+    subnet_a_rpc_url="http://127.0.0.1:9650/ext/bc/$subnet_a_chain_id/rpc"
+    subnet_a_ws_url="ws://127.0.0.1:9650/ext/bc/$subnet_a_chain_id/ws"
+    subnet_b_rpc_url="http://127.0.0.1:9650/ext/bc/$subnet_b_chain_id/rpc"
+    subnet_b_ws_url="ws://127.0.0.1:9650/ext/bc/$subnet_b_chain_id/ws"
+    subnet_c_rpc_url="http://127.0.0.1:9650/ext/bc/$subnet_c_chain_id/rpc"
+    subnet_c_ws_url="ws://127.0.0.1:9650/ext/bc/$subnet_c_chain_id/ws"
+    c_chain_rpc_url="http://127.0.0.1:9650/ext/bc/C/rpc"
+    c_chain_ws_url="ws://127.0.0.1:9650/ext/bc/C/ws"
 
     # Deploy TeleporterMessenger contract to each chain.
     cd contracts
     forge build
     cd ..
-    go run contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
+    go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
     teleporter_deploy_address=$(cat UniversalTeleporterDeployerAddress.txt)
     teleporter_deploy_tx=$(cat UniversalTeleporterDeployerTransaction.txt)
     teleporter_contract_address=$(cat UniversalTeleporterMessengerContractAddress.txt)
     echo $teleporter_deploy_address $teleporter_contract_address
     echo "Finished reading universal deploy address and transaction"
 
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_a_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_b_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_c_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $c_chain_url
+    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_a_rpc_url
+    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_b_rpc_url
+    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_c_rpc_url
+    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $c_chain_rpc_url
     echo "Sent ether to teleporter deployer on each subnet."
 
     # Verify that the transaction status was successful for the deployments
-    status=$(cast publish --rpc-url $subnet_a_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    status=$(cast publish --rpc-url $subnet_a_rpc_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
-        echo "Error deploying Teleporter Messenger transaction on subnet A."
+        echo "Error deploying Teleporter Messenger on subnet A."
         exit 1
     fi
-    echo "Deployed TeleporterMessenger to Subnet A"
-    status=$(cast publish --rpc-url $subnet_b_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    echo "Deployed TeleporterMessenger to Subnet A."
+    status=$(cast publish --rpc-url $subnet_b_rpc_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
-        echo "Error deploying Teleporter Messenger transaction on subnet B."
+        echo "Error deploying Teleporter Messenger on subnet B."
         exit 1
     fi
-    echo "Deployed TeleporterMessenger to Subnet B"
-    status=$(cast publish --rpc-url $subnet_c_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    echo "Deployed TeleporterMessenger to Subnet B."
+    status=$(cast publish --rpc-url $subnet_c_rpc_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
-        echo "Error deploying Teleporter Messenger transaction on subnet C."
+        echo "Error deploying Teleporter Messenger on subnet C."
         exit 1
     fi
-    echo "Deployed TeleporterMessenger to Subnet C"
+    echo "Deployed TeleporterMessenger to Subnet C."
+    status=$(cast publish --rpc-url $c_chain_rpc_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    if [[ $status != "0x1" ]]; then
+        echo "Error deploying Teleporter Messenger on C-chain."
+        exit 1
+    fi
+    echo "Deployed TeleporterMessenger to C-chain."
+
+    # Deploy TeleporterRegistry to each chain.
+    cd contracts
+    registry_deploy_result_a=$(forge create --private-key $user_private_key \
+        --rpc-url $subnet_a_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
+    subnet_a_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_a")
+    echo "TeleporterRegistry contract deployed to subnet A at $subnet_a_teleporter_registry_address."
+
+    registry_deploy_result_b=$(forge create --private-key $user_private_key \
+        --rpc-url $subnet_b_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
+    subnet_b_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_b")
+    echo "TeleporterRegistry contract deployed to subnet B at $subnet_b_teleporter_registry_address."
+
+    registry_deploy_result_c=$(forge create --private-key $user_private_key \
+        --rpc-url $subnet_c_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
+    subnet_c_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_c")
+    echo "TeleporterRegistry contract deployed to subnet C at $subnet_c_teleporter_registry_address."
+    cd ..
 
     # Send tokens to cover gas costs for the relayers.
     relayer_private_key=C2CE4E001B7585F543982A01FBC537CFF261A672FA8BD1FAFC08A207098FE2DE
     relayer_address=0xA100fF48a37cab9f87c8b5Da933DA46ea1a5fb80
 
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_a_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_b_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_c_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $c_chain_url
+    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_a_rpc_url
+    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_b_rpc_url
+    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_c_rpc_url
+    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $c_chain_rpc_url
     echo "Sent ether to relayer account on each subnet."
 
-    subnet_a_chain_id_hex=$(getBlockChainIDHex $subnet_a_chain_id)
-    subnet_b_chain_id_hex=$(getBlockChainIDHex $subnet_b_chain_id)
-    subnet_c_chain_id_hex=$(getBlockChainIDHex $subnet_c_chain_id)
-    subnet_a_subnet_id_hex=$(getBlockChainIDHex $subnet_a_subnet_id)
-    subnet_b_subnet_id_hex=$(getBlockChainIDHex $subnet_b_subnet_id)
-    subnet_c_subnet_id_hex=$(getBlockChainIDHex $subnet_c_subnet_id)
-    c_chain_chain_id_hex=$(getBlockChainIDHex $c_chain_chain_id)
-    c_chain_subnet_id_hex=$(getBlockChainIDHex $c_chain_subnet_id)
+    subnet_a_chain_id_hex=$(getBlockchainIDHex $subnet_a_chain_id)
+    subnet_b_chain_id_hex=$(getBlockchainIDHex $subnet_b_chain_id)
+    subnet_c_chain_id_hex=$(getBlockchainIDHex $subnet_c_chain_id)
+    subnet_a_subnet_id_hex=$(getBlockchainIDHex $subnet_a_subnet_id)
+    subnet_b_subnet_id_hex=$(getBlockchainIDHex $subnet_b_subnet_id)
+    subnet_c_subnet_id_hex=$(getBlockchainIDHex $subnet_c_subnet_id)
+    c_chain_chain_id_hex=$(getBlockchainIDHex $c_chain_chain_id)
+    c_chain_subnet_id_hex=$(getBlockchainIDHex $c_chain_subnet_id)
     warp_messenger_precompile_addr=0x0200000000000000000000000000000000000005
 
     # Write all vars to file so that they can be imported from another container

@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, WarpMessage} from "./TeleporterMessengerTest.t.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     struct FeeRewardInfo {
@@ -22,7 +22,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     }
 
     function testZeroRewardBalance() public {
-        vm.expectRevert(TeleporterMessenger.NoRelayerRewardToRedeem.selector);
+        vm.expectRevert(_formatTeleporterErrorMessage("no reward to redeem"));
         teleporterMessenger.redeemRelayerRewards(address(_mockFeeAsset));
     }
 
@@ -84,6 +84,12 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
                 (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
             )
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit RelayerRewardsRedeemed(
+            feeRewardInfo.relayerRewardAddress,
+            address(_mockFeeAsset),
+            feeRewardInfo.feeAmount
+        );
         vm.prank(feeRewardInfo.relayerRewardAddress);
         teleporterMessenger.redeemRelayerRewards(address(_mockFeeAsset));
 
@@ -119,11 +125,8 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
             );
 
         messageToReceive.receipts = receipts;
-        WarpMessage memory warpMessage = WarpMessage(
+        WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
-            address(teleporterMessenger),
-            MOCK_BLOCK_CHAIN_ID,
-            address(teleporterMessenger),
             abi.encode(messageToReceive)
         );
 
@@ -131,6 +134,14 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
 
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x93753a9eA4C9D6eeed9f64eA92E97ce1f5FBAeDe;
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            expectedRelayerRewardAddress,
+            messageToReceive
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             expectedRelayerRewardAddress

@@ -5,9 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import "./ReentrancyGuards.sol";
-import "./ITeleporterBlockHashReceiver.sol";
+import {WarpBlockHash, IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
+import {ReentrancyGuards} from "./ReentrancyGuards.sol";
+import {ITeleporterBlockHashReceiver} from "./ITeleporterBlockHashReceiver.sol";
 
 /**
  * @dev Implementation of the {ITeleporterBlockHashReceiver} interface.
@@ -15,8 +15,8 @@ import "./ITeleporterBlockHashReceiver.sol";
  * This implementation is used to receive block hashes from other chains using the WarpMessenger precompile
  */
 contract TeleporterBlockHashReceiver is ITeleporterBlockHashReceiver, ReentrancyGuards {
-    WarpMessenger public constant WARP_MESSENGER =
-        WarpMessenger(0x0200000000000000000000000000000000000005);
+    IWarpMessenger public constant WARP_MESSENGER =
+        IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     /**
      * @dev See {ITeleporterBlockHashReceiver-receiveBlockHash}

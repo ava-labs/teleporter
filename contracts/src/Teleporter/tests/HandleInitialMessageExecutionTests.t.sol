@@ -5,8 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
-import "../ITeleporterReceiver.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, WarpMessage} from "./TeleporterMessengerTest.t.sol";
+import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 
 enum SampleMessageReceiverAction {
     Receive,
@@ -19,23 +20,16 @@ contract SampleMessageReceiver is ITeleporterReceiver {
     bytes32 public latestMessageSenderSubnetID;
     address public latestMessageSenderAddress;
 
-    // Errors
-    error IntendedToFail();
-    error InvalidAction();
-    error Unauthorized();
-
     constructor(address teleporterContractAddress) {
         teleporterContract = teleporterContractAddress;
     }
 
     function receiveTeleporterMessage(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         address originSenderAddress,
         bytes calldata message
     ) external {
-        if (msg.sender != teleporterContract) {
-            revert Unauthorized();
-        }
+        require(msg.sender == teleporterContract, "unauthorized");
         // Decode the payload to recover the action and corresponding function parameters
         (SampleMessageReceiverAction action, bytes memory actionData) = abi
             .decode(message, (SampleMessageReceiverAction, bytes));
@@ -45,7 +39,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
                 (string, bool)
             );
             _receiveMessage(
-                originChainID,
+                originBlockchainID,
                 originSenderAddress,
                 messageString,
                 succeed
@@ -53,49 +47,42 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         } else if (action == SampleMessageReceiverAction.ReceiveRecursive) {
             string memory messageString = abi.decode(actionData, (string));
             _receiveMessageRecursive(
-                originChainID,
+                originBlockchainID,
                 originSenderAddress,
                 messageString
             );
         } else {
-            revert InvalidAction();
+            revert("invalid action");
         }
     }
 
     // Stores the message in this contract to be fetched by anyone.
     function _receiveMessage(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         address originSenderAddress,
         string memory message,
         bool succeed
     ) internal {
-        if (msg.sender != teleporterContract) {
-            revert Unauthorized();
-        }
-
-        if (!succeed) {
-            revert IntendedToFail();
-        }
+        require(msg.sender == teleporterContract, "unauthorized");
+        require(succeed, "intended to fail");
         latestMessage = message;
-        latestMessageSenderSubnetID = originChainID;
+        latestMessageSenderSubnetID = originBlockchainID;
         latestMessageSenderAddress = originSenderAddress;
     }
 
     // Tries to recursively call the teleporterContract to receive a message, which should always fail.
     function _receiveMessageRecursive(
-        bytes32 originChainID,
+        bytes32 originBlockchainID,
         address originSenderAddress,
         string memory message
     ) internal {
-        if (msg.sender != teleporterContract) {
-            revert Unauthorized();
-        }
+        require(msg.sender == teleporterContract, "unauthorized");
         ITeleporterMessenger messenger = ITeleporterMessenger(
             teleporterContract
         );
         messenger.receiveCrossChainMessage(0, address(42));
         latestMessage = message;
-        latestMessageSenderSubnetID = originChainID;
+        latestMessageSenderSubnetID = originBlockchainID;
         latestMessageSenderAddress = originSenderAddress;
     }
 }
@@ -119,6 +106,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -136,7 +124,20 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
-        // Receive the message.
+        // Receive the message and check that message execution was successful.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecuted(
+            DEFAULT_ORIGIN_CHAIN_ID,
+            messageToReceive.messageID
+        );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            messageToReceive
+        );
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -167,6 +168,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: uint256(
                 bytes32(
@@ -189,7 +191,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
-        vm.expectRevert(TeleporterMessenger.InsufficientGas.selector);
+        vm.expectRevert(_formatTeleporterErrorMessage("insufficient gas"));
         teleporterMessenger.receiveCrossChainMessage(
             0,
             DEFAULT_RELAYER_REWARD_ADDRESS
@@ -202,6 +204,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -223,9 +226,17 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // is considered a failed message execution, but the message itself is
         // still successfully delivered.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit FailedMessageExecution(
+        emit MessageExecutionFailed(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive.messageID,
+            messageToReceive
+        );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
@@ -245,7 +256,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
         vm.expectRevert(
-            TeleporterMessenger.MessageRetryExecutionFailed.selector
+            _formatTeleporterErrorMessage("retry execution failed")
         );
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,
@@ -259,6 +270,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: 42,
             senderAddress: address(this),
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -278,9 +290,17 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
 
         // Receive the message.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit FailedMessageExecution(
+        emit MessageExecutionFailed(
             DEFAULT_ORIGIN_CHAIN_ID,
             messageToReceive.messageID,
+            messageToReceive
+        );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiveCrossChainMessage(
+            warpMessage.sourceChainID,
+            messageToReceive.messageID,
+            address(this),
+            DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(
@@ -300,7 +320,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
         vm.expectRevert(
-            TeleporterMessenger.MessageRetryExecutionFailed.selector
+            _formatTeleporterErrorMessage("retry execution failed")
         );
         teleporterMessenger.retryMessageExecution(
             DEFAULT_ORIGIN_CHAIN_ID,

@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterFeeInfo, TeleporterMessageInput, IWarpMessenger, IERC20} from "./TeleporterMessengerTest.t.sol";
 
 contract SendCrossChainMessageTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -21,10 +21,11 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             1,
             hex"deadbeef"
         );
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: expectedMessage.destinationAddress,
-            feeInfo: TeleporterFeeInfo(address(0), 0),
+            feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
@@ -33,29 +34,26 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // We have to mock the precompile call so that the test does not revert.
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
         );
 
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(expectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(expectedMessage))
             )
         );
 
         // Expect the SendCrossChainMessage event to be emitted.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            messageInput.destinationChainID,
+            messageInput.destinationBlockchainID,
             expectedMessage.messageID,
-            expectedMessage
+            expectedMessage,
+            feeInfo
         );
 
         // Act
@@ -68,7 +66,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
 
         // Check receipt queue
         uint256 queueSize = teleporterMessenger.getReceiptQueueSize(
-            messageInput.destinationChainID
+            messageInput.destinationBlockchainID
         );
         assertEq(queueSize, 0);
     }
@@ -80,13 +78,14 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             1,
             hex"deadbeef"
         );
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(
+            address(_mockFeeAsset),
+            13131313131313131313
+        );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: expectedMessage.destinationAddress,
-            feeInfo: TeleporterFeeInfo(
-                address(_mockFeeAsset),
-                13131313131313131313
-            ),
+            feeInfo: feeInfo,
             requiredGasLimit: expectedMessage.requiredGasLimit,
             allowedRelayerAddresses: expectedMessage.allowedRelayerAddresses,
             message: expectedMessage.message
@@ -95,34 +94,31 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // We have to mock the precompile call so that the test does not revert.
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encode(WarpMessenger.sendWarpMessage.selector),
-            new bytes(0)
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
         );
 
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(
-                WarpMessenger.sendWarpMessage,
-                (
-                    messageInput.destinationChainID,
-                    address(teleporterMessenger),
-                    abi.encode(expectedMessage)
-                )
+                IWarpMessenger.sendWarpMessage,
+                (abi.encode(expectedMessage))
             )
         );
 
         // Expect the SendCrossChainMessage event to be emitted.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            messageInput.destinationChainID,
+            messageInput.destinationBlockchainID,
             expectedMessage.messageID,
-            expectedMessage
+            expectedMessage,
+            feeInfo
         );
 
         // Expect the ERC20 contract transferFrom method to be called to transfer the fee.
         vm.expectCall(
-            messageInput.feeInfo.contractAddress,
+            messageInput.feeInfo.feeTokenAddress,
             abi.encodeCall(
                 IERC20.transferFrom,
                 (
@@ -146,7 +142,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         address invalidFeeAsset = 0xb8be9140D8717f4a8fd7e8ae23C5668bc3A4B39c;
         uint256 feeAmount = 4567;
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             feeInfo: TeleporterFeeInfo(invalidFeeAsset, feeAmount),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -167,7 +163,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
     function testFeeTransferFailure() public {
         uint256 feeAmount = 4567;
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             feeInfo: TeleporterFeeInfo(address(_mockFeeAsset), feeAmount),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -198,7 +194,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         address invalidFeeAsset = address(0);
         uint256 feeAmount = 4567;
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationChainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             feeInfo: TeleporterFeeInfo(invalidFeeAsset, feeAmount),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -206,7 +202,9 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        vm.expectRevert(TeleporterMessenger.InvalidFeeAssetContractAddress.selector);
+        vm.expectRevert(
+            _formatTeleporterErrorMessage("zero fee asset contract address")
+        );
         teleporterMessenger.sendCrossChainMessage(messageInput);
     }
 }

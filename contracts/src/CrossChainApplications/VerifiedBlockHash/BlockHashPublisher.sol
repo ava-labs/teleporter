@@ -5,65 +5,72 @@
 
 pragma solidity 0.8.18;
 
-import "../../Teleporter/ITeleporterMessenger.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./BlockHashReceiver.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {TeleporterRegistry} from "../../Teleporter/upgrades/TeleporterRegistry.sol";
 
 /**
  * Contract that publishes the latest block hash of current chain to another chain.
  */
 contract BlockHashPublisher {
-    ITeleporterMessenger public immutable teleporterMessenger;
     uint256 public constant RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT = 1.5e5;
+
+    TeleporterRegistry public immutable teleporterRegistry;
 
     /**
      * @dev Emitted when a block hash is submitted to be published to another chain.
      */
     event PublishBlockHash(
-        bytes32 indexed destinationChainID,
+        bytes32 indexed destinationBlockchainID,
         address indexed destinationAddress,
         uint256 indexed blockHeight,
         bytes32 blockHash
     );
 
-    constructor(address teleporterMessengerAddress) {
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
+    constructor(address teleporterRegistryAddress) {
+        require(
+            teleporterRegistryAddress != address(0),
+            "BlockHashPublisher: zero teleporter registry address"
+        );
+
+        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
     }
 
     /**
      * @dev Publishes the latest block hash to another chain.
+     * @return The message of the of the message sent to publish the hash.
      */
     function publishLatestBlockHash(
-        bytes32 destinationChainID,
+        bytes32 destinationBlockchainID,
         address destinationAddress
-    ) external returns (uint256 messageID) {
+    ) external returns (uint256) {
         // Get the latest block info. Note it must the previous block
         // because the current block hash is not available during execution.
         uint256 blockHeight = block.number - 1;
         bytes32 blockHash = blockhash(blockHeight);
 
         // ABI encode the function arguments to be called on the destination.
-        // The originChainID and originSenderAddress arguments of the target function are provided by Warp/Teleporter.
+        // The originBlockchainID and originSenderAddress arguments of the target function are provided by Warp/Teleporter.
         bytes memory messageData = abi.encode(blockHeight, blockHash);
 
         emit PublishBlockHash(
-            destinationChainID,
+            destinationBlockchainID,
             destinationAddress,
             blockHeight,
             blockHash
         );
-        messageID = teleporterMessenger.sendCrossChainMessage(
-            TeleporterMessageInput({
-                destinationChainID: destinationChainID,
-                destinationAddress: destinationAddress,
-                feeInfo: TeleporterFeeInfo({
-                    contractAddress: address(0),
-                    amount: 0
-                }),
-                requiredGasLimit: RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT,
-                allowedRelayerAddresses: new address[](0),
-                message: messageData
-            })
-        );
+        return
+            teleporterRegistry.getLatestTeleporter().sendCrossChainMessage(
+                TeleporterMessageInput({
+                    destinationBlockchainID: destinationBlockchainID,
+                    destinationAddress: destinationAddress,
+                    feeInfo: TeleporterFeeInfo({
+                        feeTokenAddress: address(0),
+                        amount: 0
+                    }),
+                    requiredGasLimit: RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT,
+                    allowedRelayerAddresses: new address[](0),
+                    message: messageData
+                })
+            );
     }
 }

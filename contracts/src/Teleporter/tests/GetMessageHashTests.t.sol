@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import "./TeleporterMessengerTest.t.sol";
+import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt} from "./TeleporterMessengerTest.t.sol";
 
 contract GetMessageHashTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -23,6 +23,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: address(this),
+            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
