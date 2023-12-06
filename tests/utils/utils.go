@@ -406,14 +406,11 @@ func CreateNativeTransferTransaction(
 	return SignTransaction(tx, fromKey, subnetInfo.EVMChainID)
 }
 
-func SendAndWaitForTransaction(ctx context.Context, tx *types.Transaction, subnetInfo interfaces.SubnetTestInfo) *types.Receipt {
-	err := subnetInfo.WSClient.SendTransaction(ctx, tx)
-	Expect(err).Should(BeNil())
-
-	return WaitForTransaction(ctx, tx.Hash(), subnetInfo)
-}
-
-func WaitForTransactionSuccess(ctx context.Context, txHash common.Hash, subnetInfo interfaces.SubnetTestInfo) *types.Receipt {
+func WaitForTransactionSuccess(
+	ctx context.Context,
+	txHash common.Hash,
+	subnetInfo interfaces.SubnetTestInfo,
+) *types.Receipt {
 	receipt := WaitForTransaction(ctx, txHash, subnetInfo)
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	return receipt
@@ -547,8 +544,7 @@ func BigIntSub(v1 *big.Int, v2 *big.Int) *big.Int {
 
 func BigIntMul(v1 *big.Int, v2 *big.Int) *big.Int {
 	return big.NewInt(0).Mul(v1, v2)
-
-}	
+}
 
 func ERC20Approve(
 	ctx context.Context,
