@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -6,18 +6,15 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
-func ResubmitAlteredMessage(network network.Network) {
-	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 2))
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+func ResubmitAlteredMessage(network interfaces.Network) {
+	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
@@ -62,7 +59,7 @@ func ResubmitAlteredMessage(network network.Network) {
 
 	// Resubmit the altered message
 	log.Info("Submitting the altered Teleporter message on the source chain")
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err :=
 		subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(opts, subnetBInfo.BlockchainID, teleporterMessage)

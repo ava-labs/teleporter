@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -7,17 +7,13 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	. "github.com/onsi/gomega"
 )
 
-func RetrySuccessfulExecution(network network.Network) {
-	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 2))
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+func RetrySuccessfulExecution(network interfaces.Network) {
+	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
@@ -25,8 +21,8 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 	ctx := context.Background()
 
-	_, subnetAExampleMessenger := localUtils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
-	exampleMessengerContractAddressB, subnetBExampleMessenger := localUtils.DeployExampleCrossChainMessenger(
+	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
+	exampleMessengerContractAddressB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
 		ctx, fundedKey, subnetBInfo,
 	)
 
@@ -34,7 +30,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	// Call the example messenger contract on Subnet A
 	//
 	message := "Hello, world!"
-	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := subnetAExampleMessenger.SendMessage(
 		optsA,
@@ -48,7 +44,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -86,7 +82,7 @@ func RetrySuccessfulExecution(network network.Network) {
 	//
 	// Attempt to retry message execution, which should fail
 	//
-	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.ChainIDInt)
+	optsB, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err =
 		subnetBInfo.TeleporterMessenger.RetryMessageExecution(optsB, subnetAInfo.BlockchainID, deliveredTeleporterMessage)

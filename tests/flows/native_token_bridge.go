@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	nativetokendestination "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/NativeTokenDestination"
 	nativetokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/NativeTokenSource"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -18,7 +18,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func NativeTokenBridge(network network.Network) {
+func NativeTokenBridge(network interfaces.Network) {
 	const (
 		// This test needs a unique deployer key, whose nonce 0 is used to deploy the bridge contract
 		// on each chain. The address of the resulting contract has been added to the genesis file as
@@ -98,18 +98,18 @@ func NativeTokenBridge(network network.Network) {
 	// Create abi objects to call the contract with
 	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(
 		bridgeContractAddress,
-		subnetB.ChainWSClient,
+		subnetB.WSClient,
 	)
 	Expect(err).Should(BeNil())
 	nativeTokenSource, err := nativetokensource.NewNativeTokenSource(
 		bridgeContractAddress,
-		subnetA.ChainWSClient,
+		subnetA.WSClient,
 	)
 	Expect(err).Should(BeNil())
 
 	// Helper function
 	sendTokensToSource := func(valueToSend *big.Int, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
-		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetB.ChainIDInt)
+		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetB.EVMChainID)
 		Expect(err).Should(BeNil())
 		transactor.Value = valueToSend
 
@@ -148,7 +148,7 @@ func NativeTokenBridge(network network.Network) {
 		fromKey *ecdsa.PrivateKey,
 		toAddress common.Address,
 	) *types.Receipt {
-		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetA.ChainIDInt)
+		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetA.EVMChainID)
 		Expect(err).Should(BeNil())
 		transactor.Value = valueToSend
 
@@ -183,7 +183,7 @@ func NativeTokenBridge(network network.Network) {
 
 	{ // Transfer some tokens A -> B
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
@@ -207,14 +207,14 @@ func NativeTokenBridge(network network.Network) {
 		Expect(err).ShouldNot(BeNil())
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 	}
 
 	{ // Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.WSClient)
 
-		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainIDInt)
+		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.EVMChainID)
 		Expect(err).Should(BeNil())
 		transactor.Value = valueToSend
 
@@ -228,12 +228,12 @@ func NativeTokenBridge(network network.Network) {
 		Expect(err).ShouldNot(BeNil())
 
 		// Check we should fail to send because we're not collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.WSClient)
 	}
 
 	{ // Transfer more tokens A -> B to collateralize the bridge
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 		checkReserveImbalance(
 			big.NewInt(0).Sub(initialReserveImbalance, valueToSend),
 			nativeTokenDestination,
@@ -260,7 +260,7 @@ func NativeTokenBridge(network network.Network) {
 		checkReserveImbalance(common.Big0, nativeTokenDestination)
 
 		// We should have minted the excess coins after checking the collateral
-		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, subnetB.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, subnetB.WSClient)
 	}
 
 	{ // Transfer tokens B -> A
@@ -273,11 +273,11 @@ func NativeTokenBridge(network network.Network) {
 			valueToReturn,
 		)
 
-		utils.CheckBalance(ctx, tokenReceiverAddress, valueToReturn, subnetA.ChainWSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, valueToReturn, subnetA.WSClient)
 	}
 
 	{ // Check reporting of burned tx fees to Source Chain
-		burnedTxFeesBalanceDest, err := subnetB.ChainWSClient.BalanceAt(
+		burnedTxFeesBalanceDest, err := subnetB.WSClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,
@@ -285,7 +285,7 @@ func NativeTokenBridge(network network.Network) {
 		Expect(err).Should(BeNil())
 		Expect(burnedTxFeesBalanceDest.Cmp(common.Big0) > 0).Should(BeTrue())
 
-		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.ChainIDInt)
+		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.EVMChainID)
 		Expect(err).Should(BeNil())
 		tx, err := nativeTokenDestination.ReportTotalBurnedTxFees(
 			transactor,
@@ -303,7 +303,7 @@ func NativeTokenBridge(network network.Network) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(reportEvent.BurnAddressBalance, burnedTxFeesBalanceDest)
 
-		burnedTxFeesBalanceSource, err := subnetA.ChainWSClient.BalanceAt(
+		burnedTxFeesBalanceSource, err := subnetA.WSClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,
@@ -320,7 +320,7 @@ func NativeTokenBridge(network network.Network) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
-		burnedTxFeesBalanceSource2, err := subnetA.ChainWSClient.BalanceAt(
+		burnedTxFeesBalanceSource2, err := subnetA.WSClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,

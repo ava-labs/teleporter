@@ -25,9 +25,15 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
+	"github.com/ava-labs/subnet-evm/params"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/x/warp"
+	erc20bridge "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ERC20Bridge/ERC20Bridge"
+	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
+	blockhashpublisher "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/VerifiedBlockHash/BlockHashPublisher"
+	blockhashreceiver "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/VerifiedBlockHash/BlockHashReceiver"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -35,21 +41,13 @@ import (
 )
 
 var (
-	NativeTransferGas                 uint64 = 21_000
-	DefaultTeleporterTransactionGas   uint64 = 300_000
-	DefaultTeleporterTransactionValue        = common.Big0
+	NativeTransferGas                     uint64 = 21_000
+	DefaultTeleporterTransactionGas       uint64 = 300_000
+	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
+	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
+	DefaultTeleporterTransactionValue            = common.Big0
+	ExpectedExampleERC20DeployerBalance          = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e10))
 )
-
-type SubnetTestInfo struct {
-	SubnetID                  ids.ID
-	BlockchainID              ids.ID
-	ChainNodeURIs             []string
-	ChainWSClient             ethclient.Client
-	ChainRPCClient            ethclient.Client
-	ChainIDInt                *big.Int
-	TeleporterRegistryAddress common.Address
-	TeleporterMessenger       *teleportermessenger.TeleporterMessenger
-}
 
 //
 // Test utility functions
@@ -59,14 +57,14 @@ type SubnetTestInfo struct {
 // Returns the new head
 func SendTransactionAndWaitForAcceptance(
 	ctx context.Context,
-	subnetInfo SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	tx *types.Transaction,
 	expectSuccess bool) *types.Receipt {
-	err := subnetInfo.ChainRPCClient.SendTransaction(ctx, tx)
+	err := subnetInfo.RPCClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be accepted
-	receipt, err := bind.WaitMined(ctx, subnetInfo.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnetInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	if expectSuccess {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
@@ -79,13 +77,13 @@ func SendTransactionAndWaitForAcceptance(
 
 func SendCrossChainMessageAndWaitForAcceptance(
 	ctx context.Context,
-	source SubnetTestInfo,
-	destination SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	// transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	// Send a transaction to the Teleporter contract
@@ -93,7 +91,7 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be accepted
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -111,21 +109,21 @@ func SendCrossChainMessageAndWaitForAcceptance(
 
 func SendAddFeeAmountAndWaitForAcceptance(
 	ctx context.Context,
-	source SubnetTestInfo,
-	destination SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
 	messageID *big.Int,
 	amount *big.Int,
 	feeContractAddress common.Address,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, source.ChainIDInt)
+		senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	txn, err := transactor.AddFeeAmount(opts, destination.BlockchainID, messageID, feeContractAddress, amount)
 	Expect(err).Should(BeNil())
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -145,18 +143,18 @@ func SendAddFeeAmountAndWaitForAcceptance(
 func RetryMessageExecutionAndWaitForAcceptance(
 	ctx context.Context,
 	originChainID ids.ID,
-	subnet SubnetTestInfo,
+	subnet interfaces.SubnetTestInfo,
 	message teleportermessenger.TeleporterMessage,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	// transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnet.ChainIDInt)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	txn, err := subnet.TeleporterMessenger.RetryMessageExecution(opts, originChainID, message)
 	Expect(err).Should(BeNil())
 
-	receipt, err := bind.WaitMined(ctx, subnet.ChainRPCClient, txn)
+	receipt, err := bind.WaitMined(ctx, subnet.RPCClient, txn)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -165,7 +163,7 @@ func RetryMessageExecutionAndWaitForAcceptance(
 
 func RedeemRelayerRewardsAndConfirm(
 	ctx context.Context,
-	subnet SubnetTestInfo,
+	subnet interfaces.SubnetTestInfo,
 	feeToken *exampleerc20.ExampleERC20,
 	feeTokenAddress common.Address,
 	relayerKey *ecdsa.PrivateKey,
@@ -179,14 +177,14 @@ func RedeemRelayerRewardsAndConfirm(
 	Expect(err).Should(BeNil())
 
 	tx_opts, err := bind.NewKeyedTransactorWithChainID(
-		relayerKey, subnet.ChainIDInt,
+		relayerKey, subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
 	transaction, err := subnet.TeleporterMessenger.RedeemRelayerRewards(
 		tx_opts, feeTokenAddress,
 	)
 	Expect(err).Should(BeNil())
-	receipt, err := bind.WaitMined(ctx, subnet.ChainRPCClient, transaction)
+	receipt, err := bind.WaitMined(ctx, subnet.RPCClient, transaction)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -203,27 +201,32 @@ func RedeemRelayerRewardsAndConfirm(
 		),
 	)
 
+	updatedRewardAmount, err :=
+		subnet.TeleporterMessenger.CheckRelayerRewardAmount(&bind.CallOpts{}, relayerAddress, feeTokenAddress)
+	Expect(err).Should(BeNil())
+	Expect(updatedRewardAmount.Cmp(big.NewInt(0))).Should(Equal(0))
+
 	return receipt
 }
 
 func SendSpecifiedReceiptsAndWaitForAcceptance(
 	ctx context.Context,
 	originChainID ids.ID,
-	source SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
 	messageIDs []*big.Int,
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
-	fundedKey *ecdsa.PrivateKey,
+	senderKey *ecdsa.PrivateKey,
 	// transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.ChainIDInt)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	txn, err := source.TeleporterMessenger.SendSpecifiedReceipts(
 		opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
 	Expect(err).Should(BeNil())
 
-	receipt, err := bind.WaitMined(ctx, source.ChainRPCClient, txn)
+	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -280,7 +283,7 @@ func GetURIHostAndPort(uri string) (string, uint32, error) {
 // Returns the signed transaction.
 func CreateSendCrossChainMessageTransaction(
 	ctx context.Context,
-	source SubnetTestInfo,
+	source interfaces.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
 	senderKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
@@ -292,7 +295,7 @@ func CreateSendCrossChainMessageTransaction(
 
 	// Send a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   source.ChainIDInt,
+		ChainID:   source.EVMChainID,
 		Nonce:     nonce,
 		To:        &teleporterContractAddress,
 		Gas:       DefaultTeleporterTransactionGas,
@@ -302,12 +305,12 @@ func CreateSendCrossChainMessageTransaction(
 		Data:      data,
 	})
 
-	return SignTransaction(tx, senderKey, source.ChainIDInt)
+	return SignTransaction(tx, senderKey, source.EVMChainID)
 }
 
 func CreateRetryMessageExecutionTransaction(
 	ctx context.Context,
-	subnetInfo SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	originChainID ids.ID,
 	message teleportermessenger.TeleporterMessage,
 	senderKey *ecdsa.PrivateKey,
@@ -324,7 +327,7 @@ func CreateRetryMessageExecutionTransaction(
 
 	// Sign a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   subnetInfo.ChainIDInt,
+		ChainID:   subnetInfo.EVMChainID,
 		Nonce:     nonce,
 		To:        &teleporterContractAddress,
 		Gas:       gasLimit,
@@ -334,7 +337,7 @@ func CreateRetryMessageExecutionTransaction(
 		Data:      data,
 	})
 
-	return SignTransaction(tx, senderKey, subnetInfo.ChainIDInt)
+	return SignTransaction(tx, senderKey, subnetInfo.EVMChainID)
 }
 
 // Constructs a transaction to call receiveCrossChainMessage
@@ -344,8 +347,8 @@ func CreateReceiveCrossChainMessageTransaction(
 	warpMessageBytes []byte,
 	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
-	relayerKey *ecdsa.PrivateKey,
-	subnetInfo SubnetTestInfo,
+	senderKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
 ) *types.Transaction {
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
@@ -358,13 +361,13 @@ func CreateReceiveCrossChainMessageTransaction(
 	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
 	Expect(err).Should(BeNil())
 
-	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, PrivateKeyToAddress(relayerKey))
+	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, PrivateKeyToAddress(senderKey))
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(relayerKey))
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(senderKey))
 
 	destinationTx := predicateutils.NewPredicateTx(
-		subnetInfo.ChainIDInt,
+		subnetInfo.EVMChainID,
 		nonce,
 		&teleporterContractAddress,
 		gasLimit,
@@ -377,12 +380,12 @@ func CreateReceiveCrossChainMessageTransaction(
 		signedMessage.Bytes(),
 	)
 
-	return SignTransaction(destinationTx, relayerKey, subnetInfo.ChainIDInt)
+	return SignTransaction(destinationTx, senderKey, subnetInfo.EVMChainID)
 }
 
 func CreateNativeTransferTransaction(
 	ctx context.Context,
-	subnetInfo SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	fromKey *ecdsa.PrivateKey,
 	recipient common.Address,
 	amount *big.Int,
@@ -391,7 +394,7 @@ func CreateNativeTransferTransaction(
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fromAddress)
 
 	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   subnetInfo.ChainIDInt,
+		ChainID:   subnetInfo.EVMChainID,
 		Nonce:     nonce,
 		To:        &recipient,
 		Gas:       NativeTransferGas,
@@ -400,29 +403,29 @@ func CreateNativeTransferTransaction(
 		Value:     amount,
 	})
 
-	return SignTransaction(tx, fromKey, subnetInfo.ChainIDInt)
+	return SignTransaction(tx, fromKey, subnetInfo.EVMChainID)
 }
 
-func SendAndWaitForTransaction(ctx context.Context, tx *types.Transaction, subnetInfo SubnetTestInfo) *types.Receipt {
-	err := subnetInfo.ChainWSClient.SendTransaction(ctx, tx)
+func SendAndWaitForTransaction(ctx context.Context, tx *types.Transaction, subnetInfo interfaces.SubnetTestInfo) *types.Receipt {
+	err := subnetInfo.WSClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
 
 	return WaitForTransaction(ctx, tx.Hash(), subnetInfo)
 }
 
-func WaitForTransactionSuccess(ctx context.Context, txHash common.Hash, subnetInfo SubnetTestInfo) *types.Receipt {
+func WaitForTransactionSuccess(ctx context.Context, txHash common.Hash, subnetInfo interfaces.SubnetTestInfo) *types.Receipt {
 	receipt := WaitForTransaction(ctx, txHash, subnetInfo)
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	return receipt
 }
 
-func WaitForTransaction(ctx context.Context, txHash common.Hash, subnetInfo SubnetTestInfo) *types.Receipt {
+func WaitForTransaction(ctx context.Context, txHash common.Hash, subnetInfo interfaces.SubnetTestInfo) *types.Receipt {
 	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	// Loop until we find the transaction or time out
 	for {
-		receipt, err := subnetInfo.ChainRPCClient.TransactionReceipt(cctx, txHash)
+		receipt, err := subnetInfo.RPCClient.TransactionReceipt(cctx, txHash)
 		if err == nil {
 			return receipt
 		} else {
@@ -456,16 +459,16 @@ func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.
 // Returns the gasFeeCap, gasTipCap, and nonce the be used when constructing a transaction from fundedAddress
 func CalculateTxParams(
 	ctx context.Context,
-	subnetInfo SubnetTestInfo,
-	sender common.Address,
+	subnetInfo interfaces.SubnetTestInfo,
+	fundedAddress common.Address,
 ) (*big.Int, *big.Int, uint64) {
-	baseFee, err := subnetInfo.ChainRPCClient.EstimateBaseFee(ctx)
+	baseFee, err := subnetInfo.RPCClient.EstimateBaseFee(ctx)
 	Expect(err).Should(BeNil())
 
-	gasTipCap, err := subnetInfo.ChainRPCClient.SuggestGasTipCap(ctx)
+	gasTipCap, err := subnetInfo.RPCClient.SuggestGasTipCap(ctx)
 	Expect(err).Should(BeNil())
 
-	nonce, err := subnetInfo.ChainRPCClient.NonceAt(ctx, sender, nil)
+	nonce, err := subnetInfo.RPCClient.NonceAt(ctx, fundedAddress, nil)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap := baseFee.Mul(baseFee, big.NewInt(gasUtils.BaseFeeFactor))
@@ -485,8 +488,8 @@ func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big
 	ExpectBigEqual(bal, expectedBalance)
 }
 
-func TraceTransaction(ctx context.Context, txHash common.Hash, subnetInfo SubnetTestInfo) string {
-	url := HttpToRPCURI(subnetInfo.ChainNodeURIs[0], subnetInfo.BlockchainID.String())
+func TraceTransaction(ctx context.Context, txHash common.Hash, subnetInfo interfaces.SubnetTestInfo) string {
+	url := HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String())
 	rpcClient, err := rpc.DialContext(ctx, url)
 	Expect(err).Should(BeNil())
 	defer rpcClient.Close()
@@ -506,7 +509,7 @@ func DeployContract(
 	ctx context.Context,
 	byteCodeFileName string,
 	deployerPK *ecdsa.PrivateKey,
-	subnetInfo SubnetTestInfo,
+	subnetInfo interfaces.SubnetTestInfo,
 	abi *abi.ABI,
 	constructorArgs ...interface{},
 ) {
@@ -514,13 +517,13 @@ func DeployContract(
 	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
 	Expect(err).Should(BeNil())
 	Expect(len(byteCode) > 0).Should(BeTrue())
-	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.ChainIDInt)
+	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	contractAddress, tx, _, err := bind.DeployContract(
 		transactor,
 		*abi,
 		byteCode,
-		subnetInfo.ChainWSClient,
+		subnetInfo.WSClient,
 		constructorArgs...,
 	)
 	Expect(err).Should(BeNil())
@@ -528,7 +531,7 @@ func DeployContract(
 	// Wait for transaction, then check code was deployed
 	receipt := WaitForTransaction(ctx, tx.Hash(), subnetInfo)
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-	code, err := subnetInfo.ChainWSClient.CodeAt(ctx, contractAddress, nil)
+	code, err := subnetInfo.WSClient.CodeAt(ctx, contractAddress, nil)
 	Expect(err).Should(BeNil())
 	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 }
@@ -544,4 +547,152 @@ func BigIntSub(v1 *big.Int, v2 *big.Int) *big.Int {
 
 func BigIntMul(v1 *big.Int, v2 *big.Int) *big.Int {
 	return big.NewInt(0).Mul(v1, v2)
+
+}	
+
+func ERC20Approve(
+	ctx context.Context,
+	token *exampleerc20.ExampleERC20,
+	spender common.Address,
+	amount *big.Int,
+	source interfaces.SubnetTestInfo,
+	senderKey *ecdsa.PrivateKey,
+) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
+	Expect(err).Should(BeNil())
+	txn, err := token.Approve(opts, spender, amount)
+	Expect(err).Should(BeNil())
+	log.Info("Approved ERC20", "spender", spender.Hex(), "txHash", txn.Hash().Hex())
+
+	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+}
+
+func DeployExampleERC20(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	source interfaces.SubnetTestInfo,
+) (common.Address, *exampleerc20.ExampleERC20) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
+	Expect(err).Should(BeNil())
+
+	// Deploy Mock ERC20 contract
+	address, txn, token, err := exampleerc20.DeployExampleERC20(opts, source.RPCClient)
+	Expect(err).Should(BeNil())
+	log.Info("Deployed Mock ERC20 contract", "address", address.Hex(), "txHash", txn.Hash().Hex())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	// Check that the deployer has the expected initial balance
+	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
+	balance, err := token.BalanceOf(&bind.CallOpts{}, senderAddress)
+	Expect(err).Should(BeNil())
+	Expect(balance).Should(Equal(ExpectedExampleERC20DeployerBalance))
+
+	return address, token
+}
+
+func DeployExampleCrossChainMessenger(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(
+		opts, subnet.RPCClient, subnet.TeleporterRegistryAddress,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, subnet.RPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return address, exampleMessenger
+}
+
+func DeployERC20Bridge(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	source interfaces.SubnetTestInfo,
+) (common.Address, *erc20bridge.ERC20Bridge) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, erc20Bridge, err := erc20bridge.DeployERC20Bridge(
+		opts, source.RPCClient, source.TeleporterRegistryAddress,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, source.RPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	log.Info("Deployed ERC20 Bridge contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
+
+	return address, erc20Bridge
+}
+
+func DeployBlockHashPublisher(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+) (common.Address, *blockhashpublisher.BlockHashPublisher) {
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, publisher, err := blockhashpublisher.DeployBlockHashPublisher(
+		opts, subnet.RPCClient, subnet.TeleporterRegistryAddress,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, subnet.RPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return address, publisher
+}
+
+func DeployBlockHashReceiver(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	publisherAddress common.Address,
+	publisherChainID [32]byte,
+) (common.Address, *blockhashreceiver.BlockHashReceiver) {
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, receiver, err := blockhashreceiver.DeployBlockHashReceiver(
+		opts,
+		subnet.RPCClient,
+		subnet.TeleporterRegistryAddress,
+		publisherChainID,
+		publisherAddress,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt, err := bind.WaitMined(ctx, subnet.RPCClient, tx)
+	Expect(err).Should(BeNil())
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+
+	return address, receiver
+}
+
+func GetThreeSubnets(network interfaces.Network) (
+	interfaces.SubnetTestInfo,
+	interfaces.SubnetTestInfo,
+	interfaces.SubnetTestInfo,
+) {
+	subnets := network.GetSubnetsInfo()
+	Expect(len(subnets)).Should(BeNumerically(">=", 3))
+	return subnets[0], subnets[1], subnets[2]
 }
