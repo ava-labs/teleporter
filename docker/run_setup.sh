@@ -81,10 +81,14 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
 
     export PATH="$PATH:$HOME/.foundry/bin"
 
-    subnet_a_url="http://127.0.0.1:9650/ext/bc/$subnet_a_chain_id/rpc"
-    subnet_b_url="http://127.0.0.1:9650/ext/bc/$subnet_b_chain_id/rpc"
-    subnet_c_url="http://127.0.0.1:9650/ext/bc/$subnet_c_chain_id/rpc"
-    c_chain_url="http://127.0.0.1:9650/ext/bc/C/rpc"
+    subnet_a_rpc_url="http://127.0.0.1:9650/ext/bc/$subnet_a_chain_id/rpc"
+    subnet_a_ws_url="ws://127.0.0.1:9650/ext/bc/$subnet_a_chain_id/ws"
+    subnet_b_rpc_url="http://127.0.0.1:9650/ext/bc/$subnet_b_chain_id/rpc"
+    subnet_b_ws_url="ws://127.0.0.1:9650/ext/bc/$subnet_b_chain_id/ws"
+    subnet_c_rpc_url="http://127.0.0.1:9650/ext/bc/$subnet_c_chain_id/rpc"
+    subnet_c_ws_url="ws://127.0.0.1:9650/ext/bc/$subnet_c_chain_id/ws"
+    c_chain_rpc_url="http://127.0.0.1:9650/ext/bc/C/rpc"
+    c_chain_ws_url="ws://127.0.0.1:9650/ext/bc/C/ws"
 
     # Deploy TeleporterMessenger contract to each chain.
     cd contracts
@@ -97,32 +101,32 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     echo $teleporter_deploy_address $teleporter_contract_address
     echo "Finished reading universal deploy address and transaction"
 
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_a_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_b_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_c_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $c_chain_url
+    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_a_rpc_url
+    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_b_rpc_url
+    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_c_rpc_url
+    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $c_chain_rpc_url
     echo "Sent ether to teleporter deployer on each subnet."
 
     # Verify that the transaction status was successful for the deployments
-    status=$(cast publish --rpc-url $subnet_a_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    status=$(cast publish --rpc-url $subnet_a_rpc_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
         echo "Error deploying Teleporter Messenger on subnet A."
         exit 1
     fi
     echo "Deployed TeleporterMessenger to Subnet A."
-    status=$(cast publish --rpc-url $subnet_b_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    status=$(cast publish --rpc-url $subnet_b_rpc_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
         echo "Error deploying Teleporter Messenger on subnet B."
         exit 1
     fi
     echo "Deployed TeleporterMessenger to Subnet B."
-    status=$(cast publish --rpc-url $subnet_c_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    status=$(cast publish --rpc-url $subnet_c_rpc_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
         echo "Error deploying Teleporter Messenger on subnet C."
         exit 1
     fi
     echo "Deployed TeleporterMessenger to Subnet C."
-    status=$(cast publish --rpc-url $c_chain_url $teleporter_deploy_tx |  getJsonVal "['status']")
+    status=$(cast publish --rpc-url $c_chain_rpc_url $teleporter_deploy_tx |  getJsonVal "['status']")
     if [[ $status != "0x1" ]]; then
         echo "Error deploying Teleporter Messenger on C-chain."
         exit 1
@@ -132,29 +136,29 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     # Deploy TeleporterRegistry to each chain.
     cd contracts
     registry_deploy_result_a=$(forge create --private-key $user_private_key \
-        --rpc-url $subnet_a_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
-    registry_address_a=$(parseContractAddress "$registry_deploy_result_a")
-    echo "TeleporterRegistry contract deployed to subnet A at $registry_address_a."
+        --rpc-url $subnet_a_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
+    subnet_a_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_a")
+    echo "TeleporterRegistry contract deployed to subnet A at $subnet_a_teleporter_registry_address."
 
     registry_deploy_result_b=$(forge create --private-key $user_private_key \
-        --rpc-url $subnet_b_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
-    registry_address_b=$(parseContractAddress "$registry_deploy_result_b")
-    echo "TeleporterRegistry contract deployed to subnet B at $registry_address_b."
+        --rpc-url $subnet_b_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
+    subnet_b_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_b")
+    echo "TeleporterRegistry contract deployed to subnet B at $subnet_b_teleporter_registry_address."
 
     registry_deploy_result_c=$(forge create --private-key $user_private_key \
-        --rpc-url $subnet_c_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
-    registry_address_c=$(parseContractAddress "$registry_deploy_result_c")
-    echo "TeleporterRegistry contract deployed to subnet C at $registry_address_c."
+        --rpc-url $subnet_c_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
+    subnet_c_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_c")
+    echo "TeleporterRegistry contract deployed to subnet C at $subnet_c_teleporter_registry_address."
     cd ..
 
     # Send tokens to cover gas costs for the relayers.
     relayer_private_key=C2CE4E001B7585F543982A01FBC537CFF261A672FA8BD1FAFC08A207098FE2DE
     relayer_address=0xA100fF48a37cab9f87c8b5Da933DA46ea1a5fb80
 
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_a_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_b_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_c_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $c_chain_url
+    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_a_rpc_url
+    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_b_rpc_url
+    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_c_rpc_url
+    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $c_chain_rpc_url
     echo "Sent ether to relayer account on each subnet."
 
     subnet_a_chain_id_hex=$(getBlockchainIDHex $subnet_a_chain_id)

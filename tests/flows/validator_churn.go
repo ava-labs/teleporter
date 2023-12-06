@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -9,22 +9,20 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
-// Disallow this test from being run on anything but a local network, since it manipulates the validator set
-func ValidatorChurn() {
-	network := &network.LocalNetwork{}
+const (
+	nodesPerSubnet = 5
+	newNodeCount   = 5
+)
 
-	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 2))
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+func ValidatorChurn(network interfaces.LocalNetwork) {
+	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -59,33 +57,24 @@ func ValidatorChurn() {
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessageBytes := localUtils.ConstructSignedWarpMessageBytes(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessageBytes := network.ConstructSignedWarpMessageBytes(ctx, receipt, subnetAInfo, subnetBInfo)
 
 	//
 	// Modify the validator set on Subnet A
 	//
 
 	// Add new nodes to the validator set
-	log.Info("Adding nodes to the validator set")
-	startingNodeId := len(subnets)*5 + 1
-	var nodesToAdd []string
-	for i := startingNodeId; i < startingNodeId+5; i++ {
-		n := fmt.Sprintf("node%d-bls", i)
-		nodesToAdd = append(nodesToAdd, n)
-	}
-	localUtils.AddSubnetValidators(ctx, subnetAInfo.SubnetID, nodesToAdd)
+	network.AddSubnetValidators(ctx, subnetAInfo.SubnetID, constructNodesToAddNames(network))
 
 	// Refresh the subnet info
-	subnets = network.GetSubnetsInfo()
-	subnetAInfo = subnets[0]
-	subnetBInfo = subnets[1]
+	subnetAInfo, subnetBInfo, _ = utils.GetThreeSubnets(network)
 
 	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
 	// We have to update all subnets, not just the ones directly involved in this test to ensure that the
 	// proposer VM is updated on all subnets.
-	for _, subnetInfo := range subnets {
+	for _, subnetInfo := range network.GetSubnetsInfo() {
 		err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
-			ctx, subnetInfo.ChainIDInt, fundedKey, subnetInfo.ChainWSClient,
+			ctx, subnetInfo.EVMChainID, fundedKey, subnetInfo.WSClient,
 		)
 		Expect(err).Should(BeNil())
 	}
@@ -117,7 +106,7 @@ func ValidatorChurn() {
 	// Retry sending the message, and attempt to relay again. This should succeed.
 	//
 	log.Info("Retrying message sending on source chain")
-	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.ChainIDInt)
+	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(
 		optsA, subnetBInfo.BlockchainID, sentTeleporterMessage,
@@ -125,7 +114,7 @@ func ValidatorChurn() {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	receipt, err = bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 
@@ -141,4 +130,17 @@ func ValidatorChurn() {
 	// The test cases now do not require any specific nodes to be validators, so leave the validator set as is.
 	// If this changes in the future, this test will need to perform cleanup by removing the nodes that were added
 	// and re-adding the nodes that were removed.
+}
+
+// Each subnet is assumed to have {nodesPerSubnet} nodes named nodeN-bls, where
+// N is unique across each subnet. Nodes to be added should thus be named nodeN-bls
+// where N starts one greater than the current total number of nodes.
+func constructNodesToAddNames(network interfaces.Network) []string {
+	startingNodeId := len(network.GetSubnetsInfo())*nodesPerSubnet + 1
+	var nodesToAdd []string
+	for i := startingNodeId; i < startingNodeId+newNodeCount; i++ {
+		n := fmt.Sprintf("node%d-bls", i)
+		nodesToAdd = append(nodesToAdd, n)
+	}
+	return nodesToAdd
 }
