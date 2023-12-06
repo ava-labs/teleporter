@@ -7,6 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
+import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
@@ -18,6 +19,9 @@ import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
  */
 abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     TeleporterRegistry public immutable teleporterRegistry;
+
+    mapping(address teleporterAddress => bool blocked)
+        private blockedTeleporterAddresses;
 
     /**
      * @dev The minimum required Teleporter version that the contract is allowed
@@ -65,6 +69,12 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
             "TeleporterUpgradeable: invalid Teleporter sender"
         );
 
+        // Check against the blocked Teleporter addresses.
+        require(
+            blockedTeleporterAddresses[msg.sender],
+            "TeleporterUpgradeable: Teleporter address blocked"
+        );
+
         _receiveTeleporterMessage(
             originBlockchainID,
             originSenderAddress,
@@ -85,11 +95,62 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
         _setMinTeleporterVersion(version);
     }
 
+    function blockTeleporterAddress(address teleporterAddress) public virtual {
+        _checkTeleporterUpgradeAccess();
+        require(
+            !blockedTeleporterAddresses[teleporterAddress],
+            "TeleporterUpgradeable: address already blocked"
+        );
+
+        // Check that the address is a valid Teleporter address.
+        _ = teleporterRegistry.getVersionFromAddress(teleporterAddress);
+
+        blockedTeleporterAddresses[teleporterAddress] = true;
+    }
+
+    function unblockTeleporterAddress(
+        address teleporterAddress
+    ) public virtual {
+        _checkTeleporterUpgradeAccess();
+        require(
+            blockedTeleporterAddresses[teleporterAddress],
+            "TeleporterUpgradeable: address not blocked"
+        );
+
+        uint256 version = teleporterRegistry.getVersionFromAddress(
+            teleporterAddress
+        );
+
+        // Check that the address is greater than the minimum Teleporter version.
+        // No need to check if it's less than the latest version since it can only be
+        // added to the registry if it's less than the latest version.
+        require(
+            version > _minTeleporterVersion,
+            "TeleporterUpgradeable: cannot unblock less than minimum version"
+        );
+        blockedTeleporterAddresses[teleporterAddress] = false;
+    }
+
     /**
      * @dev Public getter for `_minTeleporterVersion`.
      */
     function getMinTeleporterVersion() public view returns (uint256) {
         return _minTeleporterVersion;
+    }
+
+    function _getTeleporterMessenger()
+        internal
+        view
+        returns (ITeleporterMessenger)
+    {
+        ITeleporterMessenger teleporter = teleporterRegistry
+            .getLatestTeleporter();
+        require(
+            !blockedTeleporterAddresses[address(teleporter)],
+            "TeleporterUpgradeable: Teleporter sending version blocked"
+        );
+
+        return teleporter;
     }
 
     /**
