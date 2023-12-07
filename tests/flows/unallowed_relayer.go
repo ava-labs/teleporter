@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -6,18 +6,15 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
-func UnallowedRelayer(network network.Network) {
-	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 2))
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+func UnallowedRelayer(network interfaces.Network) {
+	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//

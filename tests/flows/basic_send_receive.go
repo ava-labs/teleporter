@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -6,23 +6,15 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/gomega"
 )
 
 // Tests basic one-way send from Subnet A to Subnet B and vice versa
-func BasicSendReceive(network network.Network) {
-	var (
-		teleporterMessageID *big.Int
-	)
-
-	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 2))
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+func BasicSendReceive(network interfaces.Network) {
+	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -32,12 +24,12 @@ func BasicSendReceive(network network.Network) {
 	ctx := context.Background()
 
 	feeAmount := big.NewInt(1)
-	feeTokenAddress, feeToken := localUtils.DeployExampleERC20(
+	feeTokenAddress, feeToken := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		subnetAInfo,
 	)
-	localUtils.ExampleERC20Approve(
+	utils.ERC20Approve(
 		ctx,
 		feeToken,
 		teleporterContractAddress,
@@ -70,7 +62,11 @@ func BasicSendReceive(network network.Network) {
 	//
 	// Relay the message to the destination
 	//
-	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	deliveryReceipt := network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
+	receiveEvent, err := utils.GetEventFromLogs(
+		deliveryReceipt.Logs,
+		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	Expect(err).Should(BeNil())
 
 	//
 	// Check Teleporter message received on the destination
@@ -108,7 +104,11 @@ func BasicSendReceive(network network.Network) {
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	utils.RedeemRelayerRewardsAndConfirm(
-		ctx, subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
-	)
+	// If the reward address of the message from A->B is the funded address, which is able to send
+	// transactions on subnet A, then redeem the rewards.
+	if receiveEvent.RewardRedeemer == fundedAddress {
+		utils.RedeemRelayerRewardsAndConfirm(
+			ctx, subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
+		)
+	}
 }

@@ -1,4 +1,4 @@
-package tests
+package flows
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	"github.com/ava-labs/teleporter/tests/network"
+	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
@@ -14,11 +14,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func ReceiveMessageTwice(network network.Network) {
-	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 2))
-	subnetAInfo := subnets[0]
-	subnetBInfo := subnets[1]
+func RelayMessageTwice(network interfaces.Network) {
+	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
@@ -62,7 +59,7 @@ func ReceiveMessageTwice(network network.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	//
-	// Attempt to send the same message again
+	// Attempt to send the same message again, should fail
 	//
 	log.Info("Relaying the same Teleporter message again on the destination")
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, false)
