@@ -68,18 +68,28 @@ To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which wo
     }
 ```
 
-For sending messages with the Teleporter registry, dapps should generally use `TeleporterRegistry.getLatestTeleporter` for the latest version, but if the dapp wants to send a message to a specific version, it can use `TeleporterRegistry.getTeleporterFromVersion` to get the specific Teleporter version.
+For sending messages with the Teleporter registry, dapps should generally use `TeleporterUpgradeable._getTeleporterMessenger`, which by default will use the latest version. If the dapp wants to send a message through a specific Teleporter version, it can override `_getTeleporterMessenger()` to use the specific Teleporter version with  `TeleporterRegistry.getTeleporterFromVersion`.
 
 Using latest version:
 
 ```solidity
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 ```
 
 Using specific version:
 
 ```solidity
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getTeleporterFromVersion(version);
+        // Override _getTeleporterMessenger to use specific version.
+        function _getTeleporterMessenger() internal view override returns (ITeleporterMessenger) {
+            ITeleporterMessenger teleporter = teleporterRegistry
+                .getTeleporterFromVersion($VERSION);
+            require(
+                !pausedTeleporterAddresses[address(teleporter)],
+                "TeleporterUpgradeable: Teleporter sending version paused"
+            );
+
+            return teleporter;
+        }
+
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 ```
