@@ -51,6 +51,14 @@ interface INativeTokenDestination {
     ) external payable;
 
     /**
+     * @dev Reports the current total burned transaction fees on this chain to the source chain.
+     */
+    function reportTotalBurnedTxFees(
+        TeleporterFeeInfo calldata feeInfo,
+        address[] calldata allowedRelayerAddresses
+    ) external;
+
+    /**
      * @dev Returns true if the reserve imbalance for this contract has been accounted for.
      *  When this is true, all tokens sent to this chain will be minted, and sending tokens
      *  to the source chain is allowed.
@@ -61,12 +69,4 @@ interface INativeTokenDestination {
      * @dev Returns a best-estimate (upper bound) of tokens in circulation on this chain.
      */
     function totalSupply() external view returns (uint256);
-
-    /**
-     * @dev Reports the current total burned transaction fees on this chain to the source chain.
-     */
-    function reportTotalBurnedTxFees(
-        TeleporterFeeInfo calldata feeInfo,
-        address[] calldata allowedRelayerAddresses
-    ) external;
 }
