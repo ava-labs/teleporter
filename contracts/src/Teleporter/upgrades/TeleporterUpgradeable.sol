@@ -71,7 +71,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
 
         // Check against the blocked Teleporter addresses.
         require(
-            blockedTeleporterAddresses[msg.sender],
+            !blockedTeleporterAddresses[msg.sender],
             "TeleporterUpgradeable: Teleporter address blocked"
         );
 
@@ -103,7 +103,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
         );
 
         // Check that the address is a valid Teleporter address.
-        _ = teleporterRegistry.getVersionFromAddress(teleporterAddress);
+        teleporterRegistry.getVersionFromAddress(teleporterAddress);
 
         blockedTeleporterAddresses[teleporterAddress] = true;
     }
