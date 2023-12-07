@@ -61,4 +61,12 @@ interface INativeTokenDestination {
      * @dev Returns a best-estimate (upper bound) of tokens in circulation on this chain.
      */
     function totalSupply() external view returns (uint256);
+
+    /**
+     * @dev Reports the current total burned transaction fees on this chain to the source chain.
+     */
+    function reportTotalBurnedTxFees(
+        TeleporterFeeInfo calldata feeInfo,
+        address[] calldata allowedRelayerAddresses
+    ) external;
 }

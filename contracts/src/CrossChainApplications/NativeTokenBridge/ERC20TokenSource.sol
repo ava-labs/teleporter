@@ -195,21 +195,20 @@ contract ERC20TokenSource is
         );
 
         // Transfer to recipient
-        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
-
         emit UnlockTokens(recipient, amount);
+        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
     }
 
     /**
      * @dev Sends tokens to BURNED_TX_FEES_ADDRESS.
      */
     function _burnTokens(uint256 amount) private {
+        emit BurnTokens(amount);
         SafeERC20.safeTransfer(
             IERC20(erc20ContractAddress),
             BURNED_TX_FEES_ADDRESS,
             amount
         );
-        emit BurnTokens(amount);
     }
 
     /**

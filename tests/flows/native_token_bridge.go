@@ -18,7 +18,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func NativeTokenBridge(network interfaces.Network) {
+func NativeTokenBridge(network interfaces.LocalNetwork) {
 	const (
 		// This test needs a unique deployer key, whose nonce 0 is used to deploy the bridge contract
 		// on each chain. The address of the resulting contract has been added to the genesis file as
@@ -46,9 +46,7 @@ func NativeTokenBridge(network interfaces.Network) {
 		}
 	)
 
-	subnets := network.GetSubnetsInfo()
-	subnetA := subnets[0]
-	subnetB := subnets[1]
+	subnetA, subnetB, _ := utils.GetThreeSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 
 	// Info we need to calculate for the test
@@ -58,7 +56,8 @@ func NativeTokenBridge(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	log.Info("Native Token Bridge Contract Address: " + bridgeContractAddress.Hex())
 
-	{ // Deploy the contracts
+	{
+		// Deploy the contracts
 		// Both contracts in this test will be deployed to 0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B,
 		// though they do not necessarily have to be deployed at the same address, each contract needs
 		// to know the address of the other.
@@ -181,7 +180,8 @@ func NativeTokenBridge(network interfaces.Network) {
 		return receipt
 	}
 
-	{ // Transfer some tokens A -> B
+	{
+		// Transfer some tokens A -> B
 		// Check starting balance is 0
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 
@@ -210,7 +210,8 @@ func NativeTokenBridge(network interfaces.Network) {
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 	}
 
-	{ // Fail to Transfer tokens B -> A because bridge is not collateralized
+	{
+		// Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.WSClient)
 
@@ -231,7 +232,8 @@ func NativeTokenBridge(network interfaces.Network) {
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.WSClient)
 	}
 
-	{ // Transfer more tokens A -> B to collateralize the bridge
+	{
+		// Transfer more tokens A -> B to collateralize the bridge
 		// Check starting balance is 0
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 		checkReserveImbalance(
@@ -263,7 +265,8 @@ func NativeTokenBridge(network interfaces.Network) {
 		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, subnetB.WSClient)
 	}
 
-	{ // Transfer tokens B -> A
+	{
+		// Transfer tokens B -> A
 		sourceChainReceipt := sendTokensToSource(valueToReturn, deployerPK, tokenReceiverAddress)
 
 		checkUnlockNativeEvent(
@@ -276,7 +279,8 @@ func NativeTokenBridge(network interfaces.Network) {
 		utils.CheckBalance(ctx, tokenReceiverAddress, valueToReturn, subnetA.WSClient)
 	}
 
-	{ // Check reporting of burned tx fees to Source Chain
+	{
+		// Check reporting of burned tx fees to Source Chain
 		burnedTxFeesBalanceDest, err := subnetB.WSClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,

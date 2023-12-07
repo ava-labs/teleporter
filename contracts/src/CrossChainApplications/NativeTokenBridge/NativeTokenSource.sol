@@ -179,17 +179,16 @@ contract NativeTokenSource is
         );
 
         // Transfer to recipient
-        payable(recipient).transfer(amount);
-
         emit UnlockTokens(recipient, amount);
+        payable(recipient).transfer(amount);
     }
 
     /**
      * @dev Sends tokens to BURNED_TX_FEES_ADDRESS.
      */
     function _burnTokens(uint256 amount) private {
-        payable(BURNED_TX_FEES_ADDRESS).transfer(amount);
         emit BurnTokens(amount);
+        payable(BURNED_TX_FEES_ADDRESS).transfer(amount);
     }
 
     /**

@@ -45,7 +45,7 @@ contract NativeTokenDestination is
     // This means tokens will not be minted until the source contact is collateralized.
     uint256 public immutable initialReserveImbalance;
     uint256 public currentReserveImbalance;
-    uint256 public totalMinted = 0;
+    uint256 public totalMinted;
 
     // Used for sending and receiving Teleporter messages.
     ITeleporterMessenger public immutable teleporterMessenger;
@@ -149,10 +149,10 @@ contract NativeTokenDestination is
             }
         }
 
-        // Calls NativeMinter precompile through INativeMinter interface.
-        _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
         totalMinted += adjustedAmount;
         emit NativeTokensMinted(recipient, adjustedAmount);
+        // Calls NativeMinter precompile through INativeMinter interface.
+        _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
     }
 
     /**
@@ -256,13 +256,14 @@ contract NativeTokenDestination is
     function totalSupply() external view returns (uint256) {
         uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance +
             address(BURN_FOR_TRANSFER_ADDRESS).balance;
+        uint256 created = totalMinted + initialReserveImbalance;
 
         // This scenario should never happen, but this check will prevent an underflow
         // where the contract would return a garbage value.
         require(
-            burned <= totalMinted + initialReserveImbalance,
+            burned <= created,
             "NativeTokenDestination: FATAL - contract has tokens unaccounted for"
         );
-        return totalMinted + initialReserveImbalance - burned;
+        return created - burned;
     }
 }

@@ -19,7 +19,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func ERC20ToNativeTokenBridge(network interfaces.Network) {
+func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 	const (
 		// This test needs a unique deployer key, whose nonce 0 is used to deploy the bridge contract
 		// on each chain. The address of the resulting contract has been added to the genesis file as
@@ -46,9 +46,7 @@ func ERC20ToNativeTokenBridge(network interfaces.Network) {
 		}
 	)
 
-	subnets := network.GetSubnetsInfo()
-	subnetA := subnets[0]
-	subnetB := subnets[1]
+	subnetA, subnetB, _ := utils.GetThreeSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 
 	// Info we need to calculate for the test
@@ -196,7 +194,8 @@ func ERC20ToNativeTokenBridge(network interfaces.Network) {
 		return receipt
 	}
 
-	{ // Give erc20TokenSource allowance to spend all of the deployer's ERC20 Tokens
+	{
+		// Give erc20TokenSource allowance to spend all of the deployer's ERC20 Tokens
 		bal, err := exampleERC20.BalanceOf(nil, deployerAddress)
 		Expect(err).Should(BeNil())
 
@@ -208,9 +207,9 @@ func ERC20ToNativeTokenBridge(network interfaces.Network) {
 		utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetA)
 	}
 
-	{ // Transfer some tokens A -> B
+	{
+		// Transfer some tokens A -> B
 		// Check starting balance is 0
-
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
@@ -236,7 +235,8 @@ func ERC20ToNativeTokenBridge(network interfaces.Network) {
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 	}
 
-	{ // Fail to Transfer tokens B -> A because bridge is not collateralized
+	{
+		// Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 
@@ -290,7 +290,8 @@ func ERC20ToNativeTokenBridge(network interfaces.Network) {
 		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, subnetB.WSClient)
 	}
 
-	{ // Transfer tokens B -> A
+	{
+		// Transfer tokens B -> A
 		sourceChainReceipt := sendTokensToSource(valueToReturn, deployerPK, tokenReceiverAddress)
 
 		checkUnlockERC20Event(
@@ -305,7 +306,8 @@ func ERC20ToNativeTokenBridge(network interfaces.Network) {
 		utils.ExpectBigEqual(bal, valueToReturn)
 	}
 
-	{ // Check reporting of burned tx fees to Source Chain
+	{
+		// Check reporting of burned tx fees to Source Chain
 		burnedTxFeesBalanceDest, err := subnetB.WSClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
