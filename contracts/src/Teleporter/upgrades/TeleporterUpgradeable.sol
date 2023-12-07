@@ -20,8 +20,11 @@ import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
 abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     TeleporterRegistry public immutable teleporterRegistry;
 
+    /**
+     * @dev A mapping that keeps track of paused Teleporter addresses.
+     */
     mapping(address teleporterAddress => bool paused)
-        private pausedTeleporterAddresses;
+        private _pausedTeleporterAddresses;
 
     /**
      * @dev The minimum required Teleporter version that the contract is allowed
@@ -117,7 +120,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
             !isTeleporterAddressPaused(teleporterAddress),
             "TeleporterUpgradeable: address already paused"
         );
-        pausedTeleporterAddresses[teleporterAddress] = true;
+        _pausedTeleporterAddresses[teleporterAddress] = true;
         emit TeleporterAddressPaused(teleporterAddress);
     }
 
@@ -134,7 +137,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     function isTeleporterAddressPaused(
         address teleporterAddress
     ) public view virtual returns (bool) {
-        return pausedTeleporterAddresses[teleporterAddress];
+        return _pausedTeleporterAddresses[teleporterAddress];
     }
 
     /**

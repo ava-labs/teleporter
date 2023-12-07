@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterUpgradeableTest, ExampleUpgradeableApp} from "./TeleporterUpgradeableTests.t.sol";
+import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 import {ITeleporterMessenger} from "../../ITeleporterMessenger.sol";
 import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 

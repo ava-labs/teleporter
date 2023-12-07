@@ -5,8 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
-import {TeleporterUpgradeableTest, ExampleUpgradeableApp} from "./TeleporterUpgradeableTests.t.sol";
+import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 
 contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
