@@ -117,6 +117,10 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     function pauseTeleporterAddress(address teleporterAddress) public virtual {
         _checkTeleporterUpgradeAccess();
         require(
+            teleporterAddress != address(0),
+            "TeleporterUpgradeable: zero Teleporter address"
+        );
+        require(
             !isTeleporterAddressPaused(teleporterAddress),
             "TeleporterUpgradeable: address already paused"
         );

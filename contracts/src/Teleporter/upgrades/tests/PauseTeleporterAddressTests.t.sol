@@ -136,4 +136,12 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
             ""
         );
     }
+
+    function testPauseZeroAddress() public {
+        // Check that a zero address can not be paused
+        vm.expectRevert(
+            _formatTeleporterUpgradeableErrorMessage("zero Teleporter address")
+        );
+        app.pauseTeleporterAddress(address(0));
+    }
 }
