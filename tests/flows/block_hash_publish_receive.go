@@ -1,46 +1,41 @@
-package tests
+package flows
 
 import (
 	"context"
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/teleporter/tests/network"
-	localUtils "github.com/ava-labs/teleporter/tests/utils/local-network-utils"
+	"github.com/ava-labs/teleporter/tests/interfaces"
+	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
 )
 
-func BlockHashPublishReceive(network network.Network) {
-	var (
-		subnets     = network.GetSubnetsInfo()
-		subnetAInfo = subnets[0]
-		subnetBInfo = subnets[1]
+func BlockHashPublishReceive(network interfaces.Network) {
+	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
+	_, fundedKey := network.GetFundedAccountInfo()
 
-		_, fundedKey = network.GetFundedAccountInfo()
+	ctx := context.Background()
 
-		ctx = context.Background()
-
-		publisherAddress, publisher = localUtils.DeployBlockHashPublisher(
-			ctx,
-			fundedKey,
-			subnetAInfo,
-		)
-		receiverAddress, receiver = localUtils.DeployBlockHashReceiver(
-			ctx,
-			fundedKey,
-			subnetBInfo,
-			publisherAddress,
-			subnetAInfo.BlockchainID,
-		)
+	publisherAddress, publisher := utils.DeployBlockHashPublisher(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+	)
+	receiverAddress, receiver := utils.DeployBlockHashReceiver(
+		ctx,
+		fundedKey,
+		subnetBInfo,
+		publisherAddress,
+		subnetAInfo.BlockchainID,
 	)
 
 	// gather expectations
 
-	expectedBlockNumberU64, err := subnetAInfo.ChainRPCClient.BlockNumber(ctx)
+	expectedBlockNumberU64, err := subnetAInfo.RPCClient.BlockNumber(ctx)
 	Expect(err).Should(BeNil())
 	expectedBlockNumber := big.NewInt(0).SetUint64(expectedBlockNumberU64)
 
-	block, err := subnetAInfo.ChainRPCClient.BlockByNumber(
+	block, err := subnetAInfo.RPCClient.BlockByNumber(
 		ctx, expectedBlockNumber)
 	Expect(err).Should(BeNil())
 	expectedBlockHash := block.Hash()
@@ -48,14 +43,14 @@ func BlockHashPublishReceive(network network.Network) {
 	// publish latest block hash
 
 	tx_opts, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, subnetAInfo.ChainIDInt)
+		fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	tx, err := publisher.PublishLatestBlockHash(
 		tx_opts, subnetBInfo.BlockchainID, receiverAddress)
 	Expect(err).Should(BeNil())
 
-	receipt, err := bind.WaitMined(ctx, subnetAInfo.ChainRPCClient, tx)
+	receipt, err := bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
 	Expect(err).Should(BeNil())
 
 	// relay publication
