@@ -46,7 +46,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		}
 	)
 
-	subnetA, subnetB, _ := utils.GetThreeSubnets(network)
+	sourceSubnet, destSubnet, _ := utils.GetThreeSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 
 	// Info we need to calculate for the test
@@ -69,10 +69,10 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			ctx,
 			NativeTokenSourceByteCodeFile,
 			deployerPK,
-			subnetA,
+			sourceSubnet,
 			erc20TokenSourceAbi,
 			teleporterContractAddress,
-			subnetB.BlockchainID,
+			destSubnet.BlockchainID,
 			bridgeContractAddress,
 		)
 		Expect(err).Should(BeNil())
@@ -83,10 +83,10 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			ctx,
 			NativeTokenDestinationByteCodeFile,
 			deployerPK,
-			subnetB,
+			destSubnet,
 			nativeTokenDestinationAbi,
 			teleporterContractAddress,
-			subnetA.BlockchainID,
+			sourceSubnet.BlockchainID,
 			bridgeContractAddress,
 			initialReserveImbalance,
 		)
@@ -97,97 +97,34 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 	// Create abi objects to call the contract with
 	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(
 		bridgeContractAddress,
-		subnetB.WSClient,
+		destSubnet.WSClient,
 	)
 	Expect(err).Should(BeNil())
 	nativeTokenSource, err := nativetokensource.NewNativeTokenSource(
 		bridgeContractAddress,
-		subnetA.WSClient,
+		sourceSubnet.WSClient,
 	)
 	Expect(err).Should(BeNil())
-
-	// Helper function
-	sendTokensToSource := func(valueToSend *big.Int, fromKey *ecdsa.PrivateKey, toAddress common.Address) *types.Receipt {
-		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetB.EVMChainID)
-		Expect(err).Should(BeNil())
-		transactor.Value = valueToSend
-
-		tx, err := nativeTokenDestination.TransferToSource(
-			transactor,
-			toAddress,
-			emptyDestFeeInfo,
-			[]common.Address{},
-		)
-		Expect(err).Should(BeNil())
-		log.Info(
-			"Sent TransferToSource transaction on destination chain",
-			"sourceBlockchainID",
-			subnetA.BlockchainID,
-			"txHash",
-			tx.Hash().Hex(),
-		)
-
-		destChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetB)
-
-		transferEvent, err := utils.GetEventFromLogs(
-			destChainReceipt.Logs,
-			nativeTokenDestination.ParseTransferToSource,
-		)
-		Expect(err).Should(BeNil())
-		utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
-
-		receipt := network.RelayMessage(ctx, destChainReceipt, subnetB, subnetA, true)
-
-		return receipt
-	}
-
-	// Helper function
-	sendTokensToDestination := func(
-		valueToSend *big.Int,
-		fromKey *ecdsa.PrivateKey,
-		toAddress common.Address,
-	) *types.Receipt {
-		transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, subnetA.EVMChainID)
-		Expect(err).Should(BeNil())
-		transactor.Value = valueToSend
-
-		tx, err := nativeTokenSource.TransferToDestination(
-			transactor,
-			toAddress,
-			emptySourceFeeInfo,
-			[]common.Address{},
-		)
-		Expect(err).Should(BeNil())
-		log.Info(
-			"Sent TransferToDestination transaction on source chain",
-			"destinationBlockchainID",
-			subnetB.BlockchainID,
-			"txHash",
-			tx.Hash().Hex(),
-		)
-
-		sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetA)
-
-		transferEvent, err := utils.GetEventFromLogs(
-			sourceChainReceipt.Logs,
-			nativeTokenSource.ParseTransferToDestination,
-		)
-		Expect(err).Should(BeNil())
-		utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
-
-		receipt := network.RelayMessage(ctx, sourceChainReceipt, subnetA, subnetB, true)
-
-		return receipt
-	}
 
 	{
 		// Transfer some tokens A -> B
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
-		destChainReceipt := sendTokensToDestination(valueToSend, deployerPK, tokenReceiverAddress)
+		destChainReceipt :=
+			sendNativeTokensToDestination(
+				ctx,
+				network,
+				valueToSend,
+				deployerPK,
+				tokenReceiverAddress,
+				sourceSubnet,
+				destSubnet,
+				nativeTokenSource,
+				emptySourceFeeInfo,
+			)
 
 		checkCollateralEvent(
 			destChainReceipt.Logs,
@@ -207,15 +144,15 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).ShouldNot(BeNil())
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
 	}
 
 	{
 		// Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, sourceSubnet.WSClient)
 
-		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.EVMChainID)
+		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, destSubnet.EVMChainID)
 		Expect(err).Should(BeNil())
 		transactor.Value = valueToSend
 
@@ -229,22 +166,28 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).ShouldNot(BeNil())
 
 		// Check we should fail to send because we're not collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetA.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, sourceSubnet.WSClient)
 	}
 
 	{
 		// Transfer more tokens A -> B to collateralize the bridge
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
 		checkReserveImbalance(
 			big.NewInt(0).Sub(initialReserveImbalance, valueToSend),
 			nativeTokenDestination,
 		)
 
-		destChainReceipt := sendTokensToDestination(
+		destChainReceipt := sendNativeTokensToDestination(
+			ctx,
+			network,
 			initialReserveImbalance,
 			deployerPK,
 			tokenReceiverAddress,
+			sourceSubnet,
+			destSubnet,
+			nativeTokenSource,
+			emptySourceFeeInfo,
 		)
 
 		checkCollateralEvent(
@@ -262,12 +205,23 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		checkReserveImbalance(common.Big0, nativeTokenDestination)
 
 		// We should have minted the excess coins after checking the collateral
-		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, subnetB.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, destSubnet.WSClient)
 	}
 
 	{
 		// Transfer tokens B -> A
-		sourceChainReceipt := sendTokensToSource(valueToReturn, deployerPK, tokenReceiverAddress)
+		sourceChainReceipt :=
+			sendTokensToSource(
+				ctx,
+				network,
+				valueToReturn,
+				deployerPK,
+				tokenReceiverAddress,
+				sourceSubnet,
+				destSubnet,
+				nativeTokenDestination,
+				emptyDestFeeInfo,
+			)
 
 		checkUnlockNativeEvent(
 			sourceChainReceipt.Logs,
@@ -276,12 +230,12 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			valueToReturn,
 		)
 
-		utils.CheckBalance(ctx, tokenReceiverAddress, valueToReturn, subnetA.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, valueToReturn, sourceSubnet.WSClient)
 	}
 
 	{
 		// Check reporting of burned tx fees to Source Chain
-		burnedTxFeesBalanceDest, err := subnetB.WSClient.BalanceAt(
+		burnedTxFeesBalanceDest, err := destSubnet.WSClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,
@@ -289,7 +243,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		Expect(burnedTxFeesBalanceDest.Cmp(common.Big0) > 0).Should(BeTrue())
 
-		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetB.EVMChainID)
+		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, destSubnet.EVMChainID)
 		Expect(err).Should(BeNil())
 		tx, err := nativeTokenDestination.ReportTotalBurnedTxFees(
 			transactor,
@@ -298,7 +252,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		)
 		Expect(err).Should(BeNil())
 
-		destChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), subnetB)
+		destChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), destSubnet)
 
 		reportEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
@@ -307,7 +261,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(reportEvent.BurnAddressBalance, burnedTxFeesBalanceDest)
 
-		burnedTxFeesBalanceSource, err := subnetA.WSClient.BalanceAt(
+		burnedTxFeesBalanceSource, err := sourceSubnet.WSClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,
@@ -315,7 +269,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		Expect(burnedTxFeesBalanceSource.Cmp(common.Big0) > 0).Should(BeTrue())
 
-		sourceChainReceipt := network.RelayMessage(ctx, destChainReceipt, subnetB, subnetA, true)
+		sourceChainReceipt := network.RelayMessage(ctx, destChainReceipt, destSubnet, sourceSubnet, true)
 
 		burnEvent, err := utils.GetEventFromLogs(
 			sourceChainReceipt.Logs,
@@ -324,7 +278,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
-		burnedTxFeesBalanceSource2, err := subnetA.WSClient.BalanceAt(
+		burnedTxFeesBalanceSource2, err := sourceSubnet.WSClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,
@@ -384,4 +338,78 @@ func checkReserveImbalance(
 	imbalance, err := nativeTokenDestination.CurrentReserveImbalance(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	utils.ExpectBigEqual(imbalance, value)
+}
+
+func sendTokensToSource(
+	ctx context.Context,
+	network interfaces.LocalNetwork,
+	valueToSend *big.Int,
+	fromKey *ecdsa.PrivateKey,
+	toAddress common.Address,
+	sourceSubnet interfaces.SubnetTestInfo,
+	destinationSubnet interfaces.SubnetTestInfo,
+	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
+	feeInfo nativetokendestination.TeleporterFeeInfo,
+) *types.Receipt {
+	transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, destinationSubnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	transactor.Value = valueToSend
+
+	tx, err := nativeTokenDestination.TransferToSource(
+		transactor,
+		toAddress,
+		feeInfo,
+		[]common.Address{},
+	)
+	Expect(err).Should(BeNil())
+
+	destChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), destinationSubnet)
+
+	transferEvent, err := utils.GetEventFromLogs(
+		destChainReceipt.Logs,
+		nativeTokenDestination.ParseTransferToSource,
+	)
+	Expect(err).Should(BeNil())
+	utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
+
+	receipt := network.RelayMessage(ctx, destChainReceipt, destinationSubnet, destinationSubnet, true)
+
+	return receipt
+}
+
+func sendNativeTokensToDestination(
+	ctx context.Context,
+	network interfaces.LocalNetwork,
+	valueToSend *big.Int,
+	fromKey *ecdsa.PrivateKey,
+	toAddress common.Address,
+	sourceSubnet interfaces.SubnetTestInfo,
+	destinationSubnet interfaces.SubnetTestInfo,
+	nativeTokenSource *nativetokensource.NativeTokenSource,
+	feeInfo nativetokensource.TeleporterFeeInfo,
+) *types.Receipt {
+	transactor, err := bind.NewKeyedTransactorWithChainID(fromKey, sourceSubnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	transactor.Value = valueToSend
+
+	tx, err := nativeTokenSource.TransferToDestination(
+		transactor,
+		toAddress,
+		feeInfo,
+		[]common.Address{},
+	)
+	Expect(err).Should(BeNil())
+
+	sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, tx.Hash(), sourceSubnet)
+
+	transferEvent, err := utils.GetEventFromLogs(
+		sourceChainReceipt.Logs,
+		nativeTokenSource.ParseTransferToDestination,
+	)
+	Expect(err).Should(BeNil())
+	utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
+
+	receipt := network.RelayMessage(ctx, sourceChainReceipt, sourceSubnet, destinationSubnet, true)
+
+	return receipt
 }
