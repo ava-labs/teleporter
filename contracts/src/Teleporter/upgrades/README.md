@@ -25,15 +25,21 @@ In the `TeleporterRegistry` contract, the `latestVersion` state variable returns
 - Version zero is an invalid version, and is used to indicate that a `TeleporterMessenger` contract has not been registered yet.
 - Once a version number is registered in the registry, it cannot be changed, but a previous registered protocol address can be added to the registry with a new version. This is especially important in the case of a rollback to a previous Teleporter version, in which case the previous Teleporter contract address would need to be registered with a new version to the registry.
 
+![Upgrade UML diagram](upgrade-uml.png)
+
 ## How to use `TeleporterRegistry`
 
 `TeleporterUpgradeable` is an abstract contract that helps integrate the `TeleporterRegistry` into a dapp. The dapp contract can inherit `TeleporterUpgradeable`, and pass in the Teleporter registry address inside the constructor. An example app looks like:
 
 ```solidity
+// An example app that integrates with the Teleporter registry
+// to send/receive Teleporter messages.
 contract ExampleApp is
     TeleporterUpgradeable
 {
     ...
+    // Constructor passes in the Teleporter registry address
+    // to the TeleporterUpgradeable contract.
     constructor(
         address teleporterRegistryAddress
     ) TeleporterUpgradeable(teleporterRegistryAddress) {
@@ -41,6 +47,8 @@ contract ExampleApp is
             .getBlockchainID();
     }
     ...
+    // Handles receiving Teleporter messages,
+    // and also checks that the sender is a valid Teleporter contract.
     function _receiveTeleporterMessage(
         bytes32 originBlockchainID,
         address originSenderAddress,
@@ -49,6 +57,7 @@ contract ExampleApp is
         // implementation
     }
 
+    // Implements the access control checks for the dapp's interaction with Teleporter versions.
     function _checkTeleporterUpgradeAccess() internal view virtual override {
         //implementation
     }
