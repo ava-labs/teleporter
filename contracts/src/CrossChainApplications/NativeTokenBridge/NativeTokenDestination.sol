@@ -177,7 +177,7 @@ contract NativeTokenDestination is
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
-        uint256 adjustedFeeAmount = 0;
+        uint256 adjustedFeeAmount;
         if (feeInfo.amount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
                 IERC20(feeInfo.feeTokenAddress),
@@ -258,12 +258,6 @@ contract NativeTokenDestination is
             address(BURN_FOR_TRANSFER_ADDRESS).balance;
         uint256 created = totalMinted + initialReserveImbalance;
 
-        // This scenario should never happen, but this check will prevent an underflow
-        // where the contract would return a garbage value.
-        require(
-            burned <= created,
-            "NativeTokenDestination: FATAL - contract has tokens unaccounted for"
-        );
         return created - burned;
     }
 }

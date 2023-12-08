@@ -258,7 +258,8 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 	}
 
-	{ // Transfer more tokens A -> B to collateralize the bridge
+	{
+		// Transfer more tokens A -> B to collateralize the bridge
 		// Check starting balance is 0
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, subnetB.WSClient)
 
