@@ -379,27 +379,6 @@ contract TeleporterRegistryTest is Test {
         registry.addProtocolVersion(messageIndex);
     }
 
-    function _createWarpOffChainMessage(
-        uint256 version,
-        address destinationAddress,
-        address protocolAddress,
-        address registryAddress
-    ) internal view returns (WarpMessage memory) {
-        return
-            WarpMessage({
-                sourceChainID: MOCK_BLOCK_CHAIN_ID,
-                originSenderAddress: TeleporterRegistry(registryAddress)
-                    .VALIDATORS_SOURCE_ADDRESS(),
-                payload: abi.encode(
-                    ProtocolRegistryEntry({
-                        version: version,
-                        protocolAddress: protocolAddress
-                    }),
-                    destinationAddress
-                )
-            });
-    }
-
     function _mockGetVerifiedWarpMessage(
         uint32 messageIndex,
         WarpMessage memory warpMessage,
@@ -420,6 +399,27 @@ contract TeleporterRegistryTest is Test {
                 (messageIndex)
             )
         );
+    }
+
+    function _createWarpOffChainMessage(
+        uint256 version,
+        address destinationAddress,
+        address protocolAddress,
+        address registryAddress
+    ) internal view returns (WarpMessage memory) {
+        return
+            WarpMessage({
+                sourceChainID: MOCK_BLOCK_CHAIN_ID,
+                originSenderAddress: TeleporterRegistry(registryAddress)
+                    .VALIDATORS_SOURCE_ADDRESS(),
+                payload: abi.encode(
+                    ProtocolRegistryEntry({
+                        version: version,
+                        protocolAddress: protocolAddress
+                    }),
+                    destinationAddress
+                )
+            });
     }
 
     function _formatRegistryErrorMessage(
