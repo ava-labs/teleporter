@@ -372,7 +372,7 @@ func sendTokensToSource(
 	Expect(err).Should(BeNil())
 	utils.ExpectBigEqual(transferEvent.Amount, valueToSend)
 
-	receipt := network.RelayMessage(ctx, destChainReceipt, destinationSubnet, destinationSubnet, true)
+	receipt := network.RelayMessage(ctx, destChainReceipt, destinationSubnet, sourceSubnet, true)
 
 	return receipt
 }
