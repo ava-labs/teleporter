@@ -6,6 +6,7 @@
 pragma solidity 0.8.18;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {INativeTokenSource} from "./INativeTokenSource.sol";
 import {ITokenSource} from "./ITokenSource.sol";
@@ -180,7 +181,7 @@ contract NativeTokenSource is
 
         // Transfer to recipient
         emit UnlockTokens(recipient, amount);
-        payable(recipient).transfer(amount);
+        Address.sendValue(payable(recipient), amount);
     }
 
     /**
@@ -188,7 +189,7 @@ contract NativeTokenSource is
      */
     function _burnTokens(uint256 amount) private {
         emit BurnTokens(amount);
-        payable(BURNED_TX_FEES_ADDRESS).transfer(amount);
+        Address.sendValue(payable(BURNED_TX_FEES_ADDRESS), amount);
     }
 
     /**

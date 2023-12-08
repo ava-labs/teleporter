@@ -6,6 +6,7 @@
 pragma solidity 0.8.18;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
@@ -191,7 +192,7 @@ contract NativeTokenDestination is
         }
 
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
-        payable(BURN_FOR_TRANSFER_ADDRESS).transfer(msg.value);
+        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), msg.value);
 
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
