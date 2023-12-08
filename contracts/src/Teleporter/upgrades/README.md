@@ -25,12 +25,11 @@ In the `TeleporterRegistry` contract, the `latestVersion` state variable returns
 - Version zero is an invalid version, and is used to indicate that a `TeleporterMessenger` contract has not been registered yet.
 - Once a version number is registered in the registry, it cannot be changed, but a previous registered protocol address can be added to the registry with a new version. This is especially important in the case of a rollback to a previous Teleporter version, in which case the previous Teleporter contract address would need to be registered with a new version to the registry.
 
+## How to use `TeleporterRegistry`
+
 <div align="center">
   <img src="upgrade-uml.png" alt="Upgrade UML diagram">
 </div>
-
-
-## How to use `TeleporterRegistry`
 
 `TeleporterUpgradeable` is an abstract contract that helps integrate the `TeleporterRegistry` into a dapp. The dapp contract can inherit `TeleporterUpgradeable`, and pass in the Teleporter registry address inside the constructor. An example app looks like:
 
