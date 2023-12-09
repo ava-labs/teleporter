@@ -9,8 +9,6 @@ import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 
 contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
-    event TeleporterAddressPaused(address indexed teleporterAddress);
-
     function setUp() public virtual override {
         TeleporterUpgradeableTest.setUp();
     }
@@ -24,9 +22,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
             ""
         );
         // Check that teleporterAddress can not deliver messages once paused
-        vm.expectEmit(true, true, true, true, address(app));
-        emit TeleporterAddressPaused(teleporterAddress);
-        app.pauseTeleporterAddress(teleporterAddress);
+        _pauseTeleporterAddressSuccess(teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter address paused"
@@ -42,9 +38,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
 
     function testAlreadyPausedTeleporterAddress() public {
         // Check that teleporterAddress can not deliver messages once paused
-        vm.expectEmit(true, true, true, true, address(app));
-        emit TeleporterAddressPaused(teleporterAddress);
-        app.pauseTeleporterAddress(teleporterAddress);
+        _pauseTeleporterAddressSuccess(teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter address paused"
@@ -79,9 +73,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         );
 
         // Check that teleporterAddress can not deliver messages once paused
-        vm.expectEmit(true, true, true, true, address(app));
-        emit TeleporterAddressPaused(teleporterAddress);
-        app.pauseTeleporterAddress(teleporterAddress);
+        _pauseTeleporterAddressSuccess(teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter address paused"
@@ -95,7 +87,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         );
 
         // Check that after updating mininum Teleporter version, the address is still paused
-        app.updateMinTeleporterVersion(teleporterRegistry.latestVersion());
+        _updateMinTeleporterVersionSuccess(teleporterRegistry.latestVersion());
         vm.prank(teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
@@ -115,10 +107,8 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         // Create a new Teleporter address that is not registered with the registry
         address newTeleporterAddress = address(new TeleporterMessenger());
 
-        // Block the new Teleporter address before it is registered
-        vm.expectEmit(true, true, true, true, address(app));
-        emit TeleporterAddressPaused(newTeleporterAddress);
-        app.pauseTeleporterAddress(newTeleporterAddress);
+        // Pause the new Teleporter address before it is registered
+        _pauseTeleporterAddressSuccess(newTeleporterAddress);
 
         // Register the new Teleporter address
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);

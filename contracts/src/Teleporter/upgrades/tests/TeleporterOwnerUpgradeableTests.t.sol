@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
-import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
+import {TeleporterUpgradeableTest, ExampleUpgradeableApp} from "./TeleporterUpgradeableTests.t.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
     constructor(
@@ -48,12 +48,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that call to update minimum Teleporter version succeeds for owners
         vm.prank(address(this));
-        vm.expectEmit(true, true, true, true, address(ownerApp));
-        emit MinTeleporterVersionUpdated(
-            minTeleporterVersion,
-            minTeleporterVersion + 1
-        );
-        ownerApp.updateMinTeleporterVersion(minTeleporterVersion + 1);
+        _updateMinTeleporterVersionSuccess(minTeleporterVersion + 1);
 
         assertEq(ownerApp.getMinTeleporterVersion(), minTeleporterVersion + 1);
     }
@@ -79,11 +74,6 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         address newOwner = address(0x123);
         ownerApp.transferOwnership(newOwner);
         vm.prank(newOwner);
-        vm.expectEmit(true, true, true, true, address(ownerApp));
-        emit MinTeleporterVersionUpdated(
-            minTeleporterVersion,
-            minTeleporterVersion + 1
-        );
         ownerApp.updateMinTeleporterVersion(minTeleporterVersion + 1);
 
         // Check that call with old owner reverts
@@ -102,7 +92,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         _addProtocolVersion(teleporterRegistry, teleporterAddress);
         uint256 latestVersion = teleporterRegistry.latestVersion();
         // Check that update Teleporter version call for owner succeeds
-        ownerApp.updateMinTeleporterVersion(latestVersion);
+        _updateMinTeleporterVersionSuccess(latestVersion);
 
         // Check that after ownership renounce call reverts
         ownerApp.renounceOwnership();
@@ -111,24 +101,15 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
     }
 
     function testPauseTeleporterAccess() public {
-        // Check that call to pause Teleporter address reverts for non-owners
+        // First pause the Teleporter address
+        _pauseTeleporterAddressSuccess(teleporterAddress);
+
+        // Try to unpause the Teleporter address from non-owner account
         vm.prank(MOCK_INVALID_OWNER_ADDRESS);
         vm.expectRevert("Ownable: caller is not the owner");
-        ownerApp.pauseTeleporterAddress(teleporterAddress);
+        ownerApp.unpauseTeleporterAddress(teleporterAddress);
 
-        // Check that Teleporter address was not paused
-        vm.prank(teleporterAddress);
-        ownerApp.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
-
-        // Check that call to pause Teleporter address succeeds for owners
-        vm.prank(address(this));
-        ownerApp.pauseTeleporterAddress(teleporterAddress);
-
-        // Check that Teleporter address was paused
+        // Check that the Teleporter address is still paused
         vm.prank(teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
@@ -140,6 +121,19 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
+        assertTrue(ownerApp.isTeleporterAddressPaused(teleporterAddress));
+
+        // Unpause the Teleporter address from owner account
+        _unpauseTeleporterAddressSuccess(teleporterAddress);
+
+        // Check that the Teleporter address can now deliver messages
+        vm.prank(teleporterAddress);
+        ownerApp.receiveTeleporterMessage(
+            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_ADDRESS,
+            ""
+        );
+        assertFalse(ownerApp.isTeleporterAddressPaused(teleporterAddress));
     }
 
     function testOwnerUpgradeAccess() public {
@@ -151,5 +145,32 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         // Check that call to check upgrade access succeeds for owners
         vm.prank(address(this));
         ownerApp.checkTeleporterUpgradeAccess();
+    }
+
+    function _updateMinTeleporterVersionSuccess(
+        uint256 newMinTeleporterVersion
+    ) internal virtual override {
+        vm.expectEmit(true, true, true, true, address(ownerApp));
+        emit MinTeleporterVersionUpdated(
+            ownerApp.getMinTeleporterVersion(),
+            newMinTeleporterVersion
+        );
+        ownerApp.updateMinTeleporterVersion(newMinTeleporterVersion);
+    }
+
+    function _pauseTeleporterAddressSuccess(
+        address teleporterAddress_
+    ) internal virtual override {
+        vm.expectEmit(true, true, true, true, address(ownerApp));
+        emit TeleporterAddressPaused(teleporterAddress_);
+        ownerApp.pauseTeleporterAddress(teleporterAddress_);
+    }
+
+    function _unpauseTeleporterAddressSuccess(
+        address teleporterAddress_
+    ) internal virtual override {
+        vm.expectEmit(true, true, true, true, address(ownerApp));
+        emit TeleporterAddressUnpaused(teleporterAddress_);
+        ownerApp.unpauseTeleporterAddress(teleporterAddress_);
     }
 }

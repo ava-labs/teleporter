@@ -51,6 +51,10 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         uint256 indexed newMinTeleporterVersion
     );
 
+    event TeleporterAddressPaused(address indexed teleporterAddress);
+
+    event TeleporterAddressUnpaused(address indexed teleporterAddress);
+
     function setUp() public virtual override {
         TeleporterRegistryTest.setUp();
         _addProtocolVersion(teleporterRegistry, teleporterAddress);
@@ -100,10 +104,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         address newTeleporterAddress = address(new TeleporterMessenger());
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);
 
-        vm.expectEmit(true, true, true, true, address(app));
-        emit MinTeleporterVersionUpdated(1, 2);
-
-        app.updateMinTeleporterVersion(teleporterRegistry.latestVersion());
+        _updateMinTeleporterVersionSuccess(teleporterRegistry.latestVersion());
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
@@ -157,6 +158,33 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         emit MinTeleporterVersionUpdated(latestVersion, latestVersion + 1);
         app.setMinTeleporterVersion(teleporterRegistry.latestVersion());
         assertEq(app.getMinTeleporterVersion(), latestVersion + 1);
+    }
+
+    function _updateMinTeleporterVersionSuccess(
+        uint256 newMinTeleporterVersion
+    ) internal virtual {
+        vm.expectEmit(true, true, true, true, address(app));
+        emit MinTeleporterVersionUpdated(
+            app.getMinTeleporterVersion(),
+            newMinTeleporterVersion
+        );
+        app.updateMinTeleporterVersion(newMinTeleporterVersion);
+    }
+
+    function _pauseTeleporterAddressSuccess(
+        address teleporterAddress_
+    ) internal virtual {
+        vm.expectEmit(true, true, true, true, address(app));
+        emit TeleporterAddressPaused(teleporterAddress_);
+        app.pauseTeleporterAddress(teleporterAddress_);
+    }
+
+    function _unpauseTeleporterAddressSuccess(
+        address teleporterAddress_
+    ) internal virtual {
+        vm.expectEmit(true, true, true, true, address(app));
+        emit TeleporterAddressUnpaused(teleporterAddress_);
+        app.unpauseTeleporterAddress(teleporterAddress_);
     }
 
     function _formatTeleporterUpgradeableErrorMessage(
