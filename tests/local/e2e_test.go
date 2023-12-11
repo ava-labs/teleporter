@@ -57,6 +57,12 @@ var _ = ginkgo.AfterSuite(func() {
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Cross-chain application tests
+	ginkgo.It("Send native tokens from subnet A to B and back", func() {
+		flows.NativeTokenBridge(localNetworkInstance)
+	})
+	ginkgo.It("Send ERC20 tokens from subnet A to Native tokens on subnet B and back", func() {
+		flows.ERC20ToNativeTokenBridge(localNetworkInstance)
+	})
 	ginkgo.It("Example cross chain messenger", func() {
 		flows.ExampleMessenger(localNetworkInstance)
 	})

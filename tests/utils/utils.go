@@ -6,27 +6,34 @@ package utils
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strconv"
 	"strings"
 	"time"
 
+	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
+	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
+
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
+	"github.com/ava-labs/subnet-evm/eth/tracers"
+	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/params"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
+	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/x/warp"
 	erc20bridge "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ERC20Bridge/ERC20Bridge"
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
 	blockhashpublisher "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/VerifiedBlockHash/BlockHashPublisher"
 	blockhashreceiver "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/VerifiedBlockHash/BlockHashReceiver"
-	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
-	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -281,11 +288,10 @@ func CreateSendCrossChainMessageTransaction(
 	senderKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
-	fundedAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
 	data, err := teleportermessenger.PackSendCrossChainMessage(input)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, source, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, source, PrivateKeyToAddress(senderKey))
 
 	// Send a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -310,8 +316,6 @@ func CreateRetryMessageExecutionTransaction(
 	senderKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
-	fundedAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
-
 	data, err := teleportermessenger.PackRetryMessageExecution(originChainID, message)
 	Expect(err).Should(BeNil())
 
@@ -319,7 +323,7 @@ func CreateRetryMessageExecutionTransaction(
 	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit)
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(senderKey))
 
 	// Sign a transaction to the Teleporter contract
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -346,7 +350,6 @@ func CreateReceiveCrossChainMessageTransaction(
 	senderKey *ecdsa.PrivateKey,
 	subnetInfo interfaces.SubnetTestInfo,
 ) *types.Transaction {
-	fundedAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
 	signedMessage, err := avalancheWarp.ParseMessage(warpMessageBytes)
@@ -358,10 +361,10 @@ func CreateReceiveCrossChainMessageTransaction(
 	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
 	Expect(err).Should(BeNil())
 
-	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
+	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, PrivateKeyToAddress(senderKey))
 	Expect(err).Should(BeNil())
 
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, fundedAddress)
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(senderKey))
 
 	destinationTx := predicateutils.NewPredicateTx(
 		subnetInfo.EVMChainID,
@@ -403,6 +406,16 @@ func CreateNativeTransferTransaction(
 	return SignTransaction(tx, fromKey, subnetInfo.EVMChainID)
 }
 
+func WaitForTransactionSuccess(
+	ctx context.Context,
+	txHash common.Hash,
+	subnetInfo interfaces.SubnetTestInfo,
+) *types.Receipt {
+	receipt := WaitForTransaction(ctx, txHash, subnetInfo)
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	return receipt
+}
+
 func WaitForTransaction(ctx context.Context, txHash common.Hash, subnetInfo interfaces.SubnetTestInfo) *types.Receipt {
 	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -413,15 +426,12 @@ func WaitForTransaction(ctx context.Context, txHash common.Hash, subnetInfo inte
 		if err == nil {
 			return receipt
 		} else {
+			Expect(err).ShouldNot(Equal(context.DeadlineExceeded))
 			log.Info("Waiting for transaction", "hash", txHash.Hex())
-			time.Sleep(200 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 }
-
-//
-// Event getters
-//
 
 // Returns the first log in 'logs' that is successfully parsed by 'parser'
 func GetEventFromLogs[T any](logs []*types.Log, parser func(log types.Log) (T, error)) (T, error) {
@@ -433,10 +443,6 @@ func GetEventFromLogs[T any](logs []*types.Log, parser func(log types.Log) (T, e
 	}
 	return *new(T), fmt.Errorf("failed to find %T event in receipt logs", *new(T))
 }
-
-//
-// Unexported functions
-//
 
 // Signs a transaction using the provided key for the specified chainID
 func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.Int) *types.Transaction {
@@ -466,6 +472,78 @@ func CalculateTxParams(
 	gasFeeCap.Add(gasFeeCap, big.NewInt(gasUtils.MaxPriorityFeePerGas))
 
 	return gasFeeCap, gasTipCap, nonce
+}
+
+func PrivateKeyToAddress(k *ecdsa.PrivateKey) common.Address {
+	return crypto.PubkeyToAddress(k.PublicKey)
+}
+
+// Throws a Gomega error if there is a mismatch
+func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big.Int, wsClient ethclient.Client) {
+	bal, err := wsClient.BalanceAt(ctx, addr, nil)
+	Expect(err).Should(BeNil())
+	ExpectBigEqual(bal, expectedBalance)
+}
+
+func TraceTransaction(ctx context.Context, txHash common.Hash, subnetInfo interfaces.SubnetTestInfo) string {
+	url := HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String())
+	rpcClient, err := rpc.DialContext(ctx, url)
+	Expect(err).Should(BeNil())
+	defer rpcClient.Close()
+
+	var result interface{}
+	ct := "callTracer"
+	err = rpcClient.Call(&result, "debug_traceTransaction", txHash.String(), tracers.TraceConfig{Tracer: &ct})
+	Expect(err).Should(BeNil())
+
+	jsonStr, err := json.Marshal(result)
+	Expect(err).Should(BeNil())
+
+	return string(jsonStr)
+}
+
+func DeployContract(
+	ctx context.Context,
+	byteCodeFileName string,
+	deployerPK *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+	abi *abi.ABI,
+	constructorArgs ...interface{},
+) {
+	// Deploy an example ERC20 contract to be used as the source token
+	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
+	Expect(err).Should(BeNil())
+	Expect(len(byteCode) > 0).Should(BeTrue())
+	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.EVMChainID)
+	Expect(err).Should(BeNil())
+	contractAddress, tx, _, err := bind.DeployContract(
+		transactor,
+		*abi,
+		byteCode,
+		subnetInfo.WSClient,
+		constructorArgs...,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for transaction, then check code was deployed
+	receipt := WaitForTransaction(ctx, tx.Hash(), subnetInfo)
+	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	code, err := subnetInfo.WSClient.CodeAt(ctx, contractAddress, nil)
+	Expect(err).Should(BeNil())
+	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+}
+
+func ExpectBigEqual(v1 *big.Int, v2 *big.Int) {
+	// Compare strings, so gomega will print the numbers if they differ
+	Expect(v1.String()).Should(Equal(v2.String()))
+}
+
+func BigIntSub(v1 *big.Int, v2 *big.Int) *big.Int {
+	return big.NewInt(0).Sub(v1, v2)
+}
+
+func BigIntMul(v1 *big.Int, v2 *big.Int) *big.Int {
+	return big.NewInt(0).Mul(v1, v2)
 }
 
 func ERC20Approve(
