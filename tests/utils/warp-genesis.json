@@ -25,16 +25,23 @@
     },
     "warpConfig": {
       "blockTimestamp": 0
+    },
+    "contractNativeMinterConfig": {
+      "blockTimestamp": 0,
+      "adminAddresses": [
+        "0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B",
+        "0x3405506b3711859c5070949ed9b700c7ba7bf750"
+      ]
     }
   },
   "alloc": {
     "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC": {
       "balance": "0x52B7D2DCC80CD2E4000000"
     },
-    "0x0Fa8EA536Be85F32724D57A37758761B86416123": {
+    "0x1337cfd2dCff6270615B90938aCB1efE79801704": {
       "balance": "0x52B7D2DCC80CD2E4000000"
     },
-    "0x1dD31B5351e76d51F4B152ce64fE5cf594694De5": {
+    "0x539447ab8Be7e927bE8E005663C81ff2AE951337": {
       "balance": "0x52B7D2DCC80CD2E4000000"
     }
   },

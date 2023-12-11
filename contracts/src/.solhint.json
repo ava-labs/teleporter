@@ -21,7 +21,7 @@
         "reason-string": [
             "warn",
             {
-                "maxLength": 60
+                "maxLength": 75
             }
         ],
         "custom-errors": "off",
