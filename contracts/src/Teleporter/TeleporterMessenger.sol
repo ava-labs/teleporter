@@ -253,8 +253,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         );
 
         // If the blockchain ID has yet to be initialized, do so now.
-        if (blockchainID == bytes32(0)) {
-            blockchainID = WARP_MESSENGER.getBlockchainID();
+        bytes32 blockchainID_ = blockchainID;
+        if (blockchainID_ == bytes32(0)) {
+            blockchainID_ = WARP_MESSENGER.getBlockchainID();
+            blockchainID = blockchainID_;
         }
 
         // Parse the payload of the message.
@@ -265,7 +267,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Require that the message was intended for this blockchain.
         require(
-            teleporterMessage.destinationBlockchainID == blockchainID,
+            teleporterMessage.destinationBlockchainID == blockchainID_,
             "TeleporterMessenger: invalid destination chain ID"
         );
 
@@ -353,9 +355,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessage calldata message
     ) external receiverNonReentrant {
         // Check that the hash of the payload provided matches the hash of the payload that previously failed to execute.
-        bytes32 failedMessageHash = receivedFailedMessageHashes[originBlockchainID][
-            message.messageID
-        ];
+        bytes32 failedMessageHash = receivedFailedMessageHashes[
+            originBlockchainID
+        ][message.messageID];
         require(
             failedMessageHash != bytes32(0),
             "TeleporterMessenger: message not found"
@@ -375,7 +377,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Clear the failed message hash from state prior to retrying its execution to redundantly prevent
         // reentrance attacks (on top of the nonReentrant guard).
         emit MessageExecuted(originBlockchainID, message.messageID);
-        delete receivedFailedMessageHashes[originBlockchainID][message.messageID];
+        delete receivedFailedMessageHashes[originBlockchainID][
+            message.messageID
+        ];
 
         // Re-encode the payload by ABI encoding a call to the {receiveTeleporterMessage} function
         // defined by the {ITeleporterReceiver} interface.
@@ -527,16 +531,18 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 destinationBlockchainID,
         uint256 messageID
     ) external view returns (address, uint256) {
-        TeleporterFeeInfo memory feeInfo = sentMessageInfo[destinationBlockchainID][
-            messageID
-        ].feeInfo;
+        TeleporterFeeInfo memory feeInfo = sentMessageInfo[
+            destinationBlockchainID
+        ][messageID].feeInfo;
         return (feeInfo.feeTokenAddress, feeInfo.amount);
     }
 
     /**
      * @dev Returns the next message ID to be used to send a message to the given blockchain ID.
      */
-    function getNextMessageID(bytes32 destinationBlockchainID) external view returns (uint256) {
+    function getNextMessageID(
+        bytes32 destinationBlockchainID
+    ) external view returns (uint256) {
         return _getNextMessageID(destinationBlockchainID);
     }
 
@@ -567,7 +573,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 originBlockchainID,
         uint256 messageID
     ) internal view returns (bool) {
-        return _relayerRewardAddresses[originBlockchainID][messageID] != address(0);
+        return
+            _relayerRewardAddresses[originBlockchainID][messageID] !=
+            address(0);
     }
 
     /**
@@ -603,7 +611,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessageReceipt[] memory receipts
     ) private returns (uint256) {
         // Get the message ID to use for this message.
-        uint256 messageID = _getNextMessageID(messageInput.destinationBlockchainID);
+        uint256 messageID = _getNextMessageID(
+            messageInput.destinationBlockchainID
+        );
 
         // Construct and serialize the message.
         TeleporterMessage memory teleporterMessage = TeleporterMessage({
@@ -801,13 +811,19 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         ] = keccak256(abi.encode(message));
 
         // Emit a failed execution event for anyone monitoring unsuccessful messages to retry.
-        emit MessageExecutionFailed(originBlockchainID, message.messageID, message);
+        emit MessageExecutionFailed(
+            originBlockchainID,
+            message.messageID,
+            message
+        );
     }
 
     /**
      * @dev Returns the next message ID to be used to send a message to the given `originBlockchainID`.
      */
-    function _getNextMessageID(bytes32 originBlockchainID) private view returns (uint256) {
+    function _getNextMessageID(
+        bytes32 originBlockchainID
+    ) private view returns (uint256) {
         return latestMessageIDs[originBlockchainID] + 1;
     }
 }

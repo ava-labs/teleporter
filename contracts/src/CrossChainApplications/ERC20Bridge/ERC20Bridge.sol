@@ -8,7 +8,6 @@ pragma solidity 0.8.18;
 import {IERC20Bridge} from "./IERC20Bridge.sol";
 import {BridgeToken} from "./BridgeToken.sol";
 import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
-import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
@@ -24,7 +23,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
  */
 contract ERC20Bridge is
     IERC20Bridge,
-    ITeleporterReceiver,
     ReentrancyGuard,
     TeleporterOwnerUpgradeable
 {
@@ -251,78 +249,6 @@ contract ERC20Bridge is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
-     *
-     * Receives a Teleporter message and routes to the appropriate internal function call.
-     */
-    function receiveTeleporterMessage(
-        bytes32 nativeBlockchainID,
-        address nativeBridgeAddress,
-        bytes calldata message
-    ) external onlyAllowedTeleporter {
-        // Decode the payload to recover the action and corresponding function parameters
-        (BridgeAction action, bytes memory actionData) = abi.decode(
-            message,
-            (BridgeAction, bytes)
-        );
-
-        // Route to the appropriate function.
-        if (action == BridgeAction.Create) {
-            (
-                address nativeContractAddress,
-                string memory nativeName,
-                string memory nativeSymbol,
-                uint8 nativeDecimals
-            ) = abi.decode(actionData, (address, string, string, uint8));
-            _createBridgeToken({
-                nativeBlockchainID: nativeBlockchainID,
-                nativeBridgeAddress: nativeBridgeAddress,
-                nativeContractAddress: nativeContractAddress,
-                nativeName: nativeName,
-                nativeSymbol: nativeSymbol,
-                nativeDecimals: nativeDecimals
-            });
-        } else if (action == BridgeAction.Mint) {
-            (
-                address nativeContractAddress,
-                address recipient,
-                uint256 amount
-            ) = abi.decode(actionData, (address, address, uint256));
-            _mintBridgeTokens(
-                nativeBlockchainID,
-                nativeBridgeAddress,
-                nativeContractAddress,
-                recipient,
-                amount
-            );
-        } else if (action == BridgeAction.Transfer) {
-            (
-                bytes32 destinationBlockchainID,
-                address destinationBridgeAddress,
-                address nativeContractAddress,
-                address recipient,
-                uint256 totalAmount,
-                uint256 secondaryFeeAmount
-            ) = abi.decode(
-                    actionData,
-                    (bytes32, address, address, address, uint256, uint256)
-                );
-            _transferBridgeTokens({
-                sourceBlockchainID: nativeBlockchainID,
-                sourceBridgeAddress: nativeBridgeAddress,
-                destinationBlockchainID: destinationBlockchainID,
-                destinationBridgeAddress: destinationBridgeAddress,
-                nativeContractAddress: nativeContractAddress,
-                recipient: recipient,
-                totalAmount: totalAmount,
-                secondaryFeeAmount: secondaryFeeAmount
-            });
-        } else {
-            revert("ERC20Bridge: invalid action");
-        }
-    }
-
-    /**
      * @dev Encodes the parameters for the Create action to be decoded and executed on the destination.
      */
     function encodeCreateBridgeTokenData(
@@ -383,6 +309,78 @@ contract ERC20Bridge is
             feeAmount
         );
         return abi.encode(BridgeAction.Transfer, paramsData);
+    }
+
+    /**
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
+     *
+     * Receives a Teleporter message and routes to the appropriate internal function call.
+     */
+    function _receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes memory message
+    ) internal override {
+        // Decode the payload to recover the action and corresponding function parameters
+        (BridgeAction action, bytes memory actionData) = abi.decode(
+            message,
+            (BridgeAction, bytes)
+        );
+
+        // Route to the appropriate function.
+        if (action == BridgeAction.Create) {
+            (
+                address nativeContractAddress,
+                string memory nativeName,
+                string memory nativeSymbol,
+                uint8 nativeDecimals
+            ) = abi.decode(actionData, (address, string, string, uint8));
+            _createBridgeToken({
+                nativeBlockchainID: originBlockchainID,
+                nativeBridgeAddress: originSenderAddress,
+                nativeContractAddress: nativeContractAddress,
+                nativeName: nativeName,
+                nativeSymbol: nativeSymbol,
+                nativeDecimals: nativeDecimals
+            });
+        } else if (action == BridgeAction.Mint) {
+            (
+                address nativeContractAddress,
+                address recipient,
+                uint256 amount
+            ) = abi.decode(actionData, (address, address, uint256));
+            _mintBridgeTokens(
+                originBlockchainID,
+                originSenderAddress,
+                nativeContractAddress,
+                recipient,
+                amount
+            );
+        } else if (action == BridgeAction.Transfer) {
+            (
+                bytes32 destinationBlockchainID,
+                address destinationBridgeAddress,
+                address nativeContractAddress,
+                address recipient,
+                uint256 totalAmount,
+                uint256 secondaryFeeAmount
+            ) = abi.decode(
+                    actionData,
+                    (bytes32, address, address, address, uint256, uint256)
+                );
+            _transferBridgeTokens({
+                sourceBlockchainID: originBlockchainID,
+                sourceBridgeAddress: originSenderAddress,
+                destinationBlockchainID: destinationBlockchainID,
+                destinationBridgeAddress: destinationBridgeAddress,
+                nativeContractAddress: nativeContractAddress,
+                recipient: recipient,
+                totalAmount: totalAmount,
+                secondaryFeeAmount: secondaryFeeAmount
+            });
+        } else {
+            revert("ERC20Bridge: invalid action");
+        }
     }
 
     /**
@@ -678,7 +676,8 @@ contract ERC20Bridge is
         // The message includes the destination chain ID  and bridge contract, which will differ from the native
         // ones in the event that the tokens are being bridge from one non-native chain to another with two hops.
         bytes memory messageData = encodeTransferBridgeTokensData({
-            destinationBlockchainID: wrappedTransferInfo.destinationBlockchainID,
+            destinationBlockchainID: wrappedTransferInfo
+                .destinationBlockchainID,
             destinationBridgeAddress: wrappedTransferInfo
                 .destinationBridgeAddress,
             nativeContractAddress: bridgeToken.nativeAsset(),
@@ -702,7 +701,8 @@ contract ERC20Bridge is
         );
         emit BridgeTokens({
             tokenContractAddress: wrappedTransferInfo.wrappedContractAddress,
-            destinationBlockchainID: wrappedTransferInfo.destinationBlockchainID,
+            destinationBlockchainID: wrappedTransferInfo
+                .destinationBlockchainID,
             teleporterMessageID: messageID,
             destinationBridgeAddress: wrappedTransferInfo
                 .destinationBridgeAddress,

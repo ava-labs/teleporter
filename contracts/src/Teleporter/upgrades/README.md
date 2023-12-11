@@ -27,17 +27,21 @@ In the `TeleporterRegistry` contract, the `latestVersion` state variable returns
 
 ## How to use `TeleporterRegistry`
 
-`TeleporterUpgradeable` is an abstract contract that helps integrate the `TeleporterRegistry` into a dapp. The dapp contract can inherit `TeleporterUpgradeable`, and pass in the Teleporter registry address inside the constructor, for example in [ERC20Bridge](../ERC20Bridge.sol):
+<div align="center">
+  <img src="upgrade-uml.png" alt="Upgrade UML diagram">
+</div>
+
+`TeleporterUpgradeable` is an abstract contract that helps integrate the `TeleporterRegistry` into a dapp. The dapp contract can inherit `TeleporterUpgradeable`, and pass in the Teleporter registry address inside the constructor. An example app looks like:
 
 ```solidity
-contract ERC20Bridge is
-    IERC20Bridge,
-    ITeleporterReceiver,
-    ReentrancyGuard,
-    TeleporterUpgradeable,
-    Ownable
+// An example app that integrates with the Teleporter registry
+// to send/receive Teleporter messages.
+contract ExampleApp is
+    TeleporterUpgradeable
 {
     ...
+    // Constructor passes in the Teleporter registry address
+    // to the TeleporterUpgradeable contract.
     constructor(
         address teleporterRegistryAddress
     ) TeleporterUpgradeable(teleporterRegistryAddress) {
@@ -45,23 +49,33 @@ contract ERC20Bridge is
             .getBlockchainID();
     }
     ...
+    // Handles receiving Teleporter messages,
+    // and also checks that the sender is a valid Teleporter contract.
+    function _receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes memory message
+    ) internal override {
+        // implementation
+    }
+
+    // Implements the access control checks for the dapp's interaction with Teleporter versions.
+    function _checkTeleporterUpgradeAccess() internal view virtual override {
+        //implementation
+    }
+
 }
 ```
 
-The `TeleporterUpgradeable` contract saves the Teleporter registry in a state variable used by the inheriting contract, and initializes a `minTeleporterVersion` to the highest number `TeleporterMessenger` version registered in `TeleporterRegistry`. The `onlyAllowedTeleporter` modifier ensures that `msg.sender` is a `TeleporterMessenger` contract with a version greater than or equal to `minTeleporterVersion`. This modifier is used to restrict access to functions that should only be called by a `TeleporterMessenger` contract, i.e. `ITeleporterReceiver.receiveTeleporterMessage`. This is to support the case where a dapp wants to upgrade to a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract.
+The `TeleporterUpgradeable` contract saves the Teleporter registry in a state variable used by the inheriting contract, and initializes a `minTeleporterVersion` to the highest `TeleporterMessenger` version registered in `TeleporterRegistry`. `TeleporterUpgradeable` also provides an initial implementation of [ITeleporterReceiver.receiveTeleporterMessage](../ITeleporterReceiver.sol) that ensures `msg.sender` is a `TeleporterMessenger` contract with a version greater than or equal to `minTeleporterVersion`. This supports the case where a dapp wants to upgrade to a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract.The dapp can override `_receiveTeleporterMessage` to implement its own logic for receiving messages from Teleporter contracts.
 
-Every derived contract of `TeleporterUpgradeable` must implement `TeleporterUpgradeable.updateMinTeleporterVersion`, which updates the `minTeleporterVersion` used by the `onlyAllowedTeleporter` modifier and emits the `MinTeleporterVersionUpdated` event. The `updateMinTeleporterVersion` function should be called by the dapp when it completes delivery of messages from the old Teleporter contract, and now wants to update the `minTeleporterVersion` to only allow the new Teleporter version.
+The `TeleporterUpgradeable.updateMinTeleporterVersion` function updates the `minTeleporterVersion` used to check which Teleporter versions can deliver messages to the dapp, and emits the `MinTeleporterVersionUpdated` event. The `updateMinTeleporterVersion` function should **ONLY** be called by the dapp when it completes delivery of messages from the old Teleporter contract, and now wants to update the `minTeleporterVersion` to only allow the new Teleporter version. By default, `updateMinTeleporterVersion` can only be called with a version greater than the current `minTeleporterVersion` and less than `latestVersion` in the Teleporter registry. So once this function is called, the dapp will no longer be able to receive messages from the old Teleporter contract version, unless the old version's Teleporter address was registered in the registry again with a new version.
 
-To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which would disallow messages from old Teleporter versions from being received, this function should be safeguarded with access controls. For example, [TeleporterOwnerUpgrade](./TeleporterOwnerUpgradeable.sol) is a contract that inherits `TeleporterUpgradeable` and restricts `updateMinTeleporterVersion` calls to the owner of the contract. The [ERC20Bridge](../../CrossChainApplications/ERC20Bridge/ERC20Bridge.sol) contract is an example of inheriting `TeleporterOwnerUpgradeable`.
+To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which would disallow messages from old Teleporter versions from being received, this function should be safeguarded with access controls. All contracts deriving from `TeleporterUpgradeable` will need to implement `TeleporterUpgradeable._checkTeleporterUpgradeAccess`. For example, [TeleporterOwnerUpgrade](./TeleporterOwnerUpgradeable.sol) is an abstract contract that inherits `TeleporterUpgradeable`, and implements `_checkTeleporterUpgradeAccess` to check whether the caller is the owner.
 
 ```solidity
-    function updateMinTeleporterVersion() external override onlyOwner {
-        uint256 oldMinTeleporterVersion = minTeleporterVersion;
-        minTeleporterVersion = teleporterRegistry.latestVersion();
-        emit MinTeleporterVersionUpdated(
-            oldMinTeleporterVersion,
-            minTeleporterVersion
-        );
+    function _checkTeleporterUpgradeAccess() internal view virtual override {
+        _checkOwner();
     }
 ```
 
