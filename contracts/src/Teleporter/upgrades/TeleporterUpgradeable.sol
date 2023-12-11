@@ -117,6 +117,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * Requirements:
      *
      * - `msg.sender` must have Teleporter upgrade access.
+     * - `teleporterAddress` is not the zero address.
      * - `teleporterAddress` is not already paused.
      */
     function pauseTeleporterAddress(address teleporterAddress) public virtual {
@@ -142,6 +143,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * Requirements:
      *
      * - `msg.sender` must have Teleporter upgrade access.
+     * - `teleporterAddress` is not the zero address.
      * - `teleporterAddress` is already paused.
      */
     function unpauseTeleporterAddress(
