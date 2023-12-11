@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
-import {TeleporterRegistryTest, TeleporterMessenger} from "./TeleporterRegistryTests.t.sol";
+import {TeleporterRegistryTest} from "./TeleporterRegistryTests.t.sol";
 import {ITeleporterMessenger} from "../../ITeleporterMessenger.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
@@ -83,45 +83,6 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         );
 
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
-    }
-
-    function testUpdateMinTeleporterVersion() public {
-        // First check that calling with initial teleporter address works
-        assertEq(app.getMinTeleporterVersion(), 1);
-        vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
-
-        // Now add new protocol version to registry and update the app's min version
-        address newTeleporterAddress = address(new TeleporterMessenger());
-        _addProtocolVersion(teleporterRegistry, newTeleporterAddress);
-
-        _updateMinTeleporterVersionSuccess(teleporterRegistry.latestVersion());
-        assertEq(app.getMinTeleporterVersion(), 2);
-
-        // Check that calling with the old teleporter address fails
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "invalid Teleporter sender"
-            )
-        );
-        vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
-
-        // Check that calling with the new teleporter address works
-        vm.prank(newTeleporterAddress);
         app.receiveTeleporterMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,

@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
-import {TeleporterUpgradeableTest, ExampleUpgradeableApp} from "./TeleporterUpgradeableTests.t.sol";
+import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
     constructor(
