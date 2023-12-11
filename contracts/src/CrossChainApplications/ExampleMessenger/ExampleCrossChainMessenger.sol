@@ -69,7 +69,7 @@ contract ExampleCrossChainMessenger is
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
         // For non-zero fee amounts, first transfer the fee to this contract, and then
         // allow the Teleporter contract to spend it.
-        uint256 adjustedFeeAmount = 0;
+        uint256 adjustedFeeAmount;
         if (feeAmount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
                 IERC20(feeTokenAddress),
