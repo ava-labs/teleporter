@@ -20,7 +20,7 @@ jobs:
 
       - run: |
           source ./scripts/versions.sh
-          GO_VERSION=$GO_VERSION >> $GITHUB_ENV
+          echo GO_VERSION=$GO_VERSION >> $GITHUB_ENV
 
       - uses: actions/setup-go@v5
         with:
