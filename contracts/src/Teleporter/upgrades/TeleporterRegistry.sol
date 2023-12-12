@@ -28,8 +28,10 @@ contract TeleporterRegistry {
 
     IWarpMessenger public constant WARP_MESSENGER =
         IWarpMessenger(0x0200000000000000000000000000000000000005);
-
     bytes32 public immutable blockchainID;
+
+    // The maximum version increment allowed when adding a new protocol version.
+    uint256 public constant MAX_VERSION_INCREMENT = 500;
 
     // The latest protocol version. 0 means no protocol version has been added, and isn't a valid version.
     uint256 public latestVersion;
@@ -62,7 +64,6 @@ contract TeleporterRegistry {
      */
     constructor(ProtocolRegistryEntry[] memory initialEntries) {
         blockchainID = WARP_MESSENGER.getBlockchainID();
-        latestVersion = 0;
 
         for (uint256 i = 0; i < initialEntries.length; i++) {
             _addToRegistry(initialEntries[i]);
@@ -195,9 +196,18 @@ contract TeleporterRegistry {
             entry.protocolAddress != address(0),
             "TeleporterRegistry: zero protocol address"
         );
+        require(
+            entry.version <= latestVersion + MAX_VERSION_INCREMENT,
+            "TeleporterRegistry: version increment too high"
+        );
 
         _versionToAddress[entry.version] = entry.protocolAddress;
-        _addressToVersion[entry.protocolAddress] = entry.version;
+
+        // Since a protocol address can be registered multiple times,
+        // only update the version if the new version is greater than the current version.
+        if (entry.version > _addressToVersion[entry.protocolAddress]) {
+            _addressToVersion[entry.protocolAddress] = entry.version;
+        }
         emit AddProtocolVersion(entry.version, entry.protocolAddress);
 
         // Set latest version if the version is greater than the current latest version.

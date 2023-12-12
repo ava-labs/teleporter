@@ -5,13 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.
  */
-contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
+contract BlockHashReceiver is TeleporterOwnerUpgradeable {
     // Source chain information
     bytes32 public immutable sourceBlockchainID;
     address public immutable sourcePublisherContractAddress;
@@ -40,7 +39,15 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     * @dev Gets the latest received block height and hash.
+     * @return Returns the latest block height and hash.
+     */
+    function getLatestBlockInfo() public view returns (uint256, bytes32) {
+        return (latestBlockHeight, latestBlockHash);
+    }
+
+    /**
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
      *
      * Receives the latest block hash from another chain
      *
@@ -49,12 +56,11 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
      * - Sender must be the Teleporter contract.
      * - Origin sender address must be the source publisher contract address that initiated the BlockHashReceiver.
      */
-
-    function receiveTeleporterMessage(
+    function _receiveTeleporterMessage(
         bytes32 originBlockchainID,
         address originSenderAddress,
-        bytes calldata message
-    ) external onlyAllowedTeleporter {
+        bytes memory message
+    ) internal override {
         require(
             originBlockchainID == sourceBlockchainID,
             "BlockHashReceiver: invalid source chain ID"
@@ -79,13 +85,5 @@ contract BlockHashReceiver is ITeleporterReceiver, TeleporterOwnerUpgradeable {
                 blockHash
             );
         }
-    }
-
-    /**
-     * @dev Gets the latest received block height and hash.
-     * @return Returns the latest block height and hash.
-     */
-    function getLatestBlockInfo() public view returns (uint256, bytes32) {
-        return (latestBlockHeight, latestBlockHash);
     }
 }
