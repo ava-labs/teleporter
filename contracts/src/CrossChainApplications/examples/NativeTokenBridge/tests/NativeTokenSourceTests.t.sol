@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
 import {NativeTokenSource, IERC20, ITokenSource, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, ITeleporterMessenger} from "../NativeTokenSource.sol";
-import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
+import {UnitTestMockERC20} from "../../../../Mocks/UnitTestMockERC20.sol";
 
 contract NativeTokenSourceTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
@@ -97,7 +97,10 @@ contract NativeTokenSourceTest is Test {
                 requiredGasLimit: nativeTokenSource
                     .MINT_NATIVE_TOKENS_REQUIRED_GAS(),
                 allowedRelayerAddresses: new address[](0),
-                message: abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+                message: abi.encode(
+                    _DEFAULT_RECIPIENT,
+                    _DEFAULT_TRANSFER_AMOUNT
+                )
             });
 
         vm.expectCall(
@@ -173,14 +176,14 @@ contract NativeTokenSourceTest is Test {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Burn,
-                abi.encode(burnedTxFees)
-            )
+            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees))
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(
+            burnedTxFees,
+            nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(
@@ -193,7 +196,10 @@ contract NativeTokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(
+            burnedTxFees,
+            nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
+        );
 
         emit BurnTokens(additionalTxFees);
 
@@ -207,8 +213,14 @@ contract NativeTokenSourceTest is Test {
             )
         );
 
-        assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(
+            burnedTxFees + additionalTxFees,
+            nativeTokenSource.destinationBurnedTotal()
+        );
+        assertEq(
+            burnedTxFees + additionalTxFees,
+            nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
+        );
     }
 
     function testZeroTeleporterAddress() public {
@@ -354,7 +366,7 @@ contract NativeTokenSourceTest is Test {
         vm.expectRevert(
             _formatNativeTokenSourceErrorMessage("insufficient collateral")
         );
-        
+
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,

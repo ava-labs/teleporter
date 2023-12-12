@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
-import {TeleporterRegistry} from "../../Teleporter/upgrades/TeleporterRegistry.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 
 /**
  * Contract that publishes the latest block hash of current chain to another chain.

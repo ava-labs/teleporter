@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
+import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 
 /**
  * Contract for receiving latest block hashes from another chain.

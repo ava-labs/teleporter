@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
 import {ERC20TokenSource, IERC20, ITokenSource, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, ITeleporterMessenger} from "../ERC20TokenSource.sol";
-import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
+import {UnitTestMockERC20} from "../../../../Mocks/UnitTestMockERC20.sol";
 
 contract ERC20TokenSourceTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
@@ -98,7 +98,10 @@ contract ERC20TokenSourceTest is Test {
                 requiredGasLimit: erc20TokenSource
                     .MINT_NATIVE_TOKENS_REQUIRED_GAS(),
                 allowedRelayerAddresses: new address[](0),
-                message: abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+                message: abi.encode(
+                    _DEFAULT_RECIPIENT,
+                    _DEFAULT_TRANSFER_AMOUNT
+                )
             });
 
         vm.expectCall(
@@ -121,7 +124,7 @@ contract ERC20TokenSourceTest is Test {
         // Give the contract some tokens to burn.
         erc20TokenSource.transferToDestination(
             _DEFAULT_RECIPIENT,
-            _DEFAULT_TRANSFER_AMOUNT * 2 + _DEFAULT_FEE_AMOUNT ,
+            _DEFAULT_TRANSFER_AMOUNT * 2 + _DEFAULT_FEE_AMOUNT,
             _DEFAULT_FEE_AMOUNT,
             new address[](0)
         );
@@ -139,7 +142,10 @@ contract ERC20TokenSourceTest is Test {
             )
         );
 
-        assertEq(_DEFAULT_TRANSFER_AMOUNT, mockERC20.balanceOf(_DEFAULT_RECIPIENT));
+        assertEq(
+            _DEFAULT_TRANSFER_AMOUNT,
+            mockERC20.balanceOf(_DEFAULT_RECIPIENT)
+        );
     }
 
     function testBurnedTxFees() public {
@@ -162,14 +168,14 @@ contract ERC20TokenSourceTest is Test {
         erc20TokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Burn,
-                abi.encode(burnedTxFees)
-            )
+            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees))
         );
 
         assertEq(burnedTxFees, erc20TokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS()));
+        assertEq(
+            burnedTxFees,
+            mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS())
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         erc20TokenSource.receiveTeleporterMessage(
@@ -182,7 +188,10 @@ contract ERC20TokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees, erc20TokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS()));
+        assertEq(
+            burnedTxFees,
+            mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS())
+        );
 
         emit BurnTokens(additionalTxFees);
 
@@ -196,8 +205,14 @@ contract ERC20TokenSourceTest is Test {
             )
         );
 
-        assertEq(burnedTxFees + additionalTxFees, erc20TokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees + additionalTxFees, mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS()));
+        assertEq(
+            burnedTxFees + additionalTxFees,
+            erc20TokenSource.destinationBurnedTotal()
+        );
+        assertEq(
+            burnedTxFees + additionalTxFees,
+            mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS())
+        );
     }
 
     function testZeroTeleporterAddress() public {
@@ -262,9 +277,7 @@ contract ERC20TokenSourceTest is Test {
 
     function testZeroERC20ContractAddress() public {
         vm.expectRevert(
-            _formatERC20TokenSourceErrorMessage(
-                "zero ERC20 contract address"
-            )
+            _formatERC20TokenSourceErrorMessage("zero ERC20 contract address")
         );
 
         new ERC20TokenSource(
