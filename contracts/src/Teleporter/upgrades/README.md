@@ -107,6 +107,6 @@ Using specific version:
 
 ## Pausing Teleporter interactions
 
-Dapps that inherit from `TeleporterUpgradeable` can pause Teleporter interactions by calling `TeleporterUpgradeable.pauseTeleporterAddress`. This pause function stops receiving Teleporter message from the paused Teleporter address, and also makes sure to not send messages through the paused Teleporter address in `_getTeleporterMessenger()`. 
+Dapps that inherit from `TeleporterUpgradeable` can pause Teleporter interactions by calling `TeleporterUpgradeable.pauseTeleporterAddress`. This function prevents the contract from interacting with the paused Teleporter  address via `_getTeleporterMessenger()`. 
 
 `pauseTeleporterAddress` can only be called by addresses with the dapp's upgrade access, checked through `TeleporterUpgradeable._checkTeleporterUpgradeAccess`. 
