@@ -193,7 +193,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * and checks that the Teleporter messenger is not paused.
      *
      * By default returns the latest Teleporter messenger, but can be overriden to
-     * return a Teleporter messenger of specific version.
+     * return a Teleporter messenger of a specific version.
      */
     function _getTeleporterMessenger()
         internal
