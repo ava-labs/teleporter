@@ -1,2 +1,3 @@
 @subnet-evm-contracts=lib/subnet-evm/contracts/contracts
 @openzeppelin/=lib/openzeppelin-contracts/
+@teleporter/=src/Teleporter/
