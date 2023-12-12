@@ -11,8 +11,8 @@ At the top of the file define the Solidity version to work with, and import the 
 ```solidity
 pragma solidity 0.8.18;
 
-import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
-import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 ```
 
 Next, define the initial empty contract.
