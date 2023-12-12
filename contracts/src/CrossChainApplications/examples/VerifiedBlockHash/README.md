@@ -13,4 +13,4 @@ A sample cross-chain application built on top of Teleporter that publishes the b
     - Anyone can view the latest block hashes received from other chains using `getLatestBlockInfo`.
 
 ## End-to-end test
-An end-to-end test demostrating the use of these contracts can be found in `tests/block_hash_publish_receive.go`. This test deploys the contracts on two different chains in the required order, and then checks that it can publish the block hash from one chain to another.
+An end-to-end test demonstrating the use of these contracts can be found in `tests/flows/block_hash_publish_receive.go`. This test deploys the contracts on two different chains in the required order, and then checks that it can publish the block hash from one chain to another.

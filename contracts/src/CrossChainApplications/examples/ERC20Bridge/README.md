@@ -25,7 +25,7 @@ The generic ERC20 bridge is implemented using two primary contracts.
 </div>
 
 ## End-to-end test
-An end-to-end test demostrating the use of the generic ERC20 token bridge contracts can be found in `tests/erc20_bridge_multihop.go`. This test implements the following flow and checks that each step is successful:
+An end-to-end test demonstrating the use of the generic ERC20 token bridge contracts can be found in `tests/flows/erc20_bridge_multihop.go`. This test implements the following flow and checks that each step is successful:
 1. An example "native" ERC20 token is deployed on subnet A
 1. The `ERC20Bridge` contract is deployed on subnets A, B, and C.
 1. Teleporter messages are sent from subnet A to B and subnet A to C to add the example ERC20 deployed in step 1 to the bridge instances on the other chains.
