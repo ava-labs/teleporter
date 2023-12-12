@@ -7,8 +7,8 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	"github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/NativeTokenDestination"
-	"github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/NativeTokenSource"
+	nativetokendestination "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/NativeTokenDestination"
+	nativetokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/NativeTokenSource"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
