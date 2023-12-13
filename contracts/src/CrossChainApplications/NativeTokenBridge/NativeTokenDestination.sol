@@ -84,66 +84,6 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
-     *
-     * Receives a Teleporter message.
-     */
-    function _receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
-        address senderAddress,
-        bytes memory message
-    ) internal override {
-        // Only allow messages from the source chain.
-        require(
-            senderBlockchainID == sourceBlockchainID,
-            "NativeTokenDestination: invalid source chain"
-        );
-
-        // Only allow the partner contract to send messages.
-        require(
-            senderAddress == nativeTokenSourceAddress,
-            "NativeTokenDestination: unauthorized sender"
-        );
-
-        (address recipient, uint256 amount) = abi.decode(
-            message,
-            (address, uint256)
-        );
-        require(
-            recipient != address(0),
-            "NativeTokenDestination: zero recipient address"
-        );
-        require(amount != 0, "NativeTokenDestination: zero transfer value");
-
-        // If the contract has not yet been collateralized, we will deduct as many tokens
-        // as needed from the transfer as needed. If there are any excess tokens, they will
-        // be minted and sent to the recipient.
-        uint256 adjustedAmount = amount;
-        if (currentReserveImbalance > 0) {
-            if (amount > currentReserveImbalance) {
-                emit CollateralAdded({
-                    amount: currentReserveImbalance,
-                    remaining: 0
-                });
-                adjustedAmount = amount - currentReserveImbalance;
-                currentReserveImbalance = 0;
-            } else {
-                currentReserveImbalance -= amount;
-                emit CollateralAdded({
-                    amount: amount,
-                    remaining: currentReserveImbalance
-                });
-                return;
-            }
-        }
-
-        totalMinted += adjustedAmount;
-        emit NativeTokensMinted(recipient, adjustedAmount);
-        // Calls NativeMinter precompile through INativeMinter interface.
-        _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
-    }
-
-    /**
      * @dev See {INativeTokenDestination-transferToSource}.
      */
     function transferToSource(
@@ -234,6 +174,66 @@ contract NativeTokenDestination is
             burnAddressBalance: totalBurnedTxFees,
             teleporterMessageID: messageID
         });
+    }
+
+    /**
+     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     *
+     * Receives a Teleporter message.
+     */
+    function _receiveTeleporterMessage(
+        bytes32 senderBlockchainID,
+        address senderAddress,
+        bytes memory message
+    ) internal override {
+        // Only allow messages from the source chain.
+        require(
+            senderBlockchainID == sourceBlockchainID,
+            "NativeTokenDestination: invalid source chain"
+        );
+
+        // Only allow the partner contract to send messages.
+        require(
+            senderAddress == nativeTokenSourceAddress,
+            "NativeTokenDestination: unauthorized sender"
+        );
+
+        (address recipient, uint256 amount) = abi.decode(
+            message,
+            (address, uint256)
+        );
+        require(
+            recipient != address(0),
+            "NativeTokenDestination: zero recipient address"
+        );
+        require(amount != 0, "NativeTokenDestination: zero transfer value");
+
+        // If the contract has not yet been collateralized, we will deduct as many tokens
+        // as needed from the transfer as needed. If there are any excess tokens, they will
+        // be minted and sent to the recipient.
+        uint256 adjustedAmount = amount;
+        if (currentReserveImbalance > 0) {
+            if (amount > currentReserveImbalance) {
+                emit CollateralAdded({
+                    amount: currentReserveImbalance,
+                    remaining: 0
+                });
+                adjustedAmount = amount - currentReserveImbalance;
+                currentReserveImbalance = 0;
+            } else {
+                currentReserveImbalance -= amount;
+                emit CollateralAdded({
+                    amount: amount,
+                    remaining: currentReserveImbalance
+                });
+                return;
+            }
+        }
+
+        totalMinted += adjustedAmount;
+        emit NativeTokensMinted(recipient, adjustedAmount);
+        // Calls NativeMinter precompile through INativeMinter interface.
+        _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
     }
 
     /**

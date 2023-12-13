@@ -60,49 +60,6 @@ contract NativeTokenSource is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
-     *
-     * Receives a Teleporter message and routes to the appropriate internal function call.
-     */
-    function _receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
-        address senderAddress,
-        bytes memory message
-    ) internal override {
-        // Only allow messages from the destination chain.
-        require(
-            senderBlockchainID == destinationBlockchainID,
-            "NativeTokenSource: invalid destination chain"
-        );
-
-        // Only allow the partner contract to send messages.
-        require(
-            senderAddress == nativeTokenDestinationAddress,
-            "NativeTokenSource: unauthorized sender"
-        );
-
-        // Decode the payload to recover the action and corresponding function parameters
-        (SourceAction action, bytes memory actionData) = abi.decode(
-            message,
-            (SourceAction, bytes)
-        );
-
-        // Route to the appropriate function.
-        if (action == SourceAction.Unlock) {
-            (address recipient, uint256 amount) = abi.decode(
-                actionData,
-                (address, uint256)
-            );
-            _unlockTokens(recipient, amount);
-        } else if (action == SourceAction.Burn) {
-            uint256 newBurnTotal = abi.decode(actionData, (uint256));
-            _handleBurnTokens(newBurnTotal);
-        } else {
-            revert("NativeTokenSource: invalid action");
-        }
-    }
-
-    /**
      * @dev See {INativeTokenSource-transferToDestination}.
      */
     function transferToDestination(
@@ -152,6 +109,49 @@ contract NativeTokenSource is
             amount: msg.value,
             teleporterMessageID: messageID
         });
+    }
+
+    /**
+     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     *
+     * Receives a Teleporter message and routes to the appropriate internal function call.
+     */
+    function _receiveTeleporterMessage(
+        bytes32 senderBlockchainID,
+        address senderAddress,
+        bytes memory message
+    ) internal override {
+        // Only allow messages from the destination chain.
+        require(
+            senderBlockchainID == destinationBlockchainID,
+            "NativeTokenSource: invalid destination chain"
+        );
+
+        // Only allow the partner contract to send messages.
+        require(
+            senderAddress == nativeTokenDestinationAddress,
+            "NativeTokenSource: unauthorized sender"
+        );
+
+        // Decode the payload to recover the action and corresponding function parameters
+        (SourceAction action, bytes memory actionData) = abi.decode(
+            message,
+            (SourceAction, bytes)
+        );
+
+        // Route to the appropriate function.
+        if (action == SourceAction.Unlock) {
+            (address recipient, uint256 amount) = abi.decode(
+                actionData,
+                (address, uint256)
+            );
+            _unlockTokens(recipient, amount);
+        } else if (action == SourceAction.Burn) {
+            uint256 newBurnTotal = abi.decode(actionData, (uint256));
+            _handleBurnTokens(newBurnTotal);
+        } else {
+            revert("NativeTokenSource: invalid action");
+        }
     }
 
     /**

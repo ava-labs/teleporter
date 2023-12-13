@@ -361,22 +361,6 @@ contract NativeTokenSourceTest is Test {
         );
     }
 
-    function testInsufficientCollateral() public {
-        vm.expectRevert(
-            _formatNativeTokenSourceErrorMessage("insufficient collateral")
-        );
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        nativeTokenSource.receiveTeleporterMessage(
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
-        );
-    }
-
     function _formatNativeTokenSourceErrorMessage(
         string memory errorMessage
     ) private pure returns (bytes memory) {
@@ -418,6 +402,22 @@ contract NativeTokenSourceTest is Test {
                 TeleporterRegistry.getLatestTeleporter.selector
             ),
             abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
+        );
+    }
+
+    function testInsufficientCollateral() public {
+        vm.expectRevert(
+            _formatNativeTokenSourceErrorMessage("insufficient collateral")
+        );
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        nativeTokenSource.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(
+                ITokenSource.SourceAction.Unlock,
+                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+            )
         );
     }
 }

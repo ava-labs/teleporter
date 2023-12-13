@@ -66,49 +66,6 @@ contract ERC20TokenSource is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
-     *
-     * Receives a Teleporter message and routes to the appropriate internal function call.
-     */
-    function _receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
-        address senderAddress,
-        bytes memory message
-    ) internal override {
-        // Only allow messages from the destination chain.
-        require(
-            senderBlockchainID == destinationBlockchainID,
-            "ERC20TokenSource: invalid destination chain"
-        );
-
-        // Only allow the partner contract to send messages.
-        require(
-            senderAddress == nativeTokenDestinationAddress,
-            "ERC20TokenSource: unauthorized sender"
-        );
-
-        // Decode the payload to recover the action and corresponding function parameters
-        (SourceAction action, bytes memory actionData) = abi.decode(
-            message,
-            (SourceAction, bytes)
-        );
-
-        // Route to the appropriate function.
-        if (action == SourceAction.Unlock) {
-            (address recipient, uint256 amount) = abi.decode(
-                actionData,
-                (address, uint256)
-            );
-            _unlockTokens(recipient, amount);
-        } else if (action == SourceAction.Burn) {
-            uint256 newBurnTotal = abi.decode(actionData, (uint256));
-            _handleBurnTokens(newBurnTotal);
-        } else {
-            revert("ERC20TokenSource: invalid action");
-        }
-    }
-
-    /**
      * @dev See {IERC20TokenSource-transferToDestination}.
      */
     function transferToDestination(
@@ -171,6 +128,49 @@ contract ERC20TokenSource is
             amount: transferAmount,
             teleporterMessageID: messageID
         });
+    }
+
+    /**
+     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     *
+     * Receives a Teleporter message and routes to the appropriate internal function call.
+     */
+    function _receiveTeleporterMessage(
+        bytes32 senderBlockchainID,
+        address senderAddress,
+        bytes memory message
+    ) internal override {
+        // Only allow messages from the destination chain.
+        require(
+            senderBlockchainID == destinationBlockchainID,
+            "ERC20TokenSource: invalid destination chain"
+        );
+
+        // Only allow the partner contract to send messages.
+        require(
+            senderAddress == nativeTokenDestinationAddress,
+            "ERC20TokenSource: unauthorized sender"
+        );
+
+        // Decode the payload to recover the action and corresponding function parameters
+        (SourceAction action, bytes memory actionData) = abi.decode(
+            message,
+            (SourceAction, bytes)
+        );
+
+        // Route to the appropriate function.
+        if (action == SourceAction.Unlock) {
+            (address recipient, uint256 amount) = abi.decode(
+                actionData,
+                (address, uint256)
+            );
+            _unlockTokens(recipient, amount);
+        } else if (action == SourceAction.Burn) {
+            uint256 newBurnTotal = abi.decode(actionData, (uint256));
+            _handleBurnTokens(newBurnTotal);
+        } else {
+            revert("ERC20TokenSource: invalid action");
+        }
     }
 
     /**

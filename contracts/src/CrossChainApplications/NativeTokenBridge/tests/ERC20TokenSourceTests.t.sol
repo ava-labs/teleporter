@@ -350,12 +350,6 @@ contract ERC20TokenSourceTest is Test {
         );
     }
 
-    function _formatERC20TokenSourceErrorMessage(
-        string memory errorMessage
-    ) private pure returns (bytes memory) {
-        return bytes(string.concat("ERC20TokenSource: ", errorMessage));
-    }
-
     function _initMockTeleporterRegistry() internal {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -392,5 +386,11 @@ contract ERC20TokenSourceTest is Test {
             ),
             abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
         );
+    }
+
+    function _formatERC20TokenSourceErrorMessage(
+        string memory errorMessage
+    ) private pure returns (bytes memory) {
+        return bytes(string.concat("ERC20TokenSource: ", errorMessage));
     }
 }
