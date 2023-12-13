@@ -7,6 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterRegistryTest, TeleporterMessenger} from "./TeleporterRegistryTests.t.sol";
+import {ITeleporterMessenger} from "../../ITeleporterMessenger.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
     constructor(
@@ -15,6 +16,14 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
 
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
+    }
+
+    function getTeleporterMessenger()
+        public
+        view
+        returns (ITeleporterMessenger)
+    {
+        return _getTeleporterMessenger();
     }
 
     function _receiveTeleporterMessage(
@@ -28,6 +37,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
 }
 
 contract TeleporterUpgradeableTest is TeleporterRegistryTest {
+    ExampleUpgradeableApp public app;
     bytes32 public constant DEFAULT_ORIGIN_CHAIN_ID =
         bytes32(
             hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"
@@ -44,6 +54,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     function setUp() public virtual override {
         TeleporterRegistryTest.setUp();
         _addProtocolVersion(teleporterRegistry, teleporterAddress);
+        app = new ExampleUpgradeableApp(address(teleporterRegistry));
     }
 
     function testInvalidRegistryAddress() public {
@@ -56,10 +67,6 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function testOnlyAllowedTeleporter() public {
-        ExampleUpgradeableApp app = new ExampleUpgradeableApp(
-            address(teleporterRegistry)
-        );
-
         assertEq(app.getMinTeleporterVersion(), 1);
 
         vm.expectRevert(
@@ -80,10 +87,6 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function testUpdateMinTeleporterVersion() public {
-        ExampleUpgradeableApp app = new ExampleUpgradeableApp(
-            address(teleporterRegistry)
-        );
-
         // First check that calling with initial teleporter address works
         assertEq(app.getMinTeleporterVersion(), 1);
         vm.prank(teleporterAddress);
@@ -126,10 +129,6 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function testSetMinTeleporterVersion() public {
-        ExampleUpgradeableApp app = new ExampleUpgradeableApp(
-            address(teleporterRegistry)
-        );
-
         uint256 latestVersion = teleporterRegistry.latestVersion();
 
         // Check setting for a version > latest version fails

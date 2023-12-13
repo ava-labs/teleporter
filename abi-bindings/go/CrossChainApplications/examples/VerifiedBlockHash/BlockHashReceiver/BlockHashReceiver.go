@@ -31,8 +31,8 @@ var (
 
 // BlockHashReceiverMetaData contains all meta data concerning the BlockHashReceiver contract.
 var BlockHashReceiverMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"publisherBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"publisherContractAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getLatestBlockInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourcePublisherContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x60e060405234801561001057600080fd5b50604051610b49380380610b4983398101604081905261002f916101b3565b82806001600160a01b0381166100b15760405162461bcd60e51b815260206004820152603760248201527f54656c65706f727465725570677261646561626c653a207a65726f2074656c6560448201527f706f727465722072656769737472792061646472657373000000000000000000606482015260840160405180910390fd5b6001600160a01b03811660808190526040805163301fd1f560e21b8152905163c07f47d4916004808201926020929091908290030181865afa1580156100fb573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061011f91906101ef565b6000555061012c33610145565b5060a0919091526001600160a01b031660c05250610208565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b80516001600160a01b03811681146101ae57600080fd5b919050565b6000806000606084860312156101c857600080fd5b6101d184610197565b9250602084015191506101e660408501610197565b90509250925092565b60006020828403121561020157600080fd5b5051919050565b60805160a05160c0516108f76102526000396000818161015d0152610694015260008181610102015261061201526000818160be0152818161022201526103ca01526108f76000f3fe608060405234801561001057600080fd5b50600436106100b45760003560e01c80638da5cb5b116100715780638da5cb5b1461017f578063b17810be14610190578063c868efaa146101ab578063d2cc7a70146101be578063f2fde38b146101c6578063f3f39ee5146101d957600080fd5b80631a7f5bec146100b957806329b7b3fd146100fd5780635eb99514146101325780636c4f6ba914610147578063715018a61461015057806379a0710c14610158575b600080fd5b6100e07f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b6101247f000000000000000000000000000000000000000000000000000000000000000081565b6040519081526020016100f4565b6101456101403660046107a6565b6101e2565b005b61012460035481565b6101456101f6565b6100e07f000000000000000000000000000000000000000000000000000000000000000081565b6001546001600160a01b03166100e0565b600254600354604080519283526020830191909152016100f4565b6101456101b93660046107db565b61020a565b600054610124565b6101456101d4366004610862565b610348565b61012460025481565b6101ea6103be565b6101f3816103c6565b50565b6101fe610564565b61020860006105be565b565b60005460405163260f846760e11b81523360048201527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690634c1f08ce90602401602060405180830381865afa158015610271573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102959190610884565b10156103015760405162461bcd60e51b815260206004820152603060248201527f54656c65706f727465725570677261646561626c653a20696e76616c6964205460448201526f32b632b837b93a32b91039b2b73232b960811b60648201526084015b60405180910390fd5b610342848484848080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525061061092505050565b50505050565b610350610564565b6001600160a01b0381166103b55760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b60648201526084016102f8565b6101f3816105be565b610208610564565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663c07f47d46040518163ffffffff1660e01b8152600401602060405180830381865afa158015610426573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061044a9190610884565b600054909150818311156104ba5760405162461bcd60e51b815260206004820152603160248201527f54656c65706f727465725570677261646561626c653a20696e76616c6964205460448201527032b632b837b93a32b9103b32b939b4b7b760791b60648201526084016102f8565b80831161052f5760405162461bcd60e51b815260206004820152603f60248201527f54656c65706f727465725570677261646561626c653a206e6f7420677265617460448201527f6572207468616e2063757272656e74206d696e696d756d2076657273696f6e0060648201526084016102f8565b6000838155604051849183917fa9a7ef57e41f05b4c15480842f5f0c27edfcbb553fed281f7c4068452cc1c02d9190a3505050565b6001546001600160a01b031633146102085760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657260448201526064016102f8565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b7f000000000000000000000000000000000000000000000000000000000000000083146106925760405162461bcd60e51b815260206004820152602a60248201527f426c6f636b4861736852656365697665723a20696e76616c696420736f757263604482015269194818da185a5b88125160b21b60648201526084016102f8565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316826001600160a01b03161461072d5760405162461bcd60e51b815260206004820152603160248201527f426c6f636b4861736852656365697665723a20696e76616c696420736f757263604482015270329031b430b4b710383ab13634b9b432b960791b60648201526084016102f8565b60008082806020019051810190610744919061089d565b9150915060025482111561079f576002829055600381905560405181815282906001600160a01b0386169087907f0bca78aa82d7575f42e4b4b2fe04765a4b2f3661786403788ce987e065ac590d9060200160405180910390a45b5050505050565b6000602082840312156107b857600080fd5b5035919050565b80356001600160a01b03811681146107d657600080fd5b919050565b600080600080606085870312156107f157600080fd5b84359350610801602086016107bf565b9250604085013567ffffffffffffffff8082111561081e57600080fd5b818701915087601f83011261083257600080fd5b81358181111561084157600080fd5b88602082850101111561085357600080fd5b95989497505060200194505050565b60006020828403121561087457600080fd5b61087d826107bf565b9392505050565b60006020828403121561089657600080fd5b5051919050565b600080604083850312156108b057600080fd5b50508051602090910151909290915056fea26469706673582212207a8cf5d0e4b4eebb0e94dd706007335092ce90603e42f76c062e6812d68e775764736f6c63430008120033",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterRegistryAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"publisherBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"publisherContractAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"blockHeight\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"}],\"name\":\"ReceiveBlockHash\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"TeleporterAddressPaused\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getLatestBlockInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"isTeleporterAddressPaused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestBlockHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"pauseTeleporterAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"originBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourceBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"sourcePublisherContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x60e060405234801561001057600080fd5b50604051610d89380380610d8983398101604081905261002f916101b3565b82806001600160a01b0381166100b15760405162461bcd60e51b815260206004820152603760248201527f54656c65706f727465725570677261646561626c653a207a65726f2074656c6560448201527f706f727465722072656769737472792061646472657373000000000000000000606482015260840160405180910390fd5b6001600160a01b03811660808190526040805163301fd1f560e21b8152905163c07f47d4916004808201926020929091908290030181865afa1580156100fb573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061011f91906101ef565b6001555061012c33610145565b5060a0919091526001600160a01b031660c05250610208565b600280546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b80516001600160a01b03811681146101ae57600080fd5b919050565b6000806000606084860312156101c857600080fd5b6101d184610197565b9250602084015191506101e660408501610197565b90509250925092565b60006020828403121561020157600080fd5b5051919050565b60805160a05160c051610b37610252600039600081816101a601526108d4015260008181610138015261085201526000818160f4015281816103ec01526106080152610b376000f3fe608060405234801561001057600080fd5b50600436106100ea5760003560e01c80638da5cb5b1161008c578063c868efaa11610066578063c868efaa14610230578063d2cc7a7014610243578063f2fde38b1461024b578063f3f39ee51461025e57600080fd5b80638da5cb5b146101c857806397314297146101d9578063b17810be1461021557600080fd5b80635eb99514116100c85780635eb995141461017d5780636c4f6ba914610190578063715018a61461019957806379a0710c146101a157600080fd5b80631a7f5bec146100ef57806329b7b3fd146101335780632b0d8f1814610168575b600080fd5b6101167f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b61015a7f000000000000000000000000000000000000000000000000000000000000000081565b60405190815260200161012a565b61017b610176366004610a02565b610267565b005b61017b61018b366004610a24565b6103ac565b61015a60045481565b61017b6103c0565b6101167f000000000000000000000000000000000000000000000000000000000000000081565b6002546001600160a01b0316610116565b6102056101e7366004610a02565b6001600160a01b031660009081526020819052604090205460ff1690565b604051901515815260200161012a565b6003546004546040805192835260208301919091520161012a565b61017b61023e366004610a3d565b6103d4565b60015461015a565b61017b610259366004610a02565b610586565b61015a60035481565b61026f6105fc565b6001600160a01b0381166102e15760405162461bcd60e51b815260206004820152602e60248201527f54656c65706f727465725570677261646561626c653a207a65726f2054656c6560448201526d706f72746572206164647265737360901b60648201526084015b60405180910390fd5b6001600160a01b03811660009081526020819052604090205460ff16156103605760405162461bcd60e51b815260206004820152602d60248201527f54656c65706f727465725570677261646561626c653a2061646472657373206160448201526c1b1c9958591e481c185d5cd959609a1b60648201526084016102d8565b6001600160a01b038116600081815260208190526040808220805460ff19166001179055517f933f93e57a222e6330362af8b376d0a8725b6901e9a2fb86d00f169702b28a4c9190a250565b6103b46105fc565b6103bd81610604565b50565b6103c86107a4565b6103d260006107fe565b565b60015460405163260f846760e11b81523360048201527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031690634c1f08ce90602401602060405180830381865afa15801561043b573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061045f9190610ac4565b10156104c65760405162461bcd60e51b815260206004820152603060248201527f54656c65706f727465725570677261646561626c653a20696e76616c6964205460448201526f32b632b837b93a32b91039b2b73232b960811b60648201526084016102d8565b3360009081526020819052604090205460ff161561053f5760405162461bcd60e51b815260206004820152603060248201527f54656c65706f727465725570677261646561626c653a2054656c65706f72746560448201526f1c881859191c995cdcc81c185d5cd95960821b60648201526084016102d8565b610580848484848080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525061085092505050565b50505050565b61058e6107a4565b6001600160a01b0381166105f35760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b60648201526084016102d8565b6103bd816107fe565b6103d26107a4565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663c07f47d46040518163ffffffff1660e01b8152600401602060405180830381865afa158015610664573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906106889190610ac4565b600154909150818311156106f85760405162461bcd60e51b815260206004820152603160248201527f54656c65706f727465725570677261646561626c653a20696e76616c6964205460448201527032b632b837b93a32b9103b32b939b4b7b760791b60648201526084016102d8565b80831161076d5760405162461bcd60e51b815260206004820152603f60248201527f54656c65706f727465725570677261646561626c653a206e6f7420677265617460448201527f6572207468616e2063757272656e74206d696e696d756d2076657273696f6e0060648201526084016102d8565b6001839055604051839082907fa9a7ef57e41f05b4c15480842f5f0c27edfcbb553fed281f7c4068452cc1c02d90600090a3505050565b6002546001600160a01b031633146103d25760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657260448201526064016102d8565b600280546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b7f000000000000000000000000000000000000000000000000000000000000000083146108d25760405162461bcd60e51b815260206004820152602a60248201527f426c6f636b4861736852656365697665723a20696e76616c696420736f757263604482015269194818da185a5b88125160b21b60648201526084016102d8565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316826001600160a01b03161461096d5760405162461bcd60e51b815260206004820152603160248201527f426c6f636b4861736852656365697665723a20696e76616c696420736f757263604482015270329031b430b4b710383ab13634b9b432b960791b60648201526084016102d8565b600080828060200190518101906109849190610add565b915091506003548211156109df576003829055600481905560405181815282906001600160a01b0386169087907f0bca78aa82d7575f42e4b4b2fe04765a4b2f3661786403788ce987e065ac590d9060200160405180910390a45b5050505050565b80356001600160a01b03811681146109fd57600080fd5b919050565b600060208284031215610a1457600080fd5b610a1d826109e6565b9392505050565b600060208284031215610a3657600080fd5b5035919050565b60008060008060608587031215610a5357600080fd5b84359350610a63602086016109e6565b9250604085013567ffffffffffffffff80821115610a8057600080fd5b818701915087601f830112610a9457600080fd5b813581811115610aa357600080fd5b886020828501011115610ab557600080fd5b95989497505060200194505050565b600060208284031215610ad657600080fd5b5051919050565b60008060408385031215610af057600080fd5b50508051602090910151909290915056fea26469706673582212203561f96c0f10849224afe93f05b1ecd418d5b4c76da025d1868ab5f2dba4d72d64736f6c63430008120033",
 }
 
 // BlockHashReceiverABI is the input ABI used to generate the binding from.
@@ -265,6 +265,37 @@ func (_BlockHashReceiver *BlockHashReceiverCallerSession) GetMinTeleporterVersio
 	return _BlockHashReceiver.Contract.GetMinTeleporterVersion(&_BlockHashReceiver.CallOpts)
 }
 
+// IsTeleporterAddressPaused is a free data retrieval call binding the contract method 0x97314297.
+//
+// Solidity: function isTeleporterAddressPaused(address teleporterAddress) view returns(bool)
+func (_BlockHashReceiver *BlockHashReceiverCaller) IsTeleporterAddressPaused(opts *bind.CallOpts, teleporterAddress common.Address) (bool, error) {
+	var out []interface{}
+	err := _BlockHashReceiver.contract.Call(opts, &out, "isTeleporterAddressPaused", teleporterAddress)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
+}
+
+// IsTeleporterAddressPaused is a free data retrieval call binding the contract method 0x97314297.
+//
+// Solidity: function isTeleporterAddressPaused(address teleporterAddress) view returns(bool)
+func (_BlockHashReceiver *BlockHashReceiverSession) IsTeleporterAddressPaused(teleporterAddress common.Address) (bool, error) {
+	return _BlockHashReceiver.Contract.IsTeleporterAddressPaused(&_BlockHashReceiver.CallOpts, teleporterAddress)
+}
+
+// IsTeleporterAddressPaused is a free data retrieval call binding the contract method 0x97314297.
+//
+// Solidity: function isTeleporterAddressPaused(address teleporterAddress) view returns(bool)
+func (_BlockHashReceiver *BlockHashReceiverCallerSession) IsTeleporterAddressPaused(teleporterAddress common.Address) (bool, error) {
+	return _BlockHashReceiver.Contract.IsTeleporterAddressPaused(&_BlockHashReceiver.CallOpts, teleporterAddress)
+}
+
 // LatestBlockHash is a free data retrieval call binding the contract method 0x6c4f6ba9.
 //
 // Solidity: function latestBlockHash() view returns(bytes32)
@@ -449,6 +480,27 @@ func (_BlockHashReceiver *BlockHashReceiverSession) TeleporterRegistry() (common
 // Solidity: function teleporterRegistry() view returns(address)
 func (_BlockHashReceiver *BlockHashReceiverCallerSession) TeleporterRegistry() (common.Address, error) {
 	return _BlockHashReceiver.Contract.TeleporterRegistry(&_BlockHashReceiver.CallOpts)
+}
+
+// PauseTeleporterAddress is a paid mutator transaction binding the contract method 0x2b0d8f18.
+//
+// Solidity: function pauseTeleporterAddress(address teleporterAddress) returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactor) PauseTeleporterAddress(opts *bind.TransactOpts, teleporterAddress common.Address) (*types.Transaction, error) {
+	return _BlockHashReceiver.contract.Transact(opts, "pauseTeleporterAddress", teleporterAddress)
+}
+
+// PauseTeleporterAddress is a paid mutator transaction binding the contract method 0x2b0d8f18.
+//
+// Solidity: function pauseTeleporterAddress(address teleporterAddress) returns()
+func (_BlockHashReceiver *BlockHashReceiverSession) PauseTeleporterAddress(teleporterAddress common.Address) (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.PauseTeleporterAddress(&_BlockHashReceiver.TransactOpts, teleporterAddress)
+}
+
+// PauseTeleporterAddress is a paid mutator transaction binding the contract method 0x2b0d8f18.
+//
+// Solidity: function pauseTeleporterAddress(address teleporterAddress) returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactorSession) PauseTeleporterAddress(teleporterAddress common.Address) (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.PauseTeleporterAddress(&_BlockHashReceiver.TransactOpts, teleporterAddress)
 }
 
 // ReceiveTeleporterMessage is a paid mutator transaction binding the contract method 0xc868efaa.
@@ -998,6 +1050,150 @@ func (_BlockHashReceiver *BlockHashReceiverFilterer) WatchReceiveBlockHash(opts 
 func (_BlockHashReceiver *BlockHashReceiverFilterer) ParseReceiveBlockHash(log types.Log) (*BlockHashReceiverReceiveBlockHash, error) {
 	event := new(BlockHashReceiverReceiveBlockHash)
 	if err := _BlockHashReceiver.contract.UnpackLog(event, "ReceiveBlockHash", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BlockHashReceiverTeleporterAddressPausedIterator is returned from FilterTeleporterAddressPaused and is used to iterate over the raw logs and unpacked data for TeleporterAddressPaused events raised by the BlockHashReceiver contract.
+type BlockHashReceiverTeleporterAddressPausedIterator struct {
+	Event *BlockHashReceiverTeleporterAddressPaused // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BlockHashReceiverTeleporterAddressPausedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BlockHashReceiverTeleporterAddressPaused)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BlockHashReceiverTeleporterAddressPaused)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BlockHashReceiverTeleporterAddressPausedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BlockHashReceiverTeleporterAddressPausedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BlockHashReceiverTeleporterAddressPaused represents a TeleporterAddressPaused event raised by the BlockHashReceiver contract.
+type BlockHashReceiverTeleporterAddressPaused struct {
+	TeleporterAddress common.Address
+	Raw               types.Log // Blockchain specific contextual infos
+}
+
+// FilterTeleporterAddressPaused is a free log retrieval operation binding the contract event 0x933f93e57a222e6330362af8b376d0a8725b6901e9a2fb86d00f169702b28a4c.
+//
+// Solidity: event TeleporterAddressPaused(address indexed teleporterAddress)
+func (_BlockHashReceiver *BlockHashReceiverFilterer) FilterTeleporterAddressPaused(opts *bind.FilterOpts, teleporterAddress []common.Address) (*BlockHashReceiverTeleporterAddressPausedIterator, error) {
+
+	var teleporterAddressRule []interface{}
+	for _, teleporterAddressItem := range teleporterAddress {
+		teleporterAddressRule = append(teleporterAddressRule, teleporterAddressItem)
+	}
+
+	logs, sub, err := _BlockHashReceiver.contract.FilterLogs(opts, "TeleporterAddressPaused", teleporterAddressRule)
+	if err != nil {
+		return nil, err
+	}
+	return &BlockHashReceiverTeleporterAddressPausedIterator{contract: _BlockHashReceiver.contract, event: "TeleporterAddressPaused", logs: logs, sub: sub}, nil
+}
+
+// WatchTeleporterAddressPaused is a free log subscription operation binding the contract event 0x933f93e57a222e6330362af8b376d0a8725b6901e9a2fb86d00f169702b28a4c.
+//
+// Solidity: event TeleporterAddressPaused(address indexed teleporterAddress)
+func (_BlockHashReceiver *BlockHashReceiverFilterer) WatchTeleporterAddressPaused(opts *bind.WatchOpts, sink chan<- *BlockHashReceiverTeleporterAddressPaused, teleporterAddress []common.Address) (event.Subscription, error) {
+
+	var teleporterAddressRule []interface{}
+	for _, teleporterAddressItem := range teleporterAddress {
+		teleporterAddressRule = append(teleporterAddressRule, teleporterAddressItem)
+	}
+
+	logs, sub, err := _BlockHashReceiver.contract.WatchLogs(opts, "TeleporterAddressPaused", teleporterAddressRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BlockHashReceiverTeleporterAddressPaused)
+				if err := _BlockHashReceiver.contract.UnpackLog(event, "TeleporterAddressPaused", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseTeleporterAddressPaused is a log parse operation binding the contract event 0x933f93e57a222e6330362af8b376d0a8725b6901e9a2fb86d00f169702b28a4c.
+//
+// Solidity: event TeleporterAddressPaused(address indexed teleporterAddress)
+func (_BlockHashReceiver *BlockHashReceiverFilterer) ParseTeleporterAddressPaused(log types.Log) (*BlockHashReceiverTeleporterAddressPaused, error) {
+	event := new(BlockHashReceiverTeleporterAddressPaused)
+	if err := _BlockHashReceiver.contract.UnpackLog(event, "TeleporterAddressPaused", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
