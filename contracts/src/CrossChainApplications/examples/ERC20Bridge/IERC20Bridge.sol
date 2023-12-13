@@ -8,6 +8,11 @@ pragma solidity 0.8.18;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
+
+/**
  * @dev Interface that describes functionalities for a cross-chain ERC20 bridge.
  */
 interface IERC20Bridge {

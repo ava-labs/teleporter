@@ -8,6 +8,11 @@ pragma solidity 0.8.18;
 import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 
 /**
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
+
+/**
  * @dev Interface that describes functionalities for a contract that can mint native tokens when
  * paired with a {INativeTokenSource} or {IERC20TokenSource} contract that will lock tokens on another chain.
  */

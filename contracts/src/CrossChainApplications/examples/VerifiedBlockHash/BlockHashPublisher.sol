@@ -9,6 +9,11 @@ import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporter
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 
 /**
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
+
+/**
  * Contract that publishes the latest block hash of current chain to another chain.
  */
 contract BlockHashPublisher {

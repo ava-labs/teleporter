@@ -6,6 +6,11 @@
 pragma solidity 0.8.18;
 
 /**
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
+
+/**
  * @dev Interface that describes functionalities for a contract that will lock ERC20 tokens and send a
  * Teleporter message to a {INativeTokenDestination} contract to mint native tokens on the destination chain.
  */

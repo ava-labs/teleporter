@@ -6,7 +6,12 @@
 pragma solidity 0.8.18;
 
 /**
- * @dev Interface for common functionality needed for different `TokenSource` contracts such as 
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
+
+/**
+ * @dev Interface for common functionality needed for different `TokenSource` contracts such as
  * `NativeTokenSource` and `ERC20TokenSource`.
  */
 interface ITokenSource {
@@ -17,7 +22,7 @@ interface ITokenSource {
         Unlock,
         Burn
     }
-    
+
     /**
      * @dev Emitted when native tokens are locked in the source contract to be transferred to the destination chain.
      */

@@ -8,6 +8,11 @@ pragma solidity 0.8.18;
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 
 /**
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
+
+/**
  * Contract for receiving latest block hashes from another chain.
  */
 contract BlockHashReceiver is TeleporterOwnerUpgradeable {

@@ -20,6 +20,11 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 // solhint-disable-next-line no-unused-import
 import {IAllowList} from "@subnet-evm-contracts/interfaces/IAllowList.sol";
 
+/**
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
+
 contract NativeTokenDestination is
     ITeleporterReceiver,
     INativeTokenDestination,
