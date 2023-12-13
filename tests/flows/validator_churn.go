@@ -113,7 +113,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
+	receipt = utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
 
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
