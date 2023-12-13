@@ -19,7 +19,7 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
         // since receiving messages still checks against minimum Teleporter version.
 
         // Pause the Teleporter address
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
 
         // The Teleporter address paused no longer can deliver messages to the app
         vm.expectRevert(
@@ -37,10 +37,10 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
         // Add a new Teleporter address to the registry and update minimum version
         address newTeleporterAddress = address(new TeleporterMessenger());
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);
-        _updateMinTeleporterVersionSuccess(teleporterRegistry.latestVersion());
+        _updateMinTeleporterVersionSuccess(app, teleporterRegistry.latestVersion());
 
         // Unpause the previously paused Teleporter address
-        _unpauseTeleporterAddressSuccess(teleporterAddress);
+        _unpauseTeleporterAddressSuccess(app, teleporterAddress);
 
         // The previously paused Teleporter address still can not deliver messages to the app
         // because the minimum version is still greater than the Teleporter address version
@@ -74,7 +74,7 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
             ""
         );
         // Check that teleporterAddress can not deliver messages once paused
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter address paused"
@@ -88,7 +88,7 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
         );
 
         // Unpause the teleporterAddress and check that it can deliver messages again
-        _unpauseTeleporterAddressSuccess(teleporterAddress);
+        _unpauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
@@ -105,10 +105,10 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
         app.unpauseTeleporterAddress(teleporterAddress);
 
         // Pause the Teleporter address
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
 
         // Try to unpause the Teleporter address first time should succeed
-        _unpauseTeleporterAddressSuccess(teleporterAddress);
+        _unpauseTeleporterAddressSuccess(app, teleporterAddress);
 
         // Try to unpause the Teleporter address second time should fail
         vm.expectRevert(
@@ -124,10 +124,10 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
         address newTeleporterAddress = address(new TeleporterMessenger());
 
         // Pause the new Teleporter address before it is registered
-        _pauseTeleporterAddressSuccess(newTeleporterAddress);
+        _pauseTeleporterAddressSuccess(app, newTeleporterAddress);
 
         // Unpause before the Teleporter address is registered
-        _unpauseTeleporterAddressSuccess(newTeleporterAddress);
+        _unpauseTeleporterAddressSuccess(app, newTeleporterAddress);
 
         // Register the new Teleporter address
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);
@@ -148,13 +148,13 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
         address newTeleporterAddress = address(new TeleporterMessenger());
 
         // Pause the new Teleporter address before it is registered
-        _pauseTeleporterAddressSuccess(newTeleporterAddress);
+        _pauseTeleporterAddressSuccess(app, newTeleporterAddress);
 
         // Register the new Teleporter address
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);
 
         // Unpause before the Teleporter address is registered
-        _unpauseTeleporterAddressSuccess(newTeleporterAddress);
+        _unpauseTeleporterAddressSuccess(app, newTeleporterAddress);
 
         // Check that the new Teleporter address is unpaused
         vm.prank(newTeleporterAddress);

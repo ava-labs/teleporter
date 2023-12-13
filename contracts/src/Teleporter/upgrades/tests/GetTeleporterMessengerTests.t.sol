@@ -23,7 +23,7 @@ contract GetTeleporterMessengerTest is TeleporterUpgradeableTest {
     }
 
     function testGetPausedTeleporterMessenger() public {
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter sending paused"
@@ -33,7 +33,7 @@ contract GetTeleporterMessengerTest is TeleporterUpgradeableTest {
     }
 
     function testGetUnpausedTeleporterMessenger() public {
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter sending paused"
@@ -42,13 +42,13 @@ contract GetTeleporterMessengerTest is TeleporterUpgradeableTest {
         app.getTeleporterMessenger();
 
         // Unpause the Teleporter address, and now we should getTeleporterMessenger successfully
-        _unpauseTeleporterAddressSuccess(teleporterAddress);
+        _unpauseTeleporterAddressSuccess(app, teleporterAddress);
         app.getTeleporterMessenger();
     }
 
     function testGetNewTeleporterMessenger() public {
         // Pause the current latest version of Teleporter
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter sending paused"
@@ -73,7 +73,7 @@ contract GetTeleporterMessengerTest is TeleporterUpgradeableTest {
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);
 
         // Pause a non-latest version of Teleporter
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
 
         // Make sure we can still get the latest version of Teleporter for sending
         ITeleporterMessenger messenger = app.getTeleporterMessenger();

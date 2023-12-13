@@ -27,7 +27,10 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         address newTeleporterAddress = address(new TeleporterMessenger());
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);
 
-        _updateMinTeleporterVersionSuccess(teleporterRegistry.latestVersion());
+        _updateMinTeleporterVersionSuccess(
+            app,
+            teleporterRegistry.latestVersion()
+        );
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
@@ -84,7 +87,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         teleporterRegistry.getTeleporterFromVersion(skippedVersion);
 
         // Update to the skipped version
-        _updateMinTeleporterVersionSuccess(skippedVersion);
+        _updateMinTeleporterVersionSuccess(app, skippedVersion);
         assertEq(app.getMinTeleporterVersion(), skippedVersion);
 
         // Make sure that the old minimum Teleporter version can not deliver messages

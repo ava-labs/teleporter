@@ -22,7 +22,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
             ""
         );
         // Check that teleporterAddress can not deliver messages once paused
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter address paused"
@@ -38,7 +38,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
 
     function testAlreadyPausedTeleporterAddress() public {
         // Check that teleporterAddress can not deliver messages once paused
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter address paused"
@@ -73,7 +73,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         );
 
         // Check that teleporterAddress can not deliver messages once paused
-        _pauseTeleporterAddressSuccess(teleporterAddress);
+        _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
                 "Teleporter address paused"
@@ -87,7 +87,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         );
 
         // Check that after updating mininum Teleporter version, the address is still paused
-        _updateMinTeleporterVersionSuccess(teleporterRegistry.latestVersion());
+        _updateMinTeleporterVersionSuccess(app, teleporterRegistry.latestVersion());
         vm.prank(teleporterAddress);
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage(
@@ -108,7 +108,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         address newTeleporterAddress = address(new TeleporterMessenger());
 
         // Pause the new Teleporter address before it is registered
-        _pauseTeleporterAddressSuccess(newTeleporterAddress);
+        _pauseTeleporterAddressSuccess(app, newTeleporterAddress);
 
         // Register the new Teleporter address
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);

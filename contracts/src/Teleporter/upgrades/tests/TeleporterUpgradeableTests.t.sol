@@ -122,30 +122,33 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function _updateMinTeleporterVersionSuccess(
+        TeleporterUpgradeable app_,
         uint256 newMinTeleporterVersion
     ) internal virtual {
-        vm.expectEmit(true, true, true, true, address(app));
+        vm.expectEmit(true, true, true, true, address(app_));
         emit MinTeleporterVersionUpdated(
-            app.getMinTeleporterVersion(),
+            app_.getMinTeleporterVersion(),
             newMinTeleporterVersion
         );
-        app.updateMinTeleporterVersion(newMinTeleporterVersion);
+        app_.updateMinTeleporterVersion(newMinTeleporterVersion);
     }
 
     function _pauseTeleporterAddressSuccess(
+        TeleporterUpgradeable app_,
         address teleporterAddress_
     ) internal virtual {
-        vm.expectEmit(true, true, true, true, address(app));
+        vm.expectEmit(true, true, true, true, address(app_));
         emit TeleporterAddressPaused(teleporterAddress_);
-        app.pauseTeleporterAddress(teleporterAddress_);
+        app_.pauseTeleporterAddress(teleporterAddress_);
     }
 
     function _unpauseTeleporterAddressSuccess(
+        TeleporterUpgradeable app_,
         address teleporterAddress_
     ) internal virtual {
-        vm.expectEmit(true, true, true, true, address(app));
+        vm.expectEmit(true, true, true, true, address(app_));
         emit TeleporterAddressUnpaused(teleporterAddress_);
-        app.unpauseTeleporterAddress(teleporterAddress_);
+        app_.unpauseTeleporterAddress(teleporterAddress_);
     }
 
     function _formatTeleporterUpgradeableErrorMessage(
