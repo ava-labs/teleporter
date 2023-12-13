@@ -310,9 +310,8 @@ func (n *localNetwork) deployTeleporterRegistryContracts(
 
 		n.subnetsInfo[subnetInfo.SubnetID].TeleporterRegistryAddress = teleporterRegistryAddress
 		// Wait for the transaction to be mined
-		receipt := utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
-		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+
 		log.Info("Deployed TeleporterRegistry contract to subnet", subnetInfo.SubnetID.Hex(),
 			"Deploy address", teleporterRegistryAddress.Hex())
 	}

@@ -25,7 +25,6 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	"github.com/ava-labs/subnet-evm/params"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/x/warp"
@@ -41,12 +40,10 @@ import (
 )
 
 var (
-	NativeTransferGas                     uint64 = 21_000
-	DefaultTeleporterTransactionGas       uint64 = 300_000
-	DefaultTeleporterTransactionGasFeeCap        = big.NewInt(225 * params.GWei)
-	DefaultTeleporterTransactionGasTipCap        = big.NewInt(params.GWei)
-	DefaultTeleporterTransactionValue            = common.Big0
-	ExpectedExampleERC20DeployerBalance          = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e10))
+	NativeTransferGas                   uint64 = 21_000
+	DefaultTeleporterTransactionGas     uint64 = 300_000
+	DefaultTeleporterTransactionValue          = common.Big0
+	ExpectedExampleERC20DeployerBalance        = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e10))
 )
 
 //
@@ -98,11 +95,7 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	tx, err := subnet.TeleporterMessenger.RetryMessageExecution(opts, originChainID, message)
 	Expect(err).Should(BeNil())
 
-	receipt := WaitForTransactionSuccess(ctx, subnet, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
-
-	return receipt
+	return WaitForTransactionSuccess(ctx, subnet, tx)
 }
 
 func RedeemRelayerRewardsAndConfirm(
@@ -144,12 +137,11 @@ func RedeemRelayerRewardsAndConfirm(
 		),
 	)
 
-	updatedRewardAmount, err :=
-		subnet.TeleporterMessenger.CheckRelayerRewardAmount(
-			&bind.CallOpts{},
-			relayerAddress,
-			feeTokenAddress,
-		)
+	updatedRewardAmount, err := subnet.TeleporterMessenger.CheckRelayerRewardAmount(
+		&bind.CallOpts{},
+		relayerAddress,
+		feeTokenAddress,
+	)
 	Expect(err).Should(BeNil())
 	Expect(updatedRewardAmount.Cmp(big.NewInt(0))).Should(Equal(0))
 
@@ -390,7 +382,6 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	destination interfaces.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
 	senderKey *ecdsa.PrivateKey,
-	// transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
