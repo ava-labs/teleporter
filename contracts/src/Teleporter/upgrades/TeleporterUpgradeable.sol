@@ -7,6 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
+import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
@@ -18,6 +19,12 @@ import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
  */
 abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     TeleporterRegistry public immutable teleporterRegistry;
+
+    /**
+     * @dev A mapping that keeps track of paused Teleporter addresses.
+     */
+    mapping(address teleporterAddress => bool paused)
+        private _pausedTeleporterAddresses;
 
     /**
      * @dev The minimum required Teleporter version that the contract is allowed
@@ -32,6 +39,11 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
         uint256 indexed oldMinTeleporterVersion,
         uint256 indexed newMinTeleporterVersion
     );
+
+    /**
+     * @dev Emitted when a Teleporter address is paused.
+     */
+    event TeleporterAddressPaused(address indexed teleporterAddress);
 
     /**
      * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
@@ -65,6 +77,12 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
             "TeleporterUpgradeable: invalid Teleporter sender"
         );
 
+        // Check against the paused Teleporter addresses.
+        require(
+            !isTeleporterAddressPaused(msg.sender),
+            "TeleporterUpgradeable: Teleporter address paused"
+        );
+
         _receiveTeleporterMessage(
             originBlockchainID,
             originSenderAddress,
@@ -86,10 +104,44 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     }
 
     /**
+     * @dev Pauses a Teleporter address from interacting with this contract.
+     * After pausing a Teleporter address, it will no longer be able to deliver messages
+     * to this contract, and this contract will not send messages through that Teleporter address.
+     * The address does not need to be registered with the Teleporter registry.
+     * Emits a {TeleporterAddressPaused} event if successfully paused.
+     * Requirements:
+     *
+     * - `msg.sender` must have Teleporter upgrade access.
+     * - `teleporterAddress` is not already paused.
+     */
+    function pauseTeleporterAddress(address teleporterAddress) public virtual {
+        _checkTeleporterUpgradeAccess();
+        require(
+            teleporterAddress != address(0),
+            "TeleporterUpgradeable: zero Teleporter address"
+        );
+        require(
+            !isTeleporterAddressPaused(teleporterAddress),
+            "TeleporterUpgradeable: address already paused"
+        );
+        _pausedTeleporterAddresses[teleporterAddress] = true;
+        emit TeleporterAddressPaused(teleporterAddress);
+    }
+
+    /**
      * @dev Public getter for `_minTeleporterVersion`.
      */
     function getMinTeleporterVersion() public view returns (uint256) {
         return _minTeleporterVersion;
+    }
+
+    /**
+     * @dev Checks if a Teleporter address is paused.
+     */
+    function isTeleporterAddressPaused(
+        address teleporterAddress
+    ) public view virtual returns (bool) {
+        return _pausedTeleporterAddresses[teleporterAddress];
     }
 
     /**
@@ -135,4 +187,27 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * This function should be overridden by contracts that inherit from this contract.
      */
     function _checkTeleporterUpgradeAccess() internal virtual;
+
+    /**
+     * @dev Returns the Teleporter messenger used to send Teleporter messages,
+     * and checks that the Teleporter messenger is not paused.
+     *
+     * By default returns the latest Teleporter messenger, but can be overriden to
+     * return a Teleporter messenger of a specific version.
+     */
+    function _getTeleporterMessenger()
+        internal
+        view
+        virtual
+        returns (ITeleporterMessenger)
+    {
+        ITeleporterMessenger teleporter = teleporterRegistry
+            .getLatestTeleporter();
+        require(
+            !isTeleporterAddressPaused(address(teleporter)),
+            "TeleporterUpgradeable: Teleporter sending paused"
+        );
+
+        return teleporter;
+    }
 }
