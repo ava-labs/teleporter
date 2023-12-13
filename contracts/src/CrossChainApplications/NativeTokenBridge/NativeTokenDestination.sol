@@ -177,6 +177,24 @@ contract NativeTokenDestination is
     }
 
     /**
+     * @dev See {INativeTokenDestination-isCollateralized}.
+     */
+    function isCollateralized() external view returns (bool) {
+        return currentReserveImbalance == 0;
+    }
+
+    /**
+     * @dev See {INativeTokenDestination-totalSupply}.
+     */
+    function totalSupply() external view returns (uint256) {
+        uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance +
+            address(BURN_FOR_TRANSFER_ADDRESS).balance;
+        uint256 created = totalMinted + initialReserveImbalance;
+
+        return created - burned;
+    }
+
+    /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
      *
      * Receives a Teleporter message.
@@ -234,23 +252,5 @@ contract NativeTokenDestination is
         emit NativeTokensMinted(recipient, adjustedAmount);
         // Calls NativeMinter precompile through INativeMinter interface.
         _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
-    }
-
-    /**
-     * @dev See {INativeTokenDestination-isCollateralized}.
-     */
-    function isCollateralized() external view returns (bool) {
-        return currentReserveImbalance == 0;
-    }
-
-    /**
-     * @dev See {INativeTokenDestination-totalSupply}.
-     */
-    function totalSupply() external view returns (uint256) {
-        uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance +
-            address(BURN_FOR_TRANSFER_ADDRESS).balance;
-        uint256 created = totalMinted + initialReserveImbalance;
-
-        return created - burned;
     }
 }
