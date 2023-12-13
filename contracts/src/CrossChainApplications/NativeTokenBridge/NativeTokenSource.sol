@@ -11,14 +11,14 @@ import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.so
 import {INativeTokenSource} from "./INativeTokenSource.sol";
 import {ITokenSource} from "./ITokenSource.sol";
 import {ITeleporterMessenger, TeleporterFeeInfo, TeleporterMessageInput} from "../../Teleporter/ITeleporterMessenger.sol";
-import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract NativeTokenSource is
-    ITeleporterReceiver,
+    TeleporterOwnerUpgradeable,
     INativeTokenSource,
     ITokenSource,
     ReentrancyGuard
@@ -35,20 +35,11 @@ contract NativeTokenSource is
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
 
-    // Used for sending and receiving Teleporter messages.
-    ITeleporterMessenger public immutable teleporterMessenger;
-
     constructor(
-        address teleporterMessengerAddress,
+        address teleporterRegistryAddress,
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_
-    ) {
-        require(
-            teleporterMessengerAddress != address(0),
-            "NativeTokenSource: zero TeleporterMessenger address"
-        );
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
-
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
         require(
             destinationBlockchainID_ != bytes32(0),
             "NativeTokenSource: zero destination blockchain ID"
@@ -73,17 +64,11 @@ contract NativeTokenSource is
      *
      * Receives a Teleporter message and routes to the appropriate internal function call.
      */
-    function receiveTeleporterMessage(
+    function _receiveTeleporterMessage(
         bytes32 senderBlockchainID,
         address senderAddress,
-        bytes calldata message
-    ) external nonReentrant {
-        // Only allow the Teleporter messenger to deliver messages.
-        require(
-            msg.sender == address(teleporterMessenger),
-            "NativeTokenSource: unauthorized TeleporterMessenger contract"
-        );
-
+        bytes memory message
+    ) internal override {
         // Only allow messages from the destination chain.
         require(
             senderBlockchainID == destinationBlockchainID,
@@ -125,6 +110,9 @@ contract NativeTokenSource is
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry
+            .getLatestTeleporter();
+
         // The recipient cannot be the zero address.
         require(
             recipient != address(0),
