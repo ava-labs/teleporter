@@ -405,6 +405,8 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	return receipt, event.Message.MessageID
 }
 
+// Waits for a transaction to be mined.
+// Asserts Receipt.status equals true.
 func WaitForTransactionSuccess(
 	ctx context.Context,
 	subnetInfo interfaces.SubnetTestInfo,
@@ -413,6 +415,8 @@ func WaitForTransactionSuccess(
 	return waitForTransaction(ctx, subnetInfo, tx, true)
 }
 
+// Waits for a transaction to be mined.
+// Asserts Receipt.status equals false.
 func WaitForTransactionFailure(
 	ctx context.Context,
 	subnetInfo interfaces.SubnetTestInfo,
@@ -421,6 +425,8 @@ func WaitForTransactionFailure(
 	return waitForTransaction(ctx, subnetInfo, tx, false)
 }
 
+// Waits for a transaction to be mined.
+// Asserts Receipt.status equals success.
 func waitForTransaction(
 	ctx context.Context,
 	subnetInfo interfaces.SubnetTestInfo,
@@ -431,8 +437,8 @@ func waitForTransaction(
 	defer cancel()
 
 	receipt, err := bind.WaitMined(cctx, subnetInfo.RPCClient, tx)
-
 	Expect(err).Should(BeNil())
+
 	if success {
 		if receipt.Status == types.ReceiptStatusFailed {
 			fmt.Println(TraceTransaction(ctx, subnetInfo, tx))
