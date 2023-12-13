@@ -92,7 +92,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt = utils.SendTransactionAndWaitForFailure(ctx, subnetBInfo, signedTx)
+	utils.SendTransactionAndWaitForFailure(ctx, subnetBInfo, signedTx)
 
 	// Verify the message was not delivered
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
