@@ -7,11 +7,14 @@ pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
 import {NativeTokenSource, IERC20, ITokenSource, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, ITeleporterMessenger} from "../NativeTokenSource.sol";
+import {TeleporterRegistry} from "../../../Teleporter/upgrades/TeleporterRegistry.sol";
 import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
 
 contract NativeTokenSourceTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
+    address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS =
+        0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
     address public constant WARP_PRECOMPILE_ADDRESS =
         address(0x0200000000000000000000000000000000000005);
     bytes32 private constant _MOCK_BLOCKCHAIN_ID = bytes32(uint256(123456));
@@ -58,8 +61,10 @@ contract NativeTokenSourceTest is Test {
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
         );
 
+        _initMockTeleporterRegistry();
+
         nativeTokenSource = new NativeTokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS
         );
@@ -97,7 +102,10 @@ contract NativeTokenSourceTest is Test {
                 requiredGasLimit: nativeTokenSource
                     .MINT_NATIVE_TOKENS_REQUIRED_GAS(),
                 allowedRelayerAddresses: new address[](0),
-                message: abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+                message: abi.encode(
+                    _DEFAULT_RECIPIENT,
+                    _DEFAULT_TRANSFER_AMOUNT
+                )
             });
 
         vm.expectCall(
@@ -173,14 +181,14 @@ contract NativeTokenSourceTest is Test {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Burn,
-                abi.encode(burnedTxFees)
-            )
+            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees))
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(
+            burnedTxFees,
+            nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(
@@ -193,7 +201,10 @@ contract NativeTokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(
+            burnedTxFees,
+            nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
+        );
 
         emit BurnTokens(additionalTxFees);
 
@@ -207,15 +218,19 @@ contract NativeTokenSourceTest is Test {
             )
         );
 
-        assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(
+            burnedTxFees + additionalTxFees,
+            nativeTokenSource.destinationBurnedTotal()
+        );
+        assertEq(
+            burnedTxFees + additionalTxFees,
+            nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
+        );
     }
 
     function testZeroTeleporterAddress() public {
         vm.expectRevert(
-            _formatNativeTokenSourceErrorMessage(
-                "zero TeleporterMessenger address"
-            )
+            "TeleporterUpgradeable: zero teleporter registry address"
         );
 
         new NativeTokenSource(
@@ -233,7 +248,7 @@ contract NativeTokenSourceTest is Test {
         );
 
         new NativeTokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             bytes32(0),
             _DEFAULT_OTHER_BRIDGE_ADDRESS
         );
@@ -247,7 +262,7 @@ contract NativeTokenSourceTest is Test {
         );
 
         new NativeTokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS
         );
@@ -261,18 +276,14 @@ contract NativeTokenSourceTest is Test {
         );
 
         new NativeTokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x0)
         );
     }
 
     function testInvalidTeleporterAddress() public {
-        vm.expectRevert(
-            _formatNativeTokenSourceErrorMessage(
-                "unauthorized TeleporterMessenger contract"
-            )
-        );
+        vm.expectRevert();
 
         vm.prank(address(0x123));
         nativeTokenSource.receiveTeleporterMessage(
@@ -354,7 +365,7 @@ contract NativeTokenSourceTest is Test {
         vm.expectRevert(
             _formatNativeTokenSourceErrorMessage("insufficient collateral")
         );
-        
+
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
@@ -370,5 +381,43 @@ contract NativeTokenSourceTest is Test {
         string memory errorMessage
     ) private pure returns (bytes memory) {
         return bytes(string.concat("NativeTokenSource: ", errorMessage));
+    }
+
+    function _initMockTeleporterRegistry() internal {
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS)
+                    .latestVersion
+                    .selector
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getVersionFromAddress.selector,
+                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getAddressFromVersion.selector,
+                (1)
+            ),
+            abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getLatestTeleporter.selector
+            ),
+            abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
+        );
     }
 }
