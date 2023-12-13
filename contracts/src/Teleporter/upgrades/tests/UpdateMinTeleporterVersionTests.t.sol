@@ -136,7 +136,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         );
     }
 
-    function testUpdateWithGreatThanLatestVersion() public {
+    function testUpdateWithGreaterThanLatestVersion() public {
         // Get current latest version and minimum Teleporter version
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint256 minTeleporterVersion = app.getMinTeleporterVersion();
