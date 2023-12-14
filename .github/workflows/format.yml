@@ -1,4 +1,4 @@
-name: ABI Go Bindings Checker
+name: Solidity Format Check
 
 on:
   push:
