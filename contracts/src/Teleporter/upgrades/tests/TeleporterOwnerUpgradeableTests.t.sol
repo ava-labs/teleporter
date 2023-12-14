@@ -9,9 +9,9 @@ import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
-    constructor(
-        address teleporterRegistryAddress
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {}
+    constructor(address teleporterRegistryAddress)
+        TeleporterOwnerUpgradeable(teleporterRegistryAddress)
+    {}
 
     function checkTeleporterUpgradeAccess() external view {
         _checkTeleporterUpgradeAccess();
@@ -26,8 +26,7 @@ contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
 
 contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
     ExampleOwnerUpgradeableApp public app;
-    address public constant MOCK_INVALID_OWNER_ADDRESS =
-        0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    address public constant MOCK_INVALID_OWNER_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
 
     function setUp() public virtual override {
         TeleporterUpgradeableTest.setUp();
@@ -49,10 +48,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         // Check that call to update minimum Teleporter version succeeds for owners
         vm.prank(address(this));
         vm.expectEmit(true, true, true, true, address(app));
-        emit MinTeleporterVersionUpdated(
-            minTeleporterVersion,
-            minTeleporterVersion + 1
-        );
+        emit MinTeleporterVersionUpdated(minTeleporterVersion, minTeleporterVersion + 1);
         app.updateMinTeleporterVersion(minTeleporterVersion + 1);
 
         assertEq(app.getMinTeleporterVersion(), minTeleporterVersion + 1);
@@ -80,10 +76,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         app.transferOwnership(newOwner);
         vm.prank(newOwner);
         vm.expectEmit(true, true, true, true, address(app));
-        emit MinTeleporterVersionUpdated(
-            minTeleporterVersion,
-            minTeleporterVersion + 1
-        );
+        emit MinTeleporterVersionUpdated(minTeleporterVersion, minTeleporterVersion + 1);
         app.updateMinTeleporterVersion(minTeleporterVersion + 1);
 
         // Check that call with old owner reverts

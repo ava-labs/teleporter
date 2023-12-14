@@ -1,0 +1,26 @@
+name: ABI Go Bindings Checker
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  solidity_format_check:
+    name: Check Solidity Formatting
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Teleporter repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+
+      - name: Check Solidity Formatting
+        run: ./scripts/format_solidity.sh -c

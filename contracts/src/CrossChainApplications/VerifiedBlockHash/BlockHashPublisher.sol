@@ -5,7 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {
+    TeleporterMessageInput, TeleporterFeeInfo
+} from "../../Teleporter/ITeleporterMessenger.sol";
 import {TeleporterRegistry} from "../../Teleporter/upgrades/TeleporterRegistry.sol";
 
 /**
@@ -52,25 +54,16 @@ contract BlockHashPublisher {
         // The originBlockchainID and originSenderAddress arguments of the target function are provided by Warp/Teleporter.
         bytes memory messageData = abi.encode(blockHeight, blockHash);
 
-        emit PublishBlockHash(
-            destinationBlockchainID,
-            destinationAddress,
-            blockHeight,
-            blockHash
+        emit PublishBlockHash(destinationBlockchainID, destinationAddress, blockHeight, blockHash);
+        return teleporterRegistry.getLatestTeleporter().sendCrossChainMessage(
+            TeleporterMessageInput({
+                destinationBlockchainID: destinationBlockchainID,
+                destinationAddress: destinationAddress,
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}),
+                requiredGasLimit: RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT,
+                allowedRelayerAddresses: new address[](0),
+                message: messageData
+            })
         );
-        return
-            teleporterRegistry.getLatestTeleporter().sendCrossChainMessage(
-                TeleporterMessageInput({
-                    destinationBlockchainID: destinationBlockchainID,
-                    destinationAddress: destinationAddress,
-                    feeInfo: TeleporterFeeInfo({
-                        feeTokenAddress: address(0),
-                        amount: 0
-                    }),
-                    requiredGasLimit: RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT,
-                    allowedRelayerAddresses: new address[](0),
-                    message: messageData
-                })
-            );
     }
 }

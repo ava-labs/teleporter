@@ -2,7 +2,27 @@
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
 
-set -ex
+set -e
+
+CHECK=
+HELP=
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -c | --check) CHECK=true ;;
+        -h | --help) HELP=true ;;
+    esac
+    shift
+done
+
+if [ "$HELP" = true ]; then
+    echo "Usage: ./scripts/lint.sh [OPTIONS]"
+    echo "Format Solidity contracts."
+    echo ""
+    echo "Options:"
+    echo "  -c, --check                       Check for proper linted files. Exits with code 1 if not."
+    echo "  -h, --help                        Print this help message"
+    exit 0
+fi
 
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -14,6 +34,10 @@ if ! command -v forge &> /dev/null; then
     $TELEPORTER_PATH/scripts/install_foundry.sh
 fi
 
-forge fmt $TELEPORTER_PATH/contracts/src/**
+if [ "$CHECK" = true ] ; then
+    forge fmt --check --root $TELEPORTER_PATH/contracts $TELEPORTER_PATH/contracts/src/**
+else
+    forge fmt --root $TELEPORTER_PATH/contracts $TELEPORTER_PATH/contracts/src/**
+fi
 
 exit 0

@@ -29,8 +29,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * @dev Emitted when `minTeleporterVersion` is updated.
      */
     event MinTeleporterVersionUpdated(
-        uint256 indexed oldMinTeleporterVersion,
-        uint256 indexed newMinTeleporterVersion
+        uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion
     );
 
     /**
@@ -60,16 +59,11 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     ) external {
         // Checks that `msg.sender` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
         require(
-            teleporterRegistry.getVersionFromAddress(msg.sender) >=
-                _minTeleporterVersion,
+            teleporterRegistry.getVersionFromAddress(msg.sender) >= _minTeleporterVersion,
             "TeleporterUpgradeable: invalid Teleporter sender"
         );
 
-        _receiveTeleporterMessage(
-            originBlockchainID,
-            originSenderAddress,
-            message
-        );
+        _receiveTeleporterMessage(originBlockchainID, originSenderAddress, message);
     }
 
     /**
@@ -106,8 +100,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
         uint256 oldMinTeleporterVersion = _minTeleporterVersion;
 
         require(
-            version <= latestTeleporterVersion,
-            "TeleporterUpgradeable: invalid Teleporter version"
+            version <= latestTeleporterVersion, "TeleporterUpgradeable: invalid Teleporter version"
         );
         require(
             version > oldMinTeleporterVersion,

@@ -25,10 +25,9 @@ contract CheckIsAllowedRelayerTest is TeleporterMessenger, Test {
         relayerAddresses[2] = 0xfFfFfFFffFB57Dd9A4ddcD02f88A98D0Eb6c2598;
         address[] memory allowedRelayers = new address[](0);
 
-        for (uint256 i = 0; i < relayerAddresses.length; i++)
-            assertTrue(
-                _checkIsAllowedRelayer(relayerAddresses[i], allowedRelayers)
-            );
+        for (uint256 i = 0; i < relayerAddresses.length; i++) {
+            assertTrue(_checkIsAllowedRelayer(relayerAddresses[i], allowedRelayers));
+        }
     }
 
     function testUnauthorizedRelayer() public {
