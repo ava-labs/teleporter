@@ -15,7 +15,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$HELP" = true ]; then
-    echo "Usage: ./scripts/lint.sh [OPTIONS]"
+    echo "Usage: ./scripts/format_solidity.sh [OPTIONS]"
     echo "Format Solidity contracts."
     echo ""
     echo "Options:"
