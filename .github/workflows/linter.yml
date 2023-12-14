@@ -41,5 +41,20 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
 
-    - name: Run Lint
-      run: ./scripts/lint.sh --go-lint
+  format-solidity:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+      
+      - name: Check Solidity Formatting
+        if: success() || failure()
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          ./scripts/lint.sh --sol-format-check

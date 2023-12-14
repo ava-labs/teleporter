@@ -9,7 +9,7 @@ on:
       - "*"
 
 jobs:
-  solidity-tests:
+  solidity-unit-tests:
     runs-on: ubuntu-20.04
     timeout-minutes: 10
     steps:
@@ -22,17 +22,10 @@ jobs:
         run: ./scripts/install_foundry.sh
 
       - name: Run unit tests
-        id: sol_unit_tests
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           cd contracts/
           forge test -vvv
-      
-      - name: Check Solidity Formatting
-        if: success() || failure()
-        run: |
-          export PATH=$PATH:$HOME/.foundry/bin
-          ./scripts/lint.sh --sol-format-check
 
   go-unit-tests:
     runs-on: ubuntu-20.04
