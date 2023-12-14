@@ -196,8 +196,7 @@ contract ERC20Bridge is
             destinationBridgeAddress != address(0),
             "ERC20Bridge: zero destination bridge address"
         );
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
         // For non-zero fee amounts, first transfer the fee to this contract, and then
         // allow the Teleporter contract to spend it.
@@ -567,8 +566,7 @@ contract ERC20Bridge is
             destinationBlockchainID != currentBlockchainID,
             "ERC20Bridge: cannot bridge to same chain"
         );
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
         // Allow the Teleporter Messenger to spend the fee amount.
         if (feeAmount > 0) {
@@ -625,8 +623,7 @@ contract ERC20Bridge is
     function _processWrappedTokenTransfer(
         WrappedTokenTransferInfo memory wrappedTransferInfo
     ) private {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
         // If necessary, transfer the primary fee amount to this contract and approve the
         // Teleporter Messenger to spend it when the first message back to the native subnet
