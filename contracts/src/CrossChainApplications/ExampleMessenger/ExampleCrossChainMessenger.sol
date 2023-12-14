@@ -66,8 +66,7 @@ contract ExampleCrossChainMessenger is
         uint256 requiredGasLimit,
         string calldata message
     ) external nonReentrant returns (uint256) {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
         // For non-zero fee amounts, first transfer the fee to this contract, and then
         // allow the Teleporter contract to spend it.
         uint256 adjustedFeeAmount;
