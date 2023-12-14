@@ -29,9 +29,11 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
         bytes32 blockHash
     );
 
-    constructor(address teleporterRegistryAddress, bytes32 publisherBlockchainID, address publisherContractAddress)
-        TeleporterOwnerUpgradeable(teleporterRegistryAddress)
-    {
+    constructor(
+        address teleporterRegistryAddress,
+        bytes32 publisherBlockchainID,
+        address publisherContractAddress
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
         sourceBlockchainID = publisherBlockchainID;
         sourcePublisherContractAddress = publisherContractAddress;
     }
@@ -54,13 +56,17 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
      * - Sender must be the Teleporter contract.
      * - Origin sender address must be the source publisher contract address that initiated the BlockHashReceiver.
      */
-    function _receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes memory message)
-        internal
-        override
-    {
-        require(originBlockchainID == sourceBlockchainID, "BlockHashReceiver: invalid source chain ID");
+    function _receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes memory message
+    ) internal override {
         require(
-            originSenderAddress == sourcePublisherContractAddress, "BlockHashReceiver: invalid source chain publisher"
+            originBlockchainID == sourceBlockchainID, "BlockHashReceiver: invalid source chain ID"
+        );
+        require(
+            originSenderAddress == sourcePublisherContractAddress,
+            "BlockHashReceiver: invalid source chain publisher"
         );
 
         (uint256 blockHeight, bytes32 blockHash) = abi.decode(message, (uint256, bytes32));

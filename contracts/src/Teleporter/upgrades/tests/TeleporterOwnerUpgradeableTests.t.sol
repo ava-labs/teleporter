@@ -9,7 +9,9 @@ import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
-    constructor(address teleporterRegistryAddress) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {}
+    constructor(address teleporterRegistryAddress)
+        TeleporterOwnerUpgradeable(teleporterRegistryAddress)
+    {}
 
     function checkTeleporterUpgradeAccess() external view {
         _checkTeleporterUpgradeAccess();

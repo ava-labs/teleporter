@@ -10,7 +10,9 @@ import {TeleporterRegistryTest, TeleporterMessenger} from "./TeleporterRegistryT
 import {ITeleporterMessenger} from "../../ITeleporterMessenger.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
-    constructor(address teleporterRegistryAddress) TeleporterUpgradeable(teleporterRegistryAddress) {}
+    constructor(address teleporterRegistryAddress)
+        TeleporterUpgradeable(teleporterRegistryAddress)
+    {}
 
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
@@ -37,7 +39,9 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
 
     address public constant DEFAULT_ORIGIN_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
 
-    event MinTeleporterVersionUpdated(uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion);
+    event MinTeleporterVersionUpdated(
+        uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion
+    );
 
     function setUp() public virtual override {
         TeleporterRegistryTest.setUp();
@@ -46,7 +50,9 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function testInvalidRegistryAddress() public {
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("zero teleporter registry address"));
+        vm.expectRevert(
+            _formatTeleporterUpgradeableErrorMessage("zero teleporter registry address")
+        );
         new ExampleUpgradeableApp(address(0));
     }
 
@@ -96,7 +102,9 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         // Check setting for a version <= min version fails
         uint256 minVersion = app.getMinTeleporterVersion();
         assertEq(minVersion, teleporterRegistry.latestVersion());
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("not greater than current minimum version"));
+        vm.expectRevert(
+            _formatTeleporterUpgradeableErrorMessage("not greater than current minimum version")
+        );
         app.setMinTeleporterVersion(minVersion);
 
         // Add a new protocol version to the registry

@@ -6,7 +6,9 @@
 pragma solidity 0.8.18;
 
 import {
-    ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
 } from "../../Teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
@@ -43,9 +45,13 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
     /**
      * @dev Emitted when a new message is received from a given chain ID.
      */
-    event ReceiveMessage(bytes32 indexed originBlockchainID, address indexed originSenderAddress, string message);
+    event ReceiveMessage(
+        bytes32 indexed originBlockchainID, address indexed originSenderAddress, string message
+    );
 
-    constructor(address teleporterRegistryAddress) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {}
+    constructor(address teleporterRegistryAddress)
+        TeleporterOwnerUpgradeable(teleporterRegistryAddress)
+    {}
 
     /**
      * @dev Sends a message to another chain.
@@ -64,8 +70,11 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
         // allow the Teleporter contract to spend it.
         uint256 adjustedFeeAmount;
         if (feeAmount > 0) {
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
-            IERC20(feeTokenAddress).safeIncreaseAllowance(address(teleporterMessenger), adjustedFeeAmount);
+            adjustedFeeAmount =
+                SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+            IERC20(feeTokenAddress).safeIncreaseAllowance(
+                address(teleporterMessenger), adjustedFeeAmount
+            );
         }
 
         emit SendMessage({
@@ -92,7 +101,11 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
      * @dev Returns the current message from another chain.
      * @return The sender of the message, and the message itself.
      */
-    function getCurrentMessage(bytes32 originBlockchainID) external view returns (address, string memory) {
+    function getCurrentMessage(bytes32 originBlockchainID)
+        external
+        view
+        returns (address, string memory)
+    {
         Message memory messageInfo = _messages[originBlockchainID];
         return (messageInfo.sender, messageInfo.message);
     }
@@ -102,10 +115,11 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
      *
      * Receives a message from another chain.
      */
-    function _receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes memory message)
-        internal
-        override
-    {
+    function _receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes memory message
+    ) internal override {
         // Store the message.
         string memory messageString = abi.decode(message, (string));
         _messages[originBlockchainID] = Message(originSenderAddress, messageString);

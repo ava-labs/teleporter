@@ -5,7 +5,11 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessage,
+    TeleporterMessageReceipt
+} from "./TeleporterMessengerTest.t.sol";
 
 contract GetMessageHashTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -32,7 +36,8 @@ contract GetMessageHashTest is TeleporterMessengerTest {
         bytes32 expectedMessageHash = keccak256(expectedMessageBytes);
 
         // Get its stored hash
-        bytes32 actualMessageHash = teleporterMessenger.getMessageHash(DEFAULT_DESTINATION_CHAIN_ID, messageID);
+        bytes32 actualMessageHash =
+            teleporterMessenger.getMessageHash(DEFAULT_DESTINATION_CHAIN_ID, messageID);
         assertEq(actualMessageHash, expectedMessageHash);
     }
 
@@ -47,11 +52,15 @@ contract GetMessageHashTest is TeleporterMessengerTest {
         // Now mock receiving a message back from that subnet with a receipt of the above message.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
-        receipts[0] =
-            TeleporterMessageReceipt({receivedMessageID: messageID, relayerRewardAddress: relayerRewardAddress});
+        receipts[0] = TeleporterMessageReceipt({
+            receivedMessageID: messageID,
+            relayerRewardAddress: relayerRewardAddress
+        });
         _receiveTestMessage(DEFAULT_DESTINATION_CHAIN_ID, messageID, relayerRewardAddress, receipts);
 
         // Now the message hash should be cleared.
-        assertEq(teleporterMessenger.getMessageHash(DEFAULT_DESTINATION_CHAIN_ID, messageID), bytes32(0));
+        assertEq(
+            teleporterMessenger.getMessageHash(DEFAULT_DESTINATION_CHAIN_ID, messageID), bytes32(0)
+        );
     }
 }

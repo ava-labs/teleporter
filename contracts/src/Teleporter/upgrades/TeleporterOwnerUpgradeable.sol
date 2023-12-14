@@ -13,7 +13,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * only owners of the contract to update the minimum Teleporter version.
  */
 abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, Ownable {
-    constructor(address teleporterRegistryAddress) TeleporterUpgradeable(teleporterRegistryAddress) {}
+    constructor(address teleporterRegistryAddress)
+        TeleporterUpgradeable(teleporterRegistryAddress)
+    {}
 
     /**
      * @dev See {TeleporterUpgradeable-_checkTeleporterUpgradeAccess}

@@ -34,7 +34,10 @@ library ReceiptQueue {
     /**
      * @dev Adds a receipt to the queue.
      */
-    function enqueue(TeleporterMessageReceiptQueue storage queue, TeleporterMessageReceipt memory receipt) internal {
+    function enqueue(
+        TeleporterMessageReceiptQueue storage queue,
+        TeleporterMessageReceipt memory receipt
+    ) internal {
         queue.data[queue.last++] = receipt;
     }
 
@@ -84,11 +87,10 @@ library ReceiptQueue {
     /**
      * @dev Returns the receipt at the given index in the queue.
      */
-    function getReceiptAtIndex(TeleporterMessageReceiptQueue storage queue, uint256 index)
-        internal
-        view
-        returns (TeleporterMessageReceipt memory)
-    {
+    function getReceiptAtIndex(
+        TeleporterMessageReceiptQueue storage queue,
+        uint256 index
+    ) internal view returns (TeleporterMessageReceipt memory) {
         require(index < size(queue), "ReceiptQueue: index out of bounds");
         return queue.data[queue.first + index];
     }

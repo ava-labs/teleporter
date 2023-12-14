@@ -29,9 +29,11 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         teleporterContract = teleporterContractAddress;
     }
 
-    function receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes calldata message)
-        external
-    {
+    function receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes calldata message
+    ) external {
         require(msg.sender == teleporterContract, "unauthorized");
         // Decode the payload to recover the action and corresponding function parameters
         (SampleMessageReceiverAction action, bytes memory actionData) =
@@ -62,9 +64,11 @@ contract SampleMessageReceiver is ITeleporterReceiver {
     }
 
     // Tries to recursively call the teleporterContract to receive a message, which should always fail.
-    function _receiveMessageRecursive(bytes32 originBlockchainID, address originSenderAddress, string memory message)
-        internal
-    {
+    function _receiveMessageRecursive(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        string memory message
+    ) internal {
         require(msg.sender == teleporterContract, "unauthorized");
         ITeleporterMessenger messenger = ITeleporterMessenger(teleporterContract);
         messenger.receiveCrossChainMessage(0, address(42));
@@ -124,7 +128,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         assertEq(destinationContract.latestMessageSenderSubnetID(), DEFAULT_ORIGIN_CHAIN_ID);
         assertEq(destinationContract.latestMessageSenderAddress(), address(this));
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID),
+            teleporterMessenger.getRelayerRewardAddress(
+                DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID
+            ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
     }
@@ -178,7 +184,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // is considered a failed message execution, but the message itself is
         // still successfully delivered.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive);
+        emit MessageExecutionFailed(
+            DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive
+        );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
@@ -194,7 +202,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         assertEq(destinationContract.latestMessageSenderSubnetID(), bytes32(0));
         assertEq(destinationContract.latestMessageSenderAddress(), address(0));
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID),
+            teleporterMessenger.getRelayerRewardAddress(
+                DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID
+            ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
         vm.expectRevert(_formatTeleporterErrorMessage("retry execution failed"));
@@ -222,7 +232,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
 
         // Receive the message.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive);
+        emit MessageExecutionFailed(
+            DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive
+        );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
@@ -238,7 +250,9 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         assertEq(destinationContract.latestMessageSenderSubnetID(), bytes32(0));
         assertEq(destinationContract.latestMessageSenderAddress(), address(0));
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID),
+            teleporterMessenger.getRelayerRewardAddress(
+                DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID
+            ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
         vm.expectRevert(_formatTeleporterErrorMessage("retry execution failed"));

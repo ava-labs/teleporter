@@ -26,7 +26,8 @@ contract TeleporterRegistry {
     // cannot possibly be the source address of any other Warp message emitted by the VM.
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
 
-    IWarpMessenger public constant WARP_MESSENGER = IWarpMessenger(0x0200000000000000000000000000000000000005);
+    IWarpMessenger public constant WARP_MESSENGER =
+        IWarpMessenger(0x0200000000000000000000000000000000000005);
     bytes32 public immutable blockchainID;
 
     // The maximum version increment allowed when adding a new protocol version.
@@ -79,9 +80,12 @@ contract TeleporterRegistry {
      */
     function addProtocolVersion(uint32 messageIndex) external {
         // Get the verified Warp message, and check that it was sent to this registry via a Warp off-chain message.
-        (WarpMessage memory message, bool success) = WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
+        (WarpMessage memory message, bool success) =
+            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         require(success, "TeleporterRegistry: invalid warp message");
-        require(message.sourceChainID == blockchainID, "TeleporterRegistry: invalid source chain ID");
+        require(
+            message.sourceChainID == blockchainID, "TeleporterRegistry: invalid source chain ID"
+        );
         // Check that the message is sent through a Warp off-chain message.
         require(
             message.originSenderAddress == VALIDATORS_SOURCE_ADDRESS,
@@ -92,7 +96,9 @@ contract TeleporterRegistry {
             abi.decode(message.payload, (ProtocolRegistryEntry, address));
 
         // Check that the message is sent to the registry.
-        require(destinationAddress == address(this), "TeleporterRegistry: invalid destination address");
+        require(
+            destinationAddress == address(this), "TeleporterRegistry: invalid destination address"
+        );
 
         _addToRegistry(entry);
     }
@@ -110,7 +116,11 @@ contract TeleporterRegistry {
      *
      * - `version` must be a valid registered version.
      */
-    function getTeleporterFromVersion(uint256 version) external view returns (ITeleporterMessenger) {
+    function getTeleporterFromVersion(uint256 version)
+        external
+        view
+        returns (ITeleporterMessenger)
+    {
         return ITeleporterMessenger(getAddressFromVersion(version));
     }
 
@@ -156,10 +166,14 @@ contract TeleporterRegistry {
     function _addToRegistry(ProtocolRegistryEntry memory entry) private {
         require(entry.version != 0, "TeleporterRegistry: zero version");
         // Check that the version has not previously been registered.
-        require(_versionToAddress[entry.version] == address(0), "TeleporterRegistry: version already exists");
+        require(
+            _versionToAddress[entry.version] == address(0),
+            "TeleporterRegistry: version already exists"
+        );
         require(entry.protocolAddress != address(0), "TeleporterRegistry: zero protocol address");
         require(
-            entry.version <= latestVersion + MAX_VERSION_INCREMENT, "TeleporterRegistry: version increment too high"
+            entry.version <= latestVersion + MAX_VERSION_INCREMENT,
+            "TeleporterRegistry: version increment too high"
         );
 
         _versionToAddress[entry.version] = entry.protocolAddress;

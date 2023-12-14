@@ -30,7 +30,10 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         uint256 totalFeeAmount = originalFeeAmount + additionalFeeAmount;
         vm.expectCall(
             address(_mockFeeAsset),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(teleporterMessenger), additionalFeeAmount))
+            abi.encodeCall(
+                IERC20.transferFrom,
+                (address(this), address(teleporterMessenger), additionalFeeAmount)
+            )
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit AddFeeAmount(
@@ -67,8 +70,10 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Now mock receiving a message back from that subnet with a receipt of the above message.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
-        receipts[0] =
-            TeleporterMessageReceipt({receivedMessageID: messageID, relayerRewardAddress: relayerRewardAddress});
+        receipts[0] = TeleporterMessageReceipt({
+            receivedMessageID: messageID,
+            relayerRewardAddress: relayerRewardAddress
+        });
 
         _receiveTestMessage(DEFAULT_DESTINATION_CHAIN_ID, messageID, relayerRewardAddress, receipts);
 
@@ -116,7 +121,9 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         uint256 additionalFeeAmount = 131313;
         address invalidFeeAsset = address(0);
         vm.expectRevert(_formatTeleporterErrorMessage("zero fee asset contract address"));
-        teleporterMessenger.addFeeAmount(DEFAULT_DESTINATION_CHAIN_ID, messageID, invalidFeeAsset, additionalFeeAmount);
+        teleporterMessenger.addFeeAmount(
+            DEFAULT_DESTINATION_CHAIN_ID, messageID, invalidFeeAsset, additionalFeeAmount
+        );
     }
 
     function testInsufficientBalance() public {
@@ -128,11 +135,17 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         uint256 additionalFeeAmount = 131313;
         vm.expectCall(
             address(_mockFeeAsset),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(teleporterMessenger), additionalFeeAmount))
+            abi.encodeCall(
+                IERC20.transferFrom,
+                (address(this), address(teleporterMessenger), additionalFeeAmount)
+            )
         );
         vm.mockCall(
             address(_mockFeeAsset),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(teleporterMessenger), additionalFeeAmount)),
+            abi.encodeCall(
+                IERC20.transferFrom,
+                (address(this), address(teleporterMessenger), additionalFeeAmount)
+            ),
             abi.encode(false)
         );
         vm.expectRevert("SafeERC20: ERC20 operation did not succeed");

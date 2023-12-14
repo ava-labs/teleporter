@@ -5,7 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {
+    TeleporterMessageInput, TeleporterFeeInfo
+} from "../../Teleporter/ITeleporterMessenger.sol";
 import {TeleporterRegistry} from "../../Teleporter/upgrades/TeleporterRegistry.sol";
 
 /**
@@ -27,7 +29,10 @@ contract BlockHashPublisher {
     );
 
     constructor(address teleporterRegistryAddress) {
-        require(teleporterRegistryAddress != address(0), "BlockHashPublisher: zero teleporter registry address");
+        require(
+            teleporterRegistryAddress != address(0),
+            "BlockHashPublisher: zero teleporter registry address"
+        );
 
         teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
     }
@@ -36,10 +41,10 @@ contract BlockHashPublisher {
      * @dev Publishes the latest block hash to another chain.
      * @return The message of the of the message sent to publish the hash.
      */
-    function publishLatestBlockHash(bytes32 destinationBlockchainID, address destinationAddress)
-        external
-        returns (uint256)
-    {
+    function publishLatestBlockHash(
+        bytes32 destinationBlockchainID,
+        address destinationAddress
+    ) external returns (uint256) {
         // Get the latest block info. Note it must the previous block
         // because the current block hash is not available during execution.
         uint256 blockHeight = block.number - 1;

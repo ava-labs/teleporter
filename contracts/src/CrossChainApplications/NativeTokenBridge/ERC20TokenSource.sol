@@ -10,14 +10,21 @@ import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.so
 import {IERC20TokenSource} from "./IERC20TokenSource.sol";
 import {ITokenSource} from "./ITokenSource.sol";
 import {
-    ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
 } from "../../Teleporter/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract ERC20TokenSource is ITeleporterReceiver, IERC20TokenSource, ITokenSource, ReentrancyGuard {
+contract ERC20TokenSource is
+    ITeleporterReceiver,
+    IERC20TokenSource,
+    ITokenSource,
+    ReentrancyGuard
+{
     // The address where the burned transaction fees are credited.
     // Defined as BLACKHOLE_ADDRESS at
     // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
@@ -39,20 +46,32 @@ contract ERC20TokenSource is ITeleporterReceiver, IERC20TokenSource, ITokenSourc
         address nativeTokenDestinationAddress_,
         address erc20ContractAddress_
     ) {
-        require(teleporterMessengerAddress != address(0), "ERC20TokenSource: zero TeleporterMessenger address");
+        require(
+            teleporterMessengerAddress != address(0),
+            "ERC20TokenSource: zero TeleporterMessenger address"
+        );
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
-        require(destinationBlockchainID_ != bytes32(0), "ERC20TokenSource: zero destination blockchain ID");
         require(
-            destinationBlockchainID_ != IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID(),
+            destinationBlockchainID_ != bytes32(0),
+            "ERC20TokenSource: zero destination blockchain ID"
+        );
+        require(
+            destinationBlockchainID_
+                != IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID(),
             "ERC20TokenSource: cannot bridge with same blockchain"
         );
         destinationBlockchainID = destinationBlockchainID_;
 
-        require(nativeTokenDestinationAddress_ != address(0), "ERC20TokenSource: zero destination contract address");
+        require(
+            nativeTokenDestinationAddress_ != address(0),
+            "ERC20TokenSource: zero destination contract address"
+        );
         nativeTokenDestinationAddress = nativeTokenDestinationAddress_;
 
-        require(erc20ContractAddress_ != address(0), "ERC20TokenSource: zero ERC20 contract address");
+        require(
+            erc20ContractAddress_ != address(0), "ERC20TokenSource: zero ERC20 contract address"
+        );
         erc20ContractAddress = erc20ContractAddress_;
     }
 
@@ -61,20 +80,27 @@ contract ERC20TokenSource is ITeleporterReceiver, IERC20TokenSource, ITokenSourc
      *
      * Receives a Teleporter message and routes to the appropriate internal function call.
      */
-    function receiveTeleporterMessage(bytes32 senderBlockchainID, address senderAddress, bytes calldata message)
-        external
-        nonReentrant
-    {
+    function receiveTeleporterMessage(
+        bytes32 senderBlockchainID,
+        address senderAddress,
+        bytes calldata message
+    ) external nonReentrant {
         // Only allow the Teleporter messenger to deliver messages.
         require(
-            msg.sender == address(teleporterMessenger), "ERC20TokenSource: unauthorized TeleporterMessenger contract"
+            msg.sender == address(teleporterMessenger),
+            "ERC20TokenSource: unauthorized TeleporterMessenger contract"
         );
 
         // Only allow messages from the destination chain.
-        require(senderBlockchainID == destinationBlockchainID, "ERC20TokenSource: invalid destination chain");
+        require(
+            senderBlockchainID == destinationBlockchainID,
+            "ERC20TokenSource: invalid destination chain"
+        );
 
         // Only allow the partner contract to send messages.
-        require(senderAddress == nativeTokenDestinationAddress, "ERC20TokenSource: unauthorized sender");
+        require(
+            senderAddress == nativeTokenDestinationAddress, "ERC20TokenSource: unauthorized sender"
+        );
 
         // Decode the payload to recover the action and corresponding function parameters
         (SourceAction action, bytes memory actionData) = abi.decode(message, (SourceAction, bytes));
@@ -106,14 +132,17 @@ contract ERC20TokenSource is ITeleporterReceiver, IERC20TokenSource, ITokenSourc
         // Lock tokens in this contract. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
-        uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(IERC20(erc20ContractAddress), totalAmount);
+        uint256 adjustedAmount =
+            SafeERC20TransferFrom.safeTransferFrom(IERC20(erc20ContractAddress), totalAmount);
 
         // Ensure that the adjusted amount is greater than the fee to be paid.
         require(adjustedAmount > feeAmount, "ERC20TokenSource: insufficient adjusted amount");
 
         // Allow the Teleporter messenger to spend the fee amount.
         if (feeAmount > 0) {
-            SafeERC20.safeIncreaseAllowance(IERC20(erc20ContractAddress), address(teleporterMessenger), feeAmount);
+            SafeERC20.safeIncreaseAllowance(
+                IERC20(erc20ContractAddress), address(teleporterMessenger), feeAmount
+            );
         }
 
         uint256 transferAmount = adjustedAmount - feeAmount;

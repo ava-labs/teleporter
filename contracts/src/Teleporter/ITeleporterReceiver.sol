@@ -18,6 +18,9 @@ interface ITeleporterReceiver {
      * @param originSenderAddress is provided by the TeleporterMessenger contract.
      * @param message is the TeleporterMessage payload set by the sender.
      */
-    function receiveTeleporterMessage(bytes32 originBlockchainID, address originSenderAddress, bytes calldata message)
-        external;
+    function receiveTeleporterMessage(
+        bytes32 originBlockchainID,
+        address originSenderAddress,
+        bytes calldata message
+    ) external;
 }

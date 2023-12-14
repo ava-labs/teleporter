@@ -20,13 +20,17 @@ import {TeleporterRegistry} from "../../../Teleporter/upgrades/TeleporterRegistr
 import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
 
 contract ERC20BridgeTest is Test {
-    address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS = 0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
-    address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS = 0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
-    address public constant WARP_PRECOMPILE_ADDRESS = address(0x0200000000000000000000000000000000000005);
+    address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
+        0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
+    address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS =
+        0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
+    address public constant WARP_PRECOMPILE_ADDRESS =
+        address(0x0200000000000000000000000000000000000005);
     bytes32 private constant _MOCK_BLOCKCHAIN_ID = bytes32(uint256(123456));
     bytes32 private constant _DEFAULT_OTHER_CHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-    address private constant _DEFAULT_OTHER_BRIDGE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    address private constant _DEFAULT_OTHER_BRIDGE_ADDRESS =
+        0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     string private constant _DEFAULT_TOKEN_NAME = "Test Token";
     string private constant _DEFAULT_SYMBOL = "TSTTK";
     uint8 private constant _DEFAULT_DECIMALS = 18;
@@ -60,7 +64,9 @@ contract ERC20BridgeTest is Test {
 
     event MintBridgeTokens(address indexed contractAddress, address recipient, uint256 amount);
 
-    event MinTeleporterVersionUpdated(uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion);
+    event MinTeleporterVersionUpdated(
+        uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion
+    );
 
     function setUp() public virtual {
         vm.mockCall(
@@ -68,13 +74,17 @@ contract ERC20BridgeTest is Test {
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
             abi.encode(_MOCK_BLOCKCHAIN_ID)
         );
-        vm.expectCall(WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector));
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
+        );
 
         _initMockTeleporterRegistry();
 
         vm.expectCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector)
+            abi.encodeWithSelector(
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
+            )
         );
 
         erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS);
@@ -96,7 +106,9 @@ contract ERC20BridgeTest is Test {
 
     function testInvalidFeeAmountsNativeTransfer() public {
         _setUpMockERC20ContractValues(address(mockERC20));
-        _submitCreateBridgeToken(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20));
+        _submitCreateBridgeToken(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20)
+        );
         vm.expectRevert(_formatERC20BridgeErrorMessage("insufficient adjusted amount"));
         erc20Bridge.bridgeTokens({
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
@@ -134,7 +146,9 @@ contract ERC20BridgeTest is Test {
 
     function testNativeTokenTransferFailure() public {
         _setUpMockERC20ContractValues(address(mockERC20));
-        _submitCreateBridgeToken(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20));
+        _submitCreateBridgeToken(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20)
+        );
 
         uint256 totalAmount = 123456;
         vm.mockCall(
@@ -143,7 +157,8 @@ contract ERC20BridgeTest is Test {
             abi.encode(false)
         );
         vm.expectCall(
-            address(mockERC20), abi.encodeCall(IERC20.transferFrom, (address(this), address(erc20Bridge), totalAmount))
+            address(mockERC20),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(erc20Bridge), totalAmount))
         );
 
         vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
@@ -162,7 +177,9 @@ contract ERC20BridgeTest is Test {
         uint256 totalAmount = 131313131313;
         _setUpExpectedTransferFromCall(address(mockERC20), totalAmount);
         _setUpMockERC20ContractValues(address(mockERC20));
-        _submitCreateBridgeToken(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20));
+        _submitCreateBridgeToken(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20)
+        );
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
@@ -170,7 +187,9 @@ contract ERC20BridgeTest is Test {
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: 0}),
             requiredGasLimit: erc20Bridge.MINT_BRIDGE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: erc20Bridge.encodeMintBridgeTokensData(address(mockERC20), _DEFAULT_RECIPIENT, totalAmount)
+            message: erc20Bridge.encodeMintBridgeTokensData(
+                address(mockERC20), _DEFAULT_RECIPIENT, totalAmount
+                )
         });
 
         uint256 mockMessageID = 42;
@@ -210,11 +229,15 @@ contract ERC20BridgeTest is Test {
         uint256 feeAmount = 131313;
         _setUpExpectedTransferFromCall(address(mockERC20), totalAmount);
         _setUpMockERC20ContractValues(address(mockERC20));
-        _submitCreateBridgeToken(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20));
+        _submitCreateBridgeToken(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20)
+        );
 
         vm.mockCall(
             address(mockERC20),
-            abi.encodeCall(IERC20.allowance, (address(erc20Bridge), MOCK_TELEPORTER_MESSENGER_ADDRESS)),
+            abi.encodeCall(
+                IERC20.allowance, (address(erc20Bridge), MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
             abi.encode(0)
         );
         vm.mockCall(
@@ -223,7 +246,8 @@ contract ERC20BridgeTest is Test {
             abi.encode(false)
         );
         vm.expectCall(
-            address(mockERC20), abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, feeAmount))
+            address(mockERC20),
+            abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, feeAmount))
         );
 
         vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
@@ -245,7 +269,9 @@ contract ERC20BridgeTest is Test {
         uint256 bridgeAmount = totalAmount - feeAmount;
         _setUpExpectedTransferFromCall(address(mockERC20), totalAmount);
         _setUpMockERC20ContractValues(address(mockERC20));
-        _submitCreateBridgeToken(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20));
+        _submitCreateBridgeToken(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20)
+        );
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
@@ -253,12 +279,16 @@ contract ERC20BridgeTest is Test {
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: feeAmount}),
             requiredGasLimit: erc20Bridge.MINT_BRIDGE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: erc20Bridge.encodeMintBridgeTokensData(address(mockERC20), _DEFAULT_RECIPIENT, bridgeAmount)
+            message: erc20Bridge.encodeMintBridgeTokensData(
+                address(mockERC20), _DEFAULT_RECIPIENT, bridgeAmount
+                )
         });
 
         vm.mockCall(
             address(mockERC20),
-            abi.encodeCall(IERC20.allowance, (address(erc20Bridge), MOCK_TELEPORTER_MESSENGER_ADDRESS)),
+            abi.encodeCall(
+                IERC20.allowance, (address(erc20Bridge), MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
             abi.encode(0)
         );
         vm.mockCall(
@@ -267,7 +297,8 @@ contract ERC20BridgeTest is Test {
             abi.encode(true)
         );
         vm.expectCall(
-            address(mockERC20), abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, feeAmount))
+            address(mockERC20),
+            abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, feeAmount))
         );
 
         uint256 mockMessageID = 42;
@@ -315,7 +346,9 @@ contract ERC20BridgeTest is Test {
 
         _setUpExpectedTransferFromCall(address(mockERC20), totalAmount);
         _setUpMockERC20ContractValues(address(mockERC20));
-        _submitCreateBridgeToken(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20));
+        _submitCreateBridgeToken(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20)
+        );
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
@@ -323,12 +356,16 @@ contract ERC20BridgeTest is Test {
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: bridgeFeeAmount}),
             requiredGasLimit: erc20Bridge.MINT_BRIDGE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: erc20Bridge.encodeMintBridgeTokensData(address(mockERC20), _DEFAULT_RECIPIENT, expectedBridgeAmount)
+            message: erc20Bridge.encodeMintBridgeTokensData(
+                address(mockERC20), _DEFAULT_RECIPIENT, expectedBridgeAmount
+                )
         });
 
         vm.mockCall(
             address(mockERC20),
-            abi.encodeCall(IERC20.allowance, (address(erc20Bridge), MOCK_TELEPORTER_MESSENGER_ADDRESS)),
+            abi.encodeCall(
+                IERC20.allowance, (address(erc20Bridge), MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
             abi.encode(0)
         );
         vm.mockCall(
@@ -337,7 +374,8 @@ contract ERC20BridgeTest is Test {
             abi.encode(true)
         );
         vm.expectCall(
-            address(mockERC20), abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, bridgeFeeAmount))
+            address(mockERC20),
+            abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, bridgeFeeAmount))
         );
 
         uint256 mockMessageID = 42;
@@ -384,7 +422,9 @@ contract ERC20BridgeTest is Test {
 
         _setUpExpectedTransferFromCall(address(mockERC20), totalAmount);
         _setUpMockERC20ContractValues(address(mockERC20));
-        _submitCreateBridgeToken(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20));
+        _submitCreateBridgeToken(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, address(mockERC20)
+        );
 
         vm.expectRevert(_formatERC20BridgeErrorMessage("insufficient adjusted amount"));
         erc20Bridge.bridgeTokens({
@@ -410,12 +450,15 @@ contract ERC20BridgeTest is Test {
             contractNonce: 1
         });
 
-        bytes memory message = erc20Bridge.encodeMintBridgeTokensData(address(mockERC20), _DEFAULT_RECIPIENT, amount);
+        bytes memory message =
+            erc20Bridge.encodeMintBridgeTokensData(address(mockERC20), _DEFAULT_RECIPIENT, amount);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(erc20Bridge));
         emit MintBridgeTokens(bridgeTokenAddress, _DEFAULT_RECIPIENT, amount);
-        erc20Bridge.receiveTeleporterMessage(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, message);
+        erc20Bridge.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, message
+        );
 
         // Check the values and balance of the newly created ERC20.
         BridgeToken newBridgeToken = BridgeToken(bridgeTokenAddress);
@@ -444,21 +487,27 @@ contract ERC20BridgeTest is Test {
             contractNonce: 1
         });
 
-        bytes memory message1 = erc20Bridge.encodeMintBridgeTokensData(address(mockERC20), recipient1, amount1);
+        bytes memory message1 =
+            erc20Bridge.encodeMintBridgeTokensData(address(mockERC20), recipient1, amount1);
 
         // Call mintBridgeTokens the first time, which should create the new bridge token.
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(erc20Bridge));
         emit MintBridgeTokens(bridgeTokenAddress, recipient1, amount1);
-        erc20Bridge.receiveTeleporterMessage(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, message1);
+        erc20Bridge.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, message1
+        );
 
-        bytes memory message2 = erc20Bridge.encodeMintBridgeTokensData(address(mockERC20), recipient2, amount2);
+        bytes memory message2 =
+            erc20Bridge.encodeMintBridgeTokensData(address(mockERC20), recipient2, amount2);
 
         // Call mintBridgeTokens the second time, which should mint additional of the existing token.
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(erc20Bridge));
         emit MintBridgeTokens(bridgeTokenAddress, recipient2, amount2);
-        erc20Bridge.receiveTeleporterMessage(_DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, message2);
+        erc20Bridge.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID, _DEFAULT_OTHER_BRIDGE_ADDRESS, message2
+        );
 
         // Check the values and balance of the newly created ERC20.
         BridgeToken newBridgeToken = BridgeToken(bridgeTokenAddress);
@@ -481,14 +530,17 @@ contract ERC20BridgeTest is Test {
     function _initMockTeleporterRegistry() internal {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector),
+            abi.encodeWithSelector(
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
+            ),
             abi.encode(1)
         );
 
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                TeleporterRegistry.getVersionFromAddress.selector, (MOCK_TELEPORTER_MESSENGER_ADDRESS)
+                TeleporterRegistry.getVersionFromAddress.selector,
+                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
             ),
             abi.encode(1)
         );
@@ -507,7 +559,10 @@ contract ERC20BridgeTest is Test {
     }
 
     function _setUpExpectedTransferFromCall(address tokenContract, uint256 amount) private {
-        vm.expectCall(tokenContract, abi.encodeCall(IERC20.transferFrom, (address(this), address(erc20Bridge), amount)));
+        vm.expectCall(
+            tokenContract,
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(erc20Bridge), amount))
+        );
     }
 
     // Calls submitCreateBridgeToken of the test's ERC20Bridge instance to add the specified
@@ -561,13 +616,18 @@ contract ERC20BridgeTest is Test {
         uint8 nativeDecimals,
         uint8 contractNonce
     ) private returns (address) {
-        address expectedBridgeTokenAddress = _deriveExpectedContractAddress(address(erc20Bridge), contractNonce);
-        bytes memory message =
-            erc20Bridge.encodeCreateBridgeTokenData(nativeContractAddress, nativeName, nativeSymbol, nativeDecimals);
+        address expectedBridgeTokenAddress =
+            _deriveExpectedContractAddress(address(erc20Bridge), contractNonce);
+        bytes memory message = erc20Bridge.encodeCreateBridgeTokenData(
+            nativeContractAddress, nativeName, nativeSymbol, nativeDecimals
+        );
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(erc20Bridge));
         emit CreateBridgeToken(
-            nativeBlockchainID, nativeBridgeAddress, nativeContractAddress, expectedBridgeTokenAddress
+            nativeBlockchainID,
+            nativeBridgeAddress,
+            nativeContractAddress,
+            expectedBridgeTokenAddress
         );
         erc20Bridge.receiveTeleporterMessage(nativeBlockchainID, nativeBridgeAddress, message);
         return expectedBridgeTokenAddress;
@@ -579,18 +639,32 @@ contract ERC20BridgeTest is Test {
         vm.expectCall(tokenContract, abi.encodeCall(token.name, ()));
         vm.mockCall(tokenContract, abi.encodeCall(token.symbol, ()), abi.encode(_DEFAULT_SYMBOL));
         vm.expectCall(tokenContract, abi.encodeCall(token.symbol, ()));
-        vm.mockCall(tokenContract, abi.encodeCall(token.decimals, ()), abi.encode(_DEFAULT_DECIMALS));
+        vm.mockCall(
+            tokenContract, abi.encodeCall(token.decimals, ()), abi.encode(_DEFAULT_DECIMALS)
+        );
         vm.expectCall(tokenContract, abi.encodeCall(token.decimals, ()));
     }
 
-    function _deriveExpectedContractAddress(address creator, uint8 nonce) private pure returns (address) {
+    function _deriveExpectedContractAddress(
+        address creator,
+        uint8 nonce
+    ) private pure returns (address) {
         // Taken from https://ethereum.stackexchange.com/questions/760/how-is-the-address-of-an-ethereum-contract-computed
         // We must use encodePacked rather than encode so that the parameters are not padded with extra zeros.
-        return
-            address(uint160(uint256(keccak256(abi.encodePacked(bytes1(0xd6), bytes1(0x94), creator, bytes1(nonce))))));
+        return address(
+            uint160(
+                uint256(
+                    keccak256(abi.encodePacked(bytes1(0xd6), bytes1(0x94), creator, bytes1(nonce)))
+                )
+            )
+        );
     }
 
-    function _formatERC20BridgeErrorMessage(string memory errorMessage) private pure returns (bytes memory) {
+    function _formatERC20BridgeErrorMessage(string memory errorMessage)
+        private
+        pure
+        returns (bytes memory)
+    {
         return bytes(string.concat("ERC20Bridge: ", errorMessage));
     }
 }

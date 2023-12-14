@@ -69,13 +69,15 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         assertEq(teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID), 1);
 
         // Check receipt queue contents
-        TeleporterMessageReceipt memory receipt = teleporterMessenger.getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+        TeleporterMessageReceipt memory receipt =
+            teleporterMessenger.getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
         assertEq(receipt.receivedMessageID, 1);
         assertEq(receipt.relayerRewardAddress, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Receive at a different index
         messageToReceive.messageID = 2;
-        warpMessage = _createDefaultWarpMessage(DEFAULT_ORIGIN_CHAIN_ID, abi.encode(messageToReceive));
+        warpMessage =
+            _createDefaultWarpMessage(DEFAULT_ORIGIN_CHAIN_ID, abi.encode(messageToReceive));
         _setUpSuccessGetVerifiedWarpMessageMock(3, warpMessage);
 
         // Receive the message.
@@ -107,7 +109,9 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (0)),
             abi.encode(emptyMessage, false)
         );
-        vm.expectCall(WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (0)));
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (0))
+        );
 
         vm.expectRevert(_formatTeleporterErrorMessage("invalid warp message"));
         teleporterMessenger.receiveCrossChainMessage(0, address(1));
@@ -118,7 +122,9 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (3)),
             abi.encode(emptyMessage, false)
         );
-        vm.expectCall(WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (3)));
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (3))
+        );
 
         vm.expectRevert(_formatTeleporterErrorMessage("invalid warp message"));
         teleporterMessenger.receiveCrossChainMessage(3, address(1));

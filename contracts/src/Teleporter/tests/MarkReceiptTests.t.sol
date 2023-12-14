@@ -37,7 +37,9 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         ];
 
         for (uint256 i = 0; i < feeRewardInfos.length; i++) {
-            assertEq(_sendTestMessageWithFee(DEFAULT_ORIGIN_CHAIN_ID, feeRewardInfos[i].feeAmount), i + 1);
+            assertEq(
+                _sendTestMessageWithFee(DEFAULT_ORIGIN_CHAIN_ID, feeRewardInfos[i].feeAmount), i + 1
+            );
         }
 
         // Mock receiving a message with the 3 receipts from the mock messages sent above.
@@ -72,7 +74,10 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         }
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
-        assertEq(teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, 1), expectedRelayerRewardAddress);
+        assertEq(
+            teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, 1),
+            expectedRelayerRewardAddress
+        );
         assertTrue(teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1));
 
         // Check that the message hashes for the message receipts we received have been cleared.
@@ -87,8 +92,10 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
         // Mock receiving a message with the a receipts of the mock message sent above.
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
-        receipts[0] =
-            TeleporterMessageReceipt({receivedMessageID: 1, relayerRewardAddress: DEFAULT_RELAYER_REWARD_ADDRESS});
+        receipts[0] = TeleporterMessageReceipt({
+            receivedMessageID: 1,
+            relayerRewardAddress: DEFAULT_RELAYER_REWARD_ADDRESS
+        });
         TeleporterMessage memory messageToReceive = _createMockTeleporterMessage(1, new bytes(0));
         messageToReceive.receipts = receipts;
         WarpMessage memory warpMessage =
@@ -101,19 +108,25 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         teleporterMessenger.receiveCrossChainMessage(0, expectedRelayerRewardAddress);
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
-        assertEq(teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, 1), expectedRelayerRewardAddress);
+        assertEq(
+            teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, 1),
+            expectedRelayerRewardAddress
+        );
         assertTrue(teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1));
     }
 
     function testDuplicateReceiptAllowed() public {
         // Submit a mock message to be sent.
-        FeeRewardInfo memory feeRewardInfo = FeeRewardInfo(1111111111111111, 0x52A258ED593C793251a89bfd36caE158EE9fC4F8);
+        FeeRewardInfo memory feeRewardInfo =
+            FeeRewardInfo(1111111111111111, 0x52A258ED593C793251a89bfd36caE158EE9fC4F8);
         assertEq(_sendTestMessageWithFee(DEFAULT_ORIGIN_CHAIN_ID, feeRewardInfo.feeAmount), 1);
 
         // Mock receiving a message with the 2 receipts for the  same mock message above.
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](2);
-        TeleporterMessageReceipt memory receipt =
-            TeleporterMessageReceipt({receivedMessageID: 1, relayerRewardAddress: feeRewardInfo.relayerRewardAddress});
+        TeleporterMessageReceipt memory receipt = TeleporterMessageReceipt({
+            receivedMessageID: 1,
+            relayerRewardAddress: feeRewardInfo.relayerRewardAddress
+        });
         receipts[0] = receipt;
         receipts[1] = receipt;
         TeleporterMessage memory messageToReceive = _createMockTeleporterMessage(1, new bytes(0));
@@ -129,12 +142,17 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
         // Check that the relayer redeemable balances was only added once.
         assertEq(
-            teleporterMessenger.checkRelayerRewardAmount(feeRewardInfo.relayerRewardAddress, address(_mockFeeAsset)),
+            teleporterMessenger.checkRelayerRewardAmount(
+                feeRewardInfo.relayerRewardAddress, address(_mockFeeAsset)
+            ),
             feeRewardInfo.feeAmount
         );
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
-        assertEq(teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, 1), expectedRelayerRewardAddress);
+        assertEq(
+            teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, 1),
+            expectedRelayerRewardAddress
+        );
         assertTrue(teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1));
 
         // Check that the message hashes for the message receipts we received have been cleared.

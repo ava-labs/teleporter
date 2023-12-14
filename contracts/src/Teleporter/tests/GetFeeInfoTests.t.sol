@@ -51,8 +51,10 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
         // Now mock receiving a message back from that subnet with a receipt of the above message.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
-        receipts[0] =
-            TeleporterMessageReceipt({receivedMessageID: messageID, relayerRewardAddress: relayerRewardAddress});
+        receipts[0] = TeleporterMessageReceipt({
+            receivedMessageID: messageID,
+            relayerRewardAddress: relayerRewardAddress
+        });
         _receiveTestMessage(DEFAULT_DESTINATION_CHAIN_ID, messageID, relayerRewardAddress, receipts);
 
         // Now, if we get the fee info for the message it should be reported as zero since the receipt has already been received.
