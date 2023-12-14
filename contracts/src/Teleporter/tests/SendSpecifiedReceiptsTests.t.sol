@@ -83,8 +83,11 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
             relayerRewardAddress: relayerRewardAddresses[0]
         });
 
+        bytes32 newExpectedMessageID = teleporterMessenger.getNextMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID
+        );
         TeleporterMessage memory newExpectedMessage = TeleporterMessage({
-            messageID: bytes32(uint256(2)),
+            messageID: newExpectedMessageID,
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(0),
@@ -102,7 +105,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            bytes32(uint256(2)),
+            newExpectedMessageID,
             newExpectedMessage,
             feeInfo
         );
@@ -112,7 +115,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
             receiptIDs
         );
 
-        assertEq(outboundMessageID, bytes32(uint256(2)));
+        assertEq(outboundMessageID, newExpectedMessageID);
     }
 
     function testDuplicateAllowed() public {
