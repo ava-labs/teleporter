@@ -30,7 +30,9 @@ jobs:
       
       - name: Check Solidity Formatting
         if: success() || failure()
-        run: ./scripts/lint.sh --sol-format-check
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          ./scripts/lint.sh --sol-format-check
 
   go-unit-tests:
     runs-on: ubuntu-20.04
