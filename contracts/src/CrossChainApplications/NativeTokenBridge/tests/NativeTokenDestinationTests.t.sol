@@ -102,7 +102,6 @@ contract NativeTokenDestinationTest is Test {
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE)
         );
-        vm.stopPrank();
     }
 
     function testTransferToSource() public {

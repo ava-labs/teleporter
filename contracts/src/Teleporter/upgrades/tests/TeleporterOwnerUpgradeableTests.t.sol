@@ -47,9 +47,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that call to update minimum Teleporter version succeeds for owners
         vm.prank(address(this));
-        vm.expectEmit(true, true, true, true, address(ownerApp));
-        emit MinTeleporterVersionUpdated(minTeleporterVersion, minTeleporterVersion + 1);
-        ownerApp.updateMinTeleporterVersion(minTeleporterVersion + 1);
+        _updateMinTeleporterVersionSuccess(ownerApp, minTeleporterVersion + 1);
 
         assertEq(ownerApp.getMinTeleporterVersion(), minTeleporterVersion + 1);
     }
@@ -75,8 +73,6 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         address newOwner = address(0x123);
         ownerApp.transferOwnership(newOwner);
         vm.prank(newOwner);
-        vm.expectEmit(true, true, true, true, address(ownerApp));
-        emit MinTeleporterVersionUpdated(minTeleporterVersion, minTeleporterVersion + 1);
         ownerApp.updateMinTeleporterVersion(minTeleporterVersion + 1);
 
         // Check that call with old owner reverts
@@ -95,7 +91,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         _addProtocolVersion(teleporterRegistry, teleporterAddress);
         uint256 latestVersion = teleporterRegistry.latestVersion();
         // Check that update Teleporter version call for owner succeeds
-        ownerApp.updateMinTeleporterVersion(latestVersion);
+        _updateMinTeleporterVersionSuccess(ownerApp, latestVersion);
 
         // Check that after ownership renounce call reverts
         ownerApp.renounceOwnership();
@@ -104,23 +100,27 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
     }
 
     function testPauseTeleporterAccess() public {
-        // Check that call to pause Teleporter address reverts for non-owners
+        // First pause the Teleporter address
+        _pauseTeleporterAddressSuccess(ownerApp, teleporterAddress);
+
+        // Try to unpause the Teleporter address from non-owner account
         vm.prank(MOCK_INVALID_OWNER_ADDRESS);
         vm.expectRevert("Ownable: caller is not the owner");
-        ownerApp.pauseTeleporterAddress(teleporterAddress);
+        ownerApp.unpauseTeleporterAddress(teleporterAddress);
 
-        // Check that Teleporter address was not paused
-        vm.prank(teleporterAddress);
-        ownerApp.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
-
-        // Check that call to pause Teleporter address succeeds for owners
-        vm.prank(address(this));
-        ownerApp.pauseTeleporterAddress(teleporterAddress);
-
-        // Check that Teleporter address was paused
+        // Check that the Teleporter address is still paused
         vm.prank(teleporterAddress);
         vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
         ownerApp.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        assertTrue(ownerApp.isTeleporterAddressPaused(teleporterAddress));
+
+        // Unpause the Teleporter address from owner account
+        _unpauseTeleporterAddressSuccess(ownerApp, teleporterAddress);
+
+        // Check that the Teleporter address can now deliver messages
+        vm.prank(teleporterAddress);
+        ownerApp.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        assertFalse(ownerApp.isTeleporterAddressPaused(teleporterAddress));
     }
 
     function testOwnerUpgradeAccess() public {
