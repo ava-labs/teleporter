@@ -19,17 +19,17 @@ contract ReceiptQueueTest is Test {
     // Add 3 elements to the queue.
     TeleporterMessageReceipt private _receipt1 =
         TeleporterMessageReceipt({
-            receivedMessageID: 543,
+            receivedMessageID: bytes32(uint256(543)),
             relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
         });
     TeleporterMessageReceipt private _receipt2 =
         TeleporterMessageReceipt({
-            receivedMessageID: 684384,
+            receivedMessageID: bytes32(uint256(684384)),
             relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
         });
     TeleporterMessageReceipt private _receipt3 =
         TeleporterMessageReceipt({
-            receivedMessageID: 654351,
+            receivedMessageID: bytes32(uint256(654351)),
             relayerRewardAddress: 0xcC8E718045817AebA89592C72Ae1C9917f5D0894
         });
 
@@ -86,7 +86,7 @@ contract ReceiptQueueTest is Test {
         // Check that you can't dequeue from empty queue.
         vm.expectRevert(_formatReceiptQueueErrorMessage("empty queue"));
         TeleporterMessageReceipt memory result = _queue.dequeue();
-        assertEq(result.receivedMessageID, 0);
+        assertEq(result.receivedMessageID, bytes32(0));
         assertEq(result.relayerRewardAddress, address(0));
     }
 

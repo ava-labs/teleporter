@@ -104,7 +104,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Construct the mock message to be received.
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: 42,
+            messageID: bytes32(uint256(42)),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
@@ -166,7 +166,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Construct the mock message to be received.
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: 42,
+            messageID: bytes32(uint256(42)),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
@@ -202,7 +202,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Construct the mock message to be received.
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: 42,
+            messageID: bytes32(uint256(42)),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
@@ -268,7 +268,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Construct the mock message to be received.
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: 42,
+            messageID: bytes32(uint256(42)),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),

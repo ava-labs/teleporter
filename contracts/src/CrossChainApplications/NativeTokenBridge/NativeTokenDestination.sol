@@ -25,14 +25,16 @@ contract NativeTokenDestination is
     INativeTokenDestination,
     ReentrancyGuard
 {
-    // The address where the burned transaction fees are credited.    
-    // Defined as BLACKHOLE_ADDRESS at 
+    // The address where the burned transaction fees are credited.
+    // Defined as BLACKHOLE_ADDRESS at
     // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
-    address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
-    // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" before 
-    // sending an unlock message to the source chain. Different from the burned tx fee address so 
+    address public constant BURNED_TX_FEES_ADDRESS =
+        0x0100000000000000000000000000000000000000;
+    // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" before
+    // sending an unlock message to the source chain. Different from the burned tx fee address so
     // they can be tracked separately.
-    address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000000001;
+    address public constant BURN_FOR_TRANSFER_ADDRESS =
+        0x0100000000000000000000000000000000000001;
 
     INativeMinter private immutable _nativeMinter =
         INativeMinter(0x0200000000000000000000000000000000000001);
@@ -194,7 +196,7 @@ contract NativeTokenDestination is
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
         Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), msg.value);
 
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
@@ -224,7 +226,7 @@ contract NativeTokenDestination is
         address[] calldata allowedRelayerAddresses
     ) external {
         uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,

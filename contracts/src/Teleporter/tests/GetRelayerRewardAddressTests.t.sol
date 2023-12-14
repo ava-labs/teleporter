@@ -17,7 +17,7 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
 
     function testSuccess() public {
         // Before receiving the message, it returns the 0 address.
-        uint256 mockMessageID = 8;
+        bytes32 mockMessageID = bytes32(uint256(8));
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
                 DEFAULT_DESTINATION_CHAIN_ID,

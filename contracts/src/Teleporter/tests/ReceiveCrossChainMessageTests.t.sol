@@ -30,7 +30,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: 1,
+            messageID: bytes32(uint256(1)),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
@@ -76,11 +76,11 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Check receipt queue contents
         TeleporterMessageReceipt memory receipt = teleporterMessenger
             .getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
-        assertEq(receipt.receivedMessageID, 1);
+        assertEq(receipt.receivedMessageID, bytes32(uint256(1)));
         assertEq(receipt.relayerRewardAddress, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Receive at a different index
-        messageToReceive.messageID = 2;
+        messageToReceive.messageID = bytes32(uint256(2));
         warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
             abi.encode(messageToReceive)
@@ -112,7 +112,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             DEFAULT_ORIGIN_CHAIN_ID,
             1
         );
-        assertEq(receipt.receivedMessageID, 2);
+        assertEq(receipt.receivedMessageID, bytes32(uint256(2)));
         assertEq(receipt.relayerRewardAddress, DEFAULT_RELAYER_REWARD_ADDRESS);
     }
 
@@ -155,7 +155,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Construct the test message to be received.
         TeleporterMessage
             memory messageToReceive = _createMockTeleporterMessage(
-                1,
+                bytes32(uint256(1)),
                 new bytes(0)
             );
 
@@ -182,13 +182,14 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Construct the test message to be received.
         TeleporterMessage
             memory messageToReceive = _createMockTeleporterMessage(
-                1,
+                bytes32(uint256(1)),
                 new bytes(0)
             );
         bytes32 invalidDestinationBlockchainID = bytes32(
             hex"deadbeefcafebabedeadbeefcafebabedeadbeefcafebabedeadbeefcafebabe"
         );
-        messageToReceive.destinationBlockchainID = invalidDestinationBlockchainID;
+        messageToReceive
+            .destinationBlockchainID = invalidDestinationBlockchainID;
 
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_CHAIN_ID,
@@ -236,7 +237,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: 42,
+            messageID: bytes32(uint256(42)),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,

@@ -17,7 +17,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
 
     function testSuccess() public {
         // Submit a message
-        uint256 messageID = _sendTestMessageWithNoFee(
+        bytes32 messageID = _sendTestMessageWithNoFee(
             DEFAULT_DESTINATION_CHAIN_ID
         );
         TeleporterMessage memory expectedMessage = TeleporterMessage({
@@ -45,7 +45,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
         assertEq(
             teleporterMessenger.getMessageHash(
                 DEFAULT_DESTINATION_CHAIN_ID,
-                42
+                bytes32(uint256(42))
             ),
             bytes32(0)
         );
@@ -53,7 +53,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
 
     function testMessageAlreadyReceived() public {
         // Submit a message
-        uint256 messageID = _sendTestMessageWithNoFee(
+        bytes32 messageID = _sendTestMessageWithNoFee(
             DEFAULT_DESTINATION_CHAIN_ID
         );
 

@@ -107,7 +107,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     // receiving back a message with receipt of that message such that the relayer
     // is able to redeem the reward.
     function _setUpRelayerRewards(FeeRewardInfo memory feeRewardInfo) private {
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_ORIGIN_CHAIN_ID,
             feeRewardInfo.feeAmount
         );
@@ -120,7 +120,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         });
         TeleporterMessage
             memory messageToReceive = _createMockTeleporterMessage(
-                1,
+                bytes32(uint256(1)),
                 new bytes(0)
             );
 
@@ -160,12 +160,15 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
                 DEFAULT_ORIGIN_CHAIN_ID,
-                1
+                bytes32(uint256(1))
             ),
             expectedRelayerRewardAddress
         );
         assertTrue(
-            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1)
+            teleporterMessenger.messageReceived(
+                DEFAULT_ORIGIN_CHAIN_ID,
+                bytes32(uint256(1))
+            )
         );
     }
 }

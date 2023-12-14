@@ -27,15 +27,15 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
             memory expectedReceipts = new TeleporterMessageReceipt[](3);
 
         expectedReceipts[0] = TeleporterMessageReceipt(
-            13,
+            bytes32(uint256(13)),
             0xF1DFE63909C027Ed814Dd92C5a3644590abf4850
         );
         expectedReceipts[1] = TeleporterMessageReceipt(
-            42,
+            bytes32(uint256(42)),
             0x52A258ED593C793251a89bfd36caE158EE9fC4F8
         );
         expectedReceipts[2] = TeleporterMessageReceipt(
-            94,
+            bytes32(uint256(94)),
             0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
         );
 
@@ -55,7 +55,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         // Now that we have "received" 3 mock messages, when we send a message back to the
         // other chain, we should expect to see the 3 receipts included in the message metadata.
         TeleporterMessage memory expectedMessage = _createMockTeleporterMessage(
-            1,
+            bytes32(uint256(1)),
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceipts;
@@ -95,12 +95,12 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
 
         // Submit the message.
-        assertEq(teleporterMessenger.sendCrossChainMessage(messageInput), 1);
+        teleporterMessenger.sendCrossChainMessage(messageInput);
 
         // Submit another message to be sent to check that it does not contain any more receipts.
         TeleporterMessage
             memory nextExpectedMessage = _createMockTeleporterMessage(
-                2,
+                bytes32(uint256(2)),
                 hex"deadbeef"
             );
         nextExpectedMessage.destinationBlockchainID = blockchainID;
@@ -120,7 +120,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
 
         // Submit the new message.
-        assertEq(teleporterMessenger.sendCrossChainMessage(messageInput), 2);
+        teleporterMessenger.sendCrossChainMessage(messageInput);
     }
 
     // Test that when there are more than the maximum limit of receipts to include in a message (5),
@@ -132,34 +132,34 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         TeleporterMessageReceipt[]
             memory expectedReceiptsBatch1 = new TeleporterMessageReceipt[](5); // the limit of receipts per message is 5.
         expectedReceiptsBatch1[0] = TeleporterMessageReceipt(
-            13,
+            bytes32(uint256(13)),
             0xF1DFE63909C027Ed814Dd92C5a3644590abf4850
         );
         expectedReceiptsBatch1[1] = TeleporterMessageReceipt(
-            42,
+            bytes32(uint256(42)),
             0x52A258ED593C793251a89bfd36caE158EE9fC4F8
         );
         expectedReceiptsBatch1[2] = TeleporterMessageReceipt(
-            94,
+            bytes32(uint256(94)),
             0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
         );
         expectedReceiptsBatch1[3] = TeleporterMessageReceipt(
-            3,
+            bytes32(uint256(3)),
             0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
         );
         expectedReceiptsBatch1[4] = TeleporterMessageReceipt(
-            53,
+            bytes32(uint256(53)),
             0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
         );
 
         TeleporterMessageReceipt[]
             memory expectedReceiptsBatch2 = new TeleporterMessageReceipt[](2); // the limit of receipts per message is 5.
         expectedReceiptsBatch2[0] = TeleporterMessageReceipt(
-            75,
+            bytes32(uint256(75)),
             0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
         );
         expectedReceiptsBatch2[1] = TeleporterMessageReceipt(
-            80,
+            bytes32(uint256(80)),
             0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
         );
 
@@ -188,7 +188,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         // other chain, we should expect to see the 5 receipts included in the message metadata because
         // that is the max receipt batch size limit.
         TeleporterMessage memory expectedMessage = _createMockTeleporterMessage(
-            1,
+            bytes32(uint256(1)),
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceiptsBatch1;
@@ -228,12 +228,12 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
 
         // Submit the message.
-        assertEq(teleporterMessenger.sendCrossChainMessage(messageInput), 1);
+        teleporterMessenger.sendCrossChainMessage(messageInput);
 
         // Submit another message to be sent to check that it contains the remaining 2 receipts to be sent.
         TeleporterMessage
             memory nextExpectedMessage = _createMockTeleporterMessage(
-                2,
+                bytes32(uint256(2)),
                 hex"deadbeef"
             );
         nextExpectedMessage.receipts = expectedReceiptsBatch2;
@@ -254,6 +254,6 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
 
         // Submit the new message.
-        assertEq(teleporterMessenger.sendCrossChainMessage(messageInput), 2);
+        teleporterMessenger.sendCrossChainMessage(messageInput);
     }
 }

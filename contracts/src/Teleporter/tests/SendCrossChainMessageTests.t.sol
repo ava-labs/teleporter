@@ -18,7 +18,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
     function testSendMessageNoFee() public {
         // Arrange
         TeleporterMessage memory expectedMessage = _createMockTeleporterMessage(
-            1,
+            bytes32(uint256(1)),
             hex"deadbeef"
         );
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
@@ -57,12 +57,12 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         );
 
         // Act
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             messageInput
         );
 
         // Assert
-        assertEq(messageID, 1);
+        assertEq(messageID, bytes32(uint256(1)));
 
         // Check receipt queue
         uint256 queueSize = teleporterMessenger.getReceiptQueueSize(
@@ -75,7 +75,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // Arrange
         // Construct the message to submit.
         TeleporterMessage memory expectedMessage = _createMockTeleporterMessage(
-            1,
+            bytes32(uint256(1)),
             hex"deadbeef"
         );
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(
@@ -130,12 +130,12 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         );
 
         // Act
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             messageInput
         );
 
         // Assert
-        assertEq(messageID, 1);
+        assertEq(messageID, bytes32(uint256(1)));
     }
 
     function testFeeAssetDoesNotExist() public {

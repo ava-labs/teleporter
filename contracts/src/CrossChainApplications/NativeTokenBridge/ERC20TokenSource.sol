@@ -163,7 +163,7 @@ contract ERC20TokenSource is
 
         uint256 transferAmount = adjustedAmount - feeAmount;
 
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,

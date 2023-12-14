@@ -18,7 +18,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
     function testSuccess() public {
         // First submit a message with a fee
         uint256 feeAmount = 1687435413;
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             feeAmount
         );
@@ -36,7 +36,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
         uint256 feeAmount = 1687435413;
         uint256 tokenTransferFee = 35413;
         _mockFeeAsset.setFeeOnTransferSender(address(this), tokenTransferFee);
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             feeAmount
         );
@@ -52,7 +52,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
     function testAfterReceipt() public {
         // First submit a message with a small fee
         uint256 feeAmount = 10;
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             feeAmount
         );
@@ -80,7 +80,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
     }
 
     function testInvalidMessage() public {
-        uint256 fakeMessageID = 4646;
+        bytes32 fakeMessageID = bytes32(uint256(4646));
 
         // Get the fee info to make sure it is zero since the message doesn't exist.
         (address actualFeeAsset, uint256 actualFeeAmount) = teleporterMessenger

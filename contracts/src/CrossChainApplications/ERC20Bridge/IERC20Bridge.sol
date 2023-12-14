@@ -26,7 +26,7 @@ interface IERC20Bridge {
     event BridgeTokens(
         address indexed tokenContractAddress,
         bytes32 indexed destinationBlockchainID,
-        uint256 indexed teleporterMessageID,
+        bytes32 indexed teleporterMessageID,
         address destinationBridgeAddress,
         address recipient,
         uint256 amount
@@ -39,7 +39,7 @@ interface IERC20Bridge {
         bytes32 indexed destinationBlockchainID,
         address indexed destinationBridgeAddress,
         address indexed nativeContractAddress,
-        uint256 teleporterMessageID
+        bytes32 teleporterMessageID
     );
 
     /**

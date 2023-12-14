@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 /**
- * @dev Interface for common functionality needed for different `TokenSource` contracts such as 
+ * @dev Interface for common functionality needed for different `TokenSource` contracts such as
  * `NativeTokenSource` and `ERC20TokenSource`.
  */
 interface ITokenSource {
@@ -17,14 +17,14 @@ interface ITokenSource {
         Unlock,
         Burn
     }
-    
+
     /**
      * @dev Emitted when native tokens are locked in the source contract to be transferred to the destination chain.
      */
     event TransferToDestination(
         address indexed sender,
         address indexed recipient,
-        uint256 indexed teleporterMessageID,
+        bytes32 indexed teleporterMessageID,
         uint256 amount
     );
 

@@ -18,7 +18,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
     function testSuccess() public {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             originalFeeAmount
         );
@@ -63,7 +63,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
     function testInvalidMessage() public {
         // Add to the fee amount of a message that doesn't exist. Expect revert.
         uint256 additionalFeeAmount = 131313;
-        uint256 fakeMessageID = 13;
+        bytes32 fakeMessageID = bytes32(uint256(13));
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_CHAIN_ID,
@@ -76,7 +76,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
     function testMessageAlreadyDelivered() public {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             originalFeeAmount
         );
@@ -111,7 +111,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
     function testInvalidAmount() public {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             originalFeeAmount
         );
@@ -132,7 +132,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
     function testMismatchFeeAsset() public {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             originalFeeAmount
         );
@@ -154,7 +154,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
     function testInvalidFeeAsset() public {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             originalFeeAmount
         );
@@ -176,7 +176,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
     function testInsufficientBalance() public {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             originalFeeAmount
         );

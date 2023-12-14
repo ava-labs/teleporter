@@ -114,7 +114,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
     function testMessageHashNotFound() public {
         // Retrying a message that never was delivered should always fail.
         TeleporterMessage memory fakeMessage = TeleporterMessage({
-            messageID: 12345,
+            messageID: bytes32(uint256(12345)),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),
@@ -213,7 +213,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             action = FlakyMessageReceiverAction.ReceiveMessage;
         }
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: 42,
+            messageID: bytes32(uint256(42)),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: address(destinationContract),

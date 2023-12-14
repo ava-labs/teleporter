@@ -8,7 +8,7 @@ pragma solidity 0.8.18;
 // A message receipt identifies the message ID that was delivered
 // and the address that can redeem the reward for that message.
 struct TeleporterMessageReceipt {
-    uint256 receivedMessageID;
+    bytes32 receivedMessageID;
     address relayerRewardAddress;
 }
 
@@ -28,7 +28,7 @@ struct TeleporterMessageInput {
 
 // Represents a message sent or received by an implementation of {ITeleporterMessenger}.
 struct TeleporterMessage {
-    uint256 messageID;
+    bytes32 messageID;
     address senderAddress;
     bytes32 destinationBlockchainID;
     address destinationAddress;
@@ -57,7 +57,7 @@ interface ITeleporterMessenger {
      */
     event SendCrossChainMessage(
         bytes32 indexed destinationBlockchainID,
-        uint256 indexed messageID,
+        bytes32 indexed messageID,
         TeleporterMessage message,
         TeleporterFeeInfo feeInfo
     );
@@ -68,7 +68,7 @@ interface ITeleporterMessenger {
      */
     event AddFeeAmount(
         bytes32 indexed destinationBlockchainID,
-        uint256 indexed messageID,
+        bytes32 indexed messageID,
         TeleporterFeeInfo updatedFeeInfo
     );
 
@@ -78,7 +78,7 @@ interface ITeleporterMessenger {
      */
     event MessageExecutionFailed(
         bytes32 indexed originBlockchainID,
-        uint256 indexed messageID,
+        bytes32 indexed messageID,
         TeleporterMessage message
     );
 
@@ -91,7 +91,7 @@ interface ITeleporterMessenger {
      */
     event MessageExecuted(
         bytes32 indexed originBlockchainID,
-        uint256 indexed messageID
+        bytes32 indexed messageID
     );
 
     /**
@@ -99,7 +99,7 @@ interface ITeleporterMessenger {
      */
     event ReceiveCrossChainMessage(
         bytes32 indexed originBlockchainID,
-        uint256 indexed messageID,
+        bytes32 indexed messageID,
         address indexed deliverer,
         address rewardRedeemer,
         TeleporterMessage message
@@ -120,7 +120,7 @@ interface ITeleporterMessenger {
      */
     function sendCrossChainMessage(
         TeleporterMessageInput calldata messageInput
-    ) external returns (uint256);
+    ) external returns (bytes32);
 
     /**
      * @dev Called by transactions to retry the sending of a cross-chain message.
@@ -146,7 +146,7 @@ interface ITeleporterMessenger {
      */
     function addFeeAmount(
         bytes32 destinationBlockchainID,
-        uint256 messageID,
+        bytes32 messageID,
         address feeTokenAddress,
         uint256 additionalFeeAmount
     ) external;
@@ -186,10 +186,10 @@ interface ITeleporterMessenger {
      */
     function sendSpecifiedReceipts(
         bytes32 originBlockchainID,
-        uint256[] calldata messageIDs,
+        bytes32[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
-    ) external returns (uint256);
+    ) external returns (bytes32);
 
     /**
      * @dev Sends any fee amount rewards for the given fee asset out to the caller.
@@ -202,7 +202,7 @@ interface ITeleporterMessenger {
      */
     function getMessageHash(
         bytes32 destinationBlockchainID,
-        uint256 messageID
+        bytes32 messageID
     ) external view returns (bytes32);
 
     /**
@@ -211,7 +211,7 @@ interface ITeleporterMessenger {
      */
     function messageReceived(
         bytes32 originBlockchainID,
-        uint256 messageID
+        bytes32 messageID
     ) external view returns (bool);
 
     /**
@@ -221,7 +221,7 @@ interface ITeleporterMessenger {
      */
     function getRelayerRewardAddress(
         bytes32 originBlockchainID,
-        uint256 messageID
+        bytes32 messageID
     ) external view returns (address);
 
     /**
@@ -239,14 +239,16 @@ interface ITeleporterMessenger {
      */
     function getFeeInfo(
         bytes32 destinationBlockchainID,
-        uint256 messageID
+        bytes32 messageID
     ) external view returns (address, uint256);
 
     /**
      * @dev Gets the next message ID to be used for a given chain ID.
      * @return The next message ID to be used to send a message to the given chain ID.
      */
-    function getNextMessageID(bytes32 destinationBlockchainID) external view returns (uint256);
+    function getNextMessageID(
+        bytes32 destinationBlockchainID
+    ) external view returns (bytes32);
 
     /**
      * @dev Gets the number of receipts that are waiting to be sent to the given origin chain ID.

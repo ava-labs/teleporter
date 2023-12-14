@@ -221,7 +221,7 @@ contract ERC20Bridge is
         );
 
         // Send Teleporter message.
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: destinationBridgeAddress,
@@ -589,7 +589,7 @@ contract ERC20Bridge is
             bridgeAmount
         );
 
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: destinationBridgeAddress,
@@ -683,7 +683,7 @@ contract ERC20Bridge is
             feeAmount: wrappedTransferInfo.secondaryFeeAmount
         });
 
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: nativeBlockchainID,
                 destinationAddress: nativeBridgeAddress,

@@ -40,13 +40,11 @@ contract MarkReceiptTest is TeleporterMessengerTest {
             )
         ];
 
+        bytes32[3] memory messageIDs;
         for (uint256 i = 0; i < feeRewardInfos.length; i++) {
-            assertEq(
-                _sendTestMessageWithFee(
-                    DEFAULT_ORIGIN_CHAIN_ID,
-                    feeRewardInfos[i].feeAmount
-                ),
-                i + 1
+            messageIDs[i] = _sendTestMessageWithFee(
+                DEFAULT_ORIGIN_CHAIN_ID,
+                feeRewardInfos[i].feeAmount
             );
         }
 
@@ -57,13 +55,13 @@ contract MarkReceiptTest is TeleporterMessengerTest {
             );
         for (uint256 i = 0; i < receipts.length; i++) {
             receipts[i] = TeleporterMessageReceipt({
-                receivedMessageID: i + 1,
+                receivedMessageID: messageIDs[i],
                 relayerRewardAddress: feeRewardInfos[i].relayerRewardAddress
             });
         }
         TeleporterMessage
             memory messageToReceive = _createMockTeleporterMessage(
-                1,
+                bytes32(uint256(1)),
                 new bytes(0)
             );
         messageToReceive.receipts = receipts;
@@ -96,12 +94,15 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
                 DEFAULT_ORIGIN_CHAIN_ID,
-                1
+                bytes32(uint256(1))
             ),
             expectedRelayerRewardAddress
         );
         assertTrue(
-            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1)
+            teleporterMessenger.messageReceived(
+                DEFAULT_ORIGIN_CHAIN_ID,
+                bytes32(uint256(1))
+            )
         );
 
         // Check that the message hashes for the message receipts we received have been cleared.
@@ -109,7 +110,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
             assertEq(
                 teleporterMessenger.getMessageHash(
                     DEFAULT_ORIGIN_CHAIN_ID,
-                    i + 1
+                    messageIDs[i]
                 ),
                 bytes32(0)
             );
@@ -118,18 +119,18 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
     function testReceiptForNoFeeMessage() public {
         // Submit a a mock message with no fee.
-        assertEq(_sendTestMessageWithNoFee(DEFAULT_ORIGIN_CHAIN_ID), 1);
+        bytes32 messageID = _sendTestMessageWithNoFee(DEFAULT_ORIGIN_CHAIN_ID);
 
         // Mock receiving a message with the a receipts of the mock message sent above.
         TeleporterMessageReceipt[]
             memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
-            receivedMessageID: 1,
+            receivedMessageID: messageID,
             relayerRewardAddress: DEFAULT_RELAYER_REWARD_ADDRESS
         });
         TeleporterMessage
             memory messageToReceive = _createMockTeleporterMessage(
-                1,
+                messageID,
                 new bytes(0)
             );
         messageToReceive.receipts = receipts;
@@ -151,12 +152,15 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
                 DEFAULT_ORIGIN_CHAIN_ID,
-                1
+                messageID
             ),
             expectedRelayerRewardAddress
         );
         assertTrue(
-            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1)
+            teleporterMessenger.messageReceived(
+                DEFAULT_ORIGIN_CHAIN_ID,
+                messageID
+            )
         );
     }
 
@@ -166,26 +170,23 @@ contract MarkReceiptTest is TeleporterMessengerTest {
             1111111111111111,
             0x52A258ED593C793251a89bfd36caE158EE9fC4F8
         );
-        assertEq(
-            _sendTestMessageWithFee(
-                DEFAULT_ORIGIN_CHAIN_ID,
-                feeRewardInfo.feeAmount
-            ),
-            1
+        bytes32 receivedMessageID = _sendTestMessageWithFee(
+            DEFAULT_ORIGIN_CHAIN_ID,
+            feeRewardInfo.feeAmount
         );
 
         // Mock receiving a message with the 2 receipts for the  same mock message above.
         TeleporterMessageReceipt[]
             memory receipts = new TeleporterMessageReceipt[](2);
         TeleporterMessageReceipt memory receipt = TeleporterMessageReceipt({
-            receivedMessageID: 1,
+            receivedMessageID: receivedMessageID,
             relayerRewardAddress: feeRewardInfo.relayerRewardAddress
         });
         receipts[0] = receipt;
         receipts[1] = receipt;
         TeleporterMessage
             memory messageToReceive = _createMockTeleporterMessage(
-                1,
+                receivedMessageID,
                 new bytes(0)
             );
         messageToReceive.receipts = receipts;
@@ -216,17 +217,23 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
                 DEFAULT_ORIGIN_CHAIN_ID,
-                1
+                receivedMessageID
             ),
             expectedRelayerRewardAddress
         );
         assertTrue(
-            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1)
+            teleporterMessenger.messageReceived(
+                DEFAULT_ORIGIN_CHAIN_ID,
+                receivedMessageID
+            )
         );
 
         // Check that the message hashes for the message receipts we received have been cleared.
         assertEq(
-            teleporterMessenger.getMessageHash(DEFAULT_ORIGIN_CHAIN_ID, 1),
+            teleporterMessenger.getMessageHash(
+                DEFAULT_ORIGIN_CHAIN_ID,
+                receivedMessageID
+            ),
             bytes32(0)
         );
     }

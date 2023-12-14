@@ -17,7 +17,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
     function testSuccess() public {
         // Send a message
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             654456
         );
@@ -41,7 +41,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
     function testMessageNotFound() public {
         TeleporterMessage memory fakeMessage = TeleporterMessage({
-            messageID: 354,
+            messageID: bytes32(uint256(345)),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
@@ -59,7 +59,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
     function testInvalidMessageHash() public {
         // Send a message, then try to alter it's contents.
-        uint256 messageID = _sendTestMessageWithFee(
+        bytes32 messageID = _sendTestMessageWithFee(
             DEFAULT_DESTINATION_CHAIN_ID,
             654456
         );
