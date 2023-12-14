@@ -33,15 +33,10 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](3);
         for (uint256 i = 0; i < relayerRewardAddresses.length; i++) {
             _receiveTestMessage(
-                DEFAULT_DESTINATION_CHAIN_ID,
-                i + 1,
-                relayerRewardAddresses[i],
-                new TeleporterMessageReceipt[](0)
+                DEFAULT_DESTINATION_CHAIN_ID, i + 1, relayerRewardAddresses[i], new TeleporterMessageReceipt[](0)
             );
-            expectedReceipts[i] = TeleporterMessageReceipt({
-                receivedMessageID: i + 1,
-                relayerRewardAddress: relayerRewardAddresses[i]
-            });
+            expectedReceipts[i] =
+                TeleporterMessageReceipt({receivedMessageID: i + 1, relayerRewardAddress: relayerRewardAddresses[i]});
         }
 
         // Mock sending a message back to that chain, which should include the 3 receipts.
@@ -61,19 +56,14 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         uint256 outboundMessageID = _sendTestMessageWithNoFee(DEFAULT_DESTINATION_CHAIN_ID);
         assertEq(outboundMessageID, 1);
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(DEFAULT_DESTINATION_CHAIN_ID, 1),
-            relayerRewardAddresses[0]
+            teleporterMessenger.getRelayerRewardAddress(DEFAULT_DESTINATION_CHAIN_ID, 1), relayerRewardAddresses[0]
         );
 
         TeleporterMessageReceipt[] memory newExpectedReceipts = new TeleporterMessageReceipt[](2);
-        newExpectedReceipts[0] = TeleporterMessageReceipt({
-            receivedMessageID: 3,
-            relayerRewardAddress: relayerRewardAddresses[2]
-        });
-        newExpectedReceipts[1] = TeleporterMessageReceipt({
-            receivedMessageID: 1,
-            relayerRewardAddress: relayerRewardAddresses[0]
-        });
+        newExpectedReceipts[0] =
+            TeleporterMessageReceipt({receivedMessageID: 3, relayerRewardAddress: relayerRewardAddresses[2]});
+        newExpectedReceipts[1] =
+            TeleporterMessageReceipt({receivedMessageID: 1, relayerRewardAddress: relayerRewardAddresses[0]});
 
         TeleporterMessage memory newExpectedMessage = TeleporterMessage({
             messageID: 2,
@@ -94,8 +84,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(DEFAULT_DESTINATION_CHAIN_ID, 2, newExpectedMessage, feeInfo);
 
-        outboundMessageID =
-            _sendSpecifiedReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, receiptIDs);
+        outboundMessageID = _sendSpecifiedReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, receiptIDs);
 
         assertEq(outboundMessageID, 2);
     }
@@ -103,17 +92,12 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
     function testDuplicateAllowed() public {
         // Mock receiving a message from another chain
         _receiveTestMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
-            1,
-            DEFAULT_RELAYER_REWARD_ADDRESS,
-            new TeleporterMessageReceipt[](0)
+            DEFAULT_DESTINATION_CHAIN_ID, 1, DEFAULT_RELAYER_REWARD_ADDRESS, new TeleporterMessageReceipt[](0)
         );
 
         // Mock sending a message to that chain, which should include the 2 copies of the same receipt.
-        TeleporterMessageReceipt memory expectedReceipt = TeleporterMessageReceipt({
-            receivedMessageID: 1,
-            relayerRewardAddress: DEFAULT_RELAYER_REWARD_ADDRESS
-        });
+        TeleporterMessageReceipt memory expectedReceipt =
+            TeleporterMessageReceipt({receivedMessageID: 1, relayerRewardAddress: DEFAULT_RELAYER_REWARD_ADDRESS});
         TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](2);
         expectedReceipts[0] = expectedReceipt;
         expectedReceipts[1] = expectedReceipt;
@@ -134,22 +118,16 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
 
         // Test sendSpecifiedReceipts when there are duplicate message IDs in the input.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit SendCrossChainMessage(
-            DEFAULT_DESTINATION_CHAIN_ID, 1, expectedMessage, TeleporterFeeInfo(address(0), 0)
-        );
+        emit SendCrossChainMessage(DEFAULT_DESTINATION_CHAIN_ID, 1, expectedMessage, TeleporterFeeInfo(address(0), 0));
 
-        uint256 outboundMessageID =
-            _sendSpecifiedReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, messageIDs);
+        uint256 outboundMessageID = _sendSpecifiedReceiptsWithNoFee(DEFAULT_DESTINATION_CHAIN_ID, messageIDs);
         assertEq(outboundMessageID, 1);
     }
 
     function testMissingMessage() public {
         // Mock receiving a message from another chain
         _receiveTestMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
-            1,
-            DEFAULT_RELAYER_REWARD_ADDRESS,
-            new TeleporterMessageReceipt[](0)
+            DEFAULT_DESTINATION_CHAIN_ID, 1, DEFAULT_RELAYER_REWARD_ADDRESS, new TeleporterMessageReceipt[](0)
         );
 
         uint256[] memory missingIDs = new uint256[](1);
@@ -167,42 +145,33 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         uint256 feeAmount
     ) private returns (uint256) {
         vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
+            WARP_PRECOMPILE_ADDRESS, abi.encode(IWarpMessenger.sendWarpMessage.selector), abi.encode(bytes32(0))
         );
         if (feeAmount > 0) {
             vm.mockCall(
                 feeAddress,
-                abi.encodeCall(
-                    IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount)
-                ),
+                abi.encodeCall(IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount)),
                 abi.encode(true)
             );
         }
 
-        TeleporterFeeInfo memory feeInfo =
-            TeleporterFeeInfo({feeTokenAddress: feeAddress, amount: feeAmount});
+        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo({feeTokenAddress: feeAddress, amount: feeAmount});
 
         if (feeAmount > 0) {
             // Expect the ERC20 contract transferFrom method to be called to transfer the fee.
             vm.expectCall(
                 feeAddress,
-                abi.encodeCall(
-                    IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount)
-                )
+                abi.encodeCall(IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount))
             );
         }
 
-        return teleporterMessenger.sendSpecifiedReceipts(
-            blockchainID, messageIDs, feeInfo, new address[](0)
-        );
+        return teleporterMessenger.sendSpecifiedReceipts(blockchainID, messageIDs, feeInfo, new address[](0));
     }
 
-    function _sendSpecifiedReceiptsWithNoFee(
-        bytes32 blockchainID,
-        uint256[] memory messageIDs
-    ) private returns (uint256) {
+    function _sendSpecifiedReceiptsWithNoFee(bytes32 blockchainID, uint256[] memory messageIDs)
+        private
+        returns (uint256)
+    {
         return _sendSpecifiedReceiptsWithFee(blockchainID, messageIDs, address(0), 0);
     }
 }

@@ -21,20 +21,16 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
     }
 
     function testFirstMessageID() public {
-        bytes32 blockchainID =
-            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
+        bytes32 blockchainID = bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
 
         assertEq(teleporterMessenger.getNextMessageID(blockchainID), 1);
     }
 
     function testSecondMessageID() public {
-        bytes32 blockchainID =
-            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
+        bytes32 blockchainID = bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
 
         vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
+            WARP_PRECOMPILE_ADDRESS, abi.encode(IWarpMessenger.sendWarpMessage.selector), abi.encode(bytes32(0))
         );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationBlockchainID: blockchainID,
@@ -53,15 +49,11 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
     }
 
     function testOtherDestinationSubnetID() public {
-        bytes32 blockchainID =
-            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
-        bytes32 otherBlockchainID =
-            bytes32(hex"00000000556677889900aabbccddeeff11223344556677889900aabbccddeeff");
+        bytes32 blockchainID = bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
+        bytes32 otherBlockchainID = bytes32(hex"00000000556677889900aabbccddeeff11223344556677889900aabbccddeeff");
 
         vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
+            WARP_PRECOMPILE_ADDRESS, abi.encode(IWarpMessenger.sendWarpMessage.selector), abi.encode(bytes32(0))
         );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationBlockchainID: blockchainID,

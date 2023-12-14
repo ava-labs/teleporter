@@ -12,9 +12,7 @@ import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol"
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
 import {ITokenSource} from "./ITokenSource.sol";
 import {
-    ITeleporterMessenger,
-    TeleporterFeeInfo,
-    TeleporterMessageInput
+    ITeleporterMessenger, TeleporterFeeInfo, TeleporterMessageInput
 } from "../../Teleporter/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
@@ -34,8 +32,7 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
     // they can be tracked separately.
     address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000000001;
 
-    INativeMinter private immutable _nativeMinter =
-        INativeMinter(0x0200000000000000000000000000000000000001);
+    INativeMinter private immutable _nativeMinter = INativeMinter(0x0200000000000000000000000000000000000001);
 
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 100_000;
@@ -57,31 +54,20 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
         address nativeTokenSourceAddress_,
         uint256 initialReserveImbalance_
     ) {
-        require(
-            teleporterMessengerAddress != address(0),
-            "NativeTokenDestination: zero TeleporterMessenger address"
-        );
+        require(teleporterMessengerAddress != address(0), "NativeTokenDestination: zero TeleporterMessenger address");
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 
+        require(sourceBlockchainID_ != bytes32(0), "NativeTokenDestination: zero source blockchain ID");
         require(
-            sourceBlockchainID_ != bytes32(0), "NativeTokenDestination: zero source blockchain ID"
-        );
-        require(
-            sourceBlockchainID_
-                != IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID(),
+            sourceBlockchainID_ != IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID(),
             "NativeTokenDestination: cannot bridge with same blockchain"
         );
         sourceBlockchainID = sourceBlockchainID_;
 
-        require(
-            nativeTokenSourceAddress_ != address(0),
-            "NativeTokenDestination: zero source contract address"
-        );
+        require(nativeTokenSourceAddress_ != address(0), "NativeTokenDestination: zero source contract address");
         nativeTokenSourceAddress = nativeTokenSourceAddress_;
 
-        require(
-            initialReserveImbalance_ != 0, "NativeTokenDestination: zero initial reserve imbalance"
-        );
+        require(initialReserveImbalance_ != 0, "NativeTokenDestination: zero initial reserve imbalance");
 
         initialReserveImbalance = initialReserveImbalance_;
         currentReserveImbalance = initialReserveImbalance_;
@@ -92,11 +78,10 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
      *
      * Receives a Teleporter message.
      */
-    function receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
-        address senderAddress,
-        bytes calldata message
-    ) external nonReentrant {
+    function receiveTeleporterMessage(bytes32 senderBlockchainID, address senderAddress, bytes calldata message)
+        external
+        nonReentrant
+    {
         // Only allow the Teleporter messenger to deliver messages.
         require(
             msg.sender == address(teleporterMessenger),
@@ -104,14 +89,10 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
         );
 
         // Only allow messages from the source chain.
-        require(
-            senderBlockchainID == sourceBlockchainID, "NativeTokenDestination: invalid source chain"
-        );
+        require(senderBlockchainID == sourceBlockchainID, "NativeTokenDestination: invalid source chain");
 
         // Only allow the partner contract to send messages.
-        require(
-            senderAddress == nativeTokenSourceAddress, "NativeTokenDestination: unauthorized sender"
-        );
+        require(senderAddress == nativeTokenSourceAddress, "NativeTokenDestination: unauthorized sender");
 
         (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
@@ -150,18 +131,14 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
         // The recipient cannot be the zero address.
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
 
-        require(
-            currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
-        );
+        require(currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized");
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
         uint256 adjustedFeeAmount;
         if (feeInfo.amount > 0) {
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeInfo.feeTokenAddress), feeInfo.amount
-            );
+            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeInfo.feeTokenAddress), feeInfo.amount);
             SafeERC20.safeIncreaseAllowance(
                 IERC20(feeInfo.feeTokenAddress), address(teleporterMessenger), adjustedFeeAmount
             );
@@ -192,10 +169,9 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportTotalBurnedTxFees(
-        TeleporterFeeInfo calldata feeInfo,
-        address[] calldata allowedRelayerAddresses
-    ) external {
+    function reportTotalBurnedTxFees(TeleporterFeeInfo calldata feeInfo, address[] calldata allowedRelayerAddresses)
+        external
+    {
         uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
@@ -208,10 +184,7 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
             })
         );
 
-        emit ReportTotalBurnedTxFees({
-            burnAddressBalance: totalBurnedTxFees,
-            teleporterMessageID: messageID
-        });
+        emit ReportTotalBurnedTxFees({burnAddressBalance: totalBurnedTxFees, teleporterMessageID: messageID});
     }
 
     /**
@@ -225,8 +198,7 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
      * @dev See {INativeTokenDestination-totalSupply}.
      */
     function totalSupply() external view returns (uint256) {
-        uint256 burned =
-            address(BURNED_TX_FEES_ADDRESS).balance + address(BURN_FOR_TRANSFER_ADDRESS).balance;
+        uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance + address(BURN_FOR_TRANSFER_ADDRESS).balance;
         uint256 created = totalMinted + initialReserveImbalance;
 
         return created - burned;

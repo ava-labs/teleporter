@@ -115,11 +115,7 @@ contract ReceiptQueueTest is Test {
         assertEq(result.relayerRewardAddress, address(0));
     }
 
-    function _formatReceiptQueueErrorMessage(string memory errorMessage)
-        private
-        pure
-        returns (bytes memory)
-    {
+    function _formatReceiptQueueErrorMessage(string memory errorMessage) private pure returns (bytes memory) {
         return bytes(string.concat("ReceiptQueue: ", errorMessage));
     }
 }

@@ -7,14 +7,17 @@ pragma solidity 0.8.18;
 
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterRegistryTest, TeleporterMessenger} from "./TeleporterRegistryTests.t.sol";
+import {ITeleporterMessenger} from "../../ITeleporterMessenger.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
-    constructor(address teleporterRegistryAddress)
-        TeleporterUpgradeable(teleporterRegistryAddress)
-    {}
+    constructor(address teleporterRegistryAddress) TeleporterUpgradeable(teleporterRegistryAddress) {}
 
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
+    }
+
+    function getTeleporterMessenger() public view returns (ITeleporterMessenger) {
+        return _getTeleporterMessenger();
     }
 
     function _receiveTeleporterMessage(
@@ -28,32 +31,26 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
 }
 
 contract TeleporterUpgradeableTest is TeleporterRegistryTest {
+    ExampleUpgradeableApp public app;
     bytes32 public constant DEFAULT_ORIGIN_CHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
 
     address public constant DEFAULT_ORIGIN_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
 
-    event MinTeleporterVersionUpdated(
-        uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion
-    );
+    event MinTeleporterVersionUpdated(uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion);
 
     function setUp() public virtual override {
         TeleporterRegistryTest.setUp();
         _addProtocolVersion(teleporterRegistry, teleporterAddress);
+        app = new ExampleUpgradeableApp(address(teleporterRegistry));
     }
 
     function testInvalidRegistryAddress() public {
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage("zero teleporter registry address")
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("zero teleporter registry address"));
         new ExampleUpgradeableApp(address(0));
     }
 
     function testOnlyAllowedTeleporter() public {
-        ExampleUpgradeableApp app = new ExampleUpgradeableApp(
-            address(teleporterRegistry)
-        );
-
         assertEq(app.getMinTeleporterVersion(), 1);
 
         vm.expectRevert(_formatRegistryErrorMessage("protocol address not found"));
@@ -64,10 +61,6 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function testUpdateMinTeleporterVersion() public {
-        ExampleUpgradeableApp app = new ExampleUpgradeableApp(
-            address(teleporterRegistry)
-        );
-
         // First check that calling with initial teleporter address works
         assertEq(app.getMinTeleporterVersion(), 1);
         vm.prank(teleporterAddress);
@@ -94,10 +87,6 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function testSetMinTeleporterVersion() public {
-        ExampleUpgradeableApp app = new ExampleUpgradeableApp(
-            address(teleporterRegistry)
-        );
-
         uint256 latestVersion = teleporterRegistry.latestVersion();
 
         // Check setting for a version > latest version fails
@@ -107,9 +96,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         // Check setting for a version <= min version fails
         uint256 minVersion = app.getMinTeleporterVersion();
         assertEq(minVersion, teleporterRegistry.latestVersion());
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage("not greater than current minimum version")
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("not greater than current minimum version"));
         app.setMinTeleporterVersion(minVersion);
 
         // Add a new protocol version to the registry

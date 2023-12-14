@@ -18,15 +18,12 @@ import {
 import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
 
 contract ERC20TokenSourceTest is Test {
-    address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
-        0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
-    address public constant WARP_PRECOMPILE_ADDRESS =
-        address(0x0200000000000000000000000000000000000005);
+    address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS = 0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
+    address public constant WARP_PRECOMPILE_ADDRESS = address(0x0200000000000000000000000000000000000005);
     bytes32 private constant _MOCK_BLOCKCHAIN_ID = bytes32(uint256(123456));
     bytes32 private constant _DEFAULT_OTHER_CHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-    address private constant _DEFAULT_OTHER_BRIDGE_ADDRESS =
-        0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    address private constant _DEFAULT_OTHER_BRIDGE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     uint256 private constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1000000000;
     address private constant _DEFAULT_RECIPIENT = 0xa4CEE7d1aF6aDdDD33E3b1cC680AB84fdf1b6d1d;
     uint256 private constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
@@ -36,10 +33,7 @@ contract ERC20TokenSourceTest is Test {
     UnitTestMockERC20 public mockERC20;
 
     event TransferToDestination(
-        address indexed sender,
-        address indexed recipient,
-        uint256 indexed teleporterMessageID,
-        uint256 amount
+        address indexed sender, address indexed recipient, uint256 indexed teleporterMessageID, uint256 amount
     );
     event UnlockTokens(address recipient, uint256 amount);
     event BurnTokens(uint256 amount);
@@ -56,9 +50,7 @@ contract ERC20TokenSourceTest is Test {
             abi.encode(1)
         );
 
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
-        );
+        vm.expectCall(WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector));
 
         mockERC20 = new UnitTestMockERC20();
         erc20TokenSource = new ERC20TokenSource(
@@ -68,12 +60,8 @@ contract ERC20TokenSourceTest is Test {
             address(mockERC20)
         );
 
-        vm.mockCall(
-            address(mockERC20), abi.encodeWithSelector(IERC20.allowance.selector), abi.encode(1234)
-        );
-        vm.mockCall(
-            address(mockERC20), abi.encodeWithSelector(IERC20.approve.selector), abi.encode(true)
-        );
+        vm.mockCall(address(mockERC20), abi.encodeWithSelector(IERC20.allowance.selector), abi.encode(1234));
+        vm.mockCall(address(mockERC20), abi.encodeWithSelector(IERC20.approve.selector), abi.encode(true));
     }
 
     function testTransferToDestination() public {
@@ -88,10 +76,7 @@ contract ERC20TokenSourceTest is Test {
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(mockERC20),
-                amount: _DEFAULT_FEE_AMOUNT
-            }),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
             requiredGasLimit: erc20TokenSource.MINT_NATIVE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
@@ -103,10 +88,7 @@ contract ERC20TokenSourceTest is Test {
         );
 
         erc20TokenSource.transferToDestination(
-            _DEFAULT_RECIPIENT,
-            _DEFAULT_TRANSFER_AMOUNT + _DEFAULT_FEE_AMOUNT,
-            _DEFAULT_FEE_AMOUNT,
-            new address[](0)
+            _DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT + _DEFAULT_FEE_AMOUNT, _DEFAULT_FEE_AMOUNT, new address[](0)
         );
     }
 
@@ -126,10 +108,7 @@ contract ERC20TokenSourceTest is Test {
         erc20TokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT))
         );
 
         assertEq(_DEFAULT_TRANSFER_AMOUNT, mockERC20.balanceOf(_DEFAULT_RECIPIENT));
@@ -138,10 +117,7 @@ contract ERC20TokenSourceTest is Test {
     function testBurnedTxFees() public {
         // Give the contract some tokens to burn.
         erc20TokenSource.transferToDestination(
-            _DEFAULT_RECIPIENT,
-            _DEFAULT_TRANSFER_AMOUNT + _DEFAULT_FEE_AMOUNT,
-            _DEFAULT_FEE_AMOUNT,
-            new address[](0)
+            _DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT + _DEFAULT_FEE_AMOUNT, _DEFAULT_FEE_AMOUNT, new address[](0)
         );
 
         uint256 burnedTxFees = 100;
@@ -181,10 +157,7 @@ contract ERC20TokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees + additionalTxFees, erc20TokenSource.destinationBurnedTotal());
-        assertEq(
-            burnedTxFees + additionalTxFees,
-            mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS())
-        );
+        assertEq(burnedTxFees + additionalTxFees, mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS()));
     }
 
     function testZeroTeleporterAddress() public {
@@ -243,18 +216,13 @@ contract ERC20TokenSourceTest is Test {
     }
 
     function testInvalidTeleporterAddress() public {
-        vm.expectRevert(
-            _formatERC20TokenSourceErrorMessage("unauthorized TeleporterMessenger contract")
-        );
+        vm.expectRevert(_formatERC20TokenSourceErrorMessage("unauthorized TeleporterMessenger contract"));
 
         vm.prank(address(0x123));
         erc20TokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT))
         );
     }
 
@@ -265,10 +233,7 @@ contract ERC20TokenSourceTest is Test {
         erc20TokenSource.receiveTeleporterMessage(
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT))
         );
     }
 
@@ -279,10 +244,7 @@ contract ERC20TokenSourceTest is Test {
         erc20TokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x123),
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT))
         );
     }
 
@@ -293,9 +255,7 @@ contract ERC20TokenSourceTest is Test {
         erc20TokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock, abi.encode(address(0x0), _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(address(0x0), _DEFAULT_TRANSFER_AMOUNT))
         );
     }
 
@@ -303,18 +263,11 @@ contract ERC20TokenSourceTest is Test {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero recipient address"));
 
         erc20TokenSource.transferToDestination(
-            address(0x0),
-            _DEFAULT_TRANSFER_AMOUNT + _DEFAULT_FEE_AMOUNT,
-            _DEFAULT_FEE_AMOUNT,
-            new address[](0)
+            address(0x0), _DEFAULT_TRANSFER_AMOUNT + _DEFAULT_FEE_AMOUNT, _DEFAULT_FEE_AMOUNT, new address[](0)
         );
     }
 
-    function _formatERC20TokenSourceErrorMessage(string memory errorMessage)
-        private
-        pure
-        returns (bytes memory)
-    {
+    function _formatERC20TokenSourceErrorMessage(string memory errorMessage) private pure returns (bytes memory) {
         return bytes(string.concat("ERC20TokenSource: ", errorMessage));
     }
 }

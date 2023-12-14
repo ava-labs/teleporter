@@ -16,10 +16,7 @@ interface INativeTokenDestination {
      * @dev Emitted when tokens are burned in the destination contract and to be unlocked on the source contract.
      */
     event TransferToSource(
-        address indexed sender,
-        address indexed recipient,
-        uint256 indexed teleporterMessageID,
-        uint256 amount
+        address indexed sender, address indexed recipient, uint256 indexed teleporterMessageID, uint256 amount
     );
 
     /**
@@ -50,10 +47,8 @@ interface INativeTokenDestination {
     /**
      * @dev Reports the current total burned transaction fees on this chain to the source chain.
      */
-    function reportTotalBurnedTxFees(
-        TeleporterFeeInfo calldata feeInfo,
-        address[] calldata allowedRelayerAddresses
-    ) external;
+    function reportTotalBurnedTxFees(TeleporterFeeInfo calldata feeInfo, address[] calldata allowedRelayerAddresses)
+        external;
 
     /**
      * @dev Returns true if the reserve imbalance for this contract has been accounted for.
