@@ -50,6 +50,7 @@ function runAll() {
 function printHelp() {
     echo "Usage: ./scripts/lint.sh [OPTIONS]"
     echo "Lint/Format Teleporter Solidity contracts and E2E tests Golang code."
+    echo "Pass no parameters to perform all checks"
     printUsage
 }
 
