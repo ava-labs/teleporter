@@ -23,4 +23,6 @@ jobs:
         run: ./scripts/install_foundry.sh
 
       - name: Check Solidity Formatting
-        run: ./scripts/format_solidity.sh -c
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          ./scripts/format_solidity.sh -c
