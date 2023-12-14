@@ -119,7 +119,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         // Check that Teleporter address was not paused
         vm.prank(teleporterAddress);
         ownerApp.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -136,7 +136,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
             )
         );
         ownerApp.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );

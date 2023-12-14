@@ -38,7 +38,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
 
 contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     ExampleUpgradeableApp public app;
-    bytes32 public constant DEFAULT_ORIGIN_CHAIN_ID =
+    bytes32 public constant DEFAULT_ORIGIN_BLOCKCHAIN_ID =
         bytes32(
             hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"
         );
@@ -73,14 +73,14 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
             _formatRegistryErrorMessage("protocol address not found")
         );
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
 
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -91,7 +91,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         assertEq(app.getMinTeleporterVersion(), 1);
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -114,7 +114,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         );
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -122,7 +122,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         // Check that calling with the new teleporter address works
         vm.prank(newTeleporterAddress);
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );

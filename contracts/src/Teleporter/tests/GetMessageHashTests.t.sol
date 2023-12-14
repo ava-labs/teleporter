@@ -18,12 +18,12 @@ contract GetMessageHashTest is TeleporterMessengerTest {
     function testSuccess() public {
         // Submit a message
         bytes32 messageID = _sendTestMessageWithNoFee(
-            DEFAULT_DESTINATION_CHAIN_ID
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID
         );
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: address(this),
-            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -35,7 +35,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
 
         // Get its stored hash
         bytes32 actualMessageHash = teleporterMessenger.getMessageHash(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID
         );
         assertEq(actualMessageHash, expectedMessageHash);
@@ -44,7 +44,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
     function testMessageDoesNotExist() public {
         assertEq(
             teleporterMessenger.getMessageHash(
-                DEFAULT_DESTINATION_CHAIN_ID,
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
                 bytes32(uint256(42))
             ),
             bytes32(0)
@@ -54,7 +54,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
     function testMessageAlreadyReceived() public {
         // Submit a message
         bytes32 messageID = _sendTestMessageWithNoFee(
-            DEFAULT_DESTINATION_CHAIN_ID
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID
         );
 
         // Now mock receiving a message back from that subnet with a receipt of the above message.
@@ -66,7 +66,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
             relayerRewardAddress: relayerRewardAddress
         });
         _receiveTestMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             relayerRewardAddress,
             receipts
@@ -75,7 +75,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
         // Now the message hash should be cleared.
         assertEq(
             teleporterMessenger.getMessageHash(
-                DEFAULT_DESTINATION_CHAIN_ID,
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
                 messageID
             ),
             bytes32(0)

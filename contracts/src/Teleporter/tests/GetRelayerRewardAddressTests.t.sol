@@ -20,7 +20,7 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
         bytes32 mockMessageID = bytes32(uint256(8));
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_DESTINATION_CHAIN_ID,
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
                 mockMessageID
             ),
             address(0)
@@ -29,7 +29,7 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
         // Mock receiving the message
         address relayerRewardAddress = 0xCAFebAbeDc0D4D7B7EEdCf61eb863fF413BB6234;
         _receiveTestMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             mockMessageID,
             relayerRewardAddress,
             new TeleporterMessageReceipt[](0)
@@ -38,7 +38,7 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
         // Now it has the relayer reward address.
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_DESTINATION_CHAIN_ID,
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
                 mockMessageID
             ),
             relayerRewardAddress

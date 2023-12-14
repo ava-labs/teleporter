@@ -36,7 +36,7 @@ contract ERC20BridgeTest is Test {
     event BridgeTokens(
         address indexed tokenContractAddress,
         bytes32 indexed destinationBlockchainID,
-        uint256 indexed teleporterMessageID,
+        bytes32 indexed teleporterMessageID,
         address destinationBridgeAddress,
         address recipient,
         uint256 amount
@@ -46,7 +46,7 @@ contract ERC20BridgeTest is Test {
         bytes32 indexed destinationBlockchainID,
         address indexed destinationBridgeAddress,
         address indexed nativeContractAddress,
-        uint256 teleporterMessageID
+        bytes32 teleporterMessageID
     );
 
     event CreateBridgeToken(
@@ -218,7 +218,7 @@ contract ERC20BridgeTest is Test {
                 )
             });
 
-        uint256 mockMessageID = 42;
+        bytes32 mockMessageID = bytes32(uint256(42));
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(
@@ -357,7 +357,7 @@ contract ERC20BridgeTest is Test {
             )
         );
 
-        uint256 mockMessageID = 42;
+        bytes32 mockMessageID = bytes32(uint256(42));
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(
@@ -460,7 +460,7 @@ contract ERC20BridgeTest is Test {
             )
         );
 
-        uint256 mockMessageID = 42;
+        bytes32 mockMessageID = bytes32(uint256(42));
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(
@@ -719,7 +719,7 @@ contract ERC20BridgeTest is Test {
                 )
             });
 
-        uint256 mockMessageID = 456;
+        bytes32 mockMessageID = bytes32(uint256(456));
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(

@@ -19,7 +19,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         // Check that the teleporterAddress is not paused initially
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -34,7 +34,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         );
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -52,7 +52,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         );
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -73,7 +73,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         // Check that the teleporterAddress is not paused initially
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -89,7 +89,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         );
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -103,7 +103,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
             )
         );
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );
@@ -131,7 +131,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
             )
         );
         app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_ORIGIN_ADDRESS,
             ""
         );

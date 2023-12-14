@@ -16,11 +16,11 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract TeleporterMessengerTest is Test {
     TeleporterMessenger public teleporterMessenger;
 
-    bytes32 public constant DEFAULT_ORIGIN_CHAIN_ID =
+    bytes32 public constant DEFAULT_ORIGIN_BLOCKCHAIN_ID =
         bytes32(
             hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"
         );
-    bytes32 public constant DEFAULT_DESTINATION_CHAIN_ID =
+    bytes32 public constant DEFAULT_DESTINATION_BLOCKCHAIN_ID =
         bytes32(
             hex"1234567812345678123456781234567812345678123456781234567812345678"
         );
@@ -84,7 +84,7 @@ contract TeleporterMessengerTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
-            abi.encode(DEFAULT_DESTINATION_CHAIN_ID)
+            abi.encode(DEFAULT_DESTINATION_BLOCKCHAIN_ID)
         );
 
         teleporterMessenger = new TeleporterMessenger();
@@ -92,20 +92,27 @@ contract TeleporterMessengerTest is Test {
         // Blockchain ID should be 0 before it is initialized.
         assertEq(teleporterMessenger.blockchainID(), bytes32(0));
 
+        // Send an empty message to initialize the blockchain ID.
+        _sendTestMessageWithNoFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
+        assertEq(
+            teleporterMessenger.blockchainID(),
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID
+        );
+
         _mockFeeAsset = new UnitTestMockERC20();
     }
 
     function testEmptyReceiptQueue() public {
         assertEq(
             teleporterMessenger.getReceiptQueueSize(
-                DEFAULT_DESTINATION_CHAIN_ID
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID
             ),
             0
         );
 
         vm.expectRevert("ReceiptQueue: index out of bounds");
         TeleporterMessageReceipt memory receipt = teleporterMessenger
-            .getReceiptAtIndex(DEFAULT_DESTINATION_CHAIN_ID, 0);
+            .getReceiptAtIndex(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 0);
         assertEq(receipt.receivedMessageID, 0);
         assertEq(receipt.relayerRewardAddress, address(0));
     }
@@ -229,7 +236,7 @@ contract TeleporterMessengerTest is Test {
                 messageData
             );
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             abi.encode(messageToReceive)
         );
 
@@ -243,7 +250,7 @@ contract TeleporterMessengerTest is Test {
         // Receive the message - which should fail execution.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit MessageExecutionFailed(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             messageToReceive.messageID,
             messageToReceive
         );
@@ -261,7 +268,7 @@ contract TeleporterMessengerTest is Test {
         );
 
         return (
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
             messageToReceive
         );
@@ -278,7 +285,7 @@ contract TeleporterMessengerTest is Test {
             TeleporterMessage({
                 messageID: messageID,
                 senderAddress: address(this),
-                destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
+                destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
                 destinationAddress: DEFAULT_DESTINATION_ADDRESS,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
                 allowedRelayerAddresses: new address[](0),

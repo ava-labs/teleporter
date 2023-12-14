@@ -108,7 +108,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     // is able to redeem the reward.
     function _setUpRelayerRewards(FeeRewardInfo memory feeRewardInfo) private {
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             feeRewardInfo.feeAmount
         );
 
@@ -126,7 +126,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
 
         messageToReceive.receipts = receipts;
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             abi.encode(messageToReceive)
         );
 
@@ -159,14 +159,14 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_CHAIN_ID,
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID,
                 bytes32(uint256(1))
             ),
             expectedRelayerRewardAddress
         );
         assertTrue(
             teleporterMessenger.messageReceived(
-                DEFAULT_ORIGIN_CHAIN_ID,
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID,
                 bytes32(uint256(1))
             )
         );

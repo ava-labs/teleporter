@@ -19,7 +19,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             originalFeeAmount
         );
 
@@ -39,7 +39,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit AddFeeAmount(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             TeleporterFeeInfo({
                 feeTokenAddress: address(_mockFeeAsset),
@@ -47,7 +47,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
             })
         );
         teleporterMessenger.addFeeAmount(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             address(_mockFeeAsset),
             additionalFeeAmount
@@ -55,7 +55,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
 
         // Get the fee info to make sure it is properly updated.
         (address actualFeeAsset, uint256 actualFeeAmount) = teleporterMessenger
-            .getFeeInfo(DEFAULT_DESTINATION_CHAIN_ID, messageID);
+            .getFeeInfo(DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageID);
         assertEq(actualFeeAsset, address(_mockFeeAsset));
         assertEq(actualFeeAmount, totalFeeAmount);
     }
@@ -66,7 +66,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         bytes32 fakeMessageID = bytes32(uint256(13));
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
         teleporterMessenger.addFeeAmount(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             fakeMessageID,
             address(_mockFeeAsset),
             additionalFeeAmount
@@ -77,7 +77,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             originalFeeAmount
         );
 
@@ -91,7 +91,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         });
 
         _receiveTestMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             relayerRewardAddress,
             receipts
@@ -101,7 +101,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         uint256 additionalFeeAmount = 131313;
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
         teleporterMessenger.addFeeAmount(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             address(_mockFeeAsset),
             additionalFeeAmount
@@ -112,7 +112,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             originalFeeAmount
         );
 
@@ -122,7 +122,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
             _formatTeleporterErrorMessage("zero additional fee amount")
         );
         teleporterMessenger.addFeeAmount(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             address(_mockFeeAsset),
             additionalFeeAmount
@@ -133,7 +133,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             originalFeeAmount
         );
 
@@ -144,7 +144,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
             _formatTeleporterErrorMessage("invalid fee asset contract address")
         );
         teleporterMessenger.addFeeAmount(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             differentFeeAsset,
             additionalFeeAmount
@@ -155,7 +155,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             originalFeeAmount
         );
 
@@ -166,7 +166,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
             _formatTeleporterErrorMessage("zero fee asset contract address")
         );
         teleporterMessenger.addFeeAmount(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             invalidFeeAsset,
             additionalFeeAmount
@@ -177,7 +177,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             originalFeeAmount
         );
 
@@ -209,7 +209,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
 
         teleporterMessenger.addFeeAmount(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             address(_mockFeeAsset),
             additionalFeeAmount

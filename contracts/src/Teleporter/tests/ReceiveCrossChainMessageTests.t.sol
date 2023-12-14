@@ -32,7 +32,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: bytes32(uint256(1)),
             senderAddress: address(this),
-            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,
@@ -40,7 +40,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             message: DEFAULT_MESSAGE_PAYLOAD
         });
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             abi.encode(messageToReceive)
         );
 
@@ -49,7 +49,9 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
+            teleporterMessenger.getReceiptQueueSize(
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID
+            ),
             0
         );
 
@@ -69,20 +71,22 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
+            teleporterMessenger.getReceiptQueueSize(
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID
+            ),
             1
         );
 
         // Check receipt queue contents
         TeleporterMessageReceipt memory receipt = teleporterMessenger
-            .getReceiptAtIndex(DEFAULT_ORIGIN_CHAIN_ID, 0);
+            .getReceiptAtIndex(DEFAULT_ORIGIN_BLOCKCHAIN_ID, 0);
         assertEq(receipt.receivedMessageID, bytes32(uint256(1)));
         assertEq(receipt.relayerRewardAddress, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Receive at a different index
         messageToReceive.messageID = bytes32(uint256(2));
         warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             abi.encode(messageToReceive)
         );
         _setUpSuccessGetVerifiedWarpMessageMock(3, warpMessage);
@@ -103,13 +107,15 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Check receipt queue size
         assertEq(
-            teleporterMessenger.getReceiptQueueSize(DEFAULT_ORIGIN_CHAIN_ID),
+            teleporterMessenger.getReceiptQueueSize(
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID
+            ),
             2
         );
 
         // Check receipt queue contents
         receipt = teleporterMessenger.getReceiptAtIndex(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             1
         );
         assertEq(receipt.receivedMessageID, bytes32(uint256(2)));
@@ -160,7 +166,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             );
 
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             abi.encode(messageToReceive)
         );
         address invalidSenderAddress = 0xb73aD7e0FF026a805D1f1186EAB89E41bf01835D;
@@ -192,7 +198,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             .destinationBlockchainID = invalidDestinationBlockchainID;
 
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             abi.encode(messageToReceive)
         );
 
@@ -239,7 +245,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageID: bytes32(uint256(42)),
             senderAddress: address(this),
-            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: allowedRelayers,
@@ -247,7 +253,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             message: DEFAULT_MESSAGE_PAYLOAD
         });
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             abi.encode(messageToReceive)
         );
 

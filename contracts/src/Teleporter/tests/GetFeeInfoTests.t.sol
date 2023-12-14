@@ -19,13 +19,13 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
         // First submit a message with a fee
         uint256 feeAmount = 1687435413;
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             feeAmount
         );
 
         // Get the fee info to make sure it is correct.
         (address actualFeeAsset, uint256 actualFeeAmount) = teleporterMessenger
-            .getFeeInfo(DEFAULT_DESTINATION_CHAIN_ID, messageID);
+            .getFeeInfo(DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageID);
         assertEq(actualFeeAsset, address(_mockFeeAsset));
         assertEq(actualFeeAmount, feeAmount);
     }
@@ -37,14 +37,14 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
         uint256 tokenTransferFee = 35413;
         _mockFeeAsset.setFeeOnTransferSender(address(this), tokenTransferFee);
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             feeAmount
         );
 
         // Get the fee info to make sure it is correct, including the fee amount being less than
         // the amount specified when submitting the message due to the "fee on token transfer".
         (address actualFeeAsset, uint256 actualFeeAmount) = teleporterMessenger
-            .getFeeInfo(DEFAULT_DESTINATION_CHAIN_ID, messageID);
+            .getFeeInfo(DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageID);
         assertEq(actualFeeAsset, address(_mockFeeAsset));
         assertEq(actualFeeAmount, feeAmount - tokenTransferFee);
     }
@@ -53,7 +53,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
         // First submit a message with a small fee
         uint256 feeAmount = 10;
         bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             feeAmount
         );
 
@@ -66,7 +66,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
             relayerRewardAddress: relayerRewardAddress
         });
         _receiveTestMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
             relayerRewardAddress,
             receipts
@@ -74,7 +74,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
 
         // Now, if we get the fee info for the message it should be reported as zero since the receipt has already been received.
         (address actualFeeAsset, uint256 actualFeeAmount) = teleporterMessenger
-            .getFeeInfo(DEFAULT_DESTINATION_CHAIN_ID, messageID);
+            .getFeeInfo(DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageID);
         assertEq(actualFeeAsset, address(0));
         assertEq(actualFeeAmount, 0);
     }
@@ -84,7 +84,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
 
         // Get the fee info to make sure it is zero since the message doesn't exist.
         (address actualFeeAsset, uint256 actualFeeAmount) = teleporterMessenger
-            .getFeeInfo(DEFAULT_DESTINATION_CHAIN_ID, fakeMessageID);
+            .getFeeInfo(DEFAULT_DESTINATION_BLOCKCHAIN_ID, fakeMessageID);
         assertEq(actualFeeAsset, address(0));
         assertEq(actualFeeAmount, 0);
     }
