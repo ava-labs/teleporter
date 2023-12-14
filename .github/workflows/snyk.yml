@@ -24,7 +24,7 @@ jobs:
           args: --sarif-file-output=snyk.sarif --all-projects --detection-depth=4
 
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
   docker-snyk:
@@ -65,6 +65,6 @@ jobs:
     # TODO: Investigate how to limit the snyk.sarif file to only have a maximum of 20 "runs" so the upload succeeds here.
     # See: https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#validating-your-sarif-file
     # - name: Upload results to GitHub Code Scanning
-    #   uses: github/codeql-action/upload-sarif@v2
+    #   uses: github/codeql-action/upload-sarif@v3
     #   with:
     #     sarif_file: snyk.sarif
