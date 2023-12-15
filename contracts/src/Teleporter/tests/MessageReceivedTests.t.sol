@@ -19,28 +19,13 @@ contract MessageReceivedTest is TeleporterMessengerTest {
         // Mock receiving a message from another subnet.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
         _receiveTestMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
-            1,
-            relayerRewardAddress,
-            new TeleporterMessageReceipt[](0)
+            DEFAULT_DESTINATION_CHAIN_ID, 1, relayerRewardAddress, new TeleporterMessageReceipt[](0)
         );
 
-        assertEq(
-            teleporterMessenger.messageReceived(
-                DEFAULT_DESTINATION_CHAIN_ID,
-                1
-            ),
-            true
-        );
+        assertEq(teleporterMessenger.messageReceived(DEFAULT_DESTINATION_CHAIN_ID, 1), true);
     }
 
     function testUnreceivedMessage() public {
-        assertEq(
-            teleporterMessenger.messageReceived(
-                DEFAULT_DESTINATION_CHAIN_ID,
-                1
-            ),
-            false
-        );
+        assertEq(teleporterMessenger.messageReceived(DEFAULT_DESTINATION_CHAIN_ID, 1), false);
     }
 }

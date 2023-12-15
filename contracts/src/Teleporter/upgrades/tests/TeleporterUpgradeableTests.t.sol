@@ -10,19 +10,15 @@ import {TeleporterRegistryTest} from "./TeleporterRegistryTests.t.sol";
 import {ITeleporterMessenger} from "../../ITeleporterMessenger.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
-    constructor(
-        address teleporterRegistryAddress
-    ) TeleporterUpgradeable(teleporterRegistryAddress) {}
+    constructor(address teleporterRegistryAddress)
+        TeleporterUpgradeable(teleporterRegistryAddress)
+    {}
 
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
     }
 
-    function getTeleporterMessenger()
-        public
-        view
-        returns (ITeleporterMessenger)
-    {
+    function getTeleporterMessenger() public view returns (ITeleporterMessenger) {
         return _getTeleporterMessenger();
     }
 
@@ -39,16 +35,12 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
 contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     ExampleUpgradeableApp public app;
     bytes32 public constant DEFAULT_ORIGIN_CHAIN_ID =
-        bytes32(
-            hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"
-        );
+        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
 
-    address public constant DEFAULT_ORIGIN_ADDRESS =
-        0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    address public constant DEFAULT_ORIGIN_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
 
     event MinTeleporterVersionUpdated(
-        uint256 indexed oldMinTeleporterVersion,
-        uint256 indexed newMinTeleporterVersion
+        uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion
     );
 
     event TeleporterAddressPaused(address indexed teleporterAddress);
@@ -63,9 +55,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
 
     function testInvalidRegistryAddress() public {
         vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "zero teleporter registry address"
-            )
+            _formatTeleporterUpgradeableErrorMessage("zero teleporter registry address")
         );
         new ExampleUpgradeableApp(address(0));
     }
@@ -73,41 +63,25 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     function testOnlyAllowedTeleporter() public {
         assertEq(app.getMinTeleporterVersion(), 1);
 
-        vm.expectRevert(
-            _formatRegistryErrorMessage("protocol address not found")
-        );
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        vm.expectRevert(_formatRegistryErrorMessage("protocol address not found"));
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testSetMinTeleporterVersion() public {
         uint256 latestVersion = teleporterRegistry.latestVersion();
 
         // Check setting for a version > latest version fails
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "invalid Teleporter version"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter version"));
         app.setMinTeleporterVersion(latestVersion + 1);
 
         // Check setting for a version <= min version fails
         uint256 minVersion = app.getMinTeleporterVersion();
         assertEq(minVersion, teleporterRegistry.latestVersion());
         vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "not greater than current minimum version"
-            )
+            _formatTeleporterUpgradeableErrorMessage("not greater than current minimum version")
         );
         app.setMinTeleporterVersion(minVersion);
 
@@ -126,10 +100,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         uint256 newMinTeleporterVersion
     ) internal virtual {
         vm.expectEmit(true, true, true, true, address(app_));
-        emit MinTeleporterVersionUpdated(
-            app_.getMinTeleporterVersion(),
-            newMinTeleporterVersion
-        );
+        emit MinTeleporterVersionUpdated(app_.getMinTeleporterVersion(), newMinTeleporterVersion);
         app_.updateMinTeleporterVersion(newMinTeleporterVersion);
     }
 
@@ -151,9 +122,11 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         app_.unpauseTeleporterAddress(teleporterAddress_);
     }
 
-    function _formatTeleporterUpgradeableErrorMessage(
-        string memory errorMessage
-    ) internal pure returns (bytes memory) {
+    function _formatTeleporterUpgradeableErrorMessage(string memory errorMessage)
+        internal
+        pure
+        returns (bytes memory)
+    {
         return bytes(string.concat("TeleporterUpgradeable: ", errorMessage));
     }
 }

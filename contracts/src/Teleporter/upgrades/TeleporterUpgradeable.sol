@@ -23,8 +23,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     /**
      * @dev A mapping that keeps track of paused Teleporter addresses.
      */
-    mapping(address teleporterAddress => bool paused)
-        private _pausedTeleporterAddresses;
+    mapping(address teleporterAddress => bool paused) private _pausedTeleporterAddresses;
 
     /**
      * @dev The minimum required Teleporter version that the contract is allowed
@@ -36,8 +35,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * @dev Emitted when `minTeleporterVersion` is updated.
      */
     event MinTeleporterVersionUpdated(
-        uint256 indexed oldMinTeleporterVersion,
-        uint256 indexed newMinTeleporterVersion
+        uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion
     );
 
     /**
@@ -77,8 +75,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     ) external {
         // Checks that `msg.sender` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
         require(
-            teleporterRegistry.getVersionFromAddress(msg.sender) >=
-                _minTeleporterVersion,
+            teleporterRegistry.getVersionFromAddress(msg.sender) >= _minTeleporterVersion,
             "TeleporterUpgradeable: invalid Teleporter sender"
         );
 
@@ -88,11 +85,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
             "TeleporterUpgradeable: Teleporter address paused"
         );
 
-        _receiveTeleporterMessage(
-            originBlockchainID,
-            originSenderAddress,
-            message
-        );
+        _receiveTeleporterMessage(originBlockchainID, originSenderAddress, message);
     }
 
     /**
@@ -122,10 +115,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      */
     function pauseTeleporterAddress(address teleporterAddress) public virtual {
         _checkTeleporterUpgradeAccess();
-        require(
-            teleporterAddress != address(0),
-            "TeleporterUpgradeable: zero Teleporter address"
-        );
+        require(teleporterAddress != address(0), "TeleporterUpgradeable: zero Teleporter address");
         require(
             !isTeleporterAddressPaused(teleporterAddress),
             "TeleporterUpgradeable: address already paused"
@@ -146,14 +136,9 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * - `teleporterAddress` is not the zero address.
      * - `teleporterAddress` is already paused.
      */
-    function unpauseTeleporterAddress(
-        address teleporterAddress
-    ) public virtual {
+    function unpauseTeleporterAddress(address teleporterAddress) public virtual {
         _checkTeleporterUpgradeAccess();
-        require(
-            teleporterAddress != address(0),
-            "TeleporterUpgradeable: zero Teleporter address"
-        );
+        require(teleporterAddress != address(0), "TeleporterUpgradeable: zero Teleporter address");
         require(
             isTeleporterAddressPaused(teleporterAddress),
             "TeleporterUpgradeable: address not paused"
@@ -172,9 +157,12 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     /**
      * @dev Checks if a Teleporter address is paused.
      */
-    function isTeleporterAddressPaused(
-        address teleporterAddress
-    ) public view virtual returns (bool) {
+    function isTeleporterAddressPaused(address teleporterAddress)
+        public
+        view
+        virtual
+        returns (bool)
+    {
         return _pausedTeleporterAddresses[teleporterAddress];
     }
 
@@ -192,8 +180,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
         uint256 oldMinTeleporterVersion = _minTeleporterVersion;
 
         require(
-            version <= latestTeleporterVersion,
-            "TeleporterUpgradeable: invalid Teleporter version"
+            version <= latestTeleporterVersion, "TeleporterUpgradeable: invalid Teleporter version"
         );
         require(
             version > oldMinTeleporterVersion,
@@ -229,14 +216,8 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * By default returns the latest Teleporter messenger, but can be overriden to
      * return a Teleporter messenger of a specific version.
      */
-    function _getTeleporterMessenger()
-        internal
-        view
-        virtual
-        returns (ITeleporterMessenger)
-    {
-        ITeleporterMessenger teleporter = teleporterRegistry
-            .getLatestTeleporter();
+    function _getTeleporterMessenger() internal view virtual returns (ITeleporterMessenger) {
+        ITeleporterMessenger teleporter = teleporterRegistry.getLatestTeleporter();
         require(
             !isTeleporterAddressPaused(address(teleporter)),
             "TeleporterUpgradeable: Teleporter sending paused"

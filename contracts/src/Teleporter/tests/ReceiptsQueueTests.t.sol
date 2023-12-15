@@ -14,24 +14,22 @@ contract ReceiptQueueTest is Test {
     // The state of the contract gets reset before each
     // test is run, with the `setUp()` function being called
     // each time after deployment.
+
     ReceiptQueue.TeleporterMessageReceiptQueue private _queue;
 
     // Add 3 elements to the queue.
-    TeleporterMessageReceipt private _receipt1 =
-        TeleporterMessageReceipt({
-            receivedMessageID: 543,
-            relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
-        });
-    TeleporterMessageReceipt private _receipt2 =
-        TeleporterMessageReceipt({
-            receivedMessageID: 684384,
-            relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
-        });
-    TeleporterMessageReceipt private _receipt3 =
-        TeleporterMessageReceipt({
-            receivedMessageID: 654351,
-            relayerRewardAddress: 0xcC8E718045817AebA89592C72Ae1C9917f5D0894
-        });
+    TeleporterMessageReceipt private _receipt1 = TeleporterMessageReceipt({
+        receivedMessageID: 543,
+        relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
+    });
+    TeleporterMessageReceipt private _receipt2 = TeleporterMessageReceipt({
+        receivedMessageID: 684384,
+        relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
+    });
+    TeleporterMessageReceipt private _receipt3 = TeleporterMessageReceipt({
+        receivedMessageID: 654351,
+        relayerRewardAddress: 0xcC8E718045817AebA89592C72Ae1C9917f5D0894
+    });
 
     function testEnqueueDequeueSuccess() public {
         // Check the initial size is zero.
@@ -117,9 +115,11 @@ contract ReceiptQueueTest is Test {
         assertEq(result.relayerRewardAddress, address(0));
     }
 
-    function _formatReceiptQueueErrorMessage(
-        string memory errorMessage
-    ) private pure returns (bytes memory) {
+    function _formatReceiptQueueErrorMessage(string memory errorMessage)
+        private
+        pure
+        returns (bytes memory)
+    {
         return bytes(string.concat("ReceiptQueue: ", errorMessage));
     }
 }
