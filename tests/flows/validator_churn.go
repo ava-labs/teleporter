@@ -6,7 +6,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -93,7 +92,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt = utils.SendTransactionAndWaitForAcceptance(ctx, subnetBInfo, signedTx, false)
+	utils.SendTransactionAndWaitForFailure(ctx, subnetBInfo, signedTx)
 
 	// Verify the message was not delivered
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
@@ -114,9 +113,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err = bind.WaitMined(ctx, subnetAInfo.RPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	receipt = utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
 
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 

@@ -250,7 +250,7 @@ func (n *localNetwork) deployTeleporterContracts(
 			fundDeployerTx := utils.CreateNativeTransferTransaction(
 				ctx, subnetInfo, fundedKey, deployerAddress, fundAmount,
 			)
-			utils.SendTransactionAndWaitForAcceptance(ctx, subnetInfo, fundDeployerTx, true)
+			utils.SendTransactionAndWaitForSuccess(ctx, subnetInfo, fundDeployerTx)
 		}
 		log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
 
@@ -310,9 +310,8 @@ func (n *localNetwork) deployTeleporterRegistryContracts(
 
 		n.subnetsInfo[subnetInfo.SubnetID].TeleporterRegistryAddress = teleporterRegistryAddress
 		// Wait for the transaction to be mined
-		receipt, err := bind.WaitMined(ctx, subnetInfo.RPCClient, tx)
-		Expect(err).Should(BeNil())
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+		utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+
 		log.Info("Deployed TeleporterRegistry contract to subnet", subnetInfo.SubnetID.Hex(),
 			"Deploy address", teleporterRegistryAddress.Hex())
 	}
@@ -351,7 +350,8 @@ func (n *localNetwork) RelayMessage(ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
-	expectSuccess bool) *types.Receipt {
+	expectSuccess bool,
+) *types.Receipt {
 	// Fetch the Teleporter message from the logs
 	sendEvent, err :=
 		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
@@ -370,11 +370,11 @@ func (n *localNetwork) RelayMessage(ctx context.Context,
 	)
 
 	log.Info("Sending transaction to destination chain")
-	receipt := utils.SendTransactionAndWaitForAcceptance(ctx, destination, signedTx, expectSuccess)
-
 	if !expectSuccess {
-		return nil
+		return utils.SendTransactionAndWaitForFailure(ctx, destination, signedTx)
 	}
+
+	receipt := utils.SendTransactionAndWaitForSuccess(ctx, destination, signedTx)
 
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
 	receiveEvent, err :=
