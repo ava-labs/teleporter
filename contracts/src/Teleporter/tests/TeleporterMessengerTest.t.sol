@@ -106,6 +106,16 @@ contract TeleporterMessengerTest is Test {
      * TEST UTILS / HELPERS
      */
 
+    function _createMessageID(uint256 messageNonce) internal view returns (bytes32) {
+        return sha256(
+            abi.encode(
+                address(teleporterMessenger),
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                messageNonce
+            )
+        );
+    }
+
     function _sendTestMessageWithFee(
         bytes32 blockchainID,
         uint256 feeAmount
@@ -205,7 +215,7 @@ contract TeleporterMessengerTest is Test {
         // Construct the test message to be received. By default, the destination
         // address will be the DEFAULT_DESTINATION_ADDRESS.
         TeleporterMessage memory messageToReceive =
-            _createMockTeleporterMessage(bytes32(uint256(9)), messageData);
+            _createMockTeleporterMessage(_createMessageID(9), messageData);
         WarpMessage memory warpMessage =
             _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
 

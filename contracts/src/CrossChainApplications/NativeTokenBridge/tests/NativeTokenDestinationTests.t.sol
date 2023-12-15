@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {Test} from "forge-std/Test.sol";
+import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {
     NativeTokenDestination,
     IERC20,
@@ -18,23 +18,7 @@ import {
 import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 
-contract NativeTokenDestinationTest is Test {
-    address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
-        0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
-    address public constant WARP_PRECOMPILE_ADDRESS =
-        address(0x0200000000000000000000000000000000000005);
-    address public constant NATIVE_MINTER_PRECOMPILE_ADDRESS =
-        address(0x0200000000000000000000000000000000000001);
-    bytes32 private constant _MOCK_BLOCKCHAIN_ID = bytes32(uint256(123456));
-    bytes32 private constant _DEFAULT_OTHER_CHAIN_ID =
-        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-    address private constant _DEFAULT_OTHER_BRIDGE_ADDRESS =
-        0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
-    uint256 private constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1000000000;
-    address private constant _DEFAULT_RECIPIENT = 0xa4CEE7d1aF6aDdDD33E3b1cC680AB84fdf1b6d1d;
-    uint256 private constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
-    uint256 private constant _DEFAULT_FEE_AMOUNT = 123456;
-
+contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     NativeTokenDestination public nativeTokenDestination;
     UnitTestMockERC20 public mockERC20;
 
@@ -62,7 +46,7 @@ contract NativeTokenDestinationTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
-            abi.encode(bytes32(uint256(1)))
+            abi.encode(_createMessageID(1))
         );
 
         vm.expectCall(
@@ -112,7 +96,7 @@ contract NativeTokenDestinationTest is Test {
             sender: address(this),
             recipient: _DEFAULT_RECIPIENT,
             amount: _DEFAULT_TRANSFER_AMOUNT,
-            teleporterMessageID: bytes32(uint256(1))
+            teleporterMessageID: _createMessageID(1)
         });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
@@ -198,7 +182,7 @@ contract NativeTokenDestinationTest is Test {
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit ReportTotalBurnedTxFees({
             burnAddressBalance: burnedFees,
-            teleporterMessageID: bytes32(uint256(1))
+            teleporterMessageID: _createMessageID(1)
         });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({

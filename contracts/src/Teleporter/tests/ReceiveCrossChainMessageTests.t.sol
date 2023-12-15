@@ -36,7 +36,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: bytes32(uint256(1)),
+            messageID: _createMessageID(1),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
@@ -71,7 +71,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Check receipt queue contents
         TeleporterMessageReceipt memory receipt =
             teleporterMessenger.getReceiptAtIndex(DEFAULT_ORIGIN_BLOCKCHAIN_ID, 0);
-        assertEq(receipt.receivedMessageID, bytes32(uint256(1)));
+        assertEq(receipt.receivedMessageID, _createMessageID(1));
         assertEq(receipt.relayerRewardAddress, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Receive at a different index
@@ -133,7 +133,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
     function testInvalidOriginSenderAddress() public {
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive =
-            _createMockTeleporterMessage(bytes32(uint256(1)), new bytes(0));
+            _createMockTeleporterMessage(_createMessageID(1), new bytes(0));
 
         WarpMessage memory warpMessage =
             _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
@@ -150,7 +150,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
     function testInvalidDestinationBlockchainID() public {
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive =
-            _createMockTeleporterMessage(bytes32(uint256(1)), new bytes(0));
+            _createMockTeleporterMessage(_createMessageID(1), new bytes(0));
         bytes32 invalidDestinationBlockchainID =
             bytes32(hex"deadbeefcafebabedeadbeefcafebabedeadbeefcafebabedeadbeefcafebabe");
         messageToReceive.destinationBlockchainID = invalidDestinationBlockchainID;

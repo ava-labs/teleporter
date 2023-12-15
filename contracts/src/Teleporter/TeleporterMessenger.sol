@@ -768,8 +768,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     function _calculateNextMessageID() private view returns (bytes32) {
         bytes32 blockchainID_ = blockchainID;
         require(blockchainID_ != bytes32(0), "TeleporterMessenger: blockchainID not set");
-        bytes memory rawBytes = abi.encode(address(this), blockchainID_, messageNonce);
-
-        return sha256(rawBytes);
+        return sha256(abi.encode(address(this), blockchainID_, messageNonce));
     }
 }

@@ -192,7 +192,7 @@ contract ERC20BridgeTest is Test {
                 )
         });
 
-        bytes32 mockMessageID = bytes32(uint256(42));
+        bytes32 mockMessageID = _createMessageID(42);
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
@@ -301,7 +301,7 @@ contract ERC20BridgeTest is Test {
             abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, feeAmount))
         );
 
-        bytes32 mockMessageID = bytes32(uint256(42));
+        bytes32 mockMessageID = _createMessageID(42);
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
@@ -378,7 +378,7 @@ contract ERC20BridgeTest is Test {
             abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, bridgeFeeAmount))
         );
 
-        bytes32 mockMessageID = bytes32(uint256(42));
+        bytes32 mockMessageID = _createMessageID(42);
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
@@ -586,7 +586,7 @@ contract ERC20BridgeTest is Test {
                 )
         });
 
-        bytes32 mockMessageID = bytes32(uint256(456));
+        bytes32 mockMessageID = _createMessageID(456);
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
@@ -666,5 +666,15 @@ contract ERC20BridgeTest is Test {
         returns (bytes memory)
     {
         return bytes(string.concat("ERC20Bridge: ", errorMessage));
+    }
+
+    function _createMessageID(uint256 messageNonce) private view returns (bytes32) {
+        return sha256(
+            abi.encode(
+                MOCK_TELEPORTER_MESSENGER_ADDRESS,
+                _MOCK_BLOCKCHAIN_ID,
+                messageNonce
+            )
+        );
     }
 }
