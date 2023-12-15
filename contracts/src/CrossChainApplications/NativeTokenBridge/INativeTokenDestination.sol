@@ -35,10 +35,7 @@ interface INativeTokenDestination {
     /**
      * @dev Emitted when reporting total burned tx fees to source chain.
      */
-    event ReportTotalBurnedTxFees(
-        bytes32 indexed teleporterMessageID,
-        uint256 burnAddressBalance
-    );
+    event ReportTotalBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 burnAddressBalance);
 
     /**
      * @dev Burns native tokens on the destination contract chain, and sends a message to the source

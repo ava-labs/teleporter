@@ -123,10 +123,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         });
 
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
-        teleporterMessenger.retryMessageExecution(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            fakeMessage
-        );
+        teleporterMessenger.retryMessageExecution(DEFAULT_ORIGIN_BLOCKCHAIN_ID, fakeMessage);
     }
 
     function testInvalidMessageHash() public {
@@ -203,10 +200,8 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             receipts: new TeleporterMessageReceipt[](0),
             message: abi.encode(action, abi.encode(messageString))
         });
-        WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            abi.encode(messageToReceive)
-        );
+        WarpMessage memory warpMessage =
+            _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
 
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
@@ -216,9 +211,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         vm.roll(12);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit MessageExecutionFailed(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            messageToReceive.messageID,
-            messageToReceive
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageID, messageToReceive
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
@@ -237,15 +230,13 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         assertEq(destinationContract.latestMessageSenderAddress(), address(0));
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-                messageToReceive.messageID
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageID
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
         assertTrue(
             teleporterMessenger.messageReceived(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-                messageToReceive.messageID
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageID
             )
         );
 

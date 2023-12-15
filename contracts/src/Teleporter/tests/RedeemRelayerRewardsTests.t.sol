@@ -100,27 +100,20 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     // receiving back a message with receipt of that message such that the relayer
     // is able to redeem the reward.
     function _setUpRelayerRewards(FeeRewardInfo memory feeRewardInfo) private {
-        bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            feeRewardInfo.feeAmount
-        );
+        bytes32 messageID =
+            _sendTestMessageWithFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, feeRewardInfo.feeAmount);
 
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
             receivedMessageID: messageID,
             relayerRewardAddress: feeRewardInfo.relayerRewardAddress
         });
-        TeleporterMessage
-            memory messageToReceive = _createMockTeleporterMessage(
-                bytes32(uint256(1)),
-                new bytes(0)
-            );
+        TeleporterMessage memory messageToReceive =
+            _createMockTeleporterMessage(bytes32(uint256(1)), new bytes(0));
 
         messageToReceive.receipts = receipts;
-        WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            abi.encode(messageToReceive)
-        );
+        WarpMessage memory warpMessage =
+            _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
 
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
@@ -147,16 +140,12 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-                bytes32(uint256(1))
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID, bytes32(uint256(1))
             ),
             expectedRelayerRewardAddress
         );
         assertTrue(
-            teleporterMessenger.messageReceived(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-                bytes32(uint256(1))
-            )
+            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_BLOCKCHAIN_ID, bytes32(uint256(1)))
         );
     }
 }

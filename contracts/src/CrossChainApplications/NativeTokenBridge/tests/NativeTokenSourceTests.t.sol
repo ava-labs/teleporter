@@ -52,9 +52,7 @@ contract NativeTokenSourceTest is Test {
         );
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            abi.encodeWithSelector(
-                ITeleporterMessenger.sendCrossChainMessage.selector
-            ),
+            abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
             abi.encode(bytes32(uint256(1)))
         );
 
@@ -86,36 +84,10 @@ contract NativeTokenSourceTest is Test {
             teleporterMessageID: bytes32(uint256(1))
         });
 
-        TeleporterMessageInput
-            memory expectedMessageInput = TeleporterMessageInput({
-                destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
-                destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: address(mockERC20),
-                    amount: _DEFAULT_FEE_AMOUNT
-                }),
-                requiredGasLimit: nativeTokenSource
-                    .MINT_NATIVE_TOKENS_REQUIRED_GAS(),
-                allowedRelayerAddresses: new address[](0),
-                message: abi.encode(
-                    _DEFAULT_RECIPIENT,
-                    _DEFAULT_TRANSFER_AMOUNT
-                )
-            });
-
-        vm.expectCall(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            abi.encodeCall(
-                ITeleporterMessenger.sendCrossChainMessage,
-                (expectedMessageInput)
-            )
-        );
-
-        nativeTokenSource.transferToDestination{
-            value: _DEFAULT_TRANSFER_AMOUNT
-        }(
-            _DEFAULT_RECIPIENT,
-            TeleporterFeeInfo({
+        TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
+            destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
+            destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            feeInfo: TeleporterFeeInfo({
                 feeTokenAddress: address(mockERC20),
                 amount: _DEFAULT_FEE_AMOUNT
             }),
@@ -123,6 +95,17 @@ contract NativeTokenSourceTest is Test {
             allowedRelayerAddresses: new address[](0),
             message: abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
         });
+
+        vm.expectCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
+        );
+
+        nativeTokenSource.transferToDestination{value: _DEFAULT_TRANSFER_AMOUNT}(
+            _DEFAULT_RECIPIENT,
+            TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
+            new address[](0)
+        );
 
         vm.expectCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -183,10 +166,7 @@ contract NativeTokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(
-            burnedTxFees,
-            nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
-        );
+        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(
@@ -196,10 +176,7 @@ contract NativeTokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(
-            burnedTxFees,
-            nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
-        );
+        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
 
         emit BurnTokens(additionalTxFees);
 
@@ -210,13 +187,9 @@ contract NativeTokenSourceTest is Test {
             abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees + additionalTxFees))
         );
 
+        assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.destinationBurnedTotal());
         assertEq(
-            burnedTxFees + additionalTxFees,
-            nativeTokenSource.destinationBurnedTotal()
-        );
-        assertEq(
-            burnedTxFees + additionalTxFees,
-            nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
+            burnedTxFees + additionalTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
         );
     }
 
@@ -328,9 +301,7 @@ contract NativeTokenSourceTest is Test {
     }
 
     function testInsufficientCollateral() public {
-        vm.expectRevert(
-            _formatNativeTokenSourceErrorMessage("insufficient collateral")
-        );
+        vm.expectRevert(_formatNativeTokenSourceErrorMessage("insufficient collateral"));
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(

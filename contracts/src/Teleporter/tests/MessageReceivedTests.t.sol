@@ -27,8 +27,7 @@ contract MessageReceivedTest is TeleporterMessengerTest {
 
         assertEq(
             teleporterMessenger.messageReceived(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                bytes32(uint256(1))
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID, bytes32(uint256(1))
             ),
             true
         );
@@ -37,8 +36,7 @@ contract MessageReceivedTest is TeleporterMessengerTest {
     function testUnreceivedMessage() public {
         assertEq(
             teleporterMessenger.messageReceived(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                bytes32(uint256(1))
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID, bytes32(uint256(1))
             ),
             false
         );

@@ -18,21 +18,18 @@ contract ReceiptQueueTest is Test {
     ReceiptQueue.TeleporterMessageReceiptQueue private _queue;
 
     // Add 3 elements to the queue.
-    TeleporterMessageReceipt private _receipt1 =
-        TeleporterMessageReceipt({
-            receivedMessageID: bytes32(uint256(543)),
-            relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
-        });
-    TeleporterMessageReceipt private _receipt2 =
-        TeleporterMessageReceipt({
-            receivedMessageID: bytes32(uint256(684384)),
-            relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
-        });
-    TeleporterMessageReceipt private _receipt3 =
-        TeleporterMessageReceipt({
-            receivedMessageID: bytes32(uint256(654351)),
-            relayerRewardAddress: 0xcC8E718045817AebA89592C72Ae1C9917f5D0894
-        });
+    TeleporterMessageReceipt private _receipt1 = TeleporterMessageReceipt({
+        receivedMessageID: bytes32(uint256(543)),
+        relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
+    });
+    TeleporterMessageReceipt private _receipt2 = TeleporterMessageReceipt({
+        receivedMessageID: bytes32(uint256(684384)),
+        relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
+    });
+    TeleporterMessageReceipt private _receipt3 = TeleporterMessageReceipt({
+        receivedMessageID: bytes32(uint256(654351)),
+        relayerRewardAddress: 0xcC8E718045817AebA89592C72Ae1C9917f5D0894
+    });
 
     function testEnqueueDequeueSuccess() public {
         // Check the initial size is zero.

@@ -52,9 +52,7 @@ contract ERC20TokenSourceTest is Test {
         );
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            abi.encodeWithSelector(
-                ITeleporterMessenger.sendCrossChainMessage.selector
-            ),
+            abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
             abi.encode(bytes32(uint256(1)))
         );
 
@@ -87,22 +85,17 @@ contract ERC20TokenSourceTest is Test {
             teleporterMessageID: bytes32(uint256(1))
         });
 
-        TeleporterMessageInput
-            memory expectedMessageInput = TeleporterMessageInput({
-                destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
-                destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: address(mockERC20),
-                    amount: _DEFAULT_FEE_AMOUNT
-                }),
-                requiredGasLimit: erc20TokenSource
-                    .MINT_NATIVE_TOKENS_REQUIRED_GAS(),
-                allowedRelayerAddresses: new address[](0),
-                message: abi.encode(
-                    _DEFAULT_RECIPIENT,
-                    _DEFAULT_TRANSFER_AMOUNT
-                )
-            });
+        TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
+            destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
+            destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(mockERC20),
+                amount: _DEFAULT_FEE_AMOUNT
+            }),
+            requiredGasLimit: erc20TokenSource.MINT_NATIVE_TOKENS_REQUIRED_GAS(),
+            allowedRelayerAddresses: new address[](0),
+            message: abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+        });
 
         vm.expectCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -139,10 +132,7 @@ contract ERC20TokenSourceTest is Test {
             )
         );
 
-        assertEq(
-            _DEFAULT_TRANSFER_AMOUNT,
-            mockERC20.balanceOf(_DEFAULT_RECIPIENT)
-        );
+        assertEq(_DEFAULT_TRANSFER_AMOUNT, mockERC20.balanceOf(_DEFAULT_RECIPIENT));
     }
 
     function testBurnedTxFees() public {
@@ -169,10 +159,7 @@ contract ERC20TokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees, erc20TokenSource.destinationBurnedTotal());
-        assertEq(
-            burnedTxFees,
-            mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS())
-        );
+        assertEq(burnedTxFees, mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS()));
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         erc20TokenSource.receiveTeleporterMessage(
@@ -182,10 +169,7 @@ contract ERC20TokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees, erc20TokenSource.destinationBurnedTotal());
-        assertEq(
-            burnedTxFees,
-            mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS())
-        );
+        assertEq(burnedTxFees, mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS()));
 
         emit BurnTokens(additionalTxFees);
 
@@ -196,10 +180,7 @@ contract ERC20TokenSourceTest is Test {
             abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees + additionalTxFees))
         );
 
-        assertEq(
-            burnedTxFees + additionalTxFees,
-            erc20TokenSource.destinationBurnedTotal()
-        );
+        assertEq(burnedTxFees + additionalTxFees, erc20TokenSource.destinationBurnedTotal());
         assertEq(
             burnedTxFees + additionalTxFees,
             mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS())
@@ -251,9 +232,7 @@ contract ERC20TokenSourceTest is Test {
     }
 
     function testZeroERC20ContractAddress() public {
-        vm.expectRevert(
-            _formatERC20TokenSourceErrorMessage("zero ERC20 contract address")
-        );
+        vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero ERC20 contract address"));
 
         new ERC20TokenSource(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,

@@ -25,10 +25,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
     function testSendMessageNoFee() public {
         // Arrange
         TeleporterMessage memory expectedMessage = _createMockTeleporterMessage(
-            teleporterMessenger.getNextMessageID(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID
-            ),
-            hex"deadbeef"
+            teleporterMessenger.getNextMessageID(), hex"deadbeef"
         );
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
@@ -75,15 +72,10 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // Arrange
         // Construct the message to submit.
         TeleporterMessage memory expectedMessage = _createMockTeleporterMessage(
-            teleporterMessenger.getNextMessageID(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID
-            ),
-            hex"deadbeef"
+            teleporterMessenger.getNextMessageID(), hex"deadbeef"
         );
-        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(
-            address(_mockFeeAsset),
-            13131313131313131313
-        );
+        TeleporterFeeInfo memory feeInfo =
+            TeleporterFeeInfo(address(_mockFeeAsset), 13131313131313131313);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: expectedMessage.destinationAddress,

@@ -8,6 +8,7 @@ pragma solidity 0.8.18;
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterRegistryTest} from "./TeleporterRegistryTests.t.sol";
 import {ITeleporterMessenger} from "../../ITeleporterMessenger.sol";
+import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
     constructor(address teleporterRegistryAddress)
@@ -35,9 +36,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
 contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     ExampleUpgradeableApp public app;
     bytes32 public constant DEFAULT_ORIGIN_BLOCKCHAIN_ID =
-        bytes32(
-            hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"
-        );
+        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
 
     address public constant DEFAULT_ORIGIN_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
 
@@ -65,32 +64,18 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     function testOnlyAllowedTeleporter() public {
         assertEq(app.getMinTeleporterVersion(), 1);
 
-        vm.expectRevert(
-            _formatRegistryErrorMessage("protocol address not found")
-        );
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        vm.expectRevert(_formatRegistryErrorMessage("protocol address not found"));
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testUpdateMinTeleporterVersion() public {
         // First check that calling with initial teleporter address works
         assertEq(app.getMinTeleporterVersion(), 1);
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Now add new protocol version to registry and update the app's min version
         address newTeleporterAddress = address(new TeleporterMessenger());
@@ -103,25 +88,13 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "invalid Teleporter sender"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter sender"));
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Check that calling with the new teleporter address works
         vm.prank(newTeleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testSetMinTeleporterVersion() public {

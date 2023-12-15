@@ -21,10 +21,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
     function testSuccess() public {
         // Send a message
-        bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            654456
-        );
+        bytes32 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 654456);
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: address(this),
@@ -38,8 +35,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
         // Retry it
         teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            expectedMessage
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, expectedMessage
         );
     }
 
@@ -56,17 +52,13 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         });
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
         teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            fakeMessage
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, fakeMessage
         );
     }
 
     function testInvalidMessageHash() public {
         // Send a message, then try to alter it's contents.
-        bytes32 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            654456
-        );
+        bytes32 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 654456);
         TeleporterMessage memory alteredMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: address(this),
@@ -81,8 +73,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         // Retry it - should fail.
         vm.expectRevert(_formatTeleporterErrorMessage("invalid message hash"));
         teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            alteredMessage
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, alteredMessage
         );
     }
 }

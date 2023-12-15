@@ -46,10 +46,7 @@ contract NativeTokenDestinationTest is Test {
     );
     event CollateralAdded(uint256 amount, uint256 remaining);
     event NativeTokensMinted(address indexed recipient, uint256 amount);
-    event ReportTotalBurnedTxFees(
-        bytes32 indexed teleporterMessageID,
-        uint256 burnAddressBalance
-    );
+    event ReportTotalBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 burnAddressBalance);
 
     function setUp() public virtual {
         vm.mockCall(
@@ -64,9 +61,7 @@ contract NativeTokenDestinationTest is Test {
         );
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            abi.encodeWithSelector(
-                ITeleporterMessenger.sendCrossChainMessage.selector
-            ),
+            abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
             abi.encode(bytes32(uint256(1)))
         );
 
@@ -150,10 +145,7 @@ contract NativeTokenDestinationTest is Test {
     function testCollateralizeBridge() public {
         uint256 firstTransfer = _DEFAULT_INITIAL_RESERVE_IMBALANCE / 4;
 
-        assertEq(
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            nativeTokenDestination.totalSupply()
-        );
+        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE, nativeTokenDestination.totalSupply());
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
@@ -172,10 +164,7 @@ contract NativeTokenDestinationTest is Test {
             _DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer,
             nativeTokenDestination.currentReserveImbalance()
         );
-        assertEq(
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            nativeTokenDestination.totalSupply()
-        );
+        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE, nativeTokenDestination.totalSupply());
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
@@ -199,8 +188,7 @@ contract NativeTokenDestinationTest is Test {
 
         assertEq(0, nativeTokenDestination.currentReserveImbalance());
         assertEq(
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE + firstTransfer,
-            nativeTokenDestination.totalSupply()
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE + firstTransfer, nativeTokenDestination.totalSupply()
         );
     }
 

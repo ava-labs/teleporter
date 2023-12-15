@@ -77,9 +77,7 @@ interface ITeleporterMessenger {
      * but message execution fails. Failed messages can then be retried with `retryMessageExecution`
      */
     event MessageExecutionFailed(
-        bytes32 indexed originBlockchainID,
-        bytes32 indexed messageID,
-        TeleporterMessage message
+        bytes32 indexed originBlockchainID, bytes32 indexed messageID, TeleporterMessage message
     );
 
     /**
@@ -89,10 +87,7 @@ interface ITeleporterMessenger {
      *
      * Each message received can be executed successfully at most once.
      */
-    event MessageExecuted(
-        bytes32 indexed originBlockchainID,
-        bytes32 indexed messageID
-    );
+    event MessageExecuted(bytes32 indexed originBlockchainID, bytes32 indexed messageID);
 
     /**
      * @dev Emitted when a TeleporterMessage is successfully received.
@@ -114,9 +109,9 @@ interface ITeleporterMessenger {
      * @dev Called by transactions to initiate the sending of a cross-chain message.
      * @return The message ID of the newly sent message.
      */
-    function sendCrossChainMessage(
-        TeleporterMessageInput calldata messageInput
-    ) external returns (bytes32);
+    function sendCrossChainMessage(TeleporterMessageInput calldata messageInput)
+        external
+        returns (bytes32);
 
     /**
      * @dev Called by transactions to retry the sending of a cross-chain message.
@@ -236,12 +231,10 @@ interface ITeleporterMessenger {
     ) external view returns (address, uint256);
 
     /**
-     * @dev Gets the next message ID to be used for a given chain ID.
-     * @return The next message ID to be used to send a message to the given chain ID.
+     * @dev Gets the next message ID to be used for a message sent from the contract instance.
+     * @return The next message ID to be used for a message sent from the contract instance.
      */
-    function getNextMessageID(
-        bytes32 destinationBlockchainID
-    ) external view returns (bytes32);
+    function getNextMessageID() external view returns (bytes32);
 
     /**
      * @dev Gets the number of receipts that are waiting to be sent to the given origin chain ID.
