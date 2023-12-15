@@ -54,8 +54,11 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
 
         // Now that we have "received" 3 mock messages, when we send a message back to the
         // other chain, we should expect to see the 3 receipts included in the message metadata.
+        bytes32 expectedMessageID = teleporterMessenger.getNextMessageID(
+            blockchainID
+        );
         TeleporterMessage memory expectedMessage = _createMockTeleporterMessage(
-            bytes32(uint256(1)),
+            expectedMessageID,
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceipts;
@@ -73,7 +76,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
+            abi.encode(expectedMessageID)
         );
 
         // Expect the exact message to be passed to the precompile.
@@ -98,9 +101,12 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         teleporterMessenger.sendCrossChainMessage(messageInput);
 
         // Submit another message to be sent to check that it does not contain any more receipts.
+        bytes32 nextExpectedMessageID = teleporterMessenger.getNextMessageID(
+            blockchainID
+        );
         TeleporterMessage
             memory nextExpectedMessage = _createMockTeleporterMessage(
-                bytes32(uint256(2)),
+                nextExpectedMessageID,
                 hex"deadbeef"
             );
         nextExpectedMessage.destinationBlockchainID = blockchainID;
@@ -187,8 +193,11 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         // Now that we have "received" 7 mock messages, when we send a message back to the
         // other chain, we should expect to see the 5 receipts included in the message metadata because
         // that is the max receipt batch size limit.
+        bytes32 expectedMessageID = teleporterMessenger.getNextMessageID(
+            blockchainID
+        );
         TeleporterMessage memory expectedMessage = _createMockTeleporterMessage(
-            bytes32(uint256(1)),
+            expectedMessageID,
             hex"deadbeef"
         );
         expectedMessage.receipts = expectedReceiptsBatch1;
@@ -231,9 +240,12 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         teleporterMessenger.sendCrossChainMessage(messageInput);
 
         // Submit another message to be sent to check that it contains the remaining 2 receipts to be sent.
+        bytes32 nextExpectedMessageID = teleporterMessenger.getNextMessageID(
+            blockchainID
+        );
         TeleporterMessage
             memory nextExpectedMessage = _createMockTeleporterMessage(
-                bytes32(uint256(2)),
+                nextExpectedMessageID,
                 hex"deadbeef"
             );
         nextExpectedMessage.receipts = expectedReceiptsBatch2;

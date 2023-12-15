@@ -36,13 +36,13 @@ contract NativeTokenDestinationTest is Test {
     event TransferToSource(
         address indexed sender,
         address indexed recipient,
-        uint256 indexed teleporterMessageID,
+        bytes32 indexed teleporterMessageID,
         uint256 amount
     );
     event CollateralAdded(uint256 amount, uint256 remaining);
     event NativeTokensMinted(address indexed recipient, uint256 amount);
     event ReportTotalBurnedTxFees(
-        uint256 indexed teleporterMessageID,
+        bytes32 indexed teleporterMessageID,
         uint256 burnAddressBalance
     );
 
@@ -62,7 +62,7 @@ contract NativeTokenDestinationTest is Test {
             abi.encodeWithSelector(
                 ITeleporterMessenger.sendCrossChainMessage.selector
             ),
-            abi.encode(1)
+            abi.encode(bytes32(uint256(1)))
         );
 
         vm.expectCall(
@@ -121,7 +121,7 @@ contract NativeTokenDestinationTest is Test {
             sender: address(this),
             recipient: _DEFAULT_RECIPIENT,
             amount: _DEFAULT_TRANSFER_AMOUNT,
-            teleporterMessageID: 1
+            teleporterMessageID: bytes32(uint256(1))
         });
 
         TeleporterMessageInput
@@ -164,7 +164,10 @@ contract NativeTokenDestinationTest is Test {
     function testCollateralizeBridge() public {
         uint256 firstTransfer = _DEFAULT_INITIAL_RESERVE_IMBALANCE / 4;
 
-        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE, nativeTokenDestination.totalSupply());
+        assertEq(
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            nativeTokenDestination.totalSupply()
+        );
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
@@ -179,8 +182,14 @@ contract NativeTokenDestinationTest is Test {
             abi.encode(_DEFAULT_RECIPIENT, firstTransfer)
         );
 
-        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer, nativeTokenDestination.currentReserveImbalance());
-        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE, nativeTokenDestination.totalSupply());
+        assertEq(
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer,
+            nativeTokenDestination.currentReserveImbalance()
+        );
+        assertEq(
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            nativeTokenDestination.totalSupply()
+        );
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
@@ -203,7 +212,10 @@ contract NativeTokenDestinationTest is Test {
         );
 
         assertEq(0, nativeTokenDestination.currentReserveImbalance());
-        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE + firstTransfer, nativeTokenDestination.totalSupply());
+        assertEq(
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE + firstTransfer,
+            nativeTokenDestination.totalSupply()
+        );
     }
 
     function testReportBurnedTxFees() public {
@@ -214,7 +226,7 @@ contract NativeTokenDestinationTest is Test {
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit ReportTotalBurnedTxFees({
             burnAddressBalance: burnedFees,
-            teleporterMessageID: 1
+            teleporterMessageID: bytes32(uint256(1))
         });
 
         TeleporterMessageInput
