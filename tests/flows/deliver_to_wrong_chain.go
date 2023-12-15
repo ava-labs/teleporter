@@ -74,7 +74,7 @@ func DeliverToWrongChain(network interfaces.Network) {
 		// the same message to subnet C.
 		//
 		wrongChainDeliveryTx := createWrongChainDeliveryTransaction(ctx, deliveryTx, fundedKey, fundedAddress, subnetCInfo)
-		utils.SendTransactionAndWaitForAcceptance(ctx, subnetCInfo, wrongChainDeliveryTx, false)
+		utils.SendTransactionAndWaitForFailure(ctx, subnetCInfo, wrongChainDeliveryTx)
 	}
 
 	//

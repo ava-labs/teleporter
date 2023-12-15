@@ -381,9 +381,7 @@ func submitCreateBridgeToken(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, source.RPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	receipt := utils.WaitForTransactionSuccess(ctx, source, tx)
 
 	event, err := utils.GetEventFromLogs(receipt.Logs, teleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
@@ -429,9 +427,7 @@ func bridgeToken(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, source.RPCClient, tx)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	receipt := utils.WaitForTransactionSuccess(ctx, source, tx)
 
 	event, err := utils.GetEventFromLogs(receipt.Logs, teleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
@@ -457,10 +453,8 @@ func approveBridgeToken(
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	txn, err := transactor.Approve(opts, spender, amount)
+	tx, err := transactor.Approve(opts, spender, amount)
 	Expect(err).Should(BeNil())
 
-	receipt, err := bind.WaitMined(ctx, source.RPCClient, txn)
-	Expect(err).Should(BeNil())
-	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
+	utils.WaitForTransactionSuccess(ctx, source, tx)
 }
