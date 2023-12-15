@@ -10,7 +10,10 @@ import (
 
 // Defines the interface for the network setup functions used in the E2E tests
 type Network interface {
-	// Returns all of the subnets support by this network.
+	// Returns information about the primary network
+	GetPrimaryNetworkInfo() SubnetTestInfo
+
+	// Returns all of the subnets support by this network, excluding the primary network
 	GetSubnetsInfo() []SubnetTestInfo
 
 	// Returns the Teleporter contract address for all subnets in this network.

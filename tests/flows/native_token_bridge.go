@@ -46,7 +46,8 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		}
 	)
 
-	sourceSubnet, destSubnet, _ := utils.GetThreeSubnets(network)
+	sourceSubnet := network.GetPrimaryNetworkInfo()
+	destSubnet, _ := utils.GetTwoSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 
 	// Info we need to calculate for the test

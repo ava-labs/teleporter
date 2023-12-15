@@ -688,12 +688,11 @@ func DeployBlockHashReceiver(
 	return address, receiver
 }
 
-func GetThreeSubnets(network interfaces.Network) (
-	interfaces.SubnetTestInfo,
+func GetTwoSubnets(network interfaces.Network) (
 	interfaces.SubnetTestInfo,
 	interfaces.SubnetTestInfo,
 ) {
 	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 3))
-	return subnets[0], subnets[1], subnets[2]
+	Expect(len(subnets)).Should(BeNumerically(">=", 2))
+	return subnets[0], subnets[1]
 }

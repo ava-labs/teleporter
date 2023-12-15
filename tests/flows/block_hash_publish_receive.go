@@ -11,7 +11,8 @@ import (
 )
 
 func BlockHashPublishReceive(network interfaces.Network) {
-	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
