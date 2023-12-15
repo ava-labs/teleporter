@@ -6,7 +6,15 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
-import {NativeTokenDestination, IERC20, ITokenSource, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, ITeleporterMessenger} from "../NativeTokenDestination.sol";
+import {
+    NativeTokenDestination,
+    IERC20,
+    ITokenSource,
+    TeleporterMessageInput,
+    TeleporterFeeInfo,
+    IWarpMessenger,
+    ITeleporterMessenger
+} from "../NativeTokenDestination.sol";
 import {TeleporterRegistry} from "../../../Teleporter/upgrades/TeleporterRegistry.sol";
 import {UnitTestMockERC20} from "../../../Mocks/UnitTestMockERC20.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
@@ -142,10 +150,7 @@ contract NativeTokenDestinationTest is Test {
     function testCollateralizeBridge() public {
         uint256 firstTransfer = _DEFAULT_INITIAL_RESERVE_IMBALANCE / 4;
 
-        assertEq(
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            nativeTokenDestination.totalSupply()
-        );
+        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE, nativeTokenDestination.totalSupply());
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
@@ -164,10 +169,7 @@ contract NativeTokenDestinationTest is Test {
             _DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer,
             nativeTokenDestination.currentReserveImbalance()
         );
-        assertEq(
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            nativeTokenDestination.totalSupply()
-        );
+        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE, nativeTokenDestination.totalSupply());
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
@@ -191,8 +193,7 @@ contract NativeTokenDestinationTest is Test {
 
         assertEq(0, nativeTokenDestination.currentReserveImbalance());
         assertEq(
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE + firstTransfer,
-            nativeTokenDestination.totalSupply()
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE + firstTransfer, nativeTokenDestination.totalSupply()
         );
     }
 
@@ -226,9 +227,7 @@ contract NativeTokenDestinationTest is Test {
     }
 
     function testZeroTeleporterAddress() public {
-        vm.expectRevert(
-            "TeleporterUpgradeable: zero teleporter registry address"
-        );
+        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
 
         new NativeTokenDestination(
             address(0x0),
@@ -364,9 +363,7 @@ contract NativeTokenDestinationTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS)
-                    .latestVersion
-                    .selector
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
             ),
             abi.encode(1)
         );
@@ -382,25 +379,22 @@ contract NativeTokenDestinationTest is Test {
 
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry.getAddressFromVersion.selector,
-                (1)
-            ),
+            abi.encodeWithSelector(TeleporterRegistry.getAddressFromVersion.selector, (1)),
             abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
         );
 
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry.getLatestTeleporter.selector
-            ),
+            abi.encodeWithSelector(TeleporterRegistry.getLatestTeleporter.selector),
             abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
         );
     }
 
-    function _formatNativeTokenDestinationErrorMessage(
-        string memory errorMessage
-    ) private pure returns (bytes memory) {
+    function _formatNativeTokenDestinationErrorMessage(string memory errorMessage)
+        private
+        pure
+        returns (bytes memory)
+    {
         return bytes(string.concat("NativeTokenDestination: ", errorMessage));
     }
 }

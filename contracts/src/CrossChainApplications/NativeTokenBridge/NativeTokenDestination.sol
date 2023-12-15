@@ -11,7 +11,11 @@ import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.so
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
 import {ITokenSource} from "./ITokenSource.sol";
-import {ITeleporterMessenger, TeleporterFeeInfo, TeleporterMessageInput} from "../../Teleporter/ITeleporterMessenger.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterFeeInfo,
+    TeleporterMessageInput
+} from "../../Teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -28,13 +32,11 @@ contract NativeTokenDestination is
     // The address where the burned transaction fees are credited.
     // Defined as BLACKHOLE_ADDRESS at
     // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
-    address public constant BURNED_TX_FEES_ADDRESS =
-        0x0100000000000000000000000000000000000000;
+    address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
     // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" before
     // sending an unlock message to the source chain. Different from the burned tx fee address so
     // they can be tracked separately.
-    address public constant BURN_FOR_TRANSFER_ADDRESS =
-        0x0100000000000000000000000000000000000001;
+    address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000000001;
 
     INativeMinter private immutable _nativeMinter =
         INativeMinter(0x0200000000000000000000000000000000000001);
@@ -88,8 +90,7 @@ contract NativeTokenDestination is
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
         // The recipient cannot be the zero address.
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
 
@@ -139,8 +140,7 @@ contract NativeTokenDestination is
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
 
         uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
@@ -190,24 +190,16 @@ contract NativeTokenDestination is
     ) internal override {
         // Only allow messages from the source chain.
         require(
-            senderBlockchainID == sourceBlockchainID,
-            "NativeTokenDestination: invalid source chain"
+            senderBlockchainID == sourceBlockchainID, "NativeTokenDestination: invalid source chain"
         );
 
         // Only allow the partner contract to send messages.
         require(
-            senderAddress == nativeTokenSourceAddress,
-            "NativeTokenDestination: unauthorized sender"
+            senderAddress == nativeTokenSourceAddress, "NativeTokenDestination: unauthorized sender"
         );
 
-        (address recipient, uint256 amount) = abi.decode(
-            message,
-            (address, uint256)
-        );
-        require(
-            recipient != address(0),
-            "NativeTokenDestination: zero recipient address"
-        );
+        (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
+        require(recipient != address(0), "NativeTokenDestination: zero recipient address");
         require(amount != 0, "NativeTokenDestination: zero transfer value");
 
         // If the contract has not yet been collateralized, we will deduct as many tokens
@@ -216,18 +208,12 @@ contract NativeTokenDestination is
         uint256 adjustedAmount = amount;
         if (currentReserveImbalance > 0) {
             if (amount > currentReserveImbalance) {
-                emit CollateralAdded({
-                    amount: currentReserveImbalance,
-                    remaining: 0
-                });
+                emit CollateralAdded({amount: currentReserveImbalance, remaining: 0});
                 adjustedAmount = amount - currentReserveImbalance;
                 currentReserveImbalance = 0;
             } else {
                 currentReserveImbalance -= amount;
-                emit CollateralAdded({
-                    amount: amount,
-                    remaining: currentReserveImbalance
-                });
+                emit CollateralAdded({amount: amount, remaining: currentReserveImbalance});
                 return;
             }
         }

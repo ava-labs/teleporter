@@ -9,7 +9,11 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {IERC20TokenSource} from "./IERC20TokenSource.sol";
 import {ITokenSource} from "./ITokenSource.sol";
-import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "../../Teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -71,8 +75,7 @@ contract ERC20TokenSource is
         uint256 feeAmount,
         address[] calldata allowedRelayerAddresses
     ) external nonReentrant {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry
-            .getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
 
         // The recipient cannot be the zero address.
         require(recipient != address(0), "ERC20TokenSource: zero recipient address");
@@ -132,22 +135,15 @@ contract ERC20TokenSource is
 
         // Only allow the partner contract to send messages.
         require(
-            senderAddress == nativeTokenDestinationAddress,
-            "ERC20TokenSource: unauthorized sender"
+            senderAddress == nativeTokenDestinationAddress, "ERC20TokenSource: unauthorized sender"
         );
 
         // Decode the payload to recover the action and corresponding function parameters
-        (SourceAction action, bytes memory actionData) = abi.decode(
-            message,
-            (SourceAction, bytes)
-        );
+        (SourceAction action, bytes memory actionData) = abi.decode(message, (SourceAction, bytes));
 
         // Route to the appropriate function.
         if (action == SourceAction.Unlock) {
-            (address recipient, uint256 amount) = abi.decode(
-                actionData,
-                (address, uint256)
-            );
+            (address recipient, uint256 amount) = abi.decode(actionData, (address, uint256));
             _unlockTokens(recipient, amount);
         } else if (action == SourceAction.Burn) {
             uint256 newBurnTotal = abi.decode(actionData, (uint256));
