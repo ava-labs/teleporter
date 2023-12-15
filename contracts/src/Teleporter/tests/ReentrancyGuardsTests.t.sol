@@ -37,38 +37,26 @@ contract ReentrancyGuardsTests is Test {
 
         // We also need to check that we fail if a send function calls a receive function,
         // and then calls send function again
-        bytes memory receiveMsg = abi.encodeCall(
-            SampleMessenger.receiveAndCall,
-            (sendMsg)
-        );
+        bytes memory receiveMsg = abi.encodeCall(SampleMessenger.receiveAndCall, (sendMsg));
         vm.expectRevert("send failed");
         _sampleMessenger.sendAndCall(receiveMsg);
     }
 
     function testRecursiveReceiveFails() public {
         // First we check when a receive function calls another receive function, which should fail.
-        bytes memory receiveMsg = abi.encodeCall(
-            SampleMessenger.receiveMessage,
-            ()
-        );
+        bytes memory receiveMsg = abi.encodeCall(SampleMessenger.receiveMessage, ());
         vm.expectRevert("receive failed");
         _sampleMessenger.receiveAndCall(receiveMsg);
 
         // We also need to check that we fail if a receive function calls a send function,
         // and then calls receive function again
-        bytes memory sendMsg = abi.encodeCall(
-            SampleMessenger.sendAndCall,
-            (receiveMsg)
-        );
+        bytes memory sendMsg = abi.encodeCall(SampleMessenger.sendAndCall, (receiveMsg));
         vm.expectRevert("receive failed");
         _sampleMessenger.receiveAndCall(sendMsg);
     }
 
     function testSendCallsReceiveSuccess() public {
-        bytes memory message = abi.encodeCall(
-            SampleMessenger.receiveMessage,
-            ()
-        );
+        bytes memory message = abi.encodeCall(SampleMessenger.receiveMessage, ());
         _sampleMessenger.sendAndCall(message);
         assertEq(_sampleMessenger.nonce(), 2);
     }
@@ -107,7 +95,7 @@ contract SampleMessenger is ReentrancyGuards {
         nonce++;
         if (message.length > 0) {
             // solhint-disable-next-line avoid-low-level-calls
-            (bool success, ) = address(this).call(message);
+            (bool success,) = address(this).call(message);
             require(success, "send failed");
         }
     }
@@ -125,7 +113,7 @@ contract SampleMessenger is ReentrancyGuards {
         nonce++;
         if (message.length > 0) {
             // solhint-disable-next-line avoid-low-level-calls
-            (bool success, ) = address(this).call(message);
+            (bool success,) = address(this).call(message);
             require(success, "receive failed");
         }
     }

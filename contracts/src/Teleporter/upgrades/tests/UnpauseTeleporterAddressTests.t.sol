@@ -22,17 +22,9 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
 
         // The Teleporter address paused no longer can deliver messages to the app
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "Teleporter address paused"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Add a new Teleporter address to the registry and update minimum version
         address newTeleporterAddress = address(new TeleporterMessenger());
@@ -44,64 +36,34 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
 
         // The previously paused Teleporter address still can not deliver messages to the app
         // because the minimum version is still greater than the Teleporter address version
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "invalid Teleporter sender"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter sender"));
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Check that the new Teleporter address delivers messages fine
         vm.prank(newTeleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testUnpauseTeleporterAddressBasic() public {
         // Check that the teleporterAddress is not paused initially
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
         // Check that teleporterAddress can not deliver messages once paused
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "Teleporter address paused"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Unpause the teleporterAddress and check that it can deliver messages again
         _unpauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testAlreadyUnpausedTeleporterAddress() public {
         // Check unpausing for an address that was never paused
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage("address not paused")
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("address not paused"));
         app.unpauseTeleporterAddress(teleporterAddress);
 
         // Pause the Teleporter address
@@ -111,9 +73,7 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
         _unpauseTeleporterAddressSuccess(app, teleporterAddress);
 
         // Try to unpause the Teleporter address second time should fail
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage("address not paused")
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("address not paused"));
         app.unpauseTeleporterAddress(teleporterAddress);
     }
 
@@ -134,11 +94,7 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
 
         // Check that the new Teleporter address is unpaused
         vm.prank(newTeleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testUnpauseAfterRegister() public {
@@ -158,18 +114,12 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
 
         // Check that the new Teleporter address is unpaused
         vm.prank(newTeleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testUnpauseZeroAddress() public {
         // Check that a zero address can not be paused
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage("zero Teleporter address")
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("zero Teleporter address"));
         app.unpauseTeleporterAddress(address(0));
     }
 }

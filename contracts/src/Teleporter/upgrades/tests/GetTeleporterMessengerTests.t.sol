@@ -24,21 +24,13 @@ contract GetTeleporterMessengerTest is TeleporterUpgradeableTest {
 
     function testGetPausedTeleporterMessenger() public {
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "Teleporter sending paused"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter sending paused"));
         app.getTeleporterMessenger();
     }
 
     function testGetUnpausedTeleporterMessenger() public {
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "Teleporter sending paused"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter sending paused"));
         app.getTeleporterMessenger();
 
         // Unpause the Teleporter address, and now we should getTeleporterMessenger successfully
@@ -48,12 +40,9 @@ contract GetTeleporterMessengerTest is TeleporterUpgradeableTest {
 
     function testGetNewTeleporterMessenger() public {
         // Pause the current latest version of Teleporter
+
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "Teleporter sending paused"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter sending paused"));
         app.getTeleporterMessenger();
 
         // Add a new version of Teleporter, and make sure we can get

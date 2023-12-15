@@ -17,42 +17,23 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         // First check that calling with initial teleporter address works
         assertEq(app.getMinTeleporterVersion(), 1);
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Now add new protocol version to registry and update the app's min version
         address newTeleporterAddress = address(new TeleporterMessenger());
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);
 
-        _updateMinTeleporterVersionSuccess(
-            app,
-            teleporterRegistry.latestVersion()
-        );
+        _updateMinTeleporterVersionSuccess(app, teleporterRegistry.latestVersion());
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "invalid Teleporter sender"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter sender"));
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Check that calling with the new teleporter address works
         vm.prank(newTeleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testUpdateToNonRegisteredVersion() public {
@@ -91,25 +72,13 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         assertEq(app.getMinTeleporterVersion(), skippedVersion);
 
         // Make sure that the old minimum Teleporter version can not deliver messages
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "invalid Teleporter sender"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter sender"));
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Make sure that the new minimum Teleporter version can still deliver messages
         vm.prank(newTeleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testUpdateWithCurrentVersion() public {
@@ -121,9 +90,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
 
         // Try to update to current minimum version, should fail
         vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "not greater than current minimum version"
-            )
+            _formatTeleporterUpgradeableErrorMessage("not greater than current minimum version")
         );
         app.updateMinTeleporterVersion(minTeleporterVersion);
 
@@ -132,11 +99,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
 
         // Check that calling with the teleporter address works
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testUpdateWithGreaterThanLatestVersion() public {
@@ -145,11 +108,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         uint256 minTeleporterVersion = app.getMinTeleporterVersion();
 
         // Try to update to a version greater than the latest version, should fail
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "invalid Teleporter version"
-            )
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter version"));
         app.updateMinTeleporterVersion(latestVersion + 1);
 
         // Check that minimum version is still the same

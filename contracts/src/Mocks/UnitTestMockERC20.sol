@@ -20,11 +20,7 @@ contract UnitTestMockERC20 {
     // The mock allows anyone to call transferFrom to increment the balance of the
     // receipt address. Neither the call or sender need to have sufficient balances to send,
     // we just increment the balance the of the recipient.
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) public returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) public returns (bool) {
         uint256 feeAmount = feeOnTransferSenders[from];
         mockBalances[to] += (amount - feeAmount);
         return true;
@@ -33,10 +29,7 @@ contract UnitTestMockERC20 {
     // The mock allows anyone to call transferFrom to increment the balance of the
     // receipt address. Neither the caller or sender need to have sufficient balances to send,
     // we just increment the balance the of the recipient.
-    function transfer(
-        address to,
-        uint256 amount
-    ) public returns (bool) {
+    function transfer(address to, uint256 amount) public returns (bool) {
         uint256 feeAmount = feeOnTransferSenders[msg.sender];
         mockBalances[to] += (amount - feeAmount);
         return true;
