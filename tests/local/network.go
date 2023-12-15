@@ -460,7 +460,10 @@ func (n *localNetwork) ConstructSignedWarpMessageBytes(
 	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
-		ctx, unsignedWarpMessageID, params.WarpQuorumDenominator,
+		ctx,
+		unsignedWarpMessageID,
+		params.WarpQuorumDenominator,
+		source.SubnetID.String(),
 	)
 	Expect(err).Should(BeNil())
 
