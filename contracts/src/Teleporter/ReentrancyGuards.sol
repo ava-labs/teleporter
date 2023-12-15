@@ -27,10 +27,7 @@ abstract contract ReentrancyGuards {
     // This modifier should be used for messenger sender functions that have external calls and do not want to allow
     // recursive calls with other sender functions.
     modifier senderNonReentrant() {
-        require(
-            _sendEntered == _NOT_ENTERED,
-            "ReentrancyGuards: sender reentrancy"
-        );
+        require(_sendEntered == _NOT_ENTERED, "ReentrancyGuards: sender reentrancy");
         _sendEntered = _ENTERED;
         _;
         _sendEntered = _NOT_ENTERED;
@@ -40,10 +37,7 @@ abstract contract ReentrancyGuards {
     // This modifier should be used for messenger receiver functions that have external calls and do not want to allow
     // recursive calls with other receiver functions.
     modifier receiverNonReentrant() {
-        require(
-            _receiveEntered == _NOT_ENTERED,
-            "ReentrancyGuards: receiver reentrancy"
-        );
+        require(_receiveEntered == _NOT_ENTERED, "ReentrancyGuards: receiver reentrancy");
         _receiveEntered = _ENTERED;
         _;
         _receiveEntered = _NOT_ENTERED;

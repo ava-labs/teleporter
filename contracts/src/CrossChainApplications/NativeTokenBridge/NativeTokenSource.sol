@@ -26,8 +26,7 @@ contract NativeTokenSource is
     // The address where the burned transaction fees are credited.
     // Defined as BLACKHOLE_ADDRESS at
     // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
-    address public constant BURNED_TX_FEES_ADDRESS =
-        0x0100000000000000000000000000000000000000;
+    address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     // Used to keep track of tokens burned through transactions on the destination chain. They can
     // be reported to this contract to burn an equivalent number of tokens on this chain.
@@ -45,9 +44,8 @@ contract NativeTokenSource is
             "NativeTokenSource: zero destination blockchain ID"
         );
         require(
-            destinationBlockchainID_ !=
-                IWarpMessenger(0x0200000000000000000000000000000000000005)
-                    .getBlockchainID(),
+            destinationBlockchainID_
+                != IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID(),
             "NativeTokenSource: cannot bridge with same blockchain"
         );
         destinationBlockchainID = destinationBlockchainID_;
@@ -71,10 +69,7 @@ contract NativeTokenSource is
             .getLatestTeleporter();
 
         // The recipient cannot be the zero address.
-        require(
-            recipient != address(0),
-            "NativeTokenSource: zero recipient address"
-        );
+        require(recipient != address(0), "NativeTokenSource: zero recipient address");
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
@@ -82,13 +77,10 @@ contract NativeTokenSource is
         uint256 adjustedFeeAmount;
         if (feeInfo.amount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeInfo.feeTokenAddress),
-                feeInfo.amount
+                IERC20(feeInfo.feeTokenAddress), feeInfo.amount
             );
             SafeERC20.safeIncreaseAllowance(
-                IERC20(feeInfo.feeTokenAddress),
-                address(teleporterMessenger),
-                adjustedFeeAmount
+                IERC20(feeInfo.feeTokenAddress), address(teleporterMessenger), adjustedFeeAmount
             );
         }
 
@@ -158,14 +150,8 @@ contract NativeTokenSource is
      * @dev Unlocks tokens to recipient.
      */
     function _unlockTokens(address recipient, uint256 amount) private {
-        require(
-            recipient != address(0),
-            "NativeTokenSource: zero recipient address"
-        );
-        require(
-            address(this).balance >= amount,
-            "NativeTokenSource: insufficient collateral"
-        );
+        require(recipient != address(0), "NativeTokenSource: zero recipient address");
+        require(address(this).balance >= amount, "NativeTokenSource: insufficient collateral");
 
         // Transfer to recipient
         emit UnlockTokens(recipient, amount);

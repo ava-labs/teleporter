@@ -55,11 +55,7 @@ interface IERC20Bridge {
     /**
      * @dev Emitted when minting bridge tokens.
      */
-    event MintBridgeTokens(
-        address indexed contractAddress,
-        address recipient,
-        uint256 amount
-    );
+    event MintBridgeTokens(address indexed contractAddress, address recipient, uint256 amount);
 
     /**
      * @dev Transfers ERC20 tokens to another chain.

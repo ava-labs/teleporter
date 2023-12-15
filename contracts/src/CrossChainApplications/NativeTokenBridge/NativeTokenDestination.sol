@@ -57,13 +57,11 @@ contract NativeTokenDestination is
         uint256 initialReserveImbalance_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
         require(
-            sourceBlockchainID_ != bytes32(0),
-            "NativeTokenDestination: zero source blockchain ID"
+            sourceBlockchainID_ != bytes32(0), "NativeTokenDestination: zero source blockchain ID"
         );
         require(
-            sourceBlockchainID_ !=
-                IWarpMessenger(0x0200000000000000000000000000000000000005)
-                    .getBlockchainID(),
+            sourceBlockchainID_
+                != IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID(),
             "NativeTokenDestination: cannot bridge with same blockchain"
         );
         sourceBlockchainID = sourceBlockchainID_;
@@ -75,8 +73,7 @@ contract NativeTokenDestination is
         nativeTokenSourceAddress = nativeTokenSourceAddress_;
 
         require(
-            initialReserveImbalance_ != 0,
-            "NativeTokenDestination: zero initial reserve imbalance"
+            initialReserveImbalance_ != 0, "NativeTokenDestination: zero initial reserve imbalance"
         );
 
         initialReserveImbalance = initialReserveImbalance_;
@@ -94,14 +91,10 @@ contract NativeTokenDestination is
         ITeleporterMessenger teleporterMessenger = teleporterRegistry
             .getLatestTeleporter();
         // The recipient cannot be the zero address.
-        require(
-            recipient != address(0),
-            "NativeTokenDestination: zero recipient address"
-        );
+        require(recipient != address(0), "NativeTokenDestination: zero recipient address");
 
         require(
-            currentReserveImbalance == 0,
-            "NativeTokenDestination: contract undercollateralized"
+            currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
@@ -110,13 +103,10 @@ contract NativeTokenDestination is
         uint256 adjustedFeeAmount;
         if (feeInfo.amount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeInfo.feeTokenAddress),
-                feeInfo.amount
+                IERC20(feeInfo.feeTokenAddress), feeInfo.amount
             );
             SafeERC20.safeIncreaseAllowance(
-                IERC20(feeInfo.feeTokenAddress),
-                address(teleporterMessenger),
-                adjustedFeeAmount
+                IERC20(feeInfo.feeTokenAddress), address(teleporterMessenger), adjustedFeeAmount
             );
         }
 
@@ -130,10 +120,7 @@ contract NativeTokenDestination is
                 feeInfo: feeInfo,
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(
-                    ITokenSource.SourceAction.Unlock,
-                    abi.encode(recipient, msg.value)
-                )
+                message: abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(recipient, msg.value))
             })
         );
 
@@ -163,10 +150,7 @@ contract NativeTokenDestination is
                 feeInfo: feeInfo,
                 requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(
-                    ITokenSource.SourceAction.Burn,
-                    abi.encode(totalBurnedTxFees)
-                )
+                message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(totalBurnedTxFees))
             })
         );
 
@@ -187,8 +171,8 @@ contract NativeTokenDestination is
      * @dev See {INativeTokenDestination-totalSupply}.
      */
     function totalSupply() external view returns (uint256) {
-        uint256 burned = address(BURNED_TX_FEES_ADDRESS).balance +
-            address(BURN_FOR_TRANSFER_ADDRESS).balance;
+        uint256 burned =
+            address(BURNED_TX_FEES_ADDRESS).balance + address(BURN_FOR_TRANSFER_ADDRESS).balance;
         uint256 created = totalMinted + initialReserveImbalance;
 
         return created - burned;
