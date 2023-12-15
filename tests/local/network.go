@@ -38,10 +38,10 @@ var _ interfaces.LocalNetwork = &localNetwork{}
 
 // Implements Network, pointing to the network setup in local_network_setup.go
 type localNetwork struct {
-	teleporterContractAddress       common.Address
-	subnetAID, subnetBID, subnetCID ids.ID
-	subnetsInfo                     map[ids.ID]*interfaces.SubnetTestInfo
-	subnetNodeNames                 map[ids.ID][]string
+	teleporterContractAddress common.Address
+	subnetAID, subnetBID      ids.ID
+	subnetsInfo               map[ids.ID]*interfaces.SubnetTestInfo
+	subnetNodeNames           map[ids.ID][]string
 
 	globalFundedKey *ecdsa.PrivateKey
 
@@ -62,15 +62,12 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	// Name 10 new validators (which should have BLS key registered)
 	var subnetANodeNames []string
 	var subnetBNodeNames []string
-	var subnetCNodeNames []string
-	for i := 1; i <= 15; i++ {
+	for i := 1; i <= 10; i++ {
 		n := fmt.Sprintf("node%d-bls", i)
 		if i <= 5 {
 			subnetANodeNames = append(subnetANodeNames, n)
-		} else if i <= 10 {
-			subnetBNodeNames = append(subnetBNodeNames, n)
 		} else {
-			subnetCNodeNames = append(subnetCNodeNames, n)
+			subnetBNodeNames = append(subnetBNodeNames, n)
 		}
 	}
 
@@ -113,15 +110,6 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 					Participants: subnetBNodeNames,
 				},
 			},
-			{
-				VmName:      evm.IDStr,
-				Genesis:     warpGenesisFile,
-				ChainConfig: warpChainConfigPath,
-				SubnetSpec: &rpcpb.SubnetSpec{
-					SubnetConfig: "",
-					Participants: subnetCNodeNames,
-				},
-			},
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -131,7 +119,6 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	Expect(err).Should(BeNil())
 	setupProposerVM(ctx, globalFundedKey, manager, 0)
 	setupProposerVM(ctx, globalFundedKey, manager, 1)
-	setupProposerVM(ctx, globalFundedKey, manager, 2)
 
 	// Create the ANR client
 	logLevel, err := logging.ToLevel("info")
@@ -156,17 +143,14 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	Expect(len(subnetIDs)).Should(Equal(3))
 	subnetAID := subnetIDs[0]
 	subnetBID := subnetIDs[1]
-	subnetCID := subnetIDs[2]
 
 	res := &localNetwork{
 		subnetAID:   subnetAID,
 		subnetBID:   subnetBID,
-		subnetCID:   subnetCID,
 		subnetsInfo: make(map[ids.ID]*interfaces.SubnetTestInfo),
 		subnetNodeNames: map[ids.ID][]string{
 			subnetAID: subnetANodeNames,
 			subnetBID: subnetBNodeNames,
-			subnetCID: subnetCNodeNames,
 		},
 		globalFundedKey:     globalFundedKey,
 		anrClient:           anrClient,
@@ -175,7 +159,6 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	}
 	res.setSubnetValues(subnetAID)
 	res.setSubnetValues(subnetBID)
-	res.setSubnetValues(subnetCID)
 	return res
 }
 
@@ -324,7 +307,6 @@ func (n *localNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
 	return []interfaces.SubnetTestInfo{
 		*n.subnetsInfo[n.subnetAID],
 		*n.subnetsInfo[n.subnetBID],
-		*n.subnetsInfo[n.subnetCID],
 	}
 }
 
@@ -394,9 +376,6 @@ func (n *localNetwork) setAllSubnetValues() {
 
 	n.subnetBID = subnetIDs[1]
 	n.setSubnetValues(n.subnetBID)
-
-	n.subnetCID = subnetIDs[2]
-	n.setSubnetValues(n.subnetCID)
 }
 
 func (n *localNetwork) tearDownNetwork() {
