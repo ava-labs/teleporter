@@ -9,9 +9,9 @@ import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
-    constructor(
-        address teleporterRegistryAddress
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {}
+    constructor(address teleporterRegistryAddress)
+        TeleporterOwnerUpgradeable(teleporterRegistryAddress)
+    {}
 
     function checkTeleporterUpgradeAccess() external view {
         _checkTeleporterUpgradeAccess();
@@ -26,8 +26,7 @@ contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
 
 contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
     ExampleOwnerUpgradeableApp public ownerApp;
-    address public constant MOCK_INVALID_OWNER_ADDRESS =
-        0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    address public constant MOCK_INVALID_OWNER_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
 
     function setUp() public virtual override {
         TeleporterUpgradeableTest.setUp();
@@ -111,16 +110,8 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that the Teleporter address is still paused
         vm.prank(teleporterAddress);
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage(
-                "Teleporter address paused"
-            )
-        );
-        ownerApp.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
+        ownerApp.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
         assertTrue(ownerApp.isTeleporterAddressPaused(teleporterAddress));
 
         // Unpause the Teleporter address from owner account
@@ -128,11 +119,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that the Teleporter address can now deliver messages
         vm.prank(teleporterAddress);
-        ownerApp.receiveTeleporterMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            DEFAULT_ORIGIN_ADDRESS,
-            ""
-        );
+        ownerApp.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
         assertFalse(ownerApp.isTeleporterAddressPaused(teleporterAddress));
     }
 
