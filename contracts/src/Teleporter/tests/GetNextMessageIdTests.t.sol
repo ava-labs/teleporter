@@ -5,7 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessageInput,
+    TeleporterFeeInfo,
+    IWarpMessenger
+} from "./TeleporterMessengerTest.t.sol";
 
 contract GetNextMessageIDTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -17,13 +22,19 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
 
     function testGetMessageID() public {
         // Generate the next expected message ID manually.
-        bytes32 expectedMessageID = sha256(abi.encode(address(teleporterMessenger), DEFAULT_DESTINATION_BLOCKCHAIN_ID, teleporterMessenger.messageNonce()));
+        bytes32 expectedMessageID = sha256(
+            abi.encode(
+                address(teleporterMessenger),
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                teleporterMessenger.messageNonce()
+            )
+        );
 
         // Check the contract reports the same as expected.
         assertEq(teleporterMessenger.getNextMessageID(), expectedMessageID);
 
         // Send a message to ensure it is assigned the expected ID.
-         vm.mockCall(
+        vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encode(IWarpMessenger.sendWarpMessage.selector),
             abi.encode(bytes32(0))
@@ -31,10 +42,7 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(0),
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(0),
-                amount: uint256(0)
-            }),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: uint256(0)}),
             requiredGasLimit: 1e6,
             allowedRelayerAddresses: new address[](0),
             message: new bytes(0)
@@ -44,11 +52,16 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         assertEq(messageID, expectedMessageID);
 
         // Generate the next expected message ID now that a message has been sent.
-        bytes32 secondExpectedMessageID = sha256(abi.encode(address(teleporterMessenger), DEFAULT_DESTINATION_BLOCKCHAIN_ID, teleporterMessenger.messageNonce()));
+        bytes32 secondExpectedMessageID = sha256(
+            abi.encode(
+                address(teleporterMessenger),
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                teleporterMessenger.messageNonce()
+            )
+        );
 
         // Check the contract reports the same as expected, and that is different than the first ID.
         assertEq(teleporterMessenger.getNextMessageID(), secondExpectedMessageID);
         assertNotEq(expectedMessageID, secondExpectedMessageID);
-
     }
 }

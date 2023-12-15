@@ -366,7 +366,7 @@ func submitCreateBridgeToken(
 	fundedKey *ecdsa.PrivateKey,
 	transactor *erc20bridge.ERC20Bridge,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
-) (*types.Receipt, *big.Int) {
+) (*types.Receipt, ids.ID) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
@@ -412,7 +412,7 @@ func bridgeToken(
 	isNative bool,
 	nativeTokenChainID ids.ID,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
-) (*types.Receipt, *big.Int) {
+) (*types.Receipt, ids.ID) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 

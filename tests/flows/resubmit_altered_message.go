@@ -47,7 +47,7 @@ func ResubmitAlteredMessage(network interfaces.Network) {
 	// Get the Teleporter message from receive event
 	event, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.MessageID).Should(Equal(messageID))
+	Expect(event.MessageID[:]).Should(Equal(messageID[:]))
 	teleporterMessage := event.Message
 
 	// Alter the message

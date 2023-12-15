@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
@@ -65,9 +66,9 @@ func TestToEvent(t *testing.T) {
 }
 
 func TestFilterTeleporterEvents(t *testing.T) {
-	mockBlockchainID := [32]byte{1, 2, 3, 4}
-	messageID := big.NewInt(1)
-	message := createTestTeleporterMessage(messageID.Int64())
+	mockBlockchainID := ids.ID{1, 2, 3, 4}
+	messageID := ids.ID{5, 6, 7, 8}
+	message := createTestTeleporterMessage(messageID)
 	feeInfo := TeleporterFeeInfo{
 		FeeTokenAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		Amount:          big.NewInt(1),

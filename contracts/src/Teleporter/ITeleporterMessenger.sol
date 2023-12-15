@@ -231,8 +231,8 @@ interface ITeleporterMessenger {
     ) external view returns (address, uint256);
 
     /**
-     * @dev Gets the next message ID to be used for a message sent from the contract instance.
-     * @return The next message ID to be used for a message sent from the contract instance.
+     * @dev Gets the message ID to be used for the next message sent from the contract instance.
+     * @return The message ID to be used for the message sent from the contract instance.
      */
     function getNextMessageID() external view returns (bytes32);
 

@@ -1,6 +1,7 @@
 package flows
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"math/big"
@@ -96,7 +97,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 		ctx,
 		subnetAInfo.BlockchainID,
 		subnetBInfo,
-		[]*big.Int{messageID1, messageID2},
+		[][32]byte{messageID1, messageID2},
 		teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: mockTokenAddress,
 			Amount:          big.NewInt(0),
@@ -207,11 +208,11 @@ func getOutstandingReceiptCount(source interfaces.SubnetTestInfo, destinationBlo
 
 // Checks the given message ID is included in the list of receipts.
 func receiptIncluded(
-	expectedMessageID *big.Int,
+	expectedMessageID ids.ID,
 	receipts []teleportermessenger.TeleporterMessageReceipt,
 ) bool {
 	for _, receipt := range receipts {
-		if receipt.ReceivedMessageID.Cmp(expectedMessageID) == 0 {
+		if bytes.Equal(receipt.ReceivedMessageID[:], expectedMessageID[:]) {
 			return true
 		}
 	}

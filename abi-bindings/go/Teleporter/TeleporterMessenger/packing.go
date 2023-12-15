@@ -18,14 +18,14 @@ func init() {
 	// so we must manually keep this up-to-date with the struct defined in the contract.
 	var err error
 	teleporterMessageType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
-		{Name: "messageID", Type: "uint256"},
+		{Name: "messageID", Type: "bytes32"},
 		{Name: "senderAddress", Type: "address"},
 		{Name: "destinationBlockchainID", Type: "bytes32"},
 		{Name: "destinationAddress", Type: "address"},
 		{Name: "requiredGasLimit", Type: "uint256"},
 		{Name: "allowedRelayerAddresses", Type: "address[]"},
 		{Name: "receipts", Type: "tuple[]", Components: []abi.ArgumentMarshaling{
-			{Name: "receivedMessageID", Type: "uint256"},
+			{Name: "receivedMessageID", Type: "bytes32"},
 			{Name: "relayerRewardAddress", Type: "address"},
 		}},
 		{Name: "message", Type: "bytes"},

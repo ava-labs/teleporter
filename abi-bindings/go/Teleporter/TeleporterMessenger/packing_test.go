@@ -8,15 +8,16 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
 
-func createTestTeleporterMessage(messageID int64) TeleporterMessage {
+func createTestTeleporterMessage(messageID ids.ID) TeleporterMessage {
 	m := TeleporterMessage{
-		MessageID:               big.NewInt(messageID),
+		MessageID:               messageID,
 		SenderAddress:           common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		DestinationBlockchainID: [32]byte{1, 2, 3, 4},
+		DestinationBlockchainID: ids.ID{1, 2, 3, 4},
 		DestinationAddress:      common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		RequiredGasLimit:        big.NewInt(2),
 		AllowedRelayerAddresses: []common.Address{
@@ -24,7 +25,7 @@ func createTestTeleporterMessage(messageID int64) TeleporterMessage {
 		},
 		Receipts: []TeleporterMessageReceipt{
 			{
-				ReceivedMessageID:    big.NewInt(1),
+				ReceivedMessageID:    ids.ID{1},
 				RelayerRewardAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 			},
 		},
@@ -34,10 +35,7 @@ func createTestTeleporterMessage(messageID int64) TeleporterMessage {
 }
 
 func TestPackUnpackTeleporterMessage(t *testing.T) {
-	var (
-		messageID int64 = 4
-	)
-	message := createTestTeleporterMessage(messageID)
+	message := createTestTeleporterMessage(ids.ID{4})
 
 	b, err := PackTeleporterMessage(message)
 	if err != nil {
@@ -64,9 +62,9 @@ func TestPackUnpackTeleporterMessage(t *testing.T) {
 }
 
 func TestUnpackEvent(t *testing.T) {
-	mockBlockchainID := [32]byte{1, 2, 3, 4}
-	messageID := big.NewInt(1)
-	message := createTestTeleporterMessage(messageID.Int64())
+	mockBlockchainID := ids.ID{1, 2, 3, 4}
+	messageID := ids.ID{5}
+	message := createTestTeleporterMessage(messageID)
 	feeInfo := TeleporterFeeInfo{
 		FeeTokenAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		Amount:          big.NewInt(1),

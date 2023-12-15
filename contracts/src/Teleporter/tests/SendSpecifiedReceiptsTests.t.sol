@@ -45,8 +45,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         }
 
         // Mock sending a message back to that chain, which should include the 3 receipts.
-        bytes32 expectedMessageID =
-            teleporterMessenger.getNextMessageID();
+        bytes32 expectedMessageID = teleporterMessenger.getNextMessageID();
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: expectedMessageID,
             senderAddress: address(this),
@@ -81,8 +80,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
             relayerRewardAddress: relayerRewardAddresses[0]
         });
 
-        bytes32 newExpectedMessageID =
-            teleporterMessenger.getNextMessageID();
+        bytes32 newExpectedMessageID = teleporterMessenger.getNextMessageID();
         TeleporterMessage memory newExpectedMessage = TeleporterMessage({
             messageID: newExpectedMessageID,
             senderAddress: address(this),
@@ -127,8 +125,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](2);
         expectedReceipts[0] = expectedReceipt;
         expectedReceipts[1] = expectedReceipt;
-        bytes32 expectedMessageID =
-            teleporterMessenger.getNextMessageID();
+        bytes32 expectedMessageID = teleporterMessenger.getNextMessageID();
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: expectedMessageID,
             senderAddress: address(this),
