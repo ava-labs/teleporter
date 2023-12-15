@@ -11,6 +11,7 @@ import (
 	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
 	"github.com/ava-labs/avalanche-network-runner/rpcpb"
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -459,11 +460,17 @@ func (n *localNetwork) ConstructSignedWarpMessageBytes(
 	log.Info("Fetching aggregate signature from the source chain validators")
 	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
+
+	signingSubnetID := source.SubnetID
+	if source.SubnetID == constants.PrimaryNetworkID {
+		signingSubnetID = destination.SubnetID
+	}
+
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
 		ctx,
 		unsignedWarpMessageID,
-		params.WarpQuorumDenominator,
-		source.SubnetID.String(),
+		params.WarpDefaultQuorumNumerator,
+		signingSubnetID.String(),
 	)
 	Expect(err).Should(BeNil())
 
