@@ -5,7 +5,14 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageInput, TeleporterFeeInfo, TeleporterMessageReceipt, IWarpMessenger} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessage,
+    TeleporterMessageInput,
+    TeleporterFeeInfo,
+    TeleporterMessageReceipt,
+    IWarpMessenger
+} from "./TeleporterMessengerTest.t.sol";
 
 contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -23,8 +30,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
     function testSuccess() public {
         // Assemble mock receipt information that we will expect to be
         // included in a subsequent message sent to another chain.
-        TeleporterMessageReceipt[]
-            memory expectedReceipts = new TeleporterMessageReceipt[](3);
+        TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](3);
 
         expectedReceipts[0] = TeleporterMessageReceipt(
             bytes32(uint256(13)),
@@ -40,9 +46,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
 
         // Mock receiving each of the messages corresponding to the receipts.
-        bytes32 blockchainID = bytes32(
-            hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff"
-        );
+        bytes32 blockchainID =
+            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
         for (uint256 i = 0; i < expectedReceipts.length; i++) {
             _receiveTestMessage(
                 blockchainID,
@@ -82,10 +87,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                IWarpMessenger.sendWarpMessage,
-                (abi.encode(expectedMessage))
-            )
+            abi.encodeCall(IWarpMessenger.sendWarpMessage, (abi.encode(expectedMessage)))
         );
 
         // Expect the SendCrossChainMessage event to be emitted.
@@ -112,10 +114,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         nextExpectedMessage.destinationBlockchainID = blockchainID;
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                IWarpMessenger.sendWarpMessage,
-                (abi.encode(nextExpectedMessage))
-            )
+            abi.encodeCall(IWarpMessenger.sendWarpMessage, (abi.encode(nextExpectedMessage)))
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
@@ -170,9 +169,8 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
 
         // Mock receiving each of the messages corresponding to the receipts.
-        bytes32 blockchainID = bytes32(
-            hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff"
-        );
+        bytes32 blockchainID =
+            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
         for (uint256 i = 0; i < expectedReceiptsBatch1.length; i++) {
             _receiveTestMessage(
                 blockchainID,
@@ -221,10 +219,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                IWarpMessenger.sendWarpMessage,
-                (abi.encode(expectedMessage))
-            )
+            abi.encodeCall(IWarpMessenger.sendWarpMessage, (abi.encode(expectedMessage)))
         );
 
         // Expect the SendCrossChainMessage event to be emitted.
@@ -252,10 +247,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         nextExpectedMessage.destinationBlockchainID = blockchainID;
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                IWarpMessenger.sendWarpMessage,
-                (abi.encode(nextExpectedMessage))
-            )
+            abi.encodeCall(IWarpMessenger.sendWarpMessage, (abi.encode(nextExpectedMessage)))
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(

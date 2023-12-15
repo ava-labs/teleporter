@@ -14,6 +14,7 @@ contract ReceiptQueueTest is Test {
     // The state of the contract gets reset before each
     // test is run, with the `setUp()` function being called
     // each time after deployment.
+
     ReceiptQueue.TeleporterMessageReceiptQueue private _queue;
 
     // Add 3 elements to the queue.
@@ -117,9 +118,11 @@ contract ReceiptQueueTest is Test {
         assertEq(result.relayerRewardAddress, address(0));
     }
 
-    function _formatReceiptQueueErrorMessage(
-        string memory errorMessage
-    ) private pure returns (bytes memory) {
+    function _formatReceiptQueueErrorMessage(string memory errorMessage)
+        private
+        pure
+        returns (bytes memory)
+    {
         return bytes(string.concat("ReceiptQueue: ", errorMessage));
     }
 }

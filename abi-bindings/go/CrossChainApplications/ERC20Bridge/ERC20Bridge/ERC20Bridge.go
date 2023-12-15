@@ -824,6 +824,27 @@ func (_ERC20Bridge *ERC20BridgeTransactorSession) TransferOwnership(newOwner com
 	return _ERC20Bridge.Contract.TransferOwnership(&_ERC20Bridge.TransactOpts, newOwner)
 }
 
+// UnpauseTeleporterAddress is a paid mutator transaction binding the contract method 0x4511243e.
+//
+// Solidity: function unpauseTeleporterAddress(address teleporterAddress) returns()
+func (_ERC20Bridge *ERC20BridgeTransactor) UnpauseTeleporterAddress(opts *bind.TransactOpts, teleporterAddress common.Address) (*types.Transaction, error) {
+	return _ERC20Bridge.contract.Transact(opts, "unpauseTeleporterAddress", teleporterAddress)
+}
+
+// UnpauseTeleporterAddress is a paid mutator transaction binding the contract method 0x4511243e.
+//
+// Solidity: function unpauseTeleporterAddress(address teleporterAddress) returns()
+func (_ERC20Bridge *ERC20BridgeSession) UnpauseTeleporterAddress(teleporterAddress common.Address) (*types.Transaction, error) {
+	return _ERC20Bridge.Contract.UnpauseTeleporterAddress(&_ERC20Bridge.TransactOpts, teleporterAddress)
+}
+
+// UnpauseTeleporterAddress is a paid mutator transaction binding the contract method 0x4511243e.
+//
+// Solidity: function unpauseTeleporterAddress(address teleporterAddress) returns()
+func (_ERC20Bridge *ERC20BridgeTransactorSession) UnpauseTeleporterAddress(teleporterAddress common.Address) (*types.Transaction, error) {
+	return _ERC20Bridge.Contract.UnpauseTeleporterAddress(&_ERC20Bridge.TransactOpts, teleporterAddress)
+}
+
 // UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0x5eb99514.
 //
 // Solidity: function updateMinTeleporterVersion(uint256 version) returns()
@@ -1926,6 +1947,150 @@ func (_ERC20Bridge *ERC20BridgeFilterer) WatchTeleporterAddressPaused(opts *bind
 func (_ERC20Bridge *ERC20BridgeFilterer) ParseTeleporterAddressPaused(log types.Log) (*ERC20BridgeTeleporterAddressPaused, error) {
 	event := new(ERC20BridgeTeleporterAddressPaused)
 	if err := _ERC20Bridge.contract.UnpackLog(event, "TeleporterAddressPaused", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ERC20BridgeTeleporterAddressUnpausedIterator is returned from FilterTeleporterAddressUnpaused and is used to iterate over the raw logs and unpacked data for TeleporterAddressUnpaused events raised by the ERC20Bridge contract.
+type ERC20BridgeTeleporterAddressUnpausedIterator struct {
+	Event *ERC20BridgeTeleporterAddressUnpaused // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ERC20BridgeTeleporterAddressUnpausedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ERC20BridgeTeleporterAddressUnpaused)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ERC20BridgeTeleporterAddressUnpaused)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ERC20BridgeTeleporterAddressUnpausedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ERC20BridgeTeleporterAddressUnpausedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ERC20BridgeTeleporterAddressUnpaused represents a TeleporterAddressUnpaused event raised by the ERC20Bridge contract.
+type ERC20BridgeTeleporterAddressUnpaused struct {
+	TeleporterAddress common.Address
+	Raw               types.Log // Blockchain specific contextual infos
+}
+
+// FilterTeleporterAddressUnpaused is a free log retrieval operation binding the contract event 0x844e2f3154214672229235858fd029d1dfd543901c6d05931f0bc2480a2d72c3.
+//
+// Solidity: event TeleporterAddressUnpaused(address indexed teleporterAddress)
+func (_ERC20Bridge *ERC20BridgeFilterer) FilterTeleporterAddressUnpaused(opts *bind.FilterOpts, teleporterAddress []common.Address) (*ERC20BridgeTeleporterAddressUnpausedIterator, error) {
+
+	var teleporterAddressRule []interface{}
+	for _, teleporterAddressItem := range teleporterAddress {
+		teleporterAddressRule = append(teleporterAddressRule, teleporterAddressItem)
+	}
+
+	logs, sub, err := _ERC20Bridge.contract.FilterLogs(opts, "TeleporterAddressUnpaused", teleporterAddressRule)
+	if err != nil {
+		return nil, err
+	}
+	return &ERC20BridgeTeleporterAddressUnpausedIterator{contract: _ERC20Bridge.contract, event: "TeleporterAddressUnpaused", logs: logs, sub: sub}, nil
+}
+
+// WatchTeleporterAddressUnpaused is a free log subscription operation binding the contract event 0x844e2f3154214672229235858fd029d1dfd543901c6d05931f0bc2480a2d72c3.
+//
+// Solidity: event TeleporterAddressUnpaused(address indexed teleporterAddress)
+func (_ERC20Bridge *ERC20BridgeFilterer) WatchTeleporterAddressUnpaused(opts *bind.WatchOpts, sink chan<- *ERC20BridgeTeleporterAddressUnpaused, teleporterAddress []common.Address) (event.Subscription, error) {
+
+	var teleporterAddressRule []interface{}
+	for _, teleporterAddressItem := range teleporterAddress {
+		teleporterAddressRule = append(teleporterAddressRule, teleporterAddressItem)
+	}
+
+	logs, sub, err := _ERC20Bridge.contract.WatchLogs(opts, "TeleporterAddressUnpaused", teleporterAddressRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ERC20BridgeTeleporterAddressUnpaused)
+				if err := _ERC20Bridge.contract.UnpackLog(event, "TeleporterAddressUnpaused", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseTeleporterAddressUnpaused is a log parse operation binding the contract event 0x844e2f3154214672229235858fd029d1dfd543901c6d05931f0bc2480a2d72c3.
+//
+// Solidity: event TeleporterAddressUnpaused(address indexed teleporterAddress)
+func (_ERC20Bridge *ERC20BridgeFilterer) ParseTeleporterAddressUnpaused(log types.Log) (*ERC20BridgeTeleporterAddressUnpaused, error) {
+	event := new(ERC20BridgeTeleporterAddressUnpaused)
+	if err := _ERC20Bridge.contract.UnpackLog(event, "TeleporterAddressUnpaused", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

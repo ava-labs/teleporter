@@ -59,8 +59,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
 
         // Now mock receiving a message back from that subnet with a receipt of the above message.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
-        TeleporterMessageReceipt[]
-            memory receipts = new TeleporterMessageReceipt[](1);
+        TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
             receivedMessageID: messageID,
             relayerRewardAddress: relayerRewardAddress

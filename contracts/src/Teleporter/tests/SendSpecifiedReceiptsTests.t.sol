@@ -5,7 +5,14 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, TeleporterFeeInfo, IWarpMessenger, IERC20} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessage,
+    TeleporterMessageReceipt,
+    TeleporterFeeInfo,
+    IWarpMessenger,
+    IERC20
+} from "./TeleporterMessengerTest.t.sol";
 
 contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -23,8 +30,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
             0xb85e0651385876C3E3A1fF81ABf410ecf12f52f4
         ];
 
-        TeleporterMessageReceipt[]
-            memory expectedReceipts = new TeleporterMessageReceipt[](3);
+        TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](3);
         for (uint256 i = 0; i < relayerRewardAddresses.length; i++) {
             _receiveTestMessage(
                 DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -72,8 +78,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
             relayerRewardAddresses[0]
         );
 
-        TeleporterMessageReceipt[]
-            memory newExpectedReceipts = new TeleporterMessageReceipt[](2);
+        TeleporterMessageReceipt[] memory newExpectedReceipts = new TeleporterMessageReceipt[](2);
         newExpectedReceipts[0] = TeleporterMessageReceipt({
             receivedMessageID: bytes32(uint256(3)),
             relayerRewardAddress: relayerRewardAddresses[2]
@@ -206,36 +211,28 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
             vm.mockCall(
                 feeAddress,
                 abi.encodeCall(
-                    IERC20.transferFrom,
-                    (address(this), address(teleporterMessenger), feeAmount)
+                    IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount)
                 ),
                 abi.encode(true)
             );
         }
 
-        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo({
-            feeTokenAddress: feeAddress,
-            amount: feeAmount
-        });
+        TeleporterFeeInfo memory feeInfo =
+            TeleporterFeeInfo({feeTokenAddress: feeAddress, amount: feeAmount});
 
         if (feeAmount > 0) {
             // Expect the ERC20 contract transferFrom method to be called to transfer the fee.
             vm.expectCall(
                 feeAddress,
                 abi.encodeCall(
-                    IERC20.transferFrom,
-                    (address(this), address(teleporterMessenger), feeAmount)
+                    IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount)
                 )
             );
         }
 
-        return
-            teleporterMessenger.sendSpecifiedReceipts(
-                blockchainID,
-                messageIDs,
-                feeInfo,
-                new address[](0)
-            );
+        return teleporterMessenger.sendSpecifiedReceipts(
+            blockchainID, messageIDs, feeInfo, new address[](0)
+        );
     }
 
     function _sendSpecifiedReceiptsWithNoFee(

@@ -5,7 +5,14 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterFeeInfo, TeleporterMessageInput, IWarpMessenger, IERC20} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessage,
+    TeleporterFeeInfo,
+    TeleporterMessageInput,
+    IWarpMessenger,
+    IERC20
+} from "./TeleporterMessengerTest.t.sol";
 
 contract SendCrossChainMessageTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -43,10 +50,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                IWarpMessenger.sendWarpMessage,
-                (abi.encode(expectedMessage))
-            )
+            abi.encodeCall(IWarpMessenger.sendWarpMessage, (abi.encode(expectedMessage)))
         );
 
         // Expect the SendCrossChainMessage event to be emitted.
@@ -62,9 +66,8 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         teleporterMessenger.sendCrossChainMessage(messageInput);
 
         // Check receipt queue
-        uint256 queueSize = teleporterMessenger.getReceiptQueueSize(
-            messageInput.destinationBlockchainID
-        );
+        uint256 queueSize =
+            teleporterMessenger.getReceiptQueueSize(messageInput.destinationBlockchainID);
         assertEq(queueSize, 0);
     }
 
@@ -100,10 +103,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // Expect the exact message to be passed to the precompile.
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                IWarpMessenger.sendWarpMessage,
-                (abi.encode(expectedMessage))
-            )
+            abi.encodeCall(IWarpMessenger.sendWarpMessage, (abi.encode(expectedMessage)))
         );
 
         // Expect the SendCrossChainMessage event to be emitted.
@@ -120,11 +120,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             messageInput.feeInfo.feeTokenAddress,
             abi.encodeCall(
                 IERC20.transferFrom,
-                (
-                    address(this),
-                    address(teleporterMessenger),
-                    messageInput.feeInfo.amount
-                )
+                (address(this), address(teleporterMessenger), messageInput.feeInfo.amount)
             )
         );
 
@@ -168,16 +164,14 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         vm.mockCall(
             address(_mockFeeAsset),
             abi.encodeCall(
-                IERC20.transferFrom,
-                (address(this), address(teleporterMessenger), feeAmount)
+                IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount)
             ),
             abi.encode(false)
         );
         vm.expectCall(
             address(_mockFeeAsset),
             abi.encodeCall(
-                IERC20.transferFrom,
-                (address(this), address(teleporterMessenger), feeAmount)
+                IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount)
             )
         );
         vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
@@ -196,9 +190,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("zero fee asset contract address")
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("zero fee asset contract address"));
         teleporterMessenger.sendCrossChainMessage(messageInput);
     }
 }

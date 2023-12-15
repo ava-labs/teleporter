@@ -108,11 +108,7 @@ interface ITeleporterMessenger {
     /**
      * @dev Emitted when an account redeems accumulated relayer rewards.
      */
-    event RelayerRewardsRedeemed(
-        address indexed redeemer,
-        address indexed asset,
-        uint256 amount
-    );
+    event RelayerRewardsRedeemed(address indexed redeemer, address indexed asset, uint256 amount);
 
     /**
      * @dev Called by transactions to initiate the sending of a cross-chain message.
@@ -157,10 +153,7 @@ interface ITeleporterMessenger {
      * The message specified by `messageIndex` must be provided at that index in the access list storage slots of the transaction,
      * and is verified in the precompile predicate.
      */
-    function receiveCrossChainMessage(
-        uint32 messageIndex,
-        address relayerRewardAddress
-    ) external;
+    function receiveCrossChainMessage(uint32 messageIndex, address relayerRewardAddress) external;
 
     /**
      * @dev Retries the execution of a previously delivered message by verifying the payload matches
@@ -254,9 +247,7 @@ interface ITeleporterMessenger {
      * @dev Gets the number of receipts that are waiting to be sent to the given origin chain ID.
      * @return Size of the given queue.
      */
-    function getReceiptQueueSize(
-        bytes32 originBlockchainID
-    ) external view returns (uint256);
+    function getReceiptQueueSize(bytes32 originBlockchainID) external view returns (uint256);
 
     /**
      * @dev Gets the receipt at the given index in the queue for the given origin chain ID.

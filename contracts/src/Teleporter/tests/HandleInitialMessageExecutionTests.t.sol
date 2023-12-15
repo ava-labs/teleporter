@@ -5,7 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, WarpMessage} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessage,
+    TeleporterMessageReceipt,
+    WarpMessage
+} from "./TeleporterMessengerTest.t.sol";
 import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 
@@ -31,26 +36,14 @@ contract SampleMessageReceiver is ITeleporterReceiver {
     ) external {
         require(msg.sender == teleporterContract, "unauthorized");
         // Decode the payload to recover the action and corresponding function parameters
-        (SampleMessageReceiverAction action, bytes memory actionData) = abi
-            .decode(message, (SampleMessageReceiverAction, bytes));
+        (SampleMessageReceiverAction action, bytes memory actionData) =
+            abi.decode(message, (SampleMessageReceiverAction, bytes));
         if (action == SampleMessageReceiverAction.Receive) {
-            (string memory messageString, bool succeed) = abi.decode(
-                actionData,
-                (string, bool)
-            );
-            _receiveMessage(
-                originBlockchainID,
-                originSenderAddress,
-                messageString,
-                succeed
-            );
+            (string memory messageString, bool succeed) = abi.decode(actionData, (string, bool));
+            _receiveMessage(originBlockchainID, originSenderAddress, messageString, succeed);
         } else if (action == SampleMessageReceiverAction.ReceiveRecursive) {
             string memory messageString = abi.decode(actionData, (string));
-            _receiveMessageRecursive(
-                originBlockchainID,
-                originSenderAddress,
-                messageString
-            );
+            _receiveMessageRecursive(originBlockchainID, originSenderAddress, messageString);
         } else {
             revert("invalid action");
         }
@@ -77,9 +70,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         string memory message
     ) internal {
         require(msg.sender == teleporterContract, "unauthorized");
-        ITeleporterMessenger messenger = ITeleporterMessenger(
-            teleporterContract
-        );
+        ITeleporterMessenger messenger = ITeleporterMessenger(teleporterContract);
         messenger.receiveCrossChainMessage(0, address(42));
         latestMessage = message;
         latestMessageSenderSubnetID = originBlockchainID;
@@ -111,10 +102,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
             receipts: new TeleporterMessageReceipt[](0),
-            message: abi.encode(
-                SampleMessageReceiverAction.Receive,
-                abi.encode(messageString, true)
-            )
+            message: abi.encode(SampleMessageReceiverAction.Receive, abi.encode(messageString, true))
         });
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_BLOCKCHAIN_ID,
@@ -138,10 +126,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message had the proper affect on the destination contract.
         assertEq(destinationContract.latestMessage(), messageString);
@@ -171,16 +156,11 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: uint256(
-                bytes32(
-                    hex"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
-                ) // UINT256_MAX
+                bytes32(hex"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") // UINT256_MAX
             ),
             allowedRelayerAddresses: new address[](0),
             receipts: new TeleporterMessageReceipt[](0),
-            message: abi.encode(
-                SampleMessageReceiverAction.Receive,
-                abi.encode(messageString, true)
-            )
+            message: abi.encode(SampleMessageReceiverAction.Receive, abi.encode(messageString, true))
         });
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_BLOCKCHAIN_ID,
@@ -192,10 +172,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
 
         // Receive the message.
         vm.expectRevert(_formatTeleporterErrorMessage("insufficient gas"));
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
     }
 
     function testCannotReceiveMessageRecursively() public {
@@ -209,10 +186,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
             receipts: new TeleporterMessageReceipt[](0),
-            message: abi.encode(
-                SampleMessageReceiverAction.ReceiveRecursive,
-                abi.encode(messageString)
-            )
+            message: abi.encode(SampleMessageReceiverAction.ReceiveRecursive, abi.encode(messageString))
         });
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_BLOCKCHAIN_ID,
@@ -239,10 +213,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message hash was stored in state and the message did not have any affect on the destination.
         assertEq(destinationContract.latestMessage(), "");
@@ -275,10 +246,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
             receipts: new TeleporterMessageReceipt[](0),
-            message: abi.encode(
-                SampleMessageReceiverAction.Receive,
-                abi.encode(messageString, false)
-            )
+            message: abi.encode(SampleMessageReceiverAction.Receive, abi.encode(messageString, false))
         });
         WarpMessage memory warpMessage = _createDefaultWarpMessage(
             DEFAULT_ORIGIN_BLOCKCHAIN_ID,
@@ -303,10 +271,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message hash was stored in state and the message did not have any affect on the destination.
         assertEq(destinationContract.latestMessage(), "");

@@ -7,7 +7,11 @@ pragma solidity 0.8.18;
 
 import {IERC20Bridge} from "./IERC20Bridge.sol";
 import {BridgeToken} from "./BridgeToken.sol";
-import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "../../Teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
@@ -21,11 +25,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
  * This implementation uses the {BridgeToken} contract to represent tokens on this chain, and uses
  * {ITeleporterMessenger} to send and receive messages to other chains.
  */
-contract ERC20Bridge is
-    IERC20Bridge,
-    ReentrancyGuard,
-    TeleporterOwnerUpgradeable
-{
+contract ERC20Bridge is IERC20Bridge, ReentrancyGuard, TeleporterOwnerUpgradeable {
     using SafeERC20 for IERC20;
 
     struct WrappedTokenTransferInfo {
@@ -38,8 +38,7 @@ contract ERC20Bridge is
         uint256 secondaryFeeAmount;
     }
 
-    address public constant WARP_PRECOMPILE_ADDRESS =
-        0x0200000000000000000000000000000000000005;
+    address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
     bytes32 public immutable currentBlockchainID;
 
     // Tracks which bridge tokens have been submitted to be created other bridge instances.
@@ -47,23 +46,37 @@ contract ERC20Bridge is
     // Note that the existence of a bridge token in this mapping does not ensure that it exists on
     // the destination bridge because the message to create the new token may not have been
     // successfully delivered yet.
-    mapping(bytes32 destinationBlockchainID => mapping(address destinationBridgeAddress => mapping(address nativeTokenContract => bool tokenCreationSubmitted)))
-        public submittedBridgeTokenCreations;
+    mapping(
+        bytes32 destinationBlockchainID
+            => mapping(
+                address destinationBridgeAddress
+                    => mapping(address nativeTokenContract => bool tokenCreationSubmitted)
+            )
+    ) public submittedBridgeTokenCreations;
 
     // Tracks the balances of native tokens sent to other bridge instances.
     // Bridges are not allowed to unwrap more than has been sent to them.
     // (destinationBlockchainID, destinationBridgeAddress) -> nativeTokenContract -> balance
-    mapping(bytes32 destinationBlockchainID => mapping(address destinationBridgeAddress => mapping(address nativeTokenContract => uint256 balance)))
-        public bridgedBalances;
+    mapping(
+        bytes32 destinationBlockchainID
+            => mapping(
+                address destinationBridgeAddress
+                    => mapping(address nativeTokenContract => uint256 balance)
+            )
+    ) public bridgedBalances;
 
     // Set of bridge tokens created by this bridge instance.
-    mapping(address bridgeToken => bool bridgeTokenExists)
-        public wrappedTokenContracts;
+    mapping(address bridgeToken => bool bridgeTokenExists) public wrappedTokenContracts;
 
     // Tracks the wrapped bridge token contract address for each native token bridged to this bridge instance.
     // (nativeBlockchainID, nativeBridgeAddress, nativeTokenAddress) -> bridgeTokenAddress
-    mapping(bytes32 nativeBlockchainID => mapping(address nativeBridgeAddress => mapping(address nativeTokenAddress => address bridgeTokenAddress)))
-        public nativeToWrappedTokens;
+    mapping(
+        bytes32 nativeBlockchainID
+            => mapping(
+                address nativeBridgeAddress
+                    => mapping(address nativeTokenAddress => address bridgeTokenAddress)
+            )
+    ) public nativeToWrappedTokens;
 
     uint256 public constant CREATE_BRIDGE_TOKENS_REQUIRED_GAS = 2_000_000;
     uint256 public constant MINT_BRIDGE_TOKENS_REQUIRED_GAS = 200_000;
@@ -73,11 +86,10 @@ contract ERC20Bridge is
      * @dev Initializes the Teleporter Messenger used for sending and receiving messages,
      * and initializes the current chain ID.
      */
-    constructor(
-        address teleporterRegistryAddress
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
-        currentBlockchainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
-            .getBlockchainID();
+    constructor(address teleporterRegistryAddress)
+        TeleporterOwnerUpgradeable(teleporterRegistryAddress)
+    {
+        currentBlockchainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS).getBlockchainID();
     }
 
     /**
@@ -107,8 +119,7 @@ contract ERC20Bridge is
         // Neither the recipient nor the destination bridge can be the zero address.
         require(recipient != address(0), "ERC20Bridge: zero recipient address");
         require(
-            destinationBridgeAddress != address(0),
-            "ERC20Bridge: zero destination bridge address"
+            destinationBridgeAddress != address(0), "ERC20Bridge: zero destination bridge address"
         );
 
         // If the token to be bridged is an existing wrapped token of this bridge,
@@ -126,53 +137,44 @@ contract ERC20Bridge is
                 "ERC20Bridge: insufficient total amount"
             );
 
-            return
-                _processWrappedTokenTransfer(
-                    WrappedTokenTransferInfo({
-                        destinationBlockchainID: destinationBlockchainID,
-                        destinationBridgeAddress: destinationBridgeAddress,
-                        wrappedContractAddress: tokenContractAddress,
-                        recipient: recipient,
-                        totalAmount: totalAmount,
-                        primaryFeeAmount: primaryFeeAmount,
-                        secondaryFeeAmount: secondaryFeeAmount
-                    })
-                );
+            return _processWrappedTokenTransfer(
+                WrappedTokenTransferInfo({
+                    destinationBlockchainID: destinationBlockchainID,
+                    destinationBridgeAddress: destinationBridgeAddress,
+                    wrappedContractAddress: tokenContractAddress,
+                    recipient: recipient,
+                    totalAmount: totalAmount,
+                    primaryFeeAmount: primaryFeeAmount,
+                    secondaryFeeAmount: secondaryFeeAmount
+                })
+            );
         }
 
         // Otherwise, this is a token "native" to this chain.
         require(
-            submittedBridgeTokenCreations[destinationBlockchainID][
-                destinationBridgeAddress
-            ][tokenContractAddress],
+            submittedBridgeTokenCreations[destinationBlockchainID][destinationBridgeAddress][tokenContractAddress],
             "ERC20Bridge: invalid bridge token address"
         );
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
-        uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
-            IERC20(tokenContractAddress),
-            totalAmount
-        );
+        uint256 adjustedAmount =
+            SafeERC20TransferFrom.safeTransferFrom(IERC20(tokenContractAddress), totalAmount);
 
         // Ensure that the adjusted amount is greater than the fee to be paid.
         // The secondary fee amount is not used in this case (and can assumed to be 0) since bridging
         // a native token to another chain only ever involves a single cross-chain message.
-        require(
-            adjustedAmount > primaryFeeAmount,
-            "ERC20Bridge: insufficient adjusted amount"
-        );
+        require(adjustedAmount > primaryFeeAmount, "ERC20Bridge: insufficient adjusted amount");
 
-        return
-            _processNativeTokenTransfer({
-                destinationBlockchainID: destinationBlockchainID,
-                destinationBridgeAddress: destinationBridgeAddress,
-                nativeContractAddress: tokenContractAddress,
-                recipient: recipient,
-                totalAmount: adjustedAmount,
-                feeAmount: primaryFeeAmount
-            });
+        return _processNativeTokenTransfer({
+            destinationBlockchainID: destinationBlockchainID,
+            destinationBridgeAddress: destinationBridgeAddress,
+            nativeContractAddress: tokenContractAddress,
+            recipient: recipient,
+            totalAmount: adjustedAmount,
+            feeAmount: primaryFeeAmount
+        });
     }
 
     /**
@@ -193,8 +195,7 @@ contract ERC20Bridge is
         uint256 messageFeeAmount
     ) external nonReentrant {
         require(
-            destinationBridgeAddress != address(0),
-            "ERC20Bridge: zero destination bridge address"
+            destinationBridgeAddress != address(0), "ERC20Bridge: zero destination bridge address"
         );
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
@@ -202,22 +203,16 @@ contract ERC20Bridge is
         // allow the Teleporter contract to spend it.
         uint256 adjustedFeeAmount;
         if (messageFeeAmount > 0) {
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(messageFeeAsset),
-                messageFeeAmount
-            );
+            adjustedFeeAmount =
+                SafeERC20TransferFrom.safeTransferFrom(IERC20(messageFeeAsset), messageFeeAmount);
             IERC20(messageFeeAsset).safeIncreaseAllowance(
-                address(teleporterMessenger),
-                adjustedFeeAmount
+                address(teleporterMessenger), adjustedFeeAmount
             );
         }
 
         // Create the calldata to create the bridge token on the destination chain.
         bytes memory messageData = encodeCreateBridgeTokenData(
-            address(nativeToken),
-            nativeToken.name(),
-            nativeToken.symbol(),
-            nativeToken.decimals()
+            address(nativeToken), nativeToken.name(), nativeToken.symbol(), nativeToken.decimals()
         );
 
         // Send Teleporter message.
@@ -225,25 +220,19 @@ contract ERC20Bridge is
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: messageFeeAsset,
-                    amount: adjustedFeeAmount
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: messageFeeAsset, amount: adjustedFeeAmount}),
                 requiredGasLimit: CREATE_BRIDGE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: messageData
             })
         );
 
-        submittedBridgeTokenCreations[destinationBlockchainID][
-            destinationBridgeAddress
-        ][address(nativeToken)] = true;
+        submittedBridgeTokenCreations[destinationBlockchainID][destinationBridgeAddress][address(
+            nativeToken
+        )] = true;
 
         emit SubmitCreateBridgeToken(
-            destinationBlockchainID,
-            destinationBridgeAddress,
-            address(nativeToken),
-            messageID
+            destinationBlockchainID, destinationBridgeAddress, address(nativeToken), messageID
         );
     }
 
@@ -258,12 +247,8 @@ contract ERC20Bridge is
     ) public pure returns (bytes memory) {
         // ABI encode the Create action and corresponding parameters for the createBridgeToken
         // call to to be decoded and executed on the destination.
-        bytes memory paramsData = abi.encode(
-            nativeContractAddress,
-            nativeName,
-            nativeSymbol,
-            nativeDecimals
-        );
+        bytes memory paramsData =
+            abi.encode(nativeContractAddress, nativeName, nativeSymbol, nativeDecimals);
         return abi.encode(BridgeAction.Create, paramsData);
     }
 
@@ -277,11 +262,7 @@ contract ERC20Bridge is
     ) public pure returns (bytes memory) {
         // ABI encode the Mint action and corresponding parameters for the mintBridgeTokens
         // call to to be decoded and executed on the destination.
-        bytes memory paramsData = abi.encode(
-            nativeContractAddress,
-            recipient,
-            bridgeAmount
-        );
+        bytes memory paramsData = abi.encode(nativeContractAddress, recipient, bridgeAmount);
         return abi.encode(BridgeAction.Mint, paramsData);
     }
 
@@ -321,10 +302,7 @@ contract ERC20Bridge is
         bytes memory message
     ) internal override {
         // Decode the payload to recover the action and corresponding function parameters
-        (BridgeAction action, bytes memory actionData) = abi.decode(
-            message,
-            (BridgeAction, bytes)
-        );
+        (BridgeAction action, bytes memory actionData) = abi.decode(message, (BridgeAction, bytes));
 
         // Route to the appropriate function.
         if (action == BridgeAction.Create) {
@@ -343,17 +321,10 @@ contract ERC20Bridge is
                 nativeDecimals: nativeDecimals
             });
         } else if (action == BridgeAction.Mint) {
-            (
-                address nativeContractAddress,
-                address recipient,
-                uint256 amount
-            ) = abi.decode(actionData, (address, address, uint256));
+            (address nativeContractAddress, address recipient, uint256 amount) =
+                abi.decode(actionData, (address, address, uint256));
             _mintBridgeTokens(
-                originBlockchainID,
-                originSenderAddress,
-                nativeContractAddress,
-                recipient,
-                amount
+                originBlockchainID, originSenderAddress, nativeContractAddress, recipient, amount
             );
         } else if (action == BridgeAction.Transfer) {
             (
@@ -363,10 +334,7 @@ contract ERC20Bridge is
                 address recipient,
                 uint256 totalAmount,
                 uint256 secondaryFeeAmount
-            ) = abi.decode(
-                    actionData,
-                    (bytes32, address, address, address, uint256, uint256)
-                );
+            ) = abi.decode(actionData, (bytes32, address, address, address, uint256, uint256));
             _transferBridgeTokens({
                 sourceBlockchainID: originBlockchainID,
                 sourceBridgeAddress: originSenderAddress,
@@ -400,9 +368,8 @@ contract ERC20Bridge is
     ) private {
         // Check that the bridge token doesn't already exist.
         require(
-            nativeToWrappedTokens[nativeBlockchainID][nativeBridgeAddress][
-                nativeContractAddress
-            ] == address(0),
+            nativeToWrappedTokens[nativeBlockchainID][nativeBridgeAddress][nativeContractAddress]
+                == address(0),
             "ERC20Bridge: bridge token already exists"
         );
 
@@ -418,15 +385,11 @@ contract ERC20Bridge is
         );
 
         wrappedTokenContracts[bridgeTokenAddress] = true;
-        nativeToWrappedTokens[nativeBlockchainID][nativeBridgeAddress][
-            nativeContractAddress
-        ] = bridgeTokenAddress;
+        nativeToWrappedTokens[nativeBlockchainID][nativeBridgeAddress][nativeContractAddress] =
+            bridgeTokenAddress;
 
         emit CreateBridgeToken(
-            nativeBlockchainID,
-            nativeBridgeAddress,
-            nativeContractAddress,
-            bridgeTokenAddress
+            nativeBlockchainID, nativeBridgeAddress, nativeContractAddress, bridgeTokenAddress
         );
     }
 
@@ -452,13 +415,9 @@ contract ERC20Bridge is
         // If not, one needs to be created by the delivery of a "createBridgeToken" message first
         // before this mint can be processed. Once the bridge token is create, this message
         // could then be retried to mint the tokens.
-        address bridgeTokenAddress = nativeToWrappedTokens[nativeBlockchainID][
-            nativeBridgeAddress
-        ][nativeContractAddress];
-        require(
-            bridgeTokenAddress != address(0),
-            "ERC20Bridge: bridge token does not exist"
-        );
+        address bridgeTokenAddress =
+            nativeToWrappedTokens[nativeBlockchainID][nativeBridgeAddress][nativeContractAddress];
+        require(bridgeTokenAddress != address(0), "ERC20Bridge: bridge token does not exist");
 
         // Mint the wrapped tokens.
         BridgeToken(bridgeTokenAddress).mint(recipient, amount);
@@ -485,22 +444,16 @@ contract ERC20Bridge is
         // Neither the recipient nor the destination bridge can be the zero address.
         require(recipient != address(0), "ERC20Bridge: zero recipient address");
         require(
-            destinationBridgeAddress != address(0),
-            "ERC20Bridge: zero destination bridge address"
+            destinationBridgeAddress != address(0), "ERC20Bridge: zero destination bridge address"
         );
 
         // Check that the bridge returning the tokens has sufficient balance to do so.
-        uint256 currentBalance = bridgedBalances[sourceBlockchainID][
-            sourceBridgeAddress
-        ][nativeContractAddress];
-        require(
-            currentBalance >= totalAmount,
-            "ERC20Bridge: insufficient balance"
-        );
+        uint256 currentBalance =
+            bridgedBalances[sourceBlockchainID][sourceBridgeAddress][nativeContractAddress];
+        require(currentBalance >= totalAmount, "ERC20Bridge: insufficient balance");
 
-        bridgedBalances[sourceBlockchainID][sourceBridgeAddress][
-            nativeContractAddress
-        ] = currentBalance - totalAmount;
+        bridgedBalances[sourceBlockchainID][sourceBridgeAddress][nativeContractAddress] =
+            currentBalance - totalAmount;
 
         // If the destination chain ID and bridge is this bridge instance, then release the tokens back to the recipient.
         // In this case, since there is no secondary Teleporter message, the secondary fee amount is not used.
@@ -523,15 +476,14 @@ contract ERC20Bridge is
         // The tokens are already locked in this contract from when they were previously bridged.
         // We deduct the balance from bridge instance that sent this message, and now will increment the
         // balance of the destination bridge instance.
-        return
-            _processNativeTokenTransfer({
-                destinationBlockchainID: destinationBlockchainID,
-                destinationBridgeAddress: destinationBridgeAddress,
-                nativeContractAddress: nativeContractAddress,
-                recipient: recipient,
-                totalAmount: totalAmount,
-                feeAmount: secondaryFeeAmount
-            });
+        return _processNativeTokenTransfer({
+            destinationBlockchainID: destinationBlockchainID,
+            destinationBridgeAddress: destinationBridgeAddress,
+            nativeContractAddress: nativeContractAddress,
+            recipient: recipient,
+            totalAmount: totalAmount,
+            feeAmount: secondaryFeeAmount
+        });
     }
 
     /**
@@ -571,32 +523,24 @@ contract ERC20Bridge is
         // Allow the Teleporter Messenger to spend the fee amount.
         if (feeAmount > 0) {
             IERC20(nativeContractAddress).safeIncreaseAllowance(
-                address(teleporterMessenger),
-                feeAmount
+                address(teleporterMessenger), feeAmount
             );
         }
 
         // Update balances.
         uint256 bridgeAmount = totalAmount - feeAmount;
-        bridgedBalances[destinationBlockchainID][destinationBridgeAddress][
-            nativeContractAddress
-        ] += bridgeAmount;
+        bridgedBalances[destinationBlockchainID][destinationBridgeAddress][nativeContractAddress] +=
+            bridgeAmount;
 
         // Send Teleporter message.
-        bytes memory messageData = encodeMintBridgeTokensData(
-            nativeContractAddress,
-            recipient,
-            bridgeAmount
-        );
+        bytes memory messageData =
+            encodeMintBridgeTokensData(nativeContractAddress, recipient, bridgeAmount);
 
         bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: nativeContractAddress,
-                    amount: feeAmount
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: nativeContractAddress, amount: feeAmount}),
                 requiredGasLimit: MINT_BRIDGE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: messageData
@@ -620,9 +564,9 @@ contract ERC20Bridge is
      * It is the caller's responsibility to ensure that the wrapped token contract is supported by this bridge instance.
      * Emits a {BridgeTokens} event.
      */
-    function _processWrappedTokenTransfer(
-        WrappedTokenTransferInfo memory wrappedTransferInfo
-    ) private {
+    function _processWrappedTokenTransfer(WrappedTokenTransferInfo memory wrappedTransferInfo)
+        private
+    {
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
         // If necessary, transfer the primary fee amount to this contract and approve the
@@ -638,11 +582,9 @@ contract ERC20Bridge is
                 IERC20(wrappedTransferInfo.wrappedContractAddress),
                 wrappedTransferInfo.primaryFeeAmount
             );
-            IERC20(wrappedTransferInfo.wrappedContractAddress)
-                .safeIncreaseAllowance(
-                    address(teleporterMessenger),
-                    adjustedPrimaryFeeAmount
-                );
+            IERC20(wrappedTransferInfo.wrappedContractAddress).safeIncreaseAllowance(
+                address(teleporterMessenger), adjustedPrimaryFeeAmount
+            );
         }
 
         // Burn the wrapped tokens to be bridged.
@@ -650,11 +592,9 @@ contract ERC20Bridge is
         // is less than the original fee amount, the original amount is the portion that is spent out of the total
         // amount. We know that the burnFrom call will decrease the total supply by bridgeAmount because the
         // bridgeToken contract was deployed by this contract itself and does not implement "fee on burn" functionality.
-        uint256 bridgeAmount = wrappedTransferInfo.totalAmount -
-            wrappedTransferInfo.primaryFeeAmount;
-        BridgeToken bridgeToken = BridgeToken(
-            wrappedTransferInfo.wrappedContractAddress
-        );
+        uint256 bridgeAmount =
+            wrappedTransferInfo.totalAmount - wrappedTransferInfo.primaryFeeAmount;
+        BridgeToken bridgeToken = BridgeToken(wrappedTransferInfo.wrappedContractAddress);
         bridgeToken.burnFrom(msg.sender, bridgeAmount);
 
         // If the destination chain ID is the native chain ID for the wrapped token, the bridge address must also match.
@@ -663,8 +603,7 @@ contract ERC20Bridge is
         address nativeBridgeAddress = bridgeToken.nativeBridge();
         if (wrappedTransferInfo.destinationBlockchainID == nativeBlockchainID) {
             require(
-                wrappedTransferInfo.destinationBridgeAddress ==
-                    nativeBridgeAddress,
+                wrappedTransferInfo.destinationBridgeAddress == nativeBridgeAddress,
                 "ERC20Bridge: invalid destination bridge address"
             );
         }
@@ -673,10 +612,8 @@ contract ERC20Bridge is
         // The message includes the destination chain ID  and bridge contract, which will differ from the native
         // ones in the event that the tokens are being bridge from one non-native chain to another with two hops.
         bytes memory messageData = encodeTransferBridgeTokensData({
-            destinationBlockchainID: wrappedTransferInfo
-                .destinationBlockchainID,
-            destinationBridgeAddress: wrappedTransferInfo
-                .destinationBridgeAddress,
+            destinationBlockchainID: wrappedTransferInfo.destinationBlockchainID,
+            destinationBridgeAddress: wrappedTransferInfo.destinationBridgeAddress,
             nativeContractAddress: bridgeToken.nativeAsset(),
             recipient: wrappedTransferInfo.recipient,
             amount: bridgeAmount,
@@ -698,11 +635,9 @@ contract ERC20Bridge is
         );
         emit BridgeTokens({
             tokenContractAddress: wrappedTransferInfo.wrappedContractAddress,
-            destinationBlockchainID: wrappedTransferInfo
-                .destinationBlockchainID,
+            destinationBlockchainID: wrappedTransferInfo.destinationBlockchainID,
             teleporterMessageID: messageID,
-            destinationBridgeAddress: wrappedTransferInfo
-                .destinationBridgeAddress,
+            destinationBridgeAddress: wrappedTransferInfo.destinationBridgeAddress,
             recipient: wrappedTransferInfo.recipient,
             amount: bridgeAmount
         });

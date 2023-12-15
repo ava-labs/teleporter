@@ -6,7 +6,15 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
-import {TeleporterMessenger, TeleporterMessage, TeleporterMessageReceipt, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger, WarpMessage} from "../TeleporterMessenger.sol";
+import {
+    TeleporterMessenger,
+    TeleporterMessage,
+    TeleporterMessageReceipt,
+    TeleporterMessageInput,
+    TeleporterFeeInfo,
+    IWarpMessenger,
+    WarpMessage
+} from "../TeleporterMessenger.sol";
 import {UnitTestMockERC20} from "../../Mocks/UnitTestMockERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -27,8 +35,7 @@ contract TeleporterMessengerTest is Test {
     address public constant DEFAULT_DESTINATION_ADDRESS =
         0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 1e6;
-    address public constant WARP_PRECOMPILE_ADDRESS =
-        0x0200000000000000000000000000000000000005;
+    address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
     address public constant DEFAULT_RELAYER_REWARD_ADDRESS =
         0xa4CEE7d1aF6aDdDD33E3b1cC680AB84fdf1b6d1d;
 
@@ -74,11 +81,7 @@ contract TeleporterMessengerTest is Test {
         address relayerRewardAddress
     );
 
-    event RelayerRewardsRedeemed(
-        address indexed redeemer,
-        address indexed asset,
-        uint256 amount
-    );
+    event RelayerRewardsRedeemed(address indexed redeemer, address indexed asset, uint256 amount);
 
     function setUp() public virtual {
         vm.mockCall(
@@ -135,10 +138,8 @@ contract TeleporterMessengerTest is Test {
         if (feeAmount > 0) {
             feeAsset = address(_mockFeeAsset);
         }
-        TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo({
-            feeTokenAddress: feeAsset,
-            amount: feeAmount
-        });
+        TeleporterFeeInfo memory feeInfo =
+            TeleporterFeeInfo({feeTokenAddress: feeAsset, amount: feeAmount});
 
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationBlockchainID: blockchainID,
@@ -154,8 +155,7 @@ contract TeleporterMessengerTest is Test {
             vm.expectCall(
                 address(_mockFeeAsset),
                 abi.encodeCall(
-                    IERC20.transferFrom,
-                    (address(this), address(teleporterMessenger), feeAmount)
+                    IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount)
                 )
             );
         }
@@ -179,8 +179,7 @@ contract TeleporterMessengerTest is Test {
             abi.encode(warpMessage, true)
         );
         vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (index))
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (index))
         );
     }
 
@@ -191,19 +190,14 @@ contract TeleporterMessengerTest is Test {
         TeleporterMessageReceipt[] memory receipts
     ) internal {
         // Construct the test message to be received.
-        TeleporterMessage
-            memory messageToReceive = _createMockTeleporterMessage(
-                messageID,
-                new bytes(0)
-            );
+        TeleporterMessage memory messageToReceive =
+            _createMockTeleporterMessage(messageID, new bytes(0));
         messageToReceive.receipts = receipts;
 
         // Both the sender and destination address should be the teleporter contract address,
         // mocking as if the universal deployer pattern was used.
-        WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            originBlockchainID,
-            abi.encode(messageToReceive)
-        );
+        WarpMessage memory warpMessage =
+            _createDefaultWarpMessage(originBlockchainID, abi.encode(messageToReceive));
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
@@ -262,10 +256,7 @@ contract TeleporterMessengerTest is Test {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         return (
             DEFAULT_ORIGIN_BLOCKCHAIN_ID,
@@ -298,17 +289,18 @@ contract TeleporterMessengerTest is Test {
         bytes32 originBlockchainID,
         bytes memory payload
     ) internal view returns (WarpMessage memory) {
-        return
-            WarpMessage({
-                sourceChainID: originBlockchainID,
-                originSenderAddress: address(teleporterMessenger),
-                payload: payload
-            });
+        return WarpMessage({
+            sourceChainID: originBlockchainID,
+            originSenderAddress: address(teleporterMessenger),
+            payload: payload
+        });
     }
 
-    function _formatTeleporterErrorMessage(
-        string memory errorMessage
-    ) internal pure returns (bytes memory) {
+    function _formatTeleporterErrorMessage(string memory errorMessage)
+        internal
+        pure
+        returns (bytes memory)
+    {
         return bytes(string.concat("TeleporterMessenger: ", errorMessage));
     }
 }

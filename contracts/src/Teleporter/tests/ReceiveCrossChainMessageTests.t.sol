@@ -5,7 +5,13 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, WarpMessage, IWarpMessenger} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessage,
+    TeleporterMessageReceipt,
+    WarpMessage,
+    IWarpMessenger
+} from "./TeleporterMessengerTest.t.sol";
 
 // Tests of the logic in receiveCrossChainMessage.
 // Tests of the execution and receipts helper methods are split out into independent
@@ -64,10 +70,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check receipt queue size
         assertEq(
@@ -100,10 +103,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
-        teleporterMessenger.receiveCrossChainMessage(
-            3,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        teleporterMessenger.receiveCrossChainMessage(3, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check receipt queue size
         assertEq(
@@ -124,10 +124,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
     function testNoValidMessage() public {
         // Mock the call to the warp precompile to get the message failing.
-        WarpMessage memory emptyMessage = _createDefaultWarpMessage(
-            bytes32(0),
-            new bytes(0)
-        );
+        WarpMessage memory emptyMessage = _createDefaultWarpMessage(bytes32(0), new bytes(0));
 
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -135,8 +132,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             abi.encode(emptyMessage, false)
         );
         vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (0))
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (0))
         );
 
         vm.expectRevert(_formatTeleporterErrorMessage("invalid warp message"));
@@ -149,8 +145,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
             abi.encode(emptyMessage, false)
         );
         vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (3))
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (3))
         );
 
         vm.expectRevert(_formatTeleporterErrorMessage("invalid warp message"));
@@ -175,13 +170,8 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("invalid origin sender address")
-        );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("invalid origin sender address"));
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
     }
 
     function testInvalidDestinationBlockchainID() public {
@@ -205,19 +195,12 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("invalid destination chain ID")
-        );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("invalid destination chain ID"));
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
     }
 
     function testInvalidRelayerAddress() public {
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("zero relayer reward address")
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("zero relayer reward address"));
         teleporterMessenger.receiveCrossChainMessage(0, address(0));
     }
 
@@ -226,13 +209,8 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         testSuccess();
 
         // Check you can't deliver it again.
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("message already delivered")
-        );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("message already delivered"));
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
     }
 
     function testUnauthorizedRelayer() public {
@@ -262,10 +240,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
 
         // Receive the message.
         vm.expectRevert(_formatTeleporterErrorMessage("unauthorized relayer"));
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
     }
 
     function testMessageSentToEOADoesNotExecute() public {

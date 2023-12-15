@@ -566,6 +566,27 @@ func (_BlockHashReceiver *BlockHashReceiverTransactorSession) TransferOwnership(
 	return _BlockHashReceiver.Contract.TransferOwnership(&_BlockHashReceiver.TransactOpts, newOwner)
 }
 
+// UnpauseTeleporterAddress is a paid mutator transaction binding the contract method 0x4511243e.
+//
+// Solidity: function unpauseTeleporterAddress(address teleporterAddress) returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactor) UnpauseTeleporterAddress(opts *bind.TransactOpts, teleporterAddress common.Address) (*types.Transaction, error) {
+	return _BlockHashReceiver.contract.Transact(opts, "unpauseTeleporterAddress", teleporterAddress)
+}
+
+// UnpauseTeleporterAddress is a paid mutator transaction binding the contract method 0x4511243e.
+//
+// Solidity: function unpauseTeleporterAddress(address teleporterAddress) returns()
+func (_BlockHashReceiver *BlockHashReceiverSession) UnpauseTeleporterAddress(teleporterAddress common.Address) (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.UnpauseTeleporterAddress(&_BlockHashReceiver.TransactOpts, teleporterAddress)
+}
+
+// UnpauseTeleporterAddress is a paid mutator transaction binding the contract method 0x4511243e.
+//
+// Solidity: function unpauseTeleporterAddress(address teleporterAddress) returns()
+func (_BlockHashReceiver *BlockHashReceiverTransactorSession) UnpauseTeleporterAddress(teleporterAddress common.Address) (*types.Transaction, error) {
+	return _BlockHashReceiver.Contract.UnpauseTeleporterAddress(&_BlockHashReceiver.TransactOpts, teleporterAddress)
+}
+
 // UpdateMinTeleporterVersion is a paid mutator transaction binding the contract method 0x5eb99514.
 //
 // Solidity: function updateMinTeleporterVersion(uint256 version) returns()
@@ -1194,6 +1215,150 @@ func (_BlockHashReceiver *BlockHashReceiverFilterer) WatchTeleporterAddressPause
 func (_BlockHashReceiver *BlockHashReceiverFilterer) ParseTeleporterAddressPaused(log types.Log) (*BlockHashReceiverTeleporterAddressPaused, error) {
 	event := new(BlockHashReceiverTeleporterAddressPaused)
 	if err := _BlockHashReceiver.contract.UnpackLog(event, "TeleporterAddressPaused", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BlockHashReceiverTeleporterAddressUnpausedIterator is returned from FilterTeleporterAddressUnpaused and is used to iterate over the raw logs and unpacked data for TeleporterAddressUnpaused events raised by the BlockHashReceiver contract.
+type BlockHashReceiverTeleporterAddressUnpausedIterator struct {
+	Event *BlockHashReceiverTeleporterAddressUnpaused // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log          // Log channel receiving the found contract events
+	sub  interfaces.Subscription // Subscription for errors, completion and termination
+	done bool                    // Whether the subscription completed delivering logs
+	fail error                   // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BlockHashReceiverTeleporterAddressUnpausedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BlockHashReceiverTeleporterAddressUnpaused)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BlockHashReceiverTeleporterAddressUnpaused)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BlockHashReceiverTeleporterAddressUnpausedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BlockHashReceiverTeleporterAddressUnpausedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BlockHashReceiverTeleporterAddressUnpaused represents a TeleporterAddressUnpaused event raised by the BlockHashReceiver contract.
+type BlockHashReceiverTeleporterAddressUnpaused struct {
+	TeleporterAddress common.Address
+	Raw               types.Log // Blockchain specific contextual infos
+}
+
+// FilterTeleporterAddressUnpaused is a free log retrieval operation binding the contract event 0x844e2f3154214672229235858fd029d1dfd543901c6d05931f0bc2480a2d72c3.
+//
+// Solidity: event TeleporterAddressUnpaused(address indexed teleporterAddress)
+func (_BlockHashReceiver *BlockHashReceiverFilterer) FilterTeleporterAddressUnpaused(opts *bind.FilterOpts, teleporterAddress []common.Address) (*BlockHashReceiverTeleporterAddressUnpausedIterator, error) {
+
+	var teleporterAddressRule []interface{}
+	for _, teleporterAddressItem := range teleporterAddress {
+		teleporterAddressRule = append(teleporterAddressRule, teleporterAddressItem)
+	}
+
+	logs, sub, err := _BlockHashReceiver.contract.FilterLogs(opts, "TeleporterAddressUnpaused", teleporterAddressRule)
+	if err != nil {
+		return nil, err
+	}
+	return &BlockHashReceiverTeleporterAddressUnpausedIterator{contract: _BlockHashReceiver.contract, event: "TeleporterAddressUnpaused", logs: logs, sub: sub}, nil
+}
+
+// WatchTeleporterAddressUnpaused is a free log subscription operation binding the contract event 0x844e2f3154214672229235858fd029d1dfd543901c6d05931f0bc2480a2d72c3.
+//
+// Solidity: event TeleporterAddressUnpaused(address indexed teleporterAddress)
+func (_BlockHashReceiver *BlockHashReceiverFilterer) WatchTeleporterAddressUnpaused(opts *bind.WatchOpts, sink chan<- *BlockHashReceiverTeleporterAddressUnpaused, teleporterAddress []common.Address) (event.Subscription, error) {
+
+	var teleporterAddressRule []interface{}
+	for _, teleporterAddressItem := range teleporterAddress {
+		teleporterAddressRule = append(teleporterAddressRule, teleporterAddressItem)
+	}
+
+	logs, sub, err := _BlockHashReceiver.contract.WatchLogs(opts, "TeleporterAddressUnpaused", teleporterAddressRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BlockHashReceiverTeleporterAddressUnpaused)
+				if err := _BlockHashReceiver.contract.UnpackLog(event, "TeleporterAddressUnpaused", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseTeleporterAddressUnpaused is a log parse operation binding the contract event 0x844e2f3154214672229235858fd029d1dfd543901c6d05931f0bc2480a2d72c3.
+//
+// Solidity: event TeleporterAddressUnpaused(address indexed teleporterAddress)
+func (_BlockHashReceiver *BlockHashReceiverFilterer) ParseTeleporterAddressUnpaused(log types.Log) (*BlockHashReceiverTeleporterAddressUnpaused, error) {
+	event := new(BlockHashReceiverTeleporterAddressUnpaused)
+	if err := _BlockHashReceiver.contract.UnpackLog(event, "TeleporterAddressUnpaused", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

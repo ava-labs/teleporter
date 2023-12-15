@@ -5,7 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterFeeInfo, TeleporterMessageReceipt, IERC20} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterFeeInfo,
+    TeleporterMessageReceipt,
+    IERC20
+} from "./TeleporterMessengerTest.t.sol";
 
 contract AddFeeAmountTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -30,21 +35,14 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
             address(_mockFeeAsset),
             abi.encodeCall(
                 IERC20.transferFrom,
-                (
-                    address(this),
-                    address(teleporterMessenger),
-                    additionalFeeAmount
-                )
+                (address(this), address(teleporterMessenger), additionalFeeAmount)
             )
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit AddFeeAmount(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
-            TeleporterFeeInfo({
-                feeTokenAddress: address(_mockFeeAsset),
-                amount: totalFeeAmount
-            })
+            TeleporterFeeInfo({feeTokenAddress: address(_mockFeeAsset), amount: totalFeeAmount})
         );
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -83,8 +81,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
 
         // Now mock receiving a message back from that subnet with a receipt of the above message.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
-        TeleporterMessageReceipt[]
-            memory receipts = new TeleporterMessageReceipt[](1);
+        TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
             receivedMessageID: messageID,
             relayerRewardAddress: relayerRewardAddress
@@ -118,9 +115,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
 
         // Expect revert when adding 0 additional amount.
         uint256 additionalFeeAmount = 0;
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("zero additional fee amount")
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("zero additional fee amount"));
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
@@ -140,9 +135,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Expect revert when using a different fee asset than originally used.
         uint256 additionalFeeAmount = 131313;
         address differentFeeAsset = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("invalid fee asset contract address")
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("invalid fee asset contract address"));
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
@@ -162,9 +155,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
         // Expect revert when using an invalid fee asset.
         uint256 additionalFeeAmount = 131313;
         address invalidFeeAsset = address(0);
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("zero fee asset contract address")
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("zero fee asset contract address"));
         teleporterMessenger.addFeeAmount(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageID,
@@ -187,22 +178,14 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
             address(_mockFeeAsset),
             abi.encodeCall(
                 IERC20.transferFrom,
-                (
-                    address(this),
-                    address(teleporterMessenger),
-                    additionalFeeAmount
-                )
+                (address(this), address(teleporterMessenger), additionalFeeAmount)
             )
         );
         vm.mockCall(
             address(_mockFeeAsset),
             abi.encodeCall(
                 IERC20.transferFrom,
-                (
-                    address(this),
-                    address(teleporterMessenger),
-                    additionalFeeAmount
-                )
+                (address(this), address(teleporterMessenger), additionalFeeAmount)
             ),
             abi.encode(false)
         );
