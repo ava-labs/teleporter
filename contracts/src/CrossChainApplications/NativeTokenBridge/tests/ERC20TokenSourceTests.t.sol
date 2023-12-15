@@ -236,6 +236,17 @@ contract ERC20TokenSourceTest is Test {
         );
     }
 
+    function testInvalidTeleporterAddress() public {
+        vm.expectRevert("TeleporterUpgradeable: invalid Teleporter sender");
+
+        vm.prank(address(0x123));
+        erc20TokenSource.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+        );
+    }
+
     function testZeroERC20ContractAddress() public {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero ERC20 contract address"));
 
@@ -321,6 +332,12 @@ contract ERC20TokenSourceTest is Test {
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(TeleporterRegistry.getAddressFromVersion.selector, (1)),
             abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(TeleporterRegistry.getVersionFromAddress.selector),
+            abi.encode(0)
         );
 
         vm.mockCall(

@@ -228,7 +228,7 @@ contract NativeTokenSourceTest is Test {
     }
 
     function testInvalidTeleporterAddress() public {
-        vm.expectRevert();
+        vm.expectRevert("TeleporterUpgradeable: invalid Teleporter sender");
 
         vm.prank(address(0x123));
         nativeTokenSource.receiveTeleporterMessage(
@@ -322,6 +322,12 @@ contract NativeTokenSourceTest is Test {
                 (MOCK_TELEPORTER_MESSENGER_ADDRESS)
             ),
             abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(TeleporterRegistry.getVersionFromAddress.selector),
+            abi.encode(0)
         );
 
         vm.mockCall(
