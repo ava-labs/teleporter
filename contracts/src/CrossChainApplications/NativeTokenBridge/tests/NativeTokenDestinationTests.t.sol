@@ -110,7 +110,6 @@ contract NativeTokenDestinationTest is Test {
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE)
         );
-        vm.stopPrank();
     }
 
     function testTransferToSource() public {
@@ -164,7 +163,10 @@ contract NativeTokenDestinationTest is Test {
     function testCollateralizeBridge() public {
         uint256 firstTransfer = _DEFAULT_INITIAL_RESERVE_IMBALANCE / 4;
 
-        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE, nativeTokenDestination.totalSupply());
+        assertEq(
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            nativeTokenDestination.totalSupply()
+        );
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
@@ -179,8 +181,14 @@ contract NativeTokenDestinationTest is Test {
             abi.encode(_DEFAULT_RECIPIENT, firstTransfer)
         );
 
-        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer, nativeTokenDestination.currentReserveImbalance());
-        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE, nativeTokenDestination.totalSupply());
+        assertEq(
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE - firstTransfer,
+            nativeTokenDestination.currentReserveImbalance()
+        );
+        assertEq(
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            nativeTokenDestination.totalSupply()
+        );
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({
@@ -203,7 +211,10 @@ contract NativeTokenDestinationTest is Test {
         );
 
         assertEq(0, nativeTokenDestination.currentReserveImbalance());
-        assertEq(_DEFAULT_INITIAL_RESERVE_IMBALANCE + firstTransfer, nativeTokenDestination.totalSupply());
+        assertEq(
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE + firstTransfer,
+            nativeTokenDestination.totalSupply()
+        );
     }
 
     function testReportBurnedTxFees() public {

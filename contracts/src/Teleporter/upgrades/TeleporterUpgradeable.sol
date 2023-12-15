@@ -46,6 +46,11 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
     event TeleporterAddressPaused(address indexed teleporterAddress);
 
     /**
+     * @dev Emitted when a Teleporter address is unpaused.
+     */
+    event TeleporterAddressUnpaused(address indexed teleporterAddress);
+
+    /**
      * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
      * instance and setting `_minTeleporterVersion`.
      */
@@ -112,6 +117,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * Requirements:
      *
      * - `msg.sender` must have Teleporter upgrade access.
+     * - `teleporterAddress` is not the zero address.
      * - `teleporterAddress` is not already paused.
      */
     function pauseTeleporterAddress(address teleporterAddress) public virtual {
@@ -126,6 +132,34 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
         );
         _pausedTeleporterAddresses[teleporterAddress] = true;
         emit TeleporterAddressPaused(teleporterAddress);
+    }
+
+    /**
+     * @dev Unpauses a Teleporter address from interacting with this contract.
+     * After unpausing a Teleporter address, it will again be able to deliver messages
+     * to this contract, and this contract can send messages through that Teleporter address.
+     * The address does not need to be registered with the Teleporter registry.
+     * Emits a {TeleporterAddressUnpaused} event if successfully unpaused.
+     * Requirements:
+     *
+     * - `msg.sender` must have Teleporter upgrade access.
+     * - `teleporterAddress` is not the zero address.
+     * - `teleporterAddress` is already paused.
+     */
+    function unpauseTeleporterAddress(
+        address teleporterAddress
+    ) public virtual {
+        _checkTeleporterUpgradeAccess();
+        require(
+            teleporterAddress != address(0),
+            "TeleporterUpgradeable: zero Teleporter address"
+        );
+        require(
+            isTeleporterAddressPaused(teleporterAddress),
+            "TeleporterUpgradeable: address not paused"
+        );
+        emit TeleporterAddressUnpaused(teleporterAddress);
+        _pausedTeleporterAddresses[teleporterAddress] = false;
     }
 
     /**
