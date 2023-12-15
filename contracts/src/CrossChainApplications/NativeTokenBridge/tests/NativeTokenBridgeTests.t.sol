@@ -11,7 +11,7 @@ contract NativeTokenBridgeTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
     address public constant WARP_PRECOMPILE_ADDRESS =
-        address(0x0200000000000000000000000000000000000005);   
+        address(0x0200000000000000000000000000000000000005);
     address public constant NATIVE_MINTER_PRECOMPILE_ADDRESS =
         address(0x0200000000000000000000000000000000000001);
     bytes32 internal constant _MOCK_BLOCKCHAIN_ID = bytes32(uint256(123456));
@@ -25,12 +25,7 @@ contract NativeTokenBridgeTest is Test {
     uint256 internal constant _DEFAULT_FEE_AMOUNT = 123456;
 
     function _createMessageID(uint256 messageNonce) internal pure returns (bytes32) {
-        return sha256(
-            abi.encode(
-                MOCK_TELEPORTER_MESSENGER_ADDRESS,
-                _MOCK_BLOCKCHAIN_ID,
-                messageNonce
-            )
-        );
+        return
+            sha256(abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS, _MOCK_BLOCKCHAIN_ID, messageNonce));
     }
 }

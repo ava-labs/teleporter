@@ -106,16 +106,6 @@ contract TeleporterMessengerTest is Test {
      * TEST UTILS / HELPERS
      */
 
-    function _createMessageID(uint256 messageNonce) internal view returns (bytes32) {
-        return sha256(
-            abi.encode(
-                address(teleporterMessenger),
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                messageNonce
-            )
-        );
-    }
-
     function _sendTestMessageWithFee(
         bytes32 blockchainID,
         uint256 feeAmount
@@ -242,6 +232,14 @@ contract TeleporterMessengerTest is Test {
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         return (DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, messageToReceive);
+    }
+
+    function _createMessageID(uint256 messageNonce) internal view returns (bytes32) {
+        return sha256(
+            abi.encode(
+                address(teleporterMessenger), DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageNonce
+            )
+        );
     }
 
     // Create a mock message to be used in tests. It should include no receipts
