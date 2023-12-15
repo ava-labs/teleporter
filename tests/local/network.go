@@ -140,7 +140,7 @@ func newLocalNetwork(warpGenesisFile string) *localNetwork {
 	// On initial startup, we need to first set the subnet node names
 	// before calling setSubnetValues for the two subnets
 	subnetIDs := manager.GetSubnets()
-	Expect(len(subnetIDs)).Should(Equal(3))
+	Expect(len(subnetIDs)).Should(Equal(2))
 	subnetAID := subnetIDs[0]
 	subnetBID := subnetIDs[1]
 
@@ -369,7 +369,7 @@ func (n *localNetwork) RelayMessage(ctx context.Context,
 
 func (n *localNetwork) setAllSubnetValues() {
 	subnetIDs := n.manager.GetSubnets()
-	Expect(len(subnetIDs)).Should(Equal(3))
+	Expect(len(subnetIDs)).Should(Equal(2))
 
 	n.subnetAID = subnetIDs[0]
 	n.setSubnetValues(n.subnetAID)
