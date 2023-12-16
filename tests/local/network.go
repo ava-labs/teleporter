@@ -451,7 +451,7 @@ func (n *LocalNetwork) setAllSubnetValues() {
 	n.setPrimaryNetworkValues()
 }
 
-func (n *LocalNetwork) tearDownNetwork() {
+func (n *LocalNetwork) TearDownNetwork() {
 	log.Info("Tearing down network")
 	Expect(n.manager).ShouldNot(BeNil())
 	Expect(n.manager.TeardownNetwork()).Should(BeNil())

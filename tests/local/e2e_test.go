@@ -52,7 +52,7 @@ var _ = ginkgo.BeforeSuite(func() {
 })
 
 var _ = ginkgo.AfterSuite(func() {
-	LocalNetworkInstance.tearDownNetwork()
+	LocalNetworkInstance.TearDownNetwork()
 })
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
