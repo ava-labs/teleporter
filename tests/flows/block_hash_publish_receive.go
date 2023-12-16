@@ -2,6 +2,7 @@ package flows
 
 import (
 	"context"
+	"encoding/hex"
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
@@ -63,7 +64,6 @@ func BlockHashPublishReceive(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// verify expectations
-
-	Expect(blockNumber).Should(BeEquivalentTo(expectedBlockNumber))
-	Expect(blockHash).Should(BeEquivalentTo(expectedBlockHash))
+	Expect(blockNumber.Uint64()).Should(Equal(expectedBlockNumber.Uint64()))
+	Expect(hex.EncodeToString(blockHash[:])).Should(Equal(hex.EncodeToString(expectedBlockHash[:])))
 }

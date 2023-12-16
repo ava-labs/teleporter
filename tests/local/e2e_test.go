@@ -69,8 +69,11 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("ERC20 bridge multihop", func() {
 		flows.ERC20BridgeMultihop(localNetworkInstance)
 	})
+	ginkgo.It("Block hash publish and receive", func() {
+		flows.BlockHashPublishReceive(localNetworkInstance)
+	})
 
-	// // Teleporter tests
+	// Teleporter tests
 	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A", func() {
 		flows.BasicSendReceive(localNetworkInstance)
 	})
@@ -101,11 +104,8 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Resubmit altered message", func() {
 		flows.ResubmitAlteredMessage(localNetworkInstance)
 	})
-	ginkgo.It("Block hash publish and receive", func() {
-		flows.BlockHashPublishReceive(localNetworkInstance)
-	})
 
-	// // The following tests require special behavior by the relayer, so we only run them on a local network
+	// The following tests require special behavior by the relayer, so we only run them on a local network
 	ginkgo.It("Relayer modifies message", func() {
 		flows.RelayerModifiesMessage(localNetworkInstance)
 	})
