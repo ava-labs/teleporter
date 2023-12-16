@@ -11,8 +11,8 @@ import (
 )
 
 func BlockHashPublishReceive(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := utils.GetTwoSubnets(network)
+	// subnetAInfo := network.GetPrimaryNetworkInfo() TODO: Integrate the C-Chain
+	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()

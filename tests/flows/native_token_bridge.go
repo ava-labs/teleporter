@@ -46,8 +46,8 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		}
 	)
 
-	sourceSubnet := network.GetPrimaryNetworkInfo()
-	destSubnet, _ := utils.GetTwoSubnets(network)
+	// sourceSubnet := network.GetPrimaryNetworkInfo() // TODO: Integrate the C-Chain
+	sourceSubnet, destSubnet := utils.GetTwoSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 
 	// Info we need to calculate for the test
