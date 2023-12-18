@@ -232,7 +232,7 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Gets the message ID to be used for the next message sent from the contract instance.
-     * @return The message ID to be used for the message sent from the contract instance.
+     * @return The message ID to be used for the next message sent from the contract instance.
      */
     function getNextMessageID() external view returns (bytes32);
 
