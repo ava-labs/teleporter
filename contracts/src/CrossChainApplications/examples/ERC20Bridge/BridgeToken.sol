@@ -5,7 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import {ERC20, ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {
+    ERC20, ERC20Burnable
+} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -35,18 +37,9 @@ contract BridgeToken is ERC20Burnable {
         string memory tokenSymbol,
         uint8 tokenDecimals
     ) ERC20(tokenName, tokenSymbol) {
-        require(
-            sourceBlockchainID != bytes32(0),
-            "BridgeToken: zero source chain id"
-        );
-        require(
-            sourceBridge != address(0),
-            "BridgeToken: zero source bridge address"
-        );
-        require(
-            sourceAsset != address(0),
-            "BridgeToken: zero source asset address"
-        );
+        require(sourceBlockchainID != bytes32(0), "BridgeToken: zero source chain id");
+        require(sourceBridge != address(0), "BridgeToken: zero source bridge address");
+        require(sourceAsset != address(0), "BridgeToken: zero source asset address");
         bridgeContract = msg.sender;
         nativeBlockchainID = sourceBlockchainID;
         nativeBridge = sourceBridge;

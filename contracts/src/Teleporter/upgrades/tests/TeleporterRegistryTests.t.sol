@@ -14,18 +14,11 @@ contract TeleporterRegistryTest is Test {
     address public teleporterAddress;
 
     bytes32 public constant MOCK_BLOCK_CHAIN_ID = bytes32(uint256(123456));
-    address public constant WARP_PRECOMPILE_ADDRESS =
-        0x0200000000000000000000000000000000000005;
+    address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
-    event AddProtocolVersion(
-        uint256 indexed version,
-        address indexed protocolAddress
-    );
+    event AddProtocolVersion(uint256 indexed version, address indexed protocolAddress);
 
-    event LatestVersionUpdated(
-        uint256 indexed oldVersion,
-        uint256 indexed newVersion
-    );
+    event LatestVersionUpdated(uint256 indexed oldVersion, uint256 indexed newVersion);
 
     function setUp() public virtual {
         vm.mockCall(
@@ -47,10 +40,7 @@ contract TeleporterRegistryTest is Test {
 
         _addProtocolVersion(teleporterRegistry, teleporterAddress);
         assertEq(latestVersion + 1, teleporterRegistry.latestVersion());
-        assertEq(
-            teleporterAddress,
-            address(teleporterRegistry.getLatestTeleporter())
-        );
+        assertEq(teleporterAddress, address(teleporterRegistry.getLatestTeleporter()));
         assertEq(
             teleporterRegistry.getVersionFromAddress(teleporterAddress),
             teleporterRegistry.latestVersion()
@@ -68,10 +58,7 @@ contract TeleporterRegistryTest is Test {
 
         teleporterRegistry.addProtocolVersion(messageIndex);
         assertEq(latestVersion + 2, teleporterRegistry.latestVersion());
-        assertEq(
-            teleporterAddress,
-            address(teleporterRegistry.getLatestTeleporter())
-        );
+        assertEq(teleporterAddress, address(teleporterRegistry.getLatestTeleporter()));
     }
 
     function testAddNonContractAddress() public {
@@ -88,10 +75,7 @@ contract TeleporterRegistryTest is Test {
 
         teleporterRegistry.addProtocolVersion(messageIndex);
         assertEq(latestVersion + 2, teleporterRegistry.latestVersion());
-        assertEq(
-            address(this),
-            teleporterRegistry.getAddressFromVersion(latestVersion + 2)
-        );
+        assertEq(address(this), teleporterRegistry.getAddressFromVersion(latestVersion + 2));
     }
 
     function testAddOldVersion() public {
@@ -109,18 +93,12 @@ contract TeleporterRegistryTest is Test {
 
         teleporterRegistry.addProtocolVersion(messageIndex);
         assertEq(latestVersion + 2, teleporterRegistry.latestVersion());
-        assertEq(
-            teleporterAddress,
-            teleporterRegistry.getAddressFromVersion(latestVersion + 2)
-        );
+        assertEq(teleporterAddress, teleporterRegistry.getAddressFromVersion(latestVersion + 2));
 
         // latestVersion + 1 was skipped in previous check, is not registered, and is less than latestVersion()
         uint256 oldVersion = latestVersion + 1;
         warpMessage = _createWarpOffChainMessage(
-            oldVersion,
-            address(teleporterRegistry),
-            address(this),
-            address(teleporterRegistry)
+            oldVersion, address(teleporterRegistry), address(this), address(teleporterRegistry)
         );
 
         // Make sure that oldVersion is not registered, and is less than latestVersion()
@@ -130,10 +108,7 @@ contract TeleporterRegistryTest is Test {
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
         teleporterRegistry.addProtocolVersion(messageIndex);
-        assertEq(
-            address(this),
-            teleporterRegistry.getAddressFromVersion(oldVersion)
-        );
+        assertEq(address(this), teleporterRegistry.getAddressFromVersion(oldVersion));
         assertEq(oldVersion + 1, teleporterRegistry.latestVersion());
     }
 
@@ -152,31 +127,19 @@ contract TeleporterRegistryTest is Test {
 
         teleporterRegistry.addProtocolVersion(messageIndex);
         assertEq(latestVersion + 2, teleporterRegistry.latestVersion());
-        assertEq(
-            teleporterAddress,
-            teleporterRegistry.getAddressFromVersion(latestVersion + 2)
-        );
+        assertEq(teleporterAddress, teleporterRegistry.getAddressFromVersion(latestVersion + 2));
 
         // latestVersion + 1 was skipped in previous check, is not registered, and is less than latestVersion()
         uint256 oldVersion = latestVersion + 1;
         warpMessage = _createWarpOffChainMessage(
-            oldVersion,
-            address(teleporterRegistry),
-            teleporterAddress,
-            address(teleporterRegistry)
+            oldVersion, address(teleporterRegistry), teleporterAddress, address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
         teleporterRegistry.addProtocolVersion(messageIndex);
-        assertEq(
-            teleporterAddress,
-            teleporterRegistry.getAddressFromVersion(oldVersion)
-        );
+        assertEq(teleporterAddress, teleporterRegistry.getAddressFromVersion(oldVersion));
 
-        assertEq(
-            latestVersion + 2,
-            teleporterRegistry.getVersionFromAddress(teleporterAddress)
-        );
+        assertEq(latestVersion + 2, teleporterRegistry.getVersionFromAddress(teleporterAddress));
     }
 
     function testAddExistingVersion() public {
@@ -194,10 +157,7 @@ contract TeleporterRegistryTest is Test {
 
         teleporterRegistry.addProtocolVersion(messageIndex);
         assertEq(latestVersion + 1, teleporterRegistry.latestVersion());
-        assertEq(
-            teleporterAddress,
-            teleporterRegistry.getAddressFromVersion(latestVersion + 1)
-        );
+        assertEq(teleporterAddress, teleporterRegistry.getAddressFromVersion(latestVersion + 1));
 
         // Check that adding a protocol version with the same version fails
         vm.expectRevert(_formatRegistryErrorMessage("version already exists"));
@@ -210,10 +170,7 @@ contract TeleporterRegistryTest is Test {
 
         // Check that adding an invalid protocol address of address(0) fails
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 1,
-            address(teleporterRegistry),
-            address(0),
-            address(teleporterRegistry)
+            latestVersion + 1, address(teleporterRegistry), address(0), address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
@@ -226,10 +183,7 @@ contract TeleporterRegistryTest is Test {
 
         // Check that adding an invalid version of 0 fails
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            0,
-            address(teleporterRegistry),
-            teleporterAddress,
-            address(teleporterRegistry)
+            0, address(teleporterRegistry), teleporterAddress, address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
@@ -242,10 +196,7 @@ contract TeleporterRegistryTest is Test {
         uint256 latestVersion = teleporterRegistry.latestVersion();
 
         // First test success case
-        assertEq(
-            teleporterAddress,
-            teleporterRegistry.getAddressFromVersion(latestVersion)
-        );
+        assertEq(teleporterAddress, teleporterRegistry.getAddressFromVersion(latestVersion));
 
         // Check that getting version 0 fails
         vm.expectRevert(_formatRegistryErrorMessage("zero version"));
@@ -261,15 +212,10 @@ contract TeleporterRegistryTest is Test {
         uint256 latestVersion = teleporterRegistry.latestVersion();
 
         // First test success case
-        assertEq(
-            latestVersion,
-            teleporterRegistry.getVersionFromAddress(teleporterAddress)
-        );
+        assertEq(latestVersion, teleporterRegistry.getVersionFromAddress(teleporterAddress));
 
         // Check that getting a version of an address that doesn't exist reverts
-        vm.expectRevert(
-            _formatRegistryErrorMessage("protocol address not found")
-        );
+        vm.expectRevert(_formatRegistryErrorMessage("protocol address not found"));
         teleporterRegistry.getVersionFromAddress(address(this));
     }
 
@@ -301,23 +247,16 @@ contract TeleporterRegistryTest is Test {
         warpMessage.originSenderAddress = address(this);
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
-        vm.expectRevert(
-            _formatRegistryErrorMessage("invalid origin sender address")
-        );
+        vm.expectRevert(_formatRegistryErrorMessage("invalid origin sender address"));
         teleporterRegistry.addProtocolVersion(messageIndex);
 
         // Check if we have an invalid destination address
         warpMessage = _createWarpOffChainMessage(
-            latestVersion + 1,
-            address(this),
-            teleporterAddress,
-            address(teleporterRegistry)
+            latestVersion + 1, address(this), teleporterAddress, address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
-        vm.expectRevert(
-            _formatRegistryErrorMessage("invalid destination address")
-        );
+        vm.expectRevert(_formatRegistryErrorMessage("invalid destination address"));
         teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
@@ -352,9 +291,7 @@ contract TeleporterRegistryTest is Test {
 
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
-        vm.expectRevert(
-            _formatRegistryErrorMessage("version increment too high")
-        );
+        vm.expectRevert(_formatRegistryErrorMessage("version increment too high"));
         teleporterRegistry.addProtocolVersion(messageIndex);
     }
 
@@ -365,10 +302,7 @@ contract TeleporterRegistryTest is Test {
         uint256 latestVersion = registry.latestVersion();
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 1,
-            address(registry),
-            newProtocolAddress,
-            address(registry)
+            latestVersion + 1, address(registry), newProtocolAddress, address(registry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
@@ -386,18 +320,12 @@ contract TeleporterRegistryTest is Test {
     ) internal {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                IWarpMessenger.getVerifiedWarpMessage,
-                (messageIndex)
-            ),
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (messageIndex)),
             abi.encode(warpMessage, isValid)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(
-                IWarpMessenger.getVerifiedWarpMessage,
-                (messageIndex)
-            )
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, (messageIndex))
         );
     }
 
@@ -407,24 +335,21 @@ contract TeleporterRegistryTest is Test {
         address protocolAddress,
         address registryAddress
     ) internal view returns (WarpMessage memory) {
-        return
-            WarpMessage({
-                sourceChainID: MOCK_BLOCK_CHAIN_ID,
-                originSenderAddress: TeleporterRegistry(registryAddress)
-                    .VALIDATORS_SOURCE_ADDRESS(),
-                payload: abi.encode(
-                    ProtocolRegistryEntry({
-                        version: version,
-                        protocolAddress: protocolAddress
-                    }),
-                    destinationAddress
+        return WarpMessage({
+            sourceChainID: MOCK_BLOCK_CHAIN_ID,
+            originSenderAddress: TeleporterRegistry(registryAddress).VALIDATORS_SOURCE_ADDRESS(),
+            payload: abi.encode(
+                ProtocolRegistryEntry({version: version, protocolAddress: protocolAddress}),
+                destinationAddress
                 )
-            });
+        });
     }
 
-    function _formatRegistryErrorMessage(
-        string memory errorMessage
-    ) internal pure returns (bytes memory) {
+    function _formatRegistryErrorMessage(string memory errorMessage)
+        internal
+        pure
+        returns (bytes memory)
+    {
         return bytes(string.concat("TeleporterRegistry: ", errorMessage));
     }
 }

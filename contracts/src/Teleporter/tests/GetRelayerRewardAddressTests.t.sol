@@ -19,10 +19,7 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
         // Before receiving the message, it returns the 0 address.
         uint256 mockMessageID = 8;
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_DESTINATION_CHAIN_ID,
-                mockMessageID
-            ),
+            teleporterMessenger.getRelayerRewardAddress(DEFAULT_DESTINATION_CHAIN_ID, mockMessageID),
             address(0)
         );
 
@@ -37,10 +34,7 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
 
         // Now it has the relayer reward address.
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_DESTINATION_CHAIN_ID,
-                mockMessageID
-            ),
+            teleporterMessenger.getRelayerRewardAddress(DEFAULT_DESTINATION_CHAIN_ID, mockMessageID),
             relayerRewardAddress
         );
     }

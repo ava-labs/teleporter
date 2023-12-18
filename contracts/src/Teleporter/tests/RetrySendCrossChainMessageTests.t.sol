@@ -5,7 +5,11 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessage,
+    TeleporterMessageReceipt
+} from "./TeleporterMessengerTest.t.sol";
 
 contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -17,10 +21,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
     function testSuccess() public {
         // Send a message
-        uint256 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
-            654456
-        );
+        uint256 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_CHAIN_ID, 654456);
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: address(this),
@@ -34,8 +35,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
         // Retry it
         teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
-            expectedMessage
+            DEFAULT_DESTINATION_CHAIN_ID, expectedMessage
         );
     }
 
@@ -51,18 +51,12 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
-        teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
-            fakeMessage
-        );
+        teleporterMessenger.retrySendCrossChainMessage(DEFAULT_DESTINATION_CHAIN_ID, fakeMessage);
     }
 
     function testInvalidMessageHash() public {
         // Send a message, then try to alter it's contents.
-        uint256 messageID = _sendTestMessageWithFee(
-            DEFAULT_DESTINATION_CHAIN_ID,
-            654456
-        );
+        uint256 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_CHAIN_ID, 654456);
         TeleporterMessage memory alteredMessage = TeleporterMessage({
             messageID: messageID,
             senderAddress: address(this),
@@ -76,9 +70,6 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
         // Retry it - should fail.
         vm.expectRevert(_formatTeleporterErrorMessage("invalid message hash"));
-        teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
-            alteredMessage
-        );
+        teleporterMessenger.retrySendCrossChainMessage(DEFAULT_DESTINATION_CHAIN_ID, alteredMessage);
     }
 }
