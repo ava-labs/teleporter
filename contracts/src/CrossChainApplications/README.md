@@ -4,6 +4,8 @@ This directory includes cross-chain applications that are built on top of the [T
 
 ## Example Applications
 
+> Note: All example applications in the [examples](./examples/) directory are meant for education purposes only and the code is non-audited. The example contracts are not intended for use in production environments.
+
 - `ERC20Bridge` allows cross-chain transfers of existing ERC20 assets. More details found [here](./examples/ERC20Bridge/README.md)
 - `ExampleMessenger` a simple cross chain messenger that demonstrates Teleporter application sending arbitrary string data. More details found [here](./examples/ExampleMessenger/README.md)
 - `VerifiedBlockHash` publishes the latest block hash of one chain to a destination chain that receives the hash and verifies the sender. Includes `BlockHashPublisher` and `BlockHashReceiver`. More details found [here](./examples/VerifiedBlockHash/README.md)
