@@ -156,7 +156,6 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
 	senderKey *ecdsa.PrivateKey,
-	// transactor *teleportermessenger.TeleporterMessenger,
 ) (*types.Receipt, ids.ID) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())

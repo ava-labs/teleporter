@@ -245,11 +245,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         );
 
         // If the blockchain ID has yet to be initialized, do so now.
-        bytes32 blockchainID_ = blockchainID;
-        if (blockchainID_ == bytes32(0)) {
-            blockchainID_ = WARP_MESSENGER.getBlockchainID();
-            blockchainID = blockchainID_;
-        }
+        bytes32 blockchainID_ = _initializeBlockchainID();
 
         // Parse the payload of the message.
         TeleporterMessage memory teleporterMessage =
@@ -568,18 +564,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessageReceipt[] memory receipts
     ) private returns (bytes32) {
         // If the blockchain ID has yet to be initialized, do so now.
-        bytes32 blockchainID_ = blockchainID;
-        if (blockchainID_ == bytes32(0)) {
-            blockchainID_ = WARP_MESSENGER.getBlockchainID();
-            blockchainID = blockchainID_;
-        }
+        bytes32 blockchainID_ = _initializeBlockchainID();
         require(blockchainID_ != bytes32(0), "TeleporterMessenger: blockchainID not set");
 
         // Get the message ID to use for this message.
         bytes32 messageID = _calculateNextMessageID();
-
-        // Increment the message nonce so the next message will have a different ID
-        ++messageNonce;
 
         // Construct and serialize the message.
         TeleporterMessage memory teleporterMessage = TeleporterMessage({
@@ -593,6 +582,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             message: messageInput.message
         });
         bytes memory teleporterMessageBytes = abi.encode(teleporterMessage);
+
+        // Increment the message nonce so the next message will have a different ID
+        ++messageNonce;
 
         // If the fee amount is non-zero, transfer the asset into control of this TeleporterMessenger contract instance.
         // The fee is allowed to be 0 because it's possible for someone to run their own relayer and deliver their own messages,
@@ -769,5 +761,19 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 blockchainID_ = blockchainID;
         require(blockchainID_ != bytes32(0), "TeleporterMessenger: blockchainID not set");
         return sha256(abi.encode(address(this), blockchainID_, messageNonce));
+    }
+
+    /**
+     * @dev If not already set, initialize blockchainID by getting the current blockchain ID
+     * value from the Warp precompile.
+     * @return The current blockchain ID.
+     */
+    function _initializeBlockchainID() private returns (bytes32) {
+        bytes32 blockchainID_ = blockchainID;
+        if (blockchainID_ == bytes32(0)) {
+            blockchainID_ = WARP_MESSENGER.getBlockchainID();
+            blockchainID = blockchainID_;
+        }
+        return blockchainID_;
     }
 }
