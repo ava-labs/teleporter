@@ -17,7 +17,7 @@ import {
     ITeleporterMessenger
 } from "../ERC20Bridge.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
-import {UnitTestMockERC20} from "../../../../Mocks/UnitTestMockERC20.sol";
+import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 
 contract ERC20BridgeTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =

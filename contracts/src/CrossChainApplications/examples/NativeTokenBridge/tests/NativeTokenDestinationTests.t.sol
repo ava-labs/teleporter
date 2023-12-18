@@ -15,7 +15,7 @@ import {
     IWarpMessenger,
     ITeleporterMessenger
 } from "../NativeTokenDestination.sol";
-import {UnitTestMockERC20} from "../../../../Mocks/UnitTestMockERC20.sol";
+import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 
 contract NativeTokenDestinationTest is Test {

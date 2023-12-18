@@ -193,7 +193,7 @@ There we have it, a simple cross chain messenger built on top of Teleporter! Ful
 
 For testing, `scripts/local/e2e_test.sh` sets up a local test environment consisting of three subnets deployed with Teleporter, and a lightweight inline relayer implementation to facilitate cross chain message delivery. An end-to-end test for `ExampleCrossChainMessenger` is included in `tests/example_messenger.go`, which performs the following:
 
-1. Deploys the [ExampleERC20](../Mocks/ExampleERC20.sol) token to subnet A.
+1. Deploys the [ExampleERC20](@mocks/ExampleERC20.sol) token to subnet A.
 2. Deploys `ExampleCrossChainMessenger` to both subnets A and B.
 3. Approves the cross-chain messenger on subnet A to spend ERC20 tokens from the default address.
 4. Sends `"Hello, world!"` from subnet A to subnet B's cross-chain messenger to receive.

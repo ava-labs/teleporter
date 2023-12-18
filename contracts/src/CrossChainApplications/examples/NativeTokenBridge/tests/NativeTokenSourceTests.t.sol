@@ -15,7 +15,7 @@ import {
     IWarpMessenger,
     ITeleporterMessenger
 } from "../NativeTokenSource.sol";
-import {UnitTestMockERC20} from "../../../../Mocks/UnitTestMockERC20.sol";
+import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 
 contract NativeTokenSourceTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
