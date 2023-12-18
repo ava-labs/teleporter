@@ -6,7 +6,7 @@ An example cross-chain messenger built on top of Teleporter that sends and recei
 
 - `ExampleCrossChainMessenger`:
   - `sendMessage` utilizes the Teleporter protocol to start the cross-chain messaging process
-  - `receiveTeleporterMessage` is the handler for receiving Teleporter messages, and saves the most recently sent message from each source chain.
+  - `_receiveTeleporterMessage` is the handler for receiving Teleporter messages, and saves the most recently sent message from each source chain.
   - `getCurrentMessage` returns the most recent message from a source chain.
 
 ## End-to-end test
