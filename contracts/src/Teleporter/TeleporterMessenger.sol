@@ -553,6 +553,20 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
+     * @dev If not already set, initialize blockchainID by getting the current blockchain ID
+     * value from the Warp precompile.
+     * @return The current blockchain ID.
+     */
+    function _initializeBlockchainID() private returns (bytes32) {
+        bytes32 blockchainID_ = blockchainID;
+        if (blockchainID_ == bytes32(0)) {
+            blockchainID_ = WARP_MESSENGER.getBlockchainID();
+            blockchainID = blockchainID_;
+        }
+        return blockchainID_;
+    }
+
+    /**
      * @dev Helper function for sending a teleporter message cross chain.
      * Constructs the Teleporter message and sends it through the Warp Messenger precompile,
      * and performs fee transfer if necessary.
@@ -761,19 +775,5 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 blockchainID_ = blockchainID;
         require(blockchainID_ != bytes32(0), "TeleporterMessenger: blockchainID not set");
         return sha256(abi.encode(address(this), blockchainID_, messageNonce));
-    }
-
-    /**
-     * @dev If not already set, initialize blockchainID by getting the current blockchain ID
-     * value from the Warp precompile.
-     * @return The current blockchain ID.
-     */
-    function _initializeBlockchainID() private returns (bytes32) {
-        bytes32 blockchainID_ = blockchainID;
-        if (blockchainID_ == bytes32(0)) {
-            blockchainID_ = WARP_MESSENGER.getBlockchainID();
-            blockchainID = blockchainID_;
-        }
-        return blockchainID_;
     }
 }

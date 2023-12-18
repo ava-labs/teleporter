@@ -645,7 +645,7 @@ contract ERC20BridgeTest is Test {
         vm.expectCall(tokenContract, abi.encodeCall(token.decimals, ()));
     }
 
-    function _createMessageID(uint256 messageNonce) private view returns (bytes32) {
+    function _createMessageID(uint256 messageNonce) private pure returns (bytes32) {
         return
             sha256(abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS, _MOCK_BLOCKCHAIN_ID, messageNonce));
     }
