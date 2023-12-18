@@ -5,7 +5,7 @@
     "source-subnets": [
         {
             "subnet-id": "11111111111111111111111111111111LpoYY",
-            "chain-id": "<C_CHAIN_CHAIN_ID>",
+            "blockchain-id": "<C_CHAIN_CHAIN_ID>",
             "vm": "evm",
             "api-node-host": "127.0.0.1",
             "api-node-port": 9650,
@@ -21,7 +21,7 @@
         },
         {
             "subnet-id": "<SUBNET_A_SUBNET_ID>",
-            "chain-id": "<SUBNET_A_CHAIN_ID>",
+            "blockchain-id": "<SUBNET_A_CHAIN_ID>",
             "vm": "evm",
             "api-node-host": "127.0.0.1",
             "api-node-port": 9650,
@@ -37,7 +37,7 @@
         },
         {
             "subnet-id": "<SUBNET_B_SUBNET_ID>",
-            "chain-id": "<SUBNET_B_CHAIN_ID>",
+            "blockchain-id": "<SUBNET_B_CHAIN_ID>",
             "vm": "evm",
             "api-node-host": "127.0.0.1",
             "api-node-port": 9650,
@@ -53,7 +53,7 @@
         },
         {
             "subnet-id": "<SUBNET_C_SUBNET_ID>",
-            "chain-id": "<SUBNET_C_CHAIN_ID>",
+            "blockchain-id": "<SUBNET_C_CHAIN_ID>",
             "vm": "evm",
             "api-node-host": "127.0.0.1",
             "api-node-port": 9650,
@@ -71,7 +71,7 @@
     "destination-subnets": [
         {
             "subnet-id": "11111111111111111111111111111111LpoYY",
-            "chain-id": "<C_CHAIN_CHAIN_ID>",
+            "blockchain-id": "<C_CHAIN_CHAIN_ID>",
             "vm": "evm",
             "api-node-host": "127.0.0.1",
             "api-node-port": 9650,
@@ -80,7 +80,7 @@
         },
         {
             "subnet-id": "<SUBNET_A_SUBNET_ID>",
-            "chain-id": "<SUBNET_A_CHAIN_ID>",
+            "blockchain-id": "<SUBNET_A_CHAIN_ID>",
             "vm": "evm",
             "api-node-host": "127.0.0.1",
             "api-node-port": 9650,
@@ -89,7 +89,7 @@
         },
         {
             "subnet-id": "<SUBNET_B_SUBNET_ID>",
-            "chain-id": "<SUBNET_B_CHAIN_ID>",
+            "blockchain-id": "<SUBNET_B_CHAIN_ID>",
             "vm": "evm",
             "api-node-host": "127.0.0.1",
             "api-node-port": 9650,
@@ -98,7 +98,7 @@
         },
         {
             "subnet-id": "<SUBNET_C_SUBNET_ID>",
-            "chain-id": "<SUBNET_C_CHAIN_ID>",
+            "blockchain-id": "<SUBNET_C_CHAIN_ID>",
             "vm": "evm",
             "api-node-host": "127.0.0.1",
             "api-node-port": 9650,
