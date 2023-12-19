@@ -6,8 +6,7 @@ name: Release Teleporter
 on:
   push:
     tags:
-      #- "v*.*.*"
-      - "testflow-v*"
+      - "v*.*.0"
 
 jobs:
   build_and_upload_artifacts:
@@ -65,7 +64,7 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          prerelease: true # true for testing
+          prerelease: false
           body: ${{ steps.build_changelog.outputs.changelog }}
           files: |
                 ${{ steps.artifacts.outputs.tx }}
