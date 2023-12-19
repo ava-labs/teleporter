@@ -108,8 +108,9 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
             receivedMessageID: messageID,
             relayerRewardAddress: feeRewardInfo.relayerRewardAddress
         });
-        TeleporterMessage memory messageToReceive =
-            _createMockTeleporterMessage(_createMessageID(1), new bytes(0));
+        TeleporterMessage memory messageToReceive = _createMockTeleporterMessage(1, new bytes(0));
+        bytes32 receivedMessageID =
+            _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageNonce);
 
         messageToReceive.receipts = receipts;
         WarpMessage memory warpMessage =
@@ -122,7 +123,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
-            messageToReceive.messageID,
+            receivedMessageID,
             address(this),
             expectedRelayerRewardAddress,
             messageToReceive
@@ -139,13 +140,9 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID, _createMessageID(1)
-            ),
+            teleporterMessenger.getRelayerRewardAddress(receivedMessageID),
             expectedRelayerRewardAddress
         );
-        assertTrue(
-            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_BLOCKCHAIN_ID, _createMessageID(1))
-        );
+        assertTrue(teleporterMessenger.messageReceived(receivedMessageID));
     }
 }

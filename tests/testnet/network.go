@@ -199,7 +199,7 @@ func (n *testNetwork) RelayMessage(ctx context.Context,
 	)
 	Expect(err).Should(BeNil())
 
-	teleporterMessageID := sendEvent.Message.MessageID
+	teleporterMessageID := sendEvent.MessageID
 
 	receipt, err := n.getMessageDeliveryTransactionReceipt(cctx, source.BlockchainID, destination, teleporterMessageID)
 	Expect(err).Should(BeNil())
@@ -220,7 +220,7 @@ func (n *testNetwork) checkMessageDelivered(
 	}
 
 	return destinationTeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, sourceBlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 }
 

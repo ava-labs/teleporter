@@ -81,7 +81,7 @@ func DeliverToWrongChain(network interfaces.Network) {
 	// Check that the message was not received on the Subnet C
 	//
 	delivered, err := subnetCInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetAInfo.BlockchainID, expectedAtoCMessageID,
+		&bind.CallOpts{}, expectedAtoCMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())

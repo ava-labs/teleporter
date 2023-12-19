@@ -39,14 +39,14 @@ func InsufficientGas(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
-	messageID := event.Message.MessageID
+	messageID := event.MessageID
 
 	// Relay message from SubnetA to SubnetB
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	// Check Teleporter message received on the destination
 	delivered, err :=
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 

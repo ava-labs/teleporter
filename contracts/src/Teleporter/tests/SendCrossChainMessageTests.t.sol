@@ -24,8 +24,11 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
 
     function testSendMessageNoFee() public {
         // Arrange
+        uint256 expectedMessageNonce = teleporterMessenger.messageNonce();
+        bytes32 expectedMessageID =
+            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, expectedMessageNonce);
         TeleporterMessage memory expectedMessage =
-            _createMockTeleporterMessage(teleporterMessenger.getNextMessageID(), hex"deadbeef");
+            _createMockTeleporterMessage(expectedMessageNonce, hex"deadbeef");
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -52,10 +55,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // Expect the SendCrossChainMessage event to be emitted.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            messageInput.destinationBlockchainID,
-            expectedMessage.messageID,
-            expectedMessage,
-            feeInfo
+            messageInput.destinationBlockchainID, expectedMessageID, expectedMessage, feeInfo
         );
 
         // Act
@@ -70,8 +70,9 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
     function testSendMessageWithFee() public {
         // Arrange
         // Construct the message to submit.
+        uint256 expectedMessageNonce = teleporterMessenger.messageNonce();
         TeleporterMessage memory expectedMessage =
-            _createMockTeleporterMessage(teleporterMessenger.getNextMessageID(), hex"deadbeef");
+            _createMockTeleporterMessage(expectedMessageNonce, hex"deadbeef");
         TeleporterFeeInfo memory feeInfo =
             TeleporterFeeInfo(address(_mockFeeAsset), 13131313131313131313);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
@@ -100,7 +101,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
             messageInput.destinationBlockchainID,
-            expectedMessage.messageID,
+            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, expectedMessageNonce),
             expectedMessage,
             feeInfo
         );

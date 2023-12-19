@@ -175,7 +175,7 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 		"originChainID", originChainID,
 		"txHash", tx.Hash())
 
-	return receipt, event.Message.MessageID
+	return receipt, event.MessageID
 }
 
 func HttpToWebsocketURI(uri string, blockchainID string) string {
@@ -402,7 +402,7 @@ func SendCrossChainMessageAndWaitForAcceptance(
 		"destinationChainID", destination.BlockchainID,
 		"txHash", tx.Hash())
 
-	return receipt, event.Message.MessageID
+	return receipt, event.MessageID
 }
 
 // Waits for a transaction to be mined.

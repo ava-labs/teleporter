@@ -17,29 +17,20 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
 
     function testSuccess() public {
         // Before receiving the message, it returns the 0 address.
-        bytes32 mockMessageID = bytes32(uint256(8));
-        assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockMessageID
-            ),
-            address(0)
-        );
+        uint256 mockNonce = 8;
+        bytes32 mockMessageID = _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockNonce);
+        assertEq(teleporterMessenger.getRelayerRewardAddress(mockMessageID), address(0));
 
         // Mock receiving the message
         address relayerRewardAddress = 0xCAFebAbeDc0D4D7B7EEdCf61eb863fF413BB6234;
         _receiveTestMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            mockMessageID,
+            mockNonce,
             relayerRewardAddress,
             new TeleporterMessageReceipt[](0)
         );
 
         // Now it has the relayer reward address.
-        assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockMessageID
-            ),
-            relayerRewardAddress
-        );
+        assertEq(teleporterMessenger.getRelayerRewardAddress(mockMessageID), relayerRewardAddress);
     }
 }

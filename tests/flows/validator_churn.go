@@ -96,7 +96,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 
 	// Verify the message was not delivered
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
@@ -119,7 +119,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 
 	// Verify the message was delivered
 	delivered, err = subnetBInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())

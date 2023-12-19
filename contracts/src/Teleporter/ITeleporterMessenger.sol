@@ -28,7 +28,7 @@ struct TeleporterMessageInput {
 
 // Represents a message sent or received by an implementation of {ITeleporterMessenger}.
 struct TeleporterMessage {
-    bytes32 messageID;
+    uint256 messageNonce;
     address senderAddress;
     bytes32 destinationBlockchainID;
     address destinationAddress;
@@ -197,20 +197,14 @@ interface ITeleporterMessenger {
      * @dev Checks whether or not the given message has been received by this chain.
      * @return Boolean representing if the given message has been received.
      */
-    function messageReceived(
-        bytes32 originBlockchainID,
-        bytes32 messageID
-    ) external view returns (bool);
+    function messageReceived(bytes32 messageID) external view returns (bool);
 
     /**
      * @dev Returns the address the relayer reward should be sent to on the origin chain
      * for a given message, assuming that the message has already been delivered.
      * @return The relayer reward address for the given message.
      */
-    function getRelayerRewardAddress(
-        bytes32 originBlockchainID,
-        bytes32 messageID
-    ) external view returns (address);
+    function getRelayerRewardAddress(bytes32 messageID) external view returns (address);
 
     /**
      * @dev Gets the current reward amount of a given fee asset that is redeemable by the given relayer.

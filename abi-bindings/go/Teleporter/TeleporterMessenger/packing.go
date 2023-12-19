@@ -18,7 +18,7 @@ func init() {
 	// so we must manually keep this up-to-date with the struct defined in the contract.
 	var err error
 	teleporterMessageType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
-		{Name: "messageID", Type: "bytes32"},
+		{Name: "messageNonce", Type: "uint256"},
 		{Name: "senderAddress", Type: "address"},
 		{Name: "destinationBlockchainID", Type: "bytes32"},
 		{Name: "destinationAddress", Type: "address"},

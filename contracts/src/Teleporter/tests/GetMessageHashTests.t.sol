@@ -21,9 +21,8 @@ contract GetMessageHashTest is TeleporterMessengerTest {
 
     function testSuccess() public {
         // Submit a message
-        bytes32 messageID = _sendTestMessageWithNoFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
         TeleporterMessage memory expectedMessage = TeleporterMessage({
-            messageID: messageID,
+            messageNonce: teleporterMessenger.messageNonce(),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
@@ -32,6 +31,8 @@ contract GetMessageHashTest is TeleporterMessengerTest {
             receipts: new TeleporterMessageReceipt[](0),
             message: new bytes(0)
         });
+        bytes32 messageID = _sendTestMessageWithNoFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
+
         bytes memory expectedMessageBytes = abi.encode(expectedMessage);
         bytes32 expectedMessageHash = keccak256(expectedMessageBytes);
 
@@ -61,9 +62,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
             receivedMessageID: messageID,
             relayerRewardAddress: relayerRewardAddress
         });
-        _receiveTestMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageID, relayerRewardAddress, receipts
-        );
+        _receiveTestMessage(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 0, relayerRewardAddress, receipts);
 
         // Now the message hash should be cleared.
         assertEq(

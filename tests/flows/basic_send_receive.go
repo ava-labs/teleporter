@@ -72,7 +72,7 @@ func BasicSendReceive(network interfaces.Network) {
 	// Check Teleporter message received on the destination
 	//
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
@@ -99,7 +99,7 @@ func BasicSendReceive(network interfaces.Network) {
 	// Check Teleporter message received on the destination
 	//
 	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetBInfo.BlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())

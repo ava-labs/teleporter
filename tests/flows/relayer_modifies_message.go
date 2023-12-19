@@ -55,7 +55,7 @@ func RelayerModifiesMessage(network interfaces.LocalNetwork) {
 
 	// Check Teleporter message was not received on the destination
 	delivered, err :=
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
 }

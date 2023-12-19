@@ -95,7 +95,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Construct the mock message to be received.
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: bytes32(uint256(42)),
+            messageNonce: 42,
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
@@ -111,12 +111,14 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message and check that message execution was successful.
+        bytes32 expectedMessageID =
+            _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageNonce);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecuted(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageID);
+        emit MessageExecuted(DEFAULT_ORIGIN_BLOCKCHAIN_ID, expectedMessageID);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
-            messageToReceive.messageID,
+            expectedMessageID,
             address(this),
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
@@ -128,9 +130,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         assertEq(destinationContract.latestMessageSenderSubnetID(), DEFAULT_ORIGIN_BLOCKCHAIN_ID);
         assertEq(destinationContract.latestMessageSenderAddress(), address(this));
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageID
-            ),
+            teleporterMessenger.getRelayerRewardAddress(expectedMessageID),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
     }
@@ -139,7 +139,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Construct the mock message to be received.
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: bytes32(uint256(42)),
+            messageNonce: 42,
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
@@ -165,7 +165,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Construct the mock message to be received.
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: bytes32(uint256(42)),
+            messageNonce: 42,
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
@@ -176,6 +176,8 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         });
         WarpMessage memory warpMessage =
             _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
+        bytes32 messageID =
+            _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageNonce);
 
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
@@ -184,13 +186,11 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // is considered a failed message execution, but the message itself is
         // still successfully delivered.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageID, messageToReceive
-        );
+        emit MessageExecutionFailed(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageID, messageToReceive);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
-            messageToReceive.messageID,
+            messageID,
             address(this),
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
@@ -202,10 +202,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         assertEq(destinationContract.latestMessageSenderSubnetID(), bytes32(0));
         assertEq(destinationContract.latestMessageSenderAddress(), address(0));
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageID
-            ),
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            teleporterMessenger.getRelayerRewardAddress(messageID), DEFAULT_RELAYER_REWARD_ADDRESS
         );
         vm.expectRevert(_formatTeleporterErrorMessage("retry execution failed"));
         teleporterMessenger.retryMessageExecution(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
@@ -215,7 +212,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // Construct the mock message to be received.
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageID: bytes32(uint256(42)),
+            messageNonce: 42,
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
@@ -226,19 +223,19 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         });
         WarpMessage memory warpMessage =
             _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
+        bytes32 messageID =
+            _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageNonce);
 
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the message.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageID, messageToReceive
-        );
+        emit MessageExecutionFailed(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageID, messageToReceive);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
-            messageToReceive.messageID,
+            messageID,
             address(this),
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
@@ -250,10 +247,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         assertEq(destinationContract.latestMessageSenderSubnetID(), bytes32(0));
         assertEq(destinationContract.latestMessageSenderAddress(), address(0));
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageID
-            ),
-            DEFAULT_RELAYER_REWARD_ADDRESS
+            teleporterMessenger.getRelayerRewardAddress(messageID), DEFAULT_RELAYER_REWARD_ADDRESS
         );
         vm.expectRevert(_formatTeleporterErrorMessage("retry execution failed"));
         teleporterMessenger.retryMessageExecution(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);

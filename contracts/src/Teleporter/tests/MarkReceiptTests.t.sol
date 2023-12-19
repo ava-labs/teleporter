@@ -52,8 +52,9 @@ contract MarkReceiptTest is TeleporterMessengerTest {
                 relayerRewardAddress: feeRewardInfos[i].relayerRewardAddress
             });
         }
+        uint256 messageNonce = 1;
         TeleporterMessage memory messageToReceive =
-            _createMockTeleporterMessage(_createMessageID(1), new bytes(0));
+            _createMockTeleporterMessage(messageNonce, new bytes(0));
         messageToReceive.receipts = receipts;
         WarpMessage memory warpMessage =
             _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
@@ -75,15 +76,12 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         }
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
+        bytes32 expectedMessageID = _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageNonce);
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID, _createMessageID(1)
-            ),
+            teleporterMessenger.getRelayerRewardAddress(expectedMessageID),
             expectedRelayerRewardAddress
         );
-        assertTrue(
-            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_BLOCKCHAIN_ID, _createMessageID(1))
-        );
+        assertTrue(teleporterMessenger.messageReceived(expectedMessageID));
 
         // Check that the message hashes for the message receipts we received have been cleared.
         for (uint256 i = 0; i < receipts.length; i++) {
@@ -96,20 +94,22 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
     function testReceiptForNoFeeMessage() public {
         // Submit a a mock message with no fee.
-        bytes32 messageID = _sendTestMessageWithNoFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID);
+        bytes32 sentMessageID = _sendTestMessageWithNoFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID);
 
         // Mock receiving a message with the a receipts of the mock message sent above.
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
-            receivedMessageID: messageID,
+            receivedMessageID: sentMessageID,
             relayerRewardAddress: DEFAULT_RELAYER_REWARD_ADDRESS
         });
+        uint256 receivedMessageNonce = 42;
+        bytes32 receivedMessageID =
+            _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, receivedMessageNonce);
         TeleporterMessage memory messageToReceive =
-            _createMockTeleporterMessage(messageID, new bytes(0));
+            _createMockTeleporterMessage(receivedMessageNonce, new bytes(0));
         messageToReceive.receipts = receipts;
         WarpMessage memory warpMessage =
             _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
-
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
         // Receive the mock message.
@@ -118,29 +118,32 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageID),
+            teleporterMessenger.getRelayerRewardAddress(receivedMessageID),
             expectedRelayerRewardAddress
         );
-        assertTrue(teleporterMessenger.messageReceived(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageID));
+        assertTrue(teleporterMessenger.messageReceived(receivedMessageID));
     }
 
     function testDuplicateReceiptAllowed() public {
         // Submit a mock message to be sent.
         FeeRewardInfo memory feeRewardInfo =
             FeeRewardInfo(1111111111111111, 0x52A258ED593C793251a89bfd36caE158EE9fC4F8);
-        bytes32 receivedMessageID =
+        bytes32 sentMessageID =
             _sendTestMessageWithFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, feeRewardInfo.feeAmount);
 
         // Mock receiving a message with the 2 receipts for the  same mock message above.
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](2);
         TeleporterMessageReceipt memory receipt = TeleporterMessageReceipt({
-            receivedMessageID: receivedMessageID,
+            receivedMessageID: sentMessageID,
             relayerRewardAddress: feeRewardInfo.relayerRewardAddress
         });
         receipts[0] = receipt;
         receipts[1] = receipt;
+        uint256 receivedMessageNonce = 12;
+        bytes32 receivedMessageID =
+            _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, receivedMessageNonce);
         TeleporterMessage memory messageToReceive =
-            _createMockTeleporterMessage(receivedMessageID, new bytes(0));
+            _createMockTeleporterMessage(receivedMessageNonce, new bytes(0));
         messageToReceive.receipts = receipts;
         WarpMessage memory warpMessage =
             _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
@@ -161,14 +164,10 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_BLOCKCHAIN_ID, receivedMessageID
-            ),
+            teleporterMessenger.getRelayerRewardAddress(receivedMessageID),
             expectedRelayerRewardAddress
         );
-        assertTrue(
-            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_BLOCKCHAIN_ID, receivedMessageID)
-        );
+        assertTrue(teleporterMessenger.messageReceived(receivedMessageID));
 
         // Check that the message hashes for the message receipts we received have been cleared.
         assertEq(

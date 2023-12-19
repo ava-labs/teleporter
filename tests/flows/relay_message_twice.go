@@ -53,7 +53,7 @@ func RelayMessageTwice(network interfaces.Network) {
 	//
 	log.Info("Checking the message was received on the destination")
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())

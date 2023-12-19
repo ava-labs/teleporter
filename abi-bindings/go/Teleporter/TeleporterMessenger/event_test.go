@@ -67,8 +67,9 @@ func TestToEvent(t *testing.T) {
 
 func TestFilterTeleporterEvents(t *testing.T) {
 	mockBlockchainID := ids.ID{1, 2, 3, 4}
-	messageID := ids.ID{5, 6, 7, 8}
-	message := createTestTeleporterMessage(messageID)
+	mockMessageNonce := big.NewInt(8)
+	mockMessageID := ids.ID{9, 10, 11, 12}
+	message := createTestTeleporterMessage(mockMessageNonce)
 	feeInfo := TeleporterFeeInfo{
 		FeeTokenAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		Amount:          big.NewInt(1),
@@ -88,13 +89,13 @@ func TestFilterTeleporterEvents(t *testing.T) {
 				event: SendCrossChainMessage,
 				args: []interface{}{
 					mockBlockchainID,
-					messageID,
+					mockMessageID,
 					message,
 					feeInfo,
 				},
 				expected: &TeleporterMessengerSendCrossChainMessage{
 					DestinationBlockchainID: mockBlockchainID,
-					MessageID:               messageID,
+					MessageID:               mockMessageID,
 					Message:                 message,
 					FeeInfo:                 feeInfo,
 				},
@@ -103,14 +104,14 @@ func TestFilterTeleporterEvents(t *testing.T) {
 				event: ReceiveCrossChainMessage,
 				args: []interface{}{
 					mockBlockchainID,
-					messageID,
+					mockMessageID,
 					deliverer,
 					deliverer,
 					message,
 				},
 				expected: &TeleporterMessengerReceiveCrossChainMessage{
 					OriginBlockchainID: mockBlockchainID,
-					MessageID:          messageID,
+					MessageID:          mockMessageID,
 					Deliverer:          deliverer,
 					RewardRedeemer:     deliverer,
 					Message:            message,
@@ -120,11 +121,11 @@ func TestFilterTeleporterEvents(t *testing.T) {
 				event: MessageExecuted,
 				args: []interface{}{
 					mockBlockchainID,
-					messageID,
+					mockMessageID,
 				},
 				expected: &TeleporterMessengerMessageExecuted{
 					OriginBlockchainID: mockBlockchainID,
-					MessageID:          messageID,
+					MessageID:          mockMessageID,
 				},
 			},
 		}

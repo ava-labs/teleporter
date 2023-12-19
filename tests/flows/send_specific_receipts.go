@@ -71,7 +71,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 
 	// Check that the first message was delivered
 	delivered, err :=
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID1)
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID1)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -88,7 +88,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 
 	// Check that the second message was delivered
 	delivered, err =
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID2)
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID2)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -110,7 +110,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 
 	// Check that the message back to Subnet A was delivered
-	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetBInfo.BlockchainID, messageID)
+	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -146,7 +146,6 @@ func SendSpecificReceipts(network interfaces.Network) {
 		// Check delivered
 		delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(
 			&bind.CallOpts{},
-			subnetBInfo.BlockchainID,
 			messageID)
 		Expect(err).Should(BeNil())
 		Expect(delivered).Should(BeTrue())

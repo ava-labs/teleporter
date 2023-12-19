@@ -22,7 +22,8 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
 
     function testGetMessageID() public {
         // Generate the next expected message ID manually.
-        bytes32 expectedMessageID = _createMessageID(teleporterMessenger.messageNonce());
+        bytes32 expectedMessageID =
+            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, teleporterMessenger.messageNonce());
 
         // Check the contract reports the same as expected.
         assertEq(teleporterMessenger.getNextMessageID(), expectedMessageID);
@@ -46,7 +47,8 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         assertEq(messageID, expectedMessageID);
 
         // Generate the next expected message ID now that a message has been sent.
-        bytes32 secondExpectedMessageID = _createMessageID(teleporterMessenger.messageNonce());
+        bytes32 secondExpectedMessageID =
+            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, teleporterMessenger.messageNonce());
 
         // Check the contract reports the same as expected, and that is different than the first ID.
         assertEq(teleporterMessenger.getNextMessageID(), secondExpectedMessageID);

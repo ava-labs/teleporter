@@ -83,9 +83,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
             relayerRewardAddress: relayerRewardAddress
         });
 
-        _receiveTestMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageID, relayerRewardAddress, receipts
-        );
+        _receiveTestMessage(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 0, relayerRewardAddress, receipts);
 
         // Now try to add to the fee of the message. Should revert since the message receipt was received already.
         uint256 additionalFeeAmount = 131313;

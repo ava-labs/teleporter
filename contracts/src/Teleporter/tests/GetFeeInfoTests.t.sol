@@ -55,9 +55,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
             receivedMessageID: messageID,
             relayerRewardAddress: relayerRewardAddress
         });
-        _receiveTestMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageID, relayerRewardAddress, receipts
-        );
+        _receiveTestMessage(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 0, relayerRewardAddress, receipts);
 
         // Now, if we get the fee info for the message it should be reported as zero since the receipt has already been received.
         (address actualFeeAsset, uint256 actualFeeAmount) =
