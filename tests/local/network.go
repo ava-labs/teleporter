@@ -97,8 +97,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 		"eth-apis":["eth","eth-filter","net","admin","web3",
 					"internal-eth","internal-blockchain","internal-transaction",
 					"internal-debug","internal-account","internal-personal",
-					"debug","debug-tracer","debug-file-tracer","debug-handler"],
-		"log-level": "debug"
+					"debug","debug-tracer","debug-file-tracer","debug-handler"]
 	}`
 	manager := runner.NewNetworkManager(anrConfig)
 
