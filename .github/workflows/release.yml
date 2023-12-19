@@ -45,19 +45,20 @@ jobs:
           failOnError: true
           configuration: "./.github/changelog.json"
           toTag: ${{ github.ref_name }}
-#        env:
-#            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Artifacts
         id: artifacts
         run: |
           go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
+          
           mv UniversalTeleporterDeployerTransaction.txt TeleporterMessenger_DeployerTransaction_${{ github.ref_name }}.txt
-          echo "file_name=TeleporterMessenger_DeployerTransaction_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          echo "tx=TeleporterMessenger_DeployerTransaction_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          
           mv UniversalTeleporterDeployerAddress.txt TeleporterMessenger_DeployerAddress_${{ github.ref_name }}.txt
-          echo "file_name=TeleporterMessenger_DeployerAddress_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          echo "deployer=TeleporterMessenger_DeployerAddress_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          
           mv UniversalTeleporterMessengerContractAddress.txt TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt
-          echo "file_name=TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          echo "address=TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
 
       - name: Create release
         uses: softprops/action-gh-release@v1
@@ -67,5 +68,7 @@ jobs:
           prerelease: true # true for testing
           body: ${{ steps.build_changelog.outputs.changelog }}
           files: |
-                ${{ steps.artifacts.outputs.file_name }}
+                ${{ steps.artifacts.outputs.tx }}
+                ${{ steps.artifacts.outputs.deployer }}
+                ${{ steps.artifacts.outputs.address }}
     
