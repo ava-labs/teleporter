@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	blockhashpublisher "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/VerifiedBlockHash/BlockHashPublisher"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
@@ -45,12 +44,9 @@ func BlockHashPublishReceive(network interfaces.Network) {
 
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
 
-	blockHashPublisher, err := blockhashpublisher.NewBlockHashPublisher(publisherAddress, subnetAInfo.RPCClient)
-	Expect(err).Should(BeNil())
-
 	publishEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		blockHashPublisher.ParsePublishBlockHash)
+		publisher.ParsePublishBlockHash)
 	Expect(err).Should(BeNil())
 	expectedBlockNumber := publishEvent.BlockHeight
 	expectedBlockHash := publishEvent.BlockHash
