@@ -16,7 +16,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 ```
 
-Next, define the initial empty contract. We inherit from `ReentrancyGuard` to prevent reentrancy attacks. We inherit from `ITeleporterReceiver` to allow our contract to receive messages from Teleporter.
+Next, define the initial empty contract. The contract inherits from `ReentrancyGuard` to prevent reentrancy attacks, and inherits from `ITeleporterReceiver` to allow the contract to receive messages from Teleporter.
 
 ```solidity
 contract MyExampleCrossChainMessenger is
@@ -61,7 +61,7 @@ event ReceiveMessage(
 
 Now that the initial empty `MyExampleCrossChainMessenger` is defined, it's time to integrate the `ITeleporterMessenger` that will provide the functionality to deliver cross chain messages.
 
-Create a state variable of `ITeleporterMessenger` type called `teleporterMessenger`. Then create a constructor for our contract that takes in an address where the Teleporter Messenger would be deployed on this chain, and set our state variable with it.
+Create a state variable of `ITeleporterMessenger` type called `teleporterMessenger`. Then create a constructor that takes in an address where the Teleporter Messenger would be deployed on this chain, and set the corresponding state variable.
 
 ```solidity
 contract ExampleCrossChainMessenger is
@@ -105,7 +105,7 @@ function receiveTeleporterMessage(
 ) external {}
 ```
 
-Now it's time to implement the methods, starting with `sendMessage`. First, add the import for OpenZeppelin's `IERC20` contract to the top of your contract, as well as the import for the `SafeERC20` library.
+Now it's time to implement the methods, starting with `sendMessage`. First, add the import for OpenZeppelin's `IERC20` contract to the top of the contract, as well as the import for the `SafeERC20` library.
 
 ```solidity
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -203,13 +203,13 @@ The base of sending and receiving messages cross chain is complete. `MyExampleCr
 
 ## Step 4: Storing the Message
 
-Start by adding a map where the key is the `originBlockchainID`, and the value is the latest `message` sent from that chain. The `message` is of type `Message`, which we declared earlier.
+Start by adding a map where the key is the `originBlockchainID`, and the value is the latest `message` sent from that chain. The `message` is of type `Message`, which is already declared in the contract.
 
 ```solidity
 mapping(bytes32 originBlockchainID => Message message) private _messages;
 ```
 
-Next, update `receiveTeleporterMessage` to save the message into our mapping after we receive and verify that it's sent from Teleporter. ABI decode the `message` bytes into a string. Also, emit the `ReceiveMessage` event.
+Next, update `receiveTeleporterMessage` to save the message into the mapping after it is received and verified that it's sent from Teleporter. ABI decode the `message` bytes into a string. Also, emit the `ReceiveMessage` event.
 
 ```solidity
 
@@ -237,7 +237,7 @@ function receiveTeleporterMessage(
 }
 ```
 
-Next, add a function called `getCurrentMessage` that allows users or contracts to easily query our contract for the latest message sent by a specified chain.
+Next, add a function called `getCurrentMessage` that allows users or contracts to easily query the contract for the latest message sent by a specified chain.
 
 ```solidity
 // Check the current message from another chain.
@@ -304,7 +304,7 @@ And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, a
 ```
     
 
-There we have it, a simple cross chain messenger built on top of Teleporter! Full example [here](./ExampleMessenger/ExampleCrossChainMessenger.sol).
+`MyExampleCrossChainMessenger` is now a working cross-chain dApp built on top of Teleporter! Full example [here](./ExampleMessenger/ExampleCrossChainMessenger.sol).
 
 ## Step 6: Testing
 
