@@ -46,7 +46,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // The blockchain ID of the chain the contract is deployed on. Initialized lazily on the first call of `receiveCrossChainMessage`
     bytes32 public blockchainID;
 
-    // A monotonically incremented integer tracking the total number of message sent by this TeleporterMessenger contract.
+    // A monotonically incremented integer tracking the total number of messages sent by this TeleporterMessenger contract.
     // Used to provide uniqueness when generating message IDs for new messages.
     uint256 public messageNonce;
 
