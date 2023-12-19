@@ -6,7 +6,8 @@ name: Release Teleporter
 on:
   push:
     tags:
-      - "v*.*.*"
+      #- "v*.*.*"
+      - "testflow-v*"
 
 jobs:
   build_and_upload_artifacts:
