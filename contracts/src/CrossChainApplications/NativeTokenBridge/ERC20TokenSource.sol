@@ -25,9 +25,8 @@ contract ERC20TokenSource is
     ITokenSource,
     ReentrancyGuard
 {
-    // The address where the burned transaction fees are credited.
-    // Defined as BLACKHOLE_ADDRESS at
-    // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
+    // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" when
+    // a SourceAction.Burn message is received from the destination chain.    
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000010203;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     // Used to keep track of tokens burned through transactions on the destination chain. They can
