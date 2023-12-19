@@ -1,0 +1,70 @@
+# Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
+# See the file LICENSE for licensing terms.
+
+name: Release Teleporter
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build_and_upload_artifacts:
+    name: Build and Upload Teleporter Artifacts
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Set Go version
+        run: |
+          source ./scripts/versions.sh
+          echo GO_VERSION=$GO_VERSION >> $GITHUB_ENV
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+            go-version: ${{ env.GO_VERSION }}
+
+      - name: Install Foundry
+        run: ./scripts/install_foundry.sh
+    
+      - name: Build Contracts
+        run: |
+          export PATH=$PATH:$HOME/.foundry/bin
+          cd contracts/
+          forge build
+
+      - name: Build changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          failOnError: true
+          configuration: "./.github/changelog.json"
+          toTag: ${{ github.ref_name }}
+#        env:
+#            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Artifacts
+        id: artifacts
+        run: |
+          go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
+          mv UniversalTeleporterDeployerTransaction.txt TeleporterMessenger_DeployerTransaction_${{ github.ref_name }}.txt
+          echo "file_name=TeleporterMessenger_DeployerTransaction_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          mv UniversalTeleporterDeployerAddress.txt TeleporterMessenger_DeployerAddress_${{ github.ref_name }}.txt
+          echo "file_name=TeleporterMessenger_DeployerAddress_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          mv UniversalTeleporterMessengerContractAddress.txt TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt
+          echo "file_name=TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+
+      - name: Update nightly release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          prerelease: false
+          body: ${{ steps.build_changelog.outputs.changelog }}
+          files: |
+                ${{ steps.artifacts.outputs.file_name }}
+    
