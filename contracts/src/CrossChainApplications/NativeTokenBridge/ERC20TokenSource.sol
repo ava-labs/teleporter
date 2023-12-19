@@ -9,7 +9,11 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {IERC20TokenSource} from "./IERC20TokenSource.sol";
 import {ITokenSource} from "./ITokenSource.sol";
-import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "../../Teleporter/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
 import {SafeERC20TransferFrom} from "../../Teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -24,8 +28,7 @@ contract ERC20TokenSource is
     // The address where the burned transaction fees are credited.
     // Defined as BLACKHOLE_ADDRESS at
     // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
-    address public constant BURNED_TX_FEES_ADDRESS =
-        0x0100000000000000000000000000000000000000;
+    address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     // Used to keep track of tokens burned through transactions on the destination chain. They can
     // be reported to this contract to burn an equivalent number of tokens on this chain.
@@ -54,9 +57,8 @@ contract ERC20TokenSource is
             "ERC20TokenSource: zero destination blockchain ID"
         );
         require(
-            destinationBlockchainID_ !=
-                IWarpMessenger(0x0200000000000000000000000000000000000005)
-                    .getBlockchainID(),
+            destinationBlockchainID_
+                != IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID(),
             "ERC20TokenSource: cannot bridge with same blockchain"
         );
         destinationBlockchainID = destinationBlockchainID_;
@@ -68,8 +70,7 @@ contract ERC20TokenSource is
         nativeTokenDestinationAddress = nativeTokenDestinationAddress_;
 
         require(
-            erc20ContractAddress_ != address(0),
-            "ERC20TokenSource: zero ERC20 contract address"
+            erc20ContractAddress_ != address(0), "ERC20TokenSource: zero ERC20 contract address"
         );
         erc20ContractAddress = erc20ContractAddress_;
     }
@@ -98,22 +99,15 @@ contract ERC20TokenSource is
 
         // Only allow the partner contract to send messages.
         require(
-            senderAddress == nativeTokenDestinationAddress,
-            "ERC20TokenSource: unauthorized sender"
+            senderAddress == nativeTokenDestinationAddress, "ERC20TokenSource: unauthorized sender"
         );
 
         // Decode the payload to recover the action and corresponding function parameters
-        (SourceAction action, bytes memory actionData) = abi.decode(
-            message,
-            (SourceAction, bytes)
-        );
+        (SourceAction action, bytes memory actionData) = abi.decode(message, (SourceAction, bytes));
 
         // Route to the appropriate function.
         if (action == SourceAction.Unlock) {
-            (address recipient, uint256 amount) = abi.decode(
-                actionData,
-                (address, uint256)
-            );
+            (address recipient, uint256 amount) = abi.decode(actionData, (address, uint256));
             _unlockTokens(recipient, amount);
         } else if (action == SourceAction.Burn) {
             uint256 newBurnTotal = abi.decode(actionData, (uint256));
@@ -133,31 +127,21 @@ contract ERC20TokenSource is
         address[] calldata allowedRelayerAddresses
     ) external nonReentrant {
         // The recipient cannot be the zero address.
-        require(
-            recipient != address(0),
-            "ERC20TokenSource: zero recipient address"
-        );
+        require(recipient != address(0), "ERC20TokenSource: zero recipient address");
 
         // Lock tokens in this contract. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
         // to transferFrom.
-        uint256 adjustedAmount = SafeERC20TransferFrom.safeTransferFrom(
-            IERC20(erc20ContractAddress),
-            totalAmount
-        );
+        uint256 adjustedAmount =
+            SafeERC20TransferFrom.safeTransferFrom(IERC20(erc20ContractAddress), totalAmount);
 
         // Ensure that the adjusted amount is greater than the fee to be paid.
-        require(
-            adjustedAmount > feeAmount,
-            "ERC20TokenSource: insufficient adjusted amount"
-        );
+        require(adjustedAmount > feeAmount, "ERC20TokenSource: insufficient adjusted amount");
 
         // Allow the Teleporter messenger to spend the fee amount.
         if (feeAmount > 0) {
             SafeERC20.safeIncreaseAllowance(
-                IERC20(erc20ContractAddress),
-                address(teleporterMessenger),
-                feeAmount
+                IERC20(erc20ContractAddress), address(teleporterMessenger), feeAmount
             );
         }
 
@@ -167,10 +151,7 @@ contract ERC20TokenSource is
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: erc20ContractAddress,
-                    amount: feeAmount
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: erc20ContractAddress, amount: feeAmount}),
                 requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
                 message: abi.encode(recipient, transferAmount)
@@ -189,10 +170,7 @@ contract ERC20TokenSource is
      * @dev Unlocks tokens to recipient.
      */
     function _unlockTokens(address recipient, uint256 amount) private {
-        require(
-            recipient != address(0),
-            "ERC20TokenSource: zero recipient address"
-        );
+        require(recipient != address(0), "ERC20TokenSource: zero recipient address");
 
         // Transfer to recipient
         emit UnlockTokens(recipient, amount);
@@ -204,11 +182,7 @@ contract ERC20TokenSource is
      */
     function _burnTokens(uint256 amount) private {
         emit BurnTokens(amount);
-        SafeERC20.safeTransfer(
-            IERC20(erc20ContractAddress),
-            BURNED_TX_FEES_ADDRESS,
-            amount
-        );
+        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BURNED_TX_FEES_ADDRESS, amount);
     }
 
     /**

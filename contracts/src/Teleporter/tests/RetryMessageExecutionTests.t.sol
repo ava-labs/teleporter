@@ -5,7 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, WarpMessage} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessage,
+    TeleporterMessageReceipt,
+    WarpMessage
+} from "./TeleporterMessengerTest.t.sol";
 import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 
@@ -34,8 +39,8 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
     ) external {
         require(msg.sender == teleporterContract, "unauthorized");
         // Decode the payload to recover the action and corresponding function parameters
-        (FlakyMessageReceiverAction action, bytes memory actionData) = abi
-            .decode(messageBytes, (FlakyMessageReceiverAction, bytes));
+        (FlakyMessageReceiverAction action, bytes memory actionData) =
+            abi.decode(messageBytes, (FlakyMessageReceiverAction, bytes));
         if (action == FlakyMessageReceiverAction.ReceiveMessage) {
             string memory message = abi.decode(actionData, (string));
             _receiveMessage(originBlockchainID, originSenderAddress, message);
@@ -69,9 +74,7 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
         require(msg.sender == teleporterContract, "unauthorized");
         require(block.number % 2 != 0, "even block number");
 
-        ITeleporterMessenger messenger = ITeleporterMessenger(
-            teleporterContract
-        );
+        ITeleporterMessenger messenger = ITeleporterMessenger(teleporterContract);
         messenger.receiveCrossChainMessage(0, address(42));
         latestMessage = message;
         latestMessageSenderSubnetID = originBlockchainID;
@@ -98,16 +101,11 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
     function testExecutionFailsAgain() public {
         // First submit a message whose execution fails.
-        (
-            bytes32 originBlockchainID,
-            TeleporterMessage memory message,
-
-        ) = _receiveFailedMessage(false);
+        (bytes32 originBlockchainID, TeleporterMessage memory message,) =
+            _receiveFailedMessage(false);
 
         // Now retry it in another block with an even timestamp so that it fails again.
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("retry execution failed")
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("retry execution failed"));
         teleporterMessenger.retryMessageExecution(originBlockchainID, message);
     }
 
@@ -125,19 +123,13 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         });
 
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
-        teleporterMessenger.retryMessageExecution(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            fakeMessage
-        );
+        teleporterMessenger.retryMessageExecution(DEFAULT_ORIGIN_CHAIN_ID, fakeMessage);
     }
 
     function testInvalidMessageHash() public {
         // First submit a message whose execution fails.
-        (
-            bytes32 originBlockchainID,
-            TeleporterMessage memory message,
-
-        ) = _receiveFailedMessage(false);
+        (bytes32 originBlockchainID, TeleporterMessage memory message,) =
+            _receiveFailedMessage(false);
 
         // Alter the message before retrying it.
         message.message = "altered message";
@@ -147,10 +139,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
     function testCanNotRetryAgainAfterSuccess() public {
         // Successfully retry a message execution.
-        (
-            bytes32 originBlockchainID,
-            TeleporterMessage memory message
-        ) = _successfullyRetryMessage();
+        (bytes32 originBlockchainID, TeleporterMessage memory message) = _successfullyRetryMessage();
 
         // Now try again and make sure it's been cleared from state
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
@@ -159,11 +148,8 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
     function testCanNotReceiveMessageWhileRetrying() public {
         // First submit a message whose execution fails.
-        (
-            bytes32 originBlockchainID,
-            TeleporterMessage memory message,
-
-        ) = _receiveFailedMessage(false);
+        (bytes32 originBlockchainID, TeleporterMessage memory message,) =
+            _receiveFailedMessage(false);
 
         // Now retry it within a block with an odd timestamp.
         // It should still fail because it tries to re-enter the teleporter contract.
@@ -172,11 +158,8 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
     }
 
     function testEOAFailsThenRetrySucceeds() public {
-        (
-            bytes32 originBlockchainID,
-            address destinationAddress,
-            TeleporterMessage memory message
-        ) = _receiveMessageSentToEOA();
+        (bytes32 originBlockchainID, address destinationAddress, TeleporterMessage memory message) =
+            _receiveMessageSentToEOA();
 
         // Now mock a contract being deployed to the destination address. It will still return no
         // data from the method being called, but code (with non-zero length) exists at the address.
@@ -187,23 +170,18 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
     }
 
     function testEOAFailsAgainOnRetry() public {
-        (
-            bytes32 originBlockchainID,
-            ,
-            TeleporterMessage memory message
-        ) = _receiveMessageSentToEOA();
+        (bytes32 originBlockchainID,, TeleporterMessage memory message) = _receiveMessageSentToEOA();
 
         // Retrying the message execution should revert since there is still no contract deployed
         // to the destination address.
-        vm.expectRevert(
-            _formatTeleporterErrorMessage("destination address has no code")
-        );
+        vm.expectRevert(_formatTeleporterErrorMessage("destination address has no code"));
         teleporterMessenger.retryMessageExecution(originBlockchainID, message);
     }
 
-    function _receiveFailedMessage(
-        bool retryReceive
-    ) internal returns (bytes32, TeleporterMessage memory, string memory) {
+    function _receiveFailedMessage(bool retryReceive)
+        internal
+        returns (bytes32, TeleporterMessage memory, string memory)
+    {
         // Construct the mock message to be received.
         string memory messageString = "Testing successful message";
         FlakyMessageReceiverAction action;
@@ -222,10 +200,8 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             receipts: new TeleporterMessageReceipt[](0),
             message: abi.encode(action, abi.encode(messageString))
         });
-        WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            abi.encode(messageToReceive)
-        );
+        WarpMessage memory warpMessage =
+            _createDefaultWarpMessage(DEFAULT_ORIGIN_CHAIN_ID, abi.encode(messageToReceive));
 
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
@@ -235,9 +211,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         vm.roll(12);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit MessageExecutionFailed(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            messageToReceive.messageID,
-            messageToReceive
+            DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
@@ -247,10 +221,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            DEFAULT_RELAYER_REWARD_ADDRESS
-        );
+        teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message execution didn't have any effect, but
         // the message was marked as marked as delivered.
@@ -259,31 +230,21 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         assertEq(destinationContract.latestMessageSenderAddress(), address(0));
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_CHAIN_ID,
-                messageToReceive.messageID
+                DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID
             ),
             DEFAULT_RELAYER_REWARD_ADDRESS
         );
         assertTrue(
-            teleporterMessenger.messageReceived(
-                DEFAULT_ORIGIN_CHAIN_ID,
-                messageToReceive.messageID
-            )
+            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID)
         );
 
         return (DEFAULT_ORIGIN_CHAIN_ID, messageToReceive, messageString);
     }
 
-    function _successfullyRetryMessage()
-        internal
-        returns (bytes32, TeleporterMessage memory)
-    {
+    function _successfullyRetryMessage() internal returns (bytes32, TeleporterMessage memory) {
         // First submit a message whose execution fails.
-        (
-            bytes32 originBlockchainID,
-            TeleporterMessage memory message,
-            string memory messageString
-        ) = _receiveFailedMessage(false);
+        (bytes32 originBlockchainID, TeleporterMessage memory message, string memory messageString)
+        = _receiveFailedMessage(false);
 
         // Now retry the message execution in a block with an odd height, which should succeed.
         vm.roll(13);
@@ -293,14 +254,8 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
         // Check that the message had the proper affect on the destination contract.
         assertEq(destinationContract.latestMessage(), messageString);
-        assertEq(
-            destinationContract.latestMessageSenderSubnetID(),
-            originBlockchainID
-        );
-        assertEq(
-            destinationContract.latestMessageSenderAddress(),
-            address(this)
-        );
+        assertEq(destinationContract.latestMessageSenderSubnetID(), originBlockchainID);
+        assertEq(destinationContract.latestMessageSenderAddress(), address(this));
 
         return (originBlockchainID, message);
     }

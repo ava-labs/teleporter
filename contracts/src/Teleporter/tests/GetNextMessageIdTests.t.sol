@@ -5,7 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessageInput, TeleporterFeeInfo, IWarpMessenger} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessageInput,
+    TeleporterFeeInfo,
+    IWarpMessenger
+} from "./TeleporterMessengerTest.t.sol";
 
 contract GetNextMessageIDTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -16,17 +21,15 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
     }
 
     function testFirstMessageID() public {
-        bytes32 blockchainID = bytes32(
-            hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff"
-        );
+        bytes32 blockchainID =
+            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
 
         assertEq(teleporterMessenger.getNextMessageID(blockchainID), 1);
     }
 
     function testSecondMessageID() public {
-        bytes32 blockchainID = bytes32(
-            hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff"
-        );
+        bytes32 blockchainID =
+            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
 
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -36,10 +39,7 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationBlockchainID: blockchainID,
             destinationAddress: address(0),
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(0),
-                amount: uint256(0)
-            }),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: uint256(0)}),
             requiredGasLimit: 1e6,
             allowedRelayerAddresses: new address[](0),
             message: new bytes(0)
@@ -53,12 +53,10 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
     }
 
     function testOtherDestinationSubnetID() public {
-        bytes32 blockchainID = bytes32(
-            hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff"
-        );
-        bytes32 otherBlockchainID = bytes32(
-            hex"00000000556677889900aabbccddeeff11223344556677889900aabbccddeeff"
-        );
+        bytes32 blockchainID =
+            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
+        bytes32 otherBlockchainID =
+            bytes32(hex"00000000556677889900aabbccddeeff11223344556677889900aabbccddeeff");
 
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -68,10 +66,7 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationBlockchainID: blockchainID,
             destinationAddress: address(0),
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(0),
-                amount: uint256(0)
-            }),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: uint256(0)}),
             requiredGasLimit: 1e6,
             allowedRelayerAddresses: new address[](0),
             message: new bytes(0)
