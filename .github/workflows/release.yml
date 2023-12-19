@@ -58,12 +58,12 @@ jobs:
           mv UniversalTeleporterMessengerContractAddress.txt TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt
           echo "file_name=TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
 
-      - name: Update nightly release
+      - name: Create release
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          prerelease: false
+          prerelease: true # true for testing
           body: ${{ steps.build_changelog.outputs.changelog }}
           files: |
                 ${{ steps.artifacts.outputs.file_name }}
