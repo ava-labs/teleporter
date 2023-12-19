@@ -4,7 +4,7 @@ This section walks through how to build an example cross-chain application on to
 
 ## Step 1: Create Initial Contract
 
-Create a new file called `MyExampleCrossChainMessenger.sol` in the `teleporter/contracts/src/CrossChainApplications/MyExampleCrossChainMessenger/`
+Create a new file called `MyExampleCrossChainMessenger.sol` in a `teleporter/contracts/src/CrossChainApplications/MyExampleCrossChainMessenger/` directory.
 
 At the top of the file define the Solidity version to work with, and import the necessary types and interfaces.
 
