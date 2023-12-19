@@ -21,7 +21,7 @@ The `ITeleporterMessenger` interface provides two primary methods:
 The `ITeleporterReceiver` interface provides a single method. All contracts that wish to receive Teleporter messages on the destination chain must implement this interface:
 - `receiveTeleporterMessage`: called by the Teleporter contract on the destination chain to deliver a message to the destination contract.
 
-> Note: If a contract does not implement `ITeleporterReceiver`, but instead implements [fallback](https://docs.soliditylang.org/en/latest/contracts.html#fallback-function), the fallback function will be called when Teleporter attempts to perform message execution. Whether the message execution is marked as successfully executed or failed is dependent on whether the fallback function reverts or not.
+> Note: If a contract does not implement `ITeleporterReceiver`, but instead implements [fallback](https://docs.soliditylang.org/en/latest/contracts.html#fallback-function), the fallback function will be called when Teleporter attempts to perform message execution. The message execution is marked as failed if the fallback function reverts, otherwise it is marked as successfully executed.
 
 ## Data Flow
 <div align="center">
