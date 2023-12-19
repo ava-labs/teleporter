@@ -56,7 +56,7 @@ func BlockHashPublishReceive(network interfaces.Network) {
 	publishLog, err := utils.GetEventFromLogs(receipt.Logs, publisher.ParsePublishBlockHash)
 	Expect(err).Should(BeNil())
 	Expect(publishLog.BlockHeight.Uint64()).Should(Equal(expectedBlockNumberU64))
-	Expect(publishLog.BlockHash).Should(Equal(expectedBlockHash))
+	Expect(publishLog.BlockHash[:]).Should(Equal(expectedBlockHash[:]))
 
 	// relay publication
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
