@@ -43,7 +43,6 @@ func BlockHashPublishReceive(network interfaces.Network) {
 	expectedBlockHash := block.Hash()
 
 	// publish latest block hash
-
 	tx_opts, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -54,12 +53,15 @@ func BlockHashPublishReceive(network interfaces.Network) {
 
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
 
-	// relay publication
+	publishLog, err := utils.GetEventFromLogs(receipt.Logs, publisher.ParsePublishBlockHash)
+	Expect(err).Should(BeNil())
+	Expect(publishLog.BlockHeight.Uint64()).Should(Equal(expectedBlockNumberU64))
+	Expect(publishLog.BlockHash).Should(Equal(expectedBlockHash))
 
+	// relay publication
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	// receive publication
-
 	blockNumber, blockHash, err := receiver.GetLatestBlockInfo(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
