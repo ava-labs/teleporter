@@ -177,9 +177,7 @@ contract NativeTokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(
-            burnedTxFees + additionalTxFees, nativeTokenSource.BURN_ADDRESS().balance
-        );
+        assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.BURN_ADDRESS().balance);
     }
 
     function testZeroTeleporterAddress() public {

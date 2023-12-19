@@ -295,6 +295,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			sourceChainReceipt.Logs,
 			nativeTokenSource.ParseBurnTokens,
 		)
+		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
 		burnedTxFeesBalanceSource2, err := sourceSubnet.WSClient.BalanceAt(
