@@ -27,7 +27,7 @@ contract ERC20TokenSource is
 {
     // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" when
     // a SourceAction.Burn message is received from the destination chain.
-    address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000010203;
+    address public constant BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     // Used to keep track of tokens burned through transactions on the destination chain. They can
     // be reported to this contract to burn an equivalent number of tokens on this chain.
@@ -181,7 +181,7 @@ contract ERC20TokenSource is
      */
     function _burnTokens(uint256 amount) private {
         emit BurnTokens(amount);
-        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BURNED_TX_FEES_ADDRESS, amount);
+        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BURN_ADDRESS, amount);
     }
 
     /**
