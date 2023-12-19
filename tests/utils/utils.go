@@ -342,6 +342,17 @@ func CreateNativeTransferTransaction(
 	return SignTransaction(tx, fromKey, subnetInfo.EVMChainID)
 }
 
+func SendNativeTransfer(
+	ctx context.Context,
+	subnetInfo interfaces.SubnetTestInfo,
+	fromKey *ecdsa.PrivateKey,
+	recipient common.Address,
+	amount *big.Int,
+) *types.Receipt {
+	tx := CreateNativeTransferTransaction(ctx, subnetInfo, fromKey, recipient, amount)
+	return SendTransactionAndWaitForSuccess(ctx, subnetInfo, tx)
+}
+
 // Sends a tx, and waits for it to be mined.
 // Asserts Receipt.status equals success.
 func sendAndWaitForTransaction(
@@ -441,13 +452,29 @@ func waitForTransaction(
 
 	if success {
 		if receipt.Status == types.ReceiptStatusFailed {
-			fmt.Println(TraceTransaction(ctx, subnetInfo, tx))
+			// Gomega will print the transaction trace
+			Expect(TraceTransaction(ctx, subnetInfo, receipt.TxHash)).Should(Equal(""))
 		}
-		Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	} else {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
 	}
 	return receipt
+}
+
+// Returns the first log in 'logs' that is successfully parsed by 'parser'
+// Errors and prints a trace of the transaction if no log is found.
+func GetEventFromLogsOrTrace[T any](
+	ctx context.Context,
+	receipt *types.Receipt,
+	subnetInfo interfaces.SubnetTestInfo,
+	parser func(log types.Log) (T, error),
+) T {
+	log, err := GetEventFromLogs(receipt.Logs, parser)
+	if err != nil {
+		// Gomega will print the transaction trace
+		Expect(TraceTransaction(ctx, subnetInfo, receipt.TxHash)).Should(Equal(""))
+	}
+	return log
 }
 
 // Returns the first log in 'logs' that is successfully parsed by 'parser'
@@ -502,7 +529,7 @@ func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big
 	ExpectBigEqual(bal, expectedBalance)
 }
 
-func TraceTransaction(ctx context.Context, subnetInfo interfaces.SubnetTestInfo, tx *types.Transaction) string {
+func TraceTransaction(ctx context.Context, subnetInfo interfaces.SubnetTestInfo, txHash common.Hash) string {
 	url := HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String())
 	rpcClient, err := rpc.DialContext(ctx, url)
 	Expect(err).Should(BeNil())
@@ -510,7 +537,7 @@ func TraceTransaction(ctx context.Context, subnetInfo interfaces.SubnetTestInfo,
 
 	var result interface{}
 	ct := "callTracer"
-	err = rpcClient.Call(&result, "debug_traceTransaction", tx.Hash().String(), tracers.TraceConfig{Tracer: &ct})
+	err = rpcClient.Call(&result, "debug_traceTransaction", txHash.String(), tracers.TraceConfig{Tracer: &ct})
 	Expect(err).Should(BeNil())
 
 	jsonStr, err := json.Marshal(result)

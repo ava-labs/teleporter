@@ -155,7 +155,7 @@ contract NativeTokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(burnedTxFees, nativeTokenSource.BURN_ADDRESS().balance);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(
@@ -165,7 +165,7 @@ contract NativeTokenSourceTest is Test {
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(burnedTxFees, nativeTokenSource.BURN_ADDRESS().balance);
 
         emit BurnTokens(additionalTxFees);
 
@@ -178,7 +178,7 @@ contract NativeTokenSourceTest is Test {
 
         assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.destinationBurnedTotal());
         assertEq(
-            burnedTxFees + additionalTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
+            burnedTxFees + additionalTxFees, nativeTokenSource.BURN_ADDRESS().balance
         );
     }
 

@@ -46,9 +46,10 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		}
 	)
 
-	// sourceSubnet := network.GetPrimaryNetworkInfo() // TODO: Integrate the C-Chain
-	sourceSubnet, destSubnet := utils.GetTwoSubnets(network)
+	sourceSubnet := network.GetPrimaryNetworkInfo()
+	_, destSubnet := utils.GetTwoSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
+	_, fundedKey := network.GetFundedAccountInfo()
 
 	// Info we need to calculate for the test
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
@@ -60,45 +61,66 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	log.Info("Example ERC20 Contract Address: " + exampleERC20ContractAddress.Hex())
 
-	// Deploy the contracts
-	// Both contracts in this test will be deployed to 0x3405506b3711859c5070949ed9b700c7ba7bf750,
-	// though they do not necessarily have to be deployed at the same address, each contract needs
-	// to know the address of the other.
-	// The nativeTokenDestination contract must be added to "adminAddresses" of "contractNativeMinterConfig"
-	// in the genesis file for the subnet. This will allow it to call the native minter precompile.
-	erc20TokenSourceAbi, err := erc20tokensource.ERC20TokenSourceMetaData.GetAbi()
-	Expect(err).Should(BeNil())
-	utils.DeployContract(
-		ctx,
-		ERC20TokenSourceByteCodeFile,
-		deployerPK,
-		sourceSubnet,
-		erc20TokenSourceAbi,
-		teleporterContractAddress,
-		destSubnet.BlockchainID,
-		bridgeContractAddress,
-		exampleERC20ContractAddress,
-	)
+	{
+		// Fund the deployer addresses on each chain
+		utils.SendNativeTransfer(
+			ctx,
+			sourceSubnet,
+			fundedKey,
+			deployerAddress,
+			utils.BigIntMul(initialReserveImbalance, big.NewInt(2)),
+		)
 
-	nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
-	Expect(err).Should(BeNil())
-	utils.DeployContract(
-		ctx,
-		NativeTokenDestinationByteCodeFile,
-		deployerPK,
-		destSubnet,
-		nativeTokenDestinationAbi,
-		teleporterContractAddress,
-		sourceSubnet.BlockchainID,
-		bridgeContractAddress,
-		initialReserveImbalance,
-	)
+		utils.SendNativeTransfer(
+			ctx,
+			destSubnet,
+			fundedKey,
+			deployerAddress,
+			utils.BigIntMul(initialReserveImbalance, big.NewInt(2)),
+		)
+	}
 
-	exampleERC20Abi, err := exampleerc20.ExampleERC20MetaData.GetAbi()
-	Expect(err).Should(BeNil())
-	utils.DeployContract(ctx, ExampleERC20ByteCodeFile, deployerPK, sourceSubnet, exampleERC20Abi)
+	{
+		// Deploy the contracts
+		// Both contracts in this test will be deployed to 0x3405506b3711859c5070949ed9b700c7ba7bf750,
+		// though they do not necessarily have to be deployed at the same address, each contract needs
+		// to know the address of the other.
+		// The nativeTokenDestination contract must be added to "adminAddresses" of "contractNativeMinterConfig"
+		// in the genesis file for the subnet. This will allow it to call the native minter precompile.
+		erc20TokenSourceAbi, err := erc20tokensource.ERC20TokenSourceMetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		utils.DeployContract(
+			ctx,
+			ERC20TokenSourceByteCodeFile,
+			deployerPK,
+			sourceSubnet,
+			erc20TokenSourceAbi,
+			teleporterContractAddress,
+			destSubnet.BlockchainID,
+			bridgeContractAddress,
+			exampleERC20ContractAddress,
+		)
 
-	log.Info("Finished deploying contracts")
+		nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		utils.DeployContract(
+			ctx,
+			NativeTokenDestinationByteCodeFile,
+			deployerPK,
+			destSubnet,
+			nativeTokenDestinationAbi,
+			teleporterContractAddress,
+			sourceSubnet.BlockchainID,
+			bridgeContractAddress,
+			initialReserveImbalance,
+		)
+
+		exampleERC20Abi, err := exampleerc20.ExampleERC20MetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		utils.DeployContract(ctx, ExampleERC20ByteCodeFile, deployerPK, sourceSubnet, exampleERC20Abi)
+
+		log.Info("Finished deploying contracts")
+	}
 
 	// Create abi objects to call the contract with
 	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(

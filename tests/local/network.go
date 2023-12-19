@@ -77,7 +77,10 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
-	_, err = f.Write([]byte(`{"warp-api-enabled": true}`))
+	_, err = f.Write([]byte(`{
+		"warp-api-enabled": true, 
+		"eth-apis":["eth","eth-filter","net","admin","web3","internal-eth","internal-blockchain","internal-transaction","internal-debug","internal-account","internal-personal","debug","debug-tracer","debug-file-tracer","debug-handler"]
+	}`))
 	Expect(err).Should(BeNil())
 	warpChainConfigPath := f.Name()
 
@@ -86,6 +89,11 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	Expect(err).Should(BeNil())
 
 	anrConfig := runner.NewDefaultANRConfig()
+	anrConfig.GlobalCChainConfig = `{
+		"warp-api-enabled": true,
+		"eth-apis":["eth","eth-filter","net","admin","web3","internal-eth","internal-blockchain","internal-transaction","internal-debug","internal-account","internal-personal","debug","debug-tracer","debug-file-tracer","debug-handler"],
+		"log-level": "debug"
+	}`
 	manager := runner.NewNetworkManager(anrConfig)
 
 	// Construct the network using the avalanche-network-runner
