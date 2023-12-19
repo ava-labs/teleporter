@@ -39,6 +39,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		deployerAddress      = common.HexToAddress("0x539447ab8Be7e927bE8E005663C81ff2AE951337")
 		tokenReceiverAddress = common.HexToAddress("0x4444444444444444444444444444444444444444")
 		burnedTxFeeAddress   = common.HexToAddress("0x0100000000000000000000000000000000000000")
+		burnAddressSource    = common.HexToAddress("0x0100000000000000000000000000000000010203")
 
 		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
 			FeeTokenAddress: common.Address{},
@@ -159,18 +160,17 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
-		destChainReceipt :=
-			sendERC20TokensToDestination(
-				ctx,
-				network,
-				valueToSend,
-				deployerPK,
-				tokenReceiverAddress,
-				sourceSubnet,
-				destSubnet,
-				erc20TokenSource,
-				common.Big0,
-			)
+		destChainReceipt := sendERC20TokensToDestination(
+			ctx,
+			network,
+			valueToSend,
+			deployerPK,
+			tokenReceiverAddress,
+			sourceSubnet,
+			destSubnet,
+			erc20TokenSource,
+			common.Big0,
+		)
 
 		collateralEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
@@ -255,18 +255,17 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 
 	{
 		// Transfer tokens B -> A
-		sourceChainReceipt :=
-			sendTokensToSource(
-				ctx,
-				network,
-				valueToReturn,
-				deployerPK,
-				tokenReceiverAddress,
-				sourceSubnet,
-				destSubnet,
-				nativeTokenDestination,
-				emptyDestFeeInfo,
-			)
+		sourceChainReceipt := sendTokensToSource(
+			ctx,
+			network,
+			valueToReturn,
+			deployerPK,
+			tokenReceiverAddress,
+			sourceSubnet,
+			destSubnet,
+			nativeTokenDestination,
+			emptyDestFeeInfo,
+		)
 
 		checkUnlockERC20Event(
 			sourceChainReceipt.Logs,
@@ -308,7 +307,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(reportEvent.BurnAddressBalance, burnedTxFeesBalanceDest)
 
-		burnedTxFeesBalanceSource, err := exampleERC20.BalanceOf(nil, burnedTxFeeAddress)
+		burnedTxFeesBalanceSource, err := exampleERC20.BalanceOf(nil, burnAddressSource)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceSource, common.Big0)
 
@@ -321,7 +320,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
-		burnedTxFeesBalanceSource2, err := exampleERC20.BalanceOf(nil, burnedTxFeeAddress)
+		burnedTxFeesBalanceSource2, err := exampleERC20.BalanceOf(nil, burnAddressSource)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceSource2, burnEvent.Amount)
 	}

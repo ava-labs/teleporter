@@ -35,7 +35,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		deployerAddress         = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
 		tokenReceiverAddress    = common.HexToAddress("0x0123456789012345678901234567890123456789")
 		burnedTxFeeAddressDest  = common.HexToAddress("0x0100000000000000000000000000000000000000")
-		burnAddressSource       = common.HexToAddress("0x0100000000000000000000000000000000000001")
+		burnAddressSource       = common.HexToAddress("0x0100000000000000000000000000000000010203")
 
 		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
 			FeeTokenAddress: common.Address{},
@@ -291,11 +291,12 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 		sourceChainReceipt := network.RelayMessage(ctx, destChainReceipt, destSubnet, sourceSubnet, true)
 
-		burnEvent, err := utils.GetEventFromLogs(
-			sourceChainReceipt.Logs,
+		burnEvent := utils.GetEventFromLogsOrTrace(
+			ctx,
+			sourceChainReceipt,
+			sourceSubnet,
 			nativeTokenSource.ParseBurnTokens,
 		)
-		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
 		burnedTxFeesBalanceSource2, err := sourceSubnet.WSClient.BalanceAt(
