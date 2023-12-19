@@ -56,6 +56,12 @@ type testNetwork struct {
 	fundedKey                 *ecdsa.PrivateKey
 }
 
+// GetPrimaryNetworkInfo implements interfaces.Network.
+func (*testNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
+	// TODO
+	panic("unimplemented")
+}
+
 func initializeSubnetInfo(
 	subnetPrefix string,
 	teleporterContractAddress common.Address,
