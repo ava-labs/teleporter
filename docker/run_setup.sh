@@ -43,17 +43,17 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     # Deploy three test subnets to the local network.
     echo "Creating new subnet A..."
     avalanche subnet create subneta --force --genesis ./subnetGenesis_A.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check
-    avalanche subnet configure subneta --config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
+    avalanche subnet configure subneta --node-config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
     avalanche subnet deploy subneta --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 
     echo "Creating new subnet B..."
     avalanche subnet create --force --genesis ./subnetGenesis_B.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check subnetb
-    avalanche subnet configure subnetb --config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
+    avalanche subnet configure subnetb --node-config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
     avalanche subnet deploy subnetb --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 
     echo "Creating new subnet C..."
     avalanche subnet create --force --genesis ./subnetGenesis_C.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check subnetc
-    avalanche subnet configure subnetc --config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
+    avalanche subnet configure subnetc --node-config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
     avalanche subnet deploy subnetc --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 
     # Find the proper Avalanche CLI log directory
