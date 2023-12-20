@@ -136,9 +136,9 @@ The auto-generated bindings should be written under the `abi-bindings/` director
 - [Teleporter Protocol Overview](./contracts/src/Teleporter/README.md)
 - [Cross Chain Applications](./contracts/src/CrossChainApplications/README.md)
 - [Getting Started](./contracts/src/CrossChainApplications/GETTING_STARTED.md)
+- [Teleporter Upgradeability](./contracts/src/Teleporter/upgrades/README.md)
 - [Contract Deployment](./utils/contract-deployment/README.md)
-- [ERC20Bridge](./contracts/src/CrossChainApplications/ERC20Bridge/README.md)
-- [VerifiedBlockHash](./contracts/src/CrossChainApplications/VerifiedBlockHash/README.md)
+- [Teleporter CLI](./cmd/teleporter-cli/README.md)
 
 ## Resources
 
