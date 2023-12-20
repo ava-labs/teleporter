@@ -62,28 +62,19 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
         bytes memory message
     ) internal override {
         require(
-            originBlockchainID == sourceBlockchainID,
-            "BlockHashReceiver: invalid source chain ID"
+            originBlockchainID == sourceBlockchainID, "BlockHashReceiver: invalid source chain ID"
         );
         require(
             originSenderAddress == sourcePublisherContractAddress,
             "BlockHashReceiver: invalid source chain publisher"
         );
 
-        (uint256 blockHeight, bytes32 blockHash) = abi.decode(
-            message,
-            (uint256, bytes32)
-        );
+        (uint256 blockHeight, bytes32 blockHash) = abi.decode(message, (uint256, bytes32));
 
         if (blockHeight > latestBlockHeight) {
             latestBlockHeight = blockHeight;
             latestBlockHash = blockHash;
-            emit ReceiveBlockHash(
-                originBlockchainID,
-                originSenderAddress,
-                blockHeight,
-                blockHash
-            );
+            emit ReceiveBlockHash(originBlockchainID, originSenderAddress, blockHeight, blockHash);
         }
     }
 }

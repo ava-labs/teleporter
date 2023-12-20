@@ -86,7 +86,7 @@ func relayAlteredMessage(
 	)
 
 	log.Info("Sending transaction to destination chain")
-	utils.SendTransactionAndWaitForAcceptance(ctx, destination, signedTx, false)
+	utils.SendTransactionAndWaitForFailure(ctx, destination, signedTx)
 }
 
 func createAlteredReceiveCrossChainMessageTransaction(

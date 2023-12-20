@@ -5,7 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessengerTest, TeleporterMessage, TeleporterMessageReceipt, WarpMessage} from "./TeleporterMessengerTest.t.sol";
+import {
+    TeleporterMessengerTest,
+    TeleporterMessage,
+    TeleporterMessageReceipt,
+    WarpMessage
+} from "./TeleporterMessengerTest.t.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
@@ -27,25 +32,21 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     }
 
     function testRedemptionFails() public {
-        FeeRewardInfo memory feeRewardInfo = FeeRewardInfo(
-            2222222222222222,
-            0xeF6ed43EB8Ff15E336D64d1468947cA1046824E6
-        );
+        FeeRewardInfo memory feeRewardInfo =
+            FeeRewardInfo(2222222222222222, 0xeF6ed43EB8Ff15E336D64d1468947cA1046824E6);
         _setUpRelayerRewards(feeRewardInfo);
 
         vm.mockCall(
             address(_mockFeeAsset),
             abi.encodeCall(
-                IERC20.transfer,
-                (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
+                IERC20.transfer, (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
             ),
             abi.encode(false)
         );
         vm.expectCall(
             address(_mockFeeAsset),
             abi.encodeCall(
-                IERC20.transfer,
-                (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
+                IERC20.transfer, (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
             )
         );
         vm.prank(feeRewardInfo.relayerRewardAddress);
@@ -55,40 +56,33 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         // Check that the relayer still has redeemable balance since the transfer failed.
         assertEq(
             teleporterMessenger.checkRelayerRewardAmount(
-                feeRewardInfo.relayerRewardAddress,
-                address(_mockFeeAsset)
+                feeRewardInfo.relayerRewardAddress, address(_mockFeeAsset)
             ),
             feeRewardInfo.feeAmount
         );
     }
 
     function testRedemptionSucceeds() public {
-        FeeRewardInfo memory feeRewardInfo = FeeRewardInfo(
-            2222222222222222,
-            0xeF6ed43EB8Ff15E336D64d1468947cA1046824E6
-        );
+        FeeRewardInfo memory feeRewardInfo =
+            FeeRewardInfo(2222222222222222, 0xeF6ed43EB8Ff15E336D64d1468947cA1046824E6);
         _setUpRelayerRewards(feeRewardInfo);
 
         vm.mockCall(
             address(_mockFeeAsset),
             abi.encodeCall(
-                IERC20.transfer,
-                (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
+                IERC20.transfer, (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
             ),
             abi.encode(true)
         );
         vm.expectCall(
             address(_mockFeeAsset),
             abi.encodeCall(
-                IERC20.transfer,
-                (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
+                IERC20.transfer, (feeRewardInfo.relayerRewardAddress, feeRewardInfo.feeAmount)
             )
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit RelayerRewardsRedeemed(
-            feeRewardInfo.relayerRewardAddress,
-            address(_mockFeeAsset),
-            feeRewardInfo.feeAmount
+            feeRewardInfo.relayerRewardAddress, address(_mockFeeAsset), feeRewardInfo.feeAmount
         );
         vm.prank(feeRewardInfo.relayerRewardAddress);
         teleporterMessenger.redeemRelayerRewards(address(_mockFeeAsset));
@@ -96,8 +90,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         // Check that the relayer redeemable balance is now 0.
         assertEq(
             teleporterMessenger.checkRelayerRewardAmount(
-                feeRewardInfo.relayerRewardAddress,
-                address(_mockFeeAsset)
+                feeRewardInfo.relayerRewardAddress, address(_mockFeeAsset)
             ),
             0
         );
@@ -107,28 +100,19 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     // receiving back a message with receipt of that message such that the relayer
     // is able to redeem the reward.
     function _setUpRelayerRewards(FeeRewardInfo memory feeRewardInfo) private {
-        uint256 messageID = _sendTestMessageWithFee(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            feeRewardInfo.feeAmount
-        );
+        uint256 messageID =
+            _sendTestMessageWithFee(DEFAULT_ORIGIN_CHAIN_ID, feeRewardInfo.feeAmount);
 
-        TeleporterMessageReceipt[]
-            memory receipts = new TeleporterMessageReceipt[](1);
+        TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
             receivedMessageID: messageID,
             relayerRewardAddress: feeRewardInfo.relayerRewardAddress
         });
-        TeleporterMessage
-            memory messageToReceive = _createMockTeleporterMessage(
-                1,
-                new bytes(0)
-            );
+        TeleporterMessage memory messageToReceive = _createMockTeleporterMessage(1, new bytes(0));
 
         messageToReceive.receipts = receipts;
-        WarpMessage memory warpMessage = _createDefaultWarpMessage(
-            DEFAULT_ORIGIN_CHAIN_ID,
-            abi.encode(messageToReceive)
-        );
+        WarpMessage memory warpMessage =
+            _createDefaultWarpMessage(DEFAULT_ORIGIN_CHAIN_ID, abi.encode(messageToReceive));
 
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
@@ -142,30 +126,21 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
             expectedRelayerRewardAddress,
             messageToReceive
         );
-        teleporterMessenger.receiveCrossChainMessage(
-            0,
-            expectedRelayerRewardAddress
-        );
+        teleporterMessenger.receiveCrossChainMessage(0, expectedRelayerRewardAddress);
 
         // Check that the relayer has redeemable balance
         assertEq(
             teleporterMessenger.checkRelayerRewardAmount(
-                feeRewardInfo.relayerRewardAddress,
-                address(_mockFeeAsset)
+                feeRewardInfo.relayerRewardAddress, address(_mockFeeAsset)
             ),
             feeRewardInfo.feeAmount
         );
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(
-                DEFAULT_ORIGIN_CHAIN_ID,
-                1
-            ),
+            teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, 1),
             expectedRelayerRewardAddress
         );
-        assertTrue(
-            teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1)
-        );
+        assertTrue(teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1));
     }
 }
