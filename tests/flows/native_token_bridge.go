@@ -231,12 +231,12 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			valueToReturn,
 		)
 
-		utils.CheckBalance(ctx, tokenReceiverAddress, valueToReturn, sourceSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, valueToReturn, sourceSubnet.RPCClient)
 	}
 
 	{
 		// Check reporting of burned tx fees to Source Chain
-		burnedTxFeesBalanceDest, err := destSubnet.WSClient.BalanceAt(
+		burnedTxFeesBalanceDest, err := destSubnet.RPCClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,
@@ -262,7 +262,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(reportEvent.BurnAddressBalance, burnedTxFeesBalanceDest)
 
-		burnedTxFeesBalanceSource, err := sourceSubnet.WSClient.BalanceAt(
+		burnedTxFeesBalanceSource, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,
@@ -279,7 +279,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
-		burnedTxFeesBalanceSource2, err := sourceSubnet.WSClient.BalanceAt(
+		burnedTxFeesBalanceSource2, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,
