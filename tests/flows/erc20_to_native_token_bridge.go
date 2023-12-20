@@ -260,7 +260,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 
 	{
 		// Check reporting of burned tx fees to Source Chain
-		burnedTxFeesBalanceDest, err := destSubnet.WSClient.BalanceAt(
+		burnedTxFeesBalanceDest, err := destSubnet.RPCClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,

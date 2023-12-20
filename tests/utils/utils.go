@@ -496,8 +496,8 @@ func PrivateKeyToAddress(k *ecdsa.PrivateKey) common.Address {
 }
 
 // Throws a Gomega error if there is a mismatch
-func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big.Int, wsClient ethclient.Client) {
-	bal, err := wsClient.BalanceAt(ctx, addr, nil)
+func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big.Int, rpcClient ethclient.Client) {
+	bal, err := rpcClient.BalanceAt(ctx, addr, nil)
 	Expect(err).Should(BeNil())
 	ExpectBigEqual(bal, expectedBalance)
 }
@@ -537,7 +537,7 @@ func DeployContract(
 		transactor,
 		*abi,
 		byteCode,
-		subnetInfo.WSClient,
+		subnetInfo.RPCClient,
 		constructorArgs...,
 	)
 	Expect(err).Should(BeNil())
@@ -545,7 +545,7 @@ func DeployContract(
 	// Wait for transaction, then check code was deployed
 	WaitForTransactionSuccess(ctx, subnetInfo, tx)
 
-	code, err := subnetInfo.WSClient.CodeAt(ctx, contractAddress, nil)
+	code, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
 	Expect(err).Should(BeNil())
 	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 }
