@@ -149,6 +149,11 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
         --rpc-url $subnet_c_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
     subnet_c_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_c")
     echo "TeleporterRegistry contract deployed to subnet C at $subnet_c_teleporter_registry_address."
+
+    registry_deploy_result_c_chain=$(forge create --private-key $user_private_key \
+        --rpc-url $c_chain_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[(1,$teleporter_contract_address)]")
+    c_chain_teleporter_registry_address=$(parseContractAddress "$registry_deploy_result_c_chain")
+    echo "TeleporterRegistry contract deployed to the C-Chain at $c_chain_teleporter_registry_address."
     cd ..
 
     # Send tokens to cover gas costs for the relayers.
