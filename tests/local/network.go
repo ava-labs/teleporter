@@ -438,7 +438,10 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	receipt := utils.SendTransactionAndWaitForSuccess(ctx, destination, signedTx)
 
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, destination.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	receiveEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		destination.TeleporterMessenger.ParseReceiveCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	Expect(receiveEvent.OriginBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
 	return receipt
