@@ -69,7 +69,7 @@ contract NativeTokenSource is
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
         // The recipient cannot be the zero address.
         require(recipient != address(0), "NativeTokenSource: zero recipient address");
@@ -107,7 +107,7 @@ contract NativeTokenSource is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
      *
      * Receives a Teleporter message and routes to the appropriate internal function call.
      */

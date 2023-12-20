@@ -140,7 +140,7 @@ contract NativeTokenDestination is
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
         uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
@@ -179,7 +179,7 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
      *
      * Receives a Teleporter message.
      */

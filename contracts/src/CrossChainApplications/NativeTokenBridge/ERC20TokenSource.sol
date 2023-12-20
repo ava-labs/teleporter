@@ -75,7 +75,7 @@ contract ERC20TokenSource is
         uint256 feeAmount,
         address[] calldata allowedRelayerAddresses
     ) external nonReentrant {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
         // The recipient cannot be the zero address.
         require(recipient != address(0), "ERC20TokenSource: zero recipient address");
@@ -118,7 +118,7 @@ contract ERC20TokenSource is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
      *
      * Receives a Teleporter message and routes to the appropriate internal function call.
      */
