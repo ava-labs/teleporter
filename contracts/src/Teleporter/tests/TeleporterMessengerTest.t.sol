@@ -15,7 +15,7 @@ import {
     IWarpMessenger,
     WarpMessage
 } from "../TeleporterMessenger.sol";
-import {UnitTestMockERC20} from "../../Mocks/UnitTestMockERC20.sol";
+import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // Parent contract for TeleporterMessenger tests. Deploys a TeleporterMessenger
