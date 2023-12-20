@@ -39,14 +39,14 @@ relayerConfigFile=./relayerConfig.json
 rm -f $relayerConfigFile
 
 # Avoid using sed -i due to Docker + MacOS M1 issues
-sed "s/<SUBNET_A_CHAIN_ID>/$subnet_a_chain_id/g
+sed "s/<SUBNET_A_BLOCKCHAIN_ID>/$subnet_a_blockchain_id/g
      s/<SUBNET_A_SUBNET_ID>/$subnet_a_subnet_id/g
-     s/<SUBNET_B_CHAIN_ID>/$subnet_b_chain_id/g
+     s/<SUBNET_B_BLOCKCHAIN_ID>/$subnet_b_blockchain_id/g
      s/<SUBNET_B_SUBNET_ID>/$subnet_b_subnet_id/g
-     s/<SUBNET_C_CHAIN_ID>/$subnet_c_chain_id/g
+     s/<SUBNET_C_BLOCKCHAIN_ID>/$subnet_c_blockchain_id/g
      s/<SUBNET_C_SUBNET_ID>/$subnet_c_subnet_id/g
      s/<TELEPORTER_CONTRACT_ADDRESS>/$teleporter_contract_address/g
-     s/<C_CHAIN_CHAIN_ID>/$c_chain_chain_id/g
+     s/<C_CHAIN_BLOCKCHAIN_ID>/$c_chain_blockchain_id/g
      s/<REWARD_ADDRESS>/$reward_address/g
      s/<ACCOUNT_PRIVATE_KEY>/$account_private_key/g" ./docker/relayerConfigTemplate.json > $relayerConfigFile
 
