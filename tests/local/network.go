@@ -57,7 +57,7 @@ type LocalNetwork struct {
 
 const (
 	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
-	cChainConfig = `{
+	warpEnabledChainConfig = `{
 		"warp-api-enabled": true, 
 		"eth-apis":["eth","eth-filter","net","admin","web3",
 					"internal-eth","internal-blockchain","internal-transaction",
@@ -84,7 +84,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
-	_, err = f.Write([]byte(cChainConfig))
+	_, err = f.Write([]byte(warpEnabledChainConfig))
 	Expect(err).Should(BeNil())
 	warpChainConfigPath := f.Name()
 
@@ -93,7 +93,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	Expect(err).Should(BeNil())
 
 	anrConfig := runner.NewDefaultANRConfig()
-	anrConfig.GlobalCChainConfig = cChainConfig
+	anrConfig.GlobalCChainConfig = warpEnabledChainConfig
 	manager := runner.NewNetworkManager(anrConfig)
 
 	// Construct the network using the avalanche-network-runner
