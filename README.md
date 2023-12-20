@@ -75,6 +75,17 @@ set -a                        # export all variables so child processes can acce
 source vars.sh
 ```
 
+- An example of how to interact with Teleporter is provided in `scripts/local/examples/basic_send_receive.sh`, and can be run directly in the container:
+
+```
+# Open a shell in the container
+docker exec -it local_network_run /bin/bash
+# In the container:
+set -a                        # export all variables so child processes can access
+source vars.sh
+./scripts/local/examples/basic_send_receive.sh
+```
+
 - Command line tools such as `cast` can also be used from the container.
 - Similarly, you can send the above transaction on either of the subnets by replacing the above rpc-url with the subnet's corresponding URL.
 - The script `./scripts/local/run_stop.sh` should be used to gracefully shut down the containers, preserving the local network state between runs. This script is called automatically at the end of `./scripts/local/run.sh`, but can be called at any time from a separate terminal to pause the network.
