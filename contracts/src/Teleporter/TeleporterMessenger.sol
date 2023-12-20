@@ -357,6 +357,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Re-encode the payload by ABI encoding a call to the {receiveTeleporterMessage} function
         // defined by the {ITeleporterReceiver} interface.
+        // If the destination address does not implement {receiveTeleporterMessage}, but does implement
+        // a fallback function, then the fallback function will be called instead.
         bytes memory payload = abi.encodeCall(
             ITeleporterReceiver.receiveTeleporterMessage,
             (originBlockchainID, message.senderAddress, message.message)
