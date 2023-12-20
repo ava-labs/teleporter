@@ -108,7 +108,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(
-		optsA, subnetBInfo.BlockchainID, sentTeleporterMessage,
+		optsA, sentTeleporterMessage,
 	)
 	Expect(err).Should(BeNil())
 

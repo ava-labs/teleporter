@@ -202,8 +202,11 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         });
         WarpMessage memory warpMessage =
             _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
-        bytes32 messageID =
-            _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive.messageNonce);
+        bytes32 messageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            messageToReceive.messageNonce
+        );
 
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
@@ -212,11 +215,11 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         // The message should be successfully received, but its execution should fail.
         vm.roll(12);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageID, messageToReceive);
+        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
-            warpMessage.sourceChainID,
             messageID,
+            warpMessage.sourceChainID,
             address(this),
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
@@ -245,7 +248,10 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         vm.roll(13);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit MessageExecuted(
-            originBlockchainID, _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, message.messageNonce)
+            teleporterMessenger.calculateMessageID(
+                originBlockchainID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, message.messageNonce
+            ),
+            originBlockchainID
         );
         teleporterMessenger.retryMessageExecution(originBlockchainID, message);
 

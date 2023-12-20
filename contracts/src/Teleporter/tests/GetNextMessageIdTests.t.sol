@@ -22,11 +22,17 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
 
     function testGetMessageID() public {
         // Generate the next expected message ID manually.
-        bytes32 expectedMessageID =
-            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, teleporterMessenger.messageNonce());
+        bytes32 expectedMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            teleporterMessenger.messageNonce()
+        );
 
         // Check the contract reports the same as expected.
-        assertEq(teleporterMessenger.getNextMessageID(), expectedMessageID);
+        assertEq(
+            teleporterMessenger.getNextMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID),
+            expectedMessageID
+        );
 
         // Send a message to ensure it is assigned the expected ID.
         vm.mockCall(
@@ -47,11 +53,17 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         assertEq(messageID, expectedMessageID);
 
         // Generate the next expected message ID now that a message has been sent.
-        bytes32 secondExpectedMessageID =
-            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, teleporterMessenger.messageNonce());
+        bytes32 secondExpectedMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            teleporterMessenger.messageNonce()
+        );
 
         // Check the contract reports the same as expected, and that is different than the first ID.
-        assertEq(teleporterMessenger.getNextMessageID(), secondExpectedMessageID);
+        assertEq(
+            teleporterMessenger.getNextMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID),
+            secondExpectedMessageID
+        );
         assertNotEq(expectedMessageID, secondExpectedMessageID);
     }
 }

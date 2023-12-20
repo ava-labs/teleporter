@@ -25,7 +25,7 @@ func createTestTeleporterMessage(messageNonce *big.Int) TeleporterMessage {
 		},
 		Receipts: []TeleporterMessageReceipt{
 			{
-				ReceivedMessageID:    ids.ID{1},
+				ReceivedMessageNonce: big.NewInt(1),
 				RelayerRewardAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 			},
 		},
@@ -54,7 +54,7 @@ func TestPackUnpackTeleporterMessage(t *testing.T) {
 	}
 
 	for i := 0; i < len(message.Receipts); i++ {
-		require.Equal(t, message.Receipts[i].ReceivedMessageID, unpacked.Receipts[i].ReceivedMessageID)
+		require.Equal(t, message.Receipts[i].ReceivedMessageNonce, unpacked.Receipts[i].ReceivedMessageNonce)
 		require.Equal(t, message.Receipts[i].RelayerRewardAddress, unpacked.Receipts[i].RelayerRewardAddress)
 	}
 
@@ -85,8 +85,8 @@ func TestUnpackEvent(t *testing.T) {
 			{
 				event: SendCrossChainMessage,
 				args: []interface{}{
-					mockBlockchainID,
 					mockMessageID,
+					mockBlockchainID,
 					message,
 					feeInfo,
 				},
@@ -101,8 +101,8 @@ func TestUnpackEvent(t *testing.T) {
 			{
 				event: ReceiveCrossChainMessage,
 				args: []interface{}{
-					mockBlockchainID,
 					mockMessageID,
+					mockBlockchainID,
 					deliverer,
 					deliverer,
 					message,
@@ -119,13 +119,13 @@ func TestUnpackEvent(t *testing.T) {
 			{
 				event: MessageExecuted,
 				args: []interface{}{
-					mockBlockchainID,
 					mockMessageID,
+					mockBlockchainID,
 				},
 				out: new(TeleporterMessengerMessageExecuted),
 				expected: &TeleporterMessengerMessageExecuted{
-					OriginBlockchainID: mockBlockchainID,
 					MessageID:          mockMessageID,
+					OriginBlockchainID: mockBlockchainID,
 				},
 			},
 		}

@@ -33,13 +33,13 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](3);
         for (uint256 i = 0; i < relayerRewardAddresses.length; i++) {
             _receiveTestMessage(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID,
                 i + 1,
                 relayerRewardAddresses[i],
                 new TeleporterMessageReceipt[](0)
             );
             expectedReceipts[i] = TeleporterMessageReceipt({
-                receivedMessageID: _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, i + 1),
+                receivedMessageNonce: i + 1,
                 relayerRewardAddress: relayerRewardAddresses[i]
             });
         }
@@ -49,45 +49,49 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageNonce: expectedMessageNonce,
             senderAddress: address(this),
-            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            destinationBlockchainID: DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
             receipts: expectedReceipts,
             message: new bytes(0)
         });
-        bytes32 expectedMessageID =
-            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, expectedMessageNonce);
+        bytes32 expectedMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, expectedMessageNonce
+        );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         emit SendCrossChainMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, expectedMessageID, expectedMessage, feeInfo
+            expectedMessageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, expectedMessage, feeInfo
         );
-        bytes32 outboundMessageID = _sendTestMessageWithNoFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
+        bytes32 outboundMessageID = _sendTestMessageWithNoFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID);
         assertEq(outboundMessageID, expectedMessageID);
         assertEq(
             teleporterMessenger.getRelayerRewardAddress(
-                _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1)
+                teleporterMessenger.calculateMessageID(
+                    DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1
+                )
             ),
             relayerRewardAddresses[0]
         );
 
         TeleporterMessageReceipt[] memory newExpectedReceipts = new TeleporterMessageReceipt[](2);
         newExpectedReceipts[0] = TeleporterMessageReceipt({
-            receivedMessageID: _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 3),
+            receivedMessageNonce: 3,
             relayerRewardAddress: relayerRewardAddresses[2]
         });
         newExpectedReceipts[1] = TeleporterMessageReceipt({
-            receivedMessageID: _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1),
+            receivedMessageNonce: 1,
             relayerRewardAddress: relayerRewardAddresses[0]
         });
 
         uint256 newExpectedMessageNonce = teleporterMessenger.messageNonce();
-        bytes32 newExpectedMessageID = teleporterMessenger.getNextMessageID();
+        bytes32 newExpectedMessageID =
+            teleporterMessenger.getNextMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID);
         TeleporterMessage memory newExpectedMessage = TeleporterMessage({
             messageNonce: newExpectedMessageNonce,
             senderAddress: address(this),
-            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            destinationBlockchainID: DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             destinationAddress: address(0),
             requiredGasLimit: uint256(0),
             allowedRelayerAddresses: new address[](0),
@@ -97,18 +101,44 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
 
         // Retry sending two of the receipts with {sendSpecifiedReceipts}.
         bytes32[] memory receiptIDs = new bytes32[](2);
-        receiptIDs[0] = _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 3);
-        receiptIDs[1] = _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1);
+        receiptIDs[0] = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 3
+        );
+        receiptIDs[1] = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1
+        );
 
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, newExpectedMessageID, newExpectedMessage, feeInfo
+            newExpectedMessageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, newExpectedMessage, feeInfo
         );
 
         outboundMessageID =
-            _sendSpecifiedReceiptsWithNoFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, receiptIDs);
+            _sendSpecifiedReceiptsWithNoFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, receiptIDs);
 
         assertEq(outboundMessageID, newExpectedMessageID);
+    }
+
+    function testMessageIDNotFromOriginBlockchain() public {
+        // Mock receiving a message from another chain
+        uint256 receivedMessageNonce = 987;
+        _receiveTestMessage(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            receivedMessageNonce,
+            address(0),
+            new TeleporterMessageReceipt[](0)
+        );
+        bytes32[] memory receiptIDs = new bytes32[](1);
+        receiptIDs[0] = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, receivedMessageNonce
+        );
+
+        // Call sendSpecifiedReceipts to try to send the receipts for those message IDs to a
+        // different chain than they were delivered by.
+        bytes32 otherBlockchainID =
+            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
+        vm.expectRevert(_formatTeleporterErrorMessage("message ID not from origin blockchain"));
+        _sendSpecifiedReceiptsWithNoFee(otherBlockchainID, receiptIDs);
     }
 
     function testDuplicateAllowed() public {
@@ -122,14 +152,15 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
 
         // Mock sending a message to that chain, which should include the 2 copies of the same receipt.
         TeleporterMessageReceipt memory expectedReceipt = TeleporterMessageReceipt({
-            receivedMessageID: _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1),
+            receivedMessageNonce: 1,
             relayerRewardAddress: DEFAULT_RELAYER_REWARD_ADDRESS
         });
         TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](2);
         expectedReceipts[0] = expectedReceipt;
         expectedReceipts[1] = expectedReceipt;
         uint256 expectedMessageNonce = teleporterMessenger.messageNonce();
-        bytes32 expectedMessageID = teleporterMessenger.getNextMessageID();
+        bytes32 expectedMessageID =
+            teleporterMessenger.getNextMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageNonce: expectedMessageNonce,
             senderAddress: address(this),
@@ -142,14 +173,18 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         });
 
         bytes32[] memory messageIDs = new bytes32[](2);
-        messageIDs[0] = _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1);
-        messageIDs[1] = _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1);
+        messageIDs[0] = teleporterMessenger.calculateMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1
+        );
+        messageIDs[1] = teleporterMessenger.calculateMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1
+        );
 
         // Test sendSpecifiedReceipts when there are duplicate message IDs in the input.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             expectedMessageID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             expectedMessage,
             TeleporterFeeInfo(address(0), 0)
         );
@@ -162,14 +197,16 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
     function testMissingMessage() public {
         // Mock receiving a message from another chain
         _receiveTestMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             1,
             DEFAULT_RELAYER_REWARD_ADDRESS,
             new TeleporterMessageReceipt[](0)
         );
 
         bytes32[] memory missingIDs = new bytes32[](1);
-        missingIDs[0] = _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 21);
+        missingIDs[0] = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 21
+        );
 
         // Try to send a receipt for an unreceived message from that chain - should fail.
         vm.expectRevert(_formatTeleporterErrorMessage("receipt not found"));

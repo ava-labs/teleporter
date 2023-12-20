@@ -19,15 +19,15 @@ contract ReceiptQueueTest is Test {
 
     // Add 3 elements to the queue.
     TeleporterMessageReceipt private _receipt1 = TeleporterMessageReceipt({
-        receivedMessageID: bytes32(uint256(543)),
+        receivedMessageNonce: 543,
         relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
     });
     TeleporterMessageReceipt private _receipt2 = TeleporterMessageReceipt({
-        receivedMessageID: bytes32(uint256(684384)),
+        receivedMessageNonce: 684384,
         relayerRewardAddress: 0x10eB43ef5982628728E3E4bb9F78834f67Fbb40b
     });
     TeleporterMessageReceipt private _receipt3 = TeleporterMessageReceipt({
-        receivedMessageID: bytes32(uint256(654351)),
+        receivedMessageNonce: 654351,
         relayerRewardAddress: 0xcC8E718045817AebA89592C72Ae1C9917f5D0894
     });
 
@@ -44,13 +44,13 @@ contract ReceiptQueueTest is Test {
 
         // Dequeue 3 elements and check they are given in the correct order (FIFO).
         TeleporterMessageReceipt memory result = _queue.dequeue();
-        assertEq(result.receivedMessageID, _receipt1.receivedMessageID);
+        assertEq(result.receivedMessageNonce, _receipt1.receivedMessageNonce);
         assertEq(result.relayerRewardAddress, _receipt1.relayerRewardAddress);
         result = _queue.dequeue();
-        assertEq(result.receivedMessageID, _receipt2.receivedMessageID);
+        assertEq(result.receivedMessageNonce, _receipt2.receivedMessageNonce);
         assertEq(result.relayerRewardAddress, _receipt2.relayerRewardAddress);
         result = _queue.dequeue();
-        assertEq(result.receivedMessageID, _receipt3.receivedMessageID);
+        assertEq(result.receivedMessageNonce, _receipt3.receivedMessageNonce);
         assertEq(result.relayerRewardAddress, _receipt3.relayerRewardAddress);
 
         // Check the size is now 0 again.
@@ -67,16 +67,16 @@ contract ReceiptQueueTest is Test {
 
         // Finally dequeue the elements and once again check they are returned in the correct order.
         result = _queue.dequeue();
-        assertEq(result.receivedMessageID, _receipt1.receivedMessageID);
+        assertEq(result.receivedMessageNonce, _receipt1.receivedMessageNonce);
         assertEq(result.relayerRewardAddress, _receipt1.relayerRewardAddress);
         result = _queue.dequeue();
-        assertEq(result.receivedMessageID, _receipt1.receivedMessageID);
+        assertEq(result.receivedMessageNonce, _receipt1.receivedMessageNonce);
         assertEq(result.relayerRewardAddress, _receipt1.relayerRewardAddress);
         result = _queue.dequeue();
-        assertEq(result.receivedMessageID, _receipt2.receivedMessageID);
+        assertEq(result.receivedMessageNonce, _receipt2.receivedMessageNonce);
         assertEq(result.relayerRewardAddress, _receipt2.relayerRewardAddress);
         result = _queue.dequeue();
-        assertEq(result.receivedMessageID, _receipt3.receivedMessageID);
+        assertEq(result.receivedMessageNonce, _receipt3.receivedMessageNonce);
         assertEq(result.relayerRewardAddress, _receipt3.relayerRewardAddress);
     }
 
@@ -84,7 +84,7 @@ contract ReceiptQueueTest is Test {
         // Check that you can't dequeue from empty queue.
         vm.expectRevert(_formatReceiptQueueErrorMessage("empty queue"));
         TeleporterMessageReceipt memory result = _queue.dequeue();
-        assertEq(result.receivedMessageID, bytes32(0));
+        assertEq(result.receivedMessageNonce, 0);
         assertEq(result.relayerRewardAddress, address(0));
     }
 
@@ -99,7 +99,7 @@ contract ReceiptQueueTest is Test {
 
         // Check that you can get receipts at specific indexes.
         TeleporterMessageReceipt memory result = _queue.getReceiptAtIndex(2);
-        assertEq(result.receivedMessageID, _receipt2.receivedMessageID);
+        assertEq(result.receivedMessageNonce, _receipt2.receivedMessageNonce);
         assertEq(result.relayerRewardAddress, _receipt2.relayerRewardAddress);
 
         // Check  can't get an out of index element.
@@ -111,7 +111,7 @@ contract ReceiptQueueTest is Test {
         // Check that you can't get receipts from empty queue.
         vm.expectRevert(_formatReceiptQueueErrorMessage("index out of bounds"));
         TeleporterMessageReceipt memory result = _queue.getReceiptAtIndex(0);
-        assertEq(result.receivedMessageID, 0);
+        assertEq(result.receivedMessageNonce, 0);
         assertEq(result.relayerRewardAddress, address(0));
     }
 

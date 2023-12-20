@@ -37,37 +37,29 @@ contract GetMessageHashTest is TeleporterMessengerTest {
         bytes32 expectedMessageHash = keccak256(expectedMessageBytes);
 
         // Get its stored hash
-        bytes32 actualMessageHash =
-            teleporterMessenger.getMessageHash(DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageID);
+        bytes32 actualMessageHash = teleporterMessenger.getMessageHash(messageID);
         assertEq(actualMessageHash, expectedMessageHash);
     }
 
     function testMessageDoesNotExist() public {
-        assertEq(
-            teleporterMessenger.getMessageHash(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID, bytes32(uint256(42))
-            ),
-            bytes32(0)
-        );
+        assertEq(teleporterMessenger.getMessageHash(bytes32(uint256(42))), bytes32(0));
     }
 
     function testMessageAlreadyReceived() public {
         // Submit a message
+        uint256 expectedNonce = teleporterMessenger.messageNonce();
         bytes32 messageID = _sendTestMessageWithNoFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
 
         // Now mock receiving a message back from that subnet with a receipt of the above message.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
-            receivedMessageID: messageID,
+            receivedMessageNonce: expectedNonce,
             relayerRewardAddress: relayerRewardAddress
         });
-        _receiveTestMessage(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 0, relayerRewardAddress, receipts);
+        _receiveTestMessage(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 43, relayerRewardAddress, receipts);
 
         // Now the message hash should be cleared.
-        assertEq(
-            teleporterMessenger.getMessageHash(DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageID),
-            bytes32(0)
-        );
+        assertEq(teleporterMessenger.getMessageHash(messageID), bytes32(0));
     }
 }

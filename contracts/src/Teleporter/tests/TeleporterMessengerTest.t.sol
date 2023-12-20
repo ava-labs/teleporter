@@ -37,39 +37,27 @@ contract TeleporterMessengerTest is Test {
     UnitTestMockERC20 internal _mockFeeAsset;
 
     event SendCrossChainMessage(
-        bytes32 indexed destinationBlockchainID,
         bytes32 indexed messageID,
+        bytes32 indexed destinationBlockchainID,
         TeleporterMessage message,
         TeleporterFeeInfo feeInfo
     );
 
-    event AddFeeAmount(
-        bytes32 indexed destinationBlockchainID,
-        bytes32 indexed messageID,
-        TeleporterFeeInfo updatedFeeInfo
-    );
+    event AddFeeAmount(bytes32 indexed messageID, TeleporterFeeInfo updatedFeeInfo);
 
     event ReceiveCrossChainMessage(
-        bytes32 indexed originBlockchainID,
         bytes32 indexed messageID,
+        bytes32 indexed originBlockchainID,
         address indexed deliverer,
         address rewardRedeemer,
         TeleporterMessage message
     );
 
     event MessageExecutionFailed(
-        bytes32 indexed originBlockchainID, bytes32 indexed messageID, TeleporterMessage message
+        bytes32 indexed messageID, bytes32 indexed originBlockchainID, TeleporterMessage message
     );
 
-    event MessageExecuted(bytes32 indexed originBlockchainID, bytes32 indexed messageID);
-
-    event FailedFeePayment(
-        bytes32 indexed destinationBlockchainID,
-        bytes32 indexed messageID,
-        address indexed feeAsset,
-        uint256 feeAmount,
-        address relayerRewardAddress
-    );
+    event MessageExecuted(bytes32 indexed messageID, bytes32 indexed originBlockchainID);
 
     event RelayerRewardsRedeemed(address indexed redeemer, address indexed asset, uint256 amount);
 
@@ -98,7 +86,7 @@ contract TeleporterMessengerTest is Test {
         vm.expectRevert("ReceiptQueue: index out of bounds");
         TeleporterMessageReceipt memory receipt =
             teleporterMessenger.getReceiptAtIndex(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 0);
-        assertEq(receipt.receivedMessageID, 0);
+        assertEq(receipt.receivedMessageNonce, 0);
         assertEq(receipt.relayerRewardAddress, address(0));
     }
 
@@ -185,8 +173,10 @@ contract TeleporterMessengerTest is Test {
         // Receive the message.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
+            teleporterMessenger.calculateMessageID(
+                originBlockchainID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageNonce
+            ),
             warpMessage.sourceChainID,
-            _createMessageID(originBlockchainID, messageNonce),
             address(this),
             relayerRewardAddress,
             messageToReceive
@@ -209,7 +199,9 @@ contract TeleporterMessengerTest is Test {
             _createMockTeleporterMessage(messageNonce, messageData);
         WarpMessage memory warpMessage =
             _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
-        bytes32 messageID = _createMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageNonce);
+        bytes32 messageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageNonce
+        );
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
@@ -220,11 +212,11 @@ contract TeleporterMessengerTest is Test {
 
         // Receive the message - which should fail execution.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageID, messageToReceive);
+        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
-            warpMessage.sourceChainID,
             messageID,
+            warpMessage.sourceChainID,
             address(this),
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
@@ -232,13 +224,6 @@ contract TeleporterMessengerTest is Test {
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         return (DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, messageToReceive);
-    }
-
-    function _createMessageID(
-        bytes32 sourceBlockchainID,
-        uint256 messageNonce
-    ) internal view returns (bytes32) {
-        return sha256(abi.encode(address(teleporterMessenger), sourceBlockchainID, messageNonce));
     }
 
     // Create a mock message to be used in tests. It should include no receipts

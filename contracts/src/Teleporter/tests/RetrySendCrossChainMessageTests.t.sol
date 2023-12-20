@@ -35,9 +35,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         });
 
         // Retry it
-        teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, expectedMessage
-        );
+        teleporterMessenger.retrySendCrossChainMessage(expectedMessage);
     }
 
     function testMessageNotFound() public {
@@ -52,9 +50,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
-        teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, fakeMessage
-        );
+        teleporterMessenger.retrySendCrossChainMessage(fakeMessage);
     }
 
     function testInvalidMessageHash() public {
@@ -74,8 +70,6 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
         // Retry it - should fail.
         vm.expectRevert(_formatTeleporterErrorMessage("invalid message hash"));
-        teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, alteredMessage
-        );
+        teleporterMessenger.retrySendCrossChainMessage(alteredMessage);
     }
 }

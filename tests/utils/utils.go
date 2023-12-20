@@ -64,7 +64,7 @@ func SendAddFeeAmountAndWaitForAcceptance(
 		senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	tx, err := transactor.AddFeeAmount(opts, destination.BlockchainID, messageID, feeContractAddress, amount)
+	tx, err := transactor.AddFeeAmount(opts, messageID, feeContractAddress, amount)
 	Expect(err).Should(BeNil())
 
 	receipt := WaitForTransactionSuccess(ctx, source, tx)
@@ -72,7 +72,6 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	addFeeAmountEvent, err := GetEventFromLogs(receipt.Logs, transactor.ParseAddFeeAmount)
 	Expect(err).Should(BeNil())
 	Expect(addFeeAmountEvent.MessageID[:]).Should(Equal(messageID[:]))
-	Expect(addFeeAmountEvent.DestinationBlockchainID[:]).Should(Equal(destination.BlockchainID[:]))
 
 	log.Info("Send AddFeeAmount transaction on source chain",
 		"messageID", messageID,
@@ -696,4 +695,22 @@ func GetThreeSubnets(network interfaces.Network) (
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 3))
 	return subnets[0], subnets[1], subnets[2]
+}
+
+func CalculateMessageID(
+	teleporterAddress common.Address,
+	sourceBlockchainID ids.ID,
+	destinationBlockchainID ids.ID,
+	messageNonce *big.Int,
+) ids.ID {
+	// TODO: Clean up ABI encoding of parameters.
+	rawBytes := make([]byte, 0, 128)
+	rawBytes = append(rawBytes, teleporterAddress.Hash().Bytes()...)
+	rawBytes = append(rawBytes, sourceBlockchainID[:]...)
+	rawBytes = append(rawBytes, destinationBlockchainID[:]...)
+	rawBytes = append(rawBytes, common.BigToHash(messageNonce).Bytes()...)
+
+	res := ids.ID{}
+	copy(res[:], crypto.Keccak256(rawBytes))
+	return res
 }

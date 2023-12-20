@@ -8,7 +8,7 @@ pragma solidity 0.8.18;
 // A message receipt identifies the message ID that was delivered
 // and the address that can redeem the reward for that message.
 struct TeleporterMessageReceipt {
-    bytes32 receivedMessageID;
+    uint256 receivedMessageNonce;
     address relayerRewardAddress;
 }
 
@@ -56,8 +56,8 @@ interface ITeleporterMessenger {
      * @dev Emitted when sending a Teleporter message cross-chain.
      */
     event SendCrossChainMessage(
-        bytes32 indexed destinationBlockchainID,
         bytes32 indexed messageID,
+        bytes32 indexed destinationBlockchainID,
         TeleporterMessage message,
         TeleporterFeeInfo feeInfo
     );
@@ -66,18 +66,14 @@ interface ITeleporterMessenger {
      * @dev Emitted when an additional fee amount is added to a Teleporter message that had previously
      * been sent, but not yet delivered to the destination chain.
      */
-    event AddFeeAmount(
-        bytes32 indexed destinationBlockchainID,
-        bytes32 indexed messageID,
-        TeleporterFeeInfo updatedFeeInfo
-    );
+    event AddFeeAmount(bytes32 indexed messageID, TeleporterFeeInfo updatedFeeInfo);
 
     /**
      * @dev Emitted when a Teleporter message is being delivered on the destination chain to an address,
      * but message execution fails. Failed messages can then be retried with `retryMessageExecution`
      */
     event MessageExecutionFailed(
-        bytes32 indexed originBlockchainID, bytes32 indexed messageID, TeleporterMessage message
+        bytes32 indexed messageID, bytes32 indexed originBlockchainID, TeleporterMessage message
     );
 
     /**
@@ -87,14 +83,14 @@ interface ITeleporterMessenger {
      *
      * Each message received can be executed successfully at most once.
      */
-    event MessageExecuted(bytes32 indexed originBlockchainID, bytes32 indexed messageID);
+    event MessageExecuted(bytes32 indexed messageID, bytes32 indexed originBlockchainID);
 
     /**
      * @dev Emitted when a TeleporterMessage is successfully received.
      */
     event ReceiveCrossChainMessage(
-        bytes32 indexed originBlockchainID,
         bytes32 indexed messageID,
+        bytes32 indexed originBlockchainID,
         address indexed deliverer,
         address rewardRedeemer,
         TeleporterMessage message
@@ -122,10 +118,7 @@ interface ITeleporterMessenger {
      * The message is checked to have already been previously submitted by comparing its message hash against those kept in
      * state until a receipt is received for the message.
      */
-    function retrySendCrossChainMessage(
-        bytes32 destinationBlockchainID,
-        TeleporterMessage calldata message
-    ) external;
+    function retrySendCrossChainMessage(TeleporterMessage calldata message) external;
 
     /**
      * @dev Adds the additional fee amount to the amount to be paid to the relayer that delivers
@@ -136,7 +129,6 @@ interface ITeleporterMessenger {
      * receipt of delivery of the message.
      */
     function addFeeAmount(
-        bytes32 destinationBlockchainID,
         bytes32 messageID,
         address feeTokenAddress,
         uint256 additionalFeeAmount
@@ -188,10 +180,7 @@ interface ITeleporterMessenger {
      * @dev Gets the hash of a given message stored in the EVM state, if the message exists.
      * @return The message hash
      */
-    function getMessageHash(
-        bytes32 destinationBlockchainID,
-        bytes32 messageID
-    ) external view returns (bytes32);
+    function getMessageHash(bytes32 messageID) external view returns (bytes32);
 
     /**
      * @dev Checks whether or not the given message has been received by this chain.
@@ -219,16 +208,13 @@ interface ITeleporterMessenger {
      * @dev Gets the fee token address and amount for a given message.
      * @return The fee token address and fee amount for a the given message.
      */
-    function getFeeInfo(
-        bytes32 destinationBlockchainID,
-        bytes32 messageID
-    ) external view returns (address, uint256);
+    function getFeeInfo(bytes32 messageID) external view returns (address, uint256);
 
     /**
      * @dev Gets the message ID to be used for the next message sent from the contract instance.
      * @return The message ID to be used for the next message sent from the contract instance.
      */
-    function getNextMessageID() external view returns (bytes32);
+    function getNextMessageID(bytes32 destinationBlockchainID) external view returns (bytes32);
 
     /**
      * @dev Gets the number of receipts that are waiting to be sent to the given origin chain ID.

@@ -25,7 +25,7 @@ func init() {
 		{Name: "requiredGasLimit", Type: "uint256"},
 		{Name: "allowedRelayerAddresses", Type: "address[]"},
 		{Name: "receipts", Type: "tuple[]", Components: []abi.ArgumentMarshaling{
-			{Name: "receivedMessageID", Type: "bytes32"},
+			{Name: "receivedMessageNonce", Type: "uint256"},
 			{Name: "relayerRewardAddress", Type: "address"},
 		}},
 		{Name: "message", Type: "bytes"},

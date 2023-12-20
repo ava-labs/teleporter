@@ -33,27 +33,19 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
 
         // Assemble mock receipt information that we will expect to be
         // included in a subsequent message sent to another chain.
-        uint256[3] memory receiptMessageNonces = [uint256(13), 42, 94];
-
         TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](3);
-        expectedReceipts[0] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces[0]),
-            0xF1DFE63909C027Ed814Dd92C5a3644590abf4850
-        );
-        expectedReceipts[1] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces[1]),
-            0xF1DFE63909C027Ed814Dd92C5a3644590abf4850
-        );
-        expectedReceipts[2] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces[2]),
-            0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
-        );
+        expectedReceipts[0] =
+            TeleporterMessageReceipt(13, 0xF1DFE63909C027Ed814Dd92C5a3644590abf4850);
+        expectedReceipts[1] =
+            TeleporterMessageReceipt(42, 0xF1DFE63909C027Ed814Dd92C5a3644590abf4850);
+        expectedReceipts[2] =
+            TeleporterMessageReceipt(94, 0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542);
 
         // Mock receiving each of the messages corresponding to the receipts.
         for (uint256 i = 0; i < expectedReceipts.length; i++) {
             _receiveTestMessage(
                 blockchainID,
-                receiptMessageNonces[i],
+                expectedReceipts[i].receivedMessageNonce,
                 expectedReceipts[i].relayerRewardAddress,
                 new TeleporterMessageReceipt[](0)
             );
@@ -63,10 +55,13 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         // other chain, we should expect to see the 3 receipts included in the message metadata.
         TeleporterMessage memory expectedMessage =
             _createMockTeleporterMessage(teleporterMessenger.messageNonce(), hex"deadbeef");
-        bytes32 expectedMessageID =
-            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, expectedMessage.messageNonce);
         expectedMessage.receipts = expectedReceipts;
         expectedMessage.destinationBlockchainID = blockchainID;
+        bytes32 expectedMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            expectedMessage.destinationBlockchainID,
+            expectedMessage.messageNonce
+        );
         TeleporterFeeInfo memory feeInfo = TeleporterFeeInfo(address(0), 0);
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
             destinationBlockchainID: expectedMessage.destinationBlockchainID,
@@ -92,7 +87,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         // Expect the SendCrossChainMessage event to be emitted.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
-            messageInput.destinationBlockchainID, expectedMessageID, expectedMessage, feeInfo
+            expectedMessageID, messageInput.destinationBlockchainID, expectedMessage, feeInfo
         );
 
         // Submit the message.
@@ -108,8 +103,12 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
+            teleporterMessenger.calculateMessageID(
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                nextExpectedMessage.destinationBlockchainID,
+                nextExpectedMessage.messageNonce
+            ),
             messageInput.destinationBlockchainID,
-            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, nextExpectedMessage.messageNonce),
             nextExpectedMessage,
             feeInfo
         );
@@ -127,45 +126,29 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
 
         // Assemble mock receipt information that we will expect to be
         // included in a subsequent message sent to another chain.
-        uint256[5] memory receiptMessageNonces1 = [uint256(13), 42, 94, 3, 53];
         TeleporterMessageReceipt[] memory expectedReceiptsBatch1 = new TeleporterMessageReceipt[](5); // the limit of receipts per message is 5.
-        expectedReceiptsBatch1[0] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces1[0]),
-            0xF1DFE63909C027Ed814Dd92C5a3644590abf4850
-        );
-        expectedReceiptsBatch1[1] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces1[1]),
-            0x52A258ED593C793251a89bfd36caE158EE9fC4F8
-        );
-        expectedReceiptsBatch1[2] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces1[2]),
-            0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
-        );
-        expectedReceiptsBatch1[3] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces1[3]),
-            0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
-        );
-        expectedReceiptsBatch1[4] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces1[4]),
-            0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
-        );
+        expectedReceiptsBatch1[0] =
+            TeleporterMessageReceipt(13, 0xF1DFE63909C027Ed814Dd92C5a3644590abf4850);
+        expectedReceiptsBatch1[1] =
+            TeleporterMessageReceipt(42, 0x52A258ED593C793251a89bfd36caE158EE9fC4F8);
+        expectedReceiptsBatch1[2] =
+            TeleporterMessageReceipt(94, 0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542);
+        expectedReceiptsBatch1[3] =
+            TeleporterMessageReceipt(3, 0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542);
+        expectedReceiptsBatch1[4] =
+            TeleporterMessageReceipt(53, 0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542);
 
-        uint256[2] memory receiptMessageNonces2 = [uint256(75), 80];
         TeleporterMessageReceipt[] memory expectedReceiptsBatch2 = new TeleporterMessageReceipt[](2); // the limit of receipts per message is 5.
-        expectedReceiptsBatch2[0] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces2[0]),
-            0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
-        );
-        expectedReceiptsBatch2[1] = TeleporterMessageReceipt(
-            _createMessageID(blockchainID, receiptMessageNonces2[1]),
-            0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542
-        );
+        expectedReceiptsBatch2[0] =
+            TeleporterMessageReceipt(75, 0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542);
+        expectedReceiptsBatch2[1] =
+            TeleporterMessageReceipt(80, 0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542);
 
         // Mock receiving each of the messages corresponding to the receipts.
         for (uint256 i = 0; i < expectedReceiptsBatch1.length; i++) {
             _receiveTestMessage(
                 blockchainID,
-                receiptMessageNonces1[i],
+                expectedReceiptsBatch1[i].receivedMessageNonce,
                 expectedReceiptsBatch1[i].relayerRewardAddress,
                 new TeleporterMessageReceipt[](0)
             );
@@ -173,7 +156,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         for (uint256 i = 0; i < expectedReceiptsBatch2.length; i++) {
             _receiveTestMessage(
                 blockchainID,
-                receiptMessageNonces2[i],
+                expectedReceiptsBatch2[i].receivedMessageNonce,
                 expectedReceiptsBatch2[i].relayerRewardAddress,
                 new TeleporterMessageReceipt[](0)
             );
@@ -211,8 +194,12 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         // Expect the SendCrossChainMessage event to be emitted.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
+            teleporterMessenger.calculateMessageID(
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                expectedMessage.destinationBlockchainID,
+                expectedMessage.messageNonce
+            ),
             messageInput.destinationBlockchainID,
-            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, expectedMessage.messageNonce),
             expectedMessage,
             feeInfo
         );
@@ -231,8 +218,12 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit SendCrossChainMessage(
+            teleporterMessenger.calculateMessageID(
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                nextExpectedMessage.destinationBlockchainID,
+                nextExpectedMessage.messageNonce
+            ),
             messageInput.destinationBlockchainID,
-            _createMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID, nextExpectedMessage.messageNonce),
             nextExpectedMessage,
             feeInfo
         );
