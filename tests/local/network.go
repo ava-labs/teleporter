@@ -14,7 +14,6 @@ import (
 	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
-	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -210,13 +209,6 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 
 	// TeleporterMessenger is set in DeployTeleporterContracts
 	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
-
-	log.Info("dbg: Primary network values",
-		"SubnetID", n.primaryNetworkInfo.SubnetID,
-		"BlockchainID", n.primaryNetworkInfo.BlockchainID,
-		"NodeURIs", n.primaryNetworkInfo.NodeURIs,
-		"EVMChainID", n.primaryNetworkInfo.EVMChainID,
-	)
 }
 
 func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
@@ -528,19 +520,6 @@ func (n *LocalNetwork) ConstructSignedWarpMessageBytes(
 		signingSubnetID.String(),
 	)
 	Expect(err).Should(BeNil())
-
-	warpMsg, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
-	Expect(err).Should(BeNil())
-	numSigners, err := warpMsg.Signature.NumSigners()
-	Expect(err).Should(BeNil())
-	if source.SubnetID == constants.PrimaryNetworkID {
-		log.Info("from the C-Chain")
-	}
-	if destination.SubnetID == constants.PrimaryNetworkID {
-		log.Info("to the C-Chain")
-	}
-	log.Info("dbg", "sourceSubnetID", source.SubnetID, "destinationSubnetID", destination.SubnetID)
-	log.Info("dbg: numSigners", "numSigners", numSigners)
 
 	return signedWarpMessageBytes
 }

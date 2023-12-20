@@ -2,7 +2,6 @@ package flows
 
 import (
 	"context"
-	"encoding/hex"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -30,10 +29,7 @@ func BlockHashPublishReceive(network interfaces.Network) {
 		subnetAInfo.BlockchainID,
 	)
 
-	// gather expectations
-
 	// publish latest block hash
-
 	tx_opts, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -52,15 +48,13 @@ func BlockHashPublishReceive(network interfaces.Network) {
 	expectedBlockHash := publishEvent.BlockHash
 
 	// relay publication
-
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	// receive publication
-
 	blockNumber, blockHash, err := receiver.GetLatestBlockInfo(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
 	// verify expectations
 	Expect(blockNumber.Uint64()).Should(Equal(expectedBlockNumber.Uint64()))
-	Expect(hex.EncodeToString(blockHash[:])).Should(Equal(hex.EncodeToString(expectedBlockHash[:])))
+	Expect(blockHash).Should(Equal(expectedBlockHash))
 }
