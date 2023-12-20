@@ -1,6 +1,8 @@
 # Getting Started with an Example Teleporter Application
 
-This section walks through how to build an example cross-chain application on top of the Teleporter protocol, recreating the `ExampleCrossChainMessenger` contract that sends arbitrary string data from one chain to another. Note that this tutorial is meant for education purposes only. The resulting code is not intended for use in production environments.
+> Note: All example applications in the [examples](./examples/) directory are meant for education purposes only and are not audited. The example contracts are not intended for use in production environments.
+
+This section walks through how to build an example cross-chain application on top of the Teleporter protocol, recreating the `ExampleCrossChainMessenger` [contract](./examples/ExampleMessenger/ExampleCrossChainMessenger.sol) that sends arbitrary string data from one chain to another. Note that this tutorial is meant for education purposes only. The resulting code is not intended for use in production environments.
 
 ## Step 1: Create Initial Contract
 
@@ -16,9 +18,9 @@ At the top of the file define the Solidity version to work with, and import the 
 ```solidity
 pragma solidity 0.8.18;
 
-import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "../../Teleporter/ITeleporterMessenger.sol";
+import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
+import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 ```
 
 Next, define the initial empty contract. The contract inherits from `ReentrancyGuard` to prevent reentrancy attacks, and inherits from `ITeleporterReceiver` to allow the contract to receive messages from Teleporter.
@@ -114,7 +116,7 @@ Now it's time to implement the methods, starting with `sendMessage`. First, add 
 
 ```solidity
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20TransferFrom, SafeERC20} from "../../Teleporter/SafeERC20TransferFrom.sol";
+import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFrom.sol";
 ```
 
 Next, add a `using` directive in the contract declaration to specify `SafeERC20` as the `IERC20` implementation to use:
@@ -263,8 +265,8 @@ The first change to make is to inherit from `TeleporterOwnerUpgradeable` instead
 To start, replace the import for `ITeleporterReceiver` with `TeleporterOwnerUpgradeable`:
 
 ```diff
-- import {ITeleporterReceiver} from "../../Teleporter/ITeleporterReceiver.sol";
-+ import {TeleporterOwnerUpgradeable} from "../../Teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
+- import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
++ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 ```
 
 Also, replace the contract declaration to inherit from `TeleporterOwnerUpgradeable` instead of `ITeleporterReceiver`:
@@ -315,7 +317,7 @@ And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, a
 
 For testing, `scripts/local/e2e_test.sh` sets up a local test environment consisting of three subnets deployed with Teleporter, and a lightweight inline relayer implementation to facilitate cross chain message delivery. An end-to-end test for `ExampleCrossChainMessenger` is included in `tests/flows/example_messenger.go`, which performs the following:
 
-1. Deploys the [ExampleERC20](../Mocks/ExampleERC20.sol) token to subnet A.
+1. Deploys the [ExampleERC20](@mocks/ExampleERC20.sol) token to subnet A.
 2. Deploys `ExampleCrossChainMessenger` to both subnets A and B.
 3. Approves the cross-chain messenger on subnet A to spend ERC20 tokens from the default address.
 4. Sends `"Hello, world!"` from subnet A to subnet B's cross-chain messenger to receive.
