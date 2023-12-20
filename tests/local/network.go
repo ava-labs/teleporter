@@ -282,9 +282,7 @@ func (n *LocalNetwork) DeployTeleporterContracts(
 
 	ctx := context.Background()
 
-	subnets := n.GetSubnetsInfo()
-	subnets = append(subnets, *n.primaryNetworkInfo)
-
+	subnets := n.getAllSubnetsInfo()
 	for _, subnetInfo := range subnets {
 		// Fund the deployer address
 		{
@@ -346,9 +344,7 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 		},
 	}
 
-	subnets := n.GetSubnetsInfo()
-	subnets = append(subnets, *n.primaryNetworkInfo)
-
+	subnets := n.getAllSubnetsInfo()
 	for _, subnetInfo := range subnets {
 		opts, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetInfo.EVMChainID)
 		Expect(err).Should(BeNil())
@@ -381,6 +377,11 @@ func (n *LocalNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
 
 func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
 	return *n.primaryNetworkInfo
+}
+
+func (n *LocalNetwork) getAllSubnetsInfo() []interfaces.SubnetTestInfo {
+	subnets := n.GetSubnetsInfo()
+	return append(subnets, n.GetPrimaryNetworkInfo())
 }
 
 func (n *LocalNetwork) GetTeleporterContractAddress() common.Address {
