@@ -28,6 +28,7 @@ const (
 	subnetAPrefix                   = "subnet_a"
 	subnetBPrefix                   = "subnet_b"
 	subnetCPrefix                   = "subnet_c"
+	cChainPrefix                    = "c_chain"
 	teleporterContractAddress       = "teleporter_contract_address"
 	teleporterRegistryAddressSuffix = "_teleporter_registry_address"
 	subnetIDSuffix                  = "_subnet_id"
@@ -51,6 +52,7 @@ var _ interfaces.Network = &testNetwork{}
 
 type testNetwork struct {
 	teleporterContractAddress common.Address
+	primaryNetwork            interfaces.SubnetTestInfo
 	subnets                   []interfaces.SubnetTestInfo
 	fundedAddress             common.Address
 	fundedKey                 *ecdsa.PrivateKey
@@ -135,6 +137,11 @@ func NewTestNetwork() (*testNetwork, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	cChainInfo, err := initializeSubnetInfo(cChainPrefix, teleporterContractAddress)
+	if err != nil {
+		return nil, err
+	}
 	log.Info("Set testnet subnet info", subnetAPrefix, subnetAInfo, subnetBPrefix, subnetBInfo, subnetCPrefix, subnetCInfo)
 
 	fundedAddressStr := os.Getenv(userAddress)
@@ -153,10 +160,15 @@ func NewTestNetwork() (*testNetwork, error) {
 
 	return &testNetwork{
 		teleporterContractAddress: teleporterContractAddress,
+		primaryNetwork:            cChainInfo,
 		subnets:                   []interfaces.SubnetTestInfo{subnetAInfo, subnetBInfo, subnetCInfo},
 		fundedAddress:             common.HexToAddress(fundedAddressStr),
 		fundedKey:                 fundedKey,
 	}, nil
+}
+
+func (n *testNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
+	return n.primaryNetwork
 }
 
 func (n *testNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {

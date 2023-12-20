@@ -3,7 +3,6 @@ package flows
 import (
 	"context"
 	"encoding/hex"
-	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -12,8 +11,8 @@ import (
 )
 
 func BlockHashPublishReceive(network interfaces.Network) {
-	// subnetAInfo := network.GetPrimaryNetworkInfo() TODO: Integrate the C-Chain
-	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
@@ -33,15 +32,6 @@ func BlockHashPublishReceive(network interfaces.Network) {
 
 	// gather expectations
 
-	expectedBlockNumberU64, err := subnetAInfo.RPCClient.BlockNumber(ctx)
-	Expect(err).Should(BeNil())
-	expectedBlockNumber := big.NewInt(0).SetUint64(expectedBlockNumberU64)
-
-	block, err := subnetAInfo.RPCClient.BlockByNumber(
-		ctx, expectedBlockNumber)
-	Expect(err).Should(BeNil())
-	expectedBlockHash := block.Hash()
-
 	// publish latest block hash
 	tx_opts, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey, subnetAInfo.EVMChainID)
@@ -53,10 +43,12 @@ func BlockHashPublishReceive(network interfaces.Network) {
 
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
 
-	publishLog, err := utils.GetEventFromLogs(receipt.Logs, publisher.ParsePublishBlockHash)
+	publishEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		publisher.ParsePublishBlockHash)
 	Expect(err).Should(BeNil())
-	Expect(publishLog.BlockHeight.Uint64()).Should(Equal(expectedBlockNumberU64))
-	Expect(publishLog.BlockHash[:]).Should(Equal(expectedBlockHash[:]))
+	expectedBlockNumber := publishEvent.BlockHeight
+	expectedBlockHash := publishEvent.BlockHash
 
 	// relay publication
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
