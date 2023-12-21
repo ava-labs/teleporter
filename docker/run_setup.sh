@@ -205,13 +205,16 @@ network_runner_dir=$(python3 docker/findCliLogDirectory.py $restart)
 subnet_a_log_file=$HOME/.avalanche-cli/runs/$network_runner_dir/node1/logs/$subnet_a_blockchain_id.log
 subnet_b_log_file=$HOME/.avalanche-cli/runs/$network_runner_dir/node1/logs/$subnet_b_blockchain_id.log
 subnet_c_log_file=$HOME/.avalanche-cli/runs/$network_runner_dir/node1/logs/$subnet_c_blockchain_id.log
+c_chain_log_file=$HOME/.avalanche-cli/runs/$network_runner_dir/node1/logs/C.log
 
 echo "Streaming subnet A log file at $subnet_a_log_file"
 echo "Streaming subnet B log file at $subnet_b_log_file"
 echo "Streaming subnet C log file at $subnet_c_log_file"
+echo "Streaming C-Chain log file at $c_chain_log_file
 
 tail -f $subnet_a_log_file &
 tail -f $subnet_b_log_file &
 tail -f $subnet_c_log_file &
+tail -f $c_chain_log_file &
 
 wait $!
