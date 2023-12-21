@@ -5,11 +5,8 @@
 set -e # Stop on first error
 
 # Variables provided by run_setup.sh:
-#   c_chain_rpc_url
 #   user_private_key
-#   user_address_bytes
 #   user_address
-#   relayer_address
 #   subnet_a_blockchain_id
 #   subnet_b_blockchain_id
 #   subnet_a_subnet_id
@@ -18,13 +15,8 @@ set -e # Stop on first error
 #   subnet_b_rpc_url
 #   subnet_a_blockchain_id_hex
 #   subnet_b_blockchain_id_hex
-#   subnet_a_subnet_id_hex
-#   subnet_b_subnet_id_hex
 #   teleporter_contract_address
 #   warp_messenger_precompile_addr
-#   subnet_a_teleporter_registry_address
-#   subnet_b_teleporter_registry_address
-#   subnet_c_teleporter_registry_address
 
 # Test covers:
 # - Sending bidirectional cross chain messages between two chains, by calling Teleporter contract sendCrossChainMessage function directly.
