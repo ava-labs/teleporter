@@ -185,8 +185,8 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 	}
 	Expect(cChainBlockchainID).ShouldNot(Equal(ids.Empty))
 
-	chainWSURI := utils.HttpToWebsocketURI(nodeURIs[0], "C")
-	chainRPCURI := utils.HttpToRPCURI(nodeURIs[0], "C")
+	chainWSURI := utils.HttpToWebsocketURI(nodeURIs[0], utils.CChainPathSpecifier)
+	chainRPCURI := utils.HttpToRPCURI(nodeURIs[0], utils.CChainPathSpecifier)
 	if n.primaryNetworkInfo != nil && n.primaryNetworkInfo.WSClient != nil {
 		n.primaryNetworkInfo.WSClient.Close()
 	}

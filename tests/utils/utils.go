@@ -46,6 +46,10 @@ var (
 	ExpectedExampleERC20DeployerBalance        = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e10))
 )
 
+const (
+	CChainPathSpecifier = "C"
+)
+
 //
 // Test utility functions
 //

@@ -35,7 +35,7 @@ func BlockHashPublishReceive(network interfaces.Network) {
 	// which means that the block hashes will be different when queried from using different clients
 	// To workaround this, we need to query the block hash from the coreth client
 	// TODO: Design a unified interface that accounts for this different
-	rpcUri := utils.HttpToRPCURI(subnetAInfo.NodeURIs[1], "C")
+	rpcUri := utils.HttpToRPCURI(subnetAInfo.NodeURIs[1], utils.CChainPathSpecifier)
 	rpcClient, err := coreEthClient.Dial(rpcUri)
 	Expect(err).Should(BeNil())
 	expectedBlockNumberU64, err := rpcClient.BlockNumber(ctx)
