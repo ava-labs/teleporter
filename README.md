@@ -72,7 +72,7 @@ cast balance --rpc-url http://127.0.0.1:9652/ext/bc/C/rpc 0x333d17d3b42bf7930dbc
 docker exec -it local_network_run /bin/bash
 # In the container:
 set -a                        # export all variables so child processes can access
-source vars.sh
+source vars.sh                # source the variables needed to interact with the contracts
 ```
 
 - An example of how to interact with Teleporter is provided in `scripts/local/examples/basic_send_receive.sh`. This script sends a dummy payload via Teleporter from the C-Chain to a subnet, and back again. This script can be run directly in the container:
@@ -82,7 +82,7 @@ source vars.sh
 docker exec -it local_network_run /bin/bash
 # In the container:
 set -a                        # export all variables so child processes can access
-source vars.sh
+source vars.sh                # source the variables needed to interact with the contracts
 ./scripts/local/examples/basic_send_receive.sh
 ```
 
