@@ -75,7 +75,7 @@ set -a                        # export all variables so child processes can acce
 source vars.sh
 ```
 
-- An example of how to interact with Teleporter is provided in `scripts/local/examples/basic_send_receive.sh`, and can be run directly in the container:
+- An example of how to interact with Teleporter is provided in `scripts/local/examples/basic_send_receive.sh`. This script sends a dummy payload via Teleporter from the C-Chain to a subnet, and back again. This script can be run directly in the container:
 
 ```
 # Open a shell in the container
