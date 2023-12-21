@@ -169,7 +169,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 // Should be called after setSubnetValues for all subnets
 func (n *LocalNetwork) setPrimaryNetworkValues() {
 	// Get the C-Chain node URIs.
-	// All subnet nodes are also C-Chain nodes, so we can include them all here
+	// All subnet nodes validate the C-Chain, so we can include them all here
 	var nodeURIs []string
 	nodeURIs = append(nodeURIs, n.subnetsInfo[n.subnetAID].NodeURIs...)
 	nodeURIs = append(nodeURIs, n.subnetsInfo[n.subnetBID].NodeURIs...)
@@ -371,6 +371,7 @@ func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
 	return *n.primaryNetworkInfo
 }
 
+// Returns subnet info for all subnets, including the primary network
 func (n *LocalNetwork) getAllSubnetsInfo() []interfaces.SubnetTestInfo {
 	subnets := n.GetSubnetsInfo()
 	return append(subnets, n.GetPrimaryNetworkInfo())
