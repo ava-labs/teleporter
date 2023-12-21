@@ -9,6 +9,7 @@ import {
     TeleporterMessengerTest,
     TeleporterMessageReceipt,
     TeleporterMessage,
+    TeleporterFeeInfo,
     WarpMessage
 } from "./TeleporterMessengerTest.t.sol";
 
@@ -38,7 +39,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
         uint256[3] memory messageNonces;
         bytes32[3] memory messageIDs;
-        for (uint256 i = 0; i < feeRewardInfos.length; i++) {
+        for (uint256 i; i < feeRewardInfos.length; i++) {
             messageNonces[i] = teleporterMessenger.messageNonce();
             messageIDs[i] =
                 _sendTestMessageWithFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, feeRewardInfos[i].feeAmount);
@@ -48,7 +49,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](
                 feeRewardInfos.length
             );
-        for (uint256 i = 0; i < receipts.length; i++) {
+        for (uint256 i; i < receipts.length; i++) {
             receipts[i] = TeleporterMessageReceipt({
                 receivedMessageNonce: messageNonces[i],
                 relayerRewardAddress: feeRewardInfos[i].relayerRewardAddress
@@ -65,10 +66,23 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x93753a9eA4C9D6eeed9f64eA92E97ce1f5FBAeDe;
+
+        for (uint256 i; i < feeRewardInfos.length; i++) {
+            vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+            emit ReceiptReceived(
+                messageIDs[i],
+                DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+                feeRewardInfos[i].relayerRewardAddress,
+                TeleporterFeeInfo({
+                    feeTokenAddress: address(_mockFeeAsset),
+                    amount: feeRewardInfos[i].feeAmount
+                })
+            );
+        }
         teleporterMessenger.receiveCrossChainMessage(0, expectedRelayerRewardAddress);
 
         // Check that the relayers have redeemable balances
-        for (uint256 i = 0; i < feeRewardInfos.length; i++) {
+        for (uint256 i; i < feeRewardInfos.length; i++) {
             assertEq(
                 teleporterMessenger.checkRelayerRewardAmount(
                     feeRewardInfos[i].relayerRewardAddress, address(_mockFeeAsset)
@@ -88,7 +102,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         assertTrue(teleporterMessenger.messageReceived(expectedMessageID));
 
         // Check that the message hashes for the message receipts we received have been cleared.
-        for (uint256 i = 0; i < receipts.length; i++) {
+        for (uint256 i; i < receipts.length; i++) {
             assertEq(teleporterMessenger.getMessageHash(messageIDs[i]), bytes32(0));
         }
     }
@@ -96,7 +110,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
     function testReceiptForNoFeeMessage() public {
         // Submit a a mock message with no fee.
         uint256 sentMessageNonce = teleporterMessenger.messageNonce();
-        _sendTestMessageWithNoFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID);
+        bytes32 sentMessageID = _sendTestMessageWithNoFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID);
 
         // Mock receiving a message with the a receipts of the mock message sent above.
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
@@ -117,6 +131,14 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x2F20537C2F5c57231866DE9D0CE33d0681a200D4;
+
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit ReceiptReceived(
+            sentMessageID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            DEFAULT_RELAYER_REWARD_ADDRESS,
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0})
+        );
         teleporterMessenger.receiveCrossChainMessage(0, expectedRelayerRewardAddress);
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.

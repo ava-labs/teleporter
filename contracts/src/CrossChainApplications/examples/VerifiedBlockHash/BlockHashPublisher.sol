@@ -14,11 +14,13 @@ import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
  */
 
 /**
- * Contract that publishes the latest block hash of current chain to another chain.
+ * @dev Contract that publishes the latest block hash of current chain to another chain.
  */
 contract BlockHashPublisher {
+    // The gas limit required to receive a block hash on the destination chain.
     uint256 public constant RECEIVE_BLOCK_HASH_REQUIRED_GAS_LIMIT = 1.5e5;
 
+    // The Teleporter registry contract manages different Teleporter contract versions.
     TeleporterRegistry public immutable teleporterRegistry;
 
     /**

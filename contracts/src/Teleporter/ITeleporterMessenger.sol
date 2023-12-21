@@ -102,6 +102,17 @@ interface ITeleporterMessenger {
     );
 
     /**
+     * @dev Emitted when a receipt is marked as received on the origin chain that sent the
+     * corresponding Teleporter message.
+     */
+    event ReceiptReceived(
+        bytes32 indexed messageID,
+        bytes32 indexed destinationBlockchainID,
+        address indexed relayerRewardAddress,
+        TeleporterFeeInfo feeInfo
+    );
+
+    /**
      * @dev Emitted when an account redeems accumulated relayer rewards.
      */
     event RelayerRewardsRedeemed(address indexed redeemer, address indexed asset, uint256 amount);

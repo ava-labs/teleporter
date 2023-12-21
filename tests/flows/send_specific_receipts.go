@@ -69,6 +69,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 		deliveryReceipt1.Logs,
 		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
+	Expect(receiveEvent1.MessageID).Should(Equal(messageID1))
 
 	// Check that the first message was delivered
 	delivered, err :=
@@ -86,6 +87,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 		deliveryReceipt2.Logs,
 		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
+	Expect(receiveEvent2.MessageID).Should(Equal(messageID2))
 
 	// Check that the second message was delivered
 	delivered, err =
@@ -108,12 +110,16 @@ func SendSpecificReceipts(network interfaces.Network) {
 	)
 
 	// Relay message from Subnet B to Subnet A
-	network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 
 	// Check that the message back to Subnet A was delivered
 	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
+
+	// Check that the expected receipts were received and emitted ReceiptReceived
+	Expect(utils.CheckReceiptReceived(receipt, messageID1, subnetAInfo.TeleporterMessenger)).Should(BeTrue())
+	Expect(utils.CheckReceiptReceived(receipt, messageID2, subnetAInfo.TeleporterMessenger)).Should(BeTrue())
 
 	// Check the reward amounts.
 	// Even on external networks, the relayer should only have the expected fee amount
@@ -150,7 +156,12 @@ func SendSpecificReceipts(network interfaces.Network) {
 			messageID)
 		Expect(err).Should(BeNil())
 		Expect(delivered).Should(BeTrue())
-		// Get the Teleporter message from receive event and confirm that the receipts are delivered again
+
+		// Check that the expected receipts were included in the message but did not emit ReceiptReceived
+		// because they were previously received
+		Expect(utils.CheckReceiptReceived(receipt, messageID1, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
+		Expect(utils.CheckReceiptReceived(receipt, messageID2, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
+
 		receiveEvent, err :=
 			utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 		Expect(err).Should(BeNil())

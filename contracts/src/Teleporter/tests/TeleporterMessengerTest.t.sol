@@ -61,6 +61,13 @@ contract TeleporterMessengerTest is Test {
 
     event MessageExecuted(bytes32 indexed messageID, bytes32 indexed originBlockchainID);
 
+    event ReceiptReceived(
+        bytes32 indexed messageID,
+        bytes32 indexed destinationBlockchainID,
+        address indexed relayerRewardAddress,
+        TeleporterFeeInfo feeInfo
+    );
+
     event RelayerRewardsRedeemed(address indexed redeemer, address indexed asset, uint256 amount);
 
     function setUp() public virtual {

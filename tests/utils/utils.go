@@ -464,6 +464,20 @@ func GetEventFromLogs[T any](logs []*types.Log, parser func(log types.Log) (T, e
 	return *new(T), fmt.Errorf("failed to find %T event in receipt logs", *new(T))
 }
 
+// Returns true if the transaction receipt contains a ReceiptReceived log with the specified messageID
+func CheckReceiptReceived(
+	receipt *types.Receipt,
+	messageID *big.Int,
+	transactor *teleportermessenger.TeleporterMessenger) bool {
+	for _, log := range receipt.Logs {
+		event, err := transactor.ParseReceiptReceived(*log)
+		if err == nil && event.MessageID.Cmp(messageID) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // Signs a transaction using the provided key for the specified chainID
 func SignTransaction(tx *types.Transaction, key *ecdsa.PrivateKey, chainID *big.Int) *types.Transaction {
 	txSigner := types.LatestSignerForChainID(chainID)

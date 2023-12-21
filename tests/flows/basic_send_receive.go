@@ -59,6 +59,7 @@ func BasicSendReceive(network interfaces.Network) {
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
+	expectedReceiptID := teleporterMessageID
 
 	//
 	// Relay the message to the destination
@@ -94,7 +95,17 @@ func BasicSendReceive(network interfaces.Network) {
 	//
 	// Relay the message to the destination
 	//
-	network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+	deliveryReceipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+
+	// Check that the receipt was received for expected Teleporter message ID
+	// This check is not performed for external networks because unrelated messages may have already changed
+	// the state of the receipt queues.
+	if !network.IsExternalNetwork() {
+		Expect(utils.CheckReceiptReceived(
+			deliveryReceipt,
+			expectedReceiptID,
+			subnetAInfo.TeleporterMessenger)).Should(BeTrue())
+	}
 
 	//
 	// Check Teleporter message received on the destination

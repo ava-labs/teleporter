@@ -13,7 +13,7 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
  */
 
 /**
- * Contract for receiving latest block hashes from another chain.
+ * @dev Contract for receiving latest block hashes from another chain.
  */
 contract BlockHashReceiver is TeleporterOwnerUpgradeable {
     // Source chain information
