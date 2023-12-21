@@ -23,7 +23,7 @@ function printHelp() {
 
 function printUsage() {
     echo "Options:"
-    echo "  --fund-deployer <Private_key>    Optional. Funds the deployer address with the account held by <Private_key>"
+    echo "  --fund-deployer <private_key>    Optional. Funds the deployer address with the account held by <private_key>"
     echo "  --version <version>              Required. Specify the release version to deploy"
     echo "  --rpc-url <url>                  Required. Specify the rpc url of the node to use"
     echo "  --help                           Print this help message"
