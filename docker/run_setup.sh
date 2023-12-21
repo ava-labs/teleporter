@@ -70,10 +70,10 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     c_chain_subnet_id=11111111111111111111111111111111LpoYY # hardcoded primary subnet ID
     c_chain_blockchain_id=$(curl -X POST --data '{"jsonrpc": "2.0","method": "platform.getBlockchains","params": {},"id": 1}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/P | getJsonVal "['result']['blockchains']" | python3 docker/getBlockChainId.py C-Chain)
 
-    echo "Subnet A chain ID: $subnet_a_blockchain_id"
-    echo "Subnet B chain ID: $subnet_b_blockchain_id"
-    echo "Subnet C chain ID: $subnet_c_blockchain_id"
-    echo "C-Chain chain ID: $c_chain_blockchain_id"
+    echo "Subnet A blockchain ID: $subnet_a_blockchain_id"
+    echo "Subnet B blockchain ID: $subnet_b_blockchain_id"
+    echo "Subnet C blockchain ID: $subnet_c_blockchain_id"
+    echo "C-Chain blockchain ID: $c_chain_blockchain_id"
 
     user_private_key=0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027
     user_address_bytes=8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC
