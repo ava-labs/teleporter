@@ -245,9 +245,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             "TeleporterMessenger: invalid destination chain ID"
         );
 
-        // Require that the message nonce is non-zero because the value is used to provide replay protection.
-        require(teleporterMessage.messageNonce != 0, "TeleporterMessenger: zero message nonce");
-
         // Calculate the message ID of the message given the source blockchain ID and message nonce.
         bytes32 messageID = calculateMessageID(
             warpMessage.sourceChainID, blockchainID_, teleporterMessage.messageNonce
@@ -262,8 +259,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             "TeleporterMessenger: unauthorized relayer"
         );
 
-        // Store the message nonce, effectively marking the message as received.
-        _receivedMessageNonces[messageID] = teleporterMessage.messageNonce;
+        // Mark the message as received.
+        _markMessageReceived(messageID, teleporterMessage.messageNonce);
 
         // Store the relayer reward address if non-zero.
         if (relayerRewardAddress != address(0)) {
@@ -599,7 +596,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Get the message ID to use for this message.
         uint256 messageNonce_ = messageNonce;
-        bytes32 messageID_ =
+        bytes32 messageID =
             calculateMessageID(blockchainID_, messageInput.destinationBlockchainID, messageNonce_);
 
         // Construct and serialize the message.
@@ -641,19 +638,29 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             feeTokenAddress: messageInput.feeInfo.feeTokenAddress,
             amount: adjustedFeeAmount
         });
-        sentMessageInfo[messageID_] = SentMessageInfo({
+        sentMessageInfo[messageID] = SentMessageInfo({
             messageHash: keccak256(teleporterMessageBytes),
             feeInfo: adjustedFeeInfo
         });
 
         emit SendCrossChainMessage(
-            messageID_, messageInput.destinationBlockchainID, teleporterMessage, adjustedFeeInfo
+            messageID, messageInput.destinationBlockchainID, teleporterMessage, adjustedFeeInfo
         );
 
         // Submit the message to the AWM precompile.
         WARP_MESSENGER.sendWarpMessage(teleporterMessageBytes);
 
-        return messageID_;
+        return messageID;
+    }
+
+    /**
+     * @dev Marks a message as being received by storing the message nonce associated with the
+     * given message ID. The message must not be zero in order to be able to distinguish between
+     * received and unreceived message based on their ID.
+     */
+    function _markMessageReceived(bytes32 messageID, uint256 messageNonce_) private {
+        require(messageNonce_ != 0, "TeleporterMessenger: zero message nonce");
+        _receivedMessageNonces[messageID] = messageNonce_;
     }
 
     /**
