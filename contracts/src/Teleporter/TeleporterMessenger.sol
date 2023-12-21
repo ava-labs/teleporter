@@ -69,7 +69,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     mapping(bytes32 messageID => bytes32 messageHash) public receivedFailedMessageHashes;
 
     // Tracks the message nonce for each message that has been received.
-    // Note that these values are also used to determine if a given message has been delivered or not.
+    // Note that these values are also used to determine if a given message has been received or not.
     mapping(bytes32 messageID => uint256 messageNonce) internal _receivedMessageNonces;
 
     // Tracks the relayer reward address for each message that has been received.
@@ -210,7 +210,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - `messageIndex` must specify a valid warp message in the transaction's storage slots.
      * - Valid warp message provided in storage slots, and sender address matches the address of this contract.
      * - Teleporter message `destinationBlockchainID` must match the `blockchainID` of this contract.
-     * - Teleporter message was not previously delivered.
+     * - Teleporter message was not previously received.
      * - Transaction was sent by an allowed relayer for corresponding teleporter message.
      */
     function receiveCrossChainMessage(
@@ -250,8 +250,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             warpMessage.sourceChainID, blockchainID_, teleporterMessage.messageNonce
         );
 
-        // Require that the message has not been delivered previously.
-        require(!_messageReceived(messageID), "TeleporterMessenger: message already delivered");
+        // Require that the message has not been received previously.
+        require(!_messageReceived(messageID), "TeleporterMessenger: message already received");
 
         // Check that the caller is allowed to deliver this message.
         require(
@@ -362,7 +362,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         );
 
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
-        // Use all of the gas left because this message has already been successfully delivered, and it is the
+        // Use all of the gas left because this message has already been successfully received, and it is the
         // caller's responsibility to provide as much gas as is needed. Compared to the initial delivery, where
         // the relayer should still receive their reward even if the message execution takes more gas than expected.
         // Require that the call be successful such that in the failure case this transaction reverts and the
@@ -407,7 +407,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             uint256 receivedMessageNonce = _receivedMessageNonces[receivedMessageID];
             require(receivedMessageNonce != 0, "TeleporterMessenger: receipt not found");
 
-            // Check that the message ID was delivered by the specified origin blockchain.
+            // Check that the message ID was received from the specified origin blockchain.
             require(
                 receivedMessageID
                     == calculateMessageID(originBlockchainID, blockchainID_, receivedMessageNonce),
@@ -689,7 +689,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             return;
         }
 
-        // Delete the message information from state now that it is known to be delivered.
+        // Delete the message information from state now that it is known to be received.
         delete sentMessageInfo[messageID];
 
         // Increment the fee/reward amount owed to the relayer for having delivered
@@ -699,7 +699,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Attempts to execute the newly delivered message.
+     * @dev Attempts to execute the newly received message.
      *
      * Only revert in the event that the message deliverer (relayer) did not provide enough gas to handle the execution
      * (including possibly storing a failed message in state). All execution specific errors (i.e. invalid call data, etc)
@@ -717,7 +717,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessage memory message
     ) private {
         // Check that the message delivery was provided the required gas amount as specified by the sender.
-        // If the required gas amount is provided, the message will be considered delivered whether or not
+        // If the required gas amount is provided, the message will be considered received whether or not
         // its execution succeeds, such that the relayer can claim their fee reward. However, if the message
         // execution fails, the message hash will be stored in state such that anyone can try to provide more
         // gas to successfully execute the message.
@@ -728,7 +728,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // execution so that it can be retried in the future should a contract be later deployed to
         // the address.
         if (message.destinationAddress.code.length == 0) {
-            _storeFailedMessageExecution(originBlockchainID, messageID, message);
+            _storeFailedMessageExecution(messageID, originBlockchainID, message);
             return;
         }
 
@@ -746,10 +746,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // If the execution failed, store a hash of the message in state such that its
         // execution can be retried again in the future with a higher gas limit (paid by whoever
-        // retries). Either way, the message will now be considered "delivered" since the relayer
+        // retries). Either way, the message will now be considered received since the relayer
         // provided enough gas to meet the required gas limit.
         if (!success) {
-            _storeFailedMessageExecution(originBlockchainID, messageID, message);
+            _storeFailedMessageExecution(messageID, originBlockchainID, message);
             return;
         }
 
@@ -784,12 +784,12 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Stores the hash of a message that has been successfully delivered but fails to execute properly
+     * @dev Stores the hash of a message that has been successfully received but fails to execute properly
      * such that the message execution can be retried by anyone in the future.
      */
     function _storeFailedMessageExecution(
-        bytes32 originBlockchainID,
         bytes32 messageID,
+        bytes32 originBlockchainID,
         TeleporterMessage memory message
     ) private {
         receivedFailedMessageHashes[messageID] = keccak256(abi.encode(message));

@@ -201,7 +201,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         testSuccess();
 
         // Check you can't deliver it again.
-        vm.expectRevert(_formatTeleporterErrorMessage("message already delivered"));
+        vm.expectRevert(_formatTeleporterErrorMessage("message already received"));
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
     }
 
