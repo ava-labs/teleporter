@@ -75,7 +75,6 @@ teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/teleporter/re
 echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_deployer_address"
 teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_DeployerTransaction_$teleporter_version.txt)
 
-
 if [[ $(cast code $teleporter_contract_address --rpc-url $rpc_url) != "0x" ]]; then
   echo "TeleporterMessenger $teleporter_version has already been deployed on this chain." && exit 1
 fi
