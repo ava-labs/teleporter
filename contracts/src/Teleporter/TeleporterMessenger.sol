@@ -62,7 +62,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // The key is the message ID, and the value is the info for the uniquely identified message.
     mapping(bytes32 messageID => SentMessageInfo messageInfo) public sentMessageInfo;
 
-    // Tracks the hash of messages that have been received but whose execution has never succeeded.
+    // Tracks the hash of messages that have been received but have never succeeded in execution.
     // Enables retrying of failed messages with higher gas limits. Message execution is guaranteed to
     // succeed at most once. The key is the message ID, and the value is the hash of the uniquely
     // identified message whose execution failed.
