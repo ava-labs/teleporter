@@ -173,7 +173,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
     }
 
-    function testInvalidMessageNonce() public {
+    function testZeroMessageNonce() public {
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 0,
@@ -194,6 +194,32 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Receive the message.
         vm.expectRevert(_formatTeleporterErrorMessage("zero message nonce"));
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
+    }
+
+    function testReceiveSameNonceFromMultipleChains() public {
+        bytes32 sourceBlockchainID1 =
+            bytes32(hex"1111111111111111111111111111111111111111111111111111111111111111");
+        bytes32 sourceBlockchainID2 =
+            bytes32(hex"2222222222222222222222222222222222222222222222222222222222222222");
+        uint256 mockMessageNonce = 5454;
+        bytes32 expectedMessageID1 = teleporterMessenger.calculateMessageID(
+            sourceBlockchainID1, DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockMessageNonce
+        );
+        bytes32 expectedMessageID2 = teleporterMessenger.calculateMessageID(
+            sourceBlockchainID2, DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockMessageNonce
+        );
+
+        // Receive two messages with the same nonce from different source chains.
+        _receiveTestMessage(
+            sourceBlockchainID1, mockMessageNonce, address(0), new TeleporterMessageReceipt[](0)
+        );
+        _receiveTestMessage(
+            sourceBlockchainID2, mockMessageNonce, address(0), new TeleporterMessageReceipt[](0)
+        );
+
+        // Check that both messages were received.
+        assertTrue(teleporterMessenger.messageReceived(expectedMessageID1));
+        assertTrue(teleporterMessenger.messageReceived(expectedMessageID2));
     }
 
     function testMessageAlreadyReceived() public {
@@ -231,6 +257,12 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Receive the message.
         vm.expectRevert(_formatTeleporterErrorMessage("unauthorized relayer"));
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
+    }
+
+    function testZeroRelayerAddress() public {
+        _receiveTestMessage(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, 12, address(0), new TeleporterMessageReceipt[](0)
+        );
     }
 
     function testMessageSentToEOADoesNotExecute() public {

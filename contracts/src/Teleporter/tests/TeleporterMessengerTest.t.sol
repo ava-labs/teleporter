@@ -73,8 +73,8 @@ contract TeleporterMessengerTest is Test {
         // Blockchain ID should be 0 before it is initialized.
         assertEq(teleporterMessenger.blockchainID(), bytes32(0));
 
-        // Send an empty message to initialize the blockchain ID.
-        _sendTestMessageWithNoFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
+        // Initialize the blockchain ID.
+        teleporterMessenger.initializeBlockchainID();
         assertEq(teleporterMessenger.blockchainID(), DEFAULT_DESTINATION_BLOCKCHAIN_ID);
 
         _mockFeeAsset = new UnitTestMockERC20();
