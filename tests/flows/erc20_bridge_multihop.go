@@ -19,7 +19,8 @@ import (
 )
 
 func ERC20BridgeMultihop(network interfaces.Network) {
-	subnetAInfo, subnetBInfo, subnetCInfo := utils.GetThreeSubnets(network)
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, subnetCInfo := utils.GetTwoSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()

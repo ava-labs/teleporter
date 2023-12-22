@@ -46,7 +46,8 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		}
 	)
 
-	sourceSubnet, destSubnet, _ := utils.GetThreeSubnets(network)
+	// sourceSubnet := network.GetPrimaryNetworkInfo() // TODO: Integrate the C-Chain
+	sourceSubnet, destSubnet := utils.GetTwoSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 
 	// Info we need to calculate for the test
@@ -259,7 +260,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 
 	{
 		// Check reporting of burned tx fees to Source Chain
-		burnedTxFeesBalanceDest, err := destSubnet.WSClient.BalanceAt(
+		burnedTxFeesBalanceDest, err := destSubnet.RPCClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,
