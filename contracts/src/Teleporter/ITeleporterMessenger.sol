@@ -206,13 +206,18 @@ interface ITeleporterMessenger {
 
     /**
      * @dev Gets the fee token address and amount for a given message.
-     * @return The fee token address and fee amount for a the given message.
+     * @return The fee token address and fee amount for a the given sent message ID.
+     * If the message ID is not found, zero address and amount values are returned.
      */
     function getFeeInfo(bytes32 messageID) external view returns (address, uint256);
 
     /**
-     * @dev Gets the message ID to be used for the next message sent from the contract instance.
-     * @return The message ID to be used for the next message sent from the contract instance.
+     * @dev Gets the message ID that would currently be used for the next message sent from the contract
+     * instance to the given destination blockchain. Note that this message ID may never be used in the
+     * event that the next call to sendCrossChainMessage in a transaction uses a different destination
+     * blockchain. The current value as returned by this function will change with each successful call
+     * to sendCrossChainMessage.
+     * @return The specified message ID.
      */
     function getNextMessageID(bytes32 destinationBlockchainID) external view returns (bytes32);
 
