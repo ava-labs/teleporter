@@ -58,7 +58,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         public receiptQueues;
 
     // Tracks the message hash and fee information for each message sent that has yet to be acknowledged
-    // with a receipt. The messages are tracked per chain and keyed by message ID.
+    // with a receipt. 
     // The key is the message ID, and the value is the info for the uniquely identified message.
     mapping(bytes32 messageID => SentMessageInfo messageInfo) public sentMessageInfo;
 
