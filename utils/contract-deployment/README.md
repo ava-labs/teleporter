@@ -24,7 +24,7 @@ Now that the keyless transaction is constructed, fund the deployer address. For 
 
 ```bash
 teleporter_deploy_address=$(cat UniversalTeleporterDeployerAddress.txt)
-cast send --private-key $my_private_key --value 50ether $teleporter_deploy_address --rpc-url $my_rpc_url
+cast send --private-key $my_private_key --value 10ether $teleporter_deploy_address --rpc-url $my_rpc_url
 ```
 
 Then, deploy Teleporter by sending the keyless transaction:
