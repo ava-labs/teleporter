@@ -12,6 +12,10 @@ jobs:
   build_and_upload_artifacts:
     name: Build and Upload Teleporter Artifacts
     runs-on: ubuntu-20.04
+    env:
+      deployment_tx_fn: TeleporterMessenger_DeployerTransaction_${{ github.ref_name }}.txt
+      deployer_addr_fn: TeleporterMessenger_DeployerAddress_${{ github.ref_name }}.txt
+      contract_addr_fn: TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -50,14 +54,11 @@ jobs:
         run: |
           go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
           
-          mv UniversalTeleporterDeployerTransaction.txt TeleporterMessenger_DeployerTransaction_${{ github.ref_name }}.txt
-          echo "tx=TeleporterMessenger_DeployerTransaction_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          mv UniversalTeleporterDeployerTransaction.txt ${{ env.deployment_tx_fn }}
           
-          mv UniversalTeleporterDeployerAddress.txt TeleporterMessenger_DeployerAddress_${{ github.ref_name }}.txt
-          echo "deployer=TeleporterMessenger_DeployerAddress_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          mv UniversalTeleporterDeployerAddress.txt ${{ env.deployer_addr_fn }}
           
-          mv UniversalTeleporterMessengerContractAddress.txt TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt
-          echo "address=TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt" >> $GITHUB_OUTPUT
+          mv UniversalTeleporterMessengerContractAddress.txt ${{ env.contract_addr_fn }}
 
       - name: Create release
         uses: softprops/action-gh-release@v1
@@ -67,7 +68,7 @@ jobs:
           prerelease: false
           body: ${{ steps.build_changelog.outputs.changelog }}
           files: |
-                ${{ steps.artifacts.outputs.tx }}
-                ${{ steps.artifacts.outputs.deployer }}
-                ${{ steps.artifacts.outputs.address }}
+            ${{ env.deployment_tx_fn }}
+            ${{ env.deployer_addr_fn }}
+            ${{ env.contract_addr_fn }}
     
