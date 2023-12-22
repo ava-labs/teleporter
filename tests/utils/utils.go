@@ -46,6 +46,10 @@ var (
 	ExpectedExampleERC20DeployerBalance        = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e10))
 )
 
+const (
+	CChainPathSpecifier = "C"
+)
+
 //
 // Test utility functions
 //
@@ -495,8 +499,8 @@ func PrivateKeyToAddress(k *ecdsa.PrivateKey) common.Address {
 }
 
 // Throws a Gomega error if there is a mismatch
-func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big.Int, wsClient ethclient.Client) {
-	bal, err := wsClient.BalanceAt(ctx, addr, nil)
+func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big.Int, rpcClient ethclient.Client) {
+	bal, err := rpcClient.BalanceAt(ctx, addr, nil)
 	Expect(err).Should(BeNil())
 	ExpectBigEqual(bal, expectedBalance)
 }
@@ -536,7 +540,7 @@ func DeployContract(
 		transactor,
 		*abi,
 		byteCode,
-		subnetInfo.WSClient,
+		subnetInfo.RPCClient,
 		constructorArgs...,
 	)
 	Expect(err).Should(BeNil())
@@ -544,7 +548,7 @@ func DeployContract(
 	// Wait for transaction, then check code was deployed
 	WaitForTransactionSuccess(ctx, subnetInfo, tx)
 
-	code, err := subnetInfo.WSClient.CodeAt(ctx, contractAddress, nil)
+	code, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
 	Expect(err).Should(BeNil())
 	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 }
@@ -687,14 +691,13 @@ func DeployBlockHashReceiver(
 	return address, receiver
 }
 
-func GetThreeSubnets(network interfaces.Network) (
-	interfaces.SubnetTestInfo,
+func GetTwoSubnets(network interfaces.Network) (
 	interfaces.SubnetTestInfo,
 	interfaces.SubnetTestInfo,
 ) {
 	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 3))
-	return subnets[0], subnets[1], subnets[2]
+	Expect(len(subnets)).Should(BeNumerically(">=", 2))
+	return subnets[0], subnets[1]
 }
 
 func CalculateMessageID(

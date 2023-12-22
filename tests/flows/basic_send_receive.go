@@ -14,7 +14,8 @@ import (
 
 // Tests basic one-way send from Subnet A to Subnet B and vice versa
 func BasicSendReceive(network interfaces.Network) {
-	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 

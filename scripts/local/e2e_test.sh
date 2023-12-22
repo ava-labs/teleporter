@@ -16,6 +16,7 @@ BASEDIR=${BASEDIR:-"$HOME/.teleporter-deps"}
 
 cwd=$(pwd)
 # Install the avalanchego and subnet-evm binaries
+rm -rf $BASEDIR/avalanchego
 BASEDIR=$BASEDIR AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego ./scripts/install_avalanchego_release.sh
 BASEDIR=$BASEDIR ./scripts/install_subnetevm_release.sh
 

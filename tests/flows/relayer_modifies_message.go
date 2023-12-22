@@ -23,7 +23,8 @@ import (
 
 // Disallow this test from being run on anything but a local network, since it requires special behavior by the relayer
 func RelayerModifiesMessage(network interfaces.LocalNetwork) {
-	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B

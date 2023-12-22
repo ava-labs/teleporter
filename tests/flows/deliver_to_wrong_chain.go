@@ -16,7 +16,8 @@ import (
 )
 
 func DeliverToWrongChain(network interfaces.Network) {
-	subnetAInfo, subnetBInfo, subnetCInfo := utils.GetThreeSubnets(network)
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, subnetCInfo := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//

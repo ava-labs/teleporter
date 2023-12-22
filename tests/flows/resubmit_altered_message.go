@@ -14,7 +14,8 @@ import (
 )
 
 func ResubmitAlteredMessage(network interfaces.Network) {
-	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
+	subnetAInfo := network.GetPrimaryNetworkInfo()
+	subnetBInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
