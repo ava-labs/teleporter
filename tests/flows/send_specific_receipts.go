@@ -156,14 +156,12 @@ func SendSpecificReceipts(network interfaces.Network) {
 		log.Info("Receipt included", "count", len(receiveEvent.Message.Receipts), "receipts", receiveEvent.Message.Receipts)
 		Expect(receiptIncluded(
 			messageID1,
-			network.GetTeleporterContractAddress(),
-			subnetAInfo.BlockchainID,
-			subnetBInfo.BlockchainID,
+			subnetAInfo,
+			subnetBInfo,
 			receiveEvent.Message.Receipts)).Should(BeTrue())
 		Expect(receiptIncluded(messageID2,
-			network.GetTeleporterContractAddress(),
-			subnetAInfo.BlockchainID,
-			subnetBInfo.BlockchainID,
+			subnetAInfo,
+			subnetBInfo,
 			receiveEvent.Message.Receipts)).Should(BeTrue())
 
 		// Check the reward amount remains the same
@@ -217,16 +215,13 @@ func getOutstandingReceiptCount(source interfaces.SubnetTestInfo, destinationBlo
 // Checks the given message ID is included in the list of receipts.
 func receiptIncluded(
 	expectedMessageID ids.ID,
-	teleporterContractAddress common.Address,
-	sourceBlockchainID ids.ID,
-	destinationBlockchainID ids.ID,
+	sourceSubnet interfaces.SubnetTestInfo,
+	destinationSubnet interfaces.SubnetTestInfo,
 	receipts []teleportermessenger.TeleporterMessageReceipt,
 ) bool {
 	for _, receipt := range receipts {
-		messageID := utils.CalculateMessageID(
-			teleporterContractAddress,
-			sourceBlockchainID,
-			destinationBlockchainID,
+		messageID := utils.CalculateMessageID(sourceSubnet,
+			destinationSubnet,
 			receipt.ReceivedMessageNonce)
 		if bytes.Equal(messageID[:], expectedMessageID[:]) {
 			return true

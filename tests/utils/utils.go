@@ -698,19 +698,13 @@ func GetThreeSubnets(network interfaces.Network) (
 }
 
 func CalculateMessageID(
-	teleporterAddress common.Address,
-	sourceBlockchainID ids.ID,
-	destinationBlockchainID ids.ID,
+	sourceSubnetInfo interfaces.SubnetTestInfo,
+	destinationSubnetInfo interfaces.SubnetTestInfo,
 	messageNonce *big.Int,
 ) ids.ID {
-	// TODO: Clean up ABI encoding of parameters.
-	rawBytes := make([]byte, 0, 128)
-	rawBytes = append(rawBytes, teleporterAddress.Hash().Bytes()...)
-	rawBytes = append(rawBytes, sourceBlockchainID[:]...)
-	rawBytes = append(rawBytes, destinationBlockchainID[:]...)
-	rawBytes = append(rawBytes, common.BigToHash(messageNonce).Bytes()...)
-
-	res := ids.ID{}
-	copy(res[:], crypto.Keccak256(rawBytes))
+	res, err := sourceSubnetInfo.TeleporterMessenger.CalculateMessageID(
+		&bind.CallOpts{}, sourceSubnetInfo.BlockchainID, destinationSubnetInfo.BlockchainID, messageNonce,
+	)
+	Expect(err).Should(BeNil())
 	return res
 }
