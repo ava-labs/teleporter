@@ -23,7 +23,7 @@ The resulting raw transaction, `TeleporterMessenger` contract address, and unive
 Now that the keyless transaction is constructed, fund the deployer address. For example, using `cast`:
 
 ```bash
-teleporter_deploy_tx=$(cat UniversalTeleporterDeployerTransaction.txt)
+teleporter_deploy_address=$(cat UniversalTeleporterDeployerAddress.txt)
 cast send --private-key $my_private_key --value 50ether $teleporter_deploy_address --rpc-url $my_rpc_url
 ```
 
