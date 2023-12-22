@@ -526,18 +526,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Calculates the message ID for the given source blockchain ID and message nonce.
-     */
-    function calculateMessageID(
-        bytes32 sourceBlockchainID,
-        bytes32 destinationBlockchainID,
-        uint256 nonce
-    ) public view returns (bytes32) {
-        return
-            keccak256(abi.encode(address(this), sourceBlockchainID, destinationBlockchainID, nonce));
-    }
-
-    /**
      * @dev If not already set, initializes blockchainID by getting the current
      * blockchain ID value from the Warp precompile.
      * @return The current blockchain ID.
@@ -549,6 +537,18 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             blockchainID = blockchainID_;
         }
         return blockchainID_;
+    }
+
+    /**
+     * @dev Calculates the message ID for the given source blockchain ID and message nonce.
+     */
+    function calculateMessageID(
+        bytes32 sourceBlockchainID,
+        bytes32 destinationBlockchainID,
+        uint256 nonce
+    ) public view returns (bytes32) {
+        return
+            keccak256(abi.encode(address(this), sourceBlockchainID, destinationBlockchainID, nonce));
     }
 
     /**

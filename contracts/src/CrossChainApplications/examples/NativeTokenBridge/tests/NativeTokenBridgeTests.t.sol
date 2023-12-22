@@ -23,9 +23,6 @@ contract NativeTokenBridgeTest is Test {
     address internal constant _DEFAULT_RECIPIENT = 0xa4CEE7d1aF6aDdDD33E3b1cC680AB84fdf1b6d1d;
     uint256 internal constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
     uint256 internal constant _DEFAULT_FEE_AMOUNT = 123456;
-
-    function _createMessageID(uint256 messageNonce) internal pure returns (bytes32) {
-        return
-            sha256(abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS, _MOCK_BLOCKCHAIN_ID, messageNonce));
-    }
+    bytes32 internal constant _MOCK_MESSAGE_ID =
+        bytes32(hex"1111111111111111111111111111111111111111111111111111111111111111");
 }

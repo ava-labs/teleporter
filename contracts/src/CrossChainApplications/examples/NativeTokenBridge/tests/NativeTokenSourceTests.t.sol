@@ -39,7 +39,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
-            abi.encode(_createMessageID(1))
+            abi.encode(_MOCK_MESSAGE_ID)
         );
 
         vm.expectCall(
@@ -67,7 +67,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
             sender: address(this),
             recipient: _DEFAULT_RECIPIENT,
             amount: _DEFAULT_TRANSFER_AMOUNT,
-            teleporterMessageID: _createMessageID(1)
+            teleporterMessageID: _MOCK_MESSAGE_ID
         });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
