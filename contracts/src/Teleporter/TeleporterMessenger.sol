@@ -270,7 +270,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Execute the message.
         if (teleporterMessage.message.length > 0) {
-            _handleInitialMessageExecution(warpMessage.sourceChainID, messageID, teleporterMessage);
+            _handleInitialMessageExecution(messageID, warpMessage.sourceChainID, teleporterMessage);
         }
 
         // Process the receipts that were included in the teleporter message by paying the
@@ -537,7 +537,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Calculates the message ID for the given source blockchain ID and message nonce.
+     * @dev Calculates the message ID for a message sent from this contract instance with the
+     * given source blockchain ID, destination blockchain ID, and message nonce.
      */
     function calculateMessageID(
         bytes32 sourceBlockchainID,
@@ -709,8 +710,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - There is enough gas left to cover `message.requiredGasLimit`.
      */
     function _handleInitialMessageExecution(
-        bytes32 originBlockchainID,
         bytes32 messageID,
+        bytes32 originBlockchainID,
         TeleporterMessage memory message
     ) private {
         // Check that the message delivery was provided the required gas amount as specified by the sender.
