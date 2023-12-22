@@ -237,7 +237,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             abi.decode(warpMessage.payload, (TeleporterMessage));
 
         // If the blockchain ID has yet to be initialized, do so now.
-        bytes32 blockchainID_ = _initializeBlockchainID();
+        bytes32 blockchainID_ = initializeBlockchainID();
 
         // Require that the message was intended for this blockchain.
         require(
@@ -324,7 +324,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 originBlockchainID,
         TeleporterMessage calldata message
     ) external receiverNonReentrant {
-        bytes32 blockchainID_ = _initializeBlockchainID();
+        bytes32 blockchainID_ = initializeBlockchainID();
 
         // Calculate the message ID based on the origin blockchainID and message nonce.
         bytes32 messageID =
@@ -394,7 +394,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external senderNonReentrant returns (bytes32) {
-        bytes32 blockchainID_ = _initializeBlockchainID();
+        bytes32 blockchainID_ = initializeBlockchainID();
 
         // Iterate through the specified message IDs and create teleporter receipts to send back.
         TeleporterMessageReceipt[] memory receiptsToSend = new TeleporterMessageReceipt[](
@@ -538,6 +538,20 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
+     * @dev If not already set, initializes blockchainID by getting the current
+     * blockchain ID value from the Warp precompile.
+     * @return The current blockchain ID.
+     */
+    function initializeBlockchainID() public returns (bytes32) {
+        bytes32 blockchainID_ = blockchainID;
+        if (blockchainID_ == bytes32(0)) {
+            blockchainID_ = WARP_MESSENGER.getBlockchainID();
+            blockchainID = blockchainID_;
+        }
+        return blockchainID_;
+    }
+
+    /**
      * @dev Checks if a given message has been received.
      * @return A boolean representing if the given message has been received or not.
      */
@@ -567,20 +581,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev If not already set, initialize blockchainID by getting the current blockchain ID
-     * value from the Warp precompile.
-     * @return The current blockchain ID.
-     */
-    function _initializeBlockchainID() private returns (bytes32) {
-        bytes32 blockchainID_ = blockchainID;
-        if (blockchainID_ == bytes32(0)) {
-            blockchainID_ = WARP_MESSENGER.getBlockchainID();
-            blockchainID = blockchainID_;
-        }
-        return blockchainID_;
-    }
-
-    /**
      * @dev Helper function for sending a teleporter message cross chain.
      * Constructs the Teleporter message and sends it through the Warp Messenger precompile,
      * and performs fee transfer if necessary.
@@ -592,7 +592,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessageReceipt[] memory receipts
     ) private returns (bytes32) {
         // If the blockchain ID has yet to be initialized, do so now.
-        bytes32 blockchainID_ = _initializeBlockchainID();
+        bytes32 blockchainID_ = initializeBlockchainID();
 
         // Get the message ID to use for this message.
         uint256 messageNonce_ = messageNonce;
