@@ -53,11 +53,8 @@ jobs:
         id: artifacts
         run: |
           go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
-          
           mv UniversalTeleporterDeployerTransaction.txt ${{ env.deployment_tx_fn }}
-          
           mv UniversalTeleporterDeployerAddress.txt ${{ env.deployer_addr_fn }}
-          
           mv UniversalTeleporterMessengerContractAddress.txt ${{ env.contract_addr_fn }}
 
       - name: Create release
