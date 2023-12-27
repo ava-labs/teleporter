@@ -653,7 +653,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
     /**
      * @dev Marks a message as being received by storing the message nonce associated with the
-     * given message ID. The message must not be zero in order to be able to distinguish between
+     * given message ID. The message nonce must not be zero in order to be able to distinguish between
      * received and unreceived messages based on their ID.
      */
     function _markMessageReceived(bytes32 messageID, uint256 messageNonce_) private {
