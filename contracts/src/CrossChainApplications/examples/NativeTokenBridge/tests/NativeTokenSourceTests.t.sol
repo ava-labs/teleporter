@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
+import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
 import {
     NativeTokenSource,
     IERC20,
@@ -15,11 +15,9 @@ import {
     IWarpMessenger,
     ITeleporterMessenger
 } from "../NativeTokenSource.sol";
-import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 
 contract NativeTokenSourceTest is NativeTokenBridgeTest {
     NativeTokenSource public nativeTokenSource;
-    UnitTestMockERC20 public mockERC20;
 
     event TransferToDestination(
         address indexed sender,
@@ -30,34 +28,12 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
     event UnlockTokens(address recipient, uint256 amount);
     event BurnTokens(uint256 amount);
 
-    function setUp() public virtual {
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
-            abi.encode(_MOCK_BLOCKCHAIN_ID)
-        );
-        vm.mockCall(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
-            abi.encode(_MOCK_MESSAGE_ID)
-        );
-
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
-        );
-
+    function setUp() public virtual override {
+        NativeTokenBridgeTest.setUp();
         nativeTokenSource = new NativeTokenSource(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS
-        );
-        mockERC20 = new UnitTestMockERC20();
-
-        vm.mockCall(
-            address(mockERC20), abi.encodeWithSelector(IERC20.allowance.selector), abi.encode(1234)
-        );
-        vm.mockCall(
-            address(mockERC20), abi.encodeWithSelector(IERC20.approve.selector), abi.encode(true)
         );
     }
 
