@@ -69,21 +69,25 @@ done
 # from utils/deployment-utils/deployment_utils.go
 gas_tokens_required=10000000000000000000 # 10^19 wei = 10 eth
 
+# Download the artifacts for this release.
 teleporter_contract_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_ContractAddress_$teleporter_version.txt)
 echo "TeleporterMessenger $teleporter_version contract address: $teleporter_contract_address"
 teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_DeployerAddress_$teleporter_version.txt)
 echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_deployer_address"
 teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_DeployerTransaction_$teleporter_version.txt)
 
+# Check if this TeleporterMessenger version has already been deployed on this chain.
 if [[ $(cast code --rpc-url $rpc_url $teleporter_contract_address) != "0x" ]]; then
-    echo "TeleporterMessenger $teleporter_version has already been deployed on this chain." && exit 1
+    echo "TeleporterMessenger $teleporter_version has already been deployed on this chain." && exit 0
 fi
 
+# Check the current balance of the deployer address.
 deployer_balance=$(cast balance --rpc-url $rpc_url $teleporter_deployer_address)
 
 if [[ $(echo "$deployer_balance>=$gas_tokens_required" | bc) == 1 ]]; then
     echo "Deployer Address already funded"
 else 
+    # Calculate how many wei the deployer address needs to create the contract.
     transfer_amount=$(echo "$gas_tokens_required-$deployer_balance" | bc)
     if [[ $user_private_key == "" ]]; then
         echo "No private key provided. Deployer address must be funded with $transfer_amount wei to deploy contract" && exit 1

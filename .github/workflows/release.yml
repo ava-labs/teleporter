@@ -13,9 +13,9 @@ jobs:
     name: Build and Upload Teleporter Artifacts
     runs-on: ubuntu-20.04
     env:
-      deployment_tx_fn: TeleporterMessenger_DeployerTransaction_${{ github.ref_name }}.txt
-      deployer_addr_fn: TeleporterMessenger_DeployerAddress_${{ github.ref_name }}.txt
-      contract_addr_fn: TeleporterMessenger_ContractAddress_${{ github.ref_name }}.txt
+      deployment_tx_fn: TeleporterMessenger_Deployment_Transaction_${{ github.ref_name }}.txt
+      deployer_addr_fn: TeleporterMessenger_Deployer_Address_${{ github.ref_name }}.txt
+      contract_addr_fn: TeleporterMessenger_Contract_Address_${{ github.ref_name }}.txt
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
