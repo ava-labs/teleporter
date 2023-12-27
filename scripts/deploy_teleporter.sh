@@ -5,8 +5,8 @@
 set -e
 
 TELEPORTER_PATH=$(
-  cd "$(dirname "${BASH_SOURCE[0]}")"
-  cd .. && pwd
+    cd "$(dirname "${BASH_SOURCE[0]}")"
+    cd .. && pwd
 )
 
 if ! command -v forge &> /dev/null; then
@@ -59,7 +59,7 @@ while [ $# -gt 0 ]; do
         --help) 
             printHelp && exit 0 ;;
         *) 
-          echo "Invalid option: -$1" && printHelp && exit 1;;
+            echo "Invalid option: -$1" && printHelp && exit 1;;
     esac
     shift
 done
@@ -67,7 +67,7 @@ done
 # Tokens required to deploy the contract.
 # Equal to contractCreationGasLimit * contractCreationGasPrice
 # from utils/deployment-utils/deployment_utils.go
-gas_tokens_required=10000000000000000000 # 10^19 gwei
+gas_tokens_required=10000000000000000000 # 10^19 wei = 10 eth
 
 teleporter_contract_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_ContractAddress_$teleporter_version.txt)
 echo "TeleporterMessenger $teleporter_version contract address: $teleporter_contract_address"
@@ -76,16 +76,24 @@ echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_depl
 teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_DeployerTransaction_$teleporter_version.txt)
 
 if [[ $(cast code $teleporter_contract_address --rpc-url $rpc_url) != "0x" ]]; then
-  echo "TeleporterMessenger $teleporter_version has already been deployed on this chain." && exit 1
+    echo "TeleporterMessenger $teleporter_version has already been deployed on this chain." && exit 1
 fi
 
-if [[ $user_private_key != "" ]]; then
-  echo -e "\nFunding Deployer Address"
-  cast send --private-key $user_private_key --value $gas_tokens_required $teleporter_deployer_address --rpc-url $rpc_url
+deployer_balance=$(cast balance --rpc-url $rpc_url $teleporter_deployer_address)
+
+if [[ $(echo "$deployer_balance>=$gas_tokens_required" | bc) == 1 ]]; then
+    echo "Deployer Address already funded"
+else 
+    transfer_amount=$(echo "$gas_tokens_required-$deployer_balance" | bc)
+    if [[ $user_private_key == "" ]]; then
+        echo "No private key provided. Deployer address must be funded with $transfer_amount wei to deploy contract" && exit 1
+    fi
+    echo "Funding Deployer Address with $transfer_amount wei"
+    cast send --private-key $user_private_key --value $transfer_amount $teleporter_deployer_address --rpc-url $rpc_url
 fi
 
-echo -e "\nDeploying TeleporterMessenger $teleporter_version"
+echo "Deploying TeleporterMessenger $teleporter_version"
 cast publish --rpc-url $rpc_url $teleporter_deploy_tx
 
-echo -e "\nSuccess! TeleporterMessenger $teleporter_version deployed to $teleporter_deployer_address"
+echo "Success! TeleporterMessenger $teleporter_version deployed to $teleporter_deployer_address"
 exit 0
