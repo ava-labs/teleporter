@@ -156,7 +156,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * Requirements:
      *
      * - `additionalFeeAmount` must be non-zero.
-     * - `message` must exist and not have been acknowledge with a receipt yet.
+     * - `message` must exist and not have been acknowledged with a receipt yet.
      * - `feeTokenAddress` must match the fee asset contract address used in the original call to `sendCrossChainMessage`.
      */
     function addFeeAmount(
