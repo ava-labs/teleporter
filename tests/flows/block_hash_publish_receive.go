@@ -2,8 +2,9 @@ package flows
 
 import (
 	"context"
-	"encoding/hex"
+	"math/big"
 
+	coreEthClient "github.com/ava-labs/coreth/ethclient"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -30,7 +31,21 @@ func BlockHashPublishReceive(network interfaces.Network) {
 		subnetAInfo.BlockchainID,
 	)
 
-	// gather expectations
+	// coreth and subnet-evm have different Block implementations,
+	// which means that the block hashes will be different when queried from different clients
+	// To workaround this, we need to query the block hash from the coreth client
+	// TODO: Design a unified interface that accounts for this different
+	rpcUri := utils.HttpToRPCURI(subnetAInfo.NodeURIs[1], utils.CChainPathSpecifier)
+	rpcClient, err := coreEthClient.Dial(rpcUri)
+	Expect(err).Should(BeNil())
+	expectedBlockNumberU64, err := rpcClient.BlockNumber(ctx)
+	Expect(err).Should(BeNil())
+	expectedBlockNumber := big.NewInt(0).SetUint64(expectedBlockNumberU64)
+
+	block, err := rpcClient.BlockByNumber(
+		ctx, expectedBlockNumber)
+	Expect(err).Should(BeNil())
+	expectedBlockHash := block.Hash()
 
 	// publish latest block hash
 	tx_opts, err := bind.NewKeyedTransactorWithChainID(
@@ -43,13 +58,6 @@ func BlockHashPublishReceive(network interfaces.Network) {
 
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
 
-	publishEvent, err := utils.GetEventFromLogs(
-		receipt.Logs,
-		publisher.ParsePublishBlockHash)
-	Expect(err).Should(BeNil())
-	expectedBlockNumber := publishEvent.BlockHeight
-	expectedBlockHash := publishEvent.BlockHash
-
 	// relay publication
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
@@ -59,5 +67,5 @@ func BlockHashPublishReceive(network interfaces.Network) {
 
 	// verify expectations
 	Expect(blockNumber.Uint64()).Should(Equal(expectedBlockNumber.Uint64()))
-	Expect(hex.EncodeToString(blockHash[:])).Should(Equal(hex.EncodeToString(expectedBlockHash[:])))
+	Expect(blockHash[:]).Should(Equal(expectedBlockHash[:]))
 }

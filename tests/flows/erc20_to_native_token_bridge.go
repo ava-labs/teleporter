@@ -7,8 +7,8 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	erc20tokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/ERC20TokenSource"
-	nativetokendestination "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/NativeTokenBridge/NativeTokenDestination"
+	erc20tokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/ERC20TokenSource"
+	nativetokendestination "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/NativeTokenDestination"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -281,7 +281,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 
 	{
 		// Check reporting of burned tx fees to Source Chain
-		burnedTxFeesBalanceDest, err := destSubnet.WSClient.BalanceAt(
+		burnedTxFeesBalanceDest, err := destSubnet.RPCClient.BalanceAt(
 			ctx,
 			burnedTxFeeAddress,
 			nil,

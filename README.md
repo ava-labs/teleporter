@@ -45,8 +45,6 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 ## Run a local testnet in Docker
 A docker setup for running a local network with Teleporter deployed is provided. This setup provides a convenient way to develop and test Teleporter as well as cross-chain applications built on top of Teleporter. Teleporter messages are relayed between subnets using [AWM Relayer](https://github.com/ava-labs/awm-relayer), a fully featured implementation of a Warp message relayer.
 
-- Install Docker as described in the setup section of the README in the root of this repository.
-- If using a local version of the `awm-relayer` image, build it using `./scripts/build_local_image.sh` from the root of the `awm-relayer` repository.
 
 ### Start up the local testnet
 
@@ -57,26 +55,35 @@ A docker setup for running a local network with Teleporter deployed is provided.
     -p, --pause                       Pause the network on stop. Will attempt to restart the paused network on subsequent runs
     -h, --help                        Print this help message
   ```
+  - If using `-l, --local` to use a local version of the `awm-relayer` image, build it using `./scripts/build_local_image.sh` from the root of the `awm-relayer` repository.
   - Note that if `-l, --local` is not set, then the latest published `awm-relayer` image will be pulled from Dockerhub.
-- Once it's running, try sending 1 AVAX on the local C-Chain:
-```
-cast balance --rpc-url http://127.0.0.1:9652/ext/bc/C/rpc 0x333d17d3b42bf7930dbc6e852ca7bcf560a69003
-cast send --private-key 0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027 --value 1 0x333d17d3b42bf7930dbc6e852ca7bcf560a69003 --rpc-url http://127.0.0.1:9650/ext/bc/C/rpc
-cast balance --rpc-url http://127.0.0.1:9652/ext/bc/C/rpc 0x333d17d3b42bf7930dbc6e852ca7bcf560a69003
-```
 
-- After calling `./scripts/local/run.sh`, you can interact with the deployed Teleporter contracts directly, or deploy a cross-chain application contract such as `ExampleCrossChainMessenger`. To open a terminal in the container and initialize it with the environment variables needed to interact with the contracts, run:
+- After calling `./scripts/local/run.sh`, you'll know the network is ready once the "Waiting for subnets to start up." messages from the `relayer_run` container stop. Once the network is ready, you can interact with the deployed Teleporter contracts directly, or deploy a cross-chain application contract such as `ExampleCrossChainMessenger`. To open a terminal in the container and initialize it with the environment variables needed to interact with the contracts, run:
 
 ```
 # Open a shell in the container
 docker exec -it local_network_run /bin/bash
+
 # In the container:
 set -a                        # export all variables so child processes can access
-source vars.sh
+source vars.sh                # source the variables needed to interact with the contracts
 ```
+- Once you've opened a shell in the container, try interacting with the network.
+  - For example, send 1 AVAX on the C-Chain using `cast`
+  ```
+  c_address=0x333d17d3b42bf7930dbc6e852ca7bcf560a69003   # pick an arbitrary address
+  cast balance --rpc-url $c_chain_rpc_url $c_address
+  cast send --private-key $user_private_key --value 1 $c_address --rpc-url $c_chain_rpc_url
+  cast balance --rpc-url $c_chain_rpc_url $c_address
+  ```
+  - An example of how to interact with Teleporter is provided in `scripts/local/examples/basic_send_receive.sh`. This script sends a dummy payload via Teleporter from the C-Chain to a subnet, and back again.
+  ```
+  ./scripts/local/examples/basic_send_receive.sh
+  ```
+  - You should see "Received on Subnet A is true" and "Received on the C-Chain is true" to indicate that Teleporter messages were successfully sent between the C-Chain and Subnet A.
+    - These examples can be adapted to send messages between any two subnets, or between the C-Chain and any subnet by changing the RPC URLs.
+    - Use these as a starting point to build and interact with your own cross-chain applications on top of Teleporter!
 
-- Command line tools such as `cast` can also be used from the container.
-- Similarly, you can send the above transaction on either of the subnets by replacing the above rpc-url with the subnet's corresponding URL.
 - The script `./scripts/local/run_stop.sh` should be used to gracefully shut down the containers, preserving the local network state between runs. This script is called automatically at the end of `./scripts/local/run.sh`, but can be called at any time from a separate terminal to pause the network.
   - `./scripts/local/run_stop.sh` usage is as follows:
   ```
@@ -88,7 +95,7 @@ source vars.sh
 
 - The `./scripts/local/run.sh` script runs five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
 - Logs from the subnets on one of the five nodes are printed to stdout when run using either script.
-- These logs can also be found at `~/.avalanche-cli/runs/network-runner-root-data_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log` in the `local_network_run` container, or at `/var/lib/docker/overlay2/<CONTAINER_ID>/merged/root/.avalanche-cli/....` on your local machine. You will need to be the root user to access the logs under `/var/lib`.
+- These logs can also be found at `~/.avalanche-cli/runs/network_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log` in the `local_network_run` container.
 
 ## E2E tests
 
@@ -125,9 +132,9 @@ The auto-generated bindings should be written under the `abi-bindings/` director
 - [Teleporter Protocol Overview](./contracts/src/Teleporter/README.md)
 - [Cross Chain Applications](./contracts/src/CrossChainApplications/README.md)
 - [Getting Started](./contracts/src/CrossChainApplications/GETTING_STARTED.md)
+- [Teleporter Upgradeability](./contracts/src/Teleporter/upgrades/README.md)
 - [Contract Deployment](./utils/contract-deployment/README.md)
-- [ERC20Bridge](./contracts/src/CrossChainApplications/ERC20Bridge/README.md)
-- [VerifiedBlockHash](./contracts/src/CrossChainApplications/VerifiedBlockHash/README.md)
+- [Teleporter CLI](./cmd/teleporter-cli/README.md)
 
 ## Resources
 

@@ -14,7 +14,6 @@ import (
 	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
-	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
@@ -177,6 +176,8 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 
 // Should be called after setSubnetValues for all subnets
 func (n *LocalNetwork) setPrimaryNetworkValues() {
+	// Get the C-Chain node URIs.
+	// All subnet nodes validate the C-Chain, so we can include them all here
 	var nodeURIs []string
 	nodeURIs = append(nodeURIs, n.subnetsInfo[n.subnetAID].NodeURIs...)
 	nodeURIs = append(nodeURIs, n.subnetsInfo[n.subnetBID].NodeURIs...)
@@ -192,8 +193,8 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 	}
 	Expect(cChainBlockchainID).ShouldNot(Equal(ids.Empty))
 
-	chainWSURI := utils.HttpToWebsocketURI(nodeURIs[0], "C")
-	chainRPCURI := utils.HttpToRPCURI(nodeURIs[0], "C")
+	chainWSURI := utils.HttpToWebsocketURI(nodeURIs[0], utils.CChainPathSpecifier)
+	chainRPCURI := utils.HttpToRPCURI(nodeURIs[0], utils.CChainPathSpecifier)
 	if n.primaryNetworkInfo != nil && n.primaryNetworkInfo.WSClient != nil {
 		n.primaryNetworkInfo.WSClient.Close()
 	}
@@ -216,13 +217,6 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 
 	// TeleporterMessenger is set in DeployTeleporterContracts
 	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
-
-	log.Info("dbg: Primary network values",
-		"SubnetID", n.primaryNetworkInfo.SubnetID,
-		"BlockchainID", n.primaryNetworkInfo.BlockchainID,
-		"NodeURIs", n.primaryNetworkInfo.NodeURIs,
-		"EVMChainID", n.primaryNetworkInfo.EVMChainID,
-	)
 }
 
 func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
@@ -288,9 +282,7 @@ func (n *LocalNetwork) DeployTeleporterContracts(
 
 	ctx := context.Background()
 
-	subnets := n.GetSubnetsInfo()
-	subnets = append(subnets, *n.primaryNetworkInfo)
-
+	subnets := n.getAllSubnetsInfo()
 	for _, subnetInfo := range subnets {
 		// Fund the deployer address
 		{
@@ -352,9 +344,7 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 		},
 	}
 
-	subnets := n.GetSubnetsInfo()
-	subnets = append(subnets, *n.primaryNetworkInfo)
-
+	subnets := n.getAllSubnetsInfo()
 	for _, subnetInfo := range subnets {
 		opts, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetInfo.EVMChainID)
 		Expect(err).Should(BeNil())
@@ -387,6 +377,12 @@ func (n *LocalNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
 
 func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
 	return *n.primaryNetworkInfo
+}
+
+// Returns subnet info for all subnets, including the primary network
+func (n *LocalNetwork) getAllSubnetsInfo() []interfaces.SubnetTestInfo {
+	subnets := n.GetSubnetsInfo()
+	return append(subnets, n.GetPrimaryNetworkInfo())
 }
 
 func (n *LocalNetwork) GetTeleporterContractAddress() common.Address {
@@ -534,19 +530,6 @@ func (n *LocalNetwork) ConstructSignedWarpMessageBytes(
 		signingSubnetID.String(),
 	)
 	Expect(err).Should(BeNil())
-
-	warpMsg, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
-	Expect(err).Should(BeNil())
-	numSigners, err := warpMsg.Signature.NumSigners()
-	Expect(err).Should(BeNil())
-	if source.SubnetID == constants.PrimaryNetworkID {
-		log.Info("from the C-Chain")
-	}
-	if destination.SubnetID == constants.PrimaryNetworkID {
-		log.Info("to the C-Chain")
-	}
-	log.Info("dbg", "sourceSubnetID", source.SubnetID, "destinationSubnetID", destination.SubnetID)
-	log.Info("dbg: numSigners", "numSigners", numSigners)
 
 	return signedWarpMessageBytes
 }
