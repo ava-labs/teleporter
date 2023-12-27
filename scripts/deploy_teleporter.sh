@@ -75,7 +75,7 @@ teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/teleporter/re
 echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_deployer_address"
 teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_DeployerTransaction_$teleporter_version.txt)
 
-if [[ $(cast code $teleporter_contract_address --rpc-url $rpc_url) != "0x" ]]; then
+if [[ $(cast code --rpc-url $rpc_url $teleporter_contract_address) != "0x" ]]; then
     echo "TeleporterMessenger $teleporter_version has already been deployed on this chain." && exit 1
 fi
 
@@ -89,7 +89,7 @@ else
         echo "No private key provided. Deployer address must be funded with $transfer_amount wei to deploy contract" && exit 1
     fi
     echo "Funding Deployer Address with $transfer_amount wei"
-    cast send --private-key $user_private_key --value $transfer_amount $teleporter_deployer_address --rpc-url $rpc_url
+    cast send --rpc-url $rpc_url --private-key $user_private_key --value $transfer_amount $teleporter_deployer_address
 fi
 
 echo "Deploying TeleporterMessenger $teleporter_version"
