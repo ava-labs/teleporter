@@ -70,11 +70,11 @@ done
 gas_tokens_required=10000000000000000000 # 10^19 wei = 10 eth
 
 # Download the artifacts for this release.
-teleporter_contract_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_ContractAddress_$teleporter_version.txt)
+teleporter_contract_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Contract_Address_$teleporter_version.txt)
 echo "TeleporterMessenger $teleporter_version contract address: $teleporter_contract_address"
-teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_DeployerAddress_$teleporter_version.txt)
+teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Deployer_Address_$teleporter_version.txt)
 echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_deployer_address"
-teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_DeployerTransaction_$teleporter_version.txt)
+teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Deployment_Transaction_$teleporter_version.txt)
 
 # Check if this TeleporterMessenger version has already been deployed on this chain.
 if [[ $(cast code --rpc-url $rpc_url $teleporter_contract_address) != "0x" ]]; then
