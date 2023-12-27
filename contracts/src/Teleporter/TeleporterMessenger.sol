@@ -121,6 +121,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         senderNonReentrant
     {
         // Calculate the message ID based on the message nonce.
+        // If the blockchain ID has yet to be initialized, no messages have ever been sent by
+        // this contract, meaning that the message to be retried will not be found in any event.
+        // Thus, don't need to initialize the blockchain ID here.
         bytes32 messageID =
             calculateMessageID(blockchainID, message.destinationBlockchainID, message.messageNonce);
 
