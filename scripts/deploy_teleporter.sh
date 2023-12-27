@@ -85,14 +85,14 @@ fi
 deployer_balance=$(cast balance --rpc-url $rpc_url $teleporter_deployer_address)
 
 if [[ $(echo "$deployer_balance>=$gas_tokens_required" | bc) == 1 ]]; then
-    echo "Deployer Address already funded"
+    echo "Deployer address already funded"
 else 
     # Calculate how many wei the deployer address needs to create the contract.
     transfer_amount=$(echo "$gas_tokens_required-$deployer_balance" | bc)
     if [[ $user_private_key == "" ]]; then
         echo "No private key provided. Deployer address must be funded with $transfer_amount wei to deploy contract" && exit 1
     fi
-    echo "Funding Deployer Address with $transfer_amount wei"
+    echo "Funding deployer address with $transfer_amount wei"
     cast send --rpc-url $rpc_url --private-key $user_private_key --value $transfer_amount $teleporter_deployer_address
 fi
 
