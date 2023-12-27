@@ -259,7 +259,7 @@ contract ERC20TokenSourceTest is Test {
     }
 
     function testInvalidDestinationBlockchain() public {
-        vm.expectRevert();
+        vm.expectRevert(_formatERC20TokenSourceErrorMessage("invalid destination chain"));
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         erc20TokenSource.receiveTeleporterMessage(
