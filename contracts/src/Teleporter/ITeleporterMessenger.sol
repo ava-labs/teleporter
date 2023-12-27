@@ -205,7 +205,7 @@ interface ITeleporterMessenger {
     ) external view returns (uint256);
 
     /**
-     * @dev Gets the fee token address and amount for a given message.
+     * @dev Gets the fee token address and amount for a given sent message.
      * @return The fee token address and fee amount for a the given sent message ID.
      * If the message ID is not found, zero address and amount values are returned.
      */
