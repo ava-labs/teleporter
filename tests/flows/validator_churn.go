@@ -21,7 +21,7 @@ const (
 )
 
 func ValidatorChurn(network interfaces.LocalNetwork) {
-	subnetAInfo, subnetBInfo, _ := utils.GetThreeSubnets(network)
+	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
@@ -66,7 +66,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	network.AddSubnetValidators(ctx, subnetAInfo.SubnetID, constructNodesToAddNames(network))
 
 	// Refresh the subnet info
-	subnetAInfo, subnetBInfo, _ = utils.GetThreeSubnets(network)
+	subnetAInfo, subnetBInfo = utils.GetTwoSubnets(network)
 
 	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
 	// We have to update all subnets, not just the ones directly involved in this test to ensure that the

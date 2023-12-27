@@ -13,6 +13,10 @@ import (
 	"strings"
 	"time"
 
+	erc20bridge "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/ERC20Bridge/ERC20Bridge"
+	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/ExampleMessenger/ExampleCrossChainMessenger"
+	blockhashpublisher "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/VerifiedBlockHash/BlockHashPublisher"
+	blockhashreceiver "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/VerifiedBlockHash/BlockHashReceiver"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
@@ -28,10 +32,6 @@ import (
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/x/warp"
-	erc20bridge "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ERC20Bridge/ERC20Bridge"
-	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/ExampleMessenger/ExampleCrossChainMessenger"
-	blockhashpublisher "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/VerifiedBlockHash/BlockHashPublisher"
-	blockhashreceiver "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/VerifiedBlockHash/BlockHashReceiver"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -44,6 +44,10 @@ var (
 	DefaultTeleporterTransactionGas     uint64 = 300_000
 	DefaultTeleporterTransactionValue          = common.Big0
 	ExpectedExampleERC20DeployerBalance        = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e10))
+)
+
+const (
+	CChainPathSpecifier = "C"
 )
 
 //
@@ -496,8 +500,8 @@ func PrivateKeyToAddress(k *ecdsa.PrivateKey) common.Address {
 }
 
 // Throws a Gomega error if there is a mismatch
-func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big.Int, wsClient ethclient.Client) {
-	bal, err := wsClient.BalanceAt(ctx, addr, nil)
+func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big.Int, rpcClient ethclient.Client) {
+	bal, err := rpcClient.BalanceAt(ctx, addr, nil)
 	Expect(err).Should(BeNil())
 	ExpectBigEqual(bal, expectedBalance)
 }
@@ -537,7 +541,7 @@ func DeployContract(
 		transactor,
 		*abi,
 		byteCode,
-		subnetInfo.WSClient,
+		subnetInfo.RPCClient,
 		constructorArgs...,
 	)
 	Expect(err).Should(BeNil())
@@ -545,7 +549,7 @@ func DeployContract(
 	// Wait for transaction, then check code was deployed
 	WaitForTransactionSuccess(ctx, subnetInfo, tx)
 
-	code, err := subnetInfo.WSClient.CodeAt(ctx, contractAddress, nil)
+	code, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
 	Expect(err).Should(BeNil())
 	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 }
@@ -688,12 +692,11 @@ func DeployBlockHashReceiver(
 	return address, receiver
 }
 
-func GetThreeSubnets(network interfaces.Network) (
-	interfaces.SubnetTestInfo,
+func GetTwoSubnets(network interfaces.Network) (
 	interfaces.SubnetTestInfo,
 	interfaces.SubnetTestInfo,
 ) {
 	subnets := network.GetSubnetsInfo()
-	Expect(len(subnets)).Should(BeNumerically(">=", 3))
-	return subnets[0], subnets[1], subnets[2]
+	Expect(len(subnets)).Should(BeNumerically(">=", 2))
+	return subnets[0], subnets[1]
 }
