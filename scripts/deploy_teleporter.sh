@@ -82,7 +82,7 @@ fi
 deployer_balance=$(cast balance --rpc-url $rpc_url $teleporter_deployer_address)
 
 if [[ $(echo "$deployer_balance>=$gas_tokens_required" | bc) == 1 ]]; then
-    echo "Deployer Address already funded"
+    echo "Deployer address already funded"
 else 
     transfer_amount=$(echo "$gas_tokens_required-$deployer_balance" | bc)
     if [[ $user_private_key == "" ]]; then
