@@ -53,14 +53,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     uint256 public messageNonce = 1;
 
     // Tracks the outstanding receipts to send back to a given chain in subsequent messages sent to that chain.
-    // Key is the blockchain ID of the other chain, and the value is a queue of pending receipts for messages
+    // The key is the blockchain ID of the other chain, and the value is a queue of pending receipts for messages
     // received from that chain.
     mapping(bytes32 sourceBlockchainID => ReceiptQueue.TeleporterMessageReceiptQueue receiptQueue)
         public receiptQueues;
 
     // Tracks the message hash and fee information for each message sent that has yet to be acknowledged
-    // with a receipt.
-    // The key is the message ID, and the value is the info for the uniquely identified message.
+    // with a receipt. The key is the message ID, and the value is the info for the uniquely identified message.
     mapping(bytes32 messageID => SentMessageInfo messageInfo) public sentMessageInfo;
 
     // Tracks the hash of messages that have been received but have never succeeded in execution.
@@ -69,7 +68,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     // identified message whose execution failed.
     mapping(bytes32 messageID => bytes32 messageHash) public receivedFailedMessageHashes;
 
-    // Tracks the message nonce for each message that has been received.
+    // Tracks the message nonce for each message that has been received. The key is the message ID,
+    // and the value is the nonce value that was received as a part for that message.
     // Note: the `messageNonce` values are also used to determine if a given message has been received or not.
     mapping(bytes32 messageID => uint256 messageNonce) internal _receivedMessageNonces;
 
@@ -320,6 +320,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessage calldata message
     ) external receiverNonReentrant {
         // Calculate the message ID based on the origin blockchainID and message nonce.
+        // If the blockchain ID has yet to be initialized, no messages have ever been received by
+        // this contract, meaning that the message to be retried will not be found in any event.
+        // Thus, don't need to initialize the blockchain ID here.
         bytes32 messageID =
             calculateMessageID(originBlockchainID, blockchainID, message.messageNonce);
 
