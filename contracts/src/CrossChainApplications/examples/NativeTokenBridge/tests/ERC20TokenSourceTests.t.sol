@@ -15,11 +15,14 @@ import {
     IWarpMessenger,
     ITeleporterMessenger
 } from "../ERC20TokenSource.sol";
+import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 
 contract ERC20TokenSourceTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
+    address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS =
+        0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
     address public constant WARP_PRECOMPILE_ADDRESS =
         address(0x0200000000000000000000000000000000000005);
     bytes32 private constant _MOCK_BLOCKCHAIN_ID = bytes32(uint256(123456));
@@ -60,9 +63,11 @@ contract ERC20TokenSourceTest is Test {
             WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
         );
 
+        _initMockTeleporterRegistry();
+
         mockERC20 = new UnitTestMockERC20();
         erc20TokenSource = new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -188,7 +193,7 @@ contract ERC20TokenSourceTest is Test {
     }
 
     function testZeroTeleporterAddress() public {
-        vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero TeleporterMessenger address"));
+        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
 
         new ERC20TokenSource(
             address(0x0),
@@ -202,7 +207,7 @@ contract ERC20TokenSourceTest is Test {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero destination blockchain ID"));
 
         new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             bytes32(0),
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -213,7 +218,7 @@ contract ERC20TokenSourceTest is Test {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("cannot bridge with same blockchain"));
 
         new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -224,10 +229,21 @@ contract ERC20TokenSourceTest is Test {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero destination contract address"));
 
         new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x0),
             address(mockERC20)
+        );
+    }
+
+    function testInvalidTeleporterAddress() public {
+        vm.expectRevert("TeleporterUpgradeable: invalid Teleporter sender");
+
+        vm.prank(address(0x123));
+        erc20TokenSource.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
         );
     }
 
@@ -235,26 +251,10 @@ contract ERC20TokenSourceTest is Test {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero ERC20 contract address"));
 
         new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(0x0)
-        );
-    }
-
-    function testInvalidTeleporterAddress() public {
-        vm.expectRevert(
-            _formatERC20TokenSourceErrorMessage("unauthorized TeleporterMessenger contract")
-        );
-
-        vm.prank(address(0x123));
-        erc20TokenSource.receiveTeleporterMessage(
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
         );
     }
 
@@ -307,6 +307,43 @@ contract ERC20TokenSourceTest is Test {
             _DEFAULT_TRANSFER_AMOUNT + _DEFAULT_FEE_AMOUNT,
             _DEFAULT_FEE_AMOUNT,
             new address[](0)
+        );
+    }
+
+    function _initMockTeleporterRegistry() internal {
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getVersionFromAddress.selector,
+                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
+            abi.encode(1)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(TeleporterRegistry.getAddressFromVersion.selector, (1)),
+            abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(TeleporterRegistry.getVersionFromAddress.selector),
+            abi.encode(0)
+        );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(TeleporterRegistry.getLatestTeleporter.selector),
+            abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
         );
     }
 
