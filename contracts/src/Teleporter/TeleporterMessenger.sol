@@ -278,11 +278,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         _relayerRewardAddresses[warpMessage.sourceChainID][teleporterMessage.messageID] =
             relayerRewardAddress;
 
-        // Execute the message.
-        if (teleporterMessage.message.length > 0) {
-            _handleInitialMessageExecution(warpMessage.sourceChainID, teleporterMessage);
-        }
-
         // Process the receipts that were included in the teleporter message by paying the
         // fee for the messages are reward to the given relayers.
         uint256 length = teleporterMessage.receipts.length;
@@ -311,6 +306,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             relayerRewardAddress,
             teleporterMessage
         );
+
+        // Execute the message.
+        if (teleporterMessage.message.length > 0) {
+            _handleInitialMessageExecution(warpMessage.sourceChainID, teleporterMessage);
+        }
     }
 
     /**

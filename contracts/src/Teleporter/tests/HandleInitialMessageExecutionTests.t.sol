@@ -112,8 +112,6 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
 
         // Receive the message and check that message execution was successful.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecuted(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID);
-        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
@@ -121,6 +119,8 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecuted(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID);
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message had the proper affect on the destination contract.
@@ -184,16 +184,16 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // is considered a failed message execution, but the message itself is
         // still successfully delivered.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(
-            DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive
-        );
-        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
             address(this),
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
+        );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecutionFailed(
+            DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
@@ -232,16 +232,16 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
 
         // Receive the message.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(
-            DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive
-        );
-        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
             address(this),
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
+        );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecutionFailed(
+            DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
