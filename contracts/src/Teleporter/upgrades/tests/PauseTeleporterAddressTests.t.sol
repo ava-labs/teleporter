@@ -16,12 +16,12 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
     function testPauseTeleporterAddressBasic() public {
         // Check that the teleporterAddress is not paused initially
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
         // Check that teleporterAddress can not deliver messages once paused
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testAlreadyPausedTeleporterAddress() public {
@@ -29,7 +29,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
         // Check that teleporterAddress can not be paused again
         vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("address already paused"));
         app.pauseTeleporterAddress(teleporterAddress);
@@ -44,19 +44,19 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
 
         // Check that the teleporterAddress is not paused initially
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Check that teleporterAddress can not deliver messages once paused
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
         vm.prank(teleporterAddress);
-        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Check that after updating mininum Teleporter version, the address is still paused
         _updateMinTeleporterVersionSuccess(app, teleporterRegistry.latestVersion());
         vm.prank(teleporterAddress);
         vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
-        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testPauseBeforeRegister() public {
@@ -74,7 +74,7 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
         // Check that the new Teleporter address is paused
         vm.prank(newTeleporterAddress);
         vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
-        app.receiveTeleporterMessage(DEFAULT_ORIGIN_CHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        app.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testPauseZeroAddress() public {

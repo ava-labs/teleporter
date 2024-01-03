@@ -86,7 +86,6 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	// Check Teleporter message received on the destination
 	delivered, err := subnetBTeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},
-		subnetAInfo.BlockchainID,
 		messageID,
 	)
 	Expect(err).Should(BeNil())
@@ -150,7 +149,6 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	// Check Teleporter message received on the destination
 	delivered, err = subnetCTeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},
-		subnetAInfo.BlockchainID,
 		messageID,
 	)
 	Expect(err).Should(BeNil())
@@ -197,7 +195,7 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Check Teleporter message received on the destination
-	delivered, err = subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+	delivered, err = subnetBTeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -254,7 +252,6 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	// Check Teleporter message received on the destination
 	delivered, err = subnetATeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},
-		subnetBInfo.BlockchainID,
 		messageID,
 	)
 	Expect(err).Should(BeNil())
@@ -265,7 +262,7 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetCInfo.BlockchainID[:]))
-	messageID = event.Message.MessageID
+	messageID = event.MessageID
 
 	// Check the redeemable reward balance of the relayer if the relayer address was set
 	updatedRewardAmount, err := subnetATeleporterMessenger.CheckRelayerRewardAmount(
@@ -284,7 +281,7 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Check Teleporter message received on the destination
-	delivered, err = subnetCTeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+	delivered, err = subnetCTeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -335,7 +332,7 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	network.RelayMessage(ctx, receipt, subnetCInfo, subnetAInfo, true)
 
 	// Check Teleporter message received on the destination
-	delivered, err = subnetATeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetCInfo.BlockchainID, messageID)
+	delivered, err = subnetATeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -367,7 +364,7 @@ func submitCreateBridgeToken(
 	fundedKey *ecdsa.PrivateKey,
 	transactor *erc20bridge.ERC20Bridge,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
-) (*types.Receipt, *big.Int) {
+) (*types.Receipt, ids.ID) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
@@ -390,9 +387,9 @@ func submitCreateBridgeToken(
 
 	log.Info("Successfully SubmitCreateBridgeToken",
 		"txHash", tx.Hash().Hex(),
-		"messageID", event.Message.MessageID)
+		"messageID", event.MessageID)
 
-	return receipt, event.Message.MessageID
+	return receipt, event.MessageID
 }
 
 func bridgeToken(
@@ -411,7 +408,7 @@ func bridgeToken(
 	isNative bool,
 	nativeTokenChainID ids.ID,
 	teleporterMessenger *teleportermessenger.TeleporterMessenger,
-) (*types.Receipt, *big.Int) {
+) (*types.Receipt, ids.ID) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
@@ -438,7 +435,7 @@ func bridgeToken(
 		Expect(event.DestinationBlockchainID[:]).Should(Equal(nativeTokenChainID[:]))
 	}
 
-	return receipt, event.Message.MessageID
+	return receipt, event.MessageID
 }
 
 func approveBridgeToken(

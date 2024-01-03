@@ -55,7 +55,7 @@ func UnallowedRelayer(network interfaces.Network) {
 	// Check Teleporter message was not received on the destination
 	//
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())

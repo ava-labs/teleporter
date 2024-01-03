@@ -8,15 +8,16 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
 
-func createTestTeleporterMessage(messageID int64) TeleporterMessage {
+func createTestTeleporterMessage(messageNonce *big.Int) TeleporterMessage {
 	m := TeleporterMessage{
-		MessageID:               big.NewInt(messageID),
+		MessageNonce:            messageNonce,
 		SenderAddress:           common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		DestinationBlockchainID: [32]byte{1, 2, 3, 4},
+		DestinationBlockchainID: ids.ID{1, 2, 3, 4},
 		DestinationAddress:      common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		RequiredGasLimit:        big.NewInt(2),
 		AllowedRelayerAddresses: []common.Address{
@@ -24,7 +25,7 @@ func createTestTeleporterMessage(messageID int64) TeleporterMessage {
 		},
 		Receipts: []TeleporterMessageReceipt{
 			{
-				ReceivedMessageID:    big.NewInt(1),
+				ReceivedMessageNonce: big.NewInt(1),
 				RelayerRewardAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 			},
 		},
@@ -34,10 +35,7 @@ func createTestTeleporterMessage(messageID int64) TeleporterMessage {
 }
 
 func TestPackUnpackTeleporterMessage(t *testing.T) {
-	var (
-		messageID int64 = 4
-	)
-	message := createTestTeleporterMessage(messageID)
+	message := createTestTeleporterMessage(big.NewInt(4))
 
 	b, err := PackTeleporterMessage(message)
 	if err != nil {
@@ -56,7 +54,7 @@ func TestPackUnpackTeleporterMessage(t *testing.T) {
 	}
 
 	for i := 0; i < len(message.Receipts); i++ {
-		require.Equal(t, message.Receipts[i].ReceivedMessageID, unpacked.Receipts[i].ReceivedMessageID)
+		require.Equal(t, message.Receipts[i].ReceivedMessageNonce, unpacked.Receipts[i].ReceivedMessageNonce)
 		require.Equal(t, message.Receipts[i].RelayerRewardAddress, unpacked.Receipts[i].RelayerRewardAddress)
 	}
 
@@ -64,9 +62,10 @@ func TestPackUnpackTeleporterMessage(t *testing.T) {
 }
 
 func TestUnpackEvent(t *testing.T) {
-	mockBlockchainID := [32]byte{1, 2, 3, 4}
-	messageID := big.NewInt(1)
-	message := createTestTeleporterMessage(messageID.Int64())
+	mockBlockchainID := ids.ID{1, 2, 3, 4}
+	mockMessageNonce := big.NewInt(5)
+	mockMessageID := ids.ID{9, 10, 11, 12}
+	message := createTestTeleporterMessage(mockMessageNonce)
 	feeInfo := TeleporterFeeInfo{
 		FeeTokenAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		Amount:          big.NewInt(1),
@@ -86,15 +85,15 @@ func TestUnpackEvent(t *testing.T) {
 			{
 				event: SendCrossChainMessage,
 				args: []interface{}{
+					mockMessageID,
 					mockBlockchainID,
-					messageID,
 					message,
 					feeInfo,
 				},
 				out: new(TeleporterMessengerSendCrossChainMessage),
 				expected: &TeleporterMessengerSendCrossChainMessage{
 					DestinationBlockchainID: mockBlockchainID,
-					MessageID:               messageID,
+					MessageID:               mockMessageID,
 					Message:                 message,
 					FeeInfo:                 feeInfo,
 				},
@@ -102,8 +101,8 @@ func TestUnpackEvent(t *testing.T) {
 			{
 				event: ReceiveCrossChainMessage,
 				args: []interface{}{
+					mockMessageID,
 					mockBlockchainID,
-					messageID,
 					deliverer,
 					deliverer,
 					message,
@@ -111,7 +110,7 @@ func TestUnpackEvent(t *testing.T) {
 				out: new(TeleporterMessengerReceiveCrossChainMessage),
 				expected: &TeleporterMessengerReceiveCrossChainMessage{
 					OriginBlockchainID: mockBlockchainID,
-					MessageID:          messageID,
+					MessageID:          mockMessageID,
 					Deliverer:          deliverer,
 					RewardRedeemer:     deliverer,
 					Message:            message,
@@ -120,13 +119,13 @@ func TestUnpackEvent(t *testing.T) {
 			{
 				event: MessageExecuted,
 				args: []interface{}{
+					mockMessageID,
 					mockBlockchainID,
-					messageID,
 				},
 				out: new(TeleporterMessengerMessageExecuted),
 				expected: &TeleporterMessengerMessageExecuted{
+					MessageID:          mockMessageID,
 					OriginBlockchainID: mockBlockchainID,
-					MessageID:          messageID,
 				},
 			},
 		}

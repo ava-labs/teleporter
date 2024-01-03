@@ -16,26 +16,43 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
     }
 
     function testSuccess() public {
-        // Before receiving the message, it returns the 0 address.
-        uint256 mockMessageID = 8;
-        assertEq(
-            teleporterMessenger.getRelayerRewardAddress(DEFAULT_DESTINATION_CHAIN_ID, mockMessageID),
-            address(0)
+        // Receive a message
+        uint256 mockNonce = 8;
+        bytes32 mockMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockNonce
         );
-
-        // Mock receiving the message
         address relayerRewardAddress = 0xCAFebAbeDc0D4D7B7EEdCf61eb863fF413BB6234;
         _receiveTestMessage(
-            DEFAULT_DESTINATION_CHAIN_ID,
-            mockMessageID,
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            mockNonce,
             relayerRewardAddress,
             new TeleporterMessageReceipt[](0)
         );
 
         // Now it has the relayer reward address.
-        assertEq(
-            teleporterMessenger.getRelayerRewardAddress(DEFAULT_DESTINATION_CHAIN_ID, mockMessageID),
-            relayerRewardAddress
+        assertEq(teleporterMessenger.getRelayerRewardAddress(mockMessageID), relayerRewardAddress);
+    }
+
+    function testZeroRelayerRewardAddress() public {
+        // Receive a message with a zero relayer reward address
+        uint256 mockNonce = 4343;
+        bytes32 mockMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockNonce
         );
+        _receiveTestMessage(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, mockNonce, address(0), new TeleporterMessageReceipt[](0)
+        );
+
+        // Check that the zero address is returned as the reward address.
+        assertEq(teleporterMessenger.getRelayerRewardAddress(mockMessageID), address(0));
+    }
+
+    function testMessageNotReceived() public {
+        // Before receiving the given message, getRelayerRewardAddress should revert.
+        bytes32 mockMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 4242
+        );
+        vm.expectRevert(_formatTeleporterErrorMessage("message not received"));
+        teleporterMessenger.getRelayerRewardAddress(mockMessageID);
     }
 }

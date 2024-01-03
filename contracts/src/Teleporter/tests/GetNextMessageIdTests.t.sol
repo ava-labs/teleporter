@@ -20,24 +20,28 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         TeleporterMessengerTest.setUp();
     }
 
-    function testFirstMessageID() public {
-        bytes32 blockchainID =
-            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
+    function testGetMessageID() public {
+        // Generate the next expected message ID manually.
+        bytes32 expectedMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            teleporterMessenger.messageNonce()
+        );
 
-        assertEq(teleporterMessenger.getNextMessageID(blockchainID), 1);
-    }
+        // Check the contract reports the same as expected.
+        assertEq(
+            teleporterMessenger.getNextMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID),
+            expectedMessageID
+        );
 
-    function testSecondMessageID() public {
-        bytes32 blockchainID =
-            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
-
+        // Send a message to ensure it is assigned the expected ID.
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encode(IWarpMessenger.sendWarpMessage.selector),
             abi.encode(bytes32(0))
         );
         TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationBlockchainID: blockchainID,
+            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(0),
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: uint256(0)}),
             requiredGasLimit: 1e6,
@@ -45,37 +49,21 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
 
-        uint256 first = teleporterMessenger.sendCrossChainMessage(messageInput);
-        uint256 second = teleporterMessenger.getNextMessageID(blockchainID);
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(messageInput);
+        assertEq(messageID, expectedMessageID);
 
-        assertEq(first, 1);
-        assertEq(second, 2);
-    }
-
-    function testOtherDestinationSubnetID() public {
-        bytes32 blockchainID =
-            bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
-        bytes32 otherBlockchainID =
-            bytes32(hex"00000000556677889900aabbccddeeff11223344556677889900aabbccddeeff");
-
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
+        // Generate the next expected message ID now that a message has been sent.
+        bytes32 secondExpectedMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            teleporterMessenger.messageNonce()
         );
-        TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationBlockchainID: blockchainID,
-            destinationAddress: address(0),
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: uint256(0)}),
-            requiredGasLimit: 1e6,
-            allowedRelayerAddresses: new address[](0),
-            message: new bytes(0)
-        });
 
-        uint256 first = teleporterMessenger.sendCrossChainMessage(messageInput);
-        uint256 other = teleporterMessenger.getNextMessageID(otherBlockchainID);
-
-        assertEq(first, 1);
-        assertEq(other, 1);
+        // Check the contract reports the same as expected, and that is different than the first ID.
+        assertEq(
+            teleporterMessenger.getNextMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID),
+            secondExpectedMessageID
+        );
+        assertNotEq(expectedMessageID, secondExpectedMessageID);
     }
 }

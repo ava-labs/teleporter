@@ -119,7 +119,7 @@ contract NativeTokenDestination is
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
         Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), msg.value);
 
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
@@ -148,7 +148,7 @@ contract NativeTokenDestination is
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
         uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,

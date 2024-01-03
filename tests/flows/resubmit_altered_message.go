@@ -41,14 +41,14 @@ func ResubmitAlteredMessage(network interfaces.Network) {
 
 	log.Info("Checking the message was received on the destination")
 	delivered, err :=
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
 	// Get the Teleporter message from receive event
 	event, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.MessageID).Should(Equal(messageID))
+	Expect(event.MessageID[:]).Should(Equal(messageID[:]))
 	teleporterMessage := event.Message
 
 	// Alter the message
@@ -63,7 +63,7 @@ func ResubmitAlteredMessage(network interfaces.Network) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err :=
-		subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(opts, subnetBInfo.BlockchainID, teleporterMessage)
+		subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(opts, teleporterMessage)
 	Expect(err).ShouldNot(BeNil())
 
 	// We expect the tx to be nil because the Warp message failed verification, which happens in the predicate
