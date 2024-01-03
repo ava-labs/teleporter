@@ -36,7 +36,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             ""
         );
         nativeTokenDestination = new NativeTokenDestination(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             _DEFAULT_INITIAL_RESERVE_IMBALANCE
@@ -183,9 +183,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     }
 
     function testZeroTeleporterAddress() public {
-        vm.expectRevert(
-            _formatNativeTokenDestinationErrorMessage("zero TeleporterMessenger address")
-        );
+        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
 
         new NativeTokenDestination(
             address(0x0),
@@ -199,7 +197,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source blockchain ID"));
 
         new NativeTokenDestination(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             bytes32(0),
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             _DEFAULT_INITIAL_RESERVE_IMBALANCE
@@ -212,7 +210,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         );
 
         new NativeTokenDestination(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             _DEFAULT_INITIAL_RESERVE_IMBALANCE
@@ -223,7 +221,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source contract address"));
 
         new NativeTokenDestination(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x0),
             _DEFAULT_INITIAL_RESERVE_IMBALANCE
@@ -234,7 +232,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero initial reserve imbalance"));
 
         new NativeTokenDestination(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             0
@@ -242,9 +240,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     }
 
     function testInvalidTeleporterAddress() public {
-        vm.expectRevert(
-            _formatNativeTokenDestinationErrorMessage("unauthorized TeleporterMessenger contract")
-        );
+        vm.expectRevert("TeleporterUpgradeable: invalid Teleporter sender");
 
         vm.prank(address(0x123));
         nativeTokenDestination.receiveTeleporterMessage(

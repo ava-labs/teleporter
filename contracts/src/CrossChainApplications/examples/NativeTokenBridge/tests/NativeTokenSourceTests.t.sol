@@ -29,7 +29,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
     function setUp() public virtual override {
         NativeTokenBridgeTest.setUp();
         nativeTokenSource = new NativeTokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS
         );
@@ -154,7 +154,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testZeroTeleporterAddress() public {
-        vm.expectRevert(_formatNativeTokenSourceErrorMessage("zero TeleporterMessenger address"));
+        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
 
         new NativeTokenSource(
             address(0x0),
@@ -167,7 +167,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatNativeTokenSourceErrorMessage("zero destination blockchain ID"));
 
         new NativeTokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             bytes32(0),
             _DEFAULT_OTHER_BRIDGE_ADDRESS
         );
@@ -177,7 +177,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatNativeTokenSourceErrorMessage("cannot bridge with same blockchain"));
 
         new NativeTokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS
         );
@@ -187,16 +187,14 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatNativeTokenSourceErrorMessage("zero destination contract address"));
 
         new NativeTokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x0)
         );
     }
 
     function testInvalidTeleporterAddress() public {
-        vm.expectRevert(
-            _formatNativeTokenSourceErrorMessage("unauthorized TeleporterMessenger contract")
-        );
+        vm.expectRevert("TeleporterUpgradeable: invalid Teleporter sender");
 
         vm.prank(address(0x123));
         nativeTokenSource.receiveTeleporterMessage(

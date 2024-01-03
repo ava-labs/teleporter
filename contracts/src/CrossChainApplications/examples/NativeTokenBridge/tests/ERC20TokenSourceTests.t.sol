@@ -29,7 +29,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
     function setUp() public virtual override {
         NativeTokenBridgeTest.setUp();
         erc20TokenSource = new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -148,7 +148,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testZeroTeleporterAddress() public {
-        vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero TeleporterMessenger address"));
+        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
 
         new ERC20TokenSource(
             address(0x0),
@@ -162,7 +162,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero destination blockchain ID"));
 
         new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             bytes32(0),
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -173,7 +173,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("cannot bridge with same blockchain"));
 
         new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -184,10 +184,21 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero destination contract address"));
 
         new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x0),
             address(mockERC20)
+        );
+    }
+
+    function testInvalidTeleporterAddress() public {
+        vm.expectRevert("TeleporterUpgradeable: invalid Teleporter sender");
+
+        vm.prank(address(0x123));
+        erc20TokenSource.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
         );
     }
 
@@ -195,26 +206,10 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero ERC20 contract address"));
 
         new ERC20TokenSource(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(0x0)
-        );
-    }
-
-    function testInvalidTeleporterAddress() public {
-        vm.expectRevert(
-            _formatERC20TokenSourceErrorMessage("unauthorized TeleporterMessenger contract")
-        );
-
-        vm.prank(address(0x123));
-        erc20TokenSource.receiveTeleporterMessage(
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
         );
     }
 

@@ -15,7 +15,7 @@ import {
     TeleporterFeeInfo,
     TeleporterMessageInput
 } from "@teleporter/ITeleporterMessenger.sol";
-import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
+import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -27,7 +27,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
  */
 
 contract NativeTokenSource is
-    ITeleporterReceiver,
+    TeleporterOwnerUpgradeable,
     INativeTokenSource,
     ITokenSource,
     ReentrancyGuard
@@ -43,20 +43,11 @@ contract NativeTokenSource is
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
 
-    // Used for sending and receiving Teleporter messages.
-    ITeleporterMessenger public immutable teleporterMessenger;
-
     constructor(
-        address teleporterMessengerAddress,
+        address teleporterRegistryAddress,
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_
-    ) {
-        require(
-            teleporterMessengerAddress != address(0),
-            "NativeTokenSource: zero TeleporterMessenger address"
-        );
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
-
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
         require(
             destinationBlockchainID_ != bytes32(0),
             "NativeTokenSource: zero destination blockchain ID"
@@ -76,48 +67,6 @@ contract NativeTokenSource is
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
-     *
-     * Receives a Teleporter message and routes to the appropriate internal function call.
-     */
-    function receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
-        address senderAddress,
-        bytes calldata message
-    ) external nonReentrant {
-        // Only allow the Teleporter messenger to deliver messages.
-        require(
-            msg.sender == address(teleporterMessenger),
-            "NativeTokenSource: unauthorized TeleporterMessenger contract"
-        );
-
-        // Only allow messages from the destination chain.
-        require(
-            senderBlockchainID == destinationBlockchainID,
-            "NativeTokenSource: invalid destination chain"
-        );
-
-        // Only allow the partner contract to send messages.
-        require(
-            senderAddress == nativeTokenDestinationAddress, "NativeTokenSource: unauthorized sender"
-        );
-
-        // Decode the payload to recover the action and corresponding function parameters
-        (SourceAction action, bytes memory actionData) = abi.decode(message, (SourceAction, bytes));
-
-        // Route to the appropriate function.
-        if (action == SourceAction.Unlock) {
-            (address recipient, uint256 amount) = abi.decode(actionData, (address, uint256));
-            _unlockTokens(recipient, amount);
-        } else if (action == SourceAction.Burn) {
-            uint256 newBurnTotal = abi.decode(actionData, (uint256));
-            _handleBurnTokens(newBurnTotal);
-        } else {
-            revert("NativeTokenSource: invalid action");
-        }
-    }
-
-    /**
      * @dev See {INativeTokenSource-transferToDestination}.
      */
     function transferToDestination(
@@ -125,6 +74,8 @@ contract NativeTokenSource is
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
+
         // The recipient cannot be the zero address.
         require(recipient != address(0), "NativeTokenSource: zero recipient address");
 
@@ -158,6 +109,42 @@ contract NativeTokenSource is
             amount: msg.value,
             teleporterMessageID: messageID
         });
+    }
+
+    /**
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
+     *
+     * Receives a Teleporter message and routes to the appropriate internal function call.
+     */
+    function _receiveTeleporterMessage(
+        bytes32 senderBlockchainID,
+        address senderAddress,
+        bytes memory message
+    ) internal override {
+        // Only allow messages from the destination chain.
+        require(
+            senderBlockchainID == destinationBlockchainID,
+            "NativeTokenSource: invalid destination chain"
+        );
+
+        // Only allow the partner contract to send messages.
+        require(
+            senderAddress == nativeTokenDestinationAddress, "NativeTokenSource: unauthorized sender"
+        );
+
+        // Decode the payload to recover the action and corresponding function parameters
+        (SourceAction action, bytes memory actionData) = abi.decode(message, (SourceAction, bytes));
+
+        // Route to the appropriate function.
+        if (action == SourceAction.Unlock) {
+            (address recipient, uint256 amount) = abi.decode(actionData, (address, uint256));
+            _unlockTokens(recipient, amount);
+        } else if (action == SourceAction.Burn) {
+            uint256 newBurnTotal = abi.decode(actionData, (uint256));
+            _handleBurnTokens(newBurnTotal);
+        } else {
+            revert("NativeTokenSource: invalid action");
+        }
     }
 
     /**
