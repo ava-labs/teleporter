@@ -69,7 +69,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     mapping(bytes32 messageID => bytes32 messageHash) public receivedFailedMessageHashes;
 
     // Tracks the message nonce for each message that has been received. The key is the message ID,
-    // and the value is the nonce value that was received as a part for that message.
+    // and the value is the nonce value that was received as a part of that message.
     // Note: the `messageNonce` values are also used to determine if a given message has been received or not.
     mapping(bytes32 messageID => uint256 messageNonce) internal _receivedMessageNonces;
 
