@@ -16,7 +16,7 @@ import {
     TeleporterFeeInfo,
     TeleporterMessageInput
 } from "@teleporter/ITeleporterMessenger.sol";
-import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
+import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -29,7 +29,11 @@ import {IAllowList} from "@subnet-evm-contracts/interfaces/IAllowList.sol";
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
-contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination, ReentrancyGuard {
+contract NativeTokenDestination is
+    TeleporterOwnerUpgradeable,
+    INativeTokenDestination,
+    ReentrancyGuard
+{
     // The address where the burned transaction fees are credited.
     // Defined as BLACKHOLE_ADDRESS at
     // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
@@ -53,21 +57,12 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
     uint256 public currentReserveImbalance;
     uint256 public totalMinted;
 
-    // Used for sending and receiving Teleporter messages.
-    ITeleporterMessenger public immutable teleporterMessenger;
-
     constructor(
-        address teleporterMessengerAddress,
+        address teleporterRegistryAddress,
         bytes32 sourceBlockchainID_,
         address nativeTokenSourceAddress_,
         uint256 initialReserveImbalance_
-    ) {
-        require(
-            teleporterMessengerAddress != address(0),
-            "NativeTokenDestination: zero TeleporterMessenger address"
-        );
-        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
-
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
         require(
             sourceBlockchainID_ != bytes32(0), "NativeTokenDestination: zero source blockchain ID"
         );
@@ -93,58 +88,6 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
     }
 
     /**
-     * @dev See {ITeleporterReceiver-receiveTeleporterMessage}.
-     *
-     * Receives a Teleporter message.
-     */
-    function receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
-        address senderAddress,
-        bytes calldata message
-    ) external nonReentrant {
-        // Only allow the Teleporter messenger to deliver messages.
-        require(
-            msg.sender == address(teleporterMessenger),
-            "NativeTokenDestination: unauthorized TeleporterMessenger contract"
-        );
-
-        // Only allow messages from the source chain.
-        require(
-            senderBlockchainID == sourceBlockchainID, "NativeTokenDestination: invalid source chain"
-        );
-
-        // Only allow the partner contract to send messages.
-        require(
-            senderAddress == nativeTokenSourceAddress, "NativeTokenDestination: unauthorized sender"
-        );
-
-        (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
-        require(recipient != address(0), "NativeTokenDestination: zero recipient address");
-        require(amount != 0, "NativeTokenDestination: zero transfer value");
-
-        // If the contract has not yet been collateralized, we will deduct as many tokens
-        // as needed from the transfer as needed. If there are any excess tokens, they will
-        // be minted and sent to the recipient.
-        uint256 adjustedAmount = amount;
-        if (currentReserveImbalance > 0) {
-            if (amount > currentReserveImbalance) {
-                emit CollateralAdded({amount: currentReserveImbalance, remaining: 0});
-                adjustedAmount = amount - currentReserveImbalance;
-                currentReserveImbalance = 0;
-            } else {
-                currentReserveImbalance -= amount;
-                emit CollateralAdded({amount: amount, remaining: currentReserveImbalance});
-                return;
-            }
-        }
-
-        totalMinted += adjustedAmount;
-        emit NativeTokensMinted(recipient, adjustedAmount);
-        // Calls NativeMinter precompile through INativeMinter interface.
-        _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
-    }
-
-    /**
      * @dev See {INativeTokenDestination-transferToSource}.
      */
     function transferToSource(
@@ -152,6 +95,7 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
         // The recipient cannot be the zero address.
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
 
@@ -201,6 +145,8 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external {
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
+
         uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
         uint256 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
@@ -235,5 +181,51 @@ contract NativeTokenDestination is ITeleporterReceiver, INativeTokenDestination,
         uint256 created = totalMinted + initialReserveImbalance;
 
         return created - burned;
+    }
+
+    /**
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
+     *
+     * Receives a Teleporter message.
+     */
+    function _receiveTeleporterMessage(
+        bytes32 senderBlockchainID,
+        address senderAddress,
+        bytes memory message
+    ) internal override {
+        // Only allow messages from the source chain.
+        require(
+            senderBlockchainID == sourceBlockchainID, "NativeTokenDestination: invalid source chain"
+        );
+
+        // Only allow the partner contract to send messages.
+        require(
+            senderAddress == nativeTokenSourceAddress, "NativeTokenDestination: unauthorized sender"
+        );
+
+        (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
+        require(recipient != address(0), "NativeTokenDestination: zero recipient address");
+        require(amount != 0, "NativeTokenDestination: zero transfer value");
+
+        // If the contract has not yet been collateralized, we will deduct as many tokens
+        // as needed from the transfer as needed. If there are any excess tokens, they will
+        // be minted and sent to the recipient.
+        uint256 adjustedAmount = amount;
+        if (currentReserveImbalance > 0) {
+            if (amount > currentReserveImbalance) {
+                emit CollateralAdded({amount: currentReserveImbalance, remaining: 0});
+                adjustedAmount = amount - currentReserveImbalance;
+                currentReserveImbalance = 0;
+            } else {
+                currentReserveImbalance -= amount;
+                emit CollateralAdded({amount: amount, remaining: currentReserveImbalance});
+                return;
+            }
+        }
+
+        totalMinted += adjustedAmount;
+        emit NativeTokensMinted(recipient, adjustedAmount);
+        // Calls NativeMinter precompile through INativeMinter interface.
+        _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
     }
 }
