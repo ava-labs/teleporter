@@ -40,7 +40,7 @@ blockchainID=$(cast call $warp_messenger_precompile_addr "getBlockchainID()(byte
 echo "Got blockchain ID $blockchainID"
 
 echo "Sending call to teleporter contract address $teleporter_contract_address $subnet_a_blockchain_id_hex $c_chain_rpc_url"
-result=$(cast call $teleporter_contract_address "getNextMessageID(bytes32)(uint256)" $subnet_a_blockchain_id_hex --rpc-url $c_chain_rpc_url)
+result=$(cast call $teleporter_contract_address "getNextMessageID(bytes32)(bytes32)" $subnet_a_blockchain_id_hex --rpc-url $c_chain_rpc_url)
 echo "Next message ID for subnet $subnet_a_blockchain_id_hex is $result"
 
 # Directly send a transaction to the teleporter contract sendCrossChainMessage function.
@@ -67,13 +67,12 @@ fi
 
 echo "Approved the Teleporter contract to spend the test ERC20 token from the user account."
 
-startID=$(cast call $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_c_chain,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --from $user_address --rpc-url $c_chain_rpc_url)
+startID=$(cast call $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(bytes32)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_c_chain,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --from $user_address --rpc-url $c_chain_rpc_url)
 echo "Got starting ID $startID to teleport address $teleporter_contract_address"
-echo "Got Ids $c_chain_blockchain_id_hex $subnet_a_blockchain_id_hex $c_chain_subnet_id $subnet_a_subnet_id"
-cast send $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_c_chain,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --private-key $user_private_key --rpc-url $c_chain_rpc_url
+cast send $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(bytes32)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_c_chain,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --private-key $user_private_key --rpc-url $c_chain_rpc_url
 
 retry_count=0
-received=$(cast call $teleporter_contract_address "messageReceived(bytes32,uint256)(bool)" $c_chain_blockchain_id_hex $startID --rpc-url $subnet_a_rpc_url)
+received=$(cast call $teleporter_contract_address "messageReceived(bytes32)(bool)" $startID --rpc-url $subnet_a_rpc_url)
 until [[ $received == "true" ]]
 do
     if [[ retry_count -ge 10 ]]; then
@@ -83,7 +82,7 @@ do
     echo "Waiting for destination chain on Subnet A to receive message ID $startID. Retry count: $retry_count"
     sleep 3
 
-    received=$(cast call $teleporter_contract_address "messageReceived(bytes32,uint256)(bool)" $c_chain_blockchain_id_hex $startID --rpc-url $subnet_a_rpc_url)
+    received=$(cast call $teleporter_contract_address "messageReceived(bytes32)(bool)" $startID --rpc-url $subnet_a_rpc_url)
     retry_count=$((retry_count+1))
 done
 
@@ -98,7 +97,7 @@ blockchainID=$(cast call $warp_messenger_precompile_addr "getBlockchainID()(byte
 echo "Got blockchain ID $blockchainID"
 
 echo "Sending call to teleporter contract address $teleporter_contract_address $c_chain_blockchain_id_hex $subnet_a_subnet_id"
-result=$(cast call $teleporter_contract_address "getNextMessageID(bytes32)(uint256)" $c_chain_blockchain_id_hex --rpc-url $subnet_a_rpc_url)
+result=$(cast call $teleporter_contract_address "getNextMessageID(bytes32)(bytes32)" $c_chain_blockchain_id_hex --rpc-url $subnet_a_rpc_url)
 echo "Next message ID for subnet $c_chain_blockchain_id_hex is $result"
 
 # Directly send a few transaction to the teleporter contract sendCrossChainMessage function.
@@ -119,13 +118,13 @@ fi
 
 echo "Approved the Teleporter contract to spend the test ERC20 token from the user account."
 
-startID=$(cast call $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_a,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --from $user_address --rpc-url $subnet_a_rpc_url)
+startID=$(cast call $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(bytes32)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_a,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --from $user_address --rpc-url $subnet_a_rpc_url)
 echo "Got starting ID $startID to teleport address $teleporter_contract_address"
 echo "Got Ids $subnet_a_blockchain_id_hex $c_chain_blockchain_id_hex $subnet_a_subnet_id $c_chain_subnet_id"
-cast send $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(uint256)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_a,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --private-key $user_private_key --rpc-url $subnet_a_rpc_url
+cast send $teleporter_contract_address "sendCrossChainMessage((bytes32,address,(address,uint256),uint256,address[],bytes))(bytes32)" "($send_cross_subnet_message_destination_chain_id,$send_cross_subnet_message_destination_address,($erc20_contract_address_a,$send_cross_subnet_message_fee_amount),$send_cross_subnet_message_required_gas_limit,[],$send_cross_subnet_message_message_data)" --private-key $user_private_key --rpc-url $subnet_a_rpc_url
 
 retry_count=0
-received=$(cast call $teleporter_contract_address "messageReceived(bytes32,uint256)(bool)" $subnet_a_blockchain_id_hex $startID --rpc-url $c_chain_rpc_url)
+received=$(cast call $teleporter_contract_address "messageReceived(bytes32)(bool)" $startID --rpc-url $c_chain_rpc_url)
 until [[ $received == "true" ]]
 do
     if [[ retry_count -ge 10 ]]; then
@@ -135,7 +134,7 @@ do
     echo "Waiting for the C-Chain to receive message ID $startID. Retry count: $retry_count"
     sleep 3
 
-    received=$(cast call $teleporter_contract_address "messageReceived(bytes32,uint256)(bool)" $subnet_a_blockchain_id_hex $startID  --rpc-url $c_chain_rpc_url)
+    received=$(cast call $teleporter_contract_address "messageReceived(bytes32)(bool)" $startID  --rpc-url $c_chain_rpc_url)
     retry_count=$((retry_count+1))
 done
 

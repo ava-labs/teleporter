@@ -5,10 +5,10 @@
 
 pragma solidity 0.8.18;
 
-// A message receipt identifies the message ID that was delivered
+// A message receipt identifies the message that was delivered by its nonce,
 // and the address that can redeem the reward for that message.
 struct TeleporterMessageReceipt {
-    uint256 receivedMessageID;
+    uint256 receivedMessageNonce;
     address relayerRewardAddress;
 }
 
@@ -28,7 +28,7 @@ struct TeleporterMessageInput {
 
 // Represents a message sent or received by an implementation of {ITeleporterMessenger}.
 struct TeleporterMessage {
-    uint256 messageID;
+    uint256 messageNonce;
     address senderAddress;
     bytes32 destinationBlockchainID;
     address destinationAddress;
@@ -53,11 +53,16 @@ struct TeleporterFeeInfo {
  */
 interface ITeleporterMessenger {
     /**
+     * Emitted when the blockchain ID of the contract instance is initialized using the Warp precompile.
+     */
+    event BlockchainIDInitialized(bytes32 indexed blockchainID);
+
+    /**
      * @dev Emitted when sending a Teleporter message cross-chain.
      */
     event SendCrossChainMessage(
+        bytes32 indexed messageID,
         bytes32 indexed destinationBlockchainID,
-        uint256 indexed messageID,
         TeleporterMessage message,
         TeleporterFeeInfo feeInfo
     );
@@ -66,18 +71,14 @@ interface ITeleporterMessenger {
      * @dev Emitted when an additional fee amount is added to a Teleporter message that had previously
      * been sent, but not yet delivered to the destination chain.
      */
-    event AddFeeAmount(
-        bytes32 indexed destinationBlockchainID,
-        uint256 indexed messageID,
-        TeleporterFeeInfo updatedFeeInfo
-    );
+    event AddFeeAmount(bytes32 indexed messageID, TeleporterFeeInfo updatedFeeInfo);
 
     /**
      * @dev Emitted when a Teleporter message is being delivered on the destination chain to an address,
      * but message execution fails. Failed messages can then be retried with `retryMessageExecution`
      */
     event MessageExecutionFailed(
-        bytes32 indexed originBlockchainID, uint256 indexed messageID, TeleporterMessage message
+        bytes32 indexed messageID, bytes32 indexed originBlockchainID, TeleporterMessage message
     );
 
     /**
@@ -87,14 +88,14 @@ interface ITeleporterMessenger {
      *
      * Each message received can be executed successfully at most once.
      */
-    event MessageExecuted(bytes32 indexed originBlockchainID, uint256 indexed messageID);
+    event MessageExecuted(bytes32 indexed messageID, bytes32 indexed originBlockchainID);
 
     /**
      * @dev Emitted when a TeleporterMessage is successfully received.
      */
     event ReceiveCrossChainMessage(
+        bytes32 indexed messageID,
         bytes32 indexed originBlockchainID,
-        uint256 indexed messageID,
         address indexed deliverer,
         address rewardRedeemer,
         TeleporterMessage message
@@ -111,7 +112,7 @@ interface ITeleporterMessenger {
      */
     function sendCrossChainMessage(TeleporterMessageInput calldata messageInput)
         external
-        returns (uint256);
+        returns (bytes32);
 
     /**
      * @dev Called by transactions to retry the sending of a cross-chain message.
@@ -122,10 +123,7 @@ interface ITeleporterMessenger {
      * The message is checked to have already been previously submitted by comparing its message hash against those kept in
      * state until a receipt is received for the message.
      */
-    function retrySendCrossChainMessage(
-        bytes32 destinationBlockchainID,
-        TeleporterMessage calldata message
-    ) external;
+    function retrySendCrossChainMessage(TeleporterMessage calldata message) external;
 
     /**
      * @dev Adds the additional fee amount to the amount to be paid to the relayer that delivers
@@ -136,8 +134,7 @@ interface ITeleporterMessenger {
      * receipt of delivery of the message.
      */
     function addFeeAmount(
-        bytes32 destinationBlockchainID,
-        uint256 messageID,
+        bytes32 messageID,
         address feeTokenAddress,
         uint256 additionalFeeAmount
     ) external;
@@ -174,10 +171,10 @@ interface ITeleporterMessenger {
      */
     function sendSpecifiedReceipts(
         bytes32 originBlockchainID,
-        uint256[] calldata messageIDs,
+        bytes32[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
-    ) external returns (uint256);
+    ) external returns (bytes32);
 
     /**
      * @dev Sends any fee amount rewards for the given fee asset out to the caller.
@@ -188,29 +185,20 @@ interface ITeleporterMessenger {
      * @dev Gets the hash of a given message stored in the EVM state, if the message exists.
      * @return The message hash
      */
-    function getMessageHash(
-        bytes32 destinationBlockchainID,
-        uint256 messageID
-    ) external view returns (bytes32);
+    function getMessageHash(bytes32 messageID) external view returns (bytes32);
 
     /**
      * @dev Checks whether or not the given message has been received by this chain.
      * @return Boolean representing if the given message has been received.
      */
-    function messageReceived(
-        bytes32 originBlockchainID,
-        uint256 messageID
-    ) external view returns (bool);
+    function messageReceived(bytes32 messageID) external view returns (bool);
 
     /**
      * @dev Returns the address the relayer reward should be sent to on the origin chain
      * for a given message, assuming that the message has already been delivered.
      * @return The relayer reward address for the given message.
      */
-    function getRelayerRewardAddress(
-        bytes32 originBlockchainID,
-        uint256 messageID
-    ) external view returns (address);
+    function getRelayerRewardAddress(bytes32 messageID) external view returns (address);
 
     /**
      * @dev Gets the current reward amount of a given fee asset that is redeemable by the given relayer.
@@ -222,19 +210,21 @@ interface ITeleporterMessenger {
     ) external view returns (uint256);
 
     /**
-     * @dev Gets the fee token address and amount for a given message.
-     * @return The fee token address and fee amount for a the given message.
+     * @dev Gets the fee token address and amount for a given sent message.
+     * @return The fee token address and fee amount for a the given sent message ID.
+     * If the message ID is not found, zero address and amount values are returned.
      */
-    function getFeeInfo(
-        bytes32 destinationBlockchainID,
-        uint256 messageID
-    ) external view returns (address, uint256);
+    function getFeeInfo(bytes32 messageID) external view returns (address, uint256);
 
     /**
-     * @dev Gets the next message ID to be used for a given chain ID.
-     * @return The next message ID to be used to send a message to the given chain ID.
+     * @dev Gets the message ID that would currently be used for the next message sent from the contract
+     * instance to the given destination blockchain. Note that this message ID may never be used in the
+     * event that the next call to sendCrossChainMessage in a transaction uses a different destination
+     * blockchain. The current value as returned by this function will change with each successful call
+     * to sendCrossChainMessage.
+     * @return The specified message ID.
      */
-    function getNextMessageID(bytes32 destinationBlockchainID) external view returns (uint256);
+    function getNextMessageID(bytes32 destinationBlockchainID) external view returns (bytes32);
 
     /**
      * @dev Gets the number of receipts that are waiting to be sent to the given origin chain ID.

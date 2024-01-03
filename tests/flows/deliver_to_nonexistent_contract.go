@@ -75,7 +75,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(sendEvent.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
-	teleporterMessageID := sendEvent.Message.MessageID
+	teleporterMessageID := sendEvent.MessageID
 
 	//
 	// Relay the message to the destination
@@ -85,7 +85,6 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	receiveEvent, err :=
 		utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
-	deliveredTeleporterMessage := receiveEvent.Message
 
 	//
 	// Check that the message was successfully relayed
@@ -93,7 +92,6 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	log.Info("Checking the message was successfully relayed")
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{},
-		subnetAInfo.BlockchainID,
 		teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
@@ -108,7 +106,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 		subnetBInfo.TeleporterMessenger.ParseMessageExecutionFailed,
 	)
 	Expect(err).Should(BeNil())
-	Expect(executionFailedEvent.Message.MessageID).Should(Equal(deliveredTeleporterMessage.MessageID))
+	Expect(executionFailedEvent.MessageID).Should(Equal(receiveEvent.MessageID))
 
 	//
 	// Deploy the contract on Subnet B
@@ -128,7 +126,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 		ctx,
 		subnetAInfo.BlockchainID,
 		subnetBInfo,
-		deliveredTeleporterMessage,
+		receiveEvent.Message,
 		fundedKey,
 	)
 

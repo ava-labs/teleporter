@@ -221,7 +221,7 @@ contract ERC20Bridge is IERC20Bridge, ReentrancyGuard, TeleporterOwnerUpgradeabl
         );
 
         // Send Teleporter message.
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: destinationBridgeAddress,
@@ -541,7 +541,7 @@ contract ERC20Bridge is IERC20Bridge, ReentrancyGuard, TeleporterOwnerUpgradeabl
         bytes memory messageData =
             encodeMintBridgeTokensData(nativeContractAddress, recipient, bridgeAmount);
 
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: destinationBridgeAddress,
@@ -625,7 +625,7 @@ contract ERC20Bridge is IERC20Bridge, ReentrancyGuard, TeleporterOwnerUpgradeabl
             feeAmount: wrappedTransferInfo.secondaryFeeAmount
         });
 
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: nativeBlockchainID,
                 destinationAddress: nativeBridgeAddress,

@@ -26,6 +26,8 @@ contract ERC20BridgeTest is Test {
         0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
     address public constant WARP_PRECOMPILE_ADDRESS =
         address(0x0200000000000000000000000000000000000005);
+    bytes32 internal constant _MOCK_MESSAGE_ID =
+        bytes32(hex"1111111111111111111111111111111111111111111111111111111111111111");
     bytes32 private constant _MOCK_BLOCKCHAIN_ID = bytes32(uint256(123456));
     bytes32 private constant _DEFAULT_OTHER_CHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
@@ -42,7 +44,7 @@ contract ERC20BridgeTest is Test {
     event BridgeTokens(
         address indexed tokenContractAddress,
         bytes32 indexed destinationBlockchainID,
-        uint256 indexed teleporterMessageID,
+        bytes32 indexed teleporterMessageID,
         address destinationBridgeAddress,
         address recipient,
         uint256 amount
@@ -52,7 +54,7 @@ contract ERC20BridgeTest is Test {
         bytes32 indexed destinationBlockchainID,
         address indexed destinationBridgeAddress,
         address indexed nativeContractAddress,
-        uint256 teleporterMessageID
+        bytes32 teleporterMessageID
     );
 
     event CreateBridgeToken(
@@ -192,11 +194,10 @@ contract ERC20BridgeTest is Test {
                 )
         });
 
-        uint256 mockMessageID = 42;
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
-            abi.encode(mockMessageID)
+            abi.encode(_MOCK_MESSAGE_ID)
         );
         vm.expectCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -207,7 +208,7 @@ contract ERC20BridgeTest is Test {
         emit BridgeTokens({
             tokenContractAddress: address(mockERC20),
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
-            teleporterMessageID: mockMessageID,
+            teleporterMessageID: _MOCK_MESSAGE_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             recipient: _DEFAULT_RECIPIENT,
             amount: totalAmount
@@ -301,11 +302,10 @@ contract ERC20BridgeTest is Test {
             abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, feeAmount))
         );
 
-        uint256 mockMessageID = 42;
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
-            abi.encode(mockMessageID)
+            abi.encode(_MOCK_MESSAGE_ID)
         );
         vm.expectCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -316,7 +316,7 @@ contract ERC20BridgeTest is Test {
         emit BridgeTokens({
             tokenContractAddress: address(mockERC20),
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
-            teleporterMessageID: mockMessageID,
+            teleporterMessageID: _MOCK_MESSAGE_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             recipient: _DEFAULT_RECIPIENT,
             amount: bridgeAmount
@@ -378,11 +378,10 @@ contract ERC20BridgeTest is Test {
             abi.encodeCall(IERC20.approve, (MOCK_TELEPORTER_MESSENGER_ADDRESS, bridgeFeeAmount))
         );
 
-        uint256 mockMessageID = 42;
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
-            abi.encode(mockMessageID)
+            abi.encode(_MOCK_MESSAGE_ID)
         );
         vm.expectCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -393,7 +392,7 @@ contract ERC20BridgeTest is Test {
         emit BridgeTokens({
             tokenContractAddress: address(mockERC20),
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
-            teleporterMessageID: mockMessageID,
+            teleporterMessageID: _MOCK_MESSAGE_ID,
             destinationBridgeAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             recipient: _DEFAULT_RECIPIENT,
             amount: expectedBridgeAmount
@@ -586,11 +585,10 @@ contract ERC20BridgeTest is Test {
                 )
         });
 
-        uint256 mockMessageID = 456;
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
-            abi.encode(mockMessageID)
+            abi.encode(_MOCK_MESSAGE_ID)
         );
         vm.expectCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -599,7 +597,10 @@ contract ERC20BridgeTest is Test {
 
         vm.expectEmit(true, true, true, true, address(erc20Bridge));
         emit SubmitCreateBridgeToken(
-            destinationBlockchainID, destinationBridgeAddress, nativeContractAddress, mockMessageID
+            destinationBlockchainID,
+            destinationBridgeAddress,
+            nativeContractAddress,
+            _MOCK_MESSAGE_ID
         );
 
         erc20Bridge.submitCreateBridgeToken(

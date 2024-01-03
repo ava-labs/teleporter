@@ -18,11 +18,11 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
     function testSuccess() public {
         // First submit a message with a fee
         uint256 feeAmount = 1687435413;
-        uint256 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_CHAIN_ID, feeAmount);
+        bytes32 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, feeAmount);
 
         // Get the fee info to make sure it is correct.
         (address actualFeeAsset, uint256 actualFeeAmount) =
-            teleporterMessenger.getFeeInfo(DEFAULT_DESTINATION_CHAIN_ID, messageID);
+            teleporterMessenger.getFeeInfo(messageID);
         assertEq(actualFeeAsset, address(_mockFeeAsset));
         assertEq(actualFeeAmount, feeAmount);
     }
@@ -33,12 +33,12 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
         uint256 feeAmount = 1687435413;
         uint256 tokenTransferFee = 35413;
         _mockFeeAsset.setFeeOnTransferSender(address(this), tokenTransferFee);
-        uint256 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_CHAIN_ID, feeAmount);
+        bytes32 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, feeAmount);
 
         // Get the fee info to make sure it is correct, including the fee amount being less than
         // the amount specified when submitting the message due to the "fee on token transfer".
         (address actualFeeAsset, uint256 actualFeeAmount) =
-            teleporterMessenger.getFeeInfo(DEFAULT_DESTINATION_CHAIN_ID, messageID);
+            teleporterMessenger.getFeeInfo(messageID);
         assertEq(actualFeeAsset, address(_mockFeeAsset));
         assertEq(actualFeeAmount, feeAmount - tokenTransferFee);
     }
@@ -46,30 +46,31 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
     function testAfterReceipt() public {
         // First submit a message with a small fee
         uint256 feeAmount = 10;
-        uint256 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_CHAIN_ID, feeAmount);
+        uint256 expectedNonce = teleporterMessenger.messageNonce();
+        bytes32 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, feeAmount);
 
         // Now mock receiving a message back from that subnet with a receipt of the above message.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
-            receivedMessageID: messageID,
+            receivedMessageNonce: expectedNonce,
             relayerRewardAddress: relayerRewardAddress
         });
-        _receiveTestMessage(DEFAULT_DESTINATION_CHAIN_ID, messageID, relayerRewardAddress, receipts);
+        _receiveTestMessage(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 6, relayerRewardAddress, receipts);
 
         // Now, if we get the fee info for the message it should be reported as zero since the receipt has already been received.
         (address actualFeeAsset, uint256 actualFeeAmount) =
-            teleporterMessenger.getFeeInfo(DEFAULT_DESTINATION_CHAIN_ID, messageID);
+            teleporterMessenger.getFeeInfo(messageID);
         assertEq(actualFeeAsset, address(0));
         assertEq(actualFeeAmount, 0);
     }
 
     function testInvalidMessage() public {
-        uint256 fakeMessageID = 4646;
+        bytes32 fakeMessageID = bytes32(uint256(4646));
 
         // Get the fee info to make sure it is zero since the message doesn't exist.
         (address actualFeeAsset, uint256 actualFeeAmount) =
-            teleporterMessenger.getFeeInfo(DEFAULT_DESTINATION_CHAIN_ID, fakeMessageID);
+            teleporterMessenger.getFeeInfo(fakeMessageID);
         assertEq(actualFeeAsset, address(0));
         assertEq(actualFeeAmount, 0);
     }

@@ -211,7 +211,7 @@ func (n *testNetwork) RelayMessage(ctx context.Context,
 	)
 	Expect(err).Should(BeNil())
 
-	teleporterMessageID := sendEvent.Message.MessageID
+	teleporterMessageID := sendEvent.MessageID
 
 	receipt, err := n.getMessageDeliveryTransactionReceipt(cctx, source.BlockchainID, destination, teleporterMessageID)
 	Expect(err).Should(BeNil())
@@ -223,7 +223,7 @@ func (n *testNetwork) RelayMessage(ctx context.Context,
 func (n *testNetwork) checkMessageDelivered(
 	sourceBlockchainID ids.ID,
 	destination interfaces.SubnetTestInfo,
-	teleporterMessageID *big.Int) (bool, error) {
+	teleporterMessageID ids.ID) (bool, error) {
 	destinationTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
 		n.teleporterContractAddress,
 		destination.RPCClient)
@@ -232,7 +232,7 @@ func (n *testNetwork) checkMessageDelivered(
 	}
 
 	return destinationTeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, sourceBlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 }
 
@@ -240,7 +240,7 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	ctx context.Context,
 	sourceBlockchainID ids.ID,
 	destination interfaces.SubnetTestInfo,
-	teleporterMessageID *big.Int) (*types.Receipt, error) {
+	teleporterMessageID ids.ID) (*types.Receipt, error) {
 	// Wait until the message is delivered.
 	delivered := false
 	var err error
@@ -277,7 +277,7 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 		Topics: [][]common.Hash{
 			{abi.Events[receiveCrossChainMessageEventName].ID},
 			{common.BytesToHash(sourceBlockchainID[:])},
-			{common.BigToHash(teleporterMessageID)},
+			{common.BytesToHash(teleporterMessageID[:])},
 		},
 	})
 	if err != nil {

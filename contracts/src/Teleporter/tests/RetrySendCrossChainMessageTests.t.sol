@@ -21,11 +21,12 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
     function testSuccess() public {
         // Send a message
-        uint256 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_CHAIN_ID, 654456);
+        uint256 expectedNonce = teleporterMessenger.messageNonce();
+        _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 654456);
         TeleporterMessage memory expectedMessage = TeleporterMessage({
-            messageID: messageID,
+            messageNonce: expectedNonce,
             senderAddress: address(this),
-            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -34,16 +35,14 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         });
 
         // Retry it
-        teleporterMessenger.retrySendCrossChainMessage(
-            DEFAULT_DESTINATION_CHAIN_ID, expectedMessage
-        );
+        teleporterMessenger.retrySendCrossChainMessage(expectedMessage);
     }
 
     function testMessageNotFound() public {
         TeleporterMessage memory fakeMessage = TeleporterMessage({
-            messageID: 354,
+            messageNonce: 345,
             senderAddress: address(this),
-            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -51,16 +50,17 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
             message: new bytes(0)
         });
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
-        teleporterMessenger.retrySendCrossChainMessage(DEFAULT_DESTINATION_CHAIN_ID, fakeMessage);
+        teleporterMessenger.retrySendCrossChainMessage(fakeMessage);
     }
 
     function testInvalidMessageHash() public {
         // Send a message, then try to alter it's contents.
-        uint256 messageID = _sendTestMessageWithFee(DEFAULT_DESTINATION_CHAIN_ID, 654456);
+        uint256 expectedNonce = teleporterMessenger.messageNonce();
+        _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 654456);
         TeleporterMessage memory alteredMessage = TeleporterMessage({
-            messageID: messageID,
+            messageNonce: expectedNonce,
             senderAddress: address(this),
-            destinationBlockchainID: DEFAULT_DESTINATION_CHAIN_ID,
+            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
@@ -70,6 +70,6 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
 
         // Retry it - should fail.
         vm.expectRevert(_formatTeleporterErrorMessage("invalid message hash"));
-        teleporterMessenger.retrySendCrossChainMessage(DEFAULT_DESTINATION_CHAIN_ID, alteredMessage);
+        teleporterMessenger.retrySendCrossChainMessage(alteredMessage);
     }
 }
