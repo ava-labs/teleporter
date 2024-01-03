@@ -279,10 +279,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         // Store the receipt of this message delivery.
-        ReceiptQueue.TeleporterMessageReceiptQueue storage receiptsQueue =
-            receiptQueues[warpMessage.sourceChainID];
-
-        receiptsQueue.enqueue(
+        receiptQueues[warpMessage.sourceChainID].enqueue(
             TeleporterMessageReceipt({
                 receivedMessageNonce: teleporterMessage.messageNonce,
                 relayerRewardAddress: relayerRewardAddress

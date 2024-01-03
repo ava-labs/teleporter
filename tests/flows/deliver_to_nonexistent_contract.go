@@ -129,6 +129,13 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 		receiveEvent.Message,
 		fundedKey,
 	)
+	log.Info("Checking the message was successfully executed")
+	messageExecutedEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		subnetBInfo.TeleporterMessenger.ParseMessageExecuted,
+	)
+	Expect(err).Should(BeNil())
+	Expect(messageExecutedEvent.MessageID).Should(Equal(receiveEvent.MessageID))
 
 	//
 	// Verify we received the expected string
