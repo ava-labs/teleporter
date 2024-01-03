@@ -92,7 +92,7 @@ contract NativeTokenSource is
             );
         }
 
-        uint256 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,

@@ -58,7 +58,7 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	ctx context.Context,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
-	messageID *big.Int,
+	messageID ids.ID,
 	amount *big.Int,
 	feeContractAddress common.Address,
 	senderKey *ecdsa.PrivateKey,
@@ -68,15 +68,14 @@ func SendAddFeeAmountAndWaitForAcceptance(
 		senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	tx, err := transactor.AddFeeAmount(opts, destination.BlockchainID, messageID, feeContractAddress, amount)
+	tx, err := transactor.AddFeeAmount(opts, messageID, feeContractAddress, amount)
 	Expect(err).Should(BeNil())
 
 	receipt := WaitForTransactionSuccess(ctx, source, tx)
 
 	addFeeAmountEvent, err := GetEventFromLogs(receipt.Logs, transactor.ParseAddFeeAmount)
 	Expect(err).Should(BeNil())
-	Expect(addFeeAmountEvent.MessageID).Should(Equal(messageID))
-	Expect(addFeeAmountEvent.DestinationBlockchainID[:]).Should(Equal(destination.BlockchainID[:]))
+	Expect(addFeeAmountEvent.MessageID[:]).Should(Equal(messageID[:]))
 
 	log.Info("Send AddFeeAmount transaction on source chain",
 		"messageID", messageID,
@@ -156,11 +155,11 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	ctx context.Context,
 	originChainID ids.ID,
 	source interfaces.SubnetTestInfo,
-	messageIDs []*big.Int,
+	messageIDs [][32]byte,
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
 	senderKey *ecdsa.PrivateKey,
-) (*types.Receipt, *big.Int) {
+) (*types.Receipt, ids.ID) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
@@ -179,7 +178,7 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 		"originChainID", originChainID,
 		"txHash", tx.Hash())
 
-	return receipt, event.Message.MessageID
+	return receipt, event.MessageID
 }
 
 func HttpToWebsocketURI(uri string, blockchainID string) string {
@@ -386,7 +385,7 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	destination interfaces.SubnetTestInfo,
 	input teleportermessenger.TeleporterMessageInput,
 	senderKey *ecdsa.PrivateKey,
-) (*types.Receipt, *big.Int) {
+) (*types.Receipt, ids.ID) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
@@ -406,7 +405,7 @@ func SendCrossChainMessageAndWaitForAcceptance(
 		"destinationChainID", destination.BlockchainID,
 		"txHash", tx.Hash())
 
-	return receipt, event.Message.MessageID
+	return receipt, event.MessageID
 }
 
 // Waits for a transaction to be mined.
@@ -699,4 +698,16 @@ func GetTwoSubnets(network interfaces.Network) (
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	return subnets[0], subnets[1]
+}
+
+func CalculateMessageID(
+	sourceSubnetInfo interfaces.SubnetTestInfo,
+	destinationSubnetInfo interfaces.SubnetTestInfo,
+	messageNonce *big.Int,
+) ids.ID {
+	res, err := sourceSubnetInfo.TeleporterMessenger.CalculateMessageID(
+		&bind.CallOpts{}, sourceSubnetInfo.BlockchainID, destinationSubnetInfo.BlockchainID, messageNonce,
+	)
+	Expect(err).Should(BeNil())
+	return res
 }

@@ -29,7 +29,7 @@ interface ITokenSource {
     event TransferToDestination(
         address indexed sender,
         address indexed recipient,
-        uint256 indexed teleporterMessageID,
+        bytes32 indexed teleporterMessageID,
         uint256 amount
     );
 

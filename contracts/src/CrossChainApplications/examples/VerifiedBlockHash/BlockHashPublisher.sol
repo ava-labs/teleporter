@@ -47,7 +47,7 @@ contract BlockHashPublisher {
     function publishLatestBlockHash(
         bytes32 destinationBlockchainID,
         address destinationAddress
-    ) external returns (uint256) {
+    ) external returns (bytes32) {
         // Get the latest block info. Note it must the previous block
         // because the current block hash is not available during execution.
         uint256 blockHeight = block.number - 1;

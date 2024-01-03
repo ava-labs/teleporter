@@ -100,19 +100,24 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     // receiving back a message with receipt of that message such that the relayer
     // is able to redeem the reward.
     function _setUpRelayerRewards(FeeRewardInfo memory feeRewardInfo) private {
-        uint256 messageID =
-            _sendTestMessageWithFee(DEFAULT_ORIGIN_CHAIN_ID, feeRewardInfo.feeAmount);
+        uint256 messageNonce = teleporterMessenger.messageNonce();
+        _sendTestMessageWithFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, feeRewardInfo.feeAmount);
 
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
-            receivedMessageID: messageID,
+            receivedMessageNonce: messageNonce,
             relayerRewardAddress: feeRewardInfo.relayerRewardAddress
         });
         TeleporterMessage memory messageToReceive = _createMockTeleporterMessage(1, new bytes(0));
+        bytes32 receivedMessageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            messageToReceive.messageNonce
+        );
 
         messageToReceive.receipts = receipts;
         WarpMessage memory warpMessage =
-            _createDefaultWarpMessage(DEFAULT_ORIGIN_CHAIN_ID, abi.encode(messageToReceive));
+            _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
 
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
@@ -120,8 +125,8 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         address expectedRelayerRewardAddress = 0x93753a9eA4C9D6eeed9f64eA92E97ce1f5FBAeDe;
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
+            receivedMessageID,
             warpMessage.sourceChainID,
-            messageToReceive.messageID,
             address(this),
             expectedRelayerRewardAddress,
             messageToReceive
@@ -138,9 +143,9 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
 
         // Check that the message received is considered delivered, and that the relayer reward address is stored.
         assertEq(
-            teleporterMessenger.getRelayerRewardAddress(DEFAULT_ORIGIN_CHAIN_ID, 1),
+            teleporterMessenger.getRelayerRewardAddress(receivedMessageID),
             expectedRelayerRewardAddress
         );
-        assertTrue(teleporterMessenger.messageReceived(DEFAULT_ORIGIN_CHAIN_ID, 1));
+        assertTrue(teleporterMessenger.messageReceived(receivedMessageID));
     }
 }

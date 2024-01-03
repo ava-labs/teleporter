@@ -62,7 +62,7 @@ the command parses to log event fields to a more human readable format.`,
 				cobra.CheckErr(err)
 				logger.Info("Parsed Teleporter message",
 					zap.String("warpMessageID", unsignedMsg.ID().Hex()),
-					zap.String("teleporterMessageID", teleporterMessage.MessageID.String()),
+					zap.String("teleporterMessageNonce", teleporterMessage.MessageNonce.String()),
 					zap.Any("message", teleporterMessage))
 			}
 		}

@@ -96,7 +96,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 
 	// Verify the message was not delivered
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
@@ -108,7 +108,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(
-		optsA, subnetBInfo.BlockchainID, sentTeleporterMessage,
+		optsA, sentTeleporterMessage,
 	)
 	Expect(err).Should(BeNil())
 
@@ -119,7 +119,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 
 	// Verify the message was delivered
 	delivered, err = subnetBInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())

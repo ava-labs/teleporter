@@ -40,14 +40,14 @@ func InsufficientGas(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
-	messageID := event.Message.MessageID
+	messageID := event.MessageID
 
 	// Relay message from SubnetA to SubnetB
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	// Check Teleporter message received on the destination
 	delivered, err :=
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, subnetAInfo.BlockchainID, messageID)
+		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -56,7 +56,7 @@ func InsufficientGas(network interfaces.Network) {
 		receipt.Logs, subnetBInfo.TeleporterMessenger.ParseMessageExecutionFailed,
 	)
 	Expect(err).Should(BeNil())
-	Expect(failedMessageExecutionEvent.MessageID).Should(Equal(messageID))
+	Expect(failedMessageExecutionEvent.MessageID[:]).Should(Equal(messageID[:]))
 	Expect(failedMessageExecutionEvent.OriginBlockchainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
 
 	// Retry message execution. This will execute the message with as much gas as needed
@@ -70,7 +70,7 @@ func InsufficientGas(network interfaces.Network) {
 	)
 	executedEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseMessageExecuted)
 	Expect(err).Should(BeNil())
-	Expect(executedEvent.MessageID).Should(Equal(messageID))
+	Expect(executedEvent.MessageID[:]).Should(Equal(messageID[:]))
 	Expect(executedEvent.OriginBlockchainID[:]).Should(Equal(subnetAInfo.BlockchainID[:]))
 
 	//

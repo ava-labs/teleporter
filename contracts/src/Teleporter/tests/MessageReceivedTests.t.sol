@@ -18,14 +18,28 @@ contract MessageReceivedTest is TeleporterMessengerTest {
     function testReceivedMessage() public {
         // Mock receiving a message from another subnet.
         address relayerRewardAddress = 0xA66884fAdC0D4d7B7eedcF61Eb863Ff413bB6234;
+        uint256 messageNonce = 1;
+        bytes32 messageID = teleporterMessenger.calculateMessageID(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageNonce
+        );
         _receiveTestMessage(
-            DEFAULT_DESTINATION_CHAIN_ID, 1, relayerRewardAddress, new TeleporterMessageReceipt[](0)
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            messageNonce,
+            relayerRewardAddress,
+            new TeleporterMessageReceipt[](0)
         );
 
-        assertEq(teleporterMessenger.messageReceived(DEFAULT_DESTINATION_CHAIN_ID, 1), true);
+        assertEq(teleporterMessenger.messageReceived(messageID), true);
     }
 
     function testUnreceivedMessage() public {
-        assertEq(teleporterMessenger.messageReceived(DEFAULT_DESTINATION_CHAIN_ID, 1), false);
+        assertEq(
+            teleporterMessenger.messageReceived(
+                teleporterMessenger.calculateMessageID(
+                    DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 1
+                )
+            ),
+            false
+        );
     }
 }

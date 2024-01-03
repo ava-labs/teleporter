@@ -101,10 +101,10 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     echo $teleporter_deploy_address $teleporter_contract_address
     echo "Finished reading universal deploy address and transaction"
 
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_a_rpc_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_b_rpc_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $subnet_c_rpc_url
-    cast send --private-key $user_private_key --value 50ether $teleporter_deploy_address --rpc-url $c_chain_rpc_url
+    cast send --private-key $user_private_key --value 10ether $teleporter_deploy_address --rpc-url $subnet_a_rpc_url
+    cast send --private-key $user_private_key --value 10ether $teleporter_deploy_address --rpc-url $subnet_b_rpc_url
+    cast send --private-key $user_private_key --value 10ether $teleporter_deploy_address --rpc-url $subnet_c_rpc_url
+    cast send --private-key $user_private_key --value 10ether $teleporter_deploy_address --rpc-url $c_chain_rpc_url
     echo "Sent ether to teleporter deployer on each subnet."
 
     # Verify that the transaction status was successful for the deployments
@@ -132,6 +132,13 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
         exit 1
     fi
     echo "Deployed TeleporterMessenger to C-chain."
+
+    # Initialize the blockchain ID of the Teleporter contract on each chain.
+    cast send --private-key $user_private_key $teleporter_contract_address "initializeBlockchainID()(bytes32)" --rpc-url $subnet_a_rpc_url
+    cast send --private-key $user_private_key $teleporter_contract_address "initializeBlockchainID()(bytes32)" --rpc-url $subnet_b_rpc_url
+    cast send --private-key $user_private_key $teleporter_contract_address "initializeBlockchainID()(bytes32)" --rpc-url $subnet_c_rpc_url
+    cast send --private-key $user_private_key $teleporter_contract_address "initializeBlockchainID()(bytes32)" --rpc-url $c_chain_rpc_url
+    echo "Initialized blockchain ID of TeleporterMessenger contracts."
 
     # Deploy TeleporterRegistry to each chain.
     cd contracts

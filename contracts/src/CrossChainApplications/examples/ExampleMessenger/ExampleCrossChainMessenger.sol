@@ -69,7 +69,7 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
         uint256 feeAmount,
         uint256 requiredGasLimit,
         string calldata message
-    ) external nonReentrant returns (uint256) {
+    ) external nonReentrant returns (bytes32) {
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
         // For non-zero fee amounts, first transfer the fee to this contract, and then
         // allow the Teleporter contract to spend it.

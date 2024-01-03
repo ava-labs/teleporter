@@ -51,7 +51,7 @@ func ExampleMessenger(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetBInfo.BlockchainID[:]))
 
-	teleporterMessageID := event.Message.MessageID
+	teleporterMessageID := event.MessageID
 
 	//
 	// Relay the message to the destination
@@ -62,7 +62,7 @@ func ExampleMessenger(network interfaces.Network) {
 	// Check Teleporter message received on the destination
 	//
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, subnetAInfo.BlockchainID, teleporterMessageID,
+		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
