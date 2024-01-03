@@ -102,4 +102,15 @@ contract InitializeBlockchainIDTest is Test {
         // Check the blockchain ID is initialized.
         assertEq(teleporterMessenger.blockchainID(), DEFAULT_DESTINATION_BLOCKCHAIN_ID);
     }
+
+    function testCannotInitializeToZero() public {
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
+            abi.encode(bytes32(0))
+        );
+
+        vm.expectRevert("TeleporterMessenger: zero blockchain ID");
+        teleporterMessenger.initializeBlockchainID();
+    }
 }

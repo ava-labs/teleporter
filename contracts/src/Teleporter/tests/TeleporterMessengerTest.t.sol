@@ -36,6 +36,8 @@ contract TeleporterMessengerTest is Test {
 
     UnitTestMockERC20 internal _mockFeeAsset;
 
+    event BlockchainIDInitialized(bytes32 indexed blockchainID);
+
     event SendCrossChainMessage(
         bytes32 indexed messageID,
         bytes32 indexed destinationBlockchainID,
@@ -74,6 +76,8 @@ contract TeleporterMessengerTest is Test {
         assertEq(teleporterMessenger.blockchainID(), bytes32(0));
 
         // Initialize the blockchain ID.
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit BlockchainIDInitialized(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
         teleporterMessenger.initializeBlockchainID();
         assertEq(teleporterMessenger.blockchainID(), DEFAULT_DESTINATION_BLOCKCHAIN_ID);
 

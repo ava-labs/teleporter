@@ -531,13 +531,16 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev If not already set, initializes blockchainID by getting the current
      * blockchain ID value from the Warp precompile.
+     * Emits {BlockchainIDInitialized} event.
      * @return The current blockchain ID.
      */
     function initializeBlockchainID() public returns (bytes32) {
         bytes32 blockchainID_ = blockchainID;
         if (blockchainID_ == bytes32(0)) {
             blockchainID_ = WARP_MESSENGER.getBlockchainID();
+            require(blockchainID_ != bytes32(0), "TeleporterMessenger: zero blockchain ID");
             blockchainID = blockchainID_;
+            emit BlockchainIDInitialized(blockchainID_);
         }
         return blockchainID_;
     }
