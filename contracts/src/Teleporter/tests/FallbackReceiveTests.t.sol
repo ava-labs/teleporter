@@ -92,8 +92,6 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
 
         // Receive the message and check that message execution was successful.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecuted(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID);
-        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
             messageToReceive.messageID,
@@ -101,6 +99,8 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecuted(DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID);
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the nonce was incremented.
@@ -127,11 +127,7 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 
-        // Receive the message and check that message execution was successful.
-        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(
-            DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive
-        );
+        // Receive the message and check that message execution failed.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             warpMessage.sourceChainID,
@@ -139,6 +135,10 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
             address(this),
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
+        );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecutionFailed(
+            DEFAULT_ORIGIN_CHAIN_ID, messageToReceive.messageID, messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
