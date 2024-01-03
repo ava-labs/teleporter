@@ -49,7 +49,6 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 	sourceSubnet := network.GetPrimaryNetworkInfo() // TODO: Integrate the C-Chain
 	_, destSubnet := utils.GetTwoSubnets(network)
-	teleporterContractAddress := network.GetTeleporterContractAddress()
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	// Info we need to calculate for the test
@@ -93,7 +92,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			deployerPK,
 			sourceSubnet,
 			erc20TokenSourceAbi,
-			teleporterContractAddress,
+			sourceSubnet.TeleporterRegistryAddress,
 			destSubnet.BlockchainID,
 			bridgeContractAddress,
 		)
@@ -107,7 +106,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			deployerPK,
 			destSubnet,
 			nativeTokenDestinationAbi,
-			teleporterContractAddress,
+			destSubnet.TeleporterRegistryAddress,
 			sourceSubnet.BlockchainID,
 			bridgeContractAddress,
 			initialReserveImbalance,

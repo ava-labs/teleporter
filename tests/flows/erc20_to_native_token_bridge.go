@@ -49,7 +49,6 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 
 	sourceSubnet := network.GetPrimaryNetworkInfo()
 	_, destSubnet := utils.GetTwoSubnets(network)
-	teleporterContractAddress := network.GetTeleporterContractAddress()
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	// Info we need to calculate for the test
@@ -96,7 +95,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 			deployerPK,
 			sourceSubnet,
 			erc20TokenSourceAbi,
-			teleporterContractAddress,
+			sourceSubnet.TeleporterRegistryAddress,
 			destSubnet.BlockchainID,
 			bridgeContractAddress,
 			exampleERC20ContractAddress,
@@ -110,7 +109,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 			deployerPK,
 			destSubnet,
 			nativeTokenDestinationAbi,
-			teleporterContractAddress,
+			destSubnet.TeleporterRegistryAddress,
 			sourceSubnet.BlockchainID,
 			bridgeContractAddress,
 			initialReserveImbalance,
