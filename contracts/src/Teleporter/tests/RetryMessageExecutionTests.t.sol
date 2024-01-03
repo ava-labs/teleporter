@@ -215,8 +215,6 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         // The message should be successfully received, but its execution should fail.
         vm.roll(12);
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
-        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             messageID,
             warpMessage.sourceChainID,
@@ -224,6 +222,8 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message execution didn't have any effect, but

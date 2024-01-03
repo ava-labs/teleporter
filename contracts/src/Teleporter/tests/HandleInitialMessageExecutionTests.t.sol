@@ -117,8 +117,6 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             messageToReceive.messageNonce
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecuted(expectedMessageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID);
-        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             expectedMessageID,
             warpMessage.sourceChainID,
@@ -126,6 +124,8 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecuted(expectedMessageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID);
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message had the proper affect on the destination contract.
@@ -192,8 +192,6 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         // is considered a failed message execution, but the message itself is
         // still successfully delivered.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
-        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             messageID,
             warpMessage.sourceChainID,
@@ -201,6 +199,8 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message hash was stored in state and the message did not have any affect on the destination.
@@ -240,8 +240,6 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
 
         // Receive the message.
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
-        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             messageID,
             warpMessage.sourceChainID,
@@ -249,6 +247,8 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
             DEFAULT_RELAYER_REWARD_ADDRESS,
             messageToReceive
         );
+        vm.expectEmit(true, true, true, true, address(teleporterMessenger));
+        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message hash was stored in state and the message did not have any affect on the destination.
