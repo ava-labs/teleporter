@@ -62,7 +62,8 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 	log.Info("Example ERC20 Contract Address: " + exampleERC20ContractAddress.Hex())
 
 	{
-		// Fund the deployer address with sufficient native tokens (10 eth = 1e20 wei) on the source chain to deploy the contract and send a number of transfer transactions.
+		// Fund the deployer address with sufficient native tokens (100 eth = 1e20 wei) on the source chain to deploy the
+		// contract and send a number of transfer transactions.
 		sourceFundingAmount := utils.BigIntMul(big.NewInt(1e15), big.NewInt(1e5))
 		utils.SendNativeTransfer(
 			ctx,
@@ -72,8 +73,8 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 			sourceFundingAmount,
 		)
 
-		// On the destination chain, the deployer address needs valueToReturn native tokens to attempt (and fail) to send tokens before the bridge contracts are collateralized.
-		// It also needs some extra for gas costs, so we send valueToReturn*2
+		// On the destination chain, the deployer address needs valueToReturn native tokens to attempt (and fail) to send
+		// tokens before the bridge contracts are collateralized. It also needs some extra for gas costs, so we send valueToReturn*2
 		utils.SendNativeTransfer(
 			ctx,
 			destSubnet,
