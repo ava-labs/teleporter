@@ -47,7 +47,7 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
      * @dev Gets the latest received block height and hash.
      * @return Returns the latest block height and hash.
      */
-    function getLatestBlockInfo() public view returns (uint256, bytes32) {
+    function getLatestBlockInfo() external view returns (uint256, bytes32) {
         return (latestBlockHeight, latestBlockHash);
     }
 

@@ -39,7 +39,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
         uint256[3] memory messageNonces;
         bytes32[3] memory messageIDs;
-        for (uint256 i; i < feeRewardInfos.length; i++) {
+        for (uint256 i; i < feeRewardInfos.length; ++i) {
             messageNonces[i] = teleporterMessenger.messageNonce();
             messageIDs[i] =
                 _sendTestMessageWithFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, feeRewardInfos[i].feeAmount);
@@ -49,7 +49,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](
                 feeRewardInfos.length
             );
-        for (uint256 i; i < receipts.length; i++) {
+        for (uint256 i; i < receipts.length; ++i) {
             receipts[i] = TeleporterMessageReceipt({
                 receivedMessageNonce: messageNonces[i],
                 relayerRewardAddress: feeRewardInfos[i].relayerRewardAddress
@@ -67,7 +67,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         // Receive the mock message.
         address expectedRelayerRewardAddress = 0x93753a9eA4C9D6eeed9f64eA92E97ce1f5FBAeDe;
 
-        for (uint256 i; i < feeRewardInfos.length; i++) {
+        for (uint256 i; i < feeRewardInfos.length; ++i) {
             vm.expectEmit(true, true, true, true, address(teleporterMessenger));
             emit ReceiptReceived(
                 messageIDs[i],
@@ -82,7 +82,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         teleporterMessenger.receiveCrossChainMessage(0, expectedRelayerRewardAddress);
 
         // Check that the relayers have redeemable balances
-        for (uint256 i; i < feeRewardInfos.length; i++) {
+        for (uint256 i; i < feeRewardInfos.length; ++i) {
             assertEq(
                 teleporterMessenger.checkRelayerRewardAmount(
                     feeRewardInfos[i].relayerRewardAddress, address(_mockFeeAsset)
@@ -102,7 +102,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         assertTrue(teleporterMessenger.messageReceived(expectedMessageID));
 
         // Check that the message hashes for the message receipts we received have been cleared.
-        for (uint256 i; i < receipts.length; i++) {
+        for (uint256 i; i < receipts.length; ++i) {
             assertEq(teleporterMessenger.getMessageHash(messageIDs[i]), bytes32(0));
         }
     }

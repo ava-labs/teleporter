@@ -42,7 +42,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
             TeleporterMessageReceipt(94, 0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542);
 
         // Mock receiving each of the messages corresponding to the receipts.
-        for (uint256 i; i < expectedReceipts.length; i++) {
+        for (uint256 i; i < expectedReceipts.length; ++i) {
             _receiveTestMessage(
                 blockchainID,
                 expectedReceipts[i].receivedMessageNonce,
@@ -145,7 +145,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
             TeleporterMessageReceipt(80, 0xdc00AB1cF6942cE0891eF1AC5ff686833Fa0C542);
 
         // Mock receiving each of the messages corresponding to the receipts.
-        for (uint256 i; i < expectedReceiptsBatch1.length; i++) {
+        for (uint256 i; i < expectedReceiptsBatch1.length; ++i) {
             _receiveTestMessage(
                 blockchainID,
                 expectedReceiptsBatch1[i].receivedMessageNonce,
@@ -153,7 +153,7 @@ contract GetOutstandingReceiptsToSendTest is TeleporterMessengerTest {
                 new TeleporterMessageReceipt[](0)
             );
         }
-        for (uint256 i; i < expectedReceiptsBatch2.length; i++) {
+        for (uint256 i; i < expectedReceiptsBatch2.length; ++i) {
             _receiveTestMessage(
                 blockchainID,
                 expectedReceiptsBatch2[i].receivedMessageNonce,

@@ -561,14 +561,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Checks if a given message has been received.
-     * @return A boolean representing if the given message has been received or not.
-     */
-    function _messageReceived(bytes32 messageID) internal view returns (bool) {
-        return _receivedMessageNonces[messageID] != 0;
-    }
-
-    /**
      * @dev Checks whether `delivererAddress` is allowed to deliver the message.
      */
     function _checkIsAllowedRelayer(
@@ -812,5 +804,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Emit a failed execution event for anyone monitoring unsuccessful messages to retry.
         emit MessageExecutionFailed(messageID, originBlockchainID, message);
+    }
+
+    /**
+     * @dev Checks if a given message has been received.
+     * @return A boolean representing if the given message has been received or not.
+     */
+    function _messageReceived(bytes32 messageID) private view returns (bool) {
+        return _receivedMessageNonces[messageID] != 0;
     }
 }

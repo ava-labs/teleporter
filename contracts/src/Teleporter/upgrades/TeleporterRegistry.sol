@@ -63,7 +63,7 @@ contract TeleporterRegistry {
         blockchainID = WARP_MESSENGER.getBlockchainID();
 
         uint256 length = initialEntries.length;
-        for (uint256 i; i < length; i++) {
+        for (uint256 i; i < length; ++i) {
             _addToRegistry(initialEntries[i]);
         }
     }
