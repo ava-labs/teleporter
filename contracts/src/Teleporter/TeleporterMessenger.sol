@@ -155,6 +155,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-addFeeAmount}
      *
+     * Both `senderNonReentrant` and `receiverNonReentrant` are used here to prevent the
+     * external call of `safeTransferFrom` from being reentrant, calling `receiveCrossChainMessage`
+     * to attribute rewards for this message, and then still adding fee amount for this message.
      * Emits an {AddFeeAmount} event.
      * Requirements:
      *
