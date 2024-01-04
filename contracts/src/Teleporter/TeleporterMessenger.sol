@@ -156,6 +156,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-addFeeAmount}
      *
+     * Both `senderNonReentrant` and `receiverNonReentrant` are used here to prevent the
+     * external call of `safeTransferFrom` from being reentrant, calling `receiveCrossChainMessage`
+     * to attribute rewards for this message, and then still adding fee amount for this message.
      * Emits an {AddFeeAmount} event.
      * Requirements:
      *
@@ -167,7 +170,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 messageID,
         address feeTokenAddress,
         uint256 additionalFeeAmount
-    ) external senderNonReentrant {
+    ) external senderNonReentrant receiverNonReentrant {
         // The additional fee amount must be non-zero.
         require(additionalFeeAmount > 0, "TeleporterMessenger: zero additional fee amount");
 
@@ -280,10 +283,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         // Store the receipt of this message delivery.
-        ReceiptQueue.TeleporterMessageReceiptQueue storage receiptsQueue =
-            receiptQueues[warpMessage.sourceChainID];
-
-        receiptsQueue.enqueue(
+        receiptQueues[warpMessage.sourceChainID].enqueue(
             TeleporterMessageReceipt({
                 receivedMessageNonce: teleporterMessage.messageNonce,
                 relayerRewardAddress: relayerRewardAddress

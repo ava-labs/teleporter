@@ -160,8 +160,8 @@ contract NativeTokenDestination is
         );
 
         emit ReportTotalBurnedTxFees({
-            burnAddressBalance: totalBurnedTxFees,
-            teleporterMessageID: messageID
+            teleporterMessageID: messageID,
+            burnAddressBalance: totalBurnedTxFees
         });
     }
 
