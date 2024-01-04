@@ -72,7 +72,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 			sourceFundingAmount,
 		)
 
-		// deployerAddress needs valueToReturn to attempt (and fail) to send tokens before it is sent any from the source.
+		// On the destination chain, the deployer address needs valueToReturn native tokens to attempt (and fail) to send tokens before the bridge contracts are collateralized.
 		// It also needs some extra for gas costs, so we send valueToReturn*2
 		utils.SendNativeTransfer(
 			ctx,
