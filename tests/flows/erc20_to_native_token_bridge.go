@@ -64,7 +64,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 	{
 		// We need 10 eth (1e19 wei) to deploy the contract, plus some for gas for other transactions
 		fundingAmount := utils.BigIntMul(big.NewInt(1e15), big.NewInt(1e5))
-		
+
 		utils.SendNativeTransfer(
 			ctx,
 			sourceSubnet,
