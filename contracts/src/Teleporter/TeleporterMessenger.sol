@@ -166,7 +166,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 messageID,
         address feeTokenAddress,
         uint256 additionalFeeAmount
-    ) external senderNonReentrant {
+    ) external senderNonReentrant receiverNonReentrant {
         // The additional fee amount must be non-zero.
         require(additionalFeeAmount > 0, "TeleporterMessenger: zero additional fee amount");
 
