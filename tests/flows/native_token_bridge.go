@@ -60,8 +60,8 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 	{
 		// The deployer is used to also send native transfers so we don't have to create an additional address.
-		// The deployer will send 1.25*initialReserveImbalance over the course of the test, plus 10 eth to
-		// deploy the contract, plus a little bit of gas, so transfer 2*initialReserveImbalance to be safe.
+		// The deployer will send 1.25*initialReserveImbalance over the course of the test. Send 2*initialReserveImbalance native tokens
+		// so that it also has enough to cover transaction fees, including deploying the contract. 
 		utils.SendNativeTransfer(
 			ctx,
 			sourceSubnet,
