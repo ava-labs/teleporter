@@ -108,6 +108,15 @@ func PackCalculateMessageID(
 	return abi.Pack("calculateMessageID", sourceBlockchainID, destinationBlockchainID, nonce)
 }
 
+func PackCalculateMessageIDOutput(messageID [32]byte) ([]byte, error) {
+	abi, err := TeleporterMessengerMetaData.GetAbi()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get abi")
+	}
+
+	return abi.PackOutput("calculateMessageID", messageID)
+}
+
 // PackMessageReceived packs a MessageReceivedInput to form a call to the messageReceived function
 func PackMessageReceived(messageID [32]byte) ([]byte, error) {
 	abi, err := TeleporterMessengerMetaData.GetAbi()
