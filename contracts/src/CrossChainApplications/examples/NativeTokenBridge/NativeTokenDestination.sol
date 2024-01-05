@@ -43,7 +43,7 @@ contract NativeTokenDestination is
     // they can be tracked separately.
     address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000010203;
 
-    INativeMinter private immutable _nativeMinter =
+    INativeMinter public constant NATIVE_MINTER =
         INativeMinter(0x0200000000000000000000000000000000000001);
 
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
@@ -147,7 +147,7 @@ contract NativeTokenDestination is
     ) external {
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
-        uint256 totalBurnedTxFees = address(BURNED_TX_FEES_ADDRESS).balance;
+        uint256 totalBurnedTxFees = BURNED_TX_FEES_ADDRESS.balance;
         bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
@@ -176,8 +176,7 @@ contract NativeTokenDestination is
      * @dev See {INativeTokenDestination-totalSupply}.
      */
     function totalSupply() external view returns (uint256) {
-        uint256 burned =
-            address(BURNED_TX_FEES_ADDRESS).balance + address(BURN_FOR_TRANSFER_ADDRESS).balance;
+        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURN_FOR_TRANSFER_ADDRESS.balance;
         uint256 created = totalMinted + initialReserveImbalance;
 
         return created - burned;
@@ -226,6 +225,6 @@ contract NativeTokenDestination is
         totalMinted += adjustedAmount;
         emit NativeTokensMinted(recipient, adjustedAmount);
         // Calls NativeMinter precompile through INativeMinter interface.
-        _nativeMinter.mintNativeCoin(recipient, adjustedAmount);
+        NATIVE_MINTER.mintNativeCoin(recipient, adjustedAmount);
     }
 }

@@ -23,7 +23,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         bytes32 indexed teleporterMessageID,
         uint256 amount
     );
-    event UnlockTokens(address recipient, uint256 amount);
+    event UnlockTokens(address indexed recipient, uint256 amount);
     event BurnTokens(uint256 amount);
 
     function setUp() public virtual override {

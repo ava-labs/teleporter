@@ -50,7 +50,7 @@ contract BridgeToken is ERC20Burnable {
     /**
      * @dev Mints tokens to `account` if called by original `bridgeContract`.
      */
-    function mint(address account, uint256 amount) public {
+    function mint(address account, uint256 amount) external {
         require(msg.sender == bridgeContract, "BridgeToken: unauthorized");
         _mint(account, amount);
     }

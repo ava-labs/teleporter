@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"encoding/json"
@@ -487,6 +488,64 @@ func GetEventFromLogs[T any](logs []*types.Log, parser func(log types.Log) (T, e
 		}
 	}
 	return *new(T), fmt.Errorf("failed to find %T event in receipt logs", *new(T))
+}
+
+// Returns true if the transaction receipt contains a ReceiptReceived log with the specified messageID
+func CheckReceiptReceived(
+	receipt *types.Receipt,
+	messageID [32]byte,
+	transactor *teleportermessenger.TeleporterMessenger) bool {
+	for _, log := range receipt.Logs {
+		event, err := transactor.ParseReceiptReceived(*log)
+		if err == nil && bytes.Equal(event.MessageID[:], messageID[:]) {
+			return true
+		}
+	}
+	return false
+}
+
+func ClearReceiptQueue(
+	ctx context.Context,
+	network interfaces.Network,
+	fundedKey *ecdsa.PrivateKey,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+) {
+	Expect(network.IsExternalNetwork()).Should(BeFalse())
+	outstandReceiptCount := GetOutstandingReceiptCount(source, destination.BlockchainID)
+	for outstandReceiptCount.Cmp(big.NewInt(0)) != 0 {
+		log.Info("Emptying receipt queue", "remainingReceipts", outstandReceiptCount.String())
+		// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
+		// The next message from B->A will contain the same receipts that were manually sent in the above steps,
+		// but they should not be processed again on Subnet A.
+		sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
+			DestinationBlockchainID: destination.BlockchainID,
+			DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
+			RequiredGasLimit:        big.NewInt(1),
+			FeeInfo: teleportermessenger.TeleporterFeeInfo{
+				FeeTokenAddress: common.Address{},
+				Amount:          big.NewInt(0),
+			},
+			AllowedRelayerAddresses: []common.Address{},
+			Message:                 []byte{1, 2, 3, 4},
+		}
+
+		// This message will also have the same receipts as the previous message
+		receipt, _ := SendCrossChainMessageAndWaitForAcceptance(
+			ctx, source, destination, sendCrossChainMessageInput, fundedKey)
+
+		// Relay message
+		network.RelayMessage(ctx, receipt, source, destination, true)
+
+		outstandReceiptCount = GetOutstandingReceiptCount(source, destination.BlockchainID)
+	}
+	log.Info("Receipt queue emptied")
+}
+
+func GetOutstandingReceiptCount(source interfaces.SubnetTestInfo, destinationBlockchainID ids.ID) *big.Int {
+	size, err := source.TeleporterMessenger.GetReceiptQueueSize(&bind.CallOpts{}, destinationBlockchainID)
+	Expect(err).Should(BeNil())
+	return size
 }
 
 // Signs a transaction using the provided key for the specified chainID

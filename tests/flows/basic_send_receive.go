@@ -24,6 +24,13 @@ func BasicSendReceive(network interfaces.Network) {
 	//
 	ctx := context.Background()
 
+	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
+	// This is only done if the test non-external networks because external networks may have
+	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
+	if !network.IsExternalNetwork() {
+		utils.ClearReceiptQueue(ctx, network, fundedKey, subnetBInfo, subnetAInfo)
+	}
+
 	feeAmount := big.NewInt(1)
 	feeTokenAddress, feeToken := utils.DeployExampleERC20(
 		ctx,
@@ -59,6 +66,7 @@ func BasicSendReceive(network interfaces.Network) {
 		sendCrossChainMessageInput,
 		fundedKey,
 	)
+	expectedReceiptID := teleporterMessageID
 
 	//
 	// Relay the message to the destination
@@ -94,7 +102,17 @@ func BasicSendReceive(network interfaces.Network) {
 	//
 	// Relay the message to the destination
 	//
-	network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+	deliveryReceipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+
+	// Check that the receipt was received for expected Teleporter message ID
+	// This check is not performed for external networks because unrelated messages may have already changed
+	// the state of the receipt queues.
+	if !network.IsExternalNetwork() {
+		Expect(utils.CheckReceiptReceived(
+			deliveryReceipt,
+			expectedReceiptID,
+			subnetAInfo.TeleporterMessenger)).Should(BeTrue())
+	}
 
 	//
 	// Check Teleporter message received on the destination

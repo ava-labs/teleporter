@@ -11,6 +11,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 /**
  * @dev Contract that inherits {TeleporterUpgradeable} and allows
  * only owners of the contract to update the minimum Teleporter version.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, Ownable {
     constructor(address teleporterRegistryAddress)
