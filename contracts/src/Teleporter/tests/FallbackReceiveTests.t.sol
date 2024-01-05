@@ -18,8 +18,8 @@ enum FallbackReceiveAction {
 }
 
 contract FallbackReceiveApp {
-    bytes32 public originChainID;
-    address public originSenderAddress;
+    bytes32 public immutable originChainID;
+    address public immutable originSenderAddress;
     uint256 public nonce;
 
     constructor(bytes32 originChainID_, address originSenderAddress_) {
@@ -48,7 +48,7 @@ contract FallbackReceiveApp {
         FallbackReceiveAction action = abi.decode(message, (FallbackReceiveAction));
 
         if (action == FallbackReceiveAction.Fail) {
-            require(false, "FallbackReceiveApp: Fallback failed");
+            revert("FallbackReceiveApp: Fallback failed");
         } else if (action == FallbackReceiveAction.Succeed) {
             nonce++;
         } else {

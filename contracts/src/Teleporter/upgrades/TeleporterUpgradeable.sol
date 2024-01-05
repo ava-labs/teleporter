@@ -8,6 +8,7 @@ pragma solidity 0.8.18;
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
@@ -16,8 +17,11 @@ import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
  * This contract is intended to be inherited by other contracts that wish to use the
  * upgrade mechanism. It provides an interface that restricts access to only Teleporter
  * versions that are greater than or equal to `minTeleporterVersion`.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-abstract contract TeleporterUpgradeable is ITeleporterReceiver {
+abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
+    // The Teleporter registry contract manages different Teleporter contract versions.
     TeleporterRegistry public immutable teleporterRegistry;
 
     /**
@@ -66,22 +70,22 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}
      * Requirements:
      *
-     * - `msg.sender` must be a Teleporter version greater than or equal to `minTeleporterVersion`.
+     * - `_msgSender()` must be a Teleporter version greater than or equal to `minTeleporterVersion`.
      */
     function receiveTeleporterMessage(
         bytes32 originBlockchainID,
         address originSenderAddress,
         bytes calldata message
     ) external {
-        // Checks that `msg.sender` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
+        // Checks that `_msgSender()` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
         require(
-            teleporterRegistry.getVersionFromAddress(msg.sender) >= _minTeleporterVersion,
+            teleporterRegistry.getVersionFromAddress(_msgSender()) >= _minTeleporterVersion,
             "TeleporterUpgradeable: invalid Teleporter sender"
         );
 
         // Check against the paused Teleporter addresses.
         require(
-            !isTeleporterAddressPaused(msg.sender),
+            !isTeleporterAddressPaused(_msgSender()),
             "TeleporterUpgradeable: Teleporter address paused"
         );
 
@@ -109,7 +113,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * Emits a {TeleporterAddressPaused} event if successfully paused.
      * Requirements:
      *
-     * - `msg.sender` must have Teleporter upgrade access.
+     * - `_msgSender()` must have Teleporter upgrade access.
      * - `teleporterAddress` is not the zero address.
      * - `teleporterAddress` is not already paused.
      */
@@ -132,7 +136,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
      * Emits a {TeleporterAddressUnpaused} event if successfully unpaused.
      * Requirements:
      *
-     * - `msg.sender` must have Teleporter upgrade access.
+     * - `_msgSender()` must have Teleporter upgrade access.
      * - `teleporterAddress` is not the zero address.
      * - `teleporterAddress` is already paused.
      */

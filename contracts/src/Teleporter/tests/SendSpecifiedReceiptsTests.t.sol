@@ -31,7 +31,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         ];
 
         TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](3);
-        for (uint256 i = 0; i < relayerRewardAddresses.length; i++) {
+        for (uint256 i; i < relayerRewardAddresses.length; ++i) {
             _receiveTestMessage(
                 DEFAULT_ORIGIN_BLOCKCHAIN_ID,
                 i + 1,
