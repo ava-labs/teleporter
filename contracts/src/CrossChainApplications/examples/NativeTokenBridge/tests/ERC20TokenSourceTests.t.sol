@@ -119,7 +119,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         );
 
         assertEq(burnedTxFees, erc20TokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS()));
+        assertEq(burnedTxFees, mockERC20.balanceOf(erc20TokenSource.BURN_ADDRESS()));
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         erc20TokenSource.receiveTeleporterMessage(
@@ -129,7 +129,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         );
 
         assertEq(burnedTxFees, erc20TokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS()));
+        assertEq(burnedTxFees, mockERC20.balanceOf(erc20TokenSource.BURN_ADDRESS()));
 
         emit BurnTokens(additionalTxFees);
 
@@ -142,8 +142,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
 
         assertEq(burnedTxFees + additionalTxFees, erc20TokenSource.destinationBurnedTotal());
         assertEq(
-            burnedTxFees + additionalTxFees,
-            mockERC20.balanceOf(erc20TokenSource.BURNED_TX_FEES_ADDRESS())
+            burnedTxFees + additionalTxFees, mockERC20.balanceOf(erc20TokenSource.BURN_ADDRESS())
         );
     }
 

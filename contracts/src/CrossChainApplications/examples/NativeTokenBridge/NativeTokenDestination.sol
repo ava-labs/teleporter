@@ -41,7 +41,7 @@ contract NativeTokenDestination is
     // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" before
     // sending an unlock message to the source chain. Different from the burned tx fee address so
     // they can be tracked separately.
-    address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000000001;
+    address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     INativeMinter public constant NATIVE_MINTER =
         INativeMinter(0x0200000000000000000000000000000000000001);
