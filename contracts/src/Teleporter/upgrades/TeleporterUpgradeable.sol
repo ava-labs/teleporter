@@ -22,7 +22,7 @@ abstract contract TeleporterUpgradeable is ITeleporterReceiver {
 
     uint256 internal constant _NOT_ENTERED = 1;
     uint256 internal constant _ENTERED = 2;
-    uint256 private _receiveEntered;
+    uint256 private _receiveEntered = _NOT_ENTERED;
 
     /**
      * @dev A mapping that keeps track of paused Teleporter addresses.
