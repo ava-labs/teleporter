@@ -3,7 +3,6 @@ package flows
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -27,7 +26,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	// This is only done if the test non-external networks because external networks may have
 	// an arbitrarily high number of receipts to be cleared from a given queue from unrelated messages.
 	if !network.IsExternalNetwork() {
-		clearReceiptQueue(ctx, network, fundedKey, subnetBInfo, subnetAInfo)
+		utils.ClearReceiptQueue(ctx, network, fundedKey, subnetBInfo, subnetAInfo)
 	}
 
 	// Use mock token as the fee token
@@ -69,6 +68,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 		deliveryReceipt1.Logs,
 		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
+	Expect(receiveEvent1.MessageID[:]).Should(Equal(messageID1[:]))
 
 	// Check that the first message was delivered
 	delivered, err :=
@@ -86,6 +86,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 		deliveryReceipt2.Logs,
 		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
+	Expect(receiveEvent2.MessageID[:]).Should(Equal(messageID2[:]))
 
 	// Check that the second message was delivered
 	delivered, err =
@@ -108,12 +109,16 @@ func SendSpecificReceipts(network interfaces.Network) {
 	)
 
 	// Relay message from Subnet B to Subnet A
-	network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
+	receipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 
 	// Check that the message back to Subnet A was delivered
 	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
+
+	// Check that the expected receipts were received and emitted ReceiptReceived
+	Expect(utils.CheckReceiptReceived(receipt, messageID1, subnetAInfo.TeleporterMessenger)).Should(BeTrue())
+	Expect(utils.CheckReceiptReceived(receipt, messageID2, subnetAInfo.TeleporterMessenger)).Should(BeTrue())
 
 	// Check the reward amounts.
 	// Even on external networks, the relayer should only have the expected fee amount
@@ -150,7 +155,12 @@ func SendSpecificReceipts(network interfaces.Network) {
 			messageID)
 		Expect(err).Should(BeNil())
 		Expect(delivered).Should(BeTrue())
-		// Get the Teleporter message from receive event and confirm that the receipts are delivered again
+
+		// Check that the expected receipts were included in the message but did not emit ReceiptReceived
+		// because they were previously received
+		Expect(utils.CheckReceiptReceived(receipt, messageID1, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
+		Expect(utils.CheckReceiptReceived(receipt, messageID2, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
+
 		receiveEvent, err :=
 			utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 		Expect(err).Should(BeNil())
@@ -168,49 +178,6 @@ func SendSpecificReceipts(network interfaces.Network) {
 		// Check the reward amount remains the same
 		checkExpectedRewardAmounts(subnetAInfo, receiveEvent1, receiveEvent2, mockTokenAddress, relayerFeePerMessage)
 	}
-}
-
-func clearReceiptQueue(
-	ctx context.Context,
-	network interfaces.Network,
-	fundedKey *ecdsa.PrivateKey,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
-) {
-	outstandReceiptCount := getOutstandingReceiptCount(source, destination.BlockchainID)
-	for outstandReceiptCount.Cmp(big.NewInt(0)) != 0 {
-		log.Info("Emptying receipt queue", "remainingReceipts", outstandReceiptCount.String())
-		// Send message from Subnet B to Subnet A to trigger the "regular" method of delivering receipts.
-		// The next message from B->A will contain the same receipts that were manually sent in the above steps,
-		// but they should not be processed again on Subnet A.
-		sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-			DestinationBlockchainID: destination.BlockchainID,
-			DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
-			RequiredGasLimit:        big.NewInt(1),
-			FeeInfo: teleportermessenger.TeleporterFeeInfo{
-				FeeTokenAddress: common.Address{},
-				Amount:          big.NewInt(0),
-			},
-			AllowedRelayerAddresses: []common.Address{},
-			Message:                 []byte{1, 2, 3, 4},
-		}
-
-		// This message will also have the same receipts as the previous message
-		receipt, _ := utils.SendCrossChainMessageAndWaitForAcceptance(
-			ctx, source, destination, sendCrossChainMessageInput, fundedKey)
-
-		// Relay message
-		network.RelayMessage(ctx, receipt, source, destination, true)
-
-		outstandReceiptCount = getOutstandingReceiptCount(source, destination.BlockchainID)
-	}
-	log.Info("Receipt queue emptied")
-}
-
-func getOutstandingReceiptCount(source interfaces.SubnetTestInfo, destinationBlockchainID ids.ID) *big.Int {
-	size, err := source.TeleporterMessenger.GetReceiptQueueSize(&bind.CallOpts{}, destinationBlockchainID)
-	Expect(err).Should(BeNil())
-	return size
 }
 
 // Checks the given message ID is included in the list of receipts.

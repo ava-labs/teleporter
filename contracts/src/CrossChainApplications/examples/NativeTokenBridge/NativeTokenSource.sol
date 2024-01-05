@@ -17,7 +17,6 @@ import {
 } from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -32,10 +31,9 @@ contract NativeTokenSource is
     ITokenSource,
     ReentrancyGuard
 {
-    // The address where the burned transaction fees are credited.
-    // Defined as BLACKHOLE_ADDRESS at
-    // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
-    address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
+    // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" when
+    // a SourceAction.Burn message is received from the destination chain.
+    address public constant BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     // Used to keep track of tokens burned through transactions on the destination chain. They can
     // be reported to this contract to burn an equivalent number of tokens on this chain.
@@ -164,7 +162,7 @@ contract NativeTokenSource is
      */
     function _burnTokens(uint256 amount) private {
         emit BurnTokens(amount);
-        Address.sendValue(payable(BURNED_TX_FEES_ADDRESS), amount);
+        Address.sendValue(payable(BURN_ADDRESS), amount);
     }
 
     /**

@@ -155,8 +155,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit ReportTotalBurnedTxFees({
-            burnAddressBalance: burnedFees,
-            teleporterMessageID: _MOCK_MESSAGE_ID
+            teleporterMessageID: _MOCK_MESSAGE_ID,
+            burnAddressBalance: burnedFees
         });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({

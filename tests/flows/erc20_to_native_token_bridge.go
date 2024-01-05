@@ -39,6 +39,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		deployerAddress      = common.HexToAddress("0x539447ab8Be7e927bE8E005663C81ff2AE951337")
 		tokenReceiverAddress = common.HexToAddress("0x4444444444444444444444444444444444444444")
 		burnedTxFeeAddress   = common.HexToAddress("0x0100000000000000000000000000000000000000")
+		burnAddressSource    = common.HexToAddress("0x0100000000000000000000000000000000010203")
 
 		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
 			FeeTokenAddress: common.Address{},
@@ -46,8 +47,9 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		}
 	)
 
-	// sourceSubnet := network.GetPrimaryNetworkInfo() // TODO: Integrate the C-Chain
-	sourceSubnet, destSubnet := utils.GetTwoSubnets(network)
+	sourceSubnet := network.GetPrimaryNetworkInfo()
+	_, destSubnet := utils.GetTwoSubnets(network)
+	_, fundedKey := network.GetFundedAccountInfo()
 
 	// Info we need to calculate for the test
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
@@ -59,45 +61,71 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	log.Info("Example ERC20 Contract Address: " + exampleERC20ContractAddress.Hex())
 
-	// Deploy the contracts
-	// Both contracts in this test will be deployed to 0x3405506b3711859c5070949ed9b700c7ba7bf750,
-	// though they do not necessarily have to be deployed at the same address, each contract needs
-	// to know the address of the other.
-	// The nativeTokenDestination contract must be added to "adminAddresses" of "contractNativeMinterConfig"
-	// in the genesis file for the subnet. This will allow it to call the native minter precompile.
-	erc20TokenSourceAbi, err := erc20tokensource.ERC20TokenSourceMetaData.GetAbi()
-	Expect(err).Should(BeNil())
-	utils.DeployContract(
-		ctx,
-		ERC20TokenSourceByteCodeFile,
-		deployerPK,
-		sourceSubnet,
-		erc20TokenSourceAbi,
-		sourceSubnet.TeleporterRegistryAddress,
-		destSubnet.BlockchainID,
-		bridgeContractAddress,
-		exampleERC20ContractAddress,
-	)
+	{
+		// Fund the deployer address with sufficient native tokens (100 eth = 1e20 wei) on the source chain to deploy the
+		// contract and send a number of transfer transactions.
+		sourceFundingAmount := utils.BigIntMul(big.NewInt(1e15), big.NewInt(1e5))
+		utils.SendNativeTransfer(
+			ctx,
+			sourceSubnet,
+			fundedKey,
+			deployerAddress,
+			sourceFundingAmount,
+		)
 
-	nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
-	Expect(err).Should(BeNil())
-	utils.DeployContract(
-		ctx,
-		NativeTokenDestinationByteCodeFile,
-		deployerPK,
-		destSubnet,
-		nativeTokenDestinationAbi,
-		destSubnet.TeleporterRegistryAddress,
-		sourceSubnet.BlockchainID,
-		bridgeContractAddress,
-		initialReserveImbalance,
-	)
+		// On the destination chain, the deployer address needs valueToReturn native tokens to attempt (and fail)
+		// to send tokens before the bridge contracts are collateralized. It also needs some extra for gas costs,
+		// so we send valueToReturn*2
+		utils.SendNativeTransfer(
+			ctx,
+			destSubnet,
+			fundedKey,
+			deployerAddress,
+			utils.BigIntMul(valueToReturn, big.NewInt(2)),
+		)
+	}
 
-	exampleERC20Abi, err := exampleerc20.ExampleERC20MetaData.GetAbi()
-	Expect(err).Should(BeNil())
-	utils.DeployContract(ctx, ExampleERC20ByteCodeFile, deployerPK, sourceSubnet, exampleERC20Abi)
+	{
+		// Deploy the contracts
+		// Both contracts in this test will be deployed to 0x3405506b3711859c5070949ed9b700c7ba7bf750,
+		// though they do not necessarily have to be deployed at the same address, each contract needs
+		// to know the address of the other.
+		// The nativeTokenDestination contract must be added to "adminAddresses" of "contractNativeMinterConfig"
+		// in the genesis file for the subnet. This will allow it to call the native minter precompile.
+		erc20TokenSourceAbi, err := erc20tokensource.ERC20TokenSourceMetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		utils.DeployContract(
+			ctx,
+			ERC20TokenSourceByteCodeFile,
+			deployerPK,
+			sourceSubnet,
+			erc20TokenSourceAbi,
+			sourceSubnet.TeleporterRegistryAddress,
+			destSubnet.BlockchainID,
+			bridgeContractAddress,
+			exampleERC20ContractAddress,
+		)
 
-	log.Info("Finished deploying contracts")
+		nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		utils.DeployContract(
+			ctx,
+			NativeTokenDestinationByteCodeFile,
+			deployerPK,
+			destSubnet,
+			nativeTokenDestinationAbi,
+			destSubnet.TeleporterRegistryAddress,
+			sourceSubnet.BlockchainID,
+			bridgeContractAddress,
+			initialReserveImbalance,
+		)
+
+		exampleERC20Abi, err := exampleerc20.ExampleERC20MetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		utils.DeployContract(ctx, ExampleERC20ByteCodeFile, deployerPK, sourceSubnet, exampleERC20Abi)
+
+		log.Info("Finished deploying contracts")
+	}
 
 	// Create abi objects to call the contract with
 	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(
@@ -136,18 +164,17 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
-		destChainReceipt :=
-			sendERC20TokensToDestination(
-				ctx,
-				network,
-				valueToSend,
-				deployerPK,
-				tokenReceiverAddress,
-				sourceSubnet,
-				destSubnet,
-				erc20TokenSource,
-				common.Big0,
-			)
+		destChainReceipt := sendERC20TokensToDestination(
+			ctx,
+			network,
+			valueToSend,
+			deployerPK,
+			tokenReceiverAddress,
+			sourceSubnet,
+			destSubnet,
+			erc20TokenSource,
+			common.Big0,
+		)
 
 		collateralEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
@@ -232,18 +259,17 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 
 	{
 		// Transfer tokens B -> A
-		sourceChainReceipt :=
-			sendTokensToSource(
-				ctx,
-				network,
-				valueToReturn,
-				deployerPK,
-				tokenReceiverAddress,
-				sourceSubnet,
-				destSubnet,
-				nativeTokenDestination,
-				emptyDestFeeInfo,
-			)
+		sourceChainReceipt := sendTokensToSource(
+			ctx,
+			network,
+			valueToReturn,
+			deployerPK,
+			tokenReceiverAddress,
+			sourceSubnet,
+			destSubnet,
+			nativeTokenDestination,
+			emptyDestFeeInfo,
+		)
 
 		checkUnlockERC20Event(
 			sourceChainReceipt.Logs,
@@ -285,7 +311,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(reportEvent.BurnAddressBalance, burnedTxFeesBalanceDest)
 
-		burnedTxFeesBalanceSource, err := exampleERC20.BalanceOf(nil, burnedTxFeeAddress)
+		burnedTxFeesBalanceSource, err := exampleERC20.BalanceOf(nil, burnAddressSource)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceSource, common.Big0)
 
@@ -298,7 +324,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
-		burnedTxFeesBalanceSource2, err := exampleERC20.BalanceOf(nil, burnedTxFeeAddress)
+		burnedTxFeesBalanceSource2, err := exampleERC20.BalanceOf(nil, burnAddressSource)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceSource2, burnEvent.Amount)
 	}

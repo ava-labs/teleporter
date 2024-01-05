@@ -13,7 +13,7 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
  */
 
 /**
- * Contract for receiving latest block hashes from another chain.
+ * @dev Contract for receiving latest block hashes from another chain.
  */
 contract BlockHashReceiver is TeleporterOwnerUpgradeable {
     // Source chain information
@@ -39,6 +39,7 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
         bytes32 publisherBlockchainID,
         address publisherContractAddress
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
+        require(publisherContractAddress != address(0), "BlockHashReceiver: zero publisher address");
         sourceBlockchainID = publisherBlockchainID;
         sourcePublisherContractAddress = publisherContractAddress;
     }
@@ -47,7 +48,7 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
      * @dev Gets the latest received block height and hash.
      * @return Returns the latest block height and hash.
      */
-    function getLatestBlockInfo() public view returns (uint256, bytes32) {
+    function getLatestBlockInfo() external view returns (uint256, bytes32) {
         return (latestBlockHeight, latestBlockHash);
     }
 

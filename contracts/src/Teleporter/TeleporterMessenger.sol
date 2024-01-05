@@ -40,6 +40,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterFeeInfo feeInfo;
     }
 
+    // Warp precompile used for sending and receiving Warp messages.
     IWarpMessenger public constant WARP_MESSENGER =
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
@@ -155,6 +156,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-addFeeAmount}
      *
+     * Both `senderNonReentrant` and `receiverNonReentrant` are used here to prevent the
+     * external call of `safeTransferFrom` from being reentrant, calling `receiveCrossChainMessage`
+     * to attribute rewards for this message, and then still adding fee amount for this message.
      * Emits an {AddFeeAmount} event.
      * Requirements:
      *
@@ -166,7 +170,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 messageID,
         address feeTokenAddress,
         uint256 additionalFeeAmount
-    ) external senderNonReentrant {
+    ) external senderNonReentrant receiverNonReentrant {
         // The additional fee amount must be non-zero.
         require(additionalFeeAmount > 0, "TeleporterMessenger: zero additional fee amount");
 
@@ -279,10 +283,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         // Store the receipt of this message delivery.
-        ReceiptQueue.TeleporterMessageReceiptQueue storage receiptsQueue =
-            receiptQueues[warpMessage.sourceChainID];
-
-        receiptsQueue.enqueue(
+        receiptQueues[warpMessage.sourceChainID].enqueue(
             TeleporterMessageReceipt({
                 receivedMessageNonce: teleporterMessage.messageNonce,
                 relayerRewardAddress: relayerRewardAddress
@@ -402,7 +403,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         TeleporterMessageReceipt[] memory receiptsToSend = new TeleporterMessageReceipt[](
                 messageIDs.length
             );
-        for (uint256 i; i < messageIDs.length; ++i) {
+        uint256 length = messageIDs.length;
+        for (uint256 i; i < length; ++i) {
             bytes32 receivedMessageID = messageIDs[i];
 
             // Get the nonce for this message ID.
@@ -462,7 +464,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * See {ITeleporterMessenger-getMessageHash}
+     * @dev See {ITeleporterMessenger-getMessageHash}
      */
     function getMessageHash(bytes32 messageID) external view returns (bytes32) {
         return sentMessageInfo[messageID].messageHash;
@@ -559,14 +561,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     * @dev Checks if a given message has been received.
-     * @return A boolean representing if the given message has been received or not.
-     */
-    function _messageReceived(bytes32 messageID) internal view returns (bool) {
-        return _receivedMessageNonces[messageID] != 0;
-    }
-
-    /**
      * @dev Checks whether `delivererAddress` is allowed to deliver the message.
      */
     function _checkIsAllowedRelayer(
@@ -579,7 +573,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         }
 
         // Otherwise, the deliverer address must be included in allowedRelayers.
-        for (uint256 i; i < allowedRelayers.length; ++i) {
+        uint256 length = allowedRelayers.length;
+        for (uint256 i; i < length; ++i) {
             if (allowedRelayers[i] == delivererAddress) {
                 return true;
             }
@@ -675,6 +670,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      *
      * Returns early if a receipt was already previously received for this message, or if the message never existed. Otherwise, deletes
      * the message information from `sentMessageInfo` and increments the reward redeemable by the specified relayer reward address.
+     *
+     * Emits a {ReceiptReceived} event if the receipt was successfully received.
      */
     function _markReceipt(
         bytes32 sourceBlockchainID_,
@@ -703,6 +700,10 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // the message identified in this receipt.
         _relayerRewardAmounts[receipt.relayerRewardAddress][messageInfo.feeInfo.feeTokenAddress] +=
             messageInfo.feeInfo.amount;
+
+        emit ReceiptReceived(
+            messageID, destinationBlockchainID_, receipt.relayerRewardAddress, messageInfo.feeInfo
+        );
     }
 
     /**
@@ -803,5 +804,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Emit a failed execution event for anyone monitoring unsuccessful messages to retry.
         emit MessageExecutionFailed(messageID, originBlockchainID, message);
+    }
+
+    /**
+     * @dev Checks if a given message has been received.
+     * @return A boolean representing if the given message has been received or not.
+     */
+    function _messageReceived(bytes32 messageID) private view returns (bool) {
+        return _receivedMessageNonces[messageID] != 0;
     }
 }

@@ -34,7 +34,8 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		ctx                     = context.Background()
 		deployerAddress         = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
 		tokenReceiverAddress    = common.HexToAddress("0x0123456789012345678901234567890123456789")
-		burnedTxFeeAddress      = common.HexToAddress("0x0100000000000000000000000000000000000000")
+		burnedTxFeeAddressDest  = common.HexToAddress("0x0100000000000000000000000000000000000000")
+		burnAddressSource       = common.HexToAddress("0x0100000000000000000000000000000000010203")
 
 		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
 			FeeTokenAddress: common.Address{},
@@ -46,8 +47,9 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		}
 	)
 
-	// sourceSubnet := network.GetPrimaryNetworkInfo() // TODO: Integrate the C-Chain
-	sourceSubnet, destSubnet := utils.GetTwoSubnets(network)
+	sourceSubnet := network.GetPrimaryNetworkInfo() // TODO: Integrate the C-Chain
+	_, destSubnet := utils.GetTwoSubnets(network)
+	_, fundedKey := network.GetFundedAccountInfo()
 
 	// Info we need to calculate for the test
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
@@ -55,6 +57,27 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 	bridgeContractAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, 0)
 	Expect(err).Should(BeNil())
 	log.Info("Native Token Bridge Contract Address: " + bridgeContractAddress.Hex())
+
+	{
+		// The deployer is used to also send native transfers so we don't have to create an additional address.
+		// The deployer will send 1.25*initialReserveImbalance over the course of the test. Send 2*initialReserveImbalance
+		// native tokens so that it also has enough to cover transaction fees, including deploying the contract.
+		utils.SendNativeTransfer(
+			ctx,
+			sourceSubnet,
+			fundedKey,
+			deployerAddress,
+			utils.BigIntMul(initialReserveImbalance, big.NewInt(2)),
+		)
+
+		utils.SendNativeTransfer(
+			ctx,
+			destSubnet,
+			fundedKey,
+			deployerAddress,
+			utils.BigIntMul(initialReserveImbalance, big.NewInt(2)),
+		)
+	}
 
 	{
 		// Deploy the contracts
@@ -113,18 +136,17 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
-		destChainReceipt :=
-			sendNativeTokensToDestination(
-				ctx,
-				network,
-				valueToSend,
-				deployerPK,
-				tokenReceiverAddress,
-				sourceSubnet,
-				destSubnet,
-				nativeTokenSource,
-				emptySourceFeeInfo,
-			)
+		destChainReceipt := sendNativeTokensToDestination(
+			ctx,
+			network,
+			valueToSend,
+			deployerPK,
+			tokenReceiverAddress,
+			sourceSubnet,
+			destSubnet,
+			nativeTokenSource,
+			emptySourceFeeInfo,
+		)
 
 		checkCollateralEvent(
 			destChainReceipt.Logs,
@@ -210,18 +232,17 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 	{
 		// Transfer tokens B -> A
-		sourceChainReceipt :=
-			sendTokensToSource(
-				ctx,
-				network,
-				valueToReturn,
-				deployerPK,
-				tokenReceiverAddress,
-				sourceSubnet,
-				destSubnet,
-				nativeTokenDestination,
-				emptyDestFeeInfo,
-			)
+		sourceChainReceipt := sendTokensToSource(
+			ctx,
+			network,
+			valueToReturn,
+			deployerPK,
+			tokenReceiverAddress,
+			sourceSubnet,
+			destSubnet,
+			nativeTokenDestination,
+			emptyDestFeeInfo,
+		)
 
 		checkUnlockNativeEvent(
 			sourceChainReceipt.Logs,
@@ -237,7 +258,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		// Check reporting of burned tx fees to Source Chain
 		burnedTxFeesBalanceDest, err := destSubnet.RPCClient.BalanceAt(
 			ctx,
-			burnedTxFeeAddress,
+			burnedTxFeeAddressDest,
 			nil,
 		)
 		Expect(err).Should(BeNil())
@@ -263,24 +284,25 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 		burnedTxFeesBalanceSource, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
-			burnedTxFeeAddress,
+			burnAddressSource,
 			nil,
 		)
 		Expect(err).Should(BeNil())
-		Expect(burnedTxFeesBalanceSource.Cmp(common.Big0) > 0).Should(BeTrue())
+		Expect(burnedTxFeesBalanceSource.Uint64()).Should(BeZero())
 
 		sourceChainReceipt := network.RelayMessage(ctx, destChainReceipt, destSubnet, sourceSubnet, true)
 
-		burnEvent, err := utils.GetEventFromLogs(
-			sourceChainReceipt.Logs,
+		burnEvent := utils.GetEventFromLogsOrTrace(
+			ctx,
+			sourceChainReceipt,
+			sourceSubnet,
 			nativeTokenSource.ParseBurnTokens,
 		)
-		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
 		burnedTxFeesBalanceSource2, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
-			burnedTxFeeAddress,
+			burnAddressSource,
 			nil,
 		)
 		Expect(err).Should(BeNil())

@@ -49,13 +49,14 @@ library ReceiptQueue {
      */
     function dequeue(TeleporterMessageReceiptQueue storage queue)
         internal
-        returns (TeleporterMessageReceipt memory result)
+        returns (TeleporterMessageReceipt memory)
     {
         uint256 first_ = queue.first;
         require(queue.last != first_, "ReceiptQueue: empty queue");
-        result = queue.data[first_];
+        TeleporterMessageReceipt memory receipt = queue.data[first_];
         delete queue.data[first_];
         queue.first = first_ + 1;
+        return receipt;
     }
 
     /**
@@ -63,7 +64,7 @@ library ReceiptQueue {
      */
     function getOutstandingReceiptsToSend(TeleporterMessageReceiptQueue storage queue)
         internal
-        returns (TeleporterMessageReceipt[] memory result)
+        returns (TeleporterMessageReceipt[] memory)
     {
         // Calculate the result size as the minimum of the number of receipts and maximum batch size.
         uint256 resultSize = Math.min(_MAXIMUM_RECEIPT_COUNT, size(queue));
@@ -71,10 +72,11 @@ library ReceiptQueue {
             return new TeleporterMessageReceipt[](0);
         }
 
-        result = new TeleporterMessageReceipt[](resultSize);
-        for (uint256 i = 0; i < resultSize; ++i) {
-            result[i] = dequeue(queue);
+        TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](resultSize);
+        for (uint256 i; i < resultSize; ++i) {
+            receipts[i] = dequeue(queue);
         }
+        return receipts;
     }
 
     /**

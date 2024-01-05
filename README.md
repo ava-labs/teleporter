@@ -118,6 +118,21 @@ cp .env.example .env # Set proper values after copying.
 
 The user wallet set in `.env` must have native tokens for each of the subnets used in order for the test flows to be able to send transactions on those networks. 
 
+## Deploy Teleporter to a Subnet
+
+From the root of the repo, the TeleporterMessenger contract can be deployed by calling 
+```bash
+./scripts/deploy_teleporter.sh <options> 
+```
+Options for this script:
+- `--version <version>` Required. Specify the release version to deploy. These will all be of the form `v1.X.0`. Each Teleporter version can only send and receive messages from the **same** Teleporter version on another chain. You can see a list of released versions at https://github.com/ava-labs/teleporter/releases.
+- `--rpc-url <url>` Required. Specify the rpc url of the node to use.
+- `--fund-deployer <private_key>`  Optional. Funds the deployer address with the account held by `<private_key>`
+
+To ensure that Teleporter can be deployed to the same address on every EVM based chain, it uses [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c) to deploy from a static deployer address. Teleporter costs exactly `10eth` in the subnet's native gas token to deploy, which must be sent to the deployer address. 
+
+`deploy_teleporter.sh` will send the necessary native tokens to the deployer address if it is provided with a private key for an account with sufficient funds. Alternatively, the deployer address can be funded externally. The deployer address for each version can be found by looking up the appropriate version at https://github.com/ava-labs/teleporter/releases and downloading `TeleporterMessenger_Deployer_Address_<VERSION>.txt`.
+
 ## ABI Bindings
 
 To generate Golang ABI bindings for the Solidity smart contracts, run:
