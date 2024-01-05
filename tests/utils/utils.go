@@ -455,8 +455,7 @@ func waitForTransaction(
 
 	if success {
 		if receipt.Status == types.ReceiptStatusFailed {
-			// Gomega will print the transaction trace
-			Expect(TraceTransaction(ctx, subnetInfo, receipt.TxHash)).Should(Equal(""))
+			TraceTransactionAndExit(ctx, subnetInfo, receipt.TxHash)
 		}
 	} else {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
@@ -474,8 +473,7 @@ func GetEventFromLogsOrTrace[T any](
 ) T {
 	log, err := GetEventFromLogs(receipt.Logs, parser)
 	if err != nil {
-		// Gomega will print the transaction trace
-		Expect(TraceTransaction(ctx, subnetInfo, receipt.TxHash)).Should(Equal(""))
+		TraceTransactionAndExit(ctx, subnetInfo, receipt.TxHash)
 	}
 	return log
 }
@@ -530,6 +528,11 @@ func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big
 	bal, err := rpcClient.BalanceAt(ctx, addr, nil)
 	Expect(err).Should(BeNil())
 	ExpectBigEqual(bal, expectedBalance)
+}
+
+// Gomega will print the transaction trace and exit
+func TraceTransactionAndExit(ctx context.Context, subnetInfo interfaces.SubnetTestInfo, txHash common.Hash) {
+	Expect(TraceTransaction(ctx, subnetInfo, txHash)).Should(Equal(""))
 }
 
 func TraceTransaction(ctx context.Context, subnetInfo interfaces.SubnetTestInfo, txHash common.Hash) string {
