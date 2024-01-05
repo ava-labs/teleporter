@@ -126,7 +126,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(burnedTxFees, nativeTokenSource.BURN_ADDRESS().balance);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(
@@ -136,7 +136,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance);
+        assertEq(burnedTxFees, nativeTokenSource.BURN_ADDRESS().balance);
 
         emit BurnTokens(additionalTxFees);
 
@@ -148,9 +148,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         );
 
         assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(
-            burnedTxFees + additionalTxFees, nativeTokenSource.BURNED_TX_FEES_ADDRESS().balance
-        );
+        assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.BURN_ADDRESS().balance);
     }
 
     function testZeroTeleporterAddress() public {

@@ -55,7 +55,14 @@ type LocalNetwork struct {
 }
 
 const (
-	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	fundedKeyStr           = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	warpEnabledChainConfig = `{
+		"warp-api-enabled": true, 
+		"eth-apis":["eth","eth-filter","net","admin","web3",
+					"internal-eth","internal-blockchain","internal-transaction",
+					"internal-debug","internal-account","internal-personal",
+					"debug","debug-tracer","debug-file-tracer","debug-handler"]
+	}`
 )
 
 func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
@@ -76,7 +83,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
-	_, err = f.Write([]byte(`{"warp-api-enabled": true}`))
+	_, err = f.Write([]byte(warpEnabledChainConfig))
 	Expect(err).Should(BeNil())
 	warpChainConfigPath := f.Name()
 
@@ -85,6 +92,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	Expect(err).Should(BeNil())
 
 	anrConfig := runner.NewDefaultANRConfig()
+	anrConfig.GlobalCChainConfig = warpEnabledChainConfig
 	manager := runner.NewNetworkManager(anrConfig)
 
 	// Construct the network using the avalanche-network-runner
@@ -403,8 +411,7 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	expectSuccess bool,
 ) *types.Receipt {
 	// Fetch the Teleporter message from the logs
-	sendEvent, err :=
-		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	signedWarpMessageBytes := n.ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
@@ -427,8 +434,10 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	receipt := utils.SendTransactionAndWaitForSuccess(ctx, destination, signedTx)
 
 	// Check the transaction logs for the ReceiveCrossChainMessage event emitted by the Teleporter contract
-	receiveEvent, err :=
-		utils.GetEventFromLogs(receipt.Logs, destination.TeleporterMessenger.ParseReceiveCrossChainMessage)
+	receiveEvent, err := utils.GetEventFromLogs(
+		receipt.Logs,
+		destination.TeleporterMessenger.ParseReceiveCrossChainMessage,
+	)
 	Expect(err).Should(BeNil())
 	Expect(receiveEvent.OriginBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
 	return receipt
