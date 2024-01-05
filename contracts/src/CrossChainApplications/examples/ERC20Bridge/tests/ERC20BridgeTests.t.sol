@@ -66,10 +66,6 @@ contract ERC20BridgeTest is Test {
 
     event MintBridgeTokens(address indexed contractAddress, address recipient, uint256 amount);
 
-    event MinTeleporterVersionUpdated(
-        uint256 indexed oldMinTeleporterVersion, uint256 indexed newMinTeleporterVersion
-    );
-
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,

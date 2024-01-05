@@ -21,6 +21,7 @@ const (
 	MessageExecutionFailed
 	MessageExecuted
 	RelayerRewardsRedeemed
+	ReceiptReceived
 
 	sendCrossChainMessageStr    = "SendCrossChainMessage"
 	receiveCrossChainMessageStr = "ReceiveCrossChainMessage"
@@ -28,6 +29,7 @@ const (
 	messageExecutionFailedStr   = "MessageExecutionFailed"
 	messageExecutedStr          = "MessageExecuted"
 	relayerRewardsRedeemedStr   = "RelayerRewardsRedeemed"
+	receiptReceivedStr          = "ReceiptReceived"
 	unknownStr                  = "Unknown"
 )
 
@@ -46,6 +48,8 @@ func (e Event) String() string {
 		return messageExecutedStr
 	case RelayerRewardsRedeemed:
 		return relayerRewardsRedeemedStr
+	case ReceiptReceived:
+		return receiptReceivedStr
 	default:
 		return unknownStr
 	}
@@ -66,6 +70,8 @@ func ToEvent(e string) (Event, error) {
 		return MessageExecuted, nil
 	case strings.ToLower(relayerRewardsRedeemedStr):
 		return RelayerRewardsRedeemed, nil
+	case strings.ToLower(receiptReceivedStr):
+		return ReceiptReceived, nil
 	default:
 		return Unknown, fmt.Errorf("unknown event %s", e)
 	}
@@ -91,6 +97,8 @@ func FilterTeleporterEvents(topics []common.Hash, data []byte, event string) (in
 		out = new(TeleporterMessengerMessageExecuted)
 	case RelayerRewardsRedeemed:
 		out = new(TeleporterMessengerRelayerRewardsRedeemed)
+	case ReceiptReceived:
+		out = new(TeleporterMessengerReceiptReceived)
 	default:
 		return nil, fmt.Errorf("unknown event %s", e.String())
 	}

@@ -36,7 +36,7 @@ interface ITokenSource {
     /**
      * @dev Emitted when tokens are unlocked on this chain.
      */
-    event UnlockTokens(address recipient, uint256 amount);
+    event UnlockTokens(address indexed recipient, uint256 amount);
 
     /**
      * @dev Emitted when tokens are burned on this chain.

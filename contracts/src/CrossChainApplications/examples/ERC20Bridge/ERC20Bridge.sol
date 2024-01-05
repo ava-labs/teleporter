@@ -578,7 +578,7 @@ contract ERC20Bridge is IERC20Bridge, ReentrancyGuard, TeleporterOwnerUpgradeabl
         // Teleporter Messenger to spend it when the first message back to the native subnet
         // is submitted. The secondary fee amount is then handled by the native subnet when
         // submitting a message to the destination chain, if applicable.
-        uint256 adjustedPrimaryFeeAmount = 0;
+        uint256 adjustedPrimaryFeeAmount;
         if (wrappedTransferInfo.primaryFeeAmount > 0) {
             // We know that the ERC20 contract is not a "fee on transfer" or "burn on transfer" contract
             // because it is a BridgeToken contract instance that was deployed by this contract itself.

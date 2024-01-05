@@ -10,6 +10,8 @@ import {IWarpMessenger, WarpMessage} from "@subnet-evm-contracts/interfaces/IWar
 
 /**
  * @dev Registry entry that represents a mapping between protocolAddress and version.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 struct ProtocolRegistryEntry {
     uint256 version;
@@ -26,8 +28,11 @@ contract TeleporterRegistry {
     // cannot possibly be the source address of any other Warp message emitted by the VM.
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
 
+    // Warp precompile used for sending and receiving Warp messages.
     IWarpMessenger public constant WARP_MESSENGER =
         IWarpMessenger(0x0200000000000000000000000000000000000005);
+
+    // The blockchain ID of the chain the contract is deployed on.
     bytes32 public immutable blockchainID;
 
     // The maximum version increment allowed when adding a new protocol version.
@@ -57,7 +62,8 @@ contract TeleporterRegistry {
     constructor(ProtocolRegistryEntry[] memory initialEntries) {
         blockchainID = WARP_MESSENGER.getBlockchainID();
 
-        for (uint256 i = 0; i < initialEntries.length; i++) {
+        uint256 length = initialEntries.length;
+        for (uint256 i; i < length; ++i) {
             _addToRegistry(initialEntries[i]);
         }
     }

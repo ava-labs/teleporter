@@ -141,8 +141,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
         // We expect a call to the fee asset address, but since we did not
         // mock it there is no code there to execute.
         vm.expectCall(
-            address(invalidFeeAsset),
-            abi.encodeCall(IERC20.balanceOf, (address(teleporterMessenger)))
+            invalidFeeAsset, abi.encodeCall(IERC20.balanceOf, (address(teleporterMessenger)))
         );
         vm.expectRevert();
         teleporterMessenger.sendCrossChainMessage(messageInput);
