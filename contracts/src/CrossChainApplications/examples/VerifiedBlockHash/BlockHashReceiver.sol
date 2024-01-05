@@ -39,6 +39,7 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
         bytes32 publisherBlockchainID,
         address publisherContractAddress
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
+        require(publisherContractAddress != address(0), "BlockHashReceiver: zero publisher address");
         sourceBlockchainID = publisherBlockchainID;
         sourcePublisherContractAddress = publisherContractAddress;
     }
