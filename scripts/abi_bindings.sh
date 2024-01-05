@@ -39,8 +39,7 @@ if [ "$HELP" = true ]; then
 fi
 
 if ! command -v forge &> /dev/null; then
-    echo "forge not found, installing"
-    $TELEPORTER_PATH/scripts/install_foundry.sh
+    echo "forge not found. You can install by calling $TELEPORTER_PATH/scripts/install_foundry.sh" && exit 1
 fi
 
 echo "Building subnet-evm abigen"
