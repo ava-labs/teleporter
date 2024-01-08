@@ -24,7 +24,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
 
     function testSendMessageNoFee() public {
         // Arrange
-        uint256 expectedMessageNonce = teleporterMessenger.messageNonce();
+        uint256 expectedMessageNonce = _getNextMessageNonce();
         bytes32 expectedMessageID = teleporterMessenger.calculateMessageID(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -73,7 +73,7 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
     function testSendMessageWithFee() public {
         // Arrange
         // Construct the message to submit.
-        uint256 expectedMessageNonce = teleporterMessenger.messageNonce();
+        uint256 expectedMessageNonce = _getNextMessageNonce();
         TeleporterMessage memory expectedMessage =
             _createMockTeleporterMessage(expectedMessageNonce, hex"deadbeef");
         TeleporterFeeInfo memory feeInfo =

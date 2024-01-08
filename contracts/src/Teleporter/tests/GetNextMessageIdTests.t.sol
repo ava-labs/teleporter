@@ -25,7 +25,7 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         bytes32 expectedMessageID = teleporterMessenger.calculateMessageID(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            teleporterMessenger.messageNonce()
+            _getNextMessageNonce()
         );
 
         // Check the contract reports the same as expected.
@@ -56,7 +56,7 @@ contract GetNextMessageIDTest is TeleporterMessengerTest {
         bytes32 secondExpectedMessageID = teleporterMessenger.calculateMessageID(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            teleporterMessenger.messageNonce()
+            _getNextMessageNonce()
         );
 
         // Check the contract reports the same as expected, and that is different than the first ID.

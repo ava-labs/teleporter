@@ -100,7 +100,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     // receiving back a message with receipt of that message such that the relayer
     // is able to redeem the reward.
     function _setUpRelayerRewards(FeeRewardInfo memory feeRewardInfo) private {
-        uint256 messageNonce = teleporterMessenger.messageNonce();
+        uint256 messageNonce = _getNextMessageNonce();
         _sendTestMessageWithFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, feeRewardInfo.feeAmount);
 
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);

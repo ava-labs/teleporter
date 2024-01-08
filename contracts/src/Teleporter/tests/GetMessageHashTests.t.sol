@@ -22,7 +22,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
     function testSuccess() public {
         // Submit a message
         TeleporterMessage memory expectedMessage = TeleporterMessage({
-            messageNonce: teleporterMessenger.messageNonce(),
+            messageNonce: _getNextMessageNonce(),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
@@ -47,7 +47,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
 
     function testMessageAlreadyReceived() public {
         // Submit a message
-        uint256 expectedNonce = teleporterMessenger.messageNonce();
+        uint256 expectedNonce = _getNextMessageNonce();
         bytes32 messageID = _sendTestMessageWithNoFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
 
         // Now mock receiving a message back from that subnet with a receipt of the above message.
