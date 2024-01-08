@@ -15,6 +15,9 @@ import {
 import {WarpMessage} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 
+address constant DEFAULT_ORIGIN_SENDER_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+bytes constant DEFAULT_MESSAGE = bytes(hex"1234");
+
 contract NonreentrantUpgradeableApp is TeleporterUpgradeable {
     constructor(address teleporterRegistryAddress)
         TeleporterUpgradeable(teleporterRegistryAddress)
@@ -28,11 +31,7 @@ contract NonreentrantUpgradeableApp is TeleporterUpgradeable {
         return _getTeleporterMessenger();
     }
 
-    function _receiveTeleporterMessage(
-        bytes32,
-        address,
-        bytes memory
-    ) internal override {
+    function _receiveTeleporterMessage(bytes32, address, bytes memory) internal override {
         // Call `receiveCrossChainMessage` of the latest version of Teleporter
         getTeleporterMessenger().receiveCrossChainMessage(2, address(this));
     }
@@ -40,9 +39,6 @@ contract NonreentrantUpgradeableApp is TeleporterUpgradeable {
     // solhint-disable-next-line no-empty-blocks
     function _checkTeleporterUpgradeAccess() internal override {}
 }
-
-address constant DEFAULT_ORIGIN_SENDER_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
-bytes constant DEFAULT_MESSAGE = bytes(hex"1234");
 
 contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     bytes32 public constant DEFAULT_ORIGIN_BLOCKCHAIN_ID =
@@ -86,7 +82,9 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         // Same index as in NonreentrantUpgradeableApp._receiveTeleporterMessage()
         _mockGetVerifiedWarpMessage(2, warpMessage, true);
 
-        bytes32 messageId = TeleporterMessenger(teleporterAddress).calculateMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987);
+        bytes32 messageId = TeleporterMessenger(teleporterAddress).calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987
+        );
 
         vm.expectEmit(true, true, true, true, address(teleporterAddress));
         emit MessageExecutionFailed(messageId, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
@@ -126,7 +124,9 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
             abi.encodeCall(ITeleporterMessenger.receiveCrossChainMessage, (2, address(app)))
         );
 
-        bytes32 messageId = TeleporterMessenger(teleporterV2).calculateMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987);
+        bytes32 messageId = TeleporterMessenger(teleporterV2).calculateMessageID(
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987
+        );
 
         vm.expectEmit(true, true, true, true, address(teleporterV2));
         emit MessageExecutionFailed(messageId, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
