@@ -24,6 +24,10 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
     // The Teleporter registry contract manages different Teleporter contract versions.
     TeleporterRegistry public immutable teleporterRegistry;
 
+    uint256 internal constant _NOT_ENTERED = 1;
+    uint256 internal constant _ENTERED = 2;
+    uint256 private _receiveEntered = _NOT_ENTERED;
+
     /**
      * @dev A mapping that keeps track of paused Teleporter addresses.
      */
@@ -52,6 +56,17 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
      */
     event TeleporterAddressUnpaused(address indexed teleporterAddress);
 
+    // upgradeableNonReentrant modifier makes sure we cannot reenter between receiver calls.
+    // This modifier should be used for TeleporterUpgradeable contracts so that the execution of a
+    // call from one TeleporterMessenger contract cannot call the ReceiveCrossChainMessage function
+    // of a different TeleporterMessenger contract version that then calls into the same contract.
+    modifier upgradeableNonReentrant() {
+        require(_receiveEntered == _NOT_ENTERED, "TeleporterUpgradeable: receiver reentrancy");
+        _receiveEntered = _ENTERED;
+        _;
+        _receiveEntered = _NOT_ENTERED;
+    }
+
     /**
      * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
      * instance and setting `_minTeleporterVersion`.
@@ -76,7 +91,7 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
         bytes32 originBlockchainID,
         address originSenderAddress,
         bytes calldata message
-    ) external {
+    ) external upgradeableNonReentrant {
         // Checks that `_msgSender()` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
         require(
             teleporterRegistry.getVersionFromAddress(_msgSender()) >= _minTeleporterVersion,
