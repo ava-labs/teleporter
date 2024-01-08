@@ -15,8 +15,7 @@ import {
 import {WarpMessage} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 
-address constant DEFAULT_ORIGIN_SENDER_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
-bytes constant DEFAULT_MESSAGE = bytes(hex"1234");
+uint32 constant warpMessageIndex = 2;
 
 contract NonreentrantUpgradeableApp is TeleporterUpgradeable {
     constructor(address teleporterRegistryAddress)
@@ -31,19 +30,33 @@ contract NonreentrantUpgradeableApp is TeleporterUpgradeable {
         return _getTeleporterMessenger();
     }
 
+    // Calls receiveCrossChainMessage on the latest TeleporterMessenger Contract.
+    // The Warp Precompile is mocked to return a message that will call
+    // TeleporterUpgradeable.receiveTeleporterMessage which should revert because it is
+    // non-reentrant.
     function _receiveTeleporterMessage(bytes32, address, bytes memory) internal override {
         // Call `receiveCrossChainMessage` of the latest version of Teleporter
-        getTeleporterMessenger().receiveCrossChainMessage(2, address(this));
+        getTeleporterMessenger().receiveCrossChainMessage(warpMessageIndex, address(this));
     }
 
     // solhint-disable-next-line no-empty-blocks
     function _checkTeleporterUpgradeAccess() internal override {}
 }
 
+// The flow for the tests below is as follows:
+// NonreentrantUpgradeableApp::receiveTeleporterMessage ->
+// NonreentrantUpgradeableApp::_receiveTeleporterMessage ->
+// TeleporterMessenger::receiveCrossChainMessage ->
+// NonreentrantUpgradeableApp::receiveTeleporterMessage
+// The last step should revert because receiveTeleporterMessage (contained in
+// TeleporterUpgradeable) is non-reentrant.
 contract TeleporterUpgradeableTest is TeleporterRegistryTest {
+    address public constant DEFAULT_ORIGIN_SENDER_ADDRESS =
+        0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    address public constant DEFAULT_DESTINATION_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    bytes public constant DEFAULT_MESSAGE = bytes(hex"1234");
     bytes32 public constant DEFAULT_ORIGIN_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-    address public constant DEFAULT_DESTINATION_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 1e6;
 
     NonreentrantUpgradeableApp public app;
@@ -80,7 +93,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         });
 
         // Same index as in NonreentrantUpgradeableApp._receiveTeleporterMessage()
-        _mockGetVerifiedWarpMessage(2, warpMessage, true);
+        _mockGetVerifiedWarpMessage(warpMessageIndex, warpMessage, true);
 
         bytes32 messageId = TeleporterMessenger(teleporterAddress).calculateMessageID(
             DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987
@@ -117,11 +130,13 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         });
 
         // Same index as in NonreentrantUpgradeableApp._receiveTeleporterMessage()
-        _mockGetVerifiedWarpMessage(2, warpMessage, true);
+        _mockGetVerifiedWarpMessage(warpMessageIndex, warpMessage, true);
 
         vm.expectCall(
             address(teleporterV2),
-            abi.encodeCall(ITeleporterMessenger.receiveCrossChainMessage, (2, address(app)))
+            abi.encodeCall(
+                ITeleporterMessenger.receiveCrossChainMessage, (warpMessageIndex, address(app))
+            )
         );
 
         bytes32 messageId = TeleporterMessenger(teleporterV2).calculateMessageID(

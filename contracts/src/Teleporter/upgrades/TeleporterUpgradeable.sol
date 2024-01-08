@@ -57,7 +57,7 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
     event TeleporterAddressUnpaused(address indexed teleporterAddress);
 
     // upgradeableNonReentrant modifier makes sure we cannot reenter between receiver calls.
-    // This modifier should be used for TeleporterUpgradeable contracts so that the execution of a 
+    // This modifier should be used for TeleporterUpgradeable contracts so that the execution of a
     // call from one TeleporterMessenger contract cannot call the ReceiveCrossChainMessage function
     // of a different TeleporterMessenger contract version that then calls into the same contract.
     modifier upgradeableNonReentrant() {
