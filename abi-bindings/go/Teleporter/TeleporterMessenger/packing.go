@@ -95,13 +95,35 @@ func PackReceiveCrossChainMessage(messageIndex uint32, relayerRewardAddress comm
 	return abi.Pack("receiveCrossChainMessage", messageIndex, relayerRewardAddress)
 }
 
-// PackMessageReceived packs a MessageReceivedInput to form a call to the messageReceived function
-func PackMessageReceived(originChainID ids.ID, messageID *big.Int) ([]byte, error) {
+// PackCalculateMessageID packs input to form a call to the calculateMessageID function
+func PackCalculateMessageID(
+	sourceBlockchainID [32]byte,
+	destinationBlockchainID [32]byte,
+	nonce *big.Int) ([]byte, error) {
 	abi, err := TeleporterMessengerMetaData.GetAbi()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get abi")
 	}
-	return abi.Pack("messageReceived", originChainID, messageID)
+
+	return abi.Pack("calculateMessageID", sourceBlockchainID, destinationBlockchainID, nonce)
+}
+
+func PackCalculateMessageIDOutput(messageID [32]byte) ([]byte, error) {
+	abi, err := TeleporterMessengerMetaData.GetAbi()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get abi")
+	}
+
+	return abi.PackOutput("calculateMessageID", messageID)
+}
+
+// PackMessageReceived packs a MessageReceivedInput to form a call to the messageReceived function
+func PackMessageReceived(messageID [32]byte) ([]byte, error) {
+	abi, err := TeleporterMessengerMetaData.GetAbi()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get abi")
+	}
+	return abi.Pack("messageReceived", messageID)
 }
 
 // UnpackMessageReceivedResult attempts to unpack result bytes to a bool indicating whether the message was received
