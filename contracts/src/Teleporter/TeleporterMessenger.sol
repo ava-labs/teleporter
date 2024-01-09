@@ -49,8 +49,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     bytes32 public blockchainID;
 
     // A monotonically incremented integer tracking the total number of messages sent by this TeleporterMessenger contract.
-    // Used to provide uniqueness when generating message IDs for new messages. Initially starts at 1 such that the
-    // nonce value can be used to provide replay protection.
+    // Used to provide uniqueness when generating message IDs for new messages. The first message sent will use a
+    // messageNonce of 1 such that the nonce value can be used to provide replay protection for a given message ID.
     uint256 public messageNonce;
 
     // Tracks the outstanding receipts to send back to a given chain in subsequent messages sent to that chain.
