@@ -40,7 +40,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         uint256[3] memory messageNonces;
         bytes32[3] memory messageIDs;
         for (uint256 i; i < feeRewardInfos.length; ++i) {
-            messageNonces[i] = teleporterMessenger.messageNonce();
+            messageNonces[i] = _getNextMessageNonce();
             messageIDs[i] =
                 _sendTestMessageWithFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, feeRewardInfos[i].feeAmount);
         }
@@ -109,7 +109,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
 
     function testReceiptForNoFeeMessage() public {
         // Submit a a mock message with no fee.
-        uint256 sentMessageNonce = teleporterMessenger.messageNonce();
+        uint256 sentMessageNonce = _getNextMessageNonce();
         bytes32 sentMessageID = _sendTestMessageWithNoFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID);
 
         // Mock receiving a message with the a receipts of the mock message sent above.
@@ -153,7 +153,7 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         // Submit a mock message to be sent.
         FeeRewardInfo memory feeRewardInfo =
             FeeRewardInfo(1111111111111111, 0x52A258ED593C793251a89bfd36caE158EE9fC4F8);
-        uint256 sentMessageNonce = teleporterMessenger.messageNonce();
+        uint256 sentMessageNonce = _getNextMessageNonce();
         _sendTestMessageWithFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, feeRewardInfo.feeAmount);
 
         // Mock receiving a message with the 2 receipts for the  same mock message above.

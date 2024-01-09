@@ -75,7 +75,7 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
 
         // Construct the mock message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageNonce: teleporterMessenger.messageNonce(),
+            messageNonce: _getNextMessageNonce(),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
@@ -117,7 +117,7 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
 
         // Construct the mock message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
-            messageNonce: teleporterMessenger.messageNonce(),
+            messageNonce: _getNextMessageNonce(),
             senderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),

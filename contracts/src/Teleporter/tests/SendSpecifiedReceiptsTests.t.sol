@@ -45,7 +45,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         }
 
         // Mock sending a message back to that chain, which should include the 3 receipts.
-        uint256 expectedMessageNonce = teleporterMessenger.messageNonce();
+        uint256 expectedMessageNonce = _getNextMessageNonce();
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageNonce: expectedMessageNonce,
             senderAddress: address(this),
@@ -85,7 +85,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
             relayerRewardAddress: relayerRewardAddresses[0]
         });
 
-        uint256 newExpectedMessageNonce = teleporterMessenger.messageNonce();
+        uint256 newExpectedMessageNonce = _getNextMessageNonce();
         bytes32 newExpectedMessageID =
             teleporterMessenger.getNextMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID);
         TeleporterMessage memory newExpectedMessage = TeleporterMessage({
@@ -158,7 +158,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         TeleporterMessageReceipt[] memory expectedReceipts = new TeleporterMessageReceipt[](2);
         expectedReceipts[0] = expectedReceipt;
         expectedReceipts[1] = expectedReceipt;
-        uint256 expectedMessageNonce = teleporterMessenger.messageNonce();
+        uint256 expectedMessageNonce = _getNextMessageNonce();
         bytes32 expectedMessageID =
             teleporterMessenger.getNextMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
         TeleporterMessage memory expectedMessage = TeleporterMessage({

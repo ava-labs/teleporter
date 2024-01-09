@@ -267,6 +267,10 @@ contract TeleporterMessengerTest is Test {
         });
     }
 
+    function _getNextMessageNonce() internal view returns (uint256) {
+        return teleporterMessenger.messageNonce() + 1;
+    }
+
     function _formatTeleporterErrorMessage(string memory errorMessage)
         internal
         pure
