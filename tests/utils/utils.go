@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -20,6 +21,7 @@ import (
 	blockhashreceiver "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/VerifiedBlockHash/BlockHashReceiver"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 
@@ -30,9 +32,9 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
+	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/rpc"
-	"github.com/ava-labs/subnet-evm/x/warp"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -284,17 +286,14 @@ func CreateRetryMessageExecutionTransaction(
 // Returns the signed transaction.
 func CreateReceiveCrossChainMessageTransaction(
 	ctx context.Context,
-	warpMessageBytes []byte,
+	signedMessage *avalancheWarp.Message,
 	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
 	senderKey *ecdsa.PrivateKey,
 	subnetInfo interfaces.SubnetTestInfo,
 ) *types.Transaction {
 	// Construct the transaction to send the Warp message to the destination chain
-	log.Info("Constructing transaction for the destination chain")
-	signedMessage, err := avalancheWarp.ParseMessage(warpMessageBytes)
-	Expect(err).Should(BeNil())
-
+	log.Info("Constructing receiveCrossChainMessage transaction for the destination chain")
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
@@ -321,6 +320,79 @@ func CreateReceiveCrossChainMessageTransaction(
 	)
 
 	return SignTransaction(destinationTx, senderKey, subnetInfo.EVMChainID)
+}
+
+// Constructs a transaction to call addProtocolVersion
+// Returns the signed transaction.
+func CreateAddProtocolVersionTransaction(
+	ctx context.Context,
+	signedMessage *avalancheWarp.Message,
+	teleporterRegistryAddress common.Address,
+	senderKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+) *types.Transaction {
+	// Construct the transaction to send the Warp message to the destination chain
+	log.Info("Constructing addProtocolVersion transaction for the destination chain")
+	// numSigners, err := signedMessage.Signature.NumSigners()
+	// Expect(err).Should(BeNil())
+
+	callData, err := teleporterregistry.PackAddProtocolVersion(0)
+	Expect(err).Should(BeNil())
+
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(senderKey))
+
+	destinationTx := predicateutils.NewPredicateTx(
+		subnetInfo.EVMChainID,
+		nonce,
+		&teleporterRegistryAddress,
+		500_000,
+		gasFeeCap,
+		gasTipCap,
+		big.NewInt(0),
+		callData,
+		types.AccessList{},
+		warp.ContractAddress,
+		signedMessage.Bytes(),
+	)
+
+	return SignTransaction(destinationTx, senderKey, subnetInfo.EVMChainID)
+}
+
+func AddProtocolVersionAndWaitForAcceptance(
+	ctx context.Context,
+	network interfaces.Network,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+	newTeleporterAddress common.Address,
+	senderKey *ecdsa.PrivateKey,
+	unsignedMessage *avalancheWarp.UnsignedMessage,
+) {
+	signedWarpMsg := network.GetSignedMessage(ctx, source, destination, unsignedMessage.ID())
+	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
+
+	// Construct tx to add protocol version and send to destination chain
+	signedTx := CreateAddProtocolVersionTransaction(
+		ctx,
+		signedWarpMsg,
+		source.TeleporterRegistryAddress,
+		senderKey,
+		source)
+
+	curLatestVersion, err := source.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	expectedLatestVersion := big.NewInt(curLatestVersion.Int64() + 1)
+
+	// Wait for tx to be accepted, and verify events emitted
+	receipt := SendTransactionAndWaitForSuccess(ctx, source, signedTx)
+	addProtocolVersionEvent, err := GetEventFromLogs(receipt.Logs, source.TeleporterRegistry.ParseAddProtocolVersion)
+	Expect(err).Should(BeNil())
+	Expect(addProtocolVersionEvent.Version.Cmp(expectedLatestVersion)).Should(Equal(0))
+	Expect(addProtocolVersionEvent.ProtocolAddress).Should(Equal(newTeleporterAddress))
+
+	versionUpdatedEvent, err := GetEventFromLogs(receipt.Logs, source.TeleporterRegistry.ParseLatestVersionUpdated)
+	Expect(err).Should(BeNil())
+	Expect(versionUpdatedEvent.OldVersion.Cmp(curLatestVersion)).Should(Equal(0))
+	Expect(versionUpdatedEvent.NewVersion.Cmp(expectedLatestVersion)).Should(Equal(0))
 }
 
 func CreateNativeTransferTransaction(
@@ -799,4 +871,82 @@ func CalculateMessageID(
 	)
 	Expect(err).Should(BeNil())
 	return res
+}
+
+func SendExampleCrossChainMessageAndVerify(
+	ctx context.Context,
+	network interfaces.Network,
+	source interfaces.SubnetTestInfo,
+	sourceExampleMessenger *examplecrosschainmessenger.ExampleCrossChainMessenger,
+	destination interfaces.SubnetTestInfo,
+	destExampleMessengerAddress common.Address,
+	destExampleMessenger *examplecrosschainmessenger.ExampleCrossChainMessenger,
+	senderKey *ecdsa.PrivateKey,
+	expectSuccess bool,
+) {
+	// Generate a random message
+	randomNumber := rand.Intn(1000)
+	randomMessage := fmt.Sprintf("%d", randomNumber)
+
+	// Call the example messenger contract on Subnet A
+	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := sourceExampleMessenger.SendMessage(
+		optsA,
+		destination.BlockchainID,
+		destExampleMessengerAddress,
+		common.BigToAddress(common.Big0),
+		big.NewInt(0),
+		examplecrosschainmessenger.SendMessageRequiredGas,
+		randomMessage,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	receipt := WaitForTransactionSuccess(ctx, source, tx)
+
+	event, err := GetEventFromLogs(receipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
+	Expect(err).Should(BeNil())
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(destination.BlockchainID[:]))
+
+	teleporterMessageID := event.MessageID
+
+	//
+	// Relay the message to the destination
+	//
+	receipt = network.RelayMessage(ctx, receipt, source, destination, true)
+
+	//
+	// Check Teleporter message received on the destination
+	//
+	delivered, err := destination.TeleporterMessenger.MessageReceived(
+		&bind.CallOpts{}, teleporterMessageID,
+	)
+	Expect(err).Should(BeNil())
+	Expect(delivered).Should(BeTrue())
+
+	if expectSuccess {
+		// Check that message execution was successful
+		messageExecutedEvent, err := GetEventFromLogs(receipt.Logs, destination.TeleporterMessenger.ParseMessageExecuted)
+		Expect(err).Should(BeNil())
+		Expect(messageExecutedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
+	} else {
+		// Check that message execution failed
+		messageExecutionFailedEvent, err := GetEventFromLogs(
+			receipt.Logs,
+			destination.TeleporterMessenger.ParseMessageExecutionFailed)
+		Expect(err).Should(BeNil())
+		Expect(messageExecutionFailedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
+	}
+
+	//
+	// Verify we received the expected string
+	//
+	_, currMessage, err := destExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, source.BlockchainID)
+	Expect(err).Should(BeNil())
+	if expectSuccess {
+		Expect(currMessage).Should(Equal(randomMessage))
+	} else {
+		Expect(currMessage).ShouldNot(Equal(randomMessage))
+	}
 }

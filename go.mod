@@ -11,7 +11,7 @@ require (
 require (
 	github.com/ava-labs/avalanche-network-runner v1.7.4-0.20231127162258-2f3ceed8ae4b
 	github.com/ava-labs/coreth v0.12.9-rc.9
-	github.com/ava-labs/subnet-evm v0.5.10
+	github.com/ava-labs/subnet-evm v0.5.11-rc.0.0.20240111183558-276d985a1d3f
 	github.com/ethereum/go-ethereum v1.12.0
 	github.com/onsi/ginkgo/v2 v2.14.0
 	github.com/onsi/gomega v1.30.0

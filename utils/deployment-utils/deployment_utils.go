@@ -188,3 +188,10 @@ func ConstructKeylessTransaction(
 	}
 	return contractCreationTxBytes, senderAddress, contractAddress, nil
 }
+
+// AlterNicksTransaction increments the gas price of the transaction used to deploy the contract.
+// This changes the derived contract and deployer address, which is useful for deploying the same
+// Teleporter contract to different addresses.
+func AlterNicksTransaction() {
+	contractCreationGasPrice.Add(contractCreationGasPrice, big.NewInt(1))
+}
