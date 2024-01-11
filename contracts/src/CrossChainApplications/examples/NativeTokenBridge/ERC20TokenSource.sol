@@ -5,16 +5,13 @@
 
 pragma solidity 0.8.18;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {IERC20TokenSource} from "./IERC20TokenSource.sol";
-import {ITokenSource} from "./ITokenSource.sol";
+import {TokenSource} from "./TokenSource.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -24,21 +21,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
-contract ERC20TokenSource is
-    TeleporterOwnerUpgradeable,
-    IERC20TokenSource,
-    ITokenSource,
-    ReentrancyGuard
-{
-    // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" when
-    // a SourceAction.Burn message is received from the destination chain.
-    address public constant BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
-    uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
-    // Used to keep track of tokens burned through transactions on the destination chain. They can
-    // be reported to this contract to burn an equivalent number of tokens on this chain.
-    uint256 public destinationBurnedTotal;
-    bytes32 public immutable destinationBlockchainID;
-    address public immutable nativeTokenDestinationAddress;
+contract ERC20TokenSource is IERC20TokenSource, TokenSource {
     address public immutable erc20ContractAddress;
 
     constructor(
@@ -46,24 +29,9 @@ contract ERC20TokenSource is
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_,
         address erc20ContractAddress_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {
-        require(
-            destinationBlockchainID_ != bytes32(0),
-            "ERC20TokenSource: zero destination blockchain ID"
-        );
-        require(
-            destinationBlockchainID_
-                != IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID(),
-            "ERC20TokenSource: cannot bridge with same blockchain"
-        );
-        destinationBlockchainID = destinationBlockchainID_;
-
-        require(
-            nativeTokenDestinationAddress_ != address(0),
-            "ERC20TokenSource: zero destination contract address"
-        );
-        nativeTokenDestinationAddress = nativeTokenDestinationAddress_;
-
+    )
+        TokenSource(teleporterRegistryAddress, destinationBlockchainID_, nativeTokenDestinationAddress_)
+    {
         require(
             erc20ContractAddress_ != address(0), "ERC20TokenSource: zero ERC20 contract address"
         );
@@ -122,45 +90,9 @@ contract ERC20TokenSource is
     }
 
     /**
-     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
-     *
-     * Receives a Teleporter message and routes to the appropriate internal function call.
-     */
-    function _receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
-        address senderAddress,
-        bytes memory message
-    ) internal override {
-        // Only allow messages from the destination chain.
-        require(
-            senderBlockchainID == destinationBlockchainID,
-            "ERC20TokenSource: invalid destination chain"
-        );
-
-        // Only allow the partner contract to send messages.
-        require(
-            senderAddress == nativeTokenDestinationAddress, "ERC20TokenSource: unauthorized sender"
-        );
-
-        // Decode the payload to recover the action and corresponding function parameters
-        (SourceAction action, bytes memory actionData) = abi.decode(message, (SourceAction, bytes));
-
-        // Route to the appropriate function.
-        if (action == SourceAction.Unlock) {
-            (address recipient, uint256 amount) = abi.decode(actionData, (address, uint256));
-            _unlockTokens(recipient, amount);
-        } else if (action == SourceAction.Burn) {
-            uint256 newBurnTotal = abi.decode(actionData, (uint256));
-            _handleBurnTokens(newBurnTotal);
-        } else {
-            revert("ERC20TokenSource: invalid action");
-        }
-    }
-
-    /**
      * @dev Unlocks tokens to recipient.
      */
-    function _unlockTokens(address recipient, uint256 amount) private {
+    function _unlockTokens(address recipient, uint256 amount) internal override {
         require(recipient != address(0), "ERC20TokenSource: zero recipient address");
 
         // Transfer to recipient
@@ -169,21 +101,24 @@ contract ERC20TokenSource is
     }
 
     /**
-     * @dev Sends tokens to BURNED_TX_FEES_ADDRESS.
-     */
-    function _burnTokens(uint256 amount) private {
-        emit BurnTokens(amount);
-        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BURN_ADDRESS, amount);
-    }
-
-    /**
      * @dev Update destinationBurnedTotal sent from destination chain
+     * If the new burned total is less than the highest known burned total, this transaction is a no-op.
+     * The burned total on the destination will only ever increase, but new totals may be relayed to this
+     * chain out of order.
      */
-    function _handleBurnTokens(uint256 newBurnTotal) private {
+    function _handleBurnTokens(uint256 newBurnTotal) internal override {
         if (newBurnTotal > destinationBurnedTotal) {
             uint256 difference = newBurnTotal - destinationBurnedTotal;
             _burnTokens(difference);
             destinationBurnedTotal = newBurnTotal;
         }
+    }
+
+    /**
+     * @dev Sends tokens to BURNED_TX_FEES_ADDRESS.
+     */
+    function _burnTokens(uint256 amount) private {
+        emit BurnTokens(amount);
+        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BURN_ADDRESS, amount);
     }
 }
