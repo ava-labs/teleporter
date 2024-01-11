@@ -79,7 +79,7 @@ contract InitializeBlockchainIDTest is Test {
     function testInitializedByReceiving() public {
         TeleporterMessage memory teleporterMessage = TeleporterMessage({
             messageNonce: 1,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(1),
             requiredGasLimit: 100,

@@ -37,7 +37,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 987,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -177,7 +177,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 0,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -240,7 +240,7 @@ contract ReceiveCrossChainMessagedTest is TeleporterMessengerTest {
         // Construct the test message to be received.
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 42,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,

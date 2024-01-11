@@ -189,7 +189,7 @@ contract NativeTokenDestination is
      */
     function _receiveTeleporterMessage(
         bytes32 senderBlockchainID,
-        address senderAddress,
+        address originSenderAddress,
         bytes memory message
     ) internal override {
         // Only allow messages from the source chain.
@@ -199,7 +199,7 @@ contract NativeTokenDestination is
 
         // Only allow the partner contract to send messages.
         require(
-            senderAddress == nativeTokenSourceAddress, "NativeTokenDestination: unauthorized sender"
+            originSenderAddress == nativeTokenSourceAddress, "NativeTokenDestination: unauthorized sender"
         );
 
         (address recipient, uint256 amount) = abi.decode(message, (address, uint256));

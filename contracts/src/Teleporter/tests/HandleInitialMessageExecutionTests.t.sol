@@ -96,7 +96,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 42,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -143,7 +143,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 42,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: uint256(
@@ -169,7 +169,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 42,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -219,7 +219,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
         string memory messageString = "Testing successful message";
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 42,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,

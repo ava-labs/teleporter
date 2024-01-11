@@ -246,7 +246,7 @@ contract TeleporterMessengerTest is Test {
     ) internal view returns (TeleporterMessage memory) {
         return TeleporterMessage({
             messageNonce: messageNonce,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,

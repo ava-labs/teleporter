@@ -439,7 +439,7 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 		destination.TeleporterMessenger.ParseReceiveCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
-	Expect(receiveEvent.OriginBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
+	Expect(receiveEvent.SourceBlockchainID[:]).Should(Equal(source.BlockchainID[:]))
 	return receipt
 }
 

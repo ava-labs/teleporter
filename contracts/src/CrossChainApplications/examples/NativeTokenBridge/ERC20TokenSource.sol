@@ -128,7 +128,7 @@ contract ERC20TokenSource is
      */
     function _receiveTeleporterMessage(
         bytes32 senderBlockchainID,
-        address senderAddress,
+        address originSenderAddress,
         bytes memory message
     ) internal override {
         // Only allow messages from the destination chain.
@@ -139,7 +139,7 @@ contract ERC20TokenSource is
 
         // Only allow the partner contract to send messages.
         require(
-            senderAddress == nativeTokenDestinationAddress, "ERC20TokenSource: unauthorized sender"
+            originSenderAddress == nativeTokenDestinationAddress, "ERC20TokenSource: unauthorized sender"
         );
 
         // Decode the payload to recover the action and corresponding function parameters

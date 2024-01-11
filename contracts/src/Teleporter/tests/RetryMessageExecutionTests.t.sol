@@ -113,7 +113,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         // Retrying a message that never was delivered should always fail.
         TeleporterMessage memory fakeMessage = TeleporterMessage({
             messageNonce: 12345,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -192,7 +192,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         }
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 42,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(destinationContract),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,

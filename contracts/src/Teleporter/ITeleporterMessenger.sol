@@ -29,7 +29,7 @@ struct TeleporterMessageInput {
 // Represents a message sent or received by an implementation of {ITeleporterMessenger}.
 struct TeleporterMessage {
     uint256 messageNonce;
-    address senderAddress;
+    address originSenderAddress;
     bytes32 destinationBlockchainID;
     address destinationAddress;
     uint256 requiredGasLimit;

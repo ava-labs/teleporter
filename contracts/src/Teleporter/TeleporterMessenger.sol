@@ -358,7 +358,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // a fallback function, then the fallback function will be called instead.
         bytes memory payload = abi.encodeCall(
             ITeleporterReceiver.receiveTeleporterMessage,
-            (sourceBlockchainID, message.senderAddress, message.message)
+            (sourceBlockchainID, message.originSenderAddress, message.message)
         );
 
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
@@ -605,7 +605,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Construct and serialize the message.
         TeleporterMessage memory teleporterMessage = TeleporterMessage({
             messageNonce: messageNonce_,
-            senderAddress: msg.sender,
+            originSenderAddress: msg.sender,
             destinationBlockchainID: messageInput.destinationBlockchainID,
             destinationAddress: messageInput.destinationAddress,
             requiredGasLimit: messageInput.requiredGasLimit,
@@ -742,7 +742,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // defined by the {ITeleporterReceiver} interface.
         bytes memory payload = abi.encodeCall(
             ITeleporterReceiver.receiveTeleporterMessage,
-            (sourceBlockchainID, message.senderAddress, message.message)
+            (sourceBlockchainID, message.originSenderAddress, message.message)
         );
 
         // Call the destination address of the message with the formatted call data. Only provide the required

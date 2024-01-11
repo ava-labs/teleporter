@@ -19,7 +19,7 @@ func init() {
 	var err error
 	teleporterMessageType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
 		{Name: "messageNonce", Type: "uint256"},
-		{Name: "senderAddress", Type: "address"},
+		{Name: "originSenderAddress", Type: "address"},
 		{Name: "destinationBlockchainID", Type: "bytes32"},
 		{Name: "destinationAddress", Type: "address"},
 		{Name: "requiredGasLimit", Type: "uint256"},

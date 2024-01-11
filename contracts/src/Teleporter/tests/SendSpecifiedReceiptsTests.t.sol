@@ -48,7 +48,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         uint256 expectedMessageNonce = _getNextMessageNonce();
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageNonce: expectedMessageNonce,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -90,7 +90,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
             teleporterMessenger.getNextMessageID(DEFAULT_ORIGIN_BLOCKCHAIN_ID);
         TeleporterMessage memory newExpectedMessage = TeleporterMessage({
             messageNonce: newExpectedMessageNonce,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_ORIGIN_BLOCKCHAIN_ID,
             destinationAddress: address(0),
             requiredGasLimit: uint256(0),
@@ -163,7 +163,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
             teleporterMessenger.getNextMessageID(DEFAULT_DESTINATION_BLOCKCHAIN_ID);
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageNonce: expectedMessageNonce,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(0),
             requiredGasLimit: uint256(0),
