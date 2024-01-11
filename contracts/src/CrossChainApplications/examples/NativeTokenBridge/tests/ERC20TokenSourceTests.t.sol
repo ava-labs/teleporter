@@ -8,7 +8,7 @@ pragma solidity 0.8.18;
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
 import {
     ERC20TokenSource,
-    ITokenSource,
+    TokenSource,
     TeleporterMessageInput,
     TeleporterFeeInfo,
     ITeleporterMessenger
@@ -87,7 +87,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(
-                ITokenSource.SourceAction.Unlock,
+                TokenSource.SourceAction.Unlock,
                 abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
             )
         );
@@ -115,7 +115,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         erc20TokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees))
+            abi.encode(TokenSource.SourceAction.Burn, abi.encode(burnedTxFees))
         );
 
         assertEq(burnedTxFees, erc20TokenSource.destinationBurnedTotal());
@@ -125,7 +125,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         erc20TokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees - 1))
+            abi.encode(TokenSource.SourceAction.Burn, abi.encode(burnedTxFees - 1))
         );
 
         assertEq(burnedTxFees, erc20TokenSource.destinationBurnedTotal());
@@ -137,7 +137,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         erc20TokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees + additionalTxFees))
+            abi.encode(TokenSource.SourceAction.Burn, abi.encode(burnedTxFees + additionalTxFees))
         );
 
         assertEq(burnedTxFees + additionalTxFees, erc20TokenSource.destinationBurnedTotal());
@@ -220,7 +220,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(
-                ITokenSource.SourceAction.Unlock,
+                TokenSource.SourceAction.Unlock,
                 abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
             )
         );
@@ -234,7 +234,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x123),
             abi.encode(
-                ITokenSource.SourceAction.Unlock,
+                TokenSource.SourceAction.Unlock,
                 abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
             )
         );
@@ -248,7 +248,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(
-                ITokenSource.SourceAction.Unlock, abi.encode(address(0x0), _DEFAULT_TRANSFER_AMOUNT)
+                TokenSource.SourceAction.Unlock, abi.encode(address(0x0), _DEFAULT_TRANSFER_AMOUNT)
             )
         );
     }

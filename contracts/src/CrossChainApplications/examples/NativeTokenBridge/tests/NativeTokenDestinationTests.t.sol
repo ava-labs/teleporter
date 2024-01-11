@@ -8,7 +8,7 @@ pragma solidity 0.8.18;
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
 import {
     NativeTokenDestination,
-    ITokenSource,
+    TokenSource,
     TeleporterMessageInput,
     TeleporterFeeInfo,
     ITeleporterMessenger
@@ -83,7 +83,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             requiredGasLimit: nativeTokenDestination.TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: abi.encode(
-                ITokenSource.SourceAction.Unlock,
+                TokenSource.SourceAction.Unlock,
                 abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
                 )
         });
@@ -168,7 +168,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             }),
             requiredGasLimit: nativeTokenDestination.REPORT_BURNED_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedFees))
+            message: abi.encode(TokenSource.SourceAction.Burn, abi.encode(burnedFees))
         });
 
         vm.expectCall(

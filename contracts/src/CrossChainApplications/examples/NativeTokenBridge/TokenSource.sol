@@ -7,7 +7,6 @@ pragma solidity 0.8.18;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
-import {ITokenSource} from "./ITokenSource.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 
 /**
@@ -15,7 +14,15 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
-abstract contract TokenSource is TeleporterOwnerUpgradeable, ITokenSource, ReentrancyGuard {
+abstract contract TokenSource is TeleporterOwnerUpgradeable, ReentrancyGuard {
+    /**
+     * @dev Enum representing the action to take on receiving a Teleporter message.
+     */
+    enum SourceAction {
+        Unlock,
+        Burn
+    }
+
     // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" when
     // a SourceAction.Burn message is received from the destination chain.
     address public constant BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
@@ -25,6 +32,26 @@ abstract contract TokenSource is TeleporterOwnerUpgradeable, ITokenSource, Reent
     uint256 public destinationBurnedTotal;
     bytes32 public immutable destinationBlockchainID;
     address public immutable nativeTokenDestinationAddress;
+
+    /**
+     * @dev Emitted when native tokens are locked in the source contract to be transferred to the destination chain.
+     */
+    event TransferToDestination(
+        address indexed sender,
+        address indexed recipient,
+        bytes32 indexed teleporterMessageID,
+        uint256 amount
+    );
+
+    /**
+     * @dev Emitted when tokens are unlocked on this chain.
+     */
+    event UnlockTokens(address indexed recipient, uint256 amount);
+
+    /**
+     * @dev Emitted when tokens are burned on this chain.
+     */
+    event BurnTokens(uint256 amount);
 
     constructor(
         address teleporterRegistryAddress,
