@@ -158,7 +158,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testZeroDestinationChainID() public {
-        vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero destination blockchain ID"));
+        vm.expectRevert(_formatTokenSourceErrorMessage("zero destination blockchain ID"));
 
         new ERC20TokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -169,7 +169,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testSameBlockchainID() public {
-        vm.expectRevert(_formatERC20TokenSourceErrorMessage("cannot bridge with same blockchain"));
+        vm.expectRevert(_formatTokenSourceErrorMessage("cannot bridge with same blockchain"));
 
         new ERC20TokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -180,7 +180,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testZeroDestinationContractAddress() public {
-        vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero destination contract address"));
+        vm.expectRevert(_formatTokenSourceErrorMessage("zero destination contract address"));
 
         new ERC20TokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -213,7 +213,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testInvalidDestinationBlockchain() public {
-        vm.expectRevert(_formatERC20TokenSourceErrorMessage("invalid destination chain"));
+        vm.expectRevert(_formatTokenSourceErrorMessage("invalid destination chain"));
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         erc20TokenSource.receiveTeleporterMessage(
@@ -227,7 +227,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testInvalidSenderContract() public {
-        vm.expectRevert(_formatERC20TokenSourceErrorMessage("unauthorized sender"));
+        vm.expectRevert(_formatTokenSourceErrorMessage("unauthorized sender"));
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         erc20TokenSource.receiveTeleporterMessage(
@@ -270,5 +270,13 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         returns (bytes memory)
     {
         return bytes(string.concat("ERC20TokenSource: ", errorMessage));
+    }
+
+    function _formatTokenSourceErrorMessage(string memory errorMessage)
+        private
+        pure
+        returns (bytes memory)
+    {
+        return bytes(string.concat("TokenSource: ", errorMessage));
     }
 }
