@@ -137,7 +137,7 @@ contract SendSpecifiedReceiptsTest is TeleporterMessengerTest {
         // different chain than they were delivered by.
         bytes32 otherBlockchainID =
             bytes32(hex"11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff");
-        vm.expectRevert(_formatTeleporterErrorMessage("message ID not from origin blockchain"));
+        vm.expectRevert(_formatTeleporterErrorMessage("message ID not from source blockchain"));
         _sendSpecifiedReceiptsWithNoFee(otherBlockchainID, receiptIDs);
     }
 
