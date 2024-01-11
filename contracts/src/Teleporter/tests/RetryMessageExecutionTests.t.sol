@@ -33,7 +33,7 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
     }
 
     function receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes calldata messageBytes
     ) external {
@@ -43,10 +43,10 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
             abi.decode(messageBytes, (FlakyMessageReceiverAction, bytes));
         if (action == FlakyMessageReceiverAction.ReceiveMessage) {
             string memory message = abi.decode(actionData, (string));
-            _receiveMessage(originBlockchainID, originSenderAddress, message);
+            _receiveMessage(sourceBlockchainID, originSenderAddress, message);
         } else if (action == FlakyMessageReceiverAction.RetryReceive) {
             string memory message = abi.decode(actionData, (string));
-            _retryReceive(originBlockchainID, originSenderAddress, message);
+            _retryReceive(sourceBlockchainID, originSenderAddress, message);
         } else {
             revert("invalid action");
         }
@@ -54,20 +54,20 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
 
     // Stores the message in this contract to be fetched by anyone.
     function _receiveMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         string memory message
     ) internal {
         require(msg.sender == teleporterContract, "unauthorized");
         require(block.number % 2 != 0, "even block number");
         latestMessage = message;
-        latestMessageSenderSubnetID = originBlockchainID;
+        latestMessageSenderSubnetID = sourceBlockchainID;
         latestMessageSenderAddress = originSenderAddress;
     }
 
     // Tries to call the teleporterContract to receive a message, which should always fail.
     function _retryReceive(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         string memory message
     ) internal {
@@ -77,7 +77,7 @@ contract FlakyMessageReceiver is ITeleporterReceiver {
         ITeleporterMessenger messenger = ITeleporterMessenger(teleporterContract);
         messenger.receiveCrossChainMessage(0, address(42));
         latestMessage = message;
-        latestMessageSenderSubnetID = originBlockchainID;
+        latestMessageSenderSubnetID = sourceBlockchainID;
         latestMessageSenderAddress = originSenderAddress;
     }
 }
@@ -101,12 +101,12 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
     function testExecutionFailsAgain() public {
         // First submit a message whose execution fails.
-        (bytes32 originBlockchainID, TeleporterMessage memory message,) =
+        (bytes32 sourceBlockchainID, TeleporterMessage memory message,) =
             _receiveFailedMessage(false);
 
         // Now retry it in another block with an even timestamp so that it fails again.
         vm.expectRevert(_formatTeleporterErrorMessage("retry execution failed"));
-        teleporterMessenger.retryMessageExecution(originBlockchainID, message);
+        teleporterMessenger.retryMessageExecution(sourceBlockchainID, message);
     }
 
     function testMessageHashNotFound() public {
@@ -128,37 +128,37 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
     function testInvalidMessageHash() public {
         // First submit a message whose execution fails.
-        (bytes32 originBlockchainID, TeleporterMessage memory message,) =
+        (bytes32 sourceBlockchainID, TeleporterMessage memory message,) =
             _receiveFailedMessage(false);
 
         // Alter the message before retrying it.
         message.message = "altered message";
         vm.expectRevert(_formatTeleporterErrorMessage("invalid message hash"));
-        teleporterMessenger.retryMessageExecution(originBlockchainID, message);
+        teleporterMessenger.retryMessageExecution(sourceBlockchainID, message);
     }
 
     function testCanNotRetryAgainAfterSuccess() public {
         // Successfully retry a message execution.
-        (bytes32 originBlockchainID, TeleporterMessage memory message) = _successfullyRetryMessage();
+        (bytes32 sourceBlockchainID, TeleporterMessage memory message) = _successfullyRetryMessage();
 
         // Now try again and make sure it's been cleared from state
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
-        teleporterMessenger.retryMessageExecution(originBlockchainID, message);
+        teleporterMessenger.retryMessageExecution(sourceBlockchainID, message);
     }
 
     function testCanNotReceiveMessageWhileRetrying() public {
         // First submit a message whose execution fails.
-        (bytes32 originBlockchainID, TeleporterMessage memory message,) =
+        (bytes32 sourceBlockchainID, TeleporterMessage memory message,) =
             _receiveFailedMessage(false);
 
         // Now retry it within a block with an odd timestamp.
         // It should still fail because it tries to re-enter the teleporter contract.
         vm.expectRevert();
-        teleporterMessenger.retryMessageExecution(originBlockchainID, message);
+        teleporterMessenger.retryMessageExecution(sourceBlockchainID, message);
     }
 
     function testEOAFailsThenRetrySucceeds() public {
-        (bytes32 originBlockchainID, address destinationAddress, TeleporterMessage memory message) =
+        (bytes32 sourceBlockchainID, address destinationAddress, TeleporterMessage memory message) =
             _receiveMessageSentToEOA();
 
         // Now mock a contract being deployed to the destination address. It will still return no
@@ -166,16 +166,16 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         vm.etch(destinationAddress, new bytes(10));
 
         // Retrying the message execution should not revert.
-        teleporterMessenger.retryMessageExecution(originBlockchainID, message);
+        teleporterMessenger.retryMessageExecution(sourceBlockchainID, message);
     }
 
     function testEOAFailsAgainOnRetry() public {
-        (bytes32 originBlockchainID,, TeleporterMessage memory message) = _receiveMessageSentToEOA();
+        (bytes32 sourceBlockchainID,, TeleporterMessage memory message) = _receiveMessageSentToEOA();
 
         // Retrying the message execution should revert since there is still no contract deployed
         // to the destination address.
         vm.expectRevert(_formatTeleporterErrorMessage("destination address has no code"));
-        teleporterMessenger.retryMessageExecution(originBlockchainID, message);
+        teleporterMessenger.retryMessageExecution(sourceBlockchainID, message);
     }
 
     function _receiveFailedMessage(bool retryReceive)
@@ -241,7 +241,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
 
     function _successfullyRetryMessage() internal returns (bytes32, TeleporterMessage memory) {
         // First submit a message whose execution fails.
-        (bytes32 originBlockchainID, TeleporterMessage memory message, string memory messageString)
+        (bytes32 sourceBlockchainID, TeleporterMessage memory message, string memory messageString)
         = _receiveFailedMessage(false);
 
         // Now retry the message execution in a block with an odd height, which should succeed.
@@ -249,17 +249,17 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit MessageExecuted(
             teleporterMessenger.calculateMessageID(
-                originBlockchainID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, message.messageNonce
+                sourceBlockchainID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, message.messageNonce
             ),
-            originBlockchainID
+            sourceBlockchainID
         );
-        teleporterMessenger.retryMessageExecution(originBlockchainID, message);
+        teleporterMessenger.retryMessageExecution(sourceBlockchainID, message);
 
         // Check that the message had the proper affect on the destination contract.
         assertEq(destinationContract.latestMessage(), messageString);
-        assertEq(destinationContract.latestMessageSenderSubnetID(), originBlockchainID);
+        assertEq(destinationContract.latestMessageSenderSubnetID(), sourceBlockchainID);
         assertEq(destinationContract.latestMessageSenderAddress(), address(this));
 
-        return (originBlockchainID, message);
+        return (sourceBlockchainID, message);
     }
 }

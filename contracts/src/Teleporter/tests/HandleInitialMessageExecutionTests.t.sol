@@ -30,7 +30,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
     }
 
     function receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes calldata message
     ) external {
@@ -40,10 +40,10 @@ contract SampleMessageReceiver is ITeleporterReceiver {
             abi.decode(message, (SampleMessageReceiverAction, bytes));
         if (action == SampleMessageReceiverAction.Receive) {
             (string memory messageString, bool succeed) = abi.decode(actionData, (string, bool));
-            _receiveMessage(originBlockchainID, originSenderAddress, messageString, succeed);
+            _receiveMessage(sourceBlockchainID, originSenderAddress, messageString, succeed);
         } else if (action == SampleMessageReceiverAction.ReceiveRecursive) {
             string memory messageString = abi.decode(actionData, (string));
-            _receiveMessageRecursive(originBlockchainID, originSenderAddress, messageString);
+            _receiveMessageRecursive(sourceBlockchainID, originSenderAddress, messageString);
         } else {
             revert("invalid action");
         }
@@ -51,7 +51,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
 
     // Stores the message in this contract to be fetched by anyone.
     function _receiveMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         string memory message,
         bool succeed
@@ -59,13 +59,13 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         require(msg.sender == teleporterContract, "unauthorized");
         require(succeed, "intended to fail");
         latestMessage = message;
-        latestMessageSenderSubnetID = originBlockchainID;
+        latestMessageSenderSubnetID = sourceBlockchainID;
         latestMessageSenderAddress = originSenderAddress;
     }
 
     // Tries to recursively call the teleporterContract to receive a message, which should always fail.
     function _receiveMessageRecursive(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         string memory message
     ) internal {
@@ -73,7 +73,7 @@ contract SampleMessageReceiver is ITeleporterReceiver {
         ITeleporterMessenger messenger = ITeleporterMessenger(teleporterContract);
         messenger.receiveCrossChainMessage(0, address(42));
         latestMessage = message;
-        latestMessageSenderSubnetID = originBlockchainID;
+        latestMessageSenderSubnetID = sourceBlockchainID;
         latestMessageSenderAddress = originSenderAddress;
     }
 }

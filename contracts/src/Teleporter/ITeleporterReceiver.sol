@@ -14,12 +14,12 @@ interface ITeleporterReceiver {
     /**
      * @dev Called by TeleporterMessenger on the receiving chain.
      *
-     * @param originBlockchainID is provided by the TeleporterMessenger contract.
+     * @param sourceBlockchainID is provided by the TeleporterMessenger contract.
      * @param originSenderAddress is provided by the TeleporterMessenger contract.
      * @param message is the TeleporterMessage payload set by the sender.
      */
     function receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes calldata message
     ) external;

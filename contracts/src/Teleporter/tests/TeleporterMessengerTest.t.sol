@@ -49,17 +49,17 @@ contract TeleporterMessengerTest is Test {
 
     event ReceiveCrossChainMessage(
         bytes32 indexed messageID,
-        bytes32 indexed originBlockchainID,
+        bytes32 indexed sourceBlockchainID,
         address indexed deliverer,
         address rewardRedeemer,
         TeleporterMessage message
     );
 
     event MessageExecutionFailed(
-        bytes32 indexed messageID, bytes32 indexed originBlockchainID, TeleporterMessage message
+        bytes32 indexed messageID, bytes32 indexed sourceBlockchainID, TeleporterMessage message
     );
 
-    event MessageExecuted(bytes32 indexed messageID, bytes32 indexed originBlockchainID);
+    event MessageExecuted(bytes32 indexed messageID, bytes32 indexed sourceBlockchainID);
 
     event ReceiptReceived(
         bytes32 indexed messageID,
@@ -163,7 +163,7 @@ contract TeleporterMessengerTest is Test {
     }
 
     function _receiveTestMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         uint256 messageNonce,
         address relayerRewardAddress,
         TeleporterMessageReceipt[] memory receipts
@@ -176,7 +176,7 @@ contract TeleporterMessengerTest is Test {
         // Both the sender and destination address should be the teleporter contract address,
         // mocking as if the universal deployer pattern was used.
         WarpMessage memory warpMessage =
-            _createDefaultWarpMessage(originBlockchainID, abi.encode(messageToReceive));
+            _createDefaultWarpMessage(sourceBlockchainID, abi.encode(messageToReceive));
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
@@ -185,7 +185,7 @@ contract TeleporterMessengerTest is Test {
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit ReceiveCrossChainMessage(
             teleporterMessenger.calculateMessageID(
-                originBlockchainID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageNonce
+                sourceBlockchainID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageNonce
             ),
             warpMessage.sourceChainID,
             address(this),
@@ -257,11 +257,11 @@ contract TeleporterMessengerTest is Test {
     }
 
     function _createDefaultWarpMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         bytes memory payload
     ) internal view returns (WarpMessage memory) {
         return WarpMessage({
-            sourceChainID: originBlockchainID,
+            sourceChainID: sourceBlockchainID,
             originSenderAddress: address(teleporterMessenger),
             payload: payload
         });

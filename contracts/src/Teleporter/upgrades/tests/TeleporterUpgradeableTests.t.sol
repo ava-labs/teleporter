@@ -24,7 +24,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
     }
 
     function _receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message // solhint-disable-next-line no-empty-blocks
     ) internal override {}
