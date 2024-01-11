@@ -77,7 +77,7 @@ contract NativeTokenSource is INativeTokenSource, TokenSource {
     }
 
     /**
-     * @dev Unlocks tokens to recipient.
+     * @dev See {TokenSource-_unlockTokens}
      */
     function _unlockTokens(address recipient, uint256 amount) internal override {
         require(recipient != address(0), "NativeTokenSource: zero recipient address");
@@ -89,10 +89,7 @@ contract NativeTokenSource is INativeTokenSource, TokenSource {
     }
 
     /**
-     * @dev Update destinationBurnedTotal sent from destination chain
-     * If the new burned total is less than the highest known burned total, this transaction is a no-op.
-     * The burned total on the destination will only ever increase, but new totals may be relayed to this
-     * chain out of order.
+     * @dev See {TokenSource-_handleBurnTokens}
      */
     function _handleBurnTokens(uint256 newBurnTotal) internal override {
         if (newBurnTotal > destinationBurnedTotal) {
@@ -103,7 +100,7 @@ contract NativeTokenSource is INativeTokenSource, TokenSource {
     }
 
     /**
-     * @dev Sends tokens to BURNED_TX_FEES_ADDRESS.
+     * @dev See {TokenSource-_burnTokens}
      */
     function _burnTokens(uint256 amount) private {
         emit BurnTokens(amount);
