@@ -199,7 +199,8 @@ contract NativeTokenDestination is
 
         // Only allow the partner contract to send messages.
         require(
-            originSenderAddress == nativeTokenSourceAddress, "NativeTokenDestination: unauthorized sender"
+            originSenderAddress == nativeTokenSourceAddress,
+            "NativeTokenDestination: unauthorized sender"
         );
 
         (address recipient, uint256 amount) = abi.decode(message, (address, uint256));

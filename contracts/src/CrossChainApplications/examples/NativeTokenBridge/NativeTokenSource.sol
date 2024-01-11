@@ -127,7 +127,8 @@ contract NativeTokenSource is
 
         // Only allow the partner contract to send messages.
         require(
-            originSenderAddress == nativeTokenDestinationAddress, "NativeTokenSource: unauthorized sender"
+            originSenderAddress == nativeTokenDestinationAddress,
+            "NativeTokenSource: unauthorized sender"
         );
 
         // Decode the payload to recover the action and corresponding function parameters

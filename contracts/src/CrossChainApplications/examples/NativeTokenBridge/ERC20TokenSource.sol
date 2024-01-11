@@ -139,7 +139,8 @@ contract ERC20TokenSource is
 
         // Only allow the partner contract to send messages.
         require(
-            originSenderAddress == nativeTokenDestinationAddress, "ERC20TokenSource: unauthorized sender"
+            originSenderAddress == nativeTokenDestinationAddress,
+            "ERC20TokenSource: unauthorized sender"
         );
 
         // Decode the payload to recover the action and corresponding function parameters
