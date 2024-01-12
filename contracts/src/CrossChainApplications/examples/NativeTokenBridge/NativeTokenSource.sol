@@ -5,7 +5,6 @@
 
 pragma solidity 0.8.18;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {INativeTokenSource} from "./INativeTokenSource.sol";
@@ -25,12 +24,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
-contract NativeTokenSource is
-    TeleporterOwnerUpgradeable,
-    INativeTokenSource,
-    ITokenSource,
-    ReentrancyGuard
-{
+contract NativeTokenSource is TeleporterOwnerUpgradeable, INativeTokenSource, ITokenSource {
     // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" when
     // a SourceAction.Burn message is received from the destination chain.
     address public constant BURN_ADDRESS = 0x0100000000000000000000000000000000010203;

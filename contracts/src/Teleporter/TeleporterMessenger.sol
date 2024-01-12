@@ -49,9 +49,9 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     bytes32 public blockchainID;
 
     // A monotonically incremented integer tracking the total number of messages sent by this TeleporterMessenger contract.
-    // Used to provide uniqueness when generating message IDs for new messages. Initially starts at 1 such that the
-    // nonce value can be used to provide replay protection.
-    uint256 public messageNonce = 1;
+    // Used to provide uniqueness when generating message IDs for new messages. The first message sent will use a
+    // messageNonce of 1 such that the nonce value can be used to provide replay protection for a given message ID.
+    uint256 public messageNonce;
 
     // Tracks the outstanding receipts to send back to a given chain in subsequent messages sent to that chain.
     // The key is the blockchain ID of the other chain, and the value is a queue of pending receipts for messages
@@ -510,7 +510,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     function getNextMessageID(bytes32 destinationBlockchainID) external view returns (bytes32) {
         bytes32 blockchainID_ = blockchainID;
         require(blockchainID_ != bytes32(0), "TeleporterMessenger: zero blockchain ID");
-        return calculateMessageID(blockchainID_, destinationBlockchainID, messageNonce);
+        uint256 nextMessageNonce = messageNonce + 1;
+        return calculateMessageID(blockchainID_, destinationBlockchainID, nextMessageNonce);
     }
 
     /**
@@ -596,8 +597,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // If the blockchain ID has yet to be initialized, do so now.
         bytes32 blockchainID_ = initializeBlockchainID();
 
-        // Get the message ID to use for this message.
-        uint256 messageNonce_ = messageNonce;
+        // Get the message ID to use for this message by incrementing it.
+        uint256 messageNonce_ = ++messageNonce;
         bytes32 messageID =
             calculateMessageID(blockchainID_, messageInput.destinationBlockchainID, messageNonce_);
 
@@ -613,9 +614,6 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             message: messageInput.message
         });
         bytes memory teleporterMessageBytes = abi.encode(teleporterMessage);
-
-        // Increment the message nonce so the next message will have a different ID
-        ++messageNonce;
 
         // If the fee amount is non-zero, transfer the asset into control of this TeleporterMessenger contract instance.
         // The fee is allowed to be 0 because it's possible for someone to run their own relayer and deliver their own messages,

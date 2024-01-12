@@ -177,8 +177,10 @@ contract TeleporterRegistry {
             "TeleporterRegistry: version already exists"
         );
         require(entry.protocolAddress != address(0), "TeleporterRegistry: zero protocol address");
+
+        uint256 latestVersion_ = latestVersion;
         require(
-            entry.version <= latestVersion + MAX_VERSION_INCREMENT,
+            entry.version <= latestVersion_ + MAX_VERSION_INCREMENT,
             "TeleporterRegistry: version increment too high"
         );
 
@@ -192,10 +194,9 @@ contract TeleporterRegistry {
         emit AddProtocolVersion(entry.version, entry.protocolAddress);
 
         // Set latest version if the version is greater than the current latest version.
-        if (entry.version > latestVersion) {
-            uint256 oldLatestVersion = latestVersion;
+        if (entry.version > latestVersion_) {
             latestVersion = entry.version;
-            emit LatestVersionUpdated(oldLatestVersion, latestVersion);
+            emit LatestVersionUpdated(latestVersion_, entry.version);
         }
     }
 }

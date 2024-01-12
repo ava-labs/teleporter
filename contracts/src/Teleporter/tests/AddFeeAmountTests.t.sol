@@ -61,7 +61,7 @@ contract AddFeeAmountTest is TeleporterMessengerTest {
     function testMessageAlreadyDelivered() public {
         // First submit a message with a small fee
         uint256 originalFeeAmount = 10;
-        uint256 expectedNonce = teleporterMessenger.messageNonce();
+        uint256 expectedNonce = _getNextMessageNonce();
         bytes32 messageID =
             _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, originalFeeAmount);
 
