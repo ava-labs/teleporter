@@ -81,7 +81,7 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	log.Info("Send AddFeeAmount transaction on source chain",
 		"messageID", messageID,
 		"sourceChainID", source.BlockchainID,
-		"destinationChainID", destination.BlockchainID)
+		"destinationBlockchainID", destination.BlockchainID)
 
 	return receipt
 }
@@ -414,7 +414,7 @@ func SendCrossChainMessageAndWaitForAcceptance(
 
 	log.Info("Sending SendCrossChainMessage transaction on source chain",
 		"sourceChainID", source.BlockchainID,
-		"destinationChainID", destination.BlockchainID,
+		"destinationBlockchainID", destination.BlockchainID,
 		"txHash", tx.Hash())
 
 	return receipt, event.MessageID

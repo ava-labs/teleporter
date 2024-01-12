@@ -30,7 +30,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	//
 	// Send a Teleporter message on Subnet A
 	//
-	log.Info("Sending Teleporter message on source chain", "destinationChainID", subnetBInfo.BlockchainID)
+	log.Info("Sending Teleporter message on source chain", "destinationBlockchainID", subnetBInfo.BlockchainID)
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
 		DestinationBlockchainID: subnetBInfo.BlockchainID,
 		DestinationAddress:      fundedAddress,
