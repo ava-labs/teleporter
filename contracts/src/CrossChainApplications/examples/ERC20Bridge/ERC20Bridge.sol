@@ -444,7 +444,7 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
         address recipient,
         uint256 totalAmount,
         uint256 secondaryFeeAmount
-    ) private nonReentrant {
+    ) private {
         // Neither the recipient nor the destination bridge can be the zero address.
         require(recipient != address(0), "ERC20Bridge: zero recipient address");
         require(
