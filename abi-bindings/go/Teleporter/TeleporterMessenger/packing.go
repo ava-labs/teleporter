@@ -76,13 +76,13 @@ func PackSendCrossChainMessage(input TeleporterMessageInput) ([]byte, error) {
 	return abi.Pack("sendCrossChainMessage", input)
 }
 
-func PackRetryMessageExecution(originChainID ids.ID, message TeleporterMessage) ([]byte, error) {
+func PackRetryMessageExecution(sourceBlockchainID ids.ID, message TeleporterMessage) ([]byte, error) {
 	abi, err := TeleporterMessengerMetaData.GetAbi()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get abi")
 	}
 
-	return abi.Pack("retryMessageExecution", originChainID, message)
+	return abi.Pack("retryMessageExecution", sourceBlockchainID, message)
 }
 
 // PackReceiveCrossChainMessage packs a ReceiveCrossChainMessageInput to form a call to the receiveCrossChainMessage function

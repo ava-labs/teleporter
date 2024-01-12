@@ -18,12 +18,12 @@ enum FallbackReceiveAction {
 }
 
 contract FallbackReceiveApp {
-    bytes32 public immutable originChainID;
+    bytes32 public immutable sourceBlockchainID;
     address public immutable originSenderAddress;
     uint256 public nonce;
 
-    constructor(bytes32 originChainID_, address originSenderAddress_) {
-        originChainID = originChainID_;
+    constructor(bytes32 sourceBlockchainID_, address originSenderAddress_) {
+        sourceBlockchainID = sourceBlockchainID_;
         originSenderAddress = originSenderAddress_;
     }
 
@@ -36,10 +36,10 @@ contract FallbackReceiveApp {
             "FallbackReceiveApp: Invalid selector"
         );
 
-        (bytes32 originChainID_, address originSenderAddress_, bytes memory message) =
+        (bytes32 sourceBlockchainID_, address originSenderAddress_, bytes memory message) =
             abi.decode(data[4:], (bytes32, address, bytes));
 
-        require(originChainID == originChainID_, "FallbackReceiveApp: Invalid origin chain ID");
+        require(sourceBlockchainID == sourceBlockchainID_, "FallbackReceiveApp: Invalid origin chain ID");
         require(
             originSenderAddress == originSenderAddress_,
             "FallbackReceiveApp: Invalid origin sender address"

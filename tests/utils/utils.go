@@ -88,7 +88,7 @@ func SendAddFeeAmountAndWaitForAcceptance(
 
 func RetryMessageExecutionAndWaitForAcceptance(
 	ctx context.Context,
-	originChainID ids.ID,
+	sourceBlockchainID ids.ID,
 	subnet interfaces.SubnetTestInfo,
 	message teleportermessenger.TeleporterMessage,
 	senderKey *ecdsa.PrivateKey,
@@ -96,7 +96,7 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	tx, err := subnet.TeleporterMessenger.RetryMessageExecution(opts, originChainID, message)
+	tx, err := subnet.TeleporterMessenger.RetryMessageExecution(opts, sourceBlockchainID, message)
 	Expect(err).Should(BeNil())
 
 	return WaitForTransactionSuccess(ctx, subnet, tx)
@@ -154,7 +154,7 @@ func RedeemRelayerRewardsAndConfirm(
 
 func SendSpecifiedReceiptsAndWaitForAcceptance(
 	ctx context.Context,
-	originChainID ids.ID,
+	sourceBlockchainID ids.ID,
 	source interfaces.SubnetTestInfo,
 	messageIDs [][32]byte,
 	feeInfo teleportermessenger.TeleporterFeeInfo,
@@ -165,7 +165,7 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	Expect(err).Should(BeNil())
 
 	tx, err := source.TeleporterMessenger.SendSpecifiedReceipts(
-		opts, originChainID, messageIDs, feeInfo, allowedRelayerAddresses)
+		opts, sourceBlockchainID, messageIDs, feeInfo, allowedRelayerAddresses)
 	Expect(err).Should(BeNil())
 
 	receipt := WaitForTransactionSuccess(ctx, source, tx)
@@ -173,10 +173,10 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetEventFromLogs(receipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationBlockchainID[:]).Should(Equal(originChainID[:]))
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(sourceBlockchainID[:]))
 
 	log.Info("Sending SendSpecifiedReceipts transaction",
-		"originChainID", originChainID,
+		"sourceBlockchainID", sourceBlockchainID,
 		"txHash", tx.Hash())
 
 	return receipt, event.MessageID
@@ -251,12 +251,12 @@ func CreateSendCrossChainMessageTransaction(
 func CreateRetryMessageExecutionTransaction(
 	ctx context.Context,
 	subnetInfo interfaces.SubnetTestInfo,
-	originChainID ids.ID,
+	sourceBlockchainID ids.ID,
 	message teleportermessenger.TeleporterMessage,
 	senderKey *ecdsa.PrivateKey,
 	teleporterContractAddress common.Address,
 ) *types.Transaction {
-	data, err := teleportermessenger.PackRetryMessageExecution(originChainID, message)
+	data, err := teleportermessenger.PackRetryMessageExecution(sourceBlockchainID, message)
 	Expect(err).Should(BeNil())
 
 	// TODO: replace with actual number of signers
