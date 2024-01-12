@@ -23,7 +23,7 @@ contract GetMessageHashTest is TeleporterMessengerTest {
         // Submit a message
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageNonce: _getNextMessageNonce(),
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,

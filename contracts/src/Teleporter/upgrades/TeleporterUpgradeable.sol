@@ -73,7 +73,7 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
      * - `_msgSender()` must be a Teleporter version greater than or equal to `minTeleporterVersion`.
      */
     function receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes calldata message
     ) external {
@@ -89,7 +89,7 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
             "TeleporterUpgradeable: Teleporter address paused"
         );
 
-        _receiveTeleporterMessage(originBlockchainID, originSenderAddress, message);
+        _receiveTeleporterMessage(sourceBlockchainID, originSenderAddress, message);
     }
 
     /**
@@ -200,7 +200,7 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
      * This function should be overridden by contracts that inherit from this contract.
      */
     function _receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message
     ) internal virtual;
