@@ -39,7 +39,9 @@ contract FallbackReceiveApp {
         (bytes32 sourceBlockchainID_, address originSenderAddress_, bytes memory message) =
             abi.decode(data[4:], (bytes32, address, bytes));
 
-        require(sourceBlockchainID == sourceBlockchainID_, "FallbackReceiveApp: Invalid origin chain ID");
+        require(
+            sourceBlockchainID == sourceBlockchainID_, "FallbackReceiveApp: Invalid origin chain ID"
+        );
         require(
             originSenderAddress == originSenderAddress_,
             "FallbackReceiveApp: Invalid origin sender address"
