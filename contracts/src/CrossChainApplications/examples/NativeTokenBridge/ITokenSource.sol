@@ -1,4 +1,4 @@
-// (c) 2024, Ava Labs, Inc. All rights reserved.
+// (c) 2023, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
 // SPDX-License-Identifier: Ecosystem
@@ -10,6 +10,10 @@ pragma solidity 0.8.18;
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
+/**
+ * @dev Interface for common functionality needed for different `TokenSource` contracts such as
+ * `NativeTokenSource` and `ERC20TokenSource`.
+ */
 interface ITokenSource {
     /**
      * @dev Enum representing the action to take on receiving a Teleporter message.
