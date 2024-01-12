@@ -10,7 +10,7 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
-import {TokenSource} from "./TokenSource.sol";
+import {ITokenSource} from "./ITokenSource.sol";
 import {
     ITeleporterMessenger,
     TeleporterFeeInfo,
@@ -126,7 +126,7 @@ contract NativeTokenDestination is
                 feeInfo: feeInfo,
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(TokenSource.SourceAction.Unlock, abi.encode(recipient, msg.value))
+                message: abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(recipient, msg.value))
             })
         );
 
@@ -155,7 +155,7 @@ contract NativeTokenDestination is
                 feeInfo: feeInfo,
                 requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(TokenSource.SourceAction.Burn, abi.encode(totalBurnedTxFees))
+                message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(totalBurnedTxFees))
             })
         );
 

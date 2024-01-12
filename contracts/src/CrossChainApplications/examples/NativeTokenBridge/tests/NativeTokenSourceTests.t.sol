@@ -6,9 +6,9 @@
 pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
+import {ITokenSource} from "../ITokenSource.sol";
 import {
     NativeTokenSource,
-    TokenSource,
     TeleporterMessageInput,
     TeleporterFeeInfo,
     ITeleporterMessenger
@@ -95,7 +95,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(
-                TokenSource.SourceAction.Unlock,
+                ITokenSource.SourceAction.Unlock,
                 abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
             )
         );
@@ -122,7 +122,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(TokenSource.SourceAction.Burn, abi.encode(burnedTxFees))
+            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees))
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
@@ -132,7 +132,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(TokenSource.SourceAction.Burn, abi.encode(burnedTxFees - 1))
+            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees - 1))
         );
 
         assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
@@ -144,7 +144,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(TokenSource.SourceAction.Burn, abi.encode(burnedTxFees + additionalTxFees))
+            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees + additionalTxFees))
         );
 
         assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.destinationBurnedTotal());
@@ -199,7 +199,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(
-                TokenSource.SourceAction.Unlock,
+                ITokenSource.SourceAction.Unlock,
                 abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
             )
         );
@@ -213,7 +213,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(
-                TokenSource.SourceAction.Unlock,
+                ITokenSource.SourceAction.Unlock,
                 abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
             )
         );
@@ -227,7 +227,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x123),
             abi.encode(
-                TokenSource.SourceAction.Unlock,
+                ITokenSource.SourceAction.Unlock,
                 abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
             )
         );
@@ -241,7 +241,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(
-                TokenSource.SourceAction.Unlock, abi.encode(address(0x0), _DEFAULT_TRANSFER_AMOUNT)
+                ITokenSource.SourceAction.Unlock, abi.encode(address(0x0), _DEFAULT_TRANSFER_AMOUNT)
             )
         );
     }
@@ -264,7 +264,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             abi.encode(
-                TokenSource.SourceAction.Unlock,
+                ITokenSource.SourceAction.Unlock,
                 abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
             )
         );
