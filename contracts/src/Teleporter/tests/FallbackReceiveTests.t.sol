@@ -65,7 +65,7 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
     function setUp() public virtual override {
         TeleporterMessengerTest.setUp();
         destinationContract = new FallbackReceiveApp(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
             address(this)
         );
     }
@@ -85,12 +85,12 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
             message: abi.encode(FallbackReceiveAction.Succeed)
         });
         bytes32 receivedMessageID = teleporterMessenger.calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageToReceive.messageNonce
         );
         WarpMessage memory warpMessage =
-            _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
+            _createDefaultWarpMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, abi.encode(messageToReceive));
 
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
@@ -105,7 +105,7 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
             messageToReceive
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecuted(receivedMessageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID);
+        emit MessageExecuted(receivedMessageID, DEFAULT_SOURCE_BLOCKCHAIN_ID);
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the nonce was incremented.
@@ -127,12 +127,12 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
             message: abi.encode(FallbackReceiveAction.Fail)
         });
         bytes32 receivedMessageID = teleporterMessenger.calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageToReceive.messageNonce
         );
         WarpMessage memory warpMessage =
-            _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
+            _createDefaultWarpMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, abi.encode(messageToReceive));
 
         // Mock the call to the warp precompile to get the message.
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
@@ -148,7 +148,7 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
         emit MessageExecutionFailed(
-            receivedMessageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive
+            receivedMessageID, DEFAULT_SOURCE_BLOCKCHAIN_ID, messageToReceive
         );
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 

@@ -123,7 +123,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         });
 
         vm.expectRevert(_formatTeleporterErrorMessage("message not found"));
-        teleporterMessenger.retryMessageExecution(DEFAULT_ORIGIN_BLOCKCHAIN_ID, fakeMessage);
+        teleporterMessenger.retryMessageExecution(DEFAULT_SOURCE_BLOCKCHAIN_ID, fakeMessage);
     }
 
     function testInvalidMessageHash() public {
@@ -201,9 +201,9 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             message: abi.encode(action, abi.encode(messageString))
         });
         WarpMessage memory warpMessage =
-            _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
+            _createDefaultWarpMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, abi.encode(messageToReceive));
         bytes32 messageID = teleporterMessenger.calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageToReceive.messageNonce
         );
@@ -223,7 +223,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
             messageToReceive
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
+        emit MessageExecutionFailed(messageID, DEFAULT_SOURCE_BLOCKCHAIN_ID, messageToReceive);
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
         // Check that the message execution didn't have any effect, but
@@ -236,7 +236,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
         );
         assertTrue(teleporterMessenger.messageReceived(messageID));
 
-        return (DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive, messageString);
+        return (DEFAULT_SOURCE_BLOCKCHAIN_ID, messageToReceive, messageString);
     }
 
     function _successfullyRetryMessage() internal returns (bytes32, TeleporterMessage memory) {

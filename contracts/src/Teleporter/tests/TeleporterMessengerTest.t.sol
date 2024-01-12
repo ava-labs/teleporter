@@ -24,7 +24,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract TeleporterMessengerTest is Test {
     TeleporterMessenger public teleporterMessenger;
 
-    bytes32 public constant DEFAULT_ORIGIN_BLOCKCHAIN_ID =
+    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     bytes32 public constant DEFAULT_DESTINATION_BLOCKCHAIN_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
@@ -209,9 +209,9 @@ contract TeleporterMessengerTest is Test {
         TeleporterMessage memory messageToReceive =
             _createMockTeleporterMessage(messageNonce, messageData);
         WarpMessage memory warpMessage =
-            _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
+            _createDefaultWarpMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, abi.encode(messageToReceive));
         bytes32 messageID = teleporterMessenger.calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageNonce
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, messageNonce
         );
 
         // We have to mock the precompile call so that it doesn't revert in the tests.
@@ -231,10 +231,10 @@ contract TeleporterMessengerTest is Test {
             messageToReceive
         );
         vm.expectEmit(true, true, true, true, address(teleporterMessenger));
-        emit MessageExecutionFailed(messageID, DEFAULT_ORIGIN_BLOCKCHAIN_ID, messageToReceive);
+        emit MessageExecutionFailed(messageID, DEFAULT_SOURCE_BLOCKCHAIN_ID, messageToReceive);
         teleporterMessenger.receiveCrossChainMessage(0, DEFAULT_RELAYER_REWARD_ADDRESS);
 
-        return (DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, messageToReceive);
+        return (DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, messageToReceive);
     }
 
     // Create a mock message to be used in tests. It should include no receipts
