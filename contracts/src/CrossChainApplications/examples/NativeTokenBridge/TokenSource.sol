@@ -20,7 +20,7 @@ abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable, Reent
     // a SourceAction.Burn message is received from the destination chain.
     address public constant BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
-    // Used to keep track of tokens burned through transactions on the destination chain. They can
+    // Used to keep track of tokens burned through transactions on the destination chain. The destination burned amount can
     // be reported to this contract to burn an equivalent number of tokens on this chain.
     uint256 public destinationBurnedTotal;
     bytes32 public immutable destinationBlockchainID;
