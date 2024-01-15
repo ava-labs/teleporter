@@ -15,6 +15,11 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
+/**
+ * @dev Implementation of the {ITokenSource} interface.
+ *
+ * This abstract contract represents the shared functionality for source contracts.
+ */
 abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable, ReentrancyGuard {
     // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" when
     // a SourceAction.Burn message is received from the destination chain.
@@ -55,7 +60,7 @@ abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable, Reent
      */
     function _receiveTeleporterMessage(
         bytes32 senderBlockchainID,
-        address senderAddress,
+        address originSenderAddress,
         bytes memory message
     ) internal override {
         // Only allow messages from the destination chain.
@@ -64,7 +69,7 @@ abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable, Reent
         );
 
         // Only allow the partner contract to send messages.
-        require(senderAddress == nativeTokenDestinationAddress, "TokenSource: unauthorized sender");
+        require(originSenderAddress == nativeTokenDestinationAddress, "TokenSource: unauthorized sender");
 
         // Decode the payload to recover the action and corresponding function parameters
         (SourceAction action, bytes memory actionData) = abi.decode(message, (SourceAction, bytes));

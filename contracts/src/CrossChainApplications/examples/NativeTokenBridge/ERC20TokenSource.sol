@@ -21,6 +21,11 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
+/**
+ * @dev Implementation of the {TokenSource} abstract contract.
+ *
+ * This contracts implements {TokenSource} and uses a specified ERC20 token as the currency.
+ */
 contract ERC20TokenSource is IERC20TokenSource, TokenSource {
     address public immutable erc20ContractAddress;
 

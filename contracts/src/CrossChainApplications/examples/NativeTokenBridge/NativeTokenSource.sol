@@ -22,6 +22,11 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
+/**
+ * @dev Implementation of the {TokenSource} abstract contract.
+ *
+ * This contracts implements {TokenSource} and uses native tokens as the currency.
+ */
 contract NativeTokenSource is INativeTokenSource, TokenSource {
     constructor(
         address teleporterRegistryAddress,
