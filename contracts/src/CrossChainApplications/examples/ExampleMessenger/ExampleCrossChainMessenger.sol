@@ -33,7 +33,7 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
         string message;
     }
 
-    mapping(bytes32 originBlockchainID => Message message) private _messages;
+    mapping(bytes32 sourceBlockchainID => Message message) private _messages;
 
     /**
      * @dev Emitted when a message is submited to be sent.
@@ -51,7 +51,7 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
      * @dev Emitted when a new message is received from a given chain ID.
      */
     event ReceiveMessage(
-        bytes32 indexed originBlockchainID, address indexed originSenderAddress, string message
+        bytes32 indexed sourceBlockchainID, address indexed originSenderAddress, string message
     );
 
     constructor(address teleporterRegistryAddress)
@@ -106,12 +106,12 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
      * @dev Returns the current message from another chain.
      * @return The sender of the message, and the message itself.
      */
-    function getCurrentMessage(bytes32 originBlockchainID)
+    function getCurrentMessage(bytes32 sourceBlockchainID)
         external
         view
         returns (address, string memory)
     {
-        Message memory messageInfo = _messages[originBlockchainID];
+        Message memory messageInfo = _messages[sourceBlockchainID];
         return (messageInfo.sender, messageInfo.message);
     }
 
@@ -121,13 +121,13 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
      * Receives a message from another chain.
      */
     function _receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message
     ) internal override {
         // Store the message.
         string memory messageString = abi.decode(message, (string));
-        _messages[originBlockchainID] = Message(originSenderAddress, messageString);
-        emit ReceiveMessage(originBlockchainID, originSenderAddress, messageString);
+        _messages[sourceBlockchainID] = Message(originSenderAddress, messageString);
+        emit ReceiveMessage(sourceBlockchainID, originSenderAddress, messageString);
     }
 }

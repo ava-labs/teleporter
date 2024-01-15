@@ -161,7 +161,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         );
     }
 
-    function testZeroDestinationChainID() public {
+    function testZeroDestinationBlockchainID() public {
         vm.expectRevert(_formatTokenSourceErrorMessage("zero destination blockchain ID"));
 
         new NativeTokenSource(

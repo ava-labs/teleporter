@@ -18,7 +18,7 @@ contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
     }
 
     function _receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message // solhint-disable-next-line no-empty-blocks
     ) internal override {}
@@ -111,14 +111,14 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         // Check that the Teleporter address is still paused
         vm.prank(teleporterAddress);
         vm.expectRevert("TeleporterUpgradeable: Teleporter address paused");
-        ownerApp.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        ownerApp.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Unpause the Teleporter address from owner account
         _unpauseTeleporterAddressSuccess(ownerApp, teleporterAddress);
 
         // Check that the Teleporter address can now deliver messages
         vm.prank(teleporterAddress);
-        ownerApp.receiveTeleporterMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
+        ownerApp.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testOwnerUpgradeAccess() public {

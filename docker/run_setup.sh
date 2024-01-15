@@ -68,7 +68,7 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     subnet_c_blockchain_id=$(cat $HOME/.avalanche-cli/subnets/subnetc/sidecar.json |  getJsonVal "['Networks']['Local Network']['BlockchainID']")
     subnet_c_subnet_id=$(cat $HOME/.avalanche-cli/subnets/subnetc/sidecar.json |  getJsonVal "['Networks']['Local Network']['SubnetID']")
     c_chain_subnet_id=11111111111111111111111111111111LpoYY # hardcoded primary subnet ID
-    c_chain_blockchain_id=$(curl -X POST --data '{"jsonrpc": "2.0","method": "platform.getBlockchains","params": {},"id": 1}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/P | getJsonVal "['result']['blockchains']" | python3 docker/getBlockChainId.py C-Chain)
+    c_chain_blockchain_id=$(curl -X POST --data '{"jsonrpc": "2.0","method": "platform.getBlockchains","params": {},"id": 1}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/P | getJsonVal "['result']['blockchains']" | python3 docker/getBlockchainId.py C-Chain)
 
     echo "Subnet A blockchain ID: $subnet_a_blockchain_id"
     echo "Subnet B blockchain ID: $subnet_b_blockchain_id"

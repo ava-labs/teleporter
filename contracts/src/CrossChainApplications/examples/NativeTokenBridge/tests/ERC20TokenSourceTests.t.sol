@@ -157,7 +157,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         );
     }
 
-    function testZeroDestinationChainID() public {
+    function testZeroDestinationBlockhainID() public {
         vm.expectRevert(_formatTokenSourceErrorMessage("zero destination blockchain ID"));
 
         new ERC20TokenSource(
