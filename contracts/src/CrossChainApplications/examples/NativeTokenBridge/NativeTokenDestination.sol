@@ -32,7 +32,7 @@ import {IAllowList} from "@subnet-evm-contracts/interfaces/IAllowList.sol";
 /**
  * @dev Implementation of the {INativeTokenDestination} interface.
  *
- * This contract pairs with exactly one `TokenSource` contract on the source chain. 
+ * This contract pairs with exactly one `TokenSource` contract on the source chain.
  * It mints and burns native tokens on the Destination chain corresponding to locks and unlocks on the source chain.
  */
 contract NativeTokenDestination is

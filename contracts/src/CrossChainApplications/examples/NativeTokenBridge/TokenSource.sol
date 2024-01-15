@@ -69,7 +69,9 @@ abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable, Reent
         );
 
         // Only allow the partner contract to send messages.
-        require(originSenderAddress == nativeTokenDestinationAddress, "TokenSource: unauthorized sender");
+        require(
+            originSenderAddress == nativeTokenDestinationAddress, "TokenSource: unauthorized sender"
+        );
 
         // Decode the payload to recover the action and corresponding function parameters
         (SourceAction action, bytes memory actionData) = abi.decode(message, (SourceAction, bytes));
