@@ -56,7 +56,7 @@ contract BlockHashPublisher {
         bytes32 blockHash = blockhash(blockHeight);
 
         // ABI encode the function arguments to be called on the destination.
-        // The originBlockchainID and originSenderAddress arguments of the target function are provided by Warp/Teleporter.
+        // The sourceBlockchainID and originSenderAddress arguments of the target function are provided by Warp/Teleporter.
         bytes memory messageData = abi.encode(blockHeight, blockHash);
 
         emit PublishBlockHash(destinationBlockchainID, destinationAddress, blockHeight, blockHash);

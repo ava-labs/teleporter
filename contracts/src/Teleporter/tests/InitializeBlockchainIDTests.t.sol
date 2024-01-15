@@ -22,7 +22,7 @@ import {
 contract InitializeBlockchainIDTest is Test {
     TeleporterMessenger public teleporterMessenger;
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
-    bytes32 public constant DEFAULT_ORIGIN_BLOCKCHAIN_ID =
+    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     bytes32 public constant DEFAULT_DESTINATION_BLOCKCHAIN_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
@@ -79,7 +79,7 @@ contract InitializeBlockchainIDTest is Test {
     function testInitializedByReceiving() public {
         TeleporterMessage memory teleporterMessage = TeleporterMessage({
             messageNonce: 1,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: address(1),
             requiredGasLimit: 100,
@@ -88,7 +88,7 @@ contract InitializeBlockchainIDTest is Test {
             message: new bytes(0)
         });
         WarpMessage memory warpMessage = WarpMessage({
-            sourceChainID: DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            sourceChainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             originSenderAddress: address(teleporterMessenger),
             payload: abi.encode(teleporterMessage)
         });

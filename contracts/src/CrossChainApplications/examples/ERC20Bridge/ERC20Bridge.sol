@@ -301,7 +301,7 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
      * Receives a Teleporter message and routes to the appropriate internal function call.
      */
     function _receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message
     ) internal override {
@@ -317,7 +317,7 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
                 uint8 nativeDecimals
             ) = abi.decode(actionData, (address, string, string, uint8));
             _createBridgeToken({
-                nativeBlockchainID: originBlockchainID,
+                nativeBlockchainID: sourceBlockchainID,
                 nativeBridgeAddress: originSenderAddress,
                 nativeContractAddress: nativeContractAddress,
                 nativeName: nativeName,
@@ -328,7 +328,7 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
             (address nativeContractAddress, address recipient, uint256 amount) =
                 abi.decode(actionData, (address, address, uint256));
             _mintBridgeTokens(
-                originBlockchainID, originSenderAddress, nativeContractAddress, recipient, amount
+                sourceBlockchainID, originSenderAddress, nativeContractAddress, recipient, amount
             );
         } else if (action == BridgeAction.Transfer) {
             (
@@ -340,7 +340,7 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
                 uint256 secondaryFeeAmount
             ) = abi.decode(actionData, (bytes32, address, address, address, uint256, uint256));
             _transferBridgeTokens({
-                sourceBlockchainID: originBlockchainID,
+                sourceBlockchainID: sourceBlockchainID,
                 sourceBridgeAddress: originSenderAddress,
                 destinationBlockchainID: destinationBlockchainID,
                 destinationBridgeAddress: destinationBridgeAddress,

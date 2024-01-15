@@ -78,7 +78,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     function testNonreentrantSameTeleporter() public {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 987,
-            senderAddress: DEFAULT_ORIGIN_SENDER_ADDRESS,
+            originSenderAddress: DEFAULT_ORIGIN_SENDER_ADDRESS,
             destinationBlockchainID: MOCK_BLOCK_CHAIN_ID,
             destinationAddress: address(app),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -115,7 +115,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
 
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 987,
-            senderAddress: DEFAULT_ORIGIN_SENDER_ADDRESS,
+            originSenderAddress: DEFAULT_ORIGIN_SENDER_ADDRESS,
             destinationBlockchainID: MOCK_BLOCK_CHAIN_ID,
             destinationAddress: address(app),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,

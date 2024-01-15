@@ -19,11 +19,11 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
         // Receive a message
         uint256 mockNonce = 8;
         bytes32 mockMessageID = teleporterMessenger.calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockNonce
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockNonce
         );
         address relayerRewardAddress = 0xCAFebAbeDc0D4D7B7EEdCf61eb863fF413BB6234;
         _receiveTestMessage(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
             mockNonce,
             relayerRewardAddress,
             new TeleporterMessageReceipt[](0)
@@ -37,10 +37,10 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
         // Receive a message with a zero relayer reward address
         uint256 mockNonce = 4343;
         bytes32 mockMessageID = teleporterMessenger.calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockNonce
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, mockNonce
         );
         _receiveTestMessage(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID, mockNonce, address(0), new TeleporterMessageReceipt[](0)
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, mockNonce, address(0), new TeleporterMessageReceipt[](0)
         );
 
         // Check that the zero address is returned as the reward address.
@@ -50,7 +50,7 @@ contract GetRelayerRewardAddressTest is TeleporterMessengerTest {
     function testMessageNotReceived() public {
         // Before receiving the given message, getRelayerRewardAddress should revert.
         bytes32 mockMessageID = teleporterMessenger.calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 4242
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_DESTINATION_BLOCKCHAIN_ID, 4242
         );
         vm.expectRevert(_formatTeleporterErrorMessage("message not received"));
         teleporterMessenger.getRelayerRewardAddress(mockMessageID);
