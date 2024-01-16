@@ -200,7 +200,8 @@ contract NativeTokenDestination is
     ) internal override {
         // Only allow messages from the source chain.
         require(
-            sourceBlockchainID_ == sourceBlockchainID, "NativeTokenDestination: invalid source chain"
+            sourceBlockchainID_ == sourceBlockchainID,
+            "NativeTokenDestination: invalid source chain"
         );
 
         // Only allow the partner contract to send messages.
