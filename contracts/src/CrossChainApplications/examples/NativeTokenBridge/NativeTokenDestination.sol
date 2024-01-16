@@ -194,13 +194,13 @@ contract NativeTokenDestination is
      * Receives a Teleporter message.
      */
     function _receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message
     ) internal override {
         // Only allow messages from the source chain.
         require(
-            senderBlockchainID == sourceBlockchainID, "NativeTokenDestination: invalid source chain"
+            sourceBlockchainID == sourceBlockchainID, "NativeTokenDestination: invalid source chain"
         );
 
         // Only allow the partner contract to send messages.

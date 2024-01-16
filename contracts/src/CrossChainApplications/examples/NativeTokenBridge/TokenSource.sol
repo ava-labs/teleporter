@@ -59,13 +59,13 @@ abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable, Reent
      * Receives a Teleporter message and routes to the appropriate internal function call.
      */
     function _receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message
     ) internal override {
         // Only allow messages from the destination chain.
         require(
-            senderBlockchainID == destinationBlockchainID, "TokenSource: invalid destination chain"
+            sourceBlockchainID == destinationBlockchainID, "TokenSource: invalid destination chain"
         );
 
         // Only allow the partner contract to send messages.
