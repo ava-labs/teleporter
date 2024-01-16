@@ -25,7 +25,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 654456);
         TeleporterMessage memory expectedMessage = TeleporterMessage({
             messageNonce: expectedNonce,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -41,7 +41,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
     function testMessageNotFound() public {
         TeleporterMessage memory fakeMessage = TeleporterMessage({
             messageNonce: 345,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -59,7 +59,7 @@ contract RetrySendCrossChainMessageTest is TeleporterMessengerTest {
         _sendTestMessageWithFee(DEFAULT_DESTINATION_BLOCKCHAIN_ID, 654456);
         TeleporterMessage memory alteredMessage = TeleporterMessage({
             messageNonce: expectedNonce,
-            senderAddress: address(this),
+            originSenderAddress: address(this),
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationAddress: DEFAULT_DESTINATION_ADDRESS,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,

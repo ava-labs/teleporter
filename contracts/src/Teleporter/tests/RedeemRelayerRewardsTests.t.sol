@@ -101,7 +101,7 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     // is able to redeem the reward.
     function _setUpRelayerRewards(FeeRewardInfo memory feeRewardInfo) private {
         uint256 messageNonce = _getNextMessageNonce();
-        _sendTestMessageWithFee(DEFAULT_ORIGIN_BLOCKCHAIN_ID, feeRewardInfo.feeAmount);
+        _sendTestMessageWithFee(DEFAULT_SOURCE_BLOCKCHAIN_ID, feeRewardInfo.feeAmount);
 
         TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](1);
         receipts[0] = TeleporterMessageReceipt({
@@ -110,14 +110,14 @@ contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
         });
         TeleporterMessage memory messageToReceive = _createMockTeleporterMessage(1, new bytes(0));
         bytes32 receivedMessageID = teleporterMessenger.calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID,
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             messageToReceive.messageNonce
         );
 
         messageToReceive.receipts = receipts;
         WarpMessage memory warpMessage =
-            _createDefaultWarpMessage(DEFAULT_ORIGIN_BLOCKCHAIN_ID, abi.encode(messageToReceive));
+            _createDefaultWarpMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, abi.encode(messageToReceive));
 
         _setUpSuccessGetVerifiedWarpMessageMock(0, warpMessage);
 

@@ -29,7 +29,7 @@ struct TeleporterMessageInput {
 // Represents a message sent or received by an implementation of {ITeleporterMessenger}.
 struct TeleporterMessage {
     uint256 messageNonce;
-    address senderAddress;
+    address originSenderAddress;
     bytes32 destinationBlockchainID;
     address destinationAddress;
     uint256 requiredGasLimit;
@@ -78,7 +78,7 @@ interface ITeleporterMessenger {
      * but message execution fails. Failed messages can then be retried with `retryMessageExecution`
      */
     event MessageExecutionFailed(
-        bytes32 indexed messageID, bytes32 indexed originBlockchainID, TeleporterMessage message
+        bytes32 indexed messageID, bytes32 indexed sourceBlockchainID, TeleporterMessage message
     );
 
     /**
@@ -88,21 +88,21 @@ interface ITeleporterMessenger {
      *
      * Each message received can be executed successfully at most once.
      */
-    event MessageExecuted(bytes32 indexed messageID, bytes32 indexed originBlockchainID);
+    event MessageExecuted(bytes32 indexed messageID, bytes32 indexed sourceBlockchainID);
 
     /**
      * @dev Emitted when a TeleporterMessage is successfully received.
      */
     event ReceiveCrossChainMessage(
         bytes32 indexed messageID,
-        bytes32 indexed originBlockchainID,
+        bytes32 indexed sourceBlockchainID,
         address indexed deliverer,
         address rewardRedeemer,
         TeleporterMessage message
     );
 
     /**
-     * @dev Emitted when a receipt is marked as received on the origin chain that sent the
+     * @dev Emitted when a receipt is marked as received on the source chain that sent the
      * corresponding Teleporter message.
      */
     event ReceiptReceived(
@@ -168,20 +168,20 @@ interface ITeleporterMessenger {
      * was later deployed to that address. Messages are ensured to be successfully executed at most once.
      */
     function retryMessageExecution(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         TeleporterMessage calldata message
     ) external;
 
     /**
      * @dev Sends the receipts for the given `messageIDs`.
      *
-     * Sends the specified message receipts in a new message (with an empty payload) back to the origin chain.
+     * Sends the specified message receipts in a new message (with an empty payload) back to the source chain.
      * This is intended for use in sending receipts that have not been sent in a timely manner by the standard
      * receipt delivery mechanism.
      * @return The message ID of the newly sent message.
      */
     function sendSpecifiedReceipts(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         bytes32[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
@@ -205,7 +205,7 @@ interface ITeleporterMessenger {
     function messageReceived(bytes32 messageID) external view returns (bool);
 
     /**
-     * @dev Returns the address the relayer reward should be sent to on the origin chain
+     * @dev Returns the address the relayer reward should be sent to on the source chain
      * for a given message, assuming that the message has already been delivered.
      * @return The relayer reward address for the given message.
      */
@@ -238,17 +238,17 @@ interface ITeleporterMessenger {
     function getNextMessageID(bytes32 destinationBlockchainID) external view returns (bytes32);
 
     /**
-     * @dev Gets the number of receipts that are waiting to be sent to the given origin chain ID.
+     * @dev Gets the number of receipts that are waiting to be sent to the given source chain ID.
      * @return Size of the given queue.
      */
-    function getReceiptQueueSize(bytes32 originBlockchainID) external view returns (uint256);
+    function getReceiptQueueSize(bytes32 sourceBlockchainID) external view returns (uint256);
 
     /**
-     * @dev Gets the receipt at the given index in the queue for the given origin chain ID.
+     * @dev Gets the receipt at the given index in the queue for the given source chain ID.
      * @return The receipt requested.
      */
     function getReceiptAtIndex(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         uint256 index
     ) external view returns (TeleporterMessageReceipt memory);
 }

@@ -320,15 +320,15 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - `message` must have previously failed to execute, and matches the hash of the failed message.
      */
     function retryMessageExecution(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         TeleporterMessage calldata message
     ) external receiverNonReentrant {
-        // Calculate the message ID based on the origin blockchainID and message nonce.
+        // Calculate the message ID based on the source blockchainID and message nonce.
         // If the blockchain ID has yet to be initialized, no messages have ever been received by
         // this contract, meaning that the message to be retried will not be found in any event.
         // Thus, don't need to initialize the blockchain ID here.
         bytes32 messageID =
-            calculateMessageID(originBlockchainID, blockchainID, message.messageNonce);
+            calculateMessageID(sourceBlockchainID, blockchainID, message.messageNonce);
 
         // Check that the hash of the payload provided matches the hash of the payload that previously failed to execute.
         bytes32 failedMessageHash = receivedFailedMessageHashes[messageID];
@@ -347,7 +347,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         // Clear the failed message hash from state prior to retrying its execution to redundantly prevent
         // reentrance attacks (on top of the nonReentrant guard).
-        emit MessageExecuted(messageID, originBlockchainID);
+        emit MessageExecuted(messageID, sourceBlockchainID);
         delete receivedFailedMessageHashes[
             messageID
         ];
@@ -358,7 +358,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // a fallback function, then the fallback function will be called instead.
         bytes memory payload = abi.encodeCall(
             ITeleporterReceiver.receiveTeleporterMessage,
-            (originBlockchainID, message.senderAddress, message.message)
+            (sourceBlockchainID, message.originSenderAddress, message.message)
         );
 
         // Reattempt the message execution with all of the gas left available for execution of this transaction.
@@ -389,7 +389,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      * - `messageIDs` must all be valid and have existing receipts.
      */
     function sendSpecifiedReceipts(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         bytes32[] calldata messageIDs,
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
@@ -411,11 +411,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
             uint256 receivedMessageNonce = _receivedMessageNonces[receivedMessageID];
             require(receivedMessageNonce != 0, "TeleporterMessenger: receipt not found");
 
-            // Check that the message ID was received from the specified origin blockchain.
+            // Check that the message ID was received from the specified source blockchain.
             require(
                 receivedMessageID
-                    == calculateMessageID(originBlockchainID, blockchainID_, receivedMessageNonce),
-                "TeleporterMessenger: message ID not from origin blockchain"
+                    == calculateMessageID(sourceBlockchainID, blockchainID_, receivedMessageNonce),
+                "TeleporterMessenger: message ID not from source blockchain"
             );
 
             // Get the relayer reward address for the message.
@@ -429,7 +429,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
 
         return _sendTeleporterMessage(
             TeleporterMessageInput({
-                destinationBlockchainID: originBlockchainID,
+                destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: address(0),
                 feeInfo: feeInfo,
                 requiredGasLimit: uint256(0),
@@ -517,18 +517,18 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     /**
      * @dev See {ITeleporterMessenger-getReceiptQueueSize}
      */
-    function getReceiptQueueSize(bytes32 originBlockchainID) external view returns (uint256) {
-        return receiptQueues[originBlockchainID].size();
+    function getReceiptQueueSize(bytes32 sourceBlockchainID) external view returns (uint256) {
+        return receiptQueues[sourceBlockchainID].size();
     }
 
     /**
      * @dev See {ITeleporterMessenger-getReceiptAtIndex}
      */
     function getReceiptAtIndex(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         uint256 index
     ) external view returns (TeleporterMessageReceipt memory) {
-        return receiptQueues[originBlockchainID].getReceiptAtIndex(index);
+        return receiptQueues[sourceBlockchainID].getReceiptAtIndex(index);
     }
 
     /**
@@ -605,7 +605,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // Construct and serialize the message.
         TeleporterMessage memory teleporterMessage = TeleporterMessage({
             messageNonce: messageNonce_,
-            senderAddress: msg.sender,
+            originSenderAddress: msg.sender,
             destinationBlockchainID: messageInput.destinationBlockchainID,
             destinationAddress: messageInput.destinationAddress,
             requiredGasLimit: messageInput.requiredGasLimit,
@@ -719,7 +719,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      */
     function _handleInitialMessageExecution(
         bytes32 messageID,
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         TeleporterMessage memory message
     ) private {
         // Check that the message delivery was provided the required gas amount as specified by the sender.
@@ -734,7 +734,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // execution so that it can be retried in the future should a contract be later deployed to
         // the address.
         if (message.destinationAddress.code.length == 0) {
-            _storeFailedMessageExecution(messageID, originBlockchainID, message);
+            _storeFailedMessageExecution(messageID, sourceBlockchainID, message);
             return;
         }
 
@@ -742,7 +742,7 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // defined by the {ITeleporterReceiver} interface.
         bytes memory payload = abi.encodeCall(
             ITeleporterReceiver.receiveTeleporterMessage,
-            (originBlockchainID, message.senderAddress, message.message)
+            (sourceBlockchainID, message.originSenderAddress, message.message)
         );
 
         // Call the destination address of the message with the formatted call data. Only provide the required
@@ -755,11 +755,11 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         // retries). Either way, the message will now be considered received since the relayer
         // provided enough gas to meet the required gas limit.
         if (!success) {
-            _storeFailedMessageExecution(messageID, originBlockchainID, message);
+            _storeFailedMessageExecution(messageID, sourceBlockchainID, message);
             return;
         }
 
-        emit MessageExecuted(messageID, originBlockchainID);
+        emit MessageExecuted(messageID, sourceBlockchainID);
     }
 
     function _tryExecuteMessage(
@@ -795,13 +795,13 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
      */
     function _storeFailedMessageExecution(
         bytes32 messageID,
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         TeleporterMessage memory message
     ) private {
         receivedFailedMessageHashes[messageID] = keccak256(abi.encode(message));
 
         // Emit a failed execution event for anyone monitoring unsuccessful messages to retry.
-        emit MessageExecutionFailed(messageID, originBlockchainID, message);
+        emit MessageExecutionFailed(messageID, sourceBlockchainID, message);
     }
 
     /**
