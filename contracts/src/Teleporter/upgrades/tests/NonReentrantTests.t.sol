@@ -17,7 +17,7 @@ import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 
 uint32 constant warpMessageIndex = 2;
 
-contract NonreentrantUpgradeableApp is TeleporterUpgradeable {
+contract NonReentrantUpgradeableApp is TeleporterUpgradeable {
     constructor(address teleporterRegistryAddress)
         TeleporterUpgradeable(teleporterRegistryAddress)
     {}
