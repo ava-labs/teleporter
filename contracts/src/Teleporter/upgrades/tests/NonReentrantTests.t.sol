@@ -96,7 +96,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         _mockGetVerifiedWarpMessage(warpMessageIndex, warpMessage, true);
 
         bytes32 messageID = TeleporterMessenger(teleporterAddress).calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, messageToReceive.messageNonce
         );
 
         vm.expectEmit(true, true, true, true, address(teleporterAddress));
