@@ -20,7 +20,7 @@ function getDepVersion() {
 }
 
 # AWM_RELAYER_VERSION is needed for the docker run setup, but is not a go module dependency.
-AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v0.2.7'}
+AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v0.2.8'}
 
 # This needs to be exported to be picked up by the dockerfile.
 export GO_VERSION=${GO_VERSION:-$(getDepVersion go).$GO_PATCH_VERSION}
