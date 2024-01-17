@@ -102,7 +102,7 @@ contract NonReentrantTest is TeleporterUpgradeableTest {
         );
     }
 
-    function testNonreentrantDifferentTeleporter() public {
+    function testNonReentrantDifferentTeleporter() public {
         TeleporterMessenger teleporterV2 = new TeleporterMessenger();
         teleporterV2.initializeBlockchainID();
         _addProtocolVersion(teleporterRegistry, address(teleporterV2));
