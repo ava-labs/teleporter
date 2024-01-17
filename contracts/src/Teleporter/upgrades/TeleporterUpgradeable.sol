@@ -68,6 +68,10 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, Reentra
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}
+     * `nonReentrant` is a reentrancy guard that protects again multiple versions of the
+     * TeleporterMessengerContract delivering a message in the same call. Any internal calls
+     * will not be able to call functions also marked with `nonReentrant`.
+     *
      * Requirements:
      *
      * - `_msgSender()` must be a Teleporter version greater than or equal to `minTeleporterVersion`.

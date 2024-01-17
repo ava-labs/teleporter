@@ -17,7 +17,7 @@ import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 
 uint32 constant warpMessageIndex = 2;
 
-contract NonreentrantUpgradeableApp is TeleporterUpgradeable {
+contract NonReentrantUpgradeableApp is TeleporterUpgradeable {
     constructor(address teleporterRegistryAddress)
         TeleporterUpgradeable(teleporterRegistryAddress)
     {}
@@ -55,7 +55,7 @@ contract TeleporterNonreentrantTest is TeleporterUpgradeableTest {
     bytes public constant DEFAULT_MESSAGE = bytes(hex"1234");
     uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 1e6;
 
-    NonreentrantUpgradeableApp public nonreentrantApp;
+    NonReentrantUpgradeableApp public nonReentrantApp;
 
     event MessageExecutionFailed(
         bytes32 indexed messageID, bytes32 indexed originBlockchainID, TeleporterMessage message
@@ -67,15 +67,15 @@ contract TeleporterNonreentrantTest is TeleporterUpgradeableTest {
         TeleporterUpgradeableTest.setUp();
         TeleporterMessenger(teleporterAddress).initializeBlockchainID();
 
-        nonreentrantApp = new NonreentrantUpgradeableApp(address(teleporterRegistry));
+        nonReentrantApp = new NonReentrantUpgradeableApp(address(teleporterRegistry));
     }
 
-    function testNonreentrantSameTeleporter() public {
+    function testNonReentrantSameTeleporter() public {
         TeleporterMessage memory messageToReceive = TeleporterMessage({
             messageNonce: 987,
             originSenderAddress: DEFAULT_ORIGIN_ADDRESS,
             destinationBlockchainID: MOCK_BLOCK_CHAIN_ID,
-            destinationAddress: address(nonreentrantApp),
+            destinationAddress: address(nonReentrantApp),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
             receipts: new TeleporterMessageReceipt[](0),
@@ -90,15 +90,15 @@ contract TeleporterNonreentrantTest is TeleporterUpgradeableTest {
         // Same index as in NonreentrantUpgradeableApp._receiveTeleporterMessage()
         _mockGetVerifiedWarpMessage(warpMessageIndex, warpMessage, true);
 
-        bytes32 messageId = TeleporterMessenger(teleporterAddress).calculateMessageID(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987
+        bytes32 messageID = TeleporterMessenger(teleporterAddress).calculateMessageID(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, messageToReceive.messageNonce
         );
 
         vm.expectEmit(true, true, true, true, address(teleporterAddress));
-        emit MessageExecutionFailed(messageId, DEFAULT_SOURCE_BLOCKCHAIN_ID, messageToReceive);
+        emit MessageExecutionFailed(messageID, DEFAULT_SOURCE_BLOCKCHAIN_ID, messageToReceive);
 
         vm.prank(teleporterAddress);
-        nonreentrantApp.receiveTeleporterMessage(
+        nonReentrantApp.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, DEFAULT_MESSAGE
         );
     }
@@ -112,7 +112,7 @@ contract TeleporterNonreentrantTest is TeleporterUpgradeableTest {
             messageNonce: 987,
             originSenderAddress: DEFAULT_ORIGIN_ADDRESS,
             destinationBlockchainID: MOCK_BLOCK_CHAIN_ID,
-            destinationAddress: address(nonreentrantApp),
+            destinationAddress: address(nonReentrantApp),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             allowedRelayerAddresses: new address[](0),
             receipts: new TeleporterMessageReceipt[](0),
@@ -131,19 +131,19 @@ contract TeleporterNonreentrantTest is TeleporterUpgradeableTest {
             address(teleporterV2),
             abi.encodeCall(
                 ITeleporterMessenger.receiveCrossChainMessage,
-                (warpMessageIndex, address(nonreentrantApp))
+                (warpMessageIndex, address(nonReentrantApp))
             )
         );
 
-        bytes32 messageId = TeleporterMessenger(teleporterV2).calculateMessageID(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987
+        bytes32 messageID = TeleporterMessenger(teleporterV2).calculateMessageID(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, messageToReceive.messageNonce
         );
 
         vm.expectEmit(true, true, true, true, address(teleporterV2));
-        emit MessageExecutionFailed(messageId, DEFAULT_SOURCE_BLOCKCHAIN_ID, messageToReceive);
+        emit MessageExecutionFailed(messageID, DEFAULT_SOURCE_BLOCKCHAIN_ID, messageToReceive);
 
         vm.prank(teleporterAddress);
-        nonreentrantApp.receiveTeleporterMessage(
+        nonReentrantApp.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, DEFAULT_MESSAGE
         );
     }
