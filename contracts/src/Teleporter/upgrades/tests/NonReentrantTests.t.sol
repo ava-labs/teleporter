@@ -140,7 +140,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         );
 
         bytes32 messageId = TeleporterMessenger(teleporterV2).calculateMessageID(
-            DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987
+            DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, messageToReceive.messageNonce
         );
 
         vm.expectEmit(true, true, true, true, address(teleporterV2));
