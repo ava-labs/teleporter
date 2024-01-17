@@ -95,7 +95,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         // Same index as in NonreentrantUpgradeableApp._receiveTeleporterMessage()
         _mockGetVerifiedWarpMessage(warpMessageIndex, warpMessage, true);
 
-        bytes32 messageId = TeleporterMessenger(teleporterAddress).calculateMessageID(
+        bytes32 messageID = TeleporterMessenger(teleporterAddress).calculateMessageID(
             DEFAULT_ORIGIN_BLOCKCHAIN_ID, MOCK_BLOCK_CHAIN_ID, 987
         );
 
