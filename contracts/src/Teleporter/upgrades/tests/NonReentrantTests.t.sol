@@ -50,8 +50,7 @@ contract NonReentrantUpgradeableApp is TeleporterUpgradeable {
 // NonreentrantUpgradeableApp::receiveTeleporterMessage
 // The last step should revert because receiveTeleporterMessage (contained in
 // TeleporterUpgradeable) is non-reentrant.
-contract TeleporterNonreentrantTest is TeleporterUpgradeableTest {
-    address public constant DEFAULT_DESTINATION_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+contract NonReentrantTest is TeleporterUpgradeableTest {
     bytes public constant DEFAULT_MESSAGE = bytes(hex"1234");
     uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 1e6;
 
