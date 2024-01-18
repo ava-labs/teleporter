@@ -52,7 +52,7 @@ contract ExampleApp is
     // Handles receiving Teleporter messages,
     // and also checks that the sender is a valid Teleporter contract.
     function _receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message
     ) internal override {

@@ -111,7 +111,7 @@ func TestFilterTeleporterEvents(t *testing.T) {
 				},
 				expected: &TeleporterMessengerReceiveCrossChainMessage{
 					MessageID:          mockMessageID,
-					OriginBlockchainID: mockBlockchainID,
+					SourceBlockchainID: mockBlockchainID,
 					Deliverer:          deliverer,
 					RewardRedeemer:     deliverer,
 					Message:            message,
@@ -125,7 +125,7 @@ func TestFilterTeleporterEvents(t *testing.T) {
 				},
 				expected: &TeleporterMessengerMessageExecuted{
 					MessageID:          mockMessageID,
-					OriginBlockchainID: mockBlockchainID,
+					SourceBlockchainID: mockBlockchainID,
 				},
 			},
 		}

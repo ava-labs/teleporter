@@ -6,9 +6,9 @@
 pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
+import {ITokenSource} from "../ITokenSource.sol";
 import {
     NativeTokenSource,
-    ITokenSource,
     TeleporterMessageInput,
     TeleporterFeeInfo,
     ITeleporterMessenger
@@ -161,8 +161,8 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         );
     }
 
-    function testZeroDestinationChainID() public {
-        vm.expectRevert(_formatNativeTokenSourceErrorMessage("zero destination blockchain ID"));
+    function testZeroDestinationBlockchainID() public {
+        vm.expectRevert(_formatTokenSourceErrorMessage("zero destination blockchain ID"));
 
         new NativeTokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -172,7 +172,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testSameBlockchainID() public {
-        vm.expectRevert(_formatNativeTokenSourceErrorMessage("cannot bridge with same blockchain"));
+        vm.expectRevert(_formatTokenSourceErrorMessage("cannot bridge with same blockchain"));
 
         new NativeTokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -182,7 +182,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testZeroDestinationContractAddress() public {
-        vm.expectRevert(_formatNativeTokenSourceErrorMessage("zero destination contract address"));
+        vm.expectRevert(_formatTokenSourceErrorMessage("zero destination contract address"));
 
         new NativeTokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -206,7 +206,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testInvalidDestinationBlockchain() public {
-        vm.expectRevert(_formatNativeTokenSourceErrorMessage("invalid destination chain"));
+        vm.expectRevert(_formatTokenSourceErrorMessage("invalid destination chain"));
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(
@@ -220,7 +220,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testInvalidSenderContract() public {
-        vm.expectRevert(_formatNativeTokenSourceErrorMessage("unauthorized sender"));
+        vm.expectRevert(_formatTokenSourceErrorMessage("unauthorized sender"));
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenSource.receiveTeleporterMessage(
@@ -276,5 +276,13 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         returns (bytes memory)
     {
         return bytes(string.concat("NativeTokenSource: ", errorMessage));
+    }
+
+    function _formatTokenSourceErrorMessage(string memory errorMessage)
+        private
+        pure
+        returns (bytes memory)
+    {
+        return bytes(string.concat("TokenSource: ", errorMessage));
     }
 }

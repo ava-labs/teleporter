@@ -29,6 +29,12 @@ import {IAllowList} from "@subnet-evm-contracts/interfaces/IAllowList.sol";
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
+/**
+ * @dev Implementation of the {INativeTokenDestination} interface.
+ *
+ * This contract pairs with exactly one `TokenSource` contract on the source chain.
+ * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
+ */
 contract NativeTokenDestination is
     TeleporterOwnerUpgradeable,
     INativeTokenDestination,
@@ -188,18 +194,20 @@ contract NativeTokenDestination is
      * Receives a Teleporter message.
      */
     function _receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
-        address senderAddress,
+        bytes32 sourceBlockchainID_,
+        address originSenderAddress,
         bytes memory message
     ) internal override {
         // Only allow messages from the source chain.
         require(
-            senderBlockchainID == sourceBlockchainID, "NativeTokenDestination: invalid source chain"
+            sourceBlockchainID_ == sourceBlockchainID,
+            "NativeTokenDestination: invalid source chain"
         );
 
         // Only allow the partner contract to send messages.
         require(
-            senderAddress == nativeTokenSourceAddress, "NativeTokenDestination: unauthorized sender"
+            originSenderAddress == nativeTokenSourceAddress,
+            "NativeTokenDestination: unauthorized sender"
         );
 
         (address recipient, uint256 amount) = abi.decode(message, (address, uint256));

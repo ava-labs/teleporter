@@ -28,7 +28,7 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
      * @dev Emitted when a new block hash is received from a given origin chain ID.
      */
     event ReceiveBlockHash(
-        bytes32 indexed originBlockchainID,
+        bytes32 indexed sourceBlockchainID,
         address indexed originSenderAddress,
         uint256 indexed blockHeight,
         bytes32 blockHash
@@ -63,12 +63,12 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
      * - Origin sender address must be the source publisher contract address that initiated the BlockHashReceiver.
      */
     function _receiveTeleporterMessage(
-        bytes32 originBlockchainID,
+        bytes32 sourceBlockchainID_,
         address originSenderAddress,
         bytes memory message
     ) internal override {
         require(
-            originBlockchainID == sourceBlockchainID, "BlockHashReceiver: invalid source chain ID"
+            sourceBlockchainID_ == sourceBlockchainID, "BlockHashReceiver: invalid source chain ID"
         );
         require(
             originSenderAddress == sourcePublisherContractAddress,
@@ -80,7 +80,7 @@ contract BlockHashReceiver is TeleporterOwnerUpgradeable {
         if (blockHeight > latestBlockHeight) {
             latestBlockHeight = blockHeight;
             latestBlockHash = blockHash;
-            emit ReceiveBlockHash(originBlockchainID, originSenderAddress, blockHeight, blockHash);
+            emit ReceiveBlockHash(sourceBlockchainID_, originSenderAddress, blockHeight, blockHash);
         }
     }
 }

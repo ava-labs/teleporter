@@ -38,7 +38,7 @@ func RelayMessageTwice(network interfaces.Network) {
 
 	log.Info(
 		"Sending Teleporter transaction on source chain",
-		"destinationChainID", subnetBInfo.BlockchainID,
+		"destinationBlockchainID", subnetBInfo.BlockchainID,
 	)
 	receipt, teleporterMessageID := utils.SendCrossChainMessageAndWaitForAcceptance(
 		ctx, subnetAInfo, subnetBInfo, sendCrossChainMessageInput, fundedKey,
