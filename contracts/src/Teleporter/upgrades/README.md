@@ -28,7 +28,7 @@ In the `TeleporterRegistry` contract, the `latestVersion` state variable returns
 ## How to use `TeleporterRegistry`
 
 <div align="center">
-  <img src="./upgrade-uml.png" alt="Upgrade UML diagram"/>
+  <img src="./upgrade-uml.png?raw=true" alt="Upgrade UML diagram"/>
 </div>
 
 `TeleporterUpgradeable` is an abstract contract that helps integrate the `TeleporterRegistry` into a dapp. The dapp contract can inherit `TeleporterUpgradeable`, and pass in the Teleporter registry address inside the constructor. An example app looks like:
