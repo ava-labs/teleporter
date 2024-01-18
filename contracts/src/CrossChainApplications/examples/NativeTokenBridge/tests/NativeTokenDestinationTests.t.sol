@@ -6,9 +6,9 @@
 pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
+import {ITokenSource} from "../ITokenSource.sol";
 import {
     NativeTokenDestination,
-    ITokenSource,
     TeleporterMessageInput,
     TeleporterFeeInfo,
     ITeleporterMessenger
