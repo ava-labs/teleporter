@@ -12,7 +12,7 @@
 
 
 ## Overview
-Teleporter is a messaging protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm) that provides a develeoper-friendly interface for sending and receiving cross-chain messages from within the EVM.
+Teleporter is a messaging protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm) that provides a developer-friendly interface for sending and receiving cross-chain messages from within the EVM.
 
 The `ITeleporterMessenger` interface provides two primary methods:
 - `sendCrossChainMessage`: called by contracts on the origin chain to initiate the sending of a message to a contract on another EVM instance.
