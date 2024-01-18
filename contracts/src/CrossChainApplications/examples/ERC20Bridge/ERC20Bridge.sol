@@ -17,7 +17,6 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -30,7 +29,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
  * This implementation uses the {BridgeToken} contract to represent tokens on this chain, and uses
  * {ITeleporterMessenger} to send and receive messages to other chains.
  */
-contract ERC20Bridge is IERC20Bridge, ReentrancyGuard, TeleporterOwnerUpgradeable {
+contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
     using SafeERC20 for IERC20;
 
     struct WrappedTokenTransferInfo {
@@ -412,7 +411,7 @@ contract ERC20Bridge is IERC20Bridge, ReentrancyGuard, TeleporterOwnerUpgradeabl
         address nativeContractAddress,
         address recipient,
         uint256 amount
-    ) private nonReentrant {
+    ) private {
         // The recipient cannot be the zero address.
         require(recipient != address(0), "ERC20Bridge: zero recipient address");
 
@@ -445,7 +444,7 @@ contract ERC20Bridge is IERC20Bridge, ReentrancyGuard, TeleporterOwnerUpgradeabl
         address recipient,
         uint256 totalAmount,
         uint256 secondaryFeeAmount
-    ) private nonReentrant {
+    ) private {
         // Neither the recipient nor the destination bridge can be the zero address.
         require(recipient != address(0), "ERC20Bridge: zero recipient address");
         require(

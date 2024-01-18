@@ -6,7 +6,6 @@
 pragma solidity 0.8.18;
 
 import {ITokenSource} from "./ITokenSource.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 
@@ -20,7 +19,7 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
  *
  * This abstract contract represents the shared functionality for source contracts.
  */
-abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable, ReentrancyGuard {
+abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable {
     // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" when
     // a SourceAction.Burn message is received from the destination chain.
     address public constant BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
