@@ -9,6 +9,7 @@ import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
@@ -20,10 +21,9 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
+abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, ReentrancyGuard {
     // The Teleporter registry contract manages different Teleporter contract versions.
     TeleporterRegistry public immutable teleporterRegistry;
-
     /**
      * @dev A mapping that keeps track of paused Teleporter addresses.
      */
@@ -68,6 +68,10 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}
+     * `nonReentrant` is a reentrancy guard that protects again multiple versions of the
+     * TeleporterMessengerContract delivering a message in the same call. Any internal calls
+     * will not be able to call functions also marked with `nonReentrant`.
+     *
      * Requirements:
      *
      * - `_msgSender()` must be a Teleporter version greater than or equal to `minTeleporterVersion`.
@@ -76,7 +80,7 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver {
         bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes calldata message
-    ) external {
+    ) external nonReentrant {
         // Checks that `_msgSender()` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
         require(
             teleporterRegistry.getVersionFromAddress(_msgSender()) >= _minTeleporterVersion,

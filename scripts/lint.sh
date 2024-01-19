@@ -4,12 +4,12 @@
 
 set -e
 
-source ./scripts/versions.sh
-
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
+
+source $TELEPORTER_PATH/scripts/versions.sh
 
 function solFormat() {
     # format solidity contracts

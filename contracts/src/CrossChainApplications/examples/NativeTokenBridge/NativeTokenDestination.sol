@@ -5,7 +5,6 @@
 
 pragma solidity 0.8.18;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
@@ -29,11 +28,13 @@ import {IAllowList} from "@subnet-evm-contracts/interfaces/IAllowList.sol";
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
-contract NativeTokenDestination is
-    TeleporterOwnerUpgradeable,
-    INativeTokenDestination,
-    ReentrancyGuard
-{
+/**
+ * @dev Implementation of the {INativeTokenDestination} interface.
+ *
+ * This contract pairs with exactly one `TokenSource` contract on the source chain.
+ * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
+ */
+contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDestination {
     // The address where the burned transaction fees are credited.
     // Defined as BLACKHOLE_ADDRESS at
     // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
@@ -188,13 +189,14 @@ contract NativeTokenDestination is
      * Receives a Teleporter message.
      */
     function _receiveTeleporterMessage(
-        bytes32 senderBlockchainID,
+        bytes32 sourceBlockchainID_,
         address originSenderAddress,
         bytes memory message
     ) internal override {
         // Only allow messages from the source chain.
         require(
-            senderBlockchainID == sourceBlockchainID, "NativeTokenDestination: invalid source chain"
+            sourceBlockchainID_ == sourceBlockchainID,
+            "NativeTokenDestination: invalid source chain"
         );
 
         // Only allow the partner contract to send messages.

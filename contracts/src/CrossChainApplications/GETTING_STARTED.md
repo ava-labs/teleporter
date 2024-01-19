@@ -256,7 +256,7 @@ function getCurrentMessage(
 }
 ```
 
-# Step 5: Upgrade Support
+## Step 5: Upgrade Support
 
 At this point, the contract is now fully usable, and can be used to send arbitrary string data between chains. However, there are a few more modifications that need to be made to support upgrades to `TeleporterMessenger`. For a more in-depth explanation of how to support upgrades, see the Upgrades README [here](../Teleporter/Upgrades/README.md).
 
