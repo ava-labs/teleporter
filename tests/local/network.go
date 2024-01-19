@@ -63,7 +63,6 @@ const (
 					"internal-debug","internal-account","internal-personal",
 					"debug","debug-tracer","debug-file-tracer","debug-handler"]
 	}`
-	defaultLocalNetworkID = uint32(1337)
 )
 
 func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
@@ -286,7 +285,7 @@ func (n *LocalNetwork) DeployTeleporterContracts(
 	for _, subnetInfo := range subnets {
 		// Fund the deployer address
 		{
-			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(11)) // 10eth
+			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(11)) // 11 AVAX
 			fundDeployerTx := utils.CreateNativeTransferTransaction(
 				ctx, subnetInfo, fundedKey, deployerAddress, fundAmount,
 			)
@@ -491,6 +490,7 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	n.setAllSubnetValues()
 }
 
+// GetSubnetNodeNames returns a slice that copies all node names in the network
 func (n *LocalNetwork) GetSubnetNodeNames() []string {
 	var nodeNames []string
 	for _, subnetNodeNames := range n.subnetNodeNames {

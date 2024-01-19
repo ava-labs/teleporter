@@ -18,7 +18,9 @@ type Network interface {
 	// Returns all of the subnets support by this network, excluding the primary network
 	GetSubnetsInfo() []SubnetTestInfo
 
-	// Returns all of the subnets support by this network, including the primary network
+	// Returns all of the subnets support by this network in no particular order, including the primary network.
+	// If the distinction between primary network and other subnets needs to be made,
+	// use GetPrimaryNetworkInfo() and GetSubnetsInfo() instead.
 	GetAllSubnetsInfo() []SubnetTestInfo
 
 	// Returns the Teleporter contract address for all subnets in this network.

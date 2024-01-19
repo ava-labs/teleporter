@@ -22,8 +22,9 @@ import (
 )
 
 const (
-	networkID              uint32 = 1337
-	teleporterByteCodeFile        = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
+	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
+	// TODO: when avalanche-network-runner depedency is updated, use constants.DefaultLocalNetworkID
+	defaultLocalNetworkID uint32 = 1337
 )
 
 func TeleporterRegistry(network interfaces.LocalNetwork) {
@@ -187,7 +188,10 @@ func createOffChainRegistryMessage(
 	addressedPayload, err := payload.NewAddressedCall(sourceAddress, entryBytes)
 	Expect(err).Should(BeNil())
 
-	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(networkID, subnet.BlockchainID, addressedPayload.Bytes())
+	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
+		defaultLocalNetworkID,
+		subnet.BlockchainID,
+		addressedPayload.Bytes())
 	Expect(err).Should(BeNil())
 
 	return unsignedMessage

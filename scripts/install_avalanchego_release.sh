@@ -94,20 +94,25 @@ else
     CHECKOUT_STATUS=$?
     set -e
 
-    # if it's not a branch, try to checkout the commit
+    # if it's not a branch, try to checkout the commit 
     if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-      # if the version has a hyphen, it can be a tag + commit hash, extract the commit hash
-      extract_commit
-
       set +e
       git checkout ${AVALANCHEGO_VERSION} > /dev/null 2>&1
       CHECKOUT_STATUS=$?
       set -e
 
       if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-        echo
-        echo "'${AVALANCHEGO_VERSION}' is not a valid release tag, commit hash, or branch name"
-        exit 1
+        # version can be in the format of tag-commit, try to extract the commit and checkout.
+        extract_commit
+        set +e
+        git checkout ${AVALANCHEGO_VERSION} > /dev/null 2>&1
+        CHECKOUT_STATUS=$?
+        set -e
+        if [[ $CHECKOUT_STATUS -ne 0 ]]; then
+          echo
+          echo "'${AVALANCHEGO_VERSION}' is not a valid release tag, commit hash, or branch name"
+          exit 1
+        fi
       fi
     fi
 
@@ -119,8 +124,10 @@ else
     # if the build-directory doesn't exist, build avalanchego
     if [[ ! -d ${BUILD_DIR} ]]; then
       echo "building avalanchego ${COMMIT} to ${BUILD_DIR}"
+      ./scripts/build.sh
       mkdir -p ${BUILD_DIR}
-      ./scripts/build.sh ${BUILD_DIR}/subnet-evm
+
+      mv ${GIT_CLONE_PATH}/build/* ${BUILD_DIR}/
     fi
 
     cd $WORKDIR

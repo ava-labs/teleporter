@@ -57,7 +57,6 @@ var _ interfaces.Network = &testNetwork{}
 type testNetwork struct {
 	teleporterContractAddress common.Address
 	primaryNetwork            *interfaces.SubnetTestInfo
-	subnetIDs                 []ids.ID
 	subnetsInfo               map[ids.ID]*interfaces.SubnetTestInfo
 	fundedAddress             common.Address
 	fundedKey                 *ecdsa.PrivateKey
@@ -170,7 +169,6 @@ func NewTestNetwork() (*testNetwork, error) {
 	return &testNetwork{
 		teleporterContractAddress: teleporterContractAddress,
 		primaryNetwork:            &cChainInfo,
-		subnetIDs:                 []ids.ID{subnetAInfo.SubnetID, subnetBInfo.SubnetID, subnetCInfo.SubnetID},
 		subnetsInfo:               subnetsInfo,
 		fundedAddress:             common.HexToAddress(fundedAddressStr),
 		fundedKey:                 fundedKey,

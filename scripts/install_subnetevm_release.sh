@@ -94,18 +94,23 @@ else
 
     # if it's not a branch, try to checkout the commit 
     if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-      # if the version has a hyphen, it can be a tag + commit hash, extract the commit hash
-      extract_commit
-
       set +e
       git checkout ${SUBNET_EVM_VERSION} > /dev/null 2>&1
       CHECKOUT_STATUS=$?
       set -e
 
       if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-        echo
-        echo "'${SUBNET_EVM_VERSION}' is not a valid release tag, commit hash, or branch name"
-        exit 1
+        # version can be in the format of tag-commit, try to extract the commit and checkout.
+        extract_commit
+        set +e
+        git checkout ${SUBNET_EVM_VERSION} > /dev/null 2>&1
+        CHECKOUT_STATUS=$?
+        set -e
+        if [[ $CHECKOUT_STATUS -ne 0 ]]; then
+          echo
+          echo "'${SUBNET_EVM_VERSION}' is not a valid release tag, commit hash, or branch name"
+          exit 1
+        fi
       fi
     fi
 

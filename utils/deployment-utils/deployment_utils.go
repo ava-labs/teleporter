@@ -34,7 +34,7 @@ var (
 	vValue = big.NewInt(
 		27,
 	) // Must be less than 35 to be considered non-EIP155
-	contractCreationGasPrice = big.NewInt(2500000000000) // 2500 nAVAX/gas
+	contractCreationGasPrice = big.NewInt(2_500_000_000_000) // 2500 nAVAX/gas
 )
 
 type byteCodeObj struct {
