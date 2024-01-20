@@ -23,7 +23,7 @@ import (
 
 const (
 	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
-	// TODO: when avalanche-network-runner depedency is updated, use constants.DefaultLocalNetworkID
+	// TODO: when avalanche-network-runner dependency is updated, use constants.DefaultLocalNetworkID
 	defaultLocalNetworkID uint32 = 1337
 )
 
