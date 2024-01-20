@@ -18,13 +18,13 @@ func TestPackUnpackProtocolRegistryEntry(t *testing.T) {
 	}
 	destinationAddress := common.HexToAddress("0x0123456789abcdef0123456789abcdef01234568")
 
-	b, err := PackTeleporterRegistryEntry(entry, destinationAddress)
+	b, err := PackTeleporterRegistryWarpPayload(entry, destinationAddress)
 	require.NoError(t, err)
 
-	unpackedEntry, err := UnpackTeleporterRegistryEntry(b)
+	registryEntry, destinationAddress, err := UnpackTeleporterRegistryWarpPayload(b)
 	require.NoError(t, err)
 
-	require.Equal(t, entry.Version, unpackedEntry.Entry.Version)
-	require.Equal(t, entry.ProtocolAddress, unpackedEntry.Entry.ProtocolAddress)
-	require.Equal(t, destinationAddress, unpackedEntry.DestinationAddress)
+	require.Equal(t, entry.Version, registryEntry.Version)
+	require.Equal(t, entry.ProtocolAddress, registryEntry.ProtocolAddress)
+	require.Equal(t, destinationAddress, destinationAddress)
 }

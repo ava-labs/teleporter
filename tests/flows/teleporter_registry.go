@@ -66,6 +66,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	nodeNames := network.GetSubnetNodeNames()
 	network.RestartNodes(ctx, nodeNames, runner_sdk.WithChainConfigs(chainConfigs))
 
+	// Call addProtocolVersion on subnetB to register the new Teleporter version
 	utils.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
 		network,
@@ -100,6 +101,8 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx)
+
+	// Verify that minTeleporterVersion updated
 	minTeleporterVersionUpdatedEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
 		exampleMessengerB.ParseMinTeleporterVersionUpdated)
@@ -107,6 +110,8 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	Expect(minTeleporterVersionUpdatedEvent.OldMinTeleporterVersion.Cmp(minTeleporterVersion)).Should(Equal(0))
 	Expect(minTeleporterVersionUpdatedEvent.NewMinTeleporterVersion.Cmp(latestVersion)).Should(Equal(0))
 
+	// Send a message using old Teleporter version to example messenger with updated minimum Teleporter version.
+	// Message should fail since we updated minimum Teleporter version.
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		network,
@@ -132,6 +137,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		fundedKey,
 		false)
 
+	// Call addProtocolVersion on subnetA to register the new Teleporter version
 	utils.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
 		network,
@@ -141,6 +147,8 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		fundedKey,
 		offchainMessageA)
 
+	// Send a message from A->B, which previously failed, but now using the new Teleporter version.
+	// Teleporter versions should match, so message should be received successfully.
 	utils.SendExampleCrossChainMessageAndVerify(ctx,
 		network,
 		subnetBInfo,
@@ -182,10 +190,10 @@ func createOffChainRegistryMessage(
 	entry teleporterregistry.ProtocolRegistryEntry,
 ) *avalancheWarp.UnsignedMessage {
 	sourceAddress := []byte{}
-	entryBytes, err := teleporterregistry.PackTeleporterRegistryEntry(entry, subnet.TeleporterRegistryAddress)
+	payloadBytes, err := teleporterregistry.PackTeleporterRegistryWarpPayload(entry, subnet.TeleporterRegistryAddress)
 	Expect(err).Should(BeNil())
 
-	addressedPayload, err := payload.NewAddressedCall(sourceAddress, entryBytes)
+	addressedPayload, err := payload.NewAddressedCall(sourceAddress, payloadBytes)
 	Expect(err).Should(BeNil())
 
 	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(

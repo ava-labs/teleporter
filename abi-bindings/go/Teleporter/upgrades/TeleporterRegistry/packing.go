@@ -11,63 +11,69 @@ import (
 	"github.com/pkg/errors"
 )
 
-var teleporterRegistryEntryType abi.Type
-
-type TeleporterRegistryEntry struct {
-	Entry              ProtocolRegistryEntry `json:"protocolRegistryEntry"`
-	DestinationAddress common.Address        `json:"destinationAddress"`
-}
+var protocolRegistryEntryType abi.Type
+var addressType abi.Type
 
 func init() {
 	// Create an ABI binding for TeleporterRegistryEntry, defined in TeleporterRegistry.sol
 	// abigen does not support ABI bindings for standalone structs, only methods and events,
 	// so we must manually keep this up-to-date with the struct defined in the contract.
 	var err error
-	teleporterRegistryEntryType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
-		{Name: "entry", Type: "tuple", Components: []abi.ArgumentMarshaling{
-			{Name: "version", Type: "uint256"},
-			{Name: "protocolAddress", Type: "address"},
-		}},
-		{Name: "destinationAddress", Type: "address"},
+	protocolRegistryEntryType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
+		{Name: "version", Type: "uint256"},
+		{Name: "protocolAddress", Type: "address"},
 	})
 	if err != nil {
-		panic(fmt.Sprintf("failed to create TeleporterRegistryEntry ABI type: %v", err))
+		panic(fmt.Sprintf("failed to create ProtocolRegistryEntry ABI type: %v", err))
+	}
+
+	addressType, err = abi.NewType("address", "", nil)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create address ABI type: %v", err))
 	}
 }
 
-func PackTeleporterRegistryEntry(entry ProtocolRegistryEntry, destinationAddress common.Address) ([]byte, error) {
+func PackTeleporterRegistryWarpPayload(entry ProtocolRegistryEntry, destinationAddress common.Address) ([]byte, error) {
 	args := abi.Arguments{
 		{
-			Name: "teleporterRegistryEntry",
-			Type: teleporterRegistryEntryType,
+			Name: "protocolRegistryEntry",
+			Type: protocolRegistryEntryType,
+		},
+		{
+			Name: "destinationAddress",
+			Type: addressType,
 		},
 	}
-	return args.Pack(TeleporterRegistryEntry{
-		Entry:              entry,
-		DestinationAddress: destinationAddress,
-	})
+	return args.Pack(entry, destinationAddress)
 }
 
-func UnpackTeleporterRegistryEntry(entryBytes []byte) (*TeleporterRegistryEntry, error) {
+func UnpackTeleporterRegistryWarpPayload(entryBytes []byte) (ProtocolRegistryEntry, common.Address, error) {
 	args := abi.Arguments{
 		{
-			Name: "teleporterRegistryEntry",
-			Type: teleporterRegistryEntryType,
+			Name: "protocolRegistryEntry",
+			Type: protocolRegistryEntryType,
+		},
+		{
+			Name: "destinationAddress",
+			Type: addressType,
 		},
 	}
 	unpacked, err := args.Unpack(entryBytes)
+	fmt.Println("unpacked: ", unpacked)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unpack to Teleporter registry entry with err: %v", err)
+		return ProtocolRegistryEntry{}, common.Address{}, fmt.Errorf("failed to unpack to Teleporter registry entry with err: %v", err)
 	}
-	type teleporterRegistryEntryArg struct {
-		Entry TeleporterRegistryEntry `json:"teleporterRegistryEntry"`
+	type teleporterRegistryWarpPayload struct {
+		ProtocolRegistryEntry ProtocolRegistryEntry `json:"protocolRegistryEntry"`
+		DestinationAddress    common.Address        `json:"destinationAddress"`
 	}
-	var teleporterRegistryEntry teleporterRegistryEntryArg
-	err = args.Copy(&teleporterRegistryEntry, unpacked)
+	var payload teleporterRegistryWarpPayload
+	err = args.Copy(&payload, unpacked)
 	if err != nil {
-		return nil, err
+		return ProtocolRegistryEntry{}, common.Address{}, err
 	}
-	return &teleporterRegistryEntry.Entry, nil
+
+	return payload.ProtocolRegistryEntry, payload.DestinationAddress, nil
 }
 
 // PackAddProtocolVersion packs input to form a call to the addProtocolVersion function
