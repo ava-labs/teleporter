@@ -45,15 +45,6 @@ extract_archive() {
   fi
 }
 
-extract_commit() {
-  local version=$1
-  if [[ $version == *-* ]]; then
-      # Extract the substring after the last '-'
-      version=${version##*-}
-  fi
-  echo "$version"
-}
-
 # first check if we already have the archive
 if [[ -f ${SUBNET_EVM_DOWNLOAD_PATH} ]]; then
   # if the download path already exists, extract and exit
