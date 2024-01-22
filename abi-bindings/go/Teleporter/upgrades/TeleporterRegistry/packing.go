@@ -15,7 +15,7 @@ var protocolRegistryEntryType abi.Type
 var addressType abi.Type
 
 func init() {
-	// Create an ABI binding for TeleporterRegistryEntry, defined in TeleporterRegistry.sol
+	// Create an ABI binding for ProtocolRegistryEntry, defined in TeleporterRegistry.sol
 	// abigen does not support ABI bindings for standalone structs, only methods and events,
 	// so we must manually keep this up-to-date with the struct defined in the contract.
 	var err error
