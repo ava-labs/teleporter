@@ -31,6 +31,7 @@ func ExampleMessenger(network interfaces.Network) {
 		exampleMessengerContractB,
 		subnetBExampleMessenger,
 		fundedKey,
+		"Hello World!",
 		true,
 	)
 }

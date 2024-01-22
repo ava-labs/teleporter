@@ -87,6 +87,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		exampleMessengerContractB,
 		exampleMessengerB,
 		fundedKey,
+		"message_1",
 		true)
 
 	// Update minimum Teleporter version on destination chain
@@ -121,6 +122,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		exampleMessengerContractB,
 		exampleMessengerB,
 		fundedKey,
+		"message_2",
 		false)
 
 	// Update the subnets to use new Teleporter messengers
@@ -135,6 +137,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		exampleMessengerContractA,
 		exampleMessengerA,
 		fundedKey,
+		"message_3",
 		false)
 
 	// Call addProtocolVersion on subnetA to register the new Teleporter version
@@ -157,6 +160,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		exampleMessengerContractA,
 		exampleMessengerA,
 		fundedKey,
+		"message_4",
 		true)
 }
 
@@ -210,9 +214,13 @@ func deployNewTeleporterVersion(
 	network interfaces.LocalNetwork,
 	fundedKey *ecdsa.PrivateKey,
 ) common.Address {
-	deploymentUtils.AlterNicksTransaction()
+	contractCreationGasPrice := (&big.Int{}).Add(deploymentUtils.GetDefaultContractCreationGasPrice(), big.NewInt(1))
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
+		deploymentUtils.ConstructKeylessTransaction(
+			teleporterByteCodeFile,
+			false,
+			contractCreationGasPrice,
+		)
 	Expect(err).Should(BeNil())
 
 	network.DeployTeleporterContracts(

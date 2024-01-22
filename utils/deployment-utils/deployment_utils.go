@@ -18,7 +18,7 @@ import (
 
 const (
 	// Roughly 3,010,000 gas needed to deploy contract. Padded to account for possible additions
-	contractCreationGasLimit = uint64(4000000)
+	defaultContractCreationGasLimit = uint64(4000000)
 
 	// R and S values to use in a keyless transaction signature.
 	// The values do not technically need to be the same when using Nick's method, but the AvalancheGo
@@ -34,7 +34,7 @@ var (
 	vValue = big.NewInt(
 		27,
 	) // Must be less than 35 to be considered non-EIP155
-	contractCreationGasPrice = big.NewInt(2_500_000_000_000) // 2500 nAVAX/gas
+	defaultContractCreationGasPrice = big.NewInt(2500e9) // 2500 nAVAX/gas
 )
 
 type byteCodeObj struct {
@@ -91,6 +91,7 @@ func ExtractByteCode(byteCodeFileName string) ([]byte, error) {
 func ConstructKeylessTransaction(
 	byteCodeFileName string,
 	writeFile bool,
+	contractCreationGasPrice *big.Int,
 ) ([]byte, common.Address, common.Address, error) {
 	// Convert the R and S values (which must be the same) from hex.
 	rsValue, ok := new(big.Int).SetString(rsValueHex, 16)
@@ -108,7 +109,7 @@ func ConstructKeylessTransaction(
 	// Construct the legacy transaction with pre-determined signature values.
 	contractCreationTx := types.NewTx(&types.LegacyTx{
 		Nonce:    0,
-		Gas:      contractCreationGasLimit,
+		Gas:      defaultContractCreationGasLimit,
 		GasPrice: contractCreationGasPrice,
 		To:       nil, // Contract creation transaction
 		Value:    big.NewInt(0),
@@ -189,9 +190,6 @@ func ConstructKeylessTransaction(
 	return contractCreationTxBytes, senderAddress, contractAddress, nil
 }
 
-// AlterNicksTransaction increments the gas price of the transaction used to deploy the contract.
-// This changes the derived contract and deployer address, which is useful for deploying the same
-// Teleporter contract to different addresses.
-func AlterNicksTransaction() {
-	contractCreationGasPrice.Add(contractCreationGasPrice, big.NewInt(1))
+func GetDefaultContractCreationGasPrice() *big.Int {
+	return defaultContractCreationGasPrice
 }

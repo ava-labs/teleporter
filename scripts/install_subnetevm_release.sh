@@ -46,10 +46,12 @@ extract_archive() {
 }
 
 extract_commit() {
-  if [[ $SUBNET_EVM_VERSION == *-* ]]; then
+  local version=$1
+  if [[ $version == *-* ]]; then
       # Extract the substring after the last '-'
-      SUBNET_EVM_VERSION=${SUBNET_EVM_VERSION##*-}
+      version=${version##*-}
   fi
+  echo "$version"
 }
 
 # first check if we already have the archive
@@ -86,27 +88,12 @@ else
 
     echo "checking out ${SUBNET_EVM_VERSION}"
 
-    set +e
-    # try to checkout the branch
-    git checkout origin/${SUBNET_EVM_VERSION} > /dev/null 2>&1
-    CHECKOUT_STATUS=$?
-    set -e
-
-    # if it's not a branch, try to checkout the commit 
-    if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-      set +e
-      git checkout ${SUBNET_EVM_VERSION} > /dev/null 2>&1
-      CHECKOUT_STATUS=$?
-      set -e
-
-      if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-        # version can be in the format of tag-commit, try to extract the commit and checkout.
-        extract_commit
-        set +e
-        git checkout ${SUBNET_EVM_VERSION} > /dev/null 2>&1
-        CHECKOUT_STATUS=$?
-        set -e
-        if [[ $CHECKOUT_STATUS -ne 0 ]]; then
+    # Try to checkout the branch. If it fails, try the commit.
+    if ! git checkout "origin/${SUBNET_EVM_VERSION}" > /dev/null 2>&1; then
+      if ! git checkout "${SUBNET_EVM_VERSION}" > /dev/null 2>&1; then
+        # If the version is in the format of tag-commit, try to extract the commit and checkout.
+        SUBNET_EVM_VERSION=$(extract_commit "${SUBNET_EVM_VERSION}")
+        if ! git checkout "${SUBNET_EVM_VERSION}" > /dev/null 2>&1; then
           echo
           echo "'${SUBNET_EVM_VERSION}' is not a valid release tag, commit hash, or branch name"
           exit 1

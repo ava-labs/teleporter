@@ -21,10 +21,10 @@ func TestPackUnpackProtocolRegistryEntry(t *testing.T) {
 	b, err := PackTeleporterRegistryWarpPayload(entry, destinationAddress)
 	require.NoError(t, err)
 
-	registryEntry, destinationAddress, err := UnpackTeleporterRegistryWarpPayload(b)
+	unpackedEntry, unpackedDestinationAddress, err := UnpackTeleporterRegistryWarpPayload(b)
 	require.NoError(t, err)
 
-	require.Equal(t, entry.Version, registryEntry.Version)
-	require.Equal(t, entry.ProtocolAddress, registryEntry.ProtocolAddress)
-	require.Equal(t, destinationAddress, destinationAddress)
+	require.Equal(t, entry.Version, unpackedEntry.Version)
+	require.Equal(t, entry.ProtocolAddress, unpackedEntry.ProtocolAddress)
+	require.Equal(t, destinationAddress, unpackedDestinationAddress)
 }

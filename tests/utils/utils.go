@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -376,7 +375,8 @@ func AddProtocolVersionAndWaitForAcceptance(
 		signedWarpMsg,
 		source.TeleporterRegistryAddress,
 		senderKey,
-		source)
+		source,
+	)
 
 	curLatestVersion, err := source.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
@@ -882,12 +882,9 @@ func SendExampleCrossChainMessageAndVerify(
 	destExampleMessengerAddress common.Address,
 	destExampleMessenger *examplecrosschainmessenger.ExampleCrossChainMessenger,
 	senderKey *ecdsa.PrivateKey,
+	message string,
 	expectSuccess bool,
 ) {
-	// Generate a random message
-	randomNumber := rand.Intn(1000)
-	randomMessage := fmt.Sprintf("%d", randomNumber)
-
 	// Call the example messenger contract on Subnet A
 	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -898,7 +895,7 @@ func SendExampleCrossChainMessageAndVerify(
 		common.BigToAddress(common.Big0),
 		big.NewInt(0),
 		examplecrosschainmessenger.SendMessageRequiredGas,
-		randomMessage,
+		message,
 	)
 	Expect(err).Should(BeNil())
 
@@ -945,8 +942,8 @@ func SendExampleCrossChainMessageAndVerify(
 	_, currMessage, err := destExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, source.BlockchainID)
 	Expect(err).Should(BeNil())
 	if expectSuccess {
-		Expect(currMessage).Should(Equal(randomMessage))
+		Expect(currMessage).Should(Equal(message))
 	} else {
-		Expect(currMessage).ShouldNot(Equal(randomMessage))
+		Expect(currMessage).ShouldNot(Equal(message))
 	}
 }

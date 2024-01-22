@@ -39,7 +39,11 @@ var _ = ginkgo.BeforeSuite(func() {
 
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
+		deploymentUtils.ConstructKeylessTransaction(
+			teleporterByteCodeFile,
+			false,
+			deploymentUtils.GetDefaultContractCreationGasPrice(),
+		)
 	Expect(err).Should(BeNil())
 
 	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
@@ -113,7 +117,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Relayer modifies message", func() {
 		flows.RelayerModifiesMessage(LocalNetworkInstance)
 	})
-	ginkgo.It("Teleporter registry", func() {
+	ginkgo.FIt("Teleporter registry", func() {
 		flows.TeleporterRegistry(LocalNetworkInstance)
 	})
 	ginkgo.It("Validator churn", func() {

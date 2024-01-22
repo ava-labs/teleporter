@@ -16,8 +16,7 @@ source "$TELEPORTER_PATH"/scripts/versions.sh
 source "$TELEPORTER_PATH"/scripts/constants.sh
 
 ############################
-# download avalanchego
-# https://github.com/ava-labs/avalanchego/releases
+# download avalanchego# https://github.com/ava-labs/avalanchego/releases
 GOARCH=$(go env GOARCH)
 GOOS=$(go env GOOS)
 BASEDIR=${BASEDIR:-"/tmp/avalanchego-release"}
@@ -44,13 +43,6 @@ extract_archive() {
     unzip ${AVAGO_DOWNLOAD_PATH} -d ${BUILD_DIR}
     mv ${BUILD_DIR}/build/* ${BUILD_DIR}
     rm -rf ${BUILD_DIR}/build/
-  fi
-}
-
-extract_commit() {
-  if [[ $AVALANCHEGO_VERSION == *-* ]]; then
-      # Extract the substring after the last '-'
-      AVALANCHEGO_VERSION=${AVALANCHEGO_VERSION##*-}
   fi
 }
 
@@ -95,20 +87,12 @@ else
     set -e
 
     # if it's not a branch, try to checkout the commit 
-    if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-      set +e
-      git checkout ${AVALANCHEGO_VERSION} > /dev/null 2>&1
-      CHECKOUT_STATUS=$?
-      set -e
-
-      if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-        # version can be in the format of tag-commit, try to extract the commit and checkout.
-        extract_commit
-        set +e
-        git checkout ${AVALANCHEGO_VERSION} > /dev/null 2>&1
-        CHECKOUT_STATUS=$?
-        set -e
-        if [[ $CHECKOUT_STATUS -ne 0 ]]; then
+    # Try to checkout the branch. If it fails, try the commit.
+    if ! git checkout "origin/${AVALANCHEGO_VERSION}" > /dev/null 2>&1; then
+      if ! git checkout "${AVALANCHEGO_VERSION}" > /dev/null 2>&1; then
+        # If the version is in the format of tag-commit, try to extract the commit and checkout.
+        AVALANCHEGO_VERSION=$(extract_commit "${AVALANCHEGO_VERSION}")
+        if ! git checkout "${AVALANCHEGO_VERSION}" > /dev/null 2>&1; then
           echo
           echo "'${AVALANCHEGO_VERSION}' is not a valid release tag, commit hash, or branch name"
           exit 1
