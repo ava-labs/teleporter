@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {WarpMessage, IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
+import {WarpMessage, IWarpMessenger} from "./IWarpMessenger.sol";
 import {
     TeleporterMessageReceipt,
     TeleporterMessageInput,
