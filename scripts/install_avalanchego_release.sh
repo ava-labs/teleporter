@@ -16,7 +16,8 @@ source "$TELEPORTER_PATH"/scripts/versions.sh
 source "$TELEPORTER_PATH"/scripts/constants.sh
 
 ############################
-# download avalanchego# https://github.com/ava-labs/avalanchego/releases
+# download avalanchego
+# https://github.com/ava-labs/avalanchego/releases
 GOARCH=$(go env GOARCH)
 GOOS=$(go env GOOS)
 BASEDIR=${BASEDIR:-"/tmp/avalanchego-release"}

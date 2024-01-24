@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
+	runner_constants "github.com/ava-labs/avalanche-network-runner/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/constants"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
@@ -23,8 +24,6 @@ import (
 
 const (
 	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
-	// TODO: when avalanche-network-runner dependency is updated, use constants.DefaultLocalNetworkID
-	defaultLocalNetworkID uint32 = 1337
 )
 
 func TeleporterRegistry(network interfaces.LocalNetwork) {
@@ -201,7 +200,7 @@ func createOffChainRegistryMessage(
 	Expect(err).Should(BeNil())
 
 	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
-		defaultLocalNetworkID,
+		runner_constants.DefaultNetworkID,
 		subnet.BlockchainID,
 		addressedPayload.Bytes())
 	Expect(err).Should(BeNil())

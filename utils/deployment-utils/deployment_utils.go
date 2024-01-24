@@ -191,5 +191,7 @@ func ConstructKeylessTransaction(
 }
 
 func GetDefaultContractCreationGasPrice() *big.Int {
-	return defaultContractCreationGasPrice
+	gasPrice := big.NewInt(0)
+	gasPrice.Set(defaultContractCreationGasPrice)
+	return gasPrice
 }
