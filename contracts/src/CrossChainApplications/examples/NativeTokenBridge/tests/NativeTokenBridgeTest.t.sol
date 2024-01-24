@@ -10,7 +10,7 @@ import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 contract NativeTokenBridgeTest is Test {
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =

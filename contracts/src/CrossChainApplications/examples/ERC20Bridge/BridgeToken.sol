@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import {
     ERC20, ERC20Burnable
-} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+} from "@openzeppelin/contracts@4.8.1/token/ERC20/extensions/ERC20Burnable.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.

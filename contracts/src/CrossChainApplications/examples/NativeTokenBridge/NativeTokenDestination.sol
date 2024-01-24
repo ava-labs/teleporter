@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
@@ -17,8 +17,8 @@ import {
 } from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 // We need IAllowList as an indirect dependency in order to compile.
 // solhint-disable-next-line no-unused-import
 import {IAllowList} from "@subnet-evm-contracts/interfaces/IAllowList.sol";
