@@ -6,7 +6,7 @@ This section walks through how to build an example cross-chain application on to
 
 ## Step 1: Create Initial Contract
 
-Create a new file called `MyExampleCrossChainMessenger.sol` in a new directory: 
+Create a new file called `MyExampleCrossChainMessenger.sol` in a new directory:
 
 ```bash
 mkdir teleporter/contracts/src/CrossChainApplications/MyExampleCrossChainMessenger/
@@ -112,11 +112,18 @@ function receiveTeleporterMessage(
 ) external {}
 ```
 
-Now it's time to implement the methods, starting with `sendMessage`. First, add the import for OpenZeppelin's `IERC20` contract to the top of the contract, as well as the import for the `SafeERC20` library.
+Now it's time to implement the methods, starting with `sendMessage`. First, add the necessary imports.
 
 ```solidity
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFrom.sol";
+import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 ```
 
 Next, add a `using` directive in the contract declaration to specify `SafeERC20` as the `IERC20` implementation to use:
@@ -124,7 +131,7 @@ Next, add a `using` directive in the contract declaration to specify `SafeERC20`
 ```solidity
 contract ExampleCrossChainMessenger is
     ReentrancyGuard,
-    TeleporterOwnerUpgradeable
+    ITeleporterReceiver
 {
     using SafeERC20 for IERC20;
     ...
@@ -218,7 +225,7 @@ mapping(bytes32 sourceBlockchainID => Message message) private _messages;
 
 Next, update `receiveTeleporterMessage` to save the message into the mapping after it is received and verified that it's sent from Teleporter. ABI decode the `message` bytes into a string. Also, emit the `ReceiveMessage` event.
 
-```solidity
+````solidity
 
 ```solidity
 // Receive a new message from another chain.
@@ -242,7 +249,7 @@ function receiveTeleporterMessage(
         messageString
     );
 }
-```
+````
 
 Next, add a function called `getCurrentMessage` that allows users or contracts to easily query the contract for the latest message sent by a specified chain.
 
@@ -260,7 +267,7 @@ function getCurrentMessage(
 
 At this point, the contract is now fully usable, and can be used to send arbitrary string data between chains. However, there are a few more modifications that need to be made to support upgrades to `TeleporterMessenger`. For a more in-depth explanation of how to support upgrades, see the Upgrades README [here](../Teleporter/Upgrades/README.md).
 
-The first change to make is to inherit from `TeleporterOwnerUpgradeable` instead of `ITeleporterReceiver`. `TeleporterOwnerUpgradeable` integrates with `TeleporterRegistry` via `TeleporterUpgradeable` to easily utilize the latest `TeleporterMessenger` implementation. `TeleporterOwnerUpgradeable` also ensures that only the contract owner is able to upgrade the `TeleporterMessenger` implementation used by the contract.
+The first change to make is to inherit from `TeleporterOwnerUpgradeable` instead of `ITeleporterReceiver`. `TeleporterOwnerUpgradeable` integrates with `TeleporterRegistry` via `TeleporterUpgradeable` to easily utilize the latest `TeleporterMessenger` implementation. `TeleporterOwnerUpgradeable` also ensures that only the contract owner, specified by the constructor argument `initialOwner`, is able to upgrade the `TeleporterMessenger` implementation used by the contract.
 
 To start, replace the import for `ITeleporterReceiver` with `TeleporterOwnerUpgradeable`:
 
@@ -286,8 +293,9 @@ Next, update the constructor to invoke the `TeleporterOwnerUpgradeable` construc
 -     teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
 - }
 + constructor(
-+     address teleporterRegistryAddress
-+ ) TeleporterOwnerUpgradeable(teleporterRegistryAddress) {}
++     address teleporterRegistryAddress,
++     address initialOwner
++ ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, initialOwner) {}
 ```
 
 Then, remove the `teleporterMessenger` state variable, and add a call to get the latest `ITeleporterMessenger` implementation from `TeleporterRegistry` in `sendMessage`.
@@ -309,7 +317,6 @@ And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, a
 -    // Only the Teleporter receiver can deliver a message.
 -    require(msg.sender == address(teleporterMessenger), "Unauthorized.");
 ```
-    
 
 `MyExampleCrossChainMessenger` is now a working cross-chain dApp built on top of Teleporter! Full example [here](./ExampleMessenger/ExampleCrossChainMessenger.sol).
 

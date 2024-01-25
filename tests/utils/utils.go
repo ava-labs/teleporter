@@ -769,13 +769,17 @@ func DeployExampleERC20(
 func DeployExampleCrossChainMessenger(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
+	initialOwner common.Address,
 	subnet interfaces.SubnetTestInfo,
 ) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(
-		opts, subnet.RPCClient, subnet.TeleporterRegistryAddress,
+		opts,
+		subnet.RPCClient,
+		subnet.TeleporterRegistryAddress,
+		initialOwner,
 	)
 	Expect(err).Should(BeNil())
 
@@ -788,12 +792,16 @@ func DeployExampleCrossChainMessenger(
 func DeployERC20Bridge(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
+	initialOwner common.Address,
 	source interfaces.SubnetTestInfo,
 ) (common.Address, *erc20bridge.ERC20Bridge) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 	address, tx, erc20Bridge, err := erc20bridge.DeployERC20Bridge(
-		opts, source.RPCClient, source.TeleporterRegistryAddress,
+		opts,
+		source.RPCClient,
+		source.TeleporterRegistryAddress,
+		initialOwner,
 	)
 	Expect(err).Should(BeNil())
 
@@ -827,6 +835,7 @@ func DeployBlockHashPublisher(
 func DeployBlockHashReceiver(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
+	initialOwner common.Address,
 	subnet interfaces.SubnetTestInfo,
 	publisherAddress common.Address,
 	publisherChainID [32]byte,
@@ -838,6 +847,7 @@ func DeployBlockHashReceiver(
 		opts,
 		subnet.RPCClient,
 		subnet.TeleporterRegistryAddress,
+		initialOwner,
 		publisherChainID,
 		publisherAddress,
 	)

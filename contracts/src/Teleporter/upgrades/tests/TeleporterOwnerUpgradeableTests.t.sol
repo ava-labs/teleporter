@@ -9,9 +9,10 @@ import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
-    constructor(address teleporterRegistryAddress)
-        TeleporterOwnerUpgradeable(teleporterRegistryAddress)
-    {}
+    constructor(
+        address teleporterRegistryAddress,
+        address initialOwner
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, initialOwner) {}
 
     function checkTeleporterUpgradeAccess() external view {
         _checkTeleporterUpgradeAccess();
@@ -30,7 +31,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
     function setUp() public virtual override {
         TeleporterUpgradeableTest.setUp();
-        ownerApp = new ExampleOwnerUpgradeableApp(address(teleporterRegistry));
+        ownerApp = new ExampleOwnerUpgradeableApp(address(teleporterRegistry), address(this));
     }
 
     function testOwnerUpdateMinTeleporterVersion() public {
@@ -130,5 +131,21 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         // Check that call to check upgrade access succeeds for owners
         vm.prank(address(this));
         ownerApp.checkTeleporterUpgradeAccess();
+    }
+
+    function testInitalOwner() public {
+        // Create a new Ownable app with a passed in initialOwner
+        ExampleOwnerUpgradeableApp newOwnerApp =
+            new ExampleOwnerUpgradeableApp(address(teleporterRegistry), DEFAULT_ORIGIN_ADDRESS);
+
+        // Check that the initialOwner is set correctly
+        assertEq(newOwnerApp.owner(), DEFAULT_ORIGIN_ADDRESS);
+        vm.prank(DEFAULT_ORIGIN_ADDRESS);
+        newOwnerApp.checkTeleporterUpgradeAccess();
+
+        // Check that address(this) as the caller is not by default owner
+        assertFalse(newOwnerApp.owner() == address(this));
+        vm.expectRevert("Ownable: caller is not the owner");
+        newOwnerApp.checkTeleporterUpgradeAccess();
     }
 }

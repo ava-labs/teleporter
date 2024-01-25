@@ -10,16 +10,22 @@ import (
 func ExampleMessenger(network interfaces.Network) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	_, fundedKey := network.GetFundedAccountInfo()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
 	// Deploy ExampleMessenger to Subnets A and B
 	//
 	ctx := context.Background()
 
-	_, exampleMessengerA := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
-	exampleMessengerAddressB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(
-		ctx, fundedKey, subnetBInfo,
+	_, exampleMessengerA := utils.DeployExampleCrossChainMessenger(ctx,
+		fundedKey,
+		fundedAddress,
+		subnetAInfo,
+	)
+	exampleMessengerAddressB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(ctx,
+		fundedKey,
+		fundedAddress,
+		subnetBInfo,
 	)
 
 	utils.SendExampleCrossChainMessageAndVerify(

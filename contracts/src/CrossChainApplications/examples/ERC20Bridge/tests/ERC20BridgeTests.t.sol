@@ -85,7 +85,7 @@ contract ERC20BridgeTest is Test {
             )
         );
 
-        erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS);
+        erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS, msg.sender);
         mockERC20 = new UnitTestMockERC20();
     }
 
@@ -519,7 +519,7 @@ contract ERC20BridgeTest is Test {
 
     function testZeroTeleporterRegistryAddress() public {
         vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new ERC20Bridge(address(0));
+        new ERC20Bridge(address(0), msg.sender);
     }
 
     function _initMockTeleporterRegistry() internal {
