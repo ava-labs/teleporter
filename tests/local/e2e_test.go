@@ -34,10 +34,16 @@ func TestE2E(t *testing.T) {
 
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
+	// Create the local network instance
 	LocalNetworkInstance = NewLocalNetwork(warpGenesisFile)
+
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(teleporterByteCodeFile, false)
+		deploymentUtils.ConstructKeylessTransaction(
+			teleporterByteCodeFile,
+			false,
+			deploymentUtils.GetDefaultContractCreationGasPrice(),
+		)
 	Expect(err).Should(BeNil())
 
 	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
@@ -46,7 +52,9 @@ var _ = ginkgo.BeforeSuite(func() {
 		teleporterDeployerAddress,
 		teleporterContractAddress,
 		fundedKey,
+		true,
 	)
+
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
 	log.Info("Set up ginkgo before suite")
 })
@@ -108,6 +116,9 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// The following tests require special behavior by the relayer, so we only run them on a local network
 	ginkgo.It("Relayer modifies message", func() {
 		flows.RelayerModifiesMessage(LocalNetworkInstance)
+	})
+	ginkgo.It("Teleporter registry", func() {
+		flows.TeleporterRegistry(LocalNetworkInstance)
 	})
 	ginkgo.It("Validator churn", func() {
 		flows.ValidatorChurn(LocalNetworkInstance)

@@ -9,8 +9,8 @@ import (
 	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
+	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
-	"github.com/ava-labs/subnet-evm/x/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -73,13 +73,13 @@ func relayAlteredMessage(
 		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessageBytes := network.ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
+	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	_, fundedKey := network.GetFundedAccountInfo()
 	signedTx := createAlteredReceiveCrossChainMessageTransaction(
 		ctx,
-		signedWarpMessageBytes,
+		signedWarpMessage,
 		sendEvent.Message.RequiredGasLimit,
 		network.GetTeleporterContractAddress(),
 		fundedKey,
@@ -92,7 +92,7 @@ func relayAlteredMessage(
 
 func createAlteredReceiveCrossChainMessageTransaction(
 	ctx context.Context,
-	warpMessageBytes []byte,
+	signedMessage *avalancheWarp.Message,
 	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
@@ -101,8 +101,6 @@ func createAlteredReceiveCrossChainMessageTransaction(
 	fundedAddress := crypto.PubkeyToAddress(fundedKey.PublicKey)
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
-	signedMessage, err := avalancheWarp.ParseMessage(warpMessageBytes)
-	Expect(err).Should(BeNil())
 
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
