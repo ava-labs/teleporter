@@ -117,7 +117,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Relayer modifies message", func() {
 		flows.RelayerModifiesMessage(LocalNetworkInstance)
 	})
-	ginkgo.FIt("Teleporter registry", func() {
+	ginkgo.It("Teleporter registry", func() {
 		flows.TeleporterRegistry(LocalNetworkInstance)
 	})
 	ginkgo.It("Validator churn", func() {

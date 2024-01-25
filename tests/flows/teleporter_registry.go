@@ -7,7 +7,6 @@ import (
 	"math/big"
 
 	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
-	runner_constants "github.com/ava-labs/avalanche-network-runner/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/constants"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
@@ -38,31 +37,34 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	// Send tx with new protocol version to other chain, verify events emitted
 	// Retry the previously failed message execution, verify message is now able to be delivered to dapp
 
+	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
 	// Deploy an example cross chain messenger to both chains
-	exampleMessengerContractA, exampleMessengerA := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
+	exampleMessengerContractC, exampleMessengerC := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, cChainInfo)
 	exampleMessengerContractB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(
 		ctx, fundedKey, subnetBInfo,
 	)
 
 	// Deploy the new version of Teleporter to both chains
 	newTeleporterAddress := deployNewTeleporterVersion(ctx, network, fundedKey)
-
+	networkID := network.GetNetworkID()
 	// Create chain config file with off chain message for each chain
-	offchainMessageA, warpEnabledChainConfigA := initChainConfig(subnetAInfo, newTeleporterAddress)
-	offchainMessageB, warpEnabledChainConfigB := initChainConfig(subnetBInfo, newTeleporterAddress)
+	offchainMessageC, warpEnabledChainConfigC := initChainConfig(networkID, cChainInfo, newTeleporterAddress)
+	offchainMessageB, warpEnabledChainConfigB := initChainConfig(networkID, subnetBInfo, newTeleporterAddress)
+	offchainMessageA, warpEnabledChainConfigA := initChainConfig(networkID, subnetAInfo, newTeleporterAddress)
 
 	// Create chain config with off chain messages
 	chainConfigs := make(map[string]string)
-	setChainConfig(chainConfigs, subnetAInfo, warpEnabledChainConfigA)
+	setChainConfig(chainConfigs, cChainInfo, warpEnabledChainConfigC)
 	setChainConfig(chainConfigs, subnetBInfo, warpEnabledChainConfigB)
+	setChainConfig(chainConfigs, subnetAInfo, warpEnabledChainConfigA)
 
 	// Restart nodes with new chain config
-	nodeNames := network.GetSubnetNodeNames()
+	nodeNames := network.GetAllNodeNames()
 	network.RestartNodes(ctx, nodeNames, runner_sdk.WithChainConfigs(chainConfigs))
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
@@ -70,7 +72,6 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		ctx,
 		network,
 		subnetBInfo,
-		subnetAInfo,
 		newTeleporterAddress,
 		fundedKey,
 		offchainMessageB)
@@ -80,8 +81,8 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		network,
-		subnetAInfo,
-		exampleMessengerA,
+		cChainInfo,
+		exampleMessengerC,
 		subnetBInfo,
 		exampleMessengerContractB,
 		exampleMessengerB,
@@ -93,11 +94,11 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetBInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	latestVersion, err := subnetBInfo.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	latestVersionB, err := subnetBInfo.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	minTeleporterVersion, err := exampleMessengerB.GetMinTeleporterVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
-	tx, err := exampleMessengerB.UpdateMinTeleporterVersion(opts, latestVersion)
+	tx, err := exampleMessengerB.UpdateMinTeleporterVersion(opts, latestVersionB)
 	Expect(err).Should(BeNil())
 
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx)
@@ -108,15 +109,15 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		exampleMessengerB.ParseMinTeleporterVersionUpdated)
 	Expect(err).Should(BeNil())
 	Expect(minTeleporterVersionUpdatedEvent.OldMinTeleporterVersion.Cmp(minTeleporterVersion)).Should(Equal(0))
-	Expect(minTeleporterVersionUpdatedEvent.NewMinTeleporterVersion.Cmp(latestVersion)).Should(Equal(0))
+	Expect(minTeleporterVersionUpdatedEvent.NewMinTeleporterVersion.Cmp(latestVersionB)).Should(Equal(0))
 
 	// Send a message using old Teleporter version to example messenger with updated minimum Teleporter version.
 	// Message should fail since we updated minimum Teleporter version.
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		network,
-		subnetAInfo,
-		exampleMessengerA,
+		cChainInfo,
+		exampleMessengerC,
 		subnetBInfo,
 		exampleMessengerContractB,
 		exampleMessengerB,
@@ -126,15 +127,16 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 
 	// Update the subnets to use new Teleporter messengers
 	network.SetTeleporterContractAddress(newTeleporterAddress)
+	cChainInfo = network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo = utils.GetTwoSubnets(network)
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		network,
 		subnetBInfo,
 		exampleMessengerB,
-		subnetAInfo,
-		exampleMessengerContractA,
-		exampleMessengerA,
+		cChainInfo,
+		exampleMessengerContractC,
+		exampleMessengerC,
 		fundedKey,
 		"message_3",
 		false)
@@ -143,11 +145,10 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	utils.AddProtocolVersionAndWaitForAcceptance(
 		ctx,
 		network,
-		subnetAInfo,
-		subnetBInfo,
+		cChainInfo,
 		newTeleporterAddress,
 		fundedKey,
-		offchainMessageA)
+		offchainMessageC)
 
 	// Send a message from A->B, which previously failed, but now using the new Teleporter version.
 	// Teleporter versions should match, so message should be received successfully.
@@ -155,22 +156,40 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		network,
 		subnetBInfo,
 		exampleMessengerB,
-		subnetAInfo,
-		exampleMessengerContractA,
-		exampleMessengerA,
+		cChainInfo,
+		exampleMessengerContractC,
+		exampleMessengerC,
 		fundedKey,
 		"message_4",
 		true)
+
+	// To make sure all subnets are using the same Teleporter version, call addProtocolVersion on subnetA
+	// to register the new Teleporter version
+	utils.AddProtocolVersionAndWaitForAcceptance(
+		ctx,
+		network,
+		subnetAInfo,
+		newTeleporterAddress,
+		fundedKey,
+		offchainMessageA)
+
+	latestVersionA, err := subnetAInfo.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	Expect(latestVersionA.Cmp(latestVersionB)).Should(Equal(0))
+
+	latestVersionC, err := cChainInfo.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	Expect(latestVersionC.Cmp(latestVersionB)).Should(Equal(0))
 }
 
 func initChainConfig(
+	networkID uint32,
 	subnet interfaces.SubnetTestInfo,
-	teleporterAddresses common.Address,
+	teleporterAddress common.Address,
 ) (*avalancheWarp.UnsignedMessage, string) {
-	warpApiEnabled := true
-	unsignedMessage := createOffChainRegistryMessage(subnet, teleporterregistry.ProtocolRegistryEntry{
+	unsignedMessage := createOffChainRegistryMessage(networkID, subnet, teleporterregistry.ProtocolRegistryEntry{
 		Version:         big.NewInt(2),
-		ProtocolAddress: teleporterAddresses,
+		ProtocolAddress: teleporterAddress,
 	})
 	offChainMessage := hexutil.Encode(unsignedMessage.Bytes())
 	log.Info("Adding off-chain message to Warp chain config",
@@ -178,17 +197,18 @@ func initChainConfig(
 		"blockchainID", subnet.BlockchainID.String())
 
 	return unsignedMessage, fmt.Sprintf(`{
-    "warp-api-enabled": %t, 
+    "warp-api-enabled": true, 
     "warp-off-chain-messages": ["%s"],
 	"log-level": "debug",
     "eth-apis":["eth","eth-filter","net","admin","web3",
                 "internal-eth","internal-blockchain","internal-transaction",
                 "internal-debug","internal-account","internal-personal",
                 "debug","debug-tracer","debug-file-tracer","debug-handler"]
-	}`, warpApiEnabled, offChainMessage)
+	}`, offChainMessage)
 }
 
 func createOffChainRegistryMessage(
+	networkID uint32,
 	subnet interfaces.SubnetTestInfo,
 	entry teleporterregistry.ProtocolRegistryEntry,
 ) *avalancheWarp.UnsignedMessage {
@@ -200,7 +220,7 @@ func createOffChainRegistryMessage(
 	Expect(err).Should(BeNil())
 
 	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
-		runner_constants.DefaultNetworkID,
+		networkID,
 		subnet.BlockchainID,
 		addressedPayload.Bytes())
 	Expect(err).Should(BeNil())

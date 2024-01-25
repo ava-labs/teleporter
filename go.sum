@@ -67,6 +67,14 @@ github.com/ava-labs/coreth v0.12.10-rc.5 h1:FMVvXHssvMQ3Eade7i85Wsx9tuD3kUOFMG8k
 github.com/ava-labs/coreth v0.12.10-rc.5/go.mod h1:a58HbIBc9jscGc3aL8e7JuG8RfhBBOm63waq1q0YM+U=
 github.com/ava-labs/subnet-evm v0.5.11 h1:82iddT/ahXNpwc3TBhxMDS1g6bt+Fmsb3kCyJr9qpWs=
 github.com/ava-labs/subnet-evm v0.5.11/go.mod h1:Uv8eYNjj9Kf8S57yxoQd+IpZH/DRLvbm6yeygUDZuE4=
+github.com/ava-labs/subnet-evm v0.5.12-0.20240124235636-9eb7306b52fa h1:TK4rtrzLgrH5fRqsIkJWRTuz/kxagnrdm5oaGh+Eo5E=
+github.com/ava-labs/subnet-evm v0.5.12-0.20240124235636-9eb7306b52fa/go.mod h1:Uv8eYNjj9Kf8S57yxoQd+IpZH/DRLvbm6yeygUDZuE4=
+github.com/ava-labs/subnet-evm v0.5.12-0.20240124235733-04dbc0d63ba6 h1:M0GFZglYVpe33jqMt8QSUuDOXhsOEm5lSvZyoFoAlSs=
+github.com/ava-labs/subnet-evm v0.5.12-0.20240124235733-04dbc0d63ba6/go.mod h1:Uv8eYNjj9Kf8S57yxoQd+IpZH/DRLvbm6yeygUDZuE4=
+github.com/ava-labs/subnet-evm v0.5.12-0.20240125002500-8fbe1c0322d3 h1:4mzr93SGdMqCecWR3di0inrlZj1t9NStzWooBQ8YjFs=
+github.com/ava-labs/subnet-evm v0.5.12-0.20240125002500-8fbe1c0322d3/go.mod h1:Uv8eYNjj9Kf8S57yxoQd+IpZH/DRLvbm6yeygUDZuE4=
+github.com/ava-labs/subnet-evm v0.5.12-0.20240125174136-14683942c193 h1:gAGe9x4o+RXMCZKaURbN0tRkXeIAEEEc1lmL9Ra94dQ=
+github.com/ava-labs/subnet-evm v0.5.12-0.20240125174136-14683942c193/go.mod h1:Uv8eYNjj9Kf8S57yxoQd+IpZH/DRLvbm6yeygUDZuE4=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=

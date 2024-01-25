@@ -20,7 +20,7 @@ type LocalNetwork interface {
 		source SubnetTestInfo,
 		destination SubnetTestInfo,
 	) *avalancheWarp.Message
-	GetSubnetNodeNames() []string
+	GetAllNodeNames() []string
 	RestartNodes(ctx context.Context, nodeNames []string, opts ...runner_sdk.OpOption)
 	DeployTeleporterContracts(
 		transactionBytes []byte,
@@ -28,4 +28,5 @@ type LocalNetwork interface {
 		contractAddress common.Address,
 		fundedKey *ecdsa.PrivateKey,
 		updateNetworkTeleporter bool)
+	GetNetworkID() uint32
 }

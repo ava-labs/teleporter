@@ -332,8 +332,6 @@ func CreateAddProtocolVersionTransaction(
 ) *types.Transaction {
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing addProtocolVersion transaction for the destination chain")
-	// numSigners, err := signedMessage.Signature.NumSigners()
-	// Expect(err).Should(BeNil())
 
 	callData, err := teleporterregistry.PackAddProtocolVersion(0)
 	Expect(err).Should(BeNil())
@@ -360,36 +358,35 @@ func CreateAddProtocolVersionTransaction(
 func AddProtocolVersionAndWaitForAcceptance(
 	ctx context.Context,
 	network interfaces.Network,
-	source interfaces.SubnetTestInfo,
-	destination interfaces.SubnetTestInfo,
+	subnet interfaces.SubnetTestInfo,
 	newTeleporterAddress common.Address,
 	senderKey *ecdsa.PrivateKey,
 	unsignedMessage *avalancheWarp.UnsignedMessage,
 ) {
-	signedWarpMsg := network.GetSignedMessage(ctx, source, destination, unsignedMessage.ID())
+	signedWarpMsg := network.GetSignedMessage(ctx, subnet, subnet, unsignedMessage.ID())
 	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
 
 	// Construct tx to add protocol version and send to destination chain
 	signedTx := CreateAddProtocolVersionTransaction(
 		ctx,
 		signedWarpMsg,
-		source.TeleporterRegistryAddress,
+		subnet.TeleporterRegistryAddress,
 		senderKey,
-		source,
+		subnet,
 	)
 
-	curLatestVersion, err := source.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	curLatestVersion, err := subnet.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	expectedLatestVersion := big.NewInt(curLatestVersion.Int64() + 1)
 
 	// Wait for tx to be accepted, and verify events emitted
-	receipt := SendTransactionAndWaitForSuccess(ctx, source, signedTx)
-	addProtocolVersionEvent, err := GetEventFromLogs(receipt.Logs, source.TeleporterRegistry.ParseAddProtocolVersion)
+	receipt := SendTransactionAndWaitForSuccess(ctx, subnet, signedTx)
+	addProtocolVersionEvent, err := GetEventFromLogs(receipt.Logs, subnet.TeleporterRegistry.ParseAddProtocolVersion)
 	Expect(err).Should(BeNil())
 	Expect(addProtocolVersionEvent.Version.Cmp(expectedLatestVersion)).Should(Equal(0))
 	Expect(addProtocolVersionEvent.ProtocolAddress).Should(Equal(newTeleporterAddress))
 
-	versionUpdatedEvent, err := GetEventFromLogs(receipt.Logs, source.TeleporterRegistry.ParseLatestVersionUpdated)
+	versionUpdatedEvent, err := GetEventFromLogs(receipt.Logs, subnet.TeleporterRegistry.ParseLatestVersionUpdated)
 	Expect(err).Should(BeNil())
 	Expect(versionUpdatedEvent.OldVersion.Cmp(curLatestVersion)).Should(Equal(0))
 	Expect(versionUpdatedEvent.NewVersion.Cmp(expectedLatestVersion)).Should(Equal(0))

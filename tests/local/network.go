@@ -490,13 +490,14 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	n.setAllSubnetValues()
 }
 
-// GetSubnetNodeNames returns a slice that copies all node names in the network
-func (n *LocalNetwork) GetSubnetNodeNames() []string {
-	var nodeNames []string
-	for _, subnetNodeNames := range n.subnetNodeNames {
-		nodeNames = append(nodeNames, subnetNodeNames...)
-	}
-	return nodeNames
+// GetAllNodeNames returns a slice that copies all node names in the network
+func (n *LocalNetwork) GetAllNodeNames() []string {
+	// The network starts off with 5 nodes that validate the primary network.
+	// These nodes were not added by this network setup, and are not in n.subnetNodeNames.
+	// So we query the ANR client to get the full list of node names.
+	status, err := n.anrClient.Status(context.Background())
+	Expect(err).Should(BeNil())
+	return status.GetClusterInfo().GetNodeNames()
 }
 
 func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeNames []string, opts ...runner_sdk.OpOption) {
@@ -577,6 +578,7 @@ func (n *LocalNetwork) GetSignedMessage(
 		signingSubnetID = destination.SubnetID
 	}
 
+	// Get the aggregate signature for the Warp message
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
 		ctx,
 		unsignedWarpMessageID,
@@ -589,4 +591,10 @@ func (n *LocalNetwork) GetSignedMessage(
 	Expect(err).Should(BeNil())
 
 	return signedWarpMsg
+}
+
+func (n *LocalNetwork) GetNetworkID() uint32 {
+	status, err := n.anrClient.Status(context.Background())
+	Expect(err).Should(BeNil())
+	return status.GetClusterInfo().GetNetworkId()
 }
