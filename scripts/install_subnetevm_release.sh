@@ -79,23 +79,16 @@ else
 
     echo "checking out ${SUBNET_EVM_VERSION}"
 
-    set +e
-    # try to checkout the branch
-    git checkout origin/${SUBNET_EVM_VERSION} > /dev/null 2>&1
-    CHECKOUT_STATUS=$?
-    set -e
-
-    # if it's not a branch, try to checkout the commit 
-    if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-      set +e
-      git checkout ${SUBNET_EVM_VERSION} > /dev/null 2>&1
-      CHECKOUT_STATUS=$?
-      set -e
-
-      if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-        echo
-        echo "'${VERSION}' is not a valid release tag, commit hash, or branch name"
-        exit 1
+    # Try to checkout the branch. If it fails, try the commit.
+    if ! git checkout "origin/${SUBNET_EVM_VERSION}" > /dev/null 2>&1; then
+      if ! git checkout "${SUBNET_EVM_VERSION}" > /dev/null 2>&1; then
+        # If the version is in the format of tag-commit, try to extract the commit and checkout.
+        SUBNET_EVM_VERSION=$(extract_commit "${SUBNET_EVM_VERSION}")
+        if ! git checkout "${SUBNET_EVM_VERSION}" > /dev/null 2>&1; then
+          echo
+          echo "'${SUBNET_EVM_VERSION}' is not a valid release tag, commit hash, or branch name"
+          exit 1
+        fi
       fi
     fi
 
@@ -107,10 +100,8 @@ else
     # if the build-directory doesn't exist, build subnet-evm
     if [[ ! -d ${BUILD_DIR} ]]; then    
       echo "building subnet-evm ${COMMIT} to ${BUILD_DIR}"
-      ./scripts/build.sh
       mkdir -p ${BUILD_DIR}
-
-      mv ${GIT_CLONE_PATH}/build/* ${BUILD_DIR}/
+      ./scripts/build.sh ${BUILD_DIR}/subnet-evm
     fi
 
     cd $WORKDIR

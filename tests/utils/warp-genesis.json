@@ -11,8 +11,6 @@
     "petersburgBlock": 0,
     "istanbulBlock": 0,
     "muirGlacierBlock": 0,
-    "subnetEVMTimestamp": 0,
-    "dUpgradeTimestamp": 0,
     "feeConfig": {
       "gasLimit": 20000000,
       "minBaseFee": 1000000000,
@@ -28,10 +26,7 @@
     },
     "contractNativeMinterConfig": {
       "blockTimestamp": 0,
-      "adminAddresses": [
-        "0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B",
-        "0x3405506b3711859c5070949ed9b700c7ba7bf750"
-      ]
+      "adminAddresses": ["0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B", "0x3405506b3711859c5070949ed9b700c7ba7bf750"]
     }
   },
   "alloc": {

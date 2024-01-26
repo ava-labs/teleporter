@@ -25,7 +25,11 @@ func main() {
 		if len(os.Args) != 3 {
 			log.Panic("Invalid argument count. Must provide JSON file containing contract bytecode.")
 		}
-		_, _, _, err := deploymentUtils.ConstructKeylessTransaction(os.Args[2], true)
+		_, _, _, err := deploymentUtils.ConstructKeylessTransaction(
+			os.Args[2],
+			true,
+			deploymentUtils.GetDefaultContractCreationGasPrice(),
+		)
 		if err != nil {
 			log.Panic("Failed to construct keyless transaction.", err)
 		}

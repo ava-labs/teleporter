@@ -8,18 +8,22 @@ import (
 	"os"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/utils/constants"
+	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetevminterfaces "github.com/ava-labs/subnet-evm/interfaces"
+	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
+	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/log"
 
 	. "github.com/onsi/gomega"
 )
@@ -52,8 +56,8 @@ var _ interfaces.Network = &testNetwork{}
 
 type testNetwork struct {
 	teleporterContractAddress common.Address
-	primaryNetwork            interfaces.SubnetTestInfo
-	subnets                   []interfaces.SubnetTestInfo
+	primaryNetwork            *interfaces.SubnetTestInfo
+	subnetsInfo               map[ids.ID]*interfaces.SubnetTestInfo
 	fundedAddress             common.Address
 	fundedKey                 *ecdsa.PrivateKey
 }
@@ -91,11 +95,16 @@ func initializeSubnetInfo(
 		return interfaces.SubnetTestInfo{}, err
 	}
 
-	teleporterRegistryAddress := os.Getenv(subnetPrefix + teleporterRegistryAddressSuffix)
+	teleporterRegistryAddress := common.HexToAddress(os.Getenv(subnetPrefix + teleporterRegistryAddressSuffix))
 
 	teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
 		teleporterContractAddress, rpcClient,
 	)
+	if err != nil {
+		return interfaces.SubnetTestInfo{}, err
+	}
+
+	teleporterRegistry, err := teleporterregistry.NewTeleporterRegistry(teleporterRegistryAddress, rpcClient)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
@@ -107,7 +116,8 @@ func initializeSubnetInfo(
 		RPCClient:                 rpcClient,
 		WSClient:                  wsClient,
 		EVMChainID:                evmChainID,
-		TeleporterRegistryAddress: common.HexToAddress(teleporterRegistryAddress),
+		TeleporterRegistryAddress: teleporterRegistryAddress,
+		TeleporterRegistry:        teleporterRegistry,
 		TeleporterMessenger:       teleporterMessenger,
 	}, nil
 }
@@ -152,25 +162,55 @@ func NewTestNetwork() (*testNetwork, error) {
 	}
 	log.Info("Set user funded address", "address", fundedAddressStr)
 
+	subnetsInfo := make(map[ids.ID]*interfaces.SubnetTestInfo)
+	subnetsInfo[subnetAInfo.SubnetID] = &subnetAInfo
+	subnetsInfo[subnetBInfo.SubnetID] = &subnetBInfo
+	subnetsInfo[subnetCInfo.SubnetID] = &subnetCInfo
 	return &testNetwork{
 		teleporterContractAddress: teleporterContractAddress,
-		primaryNetwork:            cChainInfo,
-		subnets:                   []interfaces.SubnetTestInfo{subnetAInfo, subnetBInfo, subnetCInfo},
+		primaryNetwork:            &cChainInfo,
+		subnetsInfo:               subnetsInfo,
 		fundedAddress:             common.HexToAddress(fundedAddressStr),
 		fundedKey:                 fundedKey,
 	}, nil
 }
 
 func (n *testNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
-	return n.primaryNetwork
+	return *n.primaryNetwork
 }
 
 func (n *testNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
-	return n.subnets
+	subnetsInfo := make([]interfaces.SubnetTestInfo, 0, len(n.subnetsInfo))
+	for _, subnetInfo := range n.subnetsInfo {
+		subnetsInfo = append(subnetsInfo, *subnetInfo)
+	}
+	return subnetsInfo
+}
+
+// Returns subnet info for all subnets, including the primary network
+func (n *testNetwork) GetAllSubnetsInfo() []interfaces.SubnetTestInfo {
+	subnets := n.GetSubnetsInfo()
+	return append(subnets, n.GetPrimaryNetworkInfo())
 }
 
 func (n *testNetwork) GetTeleporterContractAddress() common.Address {
 	return n.teleporterContractAddress
+}
+
+func (n *testNetwork) SetTeleporterContractAddress(newTeleporterAddress common.Address) {
+	n.teleporterContractAddress = newTeleporterAddress
+	subnets := n.GetAllSubnetsInfo()
+	for _, subnetInfo := range subnets {
+		teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+			n.teleporterContractAddress, subnetInfo.RPCClient,
+		)
+		Expect(err).Should(BeNil())
+		if subnetInfo.SubnetID == constants.PrimaryNetworkID {
+			n.primaryNetwork.TeleporterMessenger = teleporterMessenger
+		} else {
+			n.subnetsInfo[subnetInfo.SubnetID].TeleporterMessenger = teleporterMessenger
+		}
+	}
 }
 
 func (n *testNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
@@ -291,4 +331,33 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	}
 
 	return destination.RPCClient.TransactionReceipt(ctx, logs[0].TxHash)
+}
+
+func (n *testNetwork) GetSignedMessage(
+	ctx context.Context,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+	unsignedWarpMessageID ids.ID,
+) *avalancheWarp.Message {
+	Expect(len(source.NodeURIs)).Should(BeNumerically(">", 0))
+	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
+	Expect(err).Should(BeNil())
+
+	signingSubnetID := source.SubnetID
+	if source.SubnetID == constants.PrimaryNetworkID {
+		signingSubnetID = destination.SubnetID
+	}
+
+	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
+		ctx,
+		unsignedWarpMessageID,
+		warp.WarpDefaultQuorumNumerator,
+		signingSubnetID.String(),
+	)
+	Expect(err).Should(BeNil())
+
+	signedWarpMsg, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
+	Expect(err).Should(BeNil())
+
+	return signedWarpMsg
 }

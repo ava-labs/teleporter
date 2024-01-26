@@ -19,6 +19,15 @@ function getDepVersion() {
     grep -m1 "^\s*$1" $TELEPORTER_PATH/go.mod | cut -d ' ' -f2
 }
 
+extract_commit() {
+  local version=$1
+  if [[ $version == *-* ]]; then
+      # Extract the substring after the last '-'
+      version=${version##*-}
+  fi
+  echo "$version"
+}
+
 # AWM_RELAYER_VERSION is needed for the docker run setup, but is not a go module dependency.
 AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v0.2.8'}
 

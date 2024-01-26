@@ -14,16 +14,16 @@ import (
 	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
+	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
-	"github.com/ava-labs/subnet-evm/params"
 	"github.com/ava-labs/subnet-evm/plugin/evm"
+	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	"github.com/ava-labs/subnet-evm/x/warp"
 
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
@@ -231,6 +231,7 @@ func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
 	nodeInfos := status.GetClusterInfo().GetNodeInfos()
 
 	for _, nodeName := range n.subnetNodeNames[subnetID] {
+		log.Info("Adding validator URI", "nodeName", nodeName, "uri", nodeInfos[nodeName].Uri)
 		subnetDetails.ValidatorURIs = append(subnetDetails.ValidatorURIs, nodeInfos[nodeName].Uri)
 	}
 	var chainNodeURIs []string
@@ -274,19 +275,17 @@ func (n *LocalNetwork) DeployTeleporterContracts(
 	deployerAddress common.Address,
 	contractAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
+	updateNetworkTeleporter bool,
 ) {
-	log.Info("Deploying Teleporter contract to subnets")
-
-	// Set the package level teleporterContractAddress
-	n.teleporterContractAddress = contractAddress
+	log.Info("Deploying Teleporter contract to subnets", "contractAddress", contractAddress.String())
 
 	ctx := context.Background()
 
-	subnets := n.getAllSubnetsInfo()
+	subnets := n.GetAllSubnetsInfo()
 	for _, subnetInfo := range subnets {
 		// Fund the deployer address
 		{
-			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10)) // 10eth
+			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(11)) // 11 AVAX
 			fundDeployerTx := utils.CreateNativeTransferTransaction(
 				ctx, subnetInfo, fundedKey, deployerAddress, fundAmount,
 			)
@@ -312,20 +311,15 @@ func (n *LocalNetwork) DeployTeleporterContracts(
 			Expect(err).Should(BeNil())
 
 			<-newHeads
-			teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, n.teleporterContractAddress, nil)
+			teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
 			Expect(err).Should(BeNil())
 			Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
 		}
-		teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-			n.teleporterContractAddress, subnetInfo.RPCClient,
-		)
-		Expect(err).Should(BeNil())
-		if subnetInfo.SubnetID == constants.PrimaryNetworkID {
-			n.primaryNetworkInfo.TeleporterMessenger = teleporterMessenger
-		} else {
-			n.subnetsInfo[subnetInfo.SubnetID].TeleporterMessenger = teleporterMessenger
-		}
 		log.Info("Finished deploying Teleporter contract", "blockchainID", subnetInfo.BlockchainID.Hex())
+	}
+
+	if updateNetworkTeleporter {
+		n.SetTeleporterContractAddress(contractAddress)
 	}
 	log.Info("Deployed Teleporter contracts to all subnets")
 }
@@ -344,11 +338,11 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 		},
 	}
 
-	subnets := n.getAllSubnetsInfo()
+	subnets := n.GetAllSubnetsInfo()
 	for _, subnetInfo := range subnets {
 		opts, err := bind.NewKeyedTransactorWithChainID(deployerKey, subnetInfo.EVMChainID)
 		Expect(err).Should(BeNil())
-		teleporterRegistryAddress, tx, _, err := teleporterregistry.DeployTeleporterRegistry(
+		teleporterRegistryAddress, tx, teleporterRegistry, err := teleporterregistry.DeployTeleporterRegistry(
 			opts, subnetInfo.RPCClient, entries,
 		)
 		Expect(err).Should(BeNil())
@@ -357,12 +351,14 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 
 		if subnetInfo.SubnetID == constants.PrimaryNetworkID {
 			n.primaryNetworkInfo.TeleporterRegistryAddress = teleporterRegistryAddress
+			n.primaryNetworkInfo.TeleporterRegistry = teleporterRegistry
 		} else {
 			n.subnetsInfo[subnetInfo.SubnetID].TeleporterRegistryAddress = teleporterRegistryAddress
+			n.subnetsInfo[subnetInfo.SubnetID].TeleporterRegistry = teleporterRegistry
 		}
 
 		log.Info("Deployed TeleporterRegistry contract to subnet", subnetInfo.SubnetID.Hex(),
-			"Deploy address", teleporterRegistryAddress.Hex())
+			"address", teleporterRegistryAddress.Hex())
 	}
 
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
@@ -380,13 +376,29 @@ func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
 }
 
 // Returns subnet info for all subnets, including the primary network
-func (n *LocalNetwork) getAllSubnetsInfo() []interfaces.SubnetTestInfo {
+func (n *LocalNetwork) GetAllSubnetsInfo() []interfaces.SubnetTestInfo {
 	subnets := n.GetSubnetsInfo()
 	return append(subnets, n.GetPrimaryNetworkInfo())
 }
 
 func (n *LocalNetwork) GetTeleporterContractAddress() common.Address {
 	return n.teleporterContractAddress
+}
+
+func (n *LocalNetwork) SetTeleporterContractAddress(newTeleporterAddress common.Address) {
+	n.teleporterContractAddress = newTeleporterAddress
+	subnets := n.GetAllSubnetsInfo()
+	for _, subnetInfo := range subnets {
+		teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+			n.teleporterContractAddress, subnetInfo.RPCClient,
+		)
+		Expect(err).Should(BeNil())
+		if subnetInfo.SubnetID == constants.PrimaryNetworkID {
+			n.primaryNetworkInfo.TeleporterMessenger = teleporterMessenger
+		} else {
+			n.subnetsInfo[subnetInfo.SubnetID].TeleporterMessenger = teleporterMessenger
+		}
+	}
 }
 
 func (n *LocalNetwork) GetFundedAccountInfo() (common.Address, *ecdsa.PrivateKey) {
@@ -414,12 +426,12 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	signedWarpMessageBytes := n.ConstructSignedWarpMessageBytes(ctx, sourceReceipt, source, destination)
+	signedWarpMessage := n.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)
 
 	// Construct the transaction to send the Warp message to the destination chain
 	signedTx := utils.CreateReceiveCrossChainMessageTransaction(
 		ctx,
-		signedWarpMessageBytes,
+		signedWarpMessage,
 		sendEvent.Message.RequiredGasLimit,
 		n.teleporterContractAddress,
 		n.globalFundedKey,
@@ -478,12 +490,46 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	n.setAllSubnetValues()
 }
 
-func (n *LocalNetwork) ConstructSignedWarpMessageBytes(
+// GetAllNodeNames returns a slice that copies all node names in the network
+func (n *LocalNetwork) GetAllNodeNames() []string {
+	// The network starts off with 5 nodes that validate the primary network.
+	// These nodes were not added by this network setup, and are not in n.subnetNodeNames.
+	// So we query the ANR client to get the full list of node names.
+	status, err := n.anrClient.Status(context.Background())
+	Expect(err).Should(BeNil())
+	return status.GetClusterInfo().GetNodeNames()
+}
+
+func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeNames []string, opts ...runner_sdk.OpOption) {
+	log.Info("Network restarting nodes", "nodeNames", nodeNames)
+	opts = append(opts,
+		runner_sdk.WithExecPath(n.manager.ANRConfig.AvalancheGoExecPath),
+		runner_sdk.WithPluginDir(n.manager.ANRConfig.PluginDir))
+	for _, nodeName := range nodeNames {
+		_, err := n.anrClient.RestartNode(ctx, nodeName, opts...)
+		Expect(err).Should(BeNil())
+	}
+
+	log.Info("Waiting for all VMs to report healthy")
+	for {
+		v, err := n.anrClient.Health(ctx)
+		log.Info("Pinged CLI Health", "result", v, "err", err)
+		if err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		break
+	}
+
+	n.setAllSubnetValues()
+}
+
+func (n *LocalNetwork) ConstructSignedWarpMessage(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
-) []byte {
+) *avalancheWarp.Message {
 	log.Info("Fetching relevant warp logs from the newly produced block")
 	logs, err := source.RPCClient.FilterLogs(ctx, subnetEvmInterfaces.FilterQuery{
 		BlockHash: &sourceReceipt.BlockHash,
@@ -501,20 +547,29 @@ func (n *LocalNetwork) ConstructSignedWarpMessageBytes(
 
 	// Set local variables for the duration of the test
 	unsignedWarpMessageID := unsignedMsg.ID()
-	unsignedWarpMsg := unsignedMsg
 	log.Info(
 		"Parsed unsignedWarpMsg",
 		"unsignedWarpMessageID", unsignedWarpMessageID,
-		"unsignedWarpMessage", unsignedWarpMsg,
+		"unsignedWarpMessage", unsignedMsg,
 	)
 
-	// Loop over each client on chain A to ensure they all have time to accept the block.
+	// Loop over each client on source chain to ensure they all have time to accept the block.
 	// Note: if we did not confirm this here, the next stage could be racy since it assumes every node
 	// has accepted the block.
 	waitForAllValidatorsToAcceptBlock(ctx, source.NodeURIs, source.BlockchainID, sourceReceipt.BlockNumber.Uint64())
 
 	// Get the aggregate signature for the Warp message
 	log.Info("Fetching aggregate signature from the source chain validators")
+	return n.GetSignedMessage(ctx, source, destination, unsignedWarpMessageID)
+}
+
+func (n *LocalNetwork) GetSignedMessage(
+	ctx context.Context,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+	unsignedWarpMessageID ids.ID,
+) *avalancheWarp.Message {
+	Expect(len(source.NodeURIs)).Should(BeNumerically(">", 0))
 	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
 
@@ -523,13 +578,23 @@ func (n *LocalNetwork) ConstructSignedWarpMessageBytes(
 		signingSubnetID = destination.SubnetID
 	}
 
+	// Get the aggregate signature for the Warp message
 	signedWarpMessageBytes, err := warpClient.GetMessageAggregateSignature(
 		ctx,
 		unsignedWarpMessageID,
-		params.WarpDefaultQuorumNumerator,
+		warp.WarpDefaultQuorumNumerator,
 		signingSubnetID.String(),
 	)
 	Expect(err).Should(BeNil())
 
-	return signedWarpMessageBytes
+	signedWarpMsg, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
+	Expect(err).Should(BeNil())
+
+	return signedWarpMsg
+}
+
+func (n *LocalNetwork) GetNetworkID() uint32 {
+	status, err := n.anrClient.Status(context.Background())
+	Expect(err).Should(BeNil())
+	return status.GetClusterInfo().GetNetworkId()
 }
