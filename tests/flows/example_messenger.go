@@ -17,8 +17,8 @@ func ExampleMessenger(network interfaces.Network) {
 	//
 	ctx := context.Background()
 
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
-	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
+	_, exampleMessengerA := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
+	exampleMessengerAddressB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(
 		ctx, fundedKey, subnetBInfo,
 	)
 
@@ -26,10 +26,10 @@ func ExampleMessenger(network interfaces.Network) {
 		ctx,
 		network,
 		subnetAInfo,
-		subnetAExampleMessenger,
+		exampleMessengerA,
 		subnetBInfo,
-		exampleMessengerContractB,
-		subnetBExampleMessenger,
+		exampleMessengerAddressB,
+		exampleMessengerB,
 		fundedKey,
 		"Hello World!",
 		true,
