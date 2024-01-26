@@ -112,6 +112,9 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Resubmit altered message", func() {
 		flows.ResubmitAlteredMessage(LocalNetworkInstance)
 	})
+	ginkgo.It("Pause and Unpause Teleporter", func() {
+		flows.PauseTeleporter(LocalNetworkInstance)
+	})
 
 	// The following tests require special behavior by the relayer, so we only run them on a local network
 	ginkgo.It("Relayer modifies message", func() {
