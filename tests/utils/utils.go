@@ -952,9 +952,10 @@ func InitChainConfig(
 	networkID uint32,
 	subnet interfaces.SubnetTestInfo,
 	teleporterAddress common.Address,
+	version uint64,
 ) (*avalancheWarp.UnsignedMessage, string) {
 	unsignedMessage := CreateOffChainRegistryMessage(networkID, subnet, teleporterregistry.ProtocolRegistryEntry{
-		Version:         big.NewInt(2),
+		Version:         big.NewInt(int64(version)),
 		ProtocolAddress: teleporterAddress,
 	})
 	offChainMessage := hexutil.Encode(unsignedMessage.Bytes())
