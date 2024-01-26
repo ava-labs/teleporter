@@ -221,16 +221,23 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, Reentra
      * @dev Returns the Teleporter messenger used to send Teleporter messages,
      * and checks that the Teleporter messenger is not paused.
      *
-     * By default returns the latest Teleporter messenger, but can be overriden to
+     * By default returns the latest Teleporter messenger that is not , but can be overriden to
      * return a Teleporter messenger of a specific version.
      */
     function _getTeleporterMessenger() internal view virtual returns (ITeleporterMessenger) {
-        ITeleporterMessenger teleporter = teleporterRegistry.getLatestTeleporter();
-        require(
-            !isTeleporterAddressPaused(address(teleporter)),
-            "TeleporterUpgradeable: Teleporter sending paused"
-        );
+        uint256 latestVersion_ = teleporterRegistry.latestVersion();
 
-        return teleporter;
+        // Start from the latest version and search down to the minimum version
+        for (uint256 version = latestVersion_; version >= _minTeleporterVersion; version--) {
+            address teleporterAddress = teleporterRegistry.getAddressFromVersion(version);
+
+            // Check if the version is not paused and has a non-zero address
+            if (!isTeleporterAddressPaused(teleporterAddress) && teleporterAddress != address(0)) {
+                return ITeleporterMessenger(teleporterAddress);
+            }
+        }
+
+        // If no valid Teleporter is found, revert with an error
+        revert("TeleporterRegistry: no valid Teleporter found");
     }
 }
