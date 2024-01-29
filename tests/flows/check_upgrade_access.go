@@ -31,29 +31,31 @@ func CheckUpgradeAccess(network interfaces.Network) {
 
 	// Transfer native assets to the non owner account
 	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1)) // 10eth
-	fundNonOwnerTx := utils.CreateNativeTransferTransaction(
+	utils.SendNativeTransfer(
 		ctx,
 		subnetInfo,
 		fundedKey,
 		nonOwnerAddress,
-		fundAmount)
-	utils.SendTransactionAndWaitForSuccess(ctx, subnetInfo, fundNonOwnerTx)
+		fundAmount,
+	)
 
+	// Check that access is not granted to the non owner and has no effect
 	nonOwnerOpts, err := bind.NewKeyedTransactorWithChainID(
 		nonOwnerKey, subnetInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	ownerOpts, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey, subnetInfo.EVMChainID)
-	Expect(err).Should(BeNil())
-
 	_, err = exampleMessenger.PauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
 	Expect(err).ShouldNot(BeNil())
+	Expect(err.Error()).Should(ContainSubstring("Ownable: caller is not the owner"))
 
 	// Check that the teleporter address is not paused, because previous call should have failed
 	isPaused, err := exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeFalse())
 
+	// Check that the owner is able to pause the Teleporter address
+	ownerOpts, err := bind.NewKeyedTransactorWithChainID(
+		fundedKey, subnetInfo.EVMChainID)
+	Expect(err).Should(BeNil())
 	// Try to call pauseTeleporterAddress from the owner account
 	tx, err := exampleMessenger.PauseTeleporterAddress(ownerOpts, teleporterAddress)
 	Expect(err).Should(BeNil())
@@ -70,6 +72,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	// Try to call unpauseTeleporterAddress from the previous owner account
 	_, err = exampleMessenger.UnpauseTeleporterAddress(ownerOpts, teleporterAddress)
 	Expect(err).ShouldNot(BeNil())
+	Expect(err.Error()).Should(ContainSubstring("Ownable: caller is not the owner"))
 
 	// Make sure the teleporter address is still paused
 	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
