@@ -1,3 +1,6 @@
+// (c) 2024, Ava Labs, Inc. All rights reserved.
+// See the file LICENSE for licensing terms.
+
 package flows
 
 import (
@@ -35,6 +38,5 @@ func TeleporterUtils(network interfaces.Network) {
 		nonce,
 	)
 	Expect(err).Should(BeNil())
-
 	Expect(ids.ID(expectedMessageID)).Should(Equal(calculatedMessageID))
 }
