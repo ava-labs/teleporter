@@ -160,7 +160,10 @@ func SendSpecificReceipts(network interfaces.Network) {
 		Expect(utils.CheckReceiptReceived(receipt, messageID1, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
 		Expect(utils.CheckReceiptReceived(receipt, messageID2, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
 
-		receiveEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+		receiveEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage,
+		)
 		Expect(err).Should(BeNil())
 		log.Info("Receipt included", "count", len(receiveEvent.Message.Receipts), "receipts", receiveEvent.Message.Receipts)
 		Expect(receiptIncluded(
