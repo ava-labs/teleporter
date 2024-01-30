@@ -12,16 +12,24 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+var (
+	uint256Ty abi.Type
+	bytes32Ty abi.Type
+	addressTy abi.Type
+)
+
+func init() {
+	uint256Ty, _ = abi.NewType("uint256", "uint256", nil)
+	bytes32Ty, _ = abi.NewType("bytes32", "bytes32", nil)
+	addressTy, _ = abi.NewType("address", "address", nil)
+}
+
 func CalculateMessageID(
 	teleporterMessengerAddress common.Address,
 	sourceBlockchainID ids.ID,
 	destinationBlockchainID ids.ID,
 	nonce *big.Int,
 ) (ids.ID, error) {
-	uint256Ty, _ := abi.NewType("uint256", "uint256", nil)
-	bytes32Ty, _ := abi.NewType("bytes32", "bytes32", nil)
-	addressTy, _ := abi.NewType("address", "address", nil)
-
 	arguments := abi.Arguments{
 		{Type: addressTy},
 		{Type: bytes32Ty},
