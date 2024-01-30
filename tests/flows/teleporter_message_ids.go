@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// Tests Teleporter utility functions
+// Tests Teleporter message ID calculation
 func CalculateMessageID(network interfaces.Network) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
 	teleporterContractAddress := network.GetTeleporterContractAddress()
