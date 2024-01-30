@@ -112,7 +112,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Resubmit altered message", func() {
 		flows.ResubmitAlteredMessage(LocalNetworkInstance)
 	})
-	ginkgo.FIt("Check upgrade access", func() {
+	ginkgo.It("Check upgrade access", func() {
 		flows.CheckUpgradeAccess(LocalNetworkInstance)
 	})
 	ginkgo.It("Pause and Unpause Teleporter", func() {
