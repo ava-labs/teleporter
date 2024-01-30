@@ -36,5 +36,5 @@ func TeleporterUtils(network interfaces.Network) {
 	)
 	Expect(err).Should(BeNil())
 
-	Expect(expectedMessageID).Should(Equal(calculatedMessageID))
+	Expect(ids.ID(expectedMessageID)).Should(Equal(calculatedMessageID))
 }
