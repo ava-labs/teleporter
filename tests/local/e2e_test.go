@@ -115,8 +115,8 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	ginkgo.It("Pause and Unpause Teleporter", func() {
 		flows.PauseTeleporter(LocalNetworkInstance)
 	})
-	ginkgo.It("Test Teleporter Utilities", func() {
-		flows.TeleporterUtils(LocalNetworkInstance)
+	ginkgo.It("Test Calculating Teleporter Message IDs", func() {
+		flows.CalculateMessageID(LocalNetworkInstance)
 	})
 
 	// The following tests require special behavior by the relayer, so we only run them on a local network

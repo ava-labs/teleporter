@@ -15,7 +15,7 @@ import (
 )
 
 // Tests Teleporter utility functions
-func TeleporterUtils(network interfaces.Network) {
+func CalculateMessageID(network interfaces.Network) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 
