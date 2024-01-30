@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// Tests basic one-way send from Subnet A to Subnet B and vice versa
+// Tests Teleporter utility functions
 func TeleporterUtils(network interfaces.Network) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
 	teleporterContractAddress := network.GetTeleporterContractAddress()
