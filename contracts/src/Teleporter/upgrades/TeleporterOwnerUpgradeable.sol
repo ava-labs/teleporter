@@ -15,9 +15,9 @@ import {Ownable} from "@openzeppelin/contracts@4.8.1/access/Ownable.sol";
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, Ownable {
-    constructor(
-        address teleporterRegistryAddress
-    ) TeleporterUpgradeable(teleporterRegistryAddress) {}
+    constructor(address teleporterRegistryAddress)
+        TeleporterUpgradeable(teleporterRegistryAddress)
+    {}
 
     /**
      * @dev See {TeleporterUpgradeable-_checkTeleporterUpgradeAccess}

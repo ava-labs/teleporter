@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {ITokenSource} from "./ITokenSource.sol";
-import {IWarpMessenger} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
+import {IWarpMessenger} from "@avalabs/subnet-evm-contracts@1.1.0/interfaces/IWarpMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 
 /**

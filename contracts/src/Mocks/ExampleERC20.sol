@@ -11,7 +11,8 @@ pragma solidity 0.8.18;
  */
 
 import {
-    ERC20Burnable, ERC20
+    ERC20Burnable,
+    ERC20
 } from "@openzeppelin/contracts@4.8.1/token/ERC20/extensions/ERC20Burnable.sol";
 
 contract ExampleERC20 is ERC20Burnable {

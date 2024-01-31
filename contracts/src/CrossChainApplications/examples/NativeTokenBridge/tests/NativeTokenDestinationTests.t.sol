@@ -13,7 +13,7 @@ import {
     TeleporterFeeInfo,
     ITeleporterMessenger
 } from "../NativeTokenDestination.sol";
-import {INativeMinter} from "@subnet-evm-contracts/interfaces/INativeMinter.sol";
+import {INativeMinter} from "@avalabs/subnet-evm-contracts@1.1.0/interfaces/INativeMinter.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     NativeTokenDestination public nativeTokenDestination;
