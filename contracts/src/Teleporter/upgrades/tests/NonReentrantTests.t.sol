@@ -12,7 +12,7 @@ import {
     TeleporterMessage,
     TeleporterMessageReceipt
 } from "../../ITeleporterMessenger.sol";
-import {WarpMessage} from "../../IWarpMessenger.sol";
+import {WarpMessage} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
 import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 
 uint32 constant warpMessageIndex = 2;
