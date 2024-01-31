@@ -6,8 +6,10 @@
 pragma solidity 0.8.18;
 
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
-import {IWarpMessenger} from "@avalabs/subnet-evm-contracts@1.1.0/interfaces/IWarpMessenger.sol";
-import {INativeMinter} from "@avalabs/subnet-evm-contracts@1.1.0/interfaces/INativeMinter.sol";
+import {IWarpMessenger} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
 import {ITokenSource} from "./ITokenSource.sol";
 import {
@@ -21,7 +23,7 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 // We need IAllowList as an indirect dependency in order to compile.
 // solhint-disable-next-line no-unused-import
-import {IAllowList} from "@avalabs/subnet-evm-contracts@1.1.0/interfaces/IAllowList.sol";
+import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IAllowList.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
