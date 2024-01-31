@@ -56,7 +56,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	sentTeleporterMessage := sendEvent.Message
 
 	// Construct the signed warp message
-	signedWarpMessageBytes := network.ConstructSignedWarpMessageBytes(ctx, receipt, subnetAInfo, subnetBInfo)
+	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, receipt, subnetAInfo, subnetBInfo)
 
 	//
 	// Modify the validator set on Subnet A
@@ -84,7 +84,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	// Construct the transaction to send the Warp message to the destination chain
 	signedTx := utils.CreateReceiveCrossChainMessageTransaction(
 		ctx,
-		signedWarpMessageBytes,
+		signedWarpMessage,
 		sendEvent.Message.RequiredGasLimit,
 		teleporterContractAddress,
 		fundedKey,

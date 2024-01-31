@@ -87,17 +87,17 @@ else
     CHECKOUT_STATUS=$?
     set -e
 
-    # if it's not a branch, try to checkout the commit
-    if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-      set +e
-      git checkout ${AVALANCHEGO_VERSION} > /dev/null 2>&1
-      CHECKOUT_STATUS=$?
-      set -e
-
-      if [[ $CHECKOUT_STATUS -ne 0 ]]; then
-        echo
-        echo "'${VERSION}' is not a valid release tag, commit hash, or branch name"
-        exit 1
+    # if it's not a branch, try to checkout the commit 
+    # Try to checkout the branch. If it fails, try the commit.
+    if ! git checkout "origin/${AVALANCHEGO_VERSION}" > /dev/null 2>&1; then
+      if ! git checkout "${AVALANCHEGO_VERSION}" > /dev/null 2>&1; then
+        # If the version is in the format of tag-commit, try to extract the commit and checkout.
+        AVALANCHEGO_VERSION=$(extract_commit "${AVALANCHEGO_VERSION}")
+        if ! git checkout "${AVALANCHEGO_VERSION}" > /dev/null 2>&1; then
+          echo
+          echo "'${AVALANCHEGO_VERSION}' is not a valid release tag, commit hash, or branch name"
+          exit 1
+        fi
       fi
     fi
 
