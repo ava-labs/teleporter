@@ -10,6 +10,7 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
+	teleporterutils "github.com/ava-labs/teleporter/utils/teleporter-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
@@ -71,8 +72,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	Expect(receiveEvent1.MessageID[:]).Should(Equal(messageID1[:]))
 
 	// Check that the first message was delivered
-	delivered, err :=
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID1)
+	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID1)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -89,8 +89,7 @@ func SendSpecificReceipts(network interfaces.Network) {
 	Expect(receiveEvent2.MessageID[:]).Should(Equal(messageID2[:]))
 
 	// Check that the second message was delivered
-	delivered, err =
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID2)
+	delivered, err = subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID2)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -161,16 +160,21 @@ func SendSpecificReceipts(network interfaces.Network) {
 		Expect(utils.CheckReceiptReceived(receipt, messageID1, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
 		Expect(utils.CheckReceiptReceived(receipt, messageID2, subnetAInfo.TeleporterMessenger)).Should(BeFalse())
 
-		receiveEvent, err :=
-			utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
+		receiveEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			subnetAInfo.TeleporterMessenger.ParseReceiveCrossChainMessage,
+		)
 		Expect(err).Should(BeNil())
 		log.Info("Receipt included", "count", len(receiveEvent.Message.Receipts), "receipts", receiveEvent.Message.Receipts)
 		Expect(receiptIncluded(
+			teleporterContractAddress,
 			messageID1,
 			subnetAInfo,
 			subnetBInfo,
 			receiveEvent.Message.Receipts)).Should(BeTrue())
-		Expect(receiptIncluded(messageID2,
+		Expect(receiptIncluded(
+			teleporterContractAddress,
+			messageID2,
 			subnetAInfo,
 			subnetBInfo,
 			receiveEvent.Message.Receipts)).Should(BeTrue())
@@ -182,15 +186,20 @@ func SendSpecificReceipts(network interfaces.Network) {
 
 // Checks the given message ID is included in the list of receipts.
 func receiptIncluded(
+	teleporterMessengerAddress common.Address,
 	expectedMessageID ids.ID,
 	sourceSubnet interfaces.SubnetTestInfo,
 	destinationSubnet interfaces.SubnetTestInfo,
 	receipts []teleportermessenger.TeleporterMessageReceipt,
 ) bool {
 	for _, receipt := range receipts {
-		messageID := utils.CalculateMessageID(sourceSubnet,
-			destinationSubnet,
-			receipt.ReceivedMessageNonce)
+		messageID, err := teleporterutils.CalculateMessageID(
+			teleporterMessengerAddress,
+			sourceSubnet.BlockchainID,
+			destinationSubnet.BlockchainID,
+			receipt.ReceivedMessageNonce,
+		)
+		Expect(err).Should(BeNil())
 		if bytes.Equal(messageID[:], expectedMessageID[:]) {
 			return true
 		}
