@@ -566,7 +566,8 @@ func GetEventFromLogs[T any](logs []*types.Log, parser func(log types.Log) (T, e
 func CheckReceiptReceived(
 	receipt *types.Receipt,
 	messageID [32]byte,
-	transactor *teleportermessenger.TeleporterMessenger) bool {
+	transactor *teleportermessenger.TeleporterMessenger,
+) bool {
 	for _, log := range receipt.Logs {
 		event, err := transactor.ParseReceiptReceived(*log)
 		if err == nil && bytes.Equal(event.MessageID[:], messageID[:]) {
@@ -859,18 +860,6 @@ func GetTwoSubnets(network interfaces.Network) (
 	subnets := network.GetSubnetsInfo()
 	Expect(len(subnets)).Should(BeNumerically(">=", 2))
 	return subnets[0], subnets[1]
-}
-
-func CalculateMessageID(
-	sourceSubnetInfo interfaces.SubnetTestInfo,
-	destinationSubnetInfo interfaces.SubnetTestInfo,
-	messageNonce *big.Int,
-) ids.ID {
-	res, err := sourceSubnetInfo.TeleporterMessenger.CalculateMessageID(
-		&bind.CallOpts{}, sourceSubnetInfo.BlockchainID, destinationSubnetInfo.BlockchainID, messageNonce,
-	)
-	Expect(err).Should(BeNil())
-	return res
 }
 
 func SendExampleCrossChainMessageAndVerify(
