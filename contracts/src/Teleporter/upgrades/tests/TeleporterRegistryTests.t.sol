@@ -49,10 +49,7 @@ contract TeleporterRegistryTest is Test {
         // Check that adding a protocol version with a version that is not the increment of the latest version succeeds
         latestVersion = teleporterRegistry.latestVersion();
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 2,
-            address(teleporterRegistry),
-            teleporterAddress,
-            address(teleporterRegistry)
+            latestVersion + 2, teleporterAddress, address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
@@ -66,10 +63,7 @@ contract TeleporterRegistryTest is Test {
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 2,
-            address(teleporterRegistry),
-            address(this),
-            address(teleporterRegistry)
+            latestVersion + 2, address(this), address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
@@ -84,10 +78,7 @@ contract TeleporterRegistryTest is Test {
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 2,
-            address(teleporterRegistry),
-            teleporterAddress,
-            address(teleporterRegistry)
+            latestVersion + 2, teleporterAddress, address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
@@ -97,9 +88,8 @@ contract TeleporterRegistryTest is Test {
 
         // latestVersion + 1 was skipped in previous check, is not registered, and is less than latestVersion()
         uint256 oldVersion = latestVersion + 1;
-        warpMessage = _createWarpOffChainMessage(
-            oldVersion, address(teleporterRegistry), address(this), address(teleporterRegistry)
-        );
+        warpMessage =
+            _createWarpOffChainMessage(oldVersion, address(this), address(teleporterRegistry));
 
         // Make sure that oldVersion is not registered, and is less than latestVersion()
         assertEq(oldVersion, teleporterRegistry.latestVersion() - 1);
@@ -118,10 +108,7 @@ contract TeleporterRegistryTest is Test {
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 2,
-            address(teleporterRegistry),
-            teleporterAddress,
-            address(teleporterRegistry)
+            latestVersion + 2, teleporterAddress, address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
@@ -131,9 +118,8 @@ contract TeleporterRegistryTest is Test {
 
         // latestVersion + 1 was skipped in previous check, is not registered, and is less than latestVersion()
         uint256 oldVersion = latestVersion + 1;
-        warpMessage = _createWarpOffChainMessage(
-            oldVersion, address(teleporterRegistry), teleporterAddress, address(teleporterRegistry)
-        );
+        warpMessage =
+            _createWarpOffChainMessage(oldVersion, teleporterAddress, address(teleporterRegistry));
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
         teleporterRegistry.addProtocolVersion(messageIndex);
@@ -148,10 +134,7 @@ contract TeleporterRegistryTest is Test {
 
         // Add a new version to the registiry
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 1,
-            address(teleporterRegistry),
-            teleporterAddress,
-            address(teleporterRegistry)
+            latestVersion + 1, teleporterAddress, address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
@@ -169,9 +152,8 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
 
         // Check that adding an invalid protocol address of address(0) fails
-        WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 1, address(teleporterRegistry), address(0), address(teleporterRegistry)
-        );
+        WarpMessage memory warpMessage =
+            _createWarpOffChainMessage(latestVersion + 1, address(0), address(teleporterRegistry));
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
         vm.expectRevert(_formatRegistryErrorMessage("zero protocol address"));
@@ -182,9 +164,8 @@ contract TeleporterRegistryTest is Test {
         uint32 messageIndex = 0;
 
         // Check that adding an invalid version of 0 fails
-        WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            0, address(teleporterRegistry), teleporterAddress, address(teleporterRegistry)
-        );
+        WarpMessage memory warpMessage =
+            _createWarpOffChainMessage(0, teleporterAddress, address(teleporterRegistry));
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
         vm.expectRevert(_formatRegistryErrorMessage("zero version"));
@@ -223,10 +204,7 @@ contract TeleporterRegistryTest is Test {
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 1,
-            address(teleporterRegistry),
-            teleporterAddress,
-            address(teleporterRegistry)
+            latestVersion + 1, teleporterAddress, address(teleporterRegistry)
         );
 
         // Check if warp message is invalid from getVerifiedWarpMessage
@@ -252,7 +230,11 @@ contract TeleporterRegistryTest is Test {
 
         // Check if we have an invalid destination address
         warpMessage = _createWarpOffChainMessage(
-            latestVersion + 1, address(this), teleporterAddress, address(teleporterRegistry)
+            latestVersion + 1, teleporterAddress, address(teleporterRegistry)
+        );
+        warpMessage.payload = abi.encode(
+            ProtocolRegistryEntry({version: latestVersion + 1, protocolAddress: teleporterAddress}),
+            address(this)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
@@ -267,7 +249,6 @@ contract TeleporterRegistryTest is Test {
         // Adding a version that matches the max version increment succeeds
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
             latestVersion + teleporterRegistry.MAX_VERSION_INCREMENT(),
-            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -284,7 +265,6 @@ contract TeleporterRegistryTest is Test {
         // Adding a version that is greater than the max version increment fails
         warpMessage = _createWarpOffChainMessage(
             latestVersion + teleporterRegistry.MAX_VERSION_INCREMENT() + 1,
-            address(teleporterRegistry),
             teleporterAddress,
             address(teleporterRegistry)
         );
@@ -301,9 +281,8 @@ contract TeleporterRegistryTest is Test {
     ) internal {
         uint256 latestVersion = registry.latestVersion();
         uint32 messageIndex = 0;
-        WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 1, address(registry), newProtocolAddress, address(registry)
-        );
+        WarpMessage memory warpMessage =
+            _createWarpOffChainMessage(latestVersion + 1, newProtocolAddress, address(registry));
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
         vm.expectEmit(true, true, true, true, address(registry));
@@ -331,7 +310,6 @@ contract TeleporterRegistryTest is Test {
 
     function _createWarpOffChainMessage(
         uint256 version,
-        address destinationAddress,
         address protocolAddress,
         address registryAddress
     ) internal view returns (WarpMessage memory) {
@@ -340,7 +318,7 @@ contract TeleporterRegistryTest is Test {
             originSenderAddress: TeleporterRegistry(registryAddress).VALIDATORS_SOURCE_ADDRESS(),
             payload: abi.encode(
                 ProtocolRegistryEntry({version: version, protocolAddress: protocolAddress}),
-                destinationAddress
+                registryAddress
                 )
         });
     }
