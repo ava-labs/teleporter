@@ -19,12 +19,14 @@ func PauseTeleporter(network interfaces.Network) {
 	//
 	ctx := context.Background()
 	teleporterAddress := network.GetTeleporterContractAddress()
-	_, exampleMessengerA := utils.DeployExampleCrossChainMessenger(ctx,
+	_, exampleMessengerA := utils.DeployExampleCrossChainMessenger(
+		ctx,
 		fundedKey,
 		fundedAddress,
 		subnetAInfo,
 	)
-	exampleMessengerAddressB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(ctx,
+	exampleMessengerAddressB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(
+		ctx,
 		fundedKey,
 		fundedAddress,
 		subnetBInfo,

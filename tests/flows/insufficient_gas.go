@@ -17,13 +17,15 @@ func InsufficientGas(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy ExampleMessenger to Subnets A
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx,
+	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(
+		ctx,
 		fundedKey,
 		fundedAddress,
 		subnetAInfo,
 	)
 	// Deploy ExampleMessenger to Subnets B
-	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx,
+	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
+		ctx,
 		fundedKey,
 		fundedAddress,
 		subnetBInfo,

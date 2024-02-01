@@ -119,8 +119,8 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	log.Info("Deploying the contract on Subnet B")
 	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
 		ctx,
-		fundedKey,
-		fundedAddress,
+		deployerKey,
+		deployerAddress,
 		subnetBInfo,
 	)
 

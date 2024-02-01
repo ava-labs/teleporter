@@ -17,12 +17,14 @@ func ExampleMessenger(network interfaces.Network) {
 	//
 	ctx := context.Background()
 
-	_, exampleMessengerA := utils.DeployExampleCrossChainMessenger(ctx,
+	_, exampleMessengerA := utils.DeployExampleCrossChainMessenger(
+		ctx,
 		fundedKey,
 		fundedAddress,
 		subnetAInfo,
 	)
-	exampleMessengerAddressB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(ctx,
+	exampleMessengerAddressB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(
+		ctx,
 		fundedKey,
 		fundedAddress,
 		subnetBInfo,
