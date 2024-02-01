@@ -938,7 +938,8 @@ func SendExampleCrossChainMessageAndVerify(
 }
 
 // Creates an Warp message that registers a Teleporter protocol version with TeleporterRegistry.
-// Returns the Warp message, as well as the chain config adding the message to the list of approved off-chain Warp messages
+// Returns the Warp message, as well as the chain config adding the message to the list of approved
+// off-chain Warp messages
 func InitOffChainMessageChainConfig(
 	networkID uint32,
 	subnet interfaces.SubnetTestInfo,
