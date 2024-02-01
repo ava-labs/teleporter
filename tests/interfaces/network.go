@@ -58,5 +58,6 @@ type Network interface {
 		sourceReceipt *types.Receipt,
 		source SubnetTestInfo,
 		destination SubnetTestInfo,
-		expectSuccess bool) *types.Receipt
+		expectSuccess bool,
+	) *types.Receipt
 }
