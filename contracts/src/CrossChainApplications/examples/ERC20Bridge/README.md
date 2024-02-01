@@ -21,7 +21,7 @@ The generic ERC20 bridge is implemented using two primary contracts.
 
 ## Multiple Hop Flow
 <div align="center">
-  <img src="../../../../resources/ERC20BridgeMultiHopDiagram.png?raw=true">
+  <img src="../../../../../resources/ERC20BridgeMultiHopDiagram.png?raw=true">
 </div>
 
 ## End-to-end test
