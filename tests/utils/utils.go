@@ -948,7 +948,9 @@ func SendExampleCrossChainMessageAndVerify(
 	}
 }
 
-func InitChainConfig(
+// Creates an Warp message that registers a Teleporter protocol version with TeleporterRegistry.
+// Returns the Warp message, as well as the chain config adding the message to the list of approved off-chain Warp messages
+func InitOffChainMessageChainConfig(
 	networkID uint32,
 	subnet interfaces.SubnetTestInfo,
 	teleporterAddress common.Address,
@@ -974,6 +976,7 @@ func InitChainConfig(
 	}`, offChainMessage)
 }
 
+// Creates an off-chain Warp message that registers a Teleporter protocol version with TeleporterRegistry
 func CreateOffChainRegistryMessage(
 	networkID uint32,
 	subnet interfaces.SubnetTestInfo,
@@ -995,6 +998,8 @@ func CreateOffChainRegistryMessage(
 	return unsignedMessage
 }
 
+// Deploys a new version of Teleporter and returns its address
+// Does NOT modify the global Teleporter contract address to provide greater testing flexibility.
 func DeployNewTeleporterVersion(
 	ctx context.Context,
 	network interfaces.LocalNetwork,
@@ -1019,6 +1024,7 @@ func DeployNewTeleporterVersion(
 	return teleporterContractAddress
 }
 
+// Sets the chain config in customChainConfigs for the specified subnet
 func SetChainConfig(customChainConfigs map[string]string, subnet interfaces.SubnetTestInfo, chainConfig string) {
 	if subnet.SubnetID == constants.PrimaryNetworkID {
 		customChainConfigs[CChainPathSpecifier] = chainConfig

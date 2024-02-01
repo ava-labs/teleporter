@@ -42,9 +42,9 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	newTeleporterAddress := utils.DeployNewTeleporterVersion(ctx, network, fundedKey, teleporterByteCodeFile)
 	networkID := network.GetNetworkID()
 	// Create chain config file with off chain message for each chain
-	offchainMessageC, warpEnabledChainConfigC := utils.InitChainConfig(networkID, cChainInfo, newTeleporterAddress, 2)
-	offchainMessageB, warpEnabledChainConfigB := utils.InitChainConfig(networkID, subnetBInfo, newTeleporterAddress, 2)
-	offchainMessageA, warpEnabledChainConfigA := utils.InitChainConfig(networkID, subnetAInfo, newTeleporterAddress, 2)
+	offchainMessageC, warpEnabledChainConfigC := utils.InitOffChainMessageChainConfig(networkID, cChainInfo, newTeleporterAddress, 2)
+	offchainMessageB, warpEnabledChainConfigB := utils.InitOffChainMessageChainConfig(networkID, subnetBInfo, newTeleporterAddress, 2)
+	offchainMessageA, warpEnabledChainConfigA := utils.InitOffChainMessageChainConfig(networkID, subnetAInfo, newTeleporterAddress, 2)
 
 	// Create chain config with off chain messages
 	chainConfigs := make(map[string]string)
