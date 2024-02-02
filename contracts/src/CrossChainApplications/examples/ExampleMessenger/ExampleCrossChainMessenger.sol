@@ -56,8 +56,8 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
 
     constructor(
         address teleporterRegistryAddress,
-        address initialOwner
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, initialOwner) {}
+        address teleporterManager
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {}
 
     /**
      * @dev Sends a message to another chain.

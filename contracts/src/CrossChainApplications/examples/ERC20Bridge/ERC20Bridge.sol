@@ -92,8 +92,8 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
      */
     constructor(
         address teleporterRegistryAddress,
-        address initialOwner
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, initialOwner) {
+        address teleporterManager
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         currentBlockchainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS).getBlockchainID();
     }
 

@@ -60,11 +60,11 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
 
     constructor(
         address teleporterRegistryAddress,
-        address initialOwner,
+        address teleporterManager,
         bytes32 sourceBlockchainID_,
         address nativeTokenSourceAddress_,
         uint256 initialReserveImbalance_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, initialOwner) {
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         require(
             sourceBlockchainID_ != bytes32(0), "NativeTokenDestination: zero source blockchain ID"
         );

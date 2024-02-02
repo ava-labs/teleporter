@@ -31,14 +31,14 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
 
     constructor(
         address teleporterRegistryAddress,
-        address initialOwner,
+        address teleporterManager,
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_,
         address erc20ContractAddress_
     )
         TokenSource(
             teleporterRegistryAddress,
-            initialOwner,
+            teleporterManager,
             destinationBlockchainID_,
             nativeTokenDestinationAddress_
         )

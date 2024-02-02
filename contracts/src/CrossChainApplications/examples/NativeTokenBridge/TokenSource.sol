@@ -32,10 +32,10 @@ abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable {
 
     constructor(
         address teleporterRegistryAddress,
-        address initialOwner,
+        address teleporterManager,
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, initialOwner) {
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         require(
             destinationBlockchainID_ != bytes32(0), "TokenSource: zero destination blockchain ID"
         );
