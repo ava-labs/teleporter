@@ -21,7 +21,7 @@ services:
         source: ./
         target: /code/
   relayer:
-    image: avaplatform/awm-relayer:v0.2.8
+    image: avaplatform/awm-relayer:v0.2.9
     container_name: relayer_run
     init: true
     working_dir: /code

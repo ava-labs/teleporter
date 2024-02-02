@@ -2,22 +2,11 @@ package flows
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"fmt"
-	"math/big"
 
 	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
-	"github.com/ava-labs/avalanchego/utils/constants"
-	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
-	"github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
@@ -50,18 +39,33 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	)
 
 	// Deploy the new version of Teleporter to both chains
-	newTeleporterAddress := deployNewTeleporterVersion(ctx, network, fundedKey)
+	newTeleporterAddress := utils.DeployNewTeleporterVersion(ctx, network, fundedKey, teleporterByteCodeFile)
 	networkID := network.GetNetworkID()
 	// Create chain config file with off chain message for each chain
-	offchainMessageC, warpEnabledChainConfigC := initChainConfig(networkID, cChainInfo, newTeleporterAddress)
-	offchainMessageB, warpEnabledChainConfigB := initChainConfig(networkID, subnetBInfo, newTeleporterAddress)
-	offchainMessageA, warpEnabledChainConfigA := initChainConfig(networkID, subnetAInfo, newTeleporterAddress)
+	offchainMessageC, warpEnabledChainConfigC := utils.InitOffChainMessageChainConfig(
+		networkID,
+		cChainInfo,
+		newTeleporterAddress,
+		2,
+	)
+	offchainMessageB, warpEnabledChainConfigB := utils.InitOffChainMessageChainConfig(
+		networkID,
+		subnetBInfo,
+		newTeleporterAddress,
+		2,
+	)
+	offchainMessageA, warpEnabledChainConfigA := utils.InitOffChainMessageChainConfig(
+		networkID,
+		subnetAInfo,
+		newTeleporterAddress,
+		2,
+	)
 
 	// Create chain config with off chain messages
 	chainConfigs := make(map[string]string)
-	setChainConfig(chainConfigs, cChainInfo, warpEnabledChainConfigC)
-	setChainConfig(chainConfigs, subnetBInfo, warpEnabledChainConfigB)
-	setChainConfig(chainConfigs, subnetAInfo, warpEnabledChainConfigA)
+	utils.SetChainConfig(chainConfigs, cChainInfo, warpEnabledChainConfigC)
+	utils.SetChainConfig(chainConfigs, subnetBInfo, warpEnabledChainConfigB)
+	utils.SetChainConfig(chainConfigs, subnetAInfo, warpEnabledChainConfigA)
 
 	// Restart nodes with new chain config
 	nodeNames := network.GetAllNodeNames()
@@ -180,81 +184,4 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	latestVersionC, err := cChainInfo.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	Expect(latestVersionC.Cmp(latestVersionB)).Should(Equal(0))
-}
-
-func initChainConfig(
-	networkID uint32,
-	subnet interfaces.SubnetTestInfo,
-	teleporterAddress common.Address,
-) (*avalancheWarp.UnsignedMessage, string) {
-	unsignedMessage := createOffChainRegistryMessage(networkID, subnet, teleporterregistry.ProtocolRegistryEntry{
-		Version:         big.NewInt(2),
-		ProtocolAddress: teleporterAddress,
-	})
-	offChainMessage := hexutil.Encode(unsignedMessage.Bytes())
-	log.Info("Adding off-chain message to Warp chain config",
-		"messageID", unsignedMessage.ID(),
-		"blockchainID", subnet.BlockchainID.String())
-
-	return unsignedMessage, fmt.Sprintf(`{
-    "warp-api-enabled": true, 
-    "warp-off-chain-messages": ["%s"],
-	"log-level": "debug",
-    "eth-apis":["eth","eth-filter","net","admin","web3",
-                "internal-eth","internal-blockchain","internal-transaction",
-                "internal-debug","internal-account","internal-personal",
-                "debug","debug-tracer","debug-file-tracer","debug-handler"]
-	}`, offChainMessage)
-}
-
-func createOffChainRegistryMessage(
-	networkID uint32,
-	subnet interfaces.SubnetTestInfo,
-	entry teleporterregistry.ProtocolRegistryEntry,
-) *avalancheWarp.UnsignedMessage {
-	sourceAddress := []byte{}
-	payloadBytes, err := teleporterregistry.PackTeleporterRegistryWarpPayload(entry, subnet.TeleporterRegistryAddress)
-	Expect(err).Should(BeNil())
-
-	addressedPayload, err := payload.NewAddressedCall(sourceAddress, payloadBytes)
-	Expect(err).Should(BeNil())
-
-	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
-		networkID,
-		subnet.BlockchainID,
-		addressedPayload.Bytes())
-	Expect(err).Should(BeNil())
-
-	return unsignedMessage
-}
-
-func deployNewTeleporterVersion(
-	ctx context.Context,
-	network interfaces.LocalNetwork,
-	fundedKey *ecdsa.PrivateKey,
-) common.Address {
-	contractCreationGasPrice := (&big.Int{}).Add(deploymentUtils.GetDefaultContractCreationGasPrice(), big.NewInt(1))
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(
-			teleporterByteCodeFile,
-			false,
-			contractCreationGasPrice,
-		)
-	Expect(err).Should(BeNil())
-
-	network.DeployTeleporterContracts(
-		teleporterDeployerTransaction,
-		teleporterDeployerAddress,
-		teleporterContractAddress,
-		fundedKey,
-		false)
-	return teleporterContractAddress
-}
-
-func setChainConfig(customChainConfigs map[string]string, subnet interfaces.SubnetTestInfo, chainConfig string) {
-	if subnet.SubnetID == constants.PrimaryNetworkID {
-		customChainConfigs[utils.CChainPathSpecifier] = chainConfig
-	} else {
-		customChainConfigs[subnet.BlockchainID.String()] = chainConfig
-	}
 }
