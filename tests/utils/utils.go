@@ -25,7 +25,9 @@ import (
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/utils/constants"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	"github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -36,6 +38,7 @@ import (
 	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
@@ -931,5 +934,91 @@ func SendExampleCrossChainMessageAndVerify(
 		Expect(currMessage).Should(Equal(message))
 	} else {
 		Expect(currMessage).ShouldNot(Equal(message))
+	}
+}
+
+// Creates an Warp message that registers a Teleporter protocol version with TeleporterRegistry.
+// Returns the Warp message, as well as the chain config adding the message to the list of approved
+// off-chain Warp messages
+func InitOffChainMessageChainConfig(
+	networkID uint32,
+	subnet interfaces.SubnetTestInfo,
+	teleporterAddress common.Address,
+	version uint64,
+) (*avalancheWarp.UnsignedMessage, string) {
+	unsignedMessage := CreateOffChainRegistryMessage(networkID, subnet, teleporterregistry.ProtocolRegistryEntry{
+		Version:         big.NewInt(int64(version)),
+		ProtocolAddress: teleporterAddress,
+	})
+	offChainMessage := hexutil.Encode(unsignedMessage.Bytes())
+	log.Info("Adding off-chain message to Warp chain config",
+		"messageID", unsignedMessage.ID(),
+		"blockchainID", subnet.BlockchainID.String())
+
+	return unsignedMessage, fmt.Sprintf(`{
+    "warp-api-enabled": true, 
+    "warp-off-chain-messages": ["%s"],
+	"log-level": "debug",
+    "eth-apis":["eth","eth-filter","net","admin","web3",
+                "internal-eth","internal-blockchain","internal-transaction",
+                "internal-debug","internal-account","internal-personal",
+                "debug","debug-tracer","debug-file-tracer","debug-handler"]
+	}`, offChainMessage)
+}
+
+// Creates an off-chain Warp message that registers a Teleporter protocol version with TeleporterRegistry
+func CreateOffChainRegistryMessage(
+	networkID uint32,
+	subnet interfaces.SubnetTestInfo,
+	entry teleporterregistry.ProtocolRegistryEntry,
+) *avalancheWarp.UnsignedMessage {
+	sourceAddress := []byte{}
+	payloadBytes, err := teleporterregistry.PackTeleporterRegistryWarpPayload(entry, subnet.TeleporterRegistryAddress)
+	Expect(err).Should(BeNil())
+
+	addressedPayload, err := payload.NewAddressedCall(sourceAddress, payloadBytes)
+	Expect(err).Should(BeNil())
+
+	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
+		networkID,
+		subnet.BlockchainID,
+		addressedPayload.Bytes())
+	Expect(err).Should(BeNil())
+
+	return unsignedMessage
+}
+
+// Deploys a new version of Teleporter and returns its address
+// Does NOT modify the global Teleporter contract address to provide greater testing flexibility.
+func DeployNewTeleporterVersion(
+	ctx context.Context,
+	network interfaces.LocalNetwork,
+	fundedKey *ecdsa.PrivateKey,
+	teleporterByteCodeFile string,
+) common.Address {
+	contractCreationGasPrice := (&big.Int{}).Add(deploymentUtils.GetDefaultContractCreationGasPrice(), big.NewInt(1))
+	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
+		deploymentUtils.ConstructKeylessTransaction(
+			teleporterByteCodeFile,
+			false,
+			contractCreationGasPrice,
+		)
+	Expect(err).Should(BeNil())
+
+	network.DeployTeleporterContracts(
+		teleporterDeployerTransaction,
+		teleporterDeployerAddress,
+		teleporterContractAddress,
+		fundedKey,
+		false)
+	return teleporterContractAddress
+}
+
+// Sets the chain config in customChainConfigs for the specified subnet
+func SetChainConfig(customChainConfigs map[string]string, subnet interfaces.SubnetTestInfo, chainConfig string) {
+	if subnet.SubnetID == constants.PrimaryNetworkID {
+		customChainConfigs[CChainPathSpecifier] = chainConfig
+	} else {
+		customChainConfigs[subnet.BlockchainID.String()] = chainConfig
 	}
 }
