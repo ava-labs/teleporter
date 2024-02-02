@@ -19,7 +19,7 @@ At the top of the file define the Solidity version to work with, and import the 
 pragma solidity 0.8.18;
 
 import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 ```
 
@@ -115,7 +115,7 @@ function receiveTeleporterMessage(
 Now it's time to implement the methods, starting with `sendMessage`. First, add the import for OpenZeppelin's `IERC20` contract to the top of the contract, as well as the import for the `SafeERC20` library.
 
 ```solidity
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFrom.sol";
 ```
 
