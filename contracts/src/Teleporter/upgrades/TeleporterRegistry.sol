@@ -6,7 +6,10 @@
 pragma solidity 0.8.18;
 
 import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
-import {IWarpMessenger, WarpMessage} from "@subnet-evm-contracts/interfaces/IWarpMessenger.sol";
+import {
+    IWarpMessenger,
+    WarpMessage
+} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 
 /**
  * @dev Registry entry that represents a mapping between protocolAddress and version.

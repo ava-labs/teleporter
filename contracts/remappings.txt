@@ -1,4 +1,4 @@
-@subnet-evm-contracts=lib/subnet-evm/contracts/contracts
-@openzeppelin/=lib/openzeppelin-contracts/
+@avalabs/subnet-evm-contracts@1.2.0/=lib/subnet-evm/contracts/
+@openzeppelin/contracts@4.8.1=lib/openzeppelin-contracts/contracts/
 @teleporter/=src/Teleporter/
 @mocks/=src/Mocks/

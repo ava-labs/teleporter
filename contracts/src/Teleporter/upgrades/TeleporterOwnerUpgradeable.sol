@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TeleporterUpgradeable} from "./TeleporterUpgradeable.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts@4.8.1/access/Ownable.sol";
 
 /**
  * @dev Contract that inherits {TeleporterUpgradeable} and allows
