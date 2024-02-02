@@ -19,7 +19,7 @@ At the top of the file define the Solidity version to work with, and import the 
 pragma solidity 0.8.18;
 
 import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 ```
 
@@ -122,8 +122,8 @@ import {
 } from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFrom.sol";
 import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 ```
 
 Next, add a `using` directive in the contract declaration to specify `SafeERC20` as the `IERC20` implementation to use:

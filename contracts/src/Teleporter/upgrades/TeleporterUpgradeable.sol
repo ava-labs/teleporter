@@ -8,8 +8,8 @@ pragma solidity 0.8.18;
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
