@@ -2,6 +2,7 @@
     "network-id": 1337,
     "p-chain-api-url": "http://127.0.0.1:9650",
     "encrypt-connection": false,
+    "process-missed-blocks": false,
     "source-subnets": [
         {
             "subnet-id": "11111111111111111111111111111111LpoYY",
