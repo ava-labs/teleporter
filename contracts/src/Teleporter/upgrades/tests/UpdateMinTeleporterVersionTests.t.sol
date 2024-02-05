@@ -46,10 +46,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         uint256 latestVersion = teleporterRegistry.latestVersion();
         uint32 messageIndex = 0;
         WarpMessage memory warpMessage = _createWarpOffChainMessage(
-            latestVersion + 2,
-            address(teleporterRegistry),
-            newTeleporterAddress,
-            address(teleporterRegistry)
+            latestVersion + 2, newTeleporterAddress, address(teleporterRegistry)
         );
         _mockGetVerifiedWarpMessage(messageIndex, warpMessage, true);
 
