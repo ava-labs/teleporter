@@ -225,8 +225,6 @@ mapping(bytes32 sourceBlockchainID => Message message) private _messages;
 
 Next, update `receiveTeleporterMessage` to save the message into the mapping after it is received and verified that it's sent from Teleporter. ABI decode the `message` bytes into a string. Also, emit the `ReceiveMessage` event.
 
-````solidity
-
 ```solidity
 // Receive a new message from another chain.
 function receiveTeleporterMessage(
@@ -249,7 +247,7 @@ function receiveTeleporterMessage(
         messageString
     );
 }
-````
+```
 
 Next, add a function called `getCurrentMessage` that allows users or contracts to easily query the contract for the latest message sent by a specified chain.
 

@@ -239,7 +239,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
         new NativeTokenDestination(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            address(this),
+            _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             0
