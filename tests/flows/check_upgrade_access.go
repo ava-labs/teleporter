@@ -16,7 +16,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Deploy ExampleMessenger to Subnets A and B
+	// Deploy ExampleMessenger to the subnet
 	//
 	ctx := context.Background()
 	teleporterAddress := network.GetTeleporterContractAddress()
@@ -30,7 +30,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	nonOwnerAddress := crypto.PubkeyToAddress(nonOwnerKey.PublicKey)
 
 	// Transfer native assets to the non owner account
-	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1)) // 10eth
+	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1)) // 1eth
 	utils.SendNativeTransfer(
 		ctx,
 		subnetInfo,
@@ -45,7 +45,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	_, err = exampleMessenger.PauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
 	Expect(err).ShouldNot(BeNil())
-	Expect(err.Error()).Should(ContainSubstring("Ownable: caller is not the owner"))
+	Expect(err.Error()).Should(ContainSubstring(errCallerNotOwner))
 
 	// Check that the teleporter address is not paused, because previous call should have failed
 	isPaused, err := exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
@@ -72,7 +72,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	// Try to call unpauseTeleporterAddress from the previous owner account
 	_, err = exampleMessenger.UnpauseTeleporterAddress(ownerOpts, teleporterAddress)
 	Expect(err).ShouldNot(BeNil())
-	Expect(err.Error()).Should(ContainSubstring("Ownable: caller is not the owner"))
+	Expect(err.Error()).Should(ContainSubstring(errCallerNotOwner))
 
 	// Make sure the teleporter address is still paused
 	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
