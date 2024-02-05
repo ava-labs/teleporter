@@ -1,5 +1,6 @@
 package flows
 
 const (
-	errCallerNotOwner = "Ownable: caller is not the owner"
+	// Error message from OpenZeppelin's Ownable.sol
+	errCallerNotOwnerStr = "Ownable: caller is not the owner"
 )
