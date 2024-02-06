@@ -14,7 +14,7 @@ import (
 func BlockHashPublishReceive(network interfaces.Network) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	_, fundedKey := network.GetFundedAccountInfo()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
@@ -26,6 +26,7 @@ func BlockHashPublishReceive(network interfaces.Network) {
 	receiverAddress, receiver := utils.DeployBlockHashReceiver(
 		ctx,
 		fundedKey,
+		fundedAddress,
 		subnetBInfo,
 		publisherAddress,
 		subnetAInfo.BlockchainID,
