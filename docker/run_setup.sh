@@ -163,16 +163,6 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     echo "TeleporterRegistry contract deployed to the C-Chain at $c_chain_teleporter_registry_address."
     cd ..
 
-    # Send tokens to cover gas costs for the relayers.
-    relayer_private_key=C2CE4E001B7585F543982A01FBC537CFF261A672FA8BD1FAFC08A207098FE2DE
-    relayer_address=0xA100fF48a37cab9f87c8b5Da933DA46ea1a5fb80
-
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_a_rpc_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_b_rpc_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_c_rpc_url
-    cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $c_chain_rpc_url
-    echo "Sent ether to relayer account on each subnet."
-
     subnet_a_blockchain_id_hex=$(getBlockchainIDHex $subnet_a_blockchain_id)
     subnet_b_blockchain_id_hex=$(getBlockchainIDHex $subnet_b_blockchain_id)
     subnet_c_blockchain_id_hex=$(getBlockchainIDHex $subnet_c_blockchain_id)
