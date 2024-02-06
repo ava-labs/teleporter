@@ -104,6 +104,8 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 			destSubnet.BlockchainID,
 			bridgeContractAddress,
 			exampleERC20ContractAddress,
+			1,
+			true,
 		)
 
 		nativeTokenDestinationAbi, err := nativetokendestination.NativeTokenDestinationMetaData.GetAbi()

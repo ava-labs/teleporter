@@ -28,12 +28,23 @@ import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC
  */
 contract ERC20TokenSource is IERC20TokenSource, TokenSource {
     address public immutable erc20ContractAddress;
+    // tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
+    // the destination chain. This can be used to normalize the number of decimals places between
+    // the two subnets.
+    uint256 public immutable tokenMultiplier;
+    // If multiplyOnSend is true, the number of tokens sent to the destination chain will be multiplied
+    // by `tokenMultiplier`, and tokens received from the destination chain will be divided by `tokenMultiplier`.
+    // If multiplyOnSend is false, the number of tokens sent to the destination chain will be divided
+    // by `tokenMultiplier`, and tokens received from the destination chain will be multiplied by `tokenMultiplier`.
+    bool public immutable multiplyOnSend;
 
     constructor(
         address teleporterRegistryAddress,
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_,
-        address erc20ContractAddress_
+        address erc20ContractAddress_,
+        uint256 tokenMultiplier_,
+        bool multiplyOnSend_
     )
         TokenSource(teleporterRegistryAddress, destinationBlockchainID_, nativeTokenDestinationAddress_)
     {
@@ -41,6 +52,10 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
             erc20ContractAddress_ != address(0), "ERC20TokenSource: zero ERC20 contract address"
         );
         erc20ContractAddress = erc20ContractAddress_;
+
+        require(tokenMultiplier_ != 0, "ERC20TokenSource: zero tokenMultiplier");
+        tokenMultiplier = tokenMultiplier_;
+        multiplyOnSend = multiplyOnSend_;
     }
 
     /**
@@ -75,6 +90,12 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
 
         uint256 transferAmount = adjustedAmount - feeAmount;
 
+        if (multiplyOnSend) {
+            transferAmount *= tokenMultiplier;
+        } else {
+            transferAmount /= tokenMultiplier;
+        }
+
         bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
@@ -100,19 +121,33 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
     function _unlockTokens(address recipient, uint256 amount) internal override {
         require(recipient != address(0), "ERC20TokenSource: zero recipient address");
 
+        uint256 scaledAmount;
+        if (multiplyOnSend) {
+            scaledAmount = amount / tokenMultiplier;
+        } else {
+            scaledAmount = amount * tokenMultiplier;
+        }
+
         // Transfer to recipient
-        emit UnlockTokens(recipient, amount);
-        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
+        emit UnlockTokens(recipient, scaledAmount);
+        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, scaledAmount);
     }
 
     /**
      * @dev See {TokenSource-_handleBurnTokens}
      */
     function _handleBurnTokens(uint256 newBurnTotal) internal override {
-        if (newBurnTotal > destinationBurnedTotal) {
-            uint256 difference = newBurnTotal - destinationBurnedTotal;
+        uint256 scaledNewBurnTotal;
+        if (multiplyOnSend) {
+            scaledNewBurnTotal = newBurnTotal / tokenMultiplier;
+        } else {
+            scaledNewBurnTotal = newBurnTotal * tokenMultiplier;
+        }
+
+        if (scaledNewBurnTotal > destinationBurnedTotal) {
+            uint256 difference = scaledNewBurnTotal - destinationBurnedTotal;
             _burnTokens(difference);
-            destinationBurnedTotal = newBurnTotal;
+            destinationBurnedTotal = scaledNewBurnTotal;
         }
     }
 

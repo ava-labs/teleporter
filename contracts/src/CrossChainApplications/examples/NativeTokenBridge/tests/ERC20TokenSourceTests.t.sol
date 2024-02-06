@@ -32,7 +32,9 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            address(mockERC20)
+            address(mockERC20),
+            1,
+            true
         );
     }
 
@@ -153,7 +155,9 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             address(0x0),
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            address(mockERC20)
+            address(mockERC20),
+            1,
+            true
         );
     }
 
@@ -164,7 +168,9 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             bytes32(0),
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            address(mockERC20)
+            address(mockERC20),
+            1,
+            true
         );
     }
 
@@ -175,7 +181,9 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            address(mockERC20)
+            address(mockERC20),
+            1,
+            true
         );
     }
 
@@ -186,7 +194,9 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x0),
-            address(mockERC20)
+            address(mockERC20),
+            1,
+            true
         );
     }
 
@@ -208,7 +218,22 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            address(0x0)
+            address(0x0),
+            1,
+            true
+        );
+    }
+
+    function testZeroTokenMultiplier() public {
+        vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero tokenMultiplier"));
+
+        new ERC20TokenSource(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            address(mockERC20),
+            0,
+            true
         );
     }
 
