@@ -45,6 +45,8 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 ## Run a local testnet in Docker
 A docker setup for running a local network with Teleporter deployed is provided. This setup provides a convenient way to develop and test Teleporter as well as cross-chain applications built on top of Teleporter. Teleporter messages are relayed between subnets using [AWM Relayer](https://github.com/ava-labs/awm-relayer), a fully featured implementation of a Warp message relayer.
 
+For more details on the steps taken to set up the Teleporter-enabled network, see [here](./docker/README.md).
+
 
 ### Start up the local testnet
 
