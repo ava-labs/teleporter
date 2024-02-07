@@ -10,7 +10,7 @@ The steps to do so are as follows:
 
 1. Construct the unsigned Warp message bytes:
 
-    a. Pack the Warp payload to be parsed by `addProtocolVersion`. This is a tuple of `(ProtocolRegistryEntry, address)`, where the `ProtocolRegistryEntry` specifies the new `TeleporterMessenger` contract address and the version, and the `address` specifies the `TeleporterRegistry` contract address that the new Teleporter version will be registered with
+    a. Pack the Warp payload to be parsed by `addProtocolVersion`. This is a tuple of `(ProtocolRegistryEntry, address)`, where the `ProtocolRegistryEntry` specifies the new `TeleporterMessenger` contract address and the version, and the `address` specifies the `TeleporterRegistry` contract address that the new Teleporter version will be registered with.
 
     b. Pack the Warp payload as an [AddressedCall](https://github.com/ava-labs/avalanchego/blob/v1.11.0-fuji/vms/platformvm/warp/payload/addressed_call.go#L15), with the source address set to the zero address. This is how `addProtocolVersion` identifies this message as an off-chain Warp message.
     
