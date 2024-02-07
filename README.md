@@ -15,16 +15,21 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
   - [Start up the local testnet](#start-up-the-local-testnet)
   - [Additional notes](#additional-notes)
 - [E2E tests](#e2e-tests)
+  - [Run specific E2E tests](#run-specific-e2e-tests)
   - [Run the E2E tests on another network](#run-the-e2e-tests-on-another-network)
+- [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet)
 - [ABI Bindings](#abi-bindings)
 - [Docs](#docs)
 - [Resources](#resources)
 
 ## Setup
+
 ### Initialize the repository
+
 - Get all submodules: `git submodule update --init --recursive`
 
 ### Dependencies
+
 - [Ginkgo](https://onsi.github.io/ginkgo/#installing-ginkgo) for running the end-to-end tests
 - Docker and Docker Compose v2 for running the local test network
   - The docker image installs the following:
@@ -32,6 +37,7 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
     - [Python3](https://www.python.org/downloads/)
 
 ## Structure
+
 - `contracts/` is a [Foundry](https://github.com/foundry-rs/foundry) project that includes the implementation of the `TeleporterMessenger` contract and example dApps that demonstrate how to write contracts that interact with Teleporter.
 - `abi-bindings/` includes Go ABI bindings for the contracts in `contracts/`.
 - `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
@@ -43,18 +49,21 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 - `docker/` includes configurations for a local, containerized setup of Teleporter.
 
 ## Run a local testnet in Docker
-A docker setup for running a local network with Teleporter deployed is provided. This setup provides a convenient way to develop and test Teleporter as well as cross-chain applications built on top of Teleporter. Teleporter messages are relayed between subnets using [AWM Relayer](https://github.com/ava-labs/awm-relayer), a fully featured implementation of a Warp message relayer.
 
+A docker setup for running a local network with Teleporter deployed is provided. This setup provides a convenient way to develop and test Teleporter as well as cross-chain applications built on top of Teleporter. Teleporter messages are relayed between subnets using [AWM Relayer](https://github.com/ava-labs/awm-relayer), a fully featured implementation of a Warp message relayer.
 
 ### Start up the local testnet
 
 - Run `./scripts/local/run.sh` to run the local testnet in Docker containers with the ability to interact with the nodes directly.
+
   - `./scripts/local/run.sh` usage is as follows:
+
   ```
     -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub
     -p, --pause                       Pause the network on stop. Will attempt to restart the paused network on subsequent runs
     -h, --help                        Print this help message
   ```
+
   - If using `-l, --local` to use a local version of the `awm-relayer` image, build it using `./scripts/build_local_image.sh` from the root of the `awm-relayer` repository.
   - Note that if `-l, --local` is not set, then the latest published `awm-relayer` image will be pulled from Dockerhub.
 
@@ -68,18 +77,24 @@ docker exec -it local_network_run /bin/bash
 set -a                        # export all variables so child processes can access
 source vars.sh                # source the variables needed to interact with the contracts
 ```
+
 - Once you've opened a shell in the container, try interacting with the network.
+
   - For example, send 1 AVAX on the C-Chain using `cast`
+
   ```
   c_address=0x333d17d3b42bf7930dbc6e852ca7bcf560a69003   # pick an arbitrary address
   cast balance --rpc-url $c_chain_rpc_url $c_address
   cast send --private-key $user_private_key --value 1 $c_address --rpc-url $c_chain_rpc_url
   cast balance --rpc-url $c_chain_rpc_url $c_address
   ```
+
   - An example of how to interact with Teleporter is provided in `scripts/local/examples/basic_send_receive.sh`. This script sends a dummy payload via Teleporter from the C-Chain to a subnet, and back again.
+
   ```
   ./scripts/local/examples/basic_send_receive.sh
   ```
+
   - You should see "Received on Subnet A is true" and "Received on the C-Chain is true" to indicate that Teleporter messages were successfully sent between the C-Chain and Subnet A.
     - These examples can be adapted to send messages between any two subnets, or between the C-Chain and any subnet by changing the RPC URLs.
     - Use these as a starting point to build and interact with your own cross-chain applications on top of Teleporter!
@@ -104,38 +119,72 @@ In addition to the docker setup, end-to-end integration tests written using Gink
 To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo).
 
 Then run the following command from the root of the repository:
+
 ```bash
 ./scripts/local/e2e_test.sh
+```
+
+### Run specific E2E tests
+
+To run a specific E2E test, specify the environment variable `GINKGO_FOCUS`, which will then look for test descriptions that match the provided input. For example, to run the `Calculate Teleporter message IDs` test:
+
+```bash
+GINKGO_FOCUS="Calculate Teleporter message IDs" ./scripts/local/e2e_test.sh
+```
+
+A substring of the full test description can be used as well:
+
+```bash
+GINKGO_FOCUS="Calculate Teleporter" ./scripts/local/e2e_test.sh
+```
+
+The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all E2E tests for the example cross chain applications:
+
+```bash
+	ginkgo.It("Send native tokens from subnet A to B and back",
+		ginkgo.Label("cross chain apps"),
+		func() {
+			flows.NativeTokenBridge(LocalNetworkInstance)
+		})
+```
+
+```bash
+GINKGO_LABEL_FILTER="cross chain apps" ./scripts/local/e2e_test.sh
 ```
 
 ### Run the E2E tests on another network
 
 The same E2E test flows can be executed against external network by setting the proper environment variables in `.env.testnet` and `.env`, and running the following commands:
+
 ```bash
 cp .env.example .env # Set proper values after copying.
-./scripts/testnet/run_testnet_e2e_flows.sh 
+./scripts/testnet/run_testnet_e2e_flows.sh
 ```
 
-The user wallet set in `.env` must have native tokens for each of the subnets used in order for the test flows to be able to send transactions on those networks. 
+The user wallet set in `.env` must have native tokens for each of the subnets used in order for the test flows to be able to send transactions on those networks.
 
 ## Deploy Teleporter to a Subnet
 
-From the root of the repo, the TeleporterMessenger contract can be deployed by calling 
+From the root of the repo, the TeleporterMessenger contract can be deployed by calling
+
 ```bash
-./scripts/deploy_teleporter.sh <options> 
+./scripts/deploy_teleporter.sh <options>
 ```
+
 Options for this script:
+
 - `--version <version>` Required. Specify the release version to deploy. These will all be of the form `v1.X.0`. Each Teleporter version can only send and receive messages from the **same** Teleporter version on another chain. You can see a list of released versions at https://github.com/ava-labs/teleporter/releases.
 - `--rpc-url <url>` Required. Specify the rpc url of the node to use.
-- `--fund-deployer <private_key>`  Optional. Funds the deployer address with the account held by `<private_key>`
+- `--fund-deployer <private_key>` Optional. Funds the deployer address with the account held by `<private_key>`
 
-To ensure that Teleporter can be deployed to the same address on every EVM based chain, it uses [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c) to deploy from a static deployer address. Teleporter costs exactly `10eth` in the subnet's native gas token to deploy, which must be sent to the deployer address. 
+To ensure that Teleporter can be deployed to the same address on every EVM based chain, it uses [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c) to deploy from a static deployer address. Teleporter costs exactly `10eth` in the subnet's native gas token to deploy, which must be sent to the deployer address.
 
 `deploy_teleporter.sh` will send the necessary native tokens to the deployer address if it is provided with a private key for an account with sufficient funds. Alternatively, the deployer address can be funded externally. The deployer address for each version can be found by looking up the appropriate version at https://github.com/ava-labs/teleporter/releases and downloading `TeleporterMessenger_Deployer_Address_<VERSION>.txt`.
 
 ## ABI Bindings
 
 To generate Golang ABI bindings for the Solidity smart contracts, run:
+
 ```bash
 ./scripts/abi_go_bindings.sh
 ```
