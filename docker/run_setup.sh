@@ -95,16 +95,16 @@ if [ ! -e $dir_prefix/NETWORK_RUNNING ]; then
     forge build
     cd ..
     go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
-    teleporter_deploy_address=$(cat UniversalTeleporterDeployerAddress.txt)
+    teleporter_deployer_address=$(cat UniversalTeleporterDeployerAddress.txt)
     teleporter_deploy_tx=$(cat UniversalTeleporterDeployerTransaction.txt)
     teleporter_contract_address=$(cat UniversalTeleporterMessengerContractAddress.txt)
-    echo $teleporter_deploy_address $teleporter_contract_address
+    echo $teleporter_deployer_address $teleporter_contract_address
     echo "Finished reading universal deploy address and transaction"
 
-    cast send --private-key $user_private_key --value 10ether $teleporter_deploy_address --rpc-url $subnet_a_rpc_url
-    cast send --private-key $user_private_key --value 10ether $teleporter_deploy_address --rpc-url $subnet_b_rpc_url
-    cast send --private-key $user_private_key --value 10ether $teleporter_deploy_address --rpc-url $subnet_c_rpc_url
-    cast send --private-key $user_private_key --value 10ether $teleporter_deploy_address --rpc-url $c_chain_rpc_url
+    cast send --private-key $user_private_key --value 10ether $teleporter_deployer_address --rpc-url $subnet_a_rpc_url
+    cast send --private-key $user_private_key --value 10ether $teleporter_deployer_address --rpc-url $subnet_b_rpc_url
+    cast send --private-key $user_private_key --value 10ether $teleporter_deployer_address --rpc-url $subnet_c_rpc_url
+    cast send --private-key $user_private_key --value 10ether $teleporter_deployer_address --rpc-url $c_chain_rpc_url
     echo "Sent ether to teleporter deployer on each subnet."
 
     # Verify that the transaction status was successful for the deployments

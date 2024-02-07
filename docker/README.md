@@ -21,14 +21,14 @@ avalanche subnet deploy subneta --local --avalanchego-version $AVALANCHEGO_VERSI
 The script then derives the Teleporter deployment information using the [contract utility](../utils/contract-deployment/contractDeploymentTools.go) included in this repository:
 ```bash
 go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
-teleporter_deploy_address=$(cat UniversalTeleporterDeployerAddress.txt)
+teleporter_deployer_address=$(cat UniversalTeleporterDeployerAddress.txt)
 teleporter_deploy_tx=$(cat UniversalTeleporterDeployerTransaction.txt)
 teleporter_contract_address=$(cat UniversalTeleporterMessengerContractAddress.txt)
 ```
 
 The deployer address is funded:
 ```bash
-cast send --private-key $user_private_key --value 10ether $teleporter_deploy_address --rpc-url $subnet_a_rpc_url
+cast send --private-key $user_private_key --value 10ether $teleporter_deployer_address --rpc-url $subnet_a_rpc_url
 ```
 
 And the Teleporter contract deployed and initialized:
