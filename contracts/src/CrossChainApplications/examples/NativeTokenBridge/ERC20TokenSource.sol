@@ -35,7 +35,7 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
     // If multiplyOnSend is true, the number of tokens sent to the destination chain will be multiplied
     // by `tokenMultiplier`, and tokens received from the destination chain will be divided by `tokenMultiplier`.
     // If multiplyOnSend is false, the number of tokens sent to the destination chain will be divided
-    // by `tokenMultiplier`, and tokens received from the destination chain will be multiplied by `tokenMultiplier`.
+    // by `tokenMultiplier`, and tokens received from the destination chain will be divided by `tokenMultiplier`.
     bool public immutable multiplyOnSend;
 
     constructor(
