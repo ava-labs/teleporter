@@ -1,0 +1,9 @@
+# Forge output files
+out/
+cache/
+target/
+bin/
+Cargo.lock
+
+# IDE configurations
+.vscode*
