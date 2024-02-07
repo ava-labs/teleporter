@@ -16,9 +16,9 @@ The steps to do so are as follows:
     
     c. Pack the `AddressedCall` message into an [unsigned Warp message](https://github.com/ava-labs/avalanchego/blob/v1.11.0-fuji/vms/platformvm/warp/unsigned_message.go#L14), specifying the blockchain ID that `TeleporterRegistry` and the new `TeleporterMessenger` are deployed to.
 
-2. Populate the "warp-off-chain-messages" field of each validator node's chain config with the hex-encoded unsigned Warp message bytes
+2. Populate the "warp-off-chain-messages" field of each validator node's chain config with the hex-encoded unsigned Warp message bytes.
 
-3. Restart the node to mark the off-chain Warp message as eligible for signing by the validator
+3. Restart the node to mark the off-chain Warp message as eligible for signing by the validator.
 
 To actually call register the new Teleporter version with the registry, the validators must be queried for their signature of the message, the signatures aggregated, and a signed Warp message created to be included in the transaction that calls `addProtocolVersion`. As an example, [AWM Relayer](https://github.com/ava-labs/awm-relayer) provides this functionality. The following steps illustrate how to use AWM Relayer to register the new Teleporter version.
 
