@@ -30,7 +30,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	nonOwnerAddress := crypto.PubkeyToAddress(nonOwnerKey.PublicKey)
 
 	// Transfer native assets to the non owner account
-	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(1)) // 1eth
+	fundAmount := big.NewInt(1e18) // 1eth
 	utils.SendNativeTransfer(
 		ctx,
 		subnetInfo,
