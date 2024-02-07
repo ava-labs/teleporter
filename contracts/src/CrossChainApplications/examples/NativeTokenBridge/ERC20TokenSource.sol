@@ -31,11 +31,17 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
 
     constructor(
         address teleporterRegistryAddress,
+        address teleporterManager,
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_,
         address erc20ContractAddress_
     )
-        TokenSource(teleporterRegistryAddress, destinationBlockchainID_, nativeTokenDestinationAddress_)
+        TokenSource(
+            teleporterRegistryAddress,
+            teleporterManager,
+            destinationBlockchainID_,
+            nativeTokenDestinationAddress_
+        )
     {
         require(
             erc20ContractAddress_ != address(0), "ERC20TokenSource: zero ERC20 contract address"

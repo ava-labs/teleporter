@@ -30,6 +30,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         NativeTokenBridgeTest.setUp();
         erc20TokenSource = new ERC20TokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -151,6 +152,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
 
         new ERC20TokenSource(
             address(0x0),
+            _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -162,6 +164,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
 
         new ERC20TokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             bytes32(0),
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -173,6 +176,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
 
         new ERC20TokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(mockERC20)
@@ -184,6 +188,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
 
         new ERC20TokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x0),
             address(mockERC20)
@@ -206,6 +211,7 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
 
         new ERC20TokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             address(0x0)

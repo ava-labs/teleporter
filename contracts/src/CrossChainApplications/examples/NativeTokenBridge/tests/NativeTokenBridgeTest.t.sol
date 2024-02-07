@@ -27,6 +27,7 @@ contract NativeTokenBridgeTest is Test {
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     address internal constant _DEFAULT_OTHER_BRIDGE_ADDRESS =
         0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    address internal constant _DEFAULT_OWNER_ADDRESS = 0x1234512345123451234512345123451234512345;
     uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1000000000;
     address internal constant _DEFAULT_RECIPIENT = 0xa4CEE7d1aF6aDdDD33E3b1cC680AB84fdf1b6d1d;
     uint256 internal constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
