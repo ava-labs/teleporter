@@ -30,7 +30,7 @@ To actually call register the new Teleporter version with the registry, the vali
 
     c. "destination-blockchain-id": the blockchain ID that that `TeleporterRegistry` and the new `TeleporterMessenger` are deployed to.
 
-    d. "source-address": the zero address, ""0x0000000000000000000000000000000000000000". This is the "source" address for off-chain Warp messages.
+    d. "source-address": the zero address, "0x0000000000000000000000000000000000000000". This is the "source" address for off-chain Warp messages.
 
 2. Add the `TeleporterRegistry` as a supported message type by adding the following entry to the list of "message-contracts":
 
