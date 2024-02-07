@@ -105,7 +105,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 			destSubnet.BlockchainID,
 			bridgeContractAddress,
 			exampleERC20ContractAddress,
-			1,
+			big.NewInt(1),
 			true,
 		)
 
