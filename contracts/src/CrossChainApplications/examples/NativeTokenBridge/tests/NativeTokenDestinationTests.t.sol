@@ -38,6 +38,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         );
         nativeTokenDestination = new NativeTokenDestination(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             _DEFAULT_INITIAL_RESERVE_IMBALANCE
@@ -188,6 +189,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
         new NativeTokenDestination(
             address(0x0),
+            _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             _DEFAULT_INITIAL_RESERVE_IMBALANCE
@@ -199,6 +201,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
         new NativeTokenDestination(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             bytes32(0),
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             _DEFAULT_INITIAL_RESERVE_IMBALANCE
@@ -212,6 +215,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
         new NativeTokenDestination(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             _DEFAULT_INITIAL_RESERVE_IMBALANCE
@@ -223,6 +227,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
         new NativeTokenDestination(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x0),
             _DEFAULT_INITIAL_RESERVE_IMBALANCE
@@ -234,6 +239,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
         new NativeTokenDestination(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
             0

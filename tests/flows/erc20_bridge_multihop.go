@@ -49,11 +49,26 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	)
 
 	// Deploy the ERC20 bridge to subnet A
-	erc20BridgeAddressA, erc20BridgeA := utils.DeployERC20Bridge(ctx, fundedKey, subnetAInfo)
+	erc20BridgeAddressA, erc20BridgeA := utils.DeployERC20Bridge(
+		ctx,
+		fundedKey,
+		fundedAddress,
+		subnetAInfo,
+	)
 	// Deploy the ERC20 bridge to subnet B
-	erc20BridgeAddressB, erc20BridgeB := utils.DeployERC20Bridge(ctx, fundedKey, subnetBInfo)
+	erc20BridgeAddressB, erc20BridgeB := utils.DeployERC20Bridge(
+		ctx,
+		fundedKey,
+		fundedAddress,
+		subnetBInfo,
+	)
 	// Deploy the ERC20 bridge to subnet C
-	erc20BridgeAddressC, erc20BridgeC := utils.DeployERC20Bridge(ctx, fundedKey, subnetCInfo)
+	erc20BridgeAddressC, erc20BridgeC := utils.DeployERC20Bridge(
+		ctx,
+		fundedKey,
+		fundedAddress,
+		subnetCInfo,
+	)
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10000000000000))
 	utils.ERC20Approve(

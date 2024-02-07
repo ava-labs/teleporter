@@ -30,10 +30,16 @@ import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC
 contract NativeTokenSource is INativeTokenSource, TokenSource {
     constructor(
         address teleporterRegistryAddress,
+        address teleporterManager,
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_
     )
-        TokenSource(teleporterRegistryAddress, destinationBlockchainID_, nativeTokenDestinationAddress_)
+        TokenSource(
+            teleporterRegistryAddress,
+            teleporterManager,
+            destinationBlockchainID_,
+            nativeTokenDestinationAddress_
+        )
     {}
 
     /**
