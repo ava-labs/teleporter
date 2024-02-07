@@ -95,6 +95,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			sourceSubnet,
 			erc20TokenSourceAbi,
 			sourceSubnet.TeleporterRegistryAddress,
+			deployerAddress,
 			destSubnet.BlockchainID,
 			bridgeContractAddress,
 		)
@@ -109,6 +110,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			destSubnet,
 			nativeTokenDestinationAbi,
 			destSubnet.TeleporterRegistryAddress,
+			deployerAddress,
 			sourceSubnet.BlockchainID,
 			bridgeContractAddress,
 			initialReserveImbalance,
