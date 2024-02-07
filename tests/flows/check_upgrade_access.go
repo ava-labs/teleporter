@@ -13,7 +13,7 @@ import (
 
 func CheckUpgradeAccess(network interfaces.Network) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
-	_, fundedKey := network.GetFundedAccountInfo()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
 	// Deploy ExampleMessenger to the subnet
@@ -21,7 +21,10 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	ctx := context.Background()
 	teleporterAddress := network.GetTeleporterContractAddress()
 	_, exampleMessenger := utils.DeployExampleCrossChainMessenger(
-		ctx, fundedKey, subnetInfo,
+		ctx,
+		fundedKey,
+		fundedAddress,
+		subnetInfo,
 	)
 
 	// Try to call updateMinTeleporterVersion from a non owner account
