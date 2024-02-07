@@ -1,0 +1,3 @@
+@openzeppelin/contracts@4.8.1/=lib/teleporter/contracts/lib/openzeppelin-contracts/
+@avalabs/subnet-evm-contracts@1.2.0/=lib/teleporter/contracts/lib/subnet-evm/
+@teleporter/=lib/teleporter/contracts/src/Teleporter/
