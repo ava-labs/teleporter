@@ -82,7 +82,7 @@ while [ $# -gt 0 ]; do
         -h   | --help) 
             printHelp ;;
         *) 
-          echo "Invalid option: -$1" && printHelp && exit 1;;
+          echo "Invalid option: $1" && printHelp && exit 1;;
     esac
     shift
 done
