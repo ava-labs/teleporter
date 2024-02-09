@@ -54,9 +54,10 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
         bytes32 indexed sourceBlockchainID, address indexed originSenderAddress, string message
     );
 
-    constructor(address teleporterRegistryAddress)
-        TeleporterOwnerUpgradeable(teleporterRegistryAddress)
-    {}
+    constructor(
+        address teleporterRegistryAddress,
+        address teleporterManager
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {}
 
     /**
      * @dev Sends a message to another chain.

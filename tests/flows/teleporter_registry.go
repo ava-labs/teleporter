@@ -28,14 +28,22 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
-	_, fundedKey := network.GetFundedAccountInfo()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
 	// Deploy an example cross chain messenger to both chains
-	exampleMessengerContractC, exampleMessengerC := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, cChainInfo)
+	exampleMessengerContractC, exampleMessengerC := utils.DeployExampleCrossChainMessenger(
+		ctx,
+		fundedKey,
+		fundedAddress,
+		cChainInfo,
+	)
 	exampleMessengerContractB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(
-		ctx, fundedKey, subnetBInfo,
+		ctx,
+		fundedKey,
+		fundedAddress,
+		subnetBInfo,
 	)
 
 	// Deploy the new version of Teleporter to both chains

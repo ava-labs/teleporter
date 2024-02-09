@@ -1,7 +1,7 @@
 module github.com/ava-labs/teleporter
 
 // Patch version for go is set in versions.sh
-go 1.20
+go 1.21
 
 require (
 	github.com/ava-labs/avalanchego v1.11.0-fuji
