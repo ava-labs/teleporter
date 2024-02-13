@@ -16,13 +16,13 @@ rm -f $dir_prefix/NETWORK_READY
 
 until cat $dir_prefix/NETWORK_READY &> /dev/null
 do
-    if [[ retry_count -ge 600 ]]; then
+    if [[ retry_count -ge 300 ]]; then
         echo "Subnets didn't start up quickly enough."
         exit 1
     fi
     echo "Waiting for subnets to start up. Retry count: $retry_count"
     retry_count=$((retry_count+1))
-    sleep 1
+    sleep 2
 done
 
 # Source all variables set in run_setup.sh
