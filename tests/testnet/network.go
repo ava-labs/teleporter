@@ -36,7 +36,7 @@ const (
 	teleporterContractAddress       = "teleporter_contract_address"
 	teleporterRegistryAddressSuffix = "_teleporter_registry_address"
 	subnetIDSuffix                  = "_subnet_id"
-	blockchainIDSuffix              = "_chain_id"
+	blockchainIDSuffix              = "_blockchain_id"
 	rpcURLSuffix                    = "_rpc_url"
 	wsURLSuffix                     = "_ws_url"
 	userAddress                     = "user_address"
@@ -69,12 +69,14 @@ func initializeSubnetInfo(
 	subnetIDStr := os.Getenv(subnetPrefix + subnetIDSuffix)
 	subnetID, err := ids.FromString(subnetIDStr)
 	if err != nil {
+		log.Info("Error decoding subnet ID", "subnetPrefix", subnetPrefix)
 		return interfaces.SubnetTestInfo{}, err
 	}
 
 	blockchainIDStr := os.Getenv(subnetPrefix + blockchainIDSuffix)
 	blockchainID, err := ids.FromString(blockchainIDStr)
 	if err != nil {
+		log.Info("Error decoding blockchain ID", "subnetPrefix", subnetPrefix)
 		return interfaces.SubnetTestInfo{}, err
 	}
 
@@ -84,18 +86,16 @@ func initializeSubnetInfo(
 		return interfaces.SubnetTestInfo{}, err
 	}
 
-	wsURLStr := os.Getenv(subnetPrefix + wsURLSuffix)
-	wsClient, err := ethclient.Dial(wsURLStr)
-	if err != nil {
-		return interfaces.SubnetTestInfo{}, err
-	}
-
 	evmChainID, err := rpcClient.ChainID(context.Background())
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
 
-	teleporterRegistryAddress := common.HexToAddress(os.Getenv(subnetPrefix + teleporterRegistryAddressSuffix))
+	teleporterRegistryAddressStr := os.Getenv(subnetPrefix + teleporterRegistryAddressSuffix)
+	if !common.IsHexAddress(teleporterRegistryAddressStr) {
+		return interfaces.SubnetTestInfo{}, errors.New("invalid teleporter regirstry address")
+	}
+	teleporterRegistryAddress := common.HexToAddress(teleporterRegistryAddressStr)
 
 	teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
 		teleporterContractAddress, rpcClient,
@@ -114,7 +114,7 @@ func initializeSubnetInfo(
 		BlockchainID:              blockchainID,
 		NodeURIs:                  []string{}, // no specific node URIs for a testnet subnet, only RPC endpoints.
 		RPCClient:                 rpcClient,
-		WSClient:                  wsClient,
+		WSClient:                  nil,
 		EVMChainID:                evmChainID,
 		TeleporterRegistryAddress: teleporterRegistryAddress,
 		TeleporterRegistry:        teleporterRegistry,
@@ -137,16 +137,11 @@ func NewTestNetwork() (*testNetwork, error) {
 		return nil, err
 	}
 
-	subnetCInfo, err := initializeSubnetInfo(subnetCPrefix, teleporterContractAddress)
-	if err != nil {
-		return nil, err
-	}
-
 	cChainInfo, err := initializeSubnetInfo(cChainPrefix, teleporterContractAddress)
 	if err != nil {
 		return nil, err
 	}
-	log.Info("Set testnet subnet info", subnetAPrefix, subnetAInfo, subnetBPrefix, subnetBInfo, subnetCPrefix, subnetCInfo)
+	log.Info("Set testnet subnet info", subnetAPrefix, subnetAInfo, subnetBPrefix, subnetBInfo)
 
 	fundedAddressStr := os.Getenv(userAddress)
 	fundedKeyStr := os.Getenv(userPrivateKey)
@@ -165,7 +160,6 @@ func NewTestNetwork() (*testNetwork, error) {
 	subnetsInfo := make(map[ids.ID]*interfaces.SubnetTestInfo)
 	subnetsInfo[subnetAInfo.SubnetID] = &subnetAInfo
 	subnetsInfo[subnetBInfo.SubnetID] = &subnetBInfo
-	subnetsInfo[subnetCInfo.SubnetID] = &subnetCInfo
 	return &testNetwork{
 		teleporterContractAddress: teleporterContractAddress,
 		primaryNetwork:            &cChainInfo,
@@ -316,8 +310,8 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 		Addresses: []common.Address{n.teleporterContractAddress},
 		Topics: [][]common.Hash{
 			{abi.Events[receiveCrossChainMessageEventName].ID},
-			{common.BytesToHash(sourceBlockchainID[:])},
 			{common.BytesToHash(teleporterMessageID[:])},
+			{common.BytesToHash(sourceBlockchainID[:])},
 		},
 	})
 	if err != nil {

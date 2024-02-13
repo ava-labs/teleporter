@@ -3,6 +3,7 @@ package flows
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -272,21 +273,25 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	// Get the sendCrossChainMessage event from SubnetA to SubnetC, which should be present
+	// Get the sendCrossChainMessage event from SubnetA to SubnetC, which should be present in
 	// the receipt of the transaction that delivered the first message from SubnetB to SubnetA.
 	event, err := utils.GetEventFromLogs(receipt.Logs, subnetATeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(subnetCInfo.BlockchainID[:]))
 	messageID = event.MessageID
 
-	// Check the redeemable reward balance of the relayer if the relayer address was set
-	updatedRewardAmount, err := subnetATeleporterMessenger.CheckRelayerRewardAmount(
-		&bind.CallOpts{},
-		receiveEvent.RewardRedeemer,
-		nativeERC20Address,
-	)
-	Expect(err).Should(BeNil())
-	Expect(updatedRewardAmount).Should(Equal(new(big.Int).Add(currentRewardAmount, primaryFeeAmount)))
+	// Check the redeemable reward balance of the relayer if the relayer address was set.
+	// If this is an external network, skip this check since it depends on the initial state of the receipt
+	// queue prior to the test run.
+	if !network.IsExternalNetwork() {
+		updatedRewardAmount, err := subnetATeleporterMessenger.CheckRelayerRewardAmount(
+			&bind.CallOpts{},
+			receiveEvent.RewardRedeemer,
+			nativeERC20Address,
+		)
+		Expect(err).Should(BeNil())
+		Expect(updatedRewardAmount).Should(Equal(new(big.Int).Add(currentRewardAmount, primaryFeeAmount)))
+	}
 
 	// Relay message from SubnetA to SubnetC
 	deliveryReceipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetCInfo, true)
@@ -358,13 +363,17 @@ func ERC20BridgeMultihop(network interfaces.Network) {
 	Expect(actualNativeTokenDefaultAccountBalance).Should(Equal(expectedAmount))
 
 	// Check the balance of the native token for the relayer, which should have received the fee rewards
-	updatedRewardAmount, err = subnetATeleporterMessenger.CheckRelayerRewardAmount(
-		&bind.CallOpts{},
-		receiveEvent.RewardRedeemer,
-		nativeERC20Address,
-	)
-	Expect(err).Should(BeNil())
-	Expect(updatedRewardAmount).Should(Equal(new(big.Int).Add(currentRewardAmount, secondaryFeeAmount)))
+	// If this is an external network, skip this check since it depends on the initial state of the receipt
+	// queue prior to the test run.
+	if !network.IsExternalNetwork() {
+		updatedRewardAmount, err := subnetATeleporterMessenger.CheckRelayerRewardAmount(
+			&bind.CallOpts{},
+			receiveEvent.RewardRedeemer,
+			nativeERC20Address,
+		)
+		Expect(err).Should(BeNil())
+		Expect(updatedRewardAmount).Should(Equal(new(big.Int).Add(currentRewardAmount, secondaryFeeAmount)))
+	}
 }
 
 func submitCreateBridgeToken(
@@ -402,7 +411,7 @@ func submitCreateBridgeToken(
 
 	log.Info("Successfully SubmitCreateBridgeToken",
 		"txHash", tx.Hash().Hex(),
-		"messageID", event.MessageID)
+		"messageID", hex.EncodeToString(event.MessageID[:]))
 
 	return receipt, event.MessageID
 }

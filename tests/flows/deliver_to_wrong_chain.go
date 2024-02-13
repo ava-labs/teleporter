@@ -32,7 +32,7 @@ func DeliverToWrongChain(network interfaces.Network) {
 	//
 	ctx := context.Background()
 	sendCrossChainMessageInput := teleportermessenger.TeleporterMessageInput{
-		DestinationBlockchainID: subnetBInfo.SubnetID, // Message intended for SubnetB
+		DestinationBlockchainID: subnetBInfo.BlockchainID, // Message intended for SubnetB
 		DestinationAddress:      common.HexToAddress("0x1111111111111111111111111111111111111111"),
 		FeeInfo: teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: fundedAddress,
