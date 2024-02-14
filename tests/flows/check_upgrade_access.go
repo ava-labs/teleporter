@@ -13,6 +13,7 @@ import (
 
 func CheckUpgradeAccess(network interfaces.Network) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
+	// subnetInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
@@ -27,13 +28,18 @@ func CheckUpgradeAccess(network interfaces.Network) {
 		subnetInfo,
 	)
 
+	// Check that owner is the funded address
+	owner, err := exampleMessenger.Owner(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	Expect(owner).Should(Equal(fundedAddress))
+
 	// Try to call updateMinTeleporterVersion from a non owner account
 	nonOwnerKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	nonOwnerAddress := crypto.PubkeyToAddress(nonOwnerKey.PublicKey)
 
 	// Transfer native assets to the non owner account
-	fundAmount := big.NewInt(1e18) // 1eth
+	fundAmount := big.NewInt(0.1e18) // 0.1avax
 	utils.SendNativeTransfer(
 		ctx,
 		subnetInfo,
@@ -62,8 +68,12 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	// Try to call pauseTeleporterAddress from the owner account
 	tx, err := exampleMessenger.PauseTeleporterAddress(ownerOpts, teleporterAddress)
 	Expect(err).Should(BeNil())
-	utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
-	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
+	receipt := utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+	pauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, exampleMessenger.ParseTeleporterAddressPaused)
+	Expect(err).Should(BeNil())
+	Expect(pauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
+
+	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{Accepted: false}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeTrue())
 
@@ -85,7 +95,10 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	// Try to call unpauseTeleporterAddress from the non owner account now
 	tx, err = exampleMessenger.UnpauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
 	Expect(err).Should(BeNil())
-	utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+	receipt = utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+	unpauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, exampleMessenger.ParseTeleporterAddressUnpaused)
+	Expect(err).Should(BeNil())
+	Expect(unpauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
 	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeFalse())
