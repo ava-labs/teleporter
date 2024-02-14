@@ -13,7 +13,6 @@ import (
 
 func CheckUpgradeAccess(network interfaces.Network) {
 	subnetInfo := network.GetPrimaryNetworkInfo()
-	// subnetInfo, _ := utils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
@@ -69,11 +68,12 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	tx, err := exampleMessenger.PauseTeleporterAddress(ownerOpts, teleporterAddress)
 	Expect(err).Should(BeNil())
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+	blockNum := receipt.BlockNumber
 	pauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, exampleMessenger.ParseTeleporterAddressPaused)
 	Expect(err).Should(BeNil())
 	Expect(pauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
 
-	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{Accepted: false}, teleporterAddress)
+	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{BlockNumber: blockNum}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeTrue())
 
@@ -96,10 +96,11 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	tx, err = exampleMessenger.UnpauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
 	Expect(err).Should(BeNil())
 	receipt = utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+	blockNum = receipt.BlockNumber
 	unpauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, exampleMessenger.ParseTeleporterAddressUnpaused)
 	Expect(err).Should(BeNil())
 	Expect(unpauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
-	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
+	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{BlockNumber: blockNum}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeFalse())
 }

@@ -34,21 +34,24 @@ func main() {
 	//   - UnallowedRelayer
 	//   - ValidatorSetChrun
 	//   - TeleporterRegistry
-	// runFlow("AddFeeAmount", flows.AddFeeAmount, network)
-	// runFlow("BasicSendRecevie", flows.BasicSendReceive, network)
-	// runFlow("DeliverToNonExistentContract", flows.DeliverToNonExistentContract, network)
-	// runFlow("DeliverToWrongChain", flows.DeliverToWrongChain, network)
-	// runFlow("InsufficientGas", flows.InsufficientGas, network)
-	// runFlow("RelayMessageTwice", flows.RelayMessageTwice, network)
-	// runFlow("ResubmitAlteredMessage", flows.ResubmitAlteredMessage, network)
-	// runFlow("RetrySuccessfulExecution", flows.RetrySuccessfulExecution, network)
-	// runFlow("SendSpecificReceipts", flows.SendSpecificReceipts, network)
-	// log.Info("Finished Teleporter test flows")
+	runFlow("AddFeeAmount", flows.AddFeeAmount, network)
+	runFlow("BasicSendRecevie", flows.BasicSendReceive, network)
+	runFlow("DeliverToNonExistentContract", flows.DeliverToNonExistentContract, network)
+	runFlow("DeliverToWrongChain", flows.DeliverToWrongChain, network)
+	runFlow("InsufficientGas", flows.InsufficientGas, network)
+	runFlow("RelayMessageTwice", flows.RelayMessageTwice, network)
+	runFlow("ResubmitAlteredMessage", flows.ResubmitAlteredMessage, network)
+	runFlow("RetrySuccessfulExecution", flows.RetrySuccessfulExecution, network)
+	runFlow("SendSpecificReceipts", flows.SendSpecificReceipts, network)
+	log.Info("Finished Teleporter test flows")
 
-	// // Run the cross-chain application test flows.
-	// runFlow("ExampleMessenger", flows.ExampleMessenger, network)
-	// runFlow("ERC20BridgeMutlihop", flows.ERC20BridgeMultihop, network)
-	// log.Info("Finished cross-chain application test flows")
+	// Run the cross-chain application test flows.
+	runFlow("ExampleMessenger", flows.ExampleMessenger, network)
+	runFlow("ERC20BridgeMutlihop", flows.ERC20BridgeMultihop, network)
+	log.Info("Finished cross-chain application test flows")
+
+	// Run the upgradeability test flows
 	runFlow("CheckUpgradeAccess", flows.CheckUpgradeAccess, network)
-	// runFlow("PauseTeleporter", flows.PauseTeleporter, network)
+	runFlow("PauseTeleporter", flows.PauseTeleporter, network)
+	log.Info("Finished upgradeability test flows")
 }
