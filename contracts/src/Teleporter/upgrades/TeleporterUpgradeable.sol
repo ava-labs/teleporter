@@ -7,9 +7,11 @@ pragma solidity 0.8.18;
 
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
-import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
+import {ITeleporterMessenger, TeleporterMessageInput} from "../ITeleporterMessenger.sol";
 import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
+import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFrom.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
@@ -22,6 +24,8 @@ import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/Reentrancy
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     // The Teleporter registry contract manages different Teleporter contract versions.
     TeleporterRegistry public immutable teleporterRegistry;
     /**
@@ -216,6 +220,33 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, Reentra
      * This function should be overridden by contracts that inherit from this contract.
      */
     function _checkTeleporterUpgradeAccess() internal virtual;
+
+    /**
+     * @dev Sends a cross chain message using the TeleporterMessenger contract.
+     * @return `messageID` The unique identifier for the Teleporter message.
+     * @return `adjustedFeeAmount` The adjusted fee amount after transferring the fee token.
+     */
+    function _sendTeleporterMessage(TeleporterMessageInput memory messageInput)
+        internal
+        virtual
+        returns (bytes32, uint256)
+    {
+        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
+        // For non-zero fee amounts, first transfer the fee to this contract, and then
+        // allow the Teleporter contract to spend it.
+        uint256 adjustedFeeAmount;
+        if (messageInput.feeInfo.amount > 0) {
+            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
+                IERC20(messageInput.feeInfo.feeTokenAddress), messageInput.feeInfo.amount
+            );
+            IERC20(messageInput.feeInfo.feeTokenAddress).safeIncreaseAllowance(
+                address(teleporterMessenger), adjustedFeeAmount
+            );
+            messageInput.feeInfo.amount = adjustedFeeAmount;
+        }
+        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(messageInput);
+        return (messageID, adjustedFeeAmount);
+    }
 
     /**
      * @dev Returns the Teleporter messenger used to send Teleporter messages,
