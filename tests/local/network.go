@@ -302,15 +302,13 @@ func (n *LocalNetwork) DeployTeleporterContracts(
 			Expect(err).Should(BeNil())
 			defer rpcClient.Close()
 
-			newHeads := make(chan *types.Header, 10)
-			sub, err := subnetInfo.WSClient.SubscribeNewHead(ctx, newHeads)
+			txHash := &common.Hash{}
+			err = rpcClient.CallContext(ctx, txHash, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
 			Expect(err).Should(BeNil())
-			defer sub.Unsubscribe()
-
-			err = rpcClient.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
+			tx, _, err := subnetInfo.RPCClient.TransactionByHash(ctx, *txHash)
 			Expect(err).Should(BeNil())
+			utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
 
-			<-newHeads
 			teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
 			Expect(err).Should(BeNil())
 			Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
