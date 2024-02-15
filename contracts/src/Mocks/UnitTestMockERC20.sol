@@ -14,6 +14,7 @@ pragma solidity 0.8.18;
 contract UnitTestMockERC20 {
     mapping(address account => uint256 balance) public mockBalances;
     mapping(address sender => uint256 feeAmount) public feeOnTransferSenders;
+    mapping(address owner => mapping(address spender => uint256)) public mockAllowances;
 
     // If an address on feeOnTransferSenders is the sender address in a transferFrom call,
     // the amount credited to the receiving account is reduced by the feeAmount set for the
@@ -40,7 +41,16 @@ contract UnitTestMockERC20 {
         return true;
     }
 
+    function approve(address spender, uint256 amount) public returns (bool) {
+        mockAllowances[msg.sender][spender] = amount;
+        return true;
+    }
+
     function balanceOf(address account) public view returns (uint256) {
         return mockBalances[account];
+    }
+
+    function allowance(address owner, address spender) public view returns (uint256) {
+        return mockAllowances[owner][spender];
     }
 }

@@ -224,18 +224,21 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, Reentra
     /**
      * @dev Sends a cross chain message using the TeleporterMessenger contract.
      * @return `messageID` The unique identifier for the Teleporter message.
-     * @return `adjustedFeeAmount` The adjusted fee amount after transferring the fee token.
      */
     function _sendTeleporterMessage(TeleporterMessageInput memory messageInput)
         internal
         virtual
-        returns (bytes32, uint256)
+        returns (bytes32)
     {
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
         // For non-zero fee amounts, first transfer the fee to this contract, and then
         // allow the Teleporter contract to spend it.
         uint256 adjustedFeeAmount;
         if (messageInput.feeInfo.amount > 0) {
+            require(
+                messageInput.feeInfo.feeTokenAddress != address(0),
+                "TeleporterUpgradeable: zero fee token address"
+            );
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
                 IERC20(messageInput.feeInfo.feeTokenAddress), messageInput.feeInfo.amount
             );
@@ -244,8 +247,7 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, Reentra
             );
             messageInput.feeInfo.amount = adjustedFeeAmount;
         }
-        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(messageInput);
-        return (messageID, adjustedFeeAmount);
+        return teleporterMessenger.sendCrossChainMessage(messageInput);
     }
 
     /**

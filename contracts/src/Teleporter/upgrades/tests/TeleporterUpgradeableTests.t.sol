@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterRegistryTest} from "./TeleporterRegistryTests.t.sol";
-import {ITeleporterMessenger} from "../../ITeleporterMessenger.sol";
+import {ITeleporterMessenger, TeleporterMessageInput} from "../../ITeleporterMessenger.sol";
 import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
@@ -17,6 +17,10 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
 
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
+    }
+
+    function sendTeleporterMessage(TeleporterMessageInput calldata messageInput) public {
+        _sendTeleporterMessage(messageInput);
     }
 
     function getTeleporterMessenger() public view returns (ITeleporterMessenger) {
@@ -37,7 +41,9 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     ExampleUpgradeableApp public app;
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-
+    bytes32 public constant DEFAULT_DESTINATION_BLOCKCHAIN_ID =
+        bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
+    address public constant DEFAULT_DESTINATION_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_ORIGIN_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
 
     event MinTeleporterVersionUpdated(
