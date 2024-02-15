@@ -6,16 +6,12 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
+import {ERC20Bridge, BridgeToken, IERC20, ERC20, IWarpMessenger} from "../ERC20Bridge.sol";
 import {
-    ERC20Bridge,
-    BridgeToken,
-    IERC20,
-    ERC20,
+    ITeleporterMessenger,
     TeleporterMessageInput,
-    TeleporterFeeInfo,
-    IWarpMessenger,
-    ITeleporterMessenger
-} from "../ERC20Bridge.sol";
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 

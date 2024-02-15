@@ -7,12 +7,12 @@ pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
 import {ITokenSource} from "../ITokenSource.sol";
+import {ERC20TokenSource} from "../ERC20TokenSource.sol";
 import {
-    ERC20TokenSource,
+    ITeleporterMessenger,
     TeleporterMessageInput,
-    TeleporterFeeInfo,
-    ITeleporterMessenger
-} from "../ERC20TokenSource.sol";
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 
 contract ERC20TokenSourceTest is NativeTokenBridgeTest {
     ERC20TokenSource public erc20TokenSource;

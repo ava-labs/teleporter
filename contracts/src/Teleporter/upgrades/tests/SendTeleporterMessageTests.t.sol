@@ -108,7 +108,7 @@ contract SendTeleporterMessageTest is TeleporterUpgradeableTest {
         );
         vm.expectCall(
             address(_mockFeeAsset),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
+            abi.encodeCall(IERC20.allowance, (address(app), address(teleporterAddress)))
         );
         vm.expectCall(
             address(app.getTeleporterMessenger()),
@@ -129,34 +129,13 @@ contract SendTeleporterMessageTest is TeleporterUpgradeableTest {
             message: new bytes(0)
         });
 
-        // We expect a call to the fee asset address, but since we did not
-        // mock it there is no code there to execute.
-        vm.expectCall(invalidFeeAsset, abi.encodeCall(IERC20.balanceOf, (address(app))));
-        vm.expectRevert();
-        app.sendTeleporterMessage(messageInput);
-    }
-
-    function testFeeTransferFailure() public {
-        uint256 feeAmount = 1;
-        TeleporterMessageInput memory messageInput = TeleporterMessageInput({
-            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            destinationAddress: DEFAULT_DESTINATION_ADDRESS,
-            feeInfo: TeleporterFeeInfo(address(_mockFeeAsset), feeAmount),
-            requiredGasLimit: 0,
-            allowedRelayerAddresses: new address[](0),
-            message: new bytes(0)
-        });
-
-        vm.mockCall(
-            address(_mockFeeAsset),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount)),
-            abi.encode(false)
-        );
+        // Expect a call to check for allowance, but because we provide an invalid
+        // fee asset address, the call will revert.
         vm.expectCall(
-            address(_mockFeeAsset),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
+            invalidFeeAsset,
+            abi.encodeCall(IERC20.allowance, (address(app), address(teleporterAddress)))
         );
-        vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+        vm.expectRevert();
         app.sendTeleporterMessage(messageInput);
     }
 

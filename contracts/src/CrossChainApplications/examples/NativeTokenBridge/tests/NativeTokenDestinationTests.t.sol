@@ -7,12 +7,12 @@ pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
 import {ITokenSource} from "../ITokenSource.sol";
+import {NativeTokenDestination} from "../NativeTokenDestination.sol";
 import {
-    NativeTokenDestination,
+    ITeleporterMessenger,
     TeleporterMessageInput,
-    TeleporterFeeInfo,
-    ITeleporterMessenger
-} from "../NativeTokenDestination.sol";
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 

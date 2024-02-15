@@ -5,11 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {
-    ITeleporterMessenger,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFrom.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
@@ -71,16 +67,11 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
         uint256 requiredGasLimit,
         string calldata message
     ) external nonReentrant returns (bytes32) {
-        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
-        // For non-zero fee amounts, first transfer the fee to this contract, and then
-        // allow the Teleporter contract to spend it.
+        // For non-zero fee amounts, first transfer the fee to this contract.
         uint256 adjustedFeeAmount;
         if (feeAmount > 0) {
             adjustedFeeAmount =
                 SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
-            IERC20(feeTokenAddress).safeIncreaseAllowance(
-                address(teleporterMessenger), adjustedFeeAmount
-            );
         }
 
         emit SendMessage({
@@ -91,7 +82,7 @@ contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeab
             requiredGasLimit: requiredGasLimit,
             message: message
         });
-        return teleporterMessenger.sendCrossChainMessage(
+        return _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: destinationAddress,

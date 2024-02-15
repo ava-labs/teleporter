@@ -7,12 +7,12 @@ pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
 import {ITokenSource} from "../ITokenSource.sol";
+import {NativeTokenSource} from "../NativeTokenSource.sol";
 import {
-    NativeTokenSource,
+    ITeleporterMessenger,
     TeleporterMessageInput,
-    TeleporterFeeInfo,
-    ITeleporterMessenger
-} from "../NativeTokenSource.sol";
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 
 contract NativeTokenSourceTest is NativeTokenBridgeTest {
     NativeTokenSource public nativeTokenSource;

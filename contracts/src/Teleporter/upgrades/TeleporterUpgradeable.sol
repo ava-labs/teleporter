@@ -10,7 +10,7 @@ import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "../ITeleporterMessenger.sol";
 import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
-import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFrom.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 /**
@@ -233,19 +233,14 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, Reentra
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
         // For non-zero fee amounts, first transfer the fee to this contract, and then
         // allow the Teleporter contract to spend it.
-        uint256 adjustedFeeAmount;
         if (messageInput.feeInfo.amount > 0) {
             require(
                 messageInput.feeInfo.feeTokenAddress != address(0),
                 "TeleporterUpgradeable: zero fee token address"
             );
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(messageInput.feeInfo.feeTokenAddress), messageInput.feeInfo.amount
-            );
             IERC20(messageInput.feeInfo.feeTokenAddress).safeIncreaseAllowance(
-                address(teleporterMessenger), adjustedFeeAmount
+                address(teleporterMessenger), messageInput.feeInfo.amount
             );
-            messageInput.feeInfo.amount = adjustedFeeAmount;
         }
         return teleporterMessenger.sendCrossChainMessage(messageInput);
     }
