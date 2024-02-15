@@ -223,6 +223,8 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, Reentra
 
     /**
      * @dev Sends a cross chain message using the TeleporterMessenger contract.
+     * Also increases the Teleporter contract's allowance for the fee token if the fee amount is non-zero.
+     *
      * @return `messageID` The unique identifier for the Teleporter message.
      */
     function _sendTeleporterMessage(TeleporterMessageInput memory messageInput)
@@ -231,8 +233,7 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, Reentra
         returns (bytes32)
     {
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
-        // For non-zero fee amounts, first transfer the fee to this contract, and then
-        // allow the Teleporter contract to spend it.
+        // For non-zero fee amounts increase the Teleporter contract's allowance.
         if (messageInput.feeInfo.amount > 0) {
             require(
                 messageInput.feeInfo.feeTokenAddress != address(0),
