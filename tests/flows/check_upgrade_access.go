@@ -73,6 +73,8 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(pauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
 
+	// We pass the block number to the call options because the Fuji C-chain endpoint is load balanced,
+	// and between consecutive calls we might be reaching different nodes with different states.
 	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{BlockNumber: blockNum}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeTrue())
@@ -100,6 +102,9 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	unpauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, exampleMessenger.ParseTeleporterAddressUnpaused)
 	Expect(err).Should(BeNil())
 	Expect(unpauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
+
+	// We pass the block number to the call options because the Fuji C-chain endpoint is load balanced,
+	// and between consecutive calls we might be reaching different nodes with different states.
 	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{BlockNumber: blockNum}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeFalse())
