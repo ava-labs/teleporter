@@ -113,7 +113,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	tx, err := exampleMessengerB.UpdateMinTeleporterVersion(opts, latestVersionB)
 	Expect(err).Should(BeNil())
 
-	receipt := utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx)
+	receipt := utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx.Hash())
 
 	// Verify that minTeleporterVersion updated
 	minTeleporterVersionUpdatedEvent, err := utils.GetEventFromLogs(
