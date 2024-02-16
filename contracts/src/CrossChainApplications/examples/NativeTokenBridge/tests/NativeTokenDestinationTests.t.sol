@@ -38,15 +38,15 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             abi.encodeWithSelector(INativeMinter.mintNativeCoin.selector),
             ""
         );
-        nativeTokenDestination = new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            _DEFAULT_TOKEN_MULTIPLIER,
-            true
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            multiplyOnSend_: true
+        });
     }
 
     function collateralizeBridge() public {
@@ -64,7 +64,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE * _DEFAULT_TOKEN_MULTIPLIER)
+            abi.encode(
+                _DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE * _DEFAULT_TOKEN_MULTIPLIER
+            )
         );
     }
 
@@ -107,16 +109,16 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     }
 
     function testTransferToSourceDivideOnSend() public {
-        nativeTokenDestination = new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            _DEFAULT_TOKEN_MULTIPLIER,
-            false
-        );
-        
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            multiplyOnSend_: false
+        });
+
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit CollateralAdded({amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE, remaining: 0});
 
@@ -131,7 +133,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE / _DEFAULT_TOKEN_MULTIPLIER)
+            abi.encode(
+                _DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE / _DEFAULT_TOKEN_MULTIPLIER
+            )
         );
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
@@ -210,7 +214,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE * _DEFAULT_TOKEN_MULTIPLIER)
+            abi.encode(
+                _DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE * _DEFAULT_TOKEN_MULTIPLIER
+            )
         );
 
         assertEq(0, nativeTokenDestination.currentReserveImbalance());
@@ -237,7 +243,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             }),
             requiredGasLimit: nativeTokenDestination.REPORT_BURNED_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedFees * _DEFAULT_TOKEN_MULTIPLIER))
+            message: abi.encode(
+                ITokenSource.SourceAction.Burn, abi.encode(burnedFees * _DEFAULT_TOKEN_MULTIPLIER)
+                )
         });
 
         vm.expectCall(
@@ -269,89 +277,87 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     function testZeroTeleporterAddress() public {
         vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
 
-        new NativeTokenDestination(
-            address(0x0),
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            _DEFAULT_TOKEN_MULTIPLIER,
-            true
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: address(0x0),
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            multiplyOnSend_: true
+        });
     }
 
     function testZeroSourceBlockchainID() public {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source blockchain ID"));
 
-        new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            bytes32(0),
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            _DEFAULT_TOKEN_MULTIPLIER,
-            true
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: bytes32(0),
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            multiplyOnSend_: true
+        });
     }
 
     function testSameBlockchainID() public {
         vm.expectRevert(
             _formatNativeTokenDestinationErrorMessage("cannot bridge with same blockchain")
         );
-
-        new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _MOCK_BLOCKCHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            _DEFAULT_TOKEN_MULTIPLIER,
-            true
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _MOCK_BLOCKCHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            multiplyOnSend_: true
+        });
     }
 
     function testZeroMultiplier() public {
-        vm.expectRevert(
-            _formatNativeTokenDestinationErrorMessage("zero tokenMultiplier")
-        );
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero tokenMultiplier"));
 
-        new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            0,
-            true
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            tokenMultiplier_: 0,
+            multiplyOnSend_: true
+        });
     }
 
     function testZeroSourceContractAddress() public {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source contract address"));
 
-        new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            address(0x0),
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            _DEFAULT_TOKEN_MULTIPLIER,
-            true
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: address(0),
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            multiplyOnSend_: true
+        });
     }
 
     function testZeroInitialReserveImbalance() public {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero initial reserve imbalance"));
 
-        new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            0,
-            _DEFAULT_TOKEN_MULTIPLIER,
-            true
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: 0,
+            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            multiplyOnSend_: true
+        
+        });
     }
 
     function testInvalidTeleporterAddress() public {

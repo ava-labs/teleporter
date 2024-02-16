@@ -155,7 +155,9 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 feeInfo: feeInfo,
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(recipient, scaledAmount))
+                message: abi.encode(
+                    ITokenSource.SourceAction.Unlock, abi.encode(recipient, scaledAmount)
+                    )
             })
         );
 
@@ -257,7 +259,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
         require(amount != 0, "NativeTokenDestination: zero transfer value");
-        
+
         uint256 scaledAmount;
         if (multiplyOnSend) {
             scaledAmount = amount / tokenMultiplier;
