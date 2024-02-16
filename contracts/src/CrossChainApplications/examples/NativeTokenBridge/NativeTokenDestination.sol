@@ -60,12 +60,24 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     uint256 public currentReserveImbalance;
     uint256 public totalMinted;
 
+    // tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
+    // the source chain. This can be used to normalize the number of decimals places between
+    // the two subnets.
+    uint256 public immutable tokenMultiplier;
+    // If multiplyOnSend is true, the number of tokens sent to the destination chain will be multiplied
+    // by `tokenMultiplier`, and tokens received from the source chain will be divided by `tokenMultiplier`.
+    // If multiplyOnSend is false, the number of tokens sent to the destination chain will be divided
+    // by `tokenMultiplier`, and tokens received from the source chain will be divided by `tokenMultiplier`.
+    bool public immutable multiplyOnSend;
+
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
         bytes32 sourceBlockchainID_,
         address nativeTokenSourceAddress_,
-        uint256 initialReserveImbalance_
+        uint256 initialReserveImbalance_,
+        uint256 tokenMultiplier_,
+        bool multiplyOnSend_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         require(
             sourceBlockchainID_ != bytes32(0), "NativeTokenDestination: zero source blockchain ID"
@@ -89,6 +101,10 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
 
         initialReserveImbalance = initialReserveImbalance_;
         currentReserveImbalance = initialReserveImbalance_;
+
+        require(tokenMultiplier_ != 0, "NativeTokenDestination: zero tokenMultiplier");
+        tokenMultiplier = tokenMultiplier_;
+        multiplyOnSend = multiplyOnSend_;
     }
 
     /**
@@ -123,6 +139,13 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
         Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), msg.value);
 
+        uint256 scaledAmount;
+        if (multiplyOnSend) {
+            scaledAmount = msg.value * tokenMultiplier;
+        } else {
+            scaledAmount = msg.value / tokenMultiplier;
+        }
+
         bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
@@ -130,14 +153,14 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 feeInfo: feeInfo,
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(recipient, msg.value))
+                message: abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(recipient, scaledAmount))
             })
         );
 
         emit TransferToSource({
             sender: msg.sender,
             recipient: recipient,
-            amount: msg.value,
+            amount: scaledAmount,
             teleporterMessageID: messageID
         });
     }
@@ -152,6 +175,14 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
         uint256 totalBurnedTxFees = BURNED_TX_FEES_ADDRESS.balance;
+
+        uint256 scaledAmount;
+        if (multiplyOnSend) {
+            scaledAmount = totalBurnedTxFees * tokenMultiplier;
+        } else {
+            scaledAmount = totalBurnedTxFees / tokenMultiplier;
+        }
+
         bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
@@ -159,13 +190,13 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 feeInfo: feeInfo,
                 requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(totalBurnedTxFees))
+                message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(scaledAmount))
             })
         );
 
         emit ReportTotalBurnedTxFees({
             teleporterMessageID: messageID,
-            burnAddressBalance: totalBurnedTxFees
+            burnAddressBalance: scaledAmount
         });
     }
 
@@ -211,19 +242,26 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
         require(amount != 0, "NativeTokenDestination: zero transfer value");
+        
+        uint256 scaledAmount;
+        if (multiplyOnSend) {
+            scaledAmount = amount / tokenMultiplier;
+        } else {
+            scaledAmount = amount * tokenMultiplier;
+        }
 
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
         // be minted and sent to the recipient.
-        uint256 adjustedAmount = amount;
+        uint256 adjustedAmount = scaledAmount;
         if (currentReserveImbalance > 0) {
-            if (amount > currentReserveImbalance) {
+            if (scaledAmount > currentReserveImbalance) {
                 emit CollateralAdded({amount: currentReserveImbalance, remaining: 0});
-                adjustedAmount = amount - currentReserveImbalance;
+                adjustedAmount = scaledAmount - currentReserveImbalance;
                 currentReserveImbalance = 0;
             } else {
-                currentReserveImbalance -= amount;
-                emit CollateralAdded({amount: amount, remaining: currentReserveImbalance});
+                currentReserveImbalance -= scaledAmount;
+                emit CollateralAdded({amount: scaledAmount, remaining: currentReserveImbalance});
                 return;
             }
         }

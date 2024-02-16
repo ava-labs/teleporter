@@ -18,6 +18,7 @@ import {INativeMinter} from
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     NativeTokenDestination public nativeTokenDestination;
+    uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 2;
 
     event TransferToSource(
         address indexed sender,
@@ -41,7 +42,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            _DEFAULT_TOKEN_MULTIPLIER,
+            true
         );
     }
 
@@ -60,7 +63,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE)
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE * _DEFAULT_TOKEN_MULTIPLIER)
         );
     }
 
@@ -71,7 +74,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         emit TransferToSource({
             sender: address(this),
             recipient: _DEFAULT_RECIPIENT,
-            amount: _DEFAULT_TRANSFER_AMOUNT,
+            amount: _DEFAULT_TRANSFER_AMOUNT * _DEFAULT_TOKEN_MULTIPLIER,
             teleporterMessageID: _MOCK_MESSAGE_ID
         });
 
@@ -86,7 +89,70 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             allowedRelayerAddresses: new address[](0),
             message: abi.encode(
                 ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
+                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT * _DEFAULT_TOKEN_MULTIPLIER)
+                )
+        });
+
+        vm.expectCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
+        );
+
+        nativeTokenDestination.transferToSource{value: _DEFAULT_TRANSFER_AMOUNT}(
+            _DEFAULT_RECIPIENT,
+            TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
+            new address[](0)
+        );
+    }
+
+    function testTransferToSourceDivideOnSend() public {
+        nativeTokenDestination = new NativeTokenDestination(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            _DEFAULT_TOKEN_MULTIPLIER,
+            false
+        );
+        
+        vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
+        emit CollateralAdded({amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE, remaining: 0});
+
+        // We shouldn't mint anything here.
+        vm.expectCall(
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(INativeMinter.mintNativeCoin.selector),
+            0
+        );
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        nativeTokenDestination.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE / _DEFAULT_TOKEN_MULTIPLIER)
+        );
+
+        vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
+        emit TransferToSource({
+            sender: address(this),
+            recipient: _DEFAULT_RECIPIENT,
+            amount: _DEFAULT_TRANSFER_AMOUNT / _DEFAULT_TOKEN_MULTIPLIER,
+            teleporterMessageID: _MOCK_MESSAGE_ID
+        });
+
+        TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
+            destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
+            destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(mockERC20),
+                amount: _DEFAULT_FEE_AMOUNT
+            }),
+            requiredGasLimit: nativeTokenDestination.TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
+            allowedRelayerAddresses: new address[](0),
+            message: abi.encode(
+                ITokenSource.SourceAction.Unlock,
+                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT / _DEFAULT_TOKEN_MULTIPLIER)
                 )
         });
 
@@ -117,7 +183,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(_DEFAULT_RECIPIENT, firstTransfer)
+            abi.encode(_DEFAULT_RECIPIENT, firstTransfer * _DEFAULT_TOKEN_MULTIPLIER)
         );
 
         assertEq(
@@ -143,7 +209,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE)
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE * _DEFAULT_TOKEN_MULTIPLIER)
         );
 
         assertEq(0, nativeTokenDestination.currentReserveImbalance());
@@ -158,7 +224,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit ReportTotalBurnedTxFees({
             teleporterMessageID: _MOCK_MESSAGE_ID,
-            burnAddressBalance: burnedFees
+            burnAddressBalance: burnedFees * _DEFAULT_TOKEN_MULTIPLIER
         });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
@@ -170,7 +236,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             }),
             requiredGasLimit: nativeTokenDestination.REPORT_BURNED_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedFees))
+            message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedFees * _DEFAULT_TOKEN_MULTIPLIER))
         });
 
         vm.expectCall(
@@ -192,7 +258,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            _DEFAULT_TOKEN_MULTIPLIER,
+            true
         );
     }
 
@@ -204,7 +272,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             _DEFAULT_OWNER_ADDRESS,
             bytes32(0),
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            _DEFAULT_TOKEN_MULTIPLIER,
+            true
         );
     }
 
@@ -218,7 +288,25 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             _DEFAULT_OWNER_ADDRESS,
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            _DEFAULT_TOKEN_MULTIPLIER,
+            true
+        );
+    }
+
+    function testZeroMultiplier() public {
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage("zero tokenMultiplier")
+        );
+
+        new NativeTokenDestination(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            _DEFAULT_OWNER_ADDRESS,
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            0,
+            true
         );
     }
 
@@ -230,7 +318,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x0),
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
+            _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            _DEFAULT_TOKEN_MULTIPLIER,
+            true
         );
     }
 
@@ -242,7 +332,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             _DEFAULT_OWNER_ADDRESS,
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            0
+            0,
+            _DEFAULT_TOKEN_MULTIPLIER,
+            true
         );
     }
 

@@ -114,6 +114,8 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			sourceSubnet.BlockchainID,
 			bridgeContractAddress,
 			initialReserveImbalance,
+			big.NewInt(1),
+			true,
 		)
 
 		log.Info("Finished deploying Bridge contracts")
