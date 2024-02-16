@@ -34,6 +34,7 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
+	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/rpc"
@@ -537,8 +538,6 @@ func waitForTransaction(
 	return receipt
 }
 
-var NotFound = errors.New("not found")
-
 // WaitMined waits for tx to be mined on the blockchain.
 // It stops waiting when the context is canceled.
 // Takes a tx hash instead of the full tx in the subnet-evm version of this function.
@@ -554,7 +553,7 @@ func WaitMined(ctx context.Context, b bind.DeployBackend, txHash common.Hash) (*
 			return receipt, nil
 		}
 
-		if errors.Is(err, NotFound) {
+		if errors.Is(err, subnetEvmInterfaces.NotFound) {
 			log.Debug("Transaction not yet mined")
 		} else {
 			log.Error("Receipt retrieval failed", "err", err)
