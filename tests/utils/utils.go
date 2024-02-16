@@ -541,7 +541,7 @@ func waitForTransaction(
 // WaitMined waits for tx to be mined on the blockchain.
 // It stops waiting when the context is canceled.
 // Takes a tx hash instead of the full tx in the subnet-evm version of this function.
-// Copied an modified from https://github.com/ava-labs/subnet-evm/blob/v0.6.0-fuji/accounts/abi/bind/util.go#L42
+// Copied and modified from https://github.com/ava-labs/subnet-evm/blob/v0.6.0-fuji/accounts/abi/bind/util.go#L42
 func WaitMined(ctx context.Context, b bind.DeployBackend, txHash common.Hash) (*types.Receipt, error) {
 	queryTicker := time.NewTicker(200 * time.Millisecond)
 	defer queryTicker.Stop()
