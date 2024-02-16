@@ -106,6 +106,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         require(
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
+        uint256 value = msg.value;
+        require(value > 0, "NativeTokenDestination: zero transfer value");
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
@@ -121,7 +123,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         }
 
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
-        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), msg.value);
+        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
 
         bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
@@ -130,14 +132,14 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 feeInfo: feeInfo,
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(recipient, msg.value))
+                message: abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(recipient, value))
             })
         );
 
         emit TransferToSource({
             sender: msg.sender,
             recipient: recipient,
-            amount: msg.value,
+            amount: value,
             teleporterMessageID: messageID
         });
     }
@@ -151,12 +153,25 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     ) external {
         ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
 
+        uint256 adjustedFeeAmount;
+        if (feeInfo.amount > 0) {
+            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
+                IERC20(feeInfo.feeTokenAddress), feeInfo.amount
+            );
+            SafeERC20.safeIncreaseAllowance(
+                IERC20(feeInfo.feeTokenAddress), address(teleporterMessenger), adjustedFeeAmount
+            );
+        }
+
         uint256 totalBurnedTxFees = BURNED_TX_FEES_ADDRESS.balance;
         bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
-                feeInfo: feeInfo,
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: feeInfo.feeTokenAddress,
+                    amount: adjustedFeeAmount
+                }),
                 requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
                 message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(totalBurnedTxFees))

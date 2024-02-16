@@ -54,6 +54,8 @@ contract NativeTokenSource is INativeTokenSource, TokenSource {
 
         // The recipient cannot be the zero address.
         require(recipient != address(0), "NativeTokenSource: zero recipient address");
+        uint256 value = msg.value;
+        require(value > 0, "NativeTokenSource: zero transfer value");
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
@@ -75,14 +77,14 @@ contract NativeTokenSource is INativeTokenSource, TokenSource {
                 feeInfo: feeInfo,
                 requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(recipient, msg.value)
+                message: abi.encode(recipient, value)
             })
         );
 
         emit TransferToDestination({
             sender: msg.sender,
             recipient: recipient,
-            amount: msg.value,
+            amount: value,
             teleporterMessageID: messageID
         });
     }
