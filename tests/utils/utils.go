@@ -545,9 +545,11 @@ var NotFound = errors.New("not found")
 func WaitMined(ctx context.Context, b bind.DeployBackend, txHash common.Hash) (*types.Receipt, error) {
 	queryTicker := time.NewTicker(200 * time.Millisecond)
 	defer queryTicker.Stop()
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 
 	for {
-		receipt, err := b.TransactionReceipt(ctx, txHash)
+		receipt, err := b.TransactionReceipt(cctx, txHash)
 		if err == nil {
 			return receipt, nil
 		}
@@ -556,11 +558,12 @@ func WaitMined(ctx context.Context, b bind.DeployBackend, txHash common.Hash) (*
 			log.Debug("Transaction not yet mined")
 		} else {
 			log.Error("Receipt retrieval failed", "err", err)
+			return nil, err
 		}
 
 		// Wait for the next round.
 		select {
-		case <-ctx.Done():
+		case <-cctx.Done():
 			return nil, ctx.Err()
 		case <-queryTicker.C:
 		}
