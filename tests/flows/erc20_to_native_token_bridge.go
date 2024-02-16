@@ -132,17 +132,17 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 	// Create abi objects to call the contract with
 	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(
 		bridgeContractAddress,
-		destSubnet.WSClient,
+		destSubnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	erc20TokenSource, err := erc20tokensource.NewERC20TokenSource(
 		bridgeContractAddress,
-		sourceSubnet.WSClient,
+		sourceSubnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	exampleERC20, err := exampleerc20.NewExampleERC20(
 		exampleERC20ContractAddress,
-		sourceSubnet.WSClient,
+		sourceSubnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 
@@ -162,7 +162,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 	{
 		// Transfer some tokens A -> B
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
@@ -194,13 +194,13 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
 	}
 
 	{
 		// Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, destSubnet.EVMChainID)
 		Expect(err).Should(BeNil())
@@ -217,13 +217,13 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
 		// Check we failed to send because we're not collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
 	}
 
 	{
 		// Transfer more tokens A -> B to collateralize the bridge
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
 
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
@@ -256,7 +256,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		checkReserveImbalance(common.Big0, nativeTokenDestination)
 
 		// We should have minted the excess coins after checking the collateral
-		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, destSubnet.RPCClient)
 	}
 
 	{
