@@ -122,19 +122,19 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 	// Create abi objects to call the contract with
 	nativeTokenDestination, err := nativetokendestination.NewNativeTokenDestination(
 		bridgeContractAddress,
-		destSubnet.WSClient,
+		destSubnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	nativeTokenSource, err := nativetokensource.NewNativeTokenSource(
 		bridgeContractAddress,
-		sourceSubnet.WSClient,
+		sourceSubnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 
 	{
 		// Transfer some tokens A -> B
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
 
 		checkReserveImbalance(initialReserveImbalance, nativeTokenDestination)
 
@@ -168,13 +168,13 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).ShouldNot(BeNil())
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
 	}
 
 	{
 		// Fail to Transfer tokens B -> A because bridge is not collateralized
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, sourceSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, sourceSubnet.RPCClient)
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, destSubnet.EVMChainID)
 		Expect(err).Should(BeNil())
@@ -190,13 +190,13 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).ShouldNot(BeNil())
 
 		// Check we should fail to send because we're not collateralized
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, sourceSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, sourceSubnet.RPCClient)
 	}
 
 	{
 		// Transfer more tokens A -> B to collateralize the bridge
 		// Check starting balance is 0
-		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
 		checkReserveImbalance(
 			big.NewInt(0).Sub(initialReserveImbalance, valueToSend),
 			nativeTokenDestination,
@@ -229,7 +229,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		checkReserveImbalance(common.Big0, nativeTokenDestination)
 
 		// We should have minted the excess coins after checking the collateral
-		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, destSubnet.WSClient)
+		utils.CheckBalance(ctx, tokenReceiverAddress, valueToSend, destSubnet.RPCClient)
 	}
 
 	{
