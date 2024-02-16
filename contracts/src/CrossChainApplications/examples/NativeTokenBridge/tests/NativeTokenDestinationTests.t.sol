@@ -15,6 +15,7 @@ import {
 } from "../NativeTokenDestination.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     NativeTokenDestination public nativeTokenDestination;
@@ -244,6 +245,21 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
 
+        vm.expectCall(
+            address(mockERC20),
+            abi.encodeCall(
+                IERC20.transferFrom,
+                (address(this), address(nativeTokenDestination), _DEFAULT_FEE_AMOUNT)
+            )
+        );
+        vm.expectCall(
+            address(mockERC20),
+            abi.encodeCall(
+                IERC20.allowance,
+                (address(nativeTokenDestination), MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            )
+        );
+
         nativeTokenDestination.reportTotalBurnedTxFees(
             TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
             new address[](0)
@@ -408,6 +424,17 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("contract undercollateralized"));
 
         nativeTokenDestination.transferToSource{value: _DEFAULT_TRANSFER_AMOUNT}(
+            _DEFAULT_RECIPIENT,
+            TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
+            new address[](0)
+        );
+    }
+
+    function testTransferZeroAmount() public {
+        collateralizeBridge();
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero transfer value"));
+
+        nativeTokenDestination.transferToSource{value: 0}(
             _DEFAULT_RECIPIENT,
             TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
             new address[](0)
