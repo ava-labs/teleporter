@@ -270,6 +270,20 @@ contract ERC20TokenSourceTest is NativeTokenBridgeTest {
         );
     }
 
+    function testTransferZeroAmount() public {
+        vm.expectRevert(_formatERC20TokenSourceErrorMessage("zero transfer amount"));
+
+        erc20TokenSource.transferToDestination(_DEFAULT_RECIPIENT, 0, 0, new address[](0));
+    }
+
+    function testInsufficientAdjustedAmount() public {
+        vm.expectRevert(_formatERC20TokenSourceErrorMessage("insufficient adjusted amount"));
+
+        erc20TokenSource.transferToDestination(
+            _DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT, _DEFAULT_TRANSFER_AMOUNT, new address[](0)
+        );
+    }
+
     function _formatERC20TokenSourceErrorMessage(string memory errorMessage)
         private
         pure

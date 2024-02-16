@@ -56,6 +56,7 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
     ) external nonReentrant {
         // The recipient cannot be the zero address.
         require(recipient != address(0), "ERC20TokenSource: zero recipient address");
+        require(totalAmount > 0, "ERC20TokenSource: zero transfer amount");
 
         // Lock tokens in this contract. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call

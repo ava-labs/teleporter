@@ -275,6 +275,16 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         );
     }
 
+    function testTransferZeroAmount() public {
+        vm.expectRevert(_formatNativeTokenSourceErrorMessage("zero transfer value"));
+
+        nativeTokenSource.transferToDestination{value: 0}(
+            _DEFAULT_RECIPIENT,
+            TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
+            new address[](0)
+        );
+    }
+
     function _formatNativeTokenSourceErrorMessage(string memory errorMessage)
         private
         pure
