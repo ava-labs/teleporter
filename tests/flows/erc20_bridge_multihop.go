@@ -403,7 +403,7 @@ func submitCreateBridgeToken(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt := utils.WaitForTransactionSuccess(ctx, source, tx)
+	receipt := utils.WaitForTransactionSuccess(ctx, source, tx.Hash())
 
 	event, err := utils.GetEventFromLogs(receipt.Logs, teleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
@@ -449,7 +449,7 @@ func bridgeToken(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt := utils.WaitForTransactionSuccess(ctx, source, tx)
+	receipt := utils.WaitForTransactionSuccess(ctx, source, tx.Hash())
 
 	event, err := utils.GetEventFromLogs(receipt.Logs, teleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
@@ -478,5 +478,5 @@ func approveBridgeToken(
 	tx, err := transactor.Approve(opts, spender, amount)
 	Expect(err).Should(BeNil())
 
-	utils.WaitForTransactionSuccess(ctx, source, tx)
+	utils.WaitForTransactionSuccess(ctx, source, tx.Hash())
 }
