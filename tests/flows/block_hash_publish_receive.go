@@ -57,7 +57,7 @@ func BlockHashPublishReceive(network interfaces.Network) {
 		tx_opts, subnetBInfo.BlockchainID, receiverAddress)
 	Expect(err).Should(BeNil())
 
-	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
+	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
 	// relay publication
 	network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
