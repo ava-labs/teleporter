@@ -302,12 +302,10 @@ func (n *LocalNetwork) DeployTeleporterContracts(
 			Expect(err).Should(BeNil())
 			defer rpcClient.Close()
 
-			txHash := &common.Hash{}
-			err = rpcClient.CallContext(ctx, txHash, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
+			txHash := common.Hash{}
+			err = rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
 			Expect(err).Should(BeNil())
-			tx, _, err := subnetInfo.RPCClient.TransactionByHash(ctx, *txHash)
-			Expect(err).Should(BeNil())
-			utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+			utils.WaitForTransactionSuccess(ctx, subnetInfo, txHash)
 
 			teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
 			Expect(err).Should(BeNil())
@@ -345,7 +343,7 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 		)
 		Expect(err).Should(BeNil())
 		// Wait for the transaction to be mined
-		utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+		utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
 
 		if subnetInfo.SubnetID == constants.PrimaryNetworkID {
 			n.primaryNetworkInfo.TeleporterRegistryAddress = teleporterRegistryAddress

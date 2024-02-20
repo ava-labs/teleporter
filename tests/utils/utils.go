@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -33,6 +34,7 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
+	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
 	"github.com/ava-labs/subnet-evm/rpc"
@@ -76,7 +78,7 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	tx, err := transactor.AddFeeAmount(opts, messageID, feeContractAddress, amount)
 	Expect(err).Should(BeNil())
 
-	receipt := WaitForTransactionSuccess(ctx, source, tx)
+	receipt := WaitForTransactionSuccess(ctx, source, tx.Hash())
 
 	addFeeAmountEvent, err := GetEventFromLogs(receipt.Logs, transactor.ParseAddFeeAmount)
 	Expect(err).Should(BeNil())
@@ -103,7 +105,7 @@ func RetryMessageExecutionAndWaitForAcceptance(
 	tx, err := subnet.TeleporterMessenger.RetryMessageExecution(opts, sourceBlockchainID, message)
 	Expect(err).Should(BeNil())
 
-	return WaitForTransactionSuccess(ctx, subnet, tx)
+	return WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 }
 
 func RedeemRelayerRewardsAndConfirm(
@@ -130,7 +132,7 @@ func RedeemRelayerRewardsAndConfirm(
 	)
 	Expect(err).Should(BeNil())
 
-	receipt := WaitForTransactionSuccess(ctx, subnet, tx)
+	receipt := WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	balanceAfterRedemption, err := feeToken.BalanceOf(
 		&bind.CallOpts{}, relayerAddress,
@@ -172,7 +174,7 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 		opts, sourceBlockchainID, messageIDs, feeInfo, allowedRelayerAddresses)
 	Expect(err).Should(BeNil())
 
-	receipt := WaitForTransactionSuccess(ctx, source, tx)
+	receipt := WaitForTransactionSuccess(ctx, source, tx.Hash())
 
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetEventFromLogs(receipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
@@ -440,7 +442,7 @@ func sendAndWaitForTransaction(
 	err := subnetInfo.RPCClient.SendTransaction(ctx, tx)
 	Expect(err).Should(BeNil())
 
-	return waitForTransaction(ctx, subnetInfo, tx, success)
+	return waitForTransaction(ctx, subnetInfo, tx.Hash(), success)
 }
 
 // Sends a tx, and waits for it to be mined.
@@ -478,7 +480,7 @@ func SendCrossChainMessageAndWaitForAcceptance(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be accepted
-	receipt := WaitForTransactionSuccess(ctx, source, tx)
+	receipt := WaitForTransactionSuccess(ctx, source, tx.Hash())
 
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetEventFromLogs(receipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
@@ -497,9 +499,9 @@ func SendCrossChainMessageAndWaitForAcceptance(
 func WaitForTransactionSuccess(
 	ctx context.Context,
 	subnetInfo interfaces.SubnetTestInfo,
-	tx *types.Transaction,
+	txHash common.Hash,
 ) *types.Receipt {
-	return waitForTransaction(ctx, subnetInfo, tx, true)
+	return waitForTransaction(ctx, subnetInfo, txHash, true)
 }
 
 // Waits for a transaction to be mined.
@@ -507,9 +509,9 @@ func WaitForTransactionSuccess(
 func WaitForTransactionFailure(
 	ctx context.Context,
 	subnetInfo interfaces.SubnetTestInfo,
-	tx *types.Transaction,
+	txHash common.Hash,
 ) *types.Receipt {
-	return waitForTransaction(ctx, subnetInfo, tx, false)
+	return waitForTransaction(ctx, subnetInfo, txHash, false)
 }
 
 // Waits for a transaction to be mined.
@@ -517,13 +519,13 @@ func WaitForTransactionFailure(
 func waitForTransaction(
 	ctx context.Context,
 	subnetInfo interfaces.SubnetTestInfo,
-	tx *types.Transaction,
+	txHash common.Hash,
 	success bool,
 ) *types.Receipt {
 	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	receipt, err := bind.WaitMined(cctx, subnetInfo.RPCClient, tx)
+	receipt, err := WaitMined(cctx, subnetInfo.RPCClient, txHash)
 	Expect(err).Should(BeNil())
 
 	if success {
@@ -534,6 +536,38 @@ func waitForTransaction(
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
 	}
 	return receipt
+}
+
+// WaitMined waits for tx to be mined on the blockchain.
+// It stops waiting when the context is canceled.
+// Takes a tx hash instead of the full tx in the subnet-evm version of this function.
+// Copied and modified from https://github.com/ava-labs/subnet-evm/blob/v0.6.0-fuji/accounts/abi/bind/util.go#L42
+func WaitMined(ctx context.Context, b bind.DeployBackend, txHash common.Hash) (*types.Receipt, error) {
+	queryTicker := time.NewTicker(200 * time.Millisecond)
+	defer queryTicker.Stop()
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	for {
+		receipt, err := b.TransactionReceipt(cctx, txHash)
+		if err == nil {
+			return receipt, nil
+		}
+
+		if errors.Is(err, subnetEvmInterfaces.NotFound) {
+			log.Debug("Transaction not yet mined")
+		} else {
+			log.Error("Receipt retrieval failed", "err", err)
+			return nil, err
+		}
+
+		// Wait for the next round.
+		select {
+		case <-cctx.Done():
+			return nil, ctx.Err()
+		case <-queryTicker.C:
+		}
+	}
 }
 
 // Returns the first log in 'logs' that is successfully parsed by 'parser'
@@ -708,7 +742,7 @@ func DeployContract(
 	Expect(err).Should(BeNil())
 
 	// Wait for transaction, then check code was deployed
-	WaitForTransactionSuccess(ctx, subnetInfo, tx)
+	WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
 
 	code, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
 	Expect(err).Should(BeNil())
@@ -742,7 +776,7 @@ func ERC20Approve(
 	Expect(err).Should(BeNil())
 	log.Info("Approved ERC20", "spender", spender.Hex(), "txHash", tx.Hash().Hex())
 
-	WaitForTransactionSuccess(ctx, source, tx)
+	WaitForTransactionSuccess(ctx, source, tx.Hash())
 }
 
 func DeployExampleERC20(
@@ -759,7 +793,7 @@ func DeployExampleERC20(
 	log.Info("Deployed Mock ERC20 contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
 
 	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, source, tx)
+	WaitForTransactionSuccess(ctx, source, tx.Hash())
 
 	// Check that the deployer has the expected initial balance
 	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
@@ -788,7 +822,7 @@ func DeployExampleCrossChainMessenger(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, subnet, tx)
+	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	return address, exampleMessenger
 }
@@ -810,7 +844,7 @@ func DeployERC20Bridge(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, source, tx)
+	WaitForTransactionSuccess(ctx, source, tx.Hash())
 
 	log.Info("Deployed ERC20 Bridge contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
 
@@ -831,7 +865,7 @@ func DeployBlockHashPublisher(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, subnet, tx)
+	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	return address, publisher
 }
@@ -858,7 +892,7 @@ func DeployBlockHashReceiver(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, subnet, tx)
+	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	return address, receiver
 }
@@ -899,7 +933,7 @@ func SendExampleCrossChainMessageAndVerify(
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt := WaitForTransactionSuccess(ctx, source, tx)
+	receipt := WaitForTransactionSuccess(ctx, source, tx.Hash())
 
 	event, err := GetEventFromLogs(receipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
@@ -1007,12 +1041,14 @@ func DeployNewTeleporterVersion(
 	teleporterByteCodeFile string,
 ) common.Address {
 	contractCreationGasPrice := (&big.Int{}).Add(deploymentUtils.GetDefaultContractCreationGasPrice(), big.NewInt(1))
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(
-			teleporterByteCodeFile,
-			false,
-			contractCreationGasPrice,
-		)
+	teleporterDeployerTransaction,
+		teleporterDeployerAddress,
+		teleporterContractAddress,
+		err := deploymentUtils.ConstructKeylessTransaction(
+		teleporterByteCodeFile,
+		false,
+		contractCreationGasPrice,
+	)
 	Expect(err).Should(BeNil())
 
 	network.DeployTeleporterContracts(
