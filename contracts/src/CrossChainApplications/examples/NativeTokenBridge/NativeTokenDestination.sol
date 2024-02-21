@@ -64,11 +64,15 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     // the source chain. This can be used to normalize the number of decimals places between
     // the two subnets.
     uint256 public immutable tokenMultiplier;
-    // If multiplyOnSend is true, the number of tokens sent to the destination chain will be multiplied
-    // by `tokenMultiplier`, and tokens received from the source chain will be divided by `tokenMultiplier`.
-    // If multiplyOnSend is false, the number of tokens sent to the destination chain will be divided
-    // by `tokenMultiplier`, and tokens received from the source chain will be divided by `tokenMultiplier`.
-    bool public immutable multiplyOnSend;
+    // If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
+    // are transferred from the source chain into this destination chain, and divided by `tokenMultiplier` when
+    // tokens are when tokens are transferred from this destination chain back to the source chain. This is intended 
+    // when the "decimals" value on the source chain is less than the native EVM denomination of 18.
+    // If multiplyOnReceive is false, the raw token amount value will be divided by `tokenMultiplier` when tokens
+    // are transferred from the source chain into this destination chain, and multiplied by `tokenMultiplier` when
+    // tokens are when tokens are transferred from this destination chain back to the source chain. This is intended 
+    // when the "decimals" value on the source chain is greater than the native EVM denomination of 18.
+    bool public immutable multiplyOnReceive;
 
     constructor(
         address teleporterRegistryAddress,
