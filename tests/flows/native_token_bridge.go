@@ -277,7 +277,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		)
 		Expect(err).Should(BeNil())
 
-		destChainReceipt := utils.WaitForTransactionSuccess(ctx, destSubnet, tx)
+		destChainReceipt := utils.WaitForTransactionSuccess(ctx, destSubnet, tx.Hash())
 
 		reportEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
@@ -389,7 +389,7 @@ func sendTokensToSource(
 	)
 	Expect(err).Should(BeNil())
 
-	destChainReceipt := utils.WaitForTransactionSuccess(ctx, destinationSubnet, tx)
+	destChainReceipt := utils.WaitForTransactionSuccess(ctx, destinationSubnet, tx.Hash())
 
 	transferEvent, err := utils.GetEventFromLogs(
 		destChainReceipt.Logs,
@@ -426,7 +426,7 @@ func sendNativeTokensToDestination(
 	)
 	Expect(err).Should(BeNil())
 
-	sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, sourceSubnet, tx)
+	sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, sourceSubnet, tx.Hash())
 
 	transferEvent, err := utils.GetEventFromLogs(
 		sourceChainReceipt.Logs,

@@ -158,7 +158,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		tx, err := exampleERC20.Approve(transactor, bridgeContractAddress, bal)
 		Expect(err).Should(BeNil())
 
-		utils.WaitForTransactionSuccess(ctx, sourceSubnet, tx)
+		utils.WaitForTransactionSuccess(ctx, sourceSubnet, tx.Hash())
 	}
 
 	{
@@ -306,7 +306,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		)
 		Expect(err).Should(BeNil())
 
-		destChainReceipt := utils.WaitForTransactionSuccess(ctx, destSubnet, tx)
+		destChainReceipt := utils.WaitForTransactionSuccess(ctx, destSubnet, tx.Hash())
 
 		reportEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
@@ -369,7 +369,7 @@ func sendERC20TokensToDestination(
 	)
 	Expect(err).Should(BeNil())
 
-	sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, sourceSubnet, tx)
+	sourceChainReceipt := utils.WaitForTransactionSuccess(ctx, sourceSubnet, tx.Hash())
 
 	transferEvent, err := utils.GetEventFromLogs(
 		sourceChainReceipt.Logs,

@@ -62,7 +62,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	// Try to call pauseTeleporterAddress from the owner account
 	tx, err := exampleMessenger.PauseTeleporterAddress(ownerOpts, teleporterAddress)
 	Expect(err).Should(BeNil())
-	utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+	utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
 	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeTrue())
@@ -70,7 +70,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	// Transfer ownership to the non owner account
 	tx, err = exampleMessenger.TransferOwnership(ownerOpts, nonOwnerAddress)
 	Expect(err).Should(BeNil())
-	utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+	utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
 
 	// Try to call unpauseTeleporterAddress from the previous owner account
 	_, err = exampleMessenger.UnpauseTeleporterAddress(ownerOpts, teleporterAddress)
@@ -85,7 +85,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	// Try to call unpauseTeleporterAddress from the non owner account now
 	tx, err = exampleMessenger.UnpauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
 	Expect(err).Should(BeNil())
-	utils.WaitForTransactionSuccess(ctx, subnetInfo, tx)
+	utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
 	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeFalse())
