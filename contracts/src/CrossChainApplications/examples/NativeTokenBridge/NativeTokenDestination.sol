@@ -12,15 +12,10 @@ import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
 import {ITokenSource} from "./ITokenSource.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterFeeInfo,
-    TeleporterMessageInput
-} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 // We need IAllowList as an indirect dependency in order to compile.
 // solhint-disable-next-line no-unused-import
 import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IAllowList.sol";
@@ -99,7 +94,6 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
-        ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
         // The recipient cannot be the zero address.
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
 
@@ -110,26 +104,25 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         require(value > 0, "NativeTokenDestination: zero transfer value");
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
-        // implementations by only bridging the actual balance increase reflected by the call
+        // implementations by only transferring the actual balance increase reflected by the call
         // to transferFrom.
         uint256 adjustedFeeAmount;
         if (feeInfo.amount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
                 IERC20(feeInfo.feeTokenAddress), feeInfo.amount
             );
-            SafeERC20.safeIncreaseAllowance(
-                IERC20(feeInfo.feeTokenAddress), address(teleporterMessenger), adjustedFeeAmount
-            );
         }
 
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
         Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
-
-        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
-                feeInfo: feeInfo,
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: feeInfo.feeTokenAddress,
+                    amount: adjustedFeeAmount
+                }),
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
                 message: abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(recipient, value))
@@ -139,8 +132,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         emit TransferToSource({
             sender: msg.sender,
             recipient: recipient,
-            amount: value,
-            teleporterMessageID: messageID
+            teleporterMessageID: messageID,
+            amount: value
         });
     }
 
@@ -151,20 +144,15 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external {
-        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
-
         uint256 adjustedFeeAmount;
         if (feeInfo.amount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
                 IERC20(feeInfo.feeTokenAddress), feeInfo.amount
             );
-            SafeERC20.safeIncreaseAllowance(
-                IERC20(feeInfo.feeTokenAddress), address(teleporterMessenger), adjustedFeeAmount
-            );
         }
 
         uint256 totalBurnedTxFees = BURNED_TX_FEES_ADDRESS.balance;
-        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,

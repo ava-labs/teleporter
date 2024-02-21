@@ -7,11 +7,7 @@ pragma solidity 0.8.18;
 
 import {IERC20TokenSource} from "./IERC20TokenSource.sol";
 import {TokenSource} from "./TokenSource.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
@@ -58,8 +54,6 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
         uint256 feeAmount,
         address[] calldata allowedRelayerAddresses
     ) external nonReentrant {
-        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
-
         // The recipient cannot be the zero address.
         require(recipient != address(0), "ERC20TokenSource: zero recipient address");
         require(totalAmount > 0, "ERC20TokenSource: zero transfer amount");
@@ -73,16 +67,8 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
         // Ensure that the adjusted amount is greater than the fee to be paid.
         require(adjustedAmount > feeAmount, "ERC20TokenSource: insufficient adjusted amount");
 
-        // Allow the Teleporter messenger to spend the fee amount.
-        if (feeAmount > 0) {
-            SafeERC20.safeIncreaseAllowance(
-                IERC20(erc20ContractAddress), address(teleporterMessenger), feeAmount
-            );
-        }
-
         uint256 transferAmount = adjustedAmount - feeAmount;
-
-        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,

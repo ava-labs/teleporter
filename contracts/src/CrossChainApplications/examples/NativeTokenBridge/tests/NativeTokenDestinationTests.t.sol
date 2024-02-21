@@ -7,12 +7,12 @@ pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
 import {ITokenSource} from "../ITokenSource.sol";
+import {NativeTokenDestination} from "../NativeTokenDestination.sol";
 import {
-    NativeTokenDestination,
+    ITeleporterMessenger,
     TeleporterMessageInput,
-    TeleporterFeeInfo,
-    ITeleporterMessenger
-} from "../NativeTokenDestination.sol";
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
