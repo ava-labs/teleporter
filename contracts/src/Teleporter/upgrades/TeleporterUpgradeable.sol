@@ -223,8 +223,10 @@ abstract contract TeleporterUpgradeable is Context, ITeleporterReceiver, Reentra
 
     /**
      * @dev Sends a cross chain message using the TeleporterMessenger contract.
-     * Allocates a fee amount from this contract's token balance to Teleporter's allowance
-     * to pay for sending the message.
+     *
+     * The fee amount should be transferred to this contract prior to calling this function.
+     * The fee amount is then allocated from this contract's token balance to
+     * Teleporter's allowance to pay for sending the message.
      *
      * @return `messageID` The unique identifier for the Teleporter message.
      */
