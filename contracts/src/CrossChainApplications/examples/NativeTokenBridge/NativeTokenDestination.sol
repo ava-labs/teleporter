@@ -66,11 +66,11 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     uint256 public immutable tokenMultiplier;
     // If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
     // are transferred from the source chain into this destination chain, and divided by `tokenMultiplier` when
-    // tokens are when tokens are transferred from this destination chain back to the source chain. This is intended
+    // tokens are transferred from this destination chain back to the source chain. This is intended
     // when the "decimals" value on the source chain is less than the native EVM denomination of 18.
     // If multiplyOnReceive is false, the raw token amount value will be divided by `tokenMultiplier` when tokens
     // are transferred from the source chain into this destination chain, and multiplied by `tokenMultiplier` when
-    // tokens are when tokens are transferred from this destination chain back to the source chain. This is intended
+    // tokens are transferred from this destination chain back to the source chain. This is intended
     // when the "decimals" value on the source chain is greater than the native EVM denomination of 18.
     bool public immutable multiplyOnReceive;
 
