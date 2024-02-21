@@ -79,7 +79,7 @@ To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which wo
     }
 ```
 
-For sending messages with the Teleporter registry, dapps should generally use `TeleporterUpgradeable._getTeleporterMessenger`. This function by default extends `TeleporterRegistry.getLatestTeleporter`, using the latest version, and adds an extra check on whether the latest Teleporter address is paused. If the dapp wants to send a message through a specific Teleporter version, it can override `_getTeleporterMessenger()` to use the specific Teleporter version with  `TeleporterRegistry.getTeleporterFromVersion`.
+For sending messages with the Teleporter registry, dapps should use `TeleporterUpgradeable._getTeleporterMessenger`. This function by default extends `TeleporterRegistry.getLatestTeleporter`, using the latest version, and adds an extra check on whether the latest Teleporter address is paused. If the dapp wants to send a message through a specific Teleporter version, it can override `_getTeleporterMessenger()` to use the specific Teleporter version with `TeleporterRegistry.getTeleporterFromVersion`. There is also a `TeleporterUpgradeable._sendTeleporterMessage` function that uses `_getTeleporterMessenger` to get the Teleporter instance, pays for Teleporter fees from the dapp's balance, and sends the cross chain message.
 
 Using latest version:
 
@@ -107,9 +107,9 @@ Using specific version:
 
 ## Pausing Teleporter interactions
 
-Dapps that inherit from `TeleporterUpgradeable` can pause Teleporter interactions by calling `TeleporterUpgradeable.pauseTeleporterAddress`. This function prevents the contract from interacting with the paused Teleporter address via `_getTeleporterMessenger()`. 
+Dapps that inherit from `TeleporterUpgradeable` can pause Teleporter interactions by calling `TeleporterUpgradeable.pauseTeleporterAddress`. This function prevents the contract from interacting with the paused Teleporter address via `_getTeleporterMessenger()`.
 
-`pauseTeleporterAddress` can only be called by addresses with the dapp's upgrade access, checked through `TeleporterUpgradeable._checkTeleporterUpgradeAccess`. 
+`pauseTeleporterAddress` can only be called by addresses with the dapp's upgrade access, checked through `TeleporterUpgradeable._checkTeleporterUpgradeAccess`.
 
 As with pausing, dapps can unpause Teleporter interactions by calling `TeleporterUpgradeable.unpauseTeleporterAddress`. This unpause function allows receiving Teleporter message from the unpaused Teleporter address, and also enables the sending of messages through the unpaused Teleporter address in `_getTeleporterMessenger()`. Unpausing is also only allowed by addresses with the dapp's upgrade access.
 
