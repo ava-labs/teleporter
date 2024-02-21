@@ -61,7 +61,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     uint256 public totalMinted;
 
     // tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
-    // the source chain. This can be used to normalize the number of decimals places between
+    // the source chain. This can be used to normalize the number of decimals places between the tokens on
     // the two subnets.
     uint256 public immutable tokenMultiplier;
     // If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
