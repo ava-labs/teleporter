@@ -66,11 +66,11 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     uint256 public immutable tokenMultiplier;
     // If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
     // are transferred from the source chain into this destination chain, and divided by `tokenMultiplier` when
-    // tokens are when tokens are transferred from this destination chain back to the source chain. This is intended 
+    // tokens are when tokens are transferred from this destination chain back to the source chain. This is intended
     // when the "decimals" value on the source chain is less than the native EVM denomination of 18.
     // If multiplyOnReceive is false, the raw token amount value will be divided by `tokenMultiplier` when tokens
     // are transferred from the source chain into this destination chain, and multiplied by `tokenMultiplier` when
-    // tokens are when tokens are transferred from this destination chain back to the source chain. This is intended 
+    // tokens are when tokens are transferred from this destination chain back to the source chain. This is intended
     // when the "decimals" value on the source chain is greater than the native EVM denomination of 18.
     bool public immutable multiplyOnReceive;
 
@@ -81,7 +81,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         address nativeTokenSourceAddress_,
         uint256 initialReserveImbalance_,
         uint256 tokenMultiplier_,
-        bool multiplyOnSend_
+        bool multiplyOnReceive_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         require(
             sourceBlockchainID_ != bytes32(0), "NativeTokenDestination: zero source blockchain ID"
@@ -108,7 +108,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
 
         require(tokenMultiplier_ != 0, "NativeTokenDestination: zero tokenMultiplier");
         tokenMultiplier = tokenMultiplier_;
-        multiplyOnSend = multiplyOnSend_;
+        multiplyOnReceive = multiplyOnReceive_;
     }
 
     /**
@@ -146,10 +146,10 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
 
         uint256 scaledAmount;
-        if (multiplyOnSend) {
-            scaledAmount = msg.value * tokenMultiplier;
-        } else {
+        if (multiplyOnReceive) {
             scaledAmount = msg.value / tokenMultiplier;
+        } else {
+            scaledAmount = msg.value * tokenMultiplier;
         }
 
         bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
@@ -195,10 +195,10 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         uint256 totalBurnedTxFees = BURNED_TX_FEES_ADDRESS.balance;
 
         uint256 scaledAmount;
-        if (multiplyOnSend) {
-            scaledAmount = totalBurnedTxFees * tokenMultiplier;
-        } else {
+        if (multiplyOnReceive) {
             scaledAmount = totalBurnedTxFees / tokenMultiplier;
+        } else {
+            scaledAmount = totalBurnedTxFees * tokenMultiplier;
         }
 
         bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
@@ -265,10 +265,10 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         require(amount != 0, "NativeTokenDestination: zero transfer value");
 
         uint256 scaledAmount;
-        if (multiplyOnSend) {
-            scaledAmount = amount / tokenMultiplier;
-        } else {
+        if (multiplyOnReceive) {
             scaledAmount = amount * tokenMultiplier;
+        } else {
+            scaledAmount = amount / tokenMultiplier;
         }
 
         // If the contract has not yet been collateralized, we will deduct as many tokens
