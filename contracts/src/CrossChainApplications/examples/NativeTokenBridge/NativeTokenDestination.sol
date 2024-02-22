@@ -133,12 +133,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             );
         }
 
-        uint256 scaledAmount;
-        if (multiplyOnReceive) {
-            scaledAmount = value / tokenMultiplier;
-        } else {
-            scaledAmount = value * tokenMultiplier;
-        }
+        uint256 scaledAmount = _scaleTokens(value, false);
 
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
         Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
@@ -181,14 +176,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             );
         }
 
-        uint256 totalBurnedTxFees = BURNED_TX_FEES_ADDRESS.balance;
-
-        uint256 scaledAmount;
-        if (multiplyOnReceive) {
-            scaledAmount = totalBurnedTxFees / tokenMultiplier;
-        } else {
-            scaledAmount = totalBurnedTxFees * tokenMultiplier;
-        }
+        uint256 scaledAmount = _scaleTokens(BURNED_TX_FEES_ADDRESS.balance, false);
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
@@ -253,12 +241,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
         require(amount != 0, "NativeTokenDestination: zero transfer value");
 
-        uint256 scaledAmount;
-        if (multiplyOnReceive) {
-            scaledAmount = amount * tokenMultiplier;
-        } else {
-            scaledAmount = amount / tokenMultiplier;
-        }
+        uint256 scaledAmount = _scaleTokens(amount, true);
 
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
@@ -280,5 +263,16 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         emit NativeTokensMinted(recipient, adjustedAmount);
         // Calls NativeMinter precompile through INativeMinter interface.
         NATIVE_MINTER.mintNativeCoin(recipient, adjustedAmount);
+    }
+
+    /**
+     * @dev See {INativeTokenDestination-_scaleTokens}.
+     */
+    function _scaleTokens(uint256 value, bool isReceive) private view returns (uint256) {
+        if (multiplyOnReceive == isReceive) {
+            return value * tokenMultiplier;
+        } else {
+            return value / tokenMultiplier;
+        }
     }
 }
