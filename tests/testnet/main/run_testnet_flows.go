@@ -33,6 +33,7 @@ func main() {
 	//   - RelayerModifiesMessage
 	//   - UnallowedRelayer
 	//   - ValidatorSetChrun
+	//   - TeleporterRegistry
 	runFlow("AddFeeAmount", flows.AddFeeAmount, network)
 	runFlow("BasicSendRecevie", flows.BasicSendReceive, network)
 	runFlow("DeliverToNonExistentContract", flows.DeliverToNonExistentContract, network)
@@ -48,4 +49,9 @@ func main() {
 	runFlow("ExampleMessenger", flows.ExampleMessenger, network)
 	runFlow("ERC20BridgeMutlihop", flows.ERC20BridgeMultihop, network)
 	log.Info("Finished cross-chain application test flows")
+
+	// Run the upgradeability test flows
+	runFlow("CheckUpgradeAccess", flows.CheckUpgradeAccess, network)
+	runFlow("PauseTeleporter", flows.PauseTeleporter, network)
+	log.Info("Finished upgradeability test flows")
 }
