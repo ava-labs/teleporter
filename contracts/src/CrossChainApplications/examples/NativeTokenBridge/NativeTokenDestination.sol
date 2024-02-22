@@ -133,15 +133,15 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             );
         }
 
-        // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
-        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
-
         uint256 scaledAmount;
         if (multiplyOnReceive) {
-            scaledAmount = msg.value / tokenMultiplier;
+            scaledAmount = value / tokenMultiplier;
         } else {
-            scaledAmount = msg.value * tokenMultiplier;
+            scaledAmount = value * tokenMultiplier;
         }
+
+        // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
+        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
