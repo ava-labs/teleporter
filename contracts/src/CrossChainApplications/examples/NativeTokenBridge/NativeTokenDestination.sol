@@ -266,7 +266,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     }
 
     /**
-     * @dev See {INativeTokenDestination-_scaleTokens}.
+     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
+     * Should be used for all tokens being transferred to/from other subnets.
      */
     function _scaleTokens(uint256 value, bool isReceive) private view returns (uint256) {
         if (multiplyOnReceive == isReceive) {
