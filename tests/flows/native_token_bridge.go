@@ -268,9 +268,8 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, destSubnet.EVMChainID)
 		Expect(err).Should(BeNil())
-		tx, err := nativeTokenDestination.ReportTotalBurnedTxFees(
+		tx, err := nativeTokenDestination.ReportBurnedTxFees(
 			transactor,
-			emptyDestFeeInfo,
 			[]common.Address{},
 		)
 		Expect(err).Should(BeNil())
@@ -279,7 +278,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 		reportEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
-			nativeTokenDestination.ParseReportTotalBurnedTxFees,
+			nativeTokenDestination.ParseReportBurnedTxFees,
 		)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(reportEvent.BurnAddressBalance, burnedTxFeesBalanceDest)

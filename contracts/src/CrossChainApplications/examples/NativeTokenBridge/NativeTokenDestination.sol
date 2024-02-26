@@ -11,8 +11,12 @@ import {IWarpMessenger} from
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
-import {ITokenSource} from "./ITokenSource.sol";
-import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
+import {WAVAX} from "./WAVAX.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterFeeInfo,
+    TeleporterMessageInput
+} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
@@ -37,30 +41,36 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
     // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" before
-    // sending an unlock message to the source chain. Different from the burned tx fee address so
-    // they can be tracked separately.
-    address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000010203;
+    // sending an unlock message to the source chain. Reporting burned gas fees to the source chain
+    // will send a transfer to this address. Different from the burned tx fee address so they can be
+    // tracked separately.
+    address public constant GENERAL_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     INativeMinter public constant NATIVE_MINTER =
         INativeMinter(0x0200000000000000000000000000000000000001);
+    WAVAX public immutable wavaxContract;
 
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 100_000;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
+    uint256 public immutable burnedFeesReportingRewardPercentage;
     // The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
     // `initialReserveImbalance` should be constructed to match the initial token supply of this subnet.
     // This means tokens will not be minted until the source contact is collateralized.
     uint256 public immutable initialReserveImbalance;
     uint256 public currentReserveImbalance;
     uint256 public totalMinted;
+    uint256 public lastestBurnedFeesReported;
 
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
         bytes32 sourceBlockchainID_,
         address nativeTokenSourceAddress_,
-        uint256 initialReserveImbalance_
+        uint256 initialReserveImbalance_,
+        uint256 burnedFeesReportingRewardPercentage_,
+        address wavaxContractAddress
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         require(
             sourceBlockchainID_ != bytes32(0), "NativeTokenDestination: zero source blockchain ID"
@@ -81,9 +91,19 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         require(
             initialReserveImbalance_ != 0, "NativeTokenDestination: zero initial reserve imbalance"
         );
-
         initialReserveImbalance = initialReserveImbalance_;
         currentReserveImbalance = initialReserveImbalance_;
+
+        require(
+            burnedFeesReportingRewardPercentage_ <= 100, "NativeTokenDestination: invalid percentage"
+        );
+        burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
+
+        require(
+            wavaxContractAddress != address(0),
+            "NativeTokenDestination: zero wavax contract address"
+        );
+        wavaxContract = WAVAX(payable(wavaxContractAddress));
     }
 
     /**
@@ -113,8 +133,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             );
         }
 
-        // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
-        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
+        // Burn native token by sending to GENERAL_BURN_ADDRESS
+        Address.sendValue(payable(GENERAL_BURN_ADDRESS), value);
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
@@ -125,7 +145,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 }),
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(ITokenSource.SourceAction.Unlock, abi.encode(recipient, value))
+                message: abi.encode(recipient, value)
             })
         );
 
@@ -138,38 +158,34 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     }
 
     /**
-     * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
+     * @dev See {INativeTokenDestination-reportBurnedTxFees}.
      */
-    function reportTotalBurnedTxFees(
-        TeleporterFeeInfo calldata feeInfo,
-        address[] calldata allowedRelayerAddresses
-    ) external {
-        uint256 adjustedFeeAmount;
-        if (feeInfo.amount > 0) {
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeInfo.feeTokenAddress), feeInfo.amount
-            );
-        }
+    function reportBurnedTxFees(address[] calldata allowedRelayerAddresses) external {
+        uint256 burnedDifference = BURNED_TX_FEES_ADDRESS.balance - lastestBurnedFeesReported;
+        uint256 reward = burnedDifference * burnedFeesReportingRewardPercentage / 100;
+        uint256 burnedTxFees = burnedDifference - reward;
 
-        uint256 totalBurnedTxFees = BURNED_TX_FEES_ADDRESS.balance;
+        totalMinted += reward;
+        emit NativeTokensMinted(address(this), reward);
+        // Calls NativeMinter precompile through INativeMinter interface.
+        NATIVE_MINTER.mintNativeCoin(address(this), reward);
+
+        wavaxContract.deposit{value: reward}();
+        ITeleporterMessenger teleporter = _getTeleporterMessenger();
+        wavaxContract.approve(address(teleporter), reward);
+
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: feeInfo.feeTokenAddress,
-                    amount: adjustedFeeAmount
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: address(wavaxContract), amount: reward}),
                 requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(totalBurnedTxFees))
+                message: abi.encode(GENERAL_BURN_ADDRESS, burnedTxFees)
             })
         );
 
-        emit ReportTotalBurnedTxFees({
-            teleporterMessageID: messageID,
-            burnAddressBalance: totalBurnedTxFees
-        });
+        emit ReportBurnedTxFees({teleporterMessageID: messageID, feesBurned: burnedTxFees});
     }
 
     /**
@@ -183,7 +199,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      * @dev See {INativeTokenDestination-totalSupply}.
      */
     function totalSupply() external view returns (uint256) {
-        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURN_FOR_TRANSFER_ADDRESS.balance;
+        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + GENERAL_BURN_ADDRESS.balance;
         uint256 created = totalMinted + initialReserveImbalance;
 
         return created - burned;

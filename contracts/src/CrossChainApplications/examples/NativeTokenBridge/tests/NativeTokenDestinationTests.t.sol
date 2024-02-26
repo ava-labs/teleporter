@@ -6,7 +6,6 @@
 pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
-import {ITokenSource} from "../ITokenSource.sol";
 import {NativeTokenDestination} from "../NativeTokenDestination.sol";
 import {
     ITeleporterMessenger,
@@ -19,6 +18,8 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     NativeTokenDestination public nativeTokenDestination;
+    uint256 internal constant _DEFAULT_BURN_FEES_REWARD_PERCENTAGE = 3;
+    address internal constant _MOCK_WAVAX_ADDRESS = 0x93270CE9796F0fF1290651b1237C7EFeE4900199;
 
     event TransferToSource(
         address indexed sender,
@@ -28,7 +29,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     );
     event CollateralAdded(uint256 amount, uint256 remaining);
     event NativeTokensMinted(address indexed recipient, uint256 amount);
-    event ReportTotalBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 burnAddressBalance);
+    event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 burnAddressBalance);
 
     function setUp() public virtual override {
         NativeTokenBridgeTest.setUp();
@@ -37,13 +38,15 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             abi.encodeWithSelector(INativeMinter.mintNativeCoin.selector),
             ""
         );
-        nativeTokenDestination = new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEES_REWARD_PERCENTAGE,
+            wavaxContractAddress: _MOCK_WAVAX_ADDRESS
+        });
     }
 
     function collateralizeBridge() public {
@@ -85,10 +88,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             }),
             requiredGasLimit: nativeTokenDestination.TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-                )
+            message: abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
         });
 
         vm.expectCall(
@@ -157,7 +157,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         uint256 burnedFees = nativeTokenDestination.BURNED_TX_FEES_ADDRESS().balance;
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
-        emit ReportTotalBurnedTxFees({
+        emit ReportBurnedTxFees({
             teleporterMessageID: _MOCK_MESSAGE_ID,
             burnAddressBalance: burnedFees
         });
@@ -171,7 +171,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             }),
             requiredGasLimit: nativeTokenDestination.REPORT_BURNED_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedFees))
+            message: abi.encode(nativeTokenDestination.GENERAL_BURN_ADDRESS, burnedFees)
         });
 
         vm.expectCall(
@@ -194,34 +194,35 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             )
         );
 
-        nativeTokenDestination.reportTotalBurnedTxFees(
-            TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
-            new address[](0)
-        );
+        nativeTokenDestination.reportBurnedTxFees(new address[](0));
     }
 
     function testZeroTeleporterAddress() public {
         vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
 
-        new NativeTokenDestination(
-            address(0x0),
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: address(0x0),
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEES_REWARD_PERCENTAGE,
+            wavaxContractAddress: _MOCK_WAVAX_ADDRESS
+        });
     }
 
     function testZeroSourceBlockchainID() public {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source blockchain ID"));
 
-        new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            bytes32(0),
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: bytes32(0),
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEES_REWARD_PERCENTAGE,
+            wavaxContractAddress: _MOCK_WAVAX_ADDRESS
+        });
     }
 
     function testSameBlockchainID() public {
@@ -229,37 +230,71 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             _formatNativeTokenDestinationErrorMessage("cannot bridge with same blockchain")
         );
 
-        new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _MOCK_BLOCKCHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _MOCK_BLOCKCHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEES_REWARD_PERCENTAGE,
+            wavaxContractAddress: _MOCK_WAVAX_ADDRESS
+        });
     }
 
     function testZeroSourceContractAddress() public {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero source contract address"));
 
-        new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            address(0x0),
-            _DEFAULT_INITIAL_RESERVE_IMBALANCE
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: address(0x0),
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEES_REWARD_PERCENTAGE,
+            wavaxContractAddress: _MOCK_WAVAX_ADDRESS
+        });
     }
 
     function testZeroInitialReserveImbalance() public {
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero initial reserve imbalance"));
 
-        new NativeTokenDestination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            _DEFAULT_OWNER_ADDRESS,
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            0
-        );
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: 0,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEES_REWARD_PERCENTAGE,
+            wavaxContractAddress: _MOCK_WAVAX_ADDRESS
+        });
+    }
+
+    function testInvalidRewardPercentage() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("invalid percentage"));
+
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage_: 101,
+            wavaxContractAddress: _MOCK_WAVAX_ADDRESS
+        });
+    }
+
+    function testZeroWAVAXAdrress() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero wavax contract address"));
+
+        nativeTokenDestination = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: _DEFAULT_OWNER_ADDRESS,
+            sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
+            nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEES_REWARD_PERCENTAGE,
+            wavaxContractAddress: address(0)
+        });
     }
 
     function testInvalidTeleporterAddress() public {
