@@ -273,6 +273,13 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         if (multiplyOnReceive == isReceive) {
             return value * tokenMultiplier;
         } else {
+            // On sends, require value to be evenly divisible by tokenMultiplier.
+            if (!isReceive) {
+                require(
+                    value % tokenMultiplier == 0,
+                    "NativeTokenDestination: value not divisible by multiplier"
+                );
+            }
             return value / tokenMultiplier;
         }
     }
