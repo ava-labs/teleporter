@@ -13,27 +13,27 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  */
 
 /**
+ * @dev Parameters for delivery of tokens to another chain and destination recipient.
+ * @param destinationBlockchainID blockchainID of the destination
+ * @param destinationBridgeAddress address of the destination token bridge instance
+ * @param recipient address of the recipient on the destination chain
+ * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
+ * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed.
+ * @param allowedRelayerAddresses addresses of relayers allowed to send the message
+ */
+struct SendTokensInput {
+    bytes32 destinationBlockchainID;
+    address destinationBridgeAddress;
+    address recipient;
+    uint256 primaryFee;
+    uint256 secondaryFee;
+    address[] allowedRelayerAddresses;
+}
+
+/**
  * @dev Interface for a Teleporter token bridge that sends tokens to another chain.
  */
 interface ITeleporterTokenBridge is ITeleporterReceiver {
-    /**
-     * @dev Parameters for delivery of tokens to another chain and destination recipient.
-     * @param destinationBlockchainID blockchainID of the destination
-     * @param destinationBridgeAddress address of the destination token bridge instance
-     * @param recipient address of the recipient on the destination chain
-     * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
-     * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed.
-     * @param allowedRelayerAddresses addresses of relayers allowed to send the message
-     */
-    struct SendTokensInput {
-        bytes32 destinationBlockchainID;
-        address destinationBridgeAddress;
-        address recipient;
-        uint256 primaryFee;
-        uint256 secondaryFee;
-        address[] allowedRelayerAddresses;
-    }
-
     /**
      * @dev Emitted when tokens are sent to another chain.
      * TODO: might want to add SendTokensInput as a parameter

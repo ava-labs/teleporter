@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
-import {ITeleporterTokenBridge} from "./interfaces/ITeleporterTokenBridge.sol";
+import {ITeleporterTokenBridge, SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
@@ -116,7 +116,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
 
         // Check that bridge instance returning has sufficient amount in balance
         uint256 senderBalance = bridgedBalances[sourceBlockchainID][originSenderAddress];
-        require(senderBalance >= amount, "TeleporterTokenSource: insufficient balance to unwrap");
+        require(senderBalance >= amount, "TeleporterTokenSource: insufficient bridge balance");
 
         // Decrement the bridge balance by the unwrap amount
         bridgedBalances[sourceBlockchainID][originSenderAddress] = senderBalance - amount;
