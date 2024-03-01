@@ -73,5 +73,4 @@ func TestCalculateMessageID(t *testing.T) {
 			}
 		})
 	}
-
 }
