@@ -32,13 +32,17 @@ import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfac
  * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
  */
 contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDestination {
-    // The address where the burned transaction fees are credited.
-    // Defined as BLACKHOLE_ADDRESS at
-    // https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
+    /**
+     *  The address where the burned transaction fees are credited.
+     *  Defined as BLACKHOLE_ADDRESS at
+     *  https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
+     */
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
-    // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" before
-    // sending an unlock message to the source chain. Different from the burned tx fee address so
-    // they can be tracked separately.
+    /**
+     *  Designated Blackhole Address for this contract. Tokens are sent here to be "burned" before
+     *  sending an unlock message to the source chain. Different from the burned tx fee address so
+     *  they can be tracked separately.
+     */
     address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     INativeMinter public constant NATIVE_MINTER =
@@ -48,25 +52,32 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 100_000;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
-    // The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
-    // `initialReserveImbalance` should be constructed to match the initial token supply of this subnet.
-    // This means tokens will not be minted until the source contact is collateralized.
+
+    /**
+     *  The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
+     *  `initialReserveImbalance` should be constructed to match the initial token supply of this subnet.
+     *  This means tokens will not be minted until the source contact is collateralized.
+     */
     uint256 public immutable initialReserveImbalance;
     uint256 public currentReserveImbalance;
     uint256 public totalMinted;
 
-    // tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
-    // the source chain. This can be used to normalize the number of decimals places between the tokens on
-    // the two subnets.
+    /**
+     *  tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
+     *  the source chain. This can be used to normalize the number of decimals places between the tokens on
+     *  the two subnets.
+     */
     uint256 public immutable tokenMultiplier;
-    // If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
-    // are transferred from the source chain into this destination chain, and divided by `tokenMultiplier` when
-    // tokens are transferred from this destination chain back to the source chain. This is intended
-    // when the "decimals" value on the source chain is less than the native EVM denomination of 18.
-    // If multiplyOnReceive is false, the raw token amount value will be divided by `tokenMultiplier` when tokens
-    // are transferred from the source chain into this destination chain, and multiplied by `tokenMultiplier` when
-    // tokens are transferred from this destination chain back to the source chain. This is intended
-    // when the "decimals" value on the source chain is greater than the native EVM denomination of 18.
+    /**
+     *  If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
+     *  are transferred from the source chain into this destination chain, and divided by `tokenMultiplier` when
+     *  tokens are transferred from this destination chain back to the source chain. This is intended
+     *  when the "decimals" value on the source chain is less than the native EVM denomination of 18.
+     *  If multiplyOnReceive is false, the raw token amount value will be divided by `tokenMultiplier` when tokens
+     *  are transferred from the source chain into this destination chain, and multiplied by `tokenMultiplier` when
+     *  tokens are transferred from this destination chain back to the source chain. This is intended
+     *  when the "decimals" value on the source chain is greater than the native EVM denomination of 18.
+     */
     bool public immutable multiplyOnReceive;
 
     constructor(
@@ -123,9 +134,11 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         uint256 value = msg.value;
         require(value > 0, "NativeTokenDestination: zero transfer value");
 
-        // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
-        // implementations by only transferring the actual balance increase reflected by the call
-        // to transferFrom.
+        /**
+         *  Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
+         *  implementations by only transferring the actual balance increase reflected by the call
+         *  to transferFrom.
+         */
         uint256 adjustedFeeAmount;
         if (feeInfo.amount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
@@ -270,17 +283,19 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      * Should be used for all tokens being transferred to/from other subnets.
      */
     function _scaleTokens(uint256 value, bool isReceive) private view returns (uint256) {
+        // Multiply when multiplyOnReceive and isReceive are both true or both false.
         if (multiplyOnReceive == isReceive) {
             return value * tokenMultiplier;
-        } else {
-            // On sends, require value to be evenly divisible by tokenMultiplier.
-            if (!isReceive) {
-                require(
-                    value % tokenMultiplier == 0,
-                    "NativeTokenDestination: value not divisible by multiplier"
-                );
-            }
-            return value / tokenMultiplier;
         }
+
+        // Otherwise divide.
+        // On sends, require value to be evenly divisible by tokenMultiplier.
+        if (!isReceive) {
+            require(
+                value % tokenMultiplier == 0,
+                "NativeTokenDestination: value not divisible by multiplier"
+            );
+        }
+        return value / tokenMultiplier;
     }
 }
