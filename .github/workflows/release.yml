@@ -41,7 +41,7 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           cd contracts/
-          forge build
+          forge build --force --extra-output-files bin
 
       - name: Build changelog
         id: build_changelog
