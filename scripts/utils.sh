@@ -10,6 +10,11 @@ function parseContractAddress() {
     echo $1 | $grepcmd -o -P 'Deployed to: .{42}' | sed 's/^.\{13\}//';
 }
 
+# Parses the transaction status from "cast receipt" output.
+function parseTxStatus() {
+    echo $1 | $grepcmd 'status\s+\K\d+'
+}
+
 # use ggrep on arm64 otherwise grep -P returns error.
 # set ARCH before calling this function
 function setGrep() {

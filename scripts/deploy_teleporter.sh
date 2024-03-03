@@ -9,6 +9,11 @@ TELEPORTER_PATH=$(
     cd .. && pwd
 )
 
+source $TELEPORTER_PATH/scripts/utils.sh
+
+setARCH
+setGrep
+
 if ! command -v forge &> /dev/null; then
     echo "forge not found. You can install by calling $TELEPORTER_PATH/scripts/install_foundry.sh" && exit 1
 fi
@@ -22,9 +27,12 @@ function printHelp() {
 
 function printUsage() {
     echo "Options:"
-    echo "  --fund-deployer <private_key>    Optional. Funds the deployer address with the account held by <private_key>"
     echo "  --version <version>              Required. Specify the release version to deploy"
     echo "  --rpc-url <url>                  Required. Specify the rpc url of the node to use"
+    echo "  --private-key <private_key>      Optional. Private key of account to use to fund the Teleporter deployer address, if necessary."
+    echo "  --deploy-registry <version_id>   Optional. If set, deploys a new TeleporterRegistry contract with the address"
+    echo "                                   of the TeleporterMessenger version deployed set for the given version ID."
+    echo "                                   Deploying a TeleporterRegistry instance requires a private key to be provided."
     echo "  --help                           Print this help message"
 }
 
@@ -34,13 +42,6 @@ rpc_url=
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --fund-deployer) 
-            if [[ $2 != --* ]]; then
-                user_private_key=$2
-            else 
-                echo "Invalid private key $2" && printHelp && exit 1
-            fi 
-            shift;;
         --version)  
             if [[ $2 != --* ]]; then
                 teleporter_version=$2
@@ -53,6 +54,20 @@ while [ $# -gt 0 ]; do
                 rpc_url=$2
             else 
                 echo "Invalid rpc url $2" && printHelp && exit 1
+            fi 
+            shift;;
+        --private-key) 
+            if [[ $2 != --* ]]; then
+                user_private_key=$2
+            else 
+                echo "Invalid private key $2" && printHelp && exit 1
+            fi 
+            shift;;
+        --deploy-registry) 
+            if [[ $2 != --* ]]; then
+                registry_version_id=$2
+            else 
+                echo "Invalid version ID for TeleporterRegistry $2" && printHelp && exit 1
             fi 
             shift;;
         --help) 
@@ -74,12 +89,21 @@ echo "TeleporterMessenger $teleporter_version contract address: $teleporter_cont
 teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Deployer_Address_$teleporter_version.txt)
 echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_deployer_address"
 teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Deployment_Transaction_$teleporter_version.txt)
+teleporter_messenger_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Bytecode_$teleporter_version.txt)
+teleporter_registry_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterRegistry_Bytecode_$teleporter_version.txt)
 
 # Check if this TeleporterMessenger version has already been deployed on this chain.
 teleporter_contract_code=$(cast code --rpc-url $rpc_url $teleporter_contract_address)
 if [[ $teleporter_contract_code != "0x" ]]; then
     echo "TeleporterMessenger $teleporter_version has already been deployed on this chain." && exit 0
 fi
+
+# Check if the deployer address is allowed to deploy contracts on this chain by attempting to
+# estimate the amount of gas required to deploy the TeleporterMessenger byte code from the Teleporter
+# deployer address.
+cast estimate --rpc-url $rpc_url \
+    --from $teleporter_deployer_address \
+    --create $teleporter_messenger_bytecode > /dev/null
 
 # Check the current balance of the deployer address.
 deployer_balance=$(cast balance --rpc-url $rpc_url $teleporter_deployer_address)
@@ -96,8 +120,17 @@ else
     cast send --rpc-url $rpc_url --private-key $user_private_key --value $transfer_amount $teleporter_deployer_address
 fi
 
+# Deploy the TeleporterMessenger contract by publishing the raw Nick's method transaction.
 echo "Deploying TeleporterMessenger $teleporter_version"
-cast publish --rpc-url $rpc_url $teleporter_deploy_tx
+deployment_result=$(cast publish --rpc-url $rpc_url $teleporter_deploy_tx)
+deployment_status=$(echo $deployment_result | jq .status)
+if [[ $deployment_status != "0x1" ]]; then 
+    echo "TeleporterMessenger deployment transaction failed. (Transaction ID: $deployment_tx_id)"
+    echo "Check failure reason and, if necessary, investigate deployment through state upgrade."
+    echo "See https://github.com/ava-labs/subnet-evm/tree/master/stateupgrade."
+    exit 1
+fi
 
 echo "Success! TeleporterMessenger $teleporter_version deployed to $teleporter_contract_address"
+
 exit 0
