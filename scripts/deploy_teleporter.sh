@@ -9,11 +9,6 @@ TELEPORTER_PATH=$(
     cd .. && pwd
 )
 
-source $TELEPORTER_PATH/scripts/utils.sh
-
-setARCH
-setGrep
-
 if ! command -v forge &> /dev/null; then
     echo "forge not found. You can install by calling $TELEPORTER_PATH/scripts/install_foundry.sh" && exit 1
 fi
