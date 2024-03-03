@@ -73,6 +73,11 @@ while [ $# -gt 0 ]; do
     shift
 done
 
+if [[ $teleporter_version == "" || $rpc_url == "" ]]; then
+    echo "Invalid usage. Teleporter version and RPC URL required."
+    printHelp && exit 1
+fi
+
 # Tokens required to deploy the contract.
 # Equal to contractCreationGasLimit * contractCreationGasPrice
 # from utils/deployment-utils/deployment_utils.go
