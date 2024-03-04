@@ -7,3 +7,8 @@ Cargo.lock
 
 # IDE configurations
 .vscode*
+
+# Ginkgo test outputs
+main.log
+server.log
+*.test
