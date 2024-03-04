@@ -31,9 +31,6 @@ function printUsage() {
     echo "  --version <version>              Required. Specify the release version to deploy"
     echo "  --rpc-url <url>                  Required. Specify the rpc url of the node to use"
     echo "  --private-key <private_key>      Optional. Private key of account to use to fund the Teleporter deployer address, if necessary."
-    echo "  --deploy-registry <version_id>   Optional. If set, deploys a new TeleporterRegistry contract with the address"
-    echo "                                   of the TeleporterMessenger version deployed set for the given version ID."
-    echo "                                   Deploying a TeleporterRegistry instance requires a private key to be provided."
     echo "  --help                           Print this help message"
 }
 
