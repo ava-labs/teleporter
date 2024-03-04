@@ -265,7 +265,7 @@ function getCurrentMessage(
 
 At this point, the contract is now fully usable, and can be used to send arbitrary string data between chains. However, there are a few more modifications that need to be made to support upgrades to `TeleporterMessenger`. For a more in-depth explanation of how to support upgrades, see the Upgrades README [here](../Teleporter/Upgrades/README.md).
 
-The first change to make is to inherit from `TeleporterOwnerUpgradeable` instead of `ITeleporterReceiver`. `TeleporterOwnerUpgradeable` integrates with `TeleporterRegistry` via `TeleporterUpgradeable` to easily utilize the latest `TeleporterMessenger` implementation. `TeleporterOwnerUpgradeable` also ensures that only an admin address for managing Teleporter versions, specified by the constructor argument `initialOwner`, is able to upgrade the `TeleporterMessenger` implementation used by the contract.
+The first change to make is to inherit from `TeleporterOwnerUpgradeable` instead of `ITeleporterReceiver`. `TeleporterOwnerUpgradeable` integrates with the `TeleporterRegistry` via `TeleporterUpgradeable` to easily utilize the latest `TeleporterMessenger` implementation. `TeleporterOwnerUpgradeable` also ensures that only an admin address for managing Teleporter versions, specified by the constructor argument `teleporterManager`, is able to upgrade the `TeleporterMessenger` implementation used by the contract.
 
 To start, replace the import for `ITeleporterReceiver` with `TeleporterOwnerUpgradeable`:
 
