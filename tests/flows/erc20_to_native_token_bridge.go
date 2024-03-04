@@ -39,7 +39,8 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		deployerAddress      = common.HexToAddress("0x539447ab8Be7e927bE8E005663C81ff2AE951337")
 		tokenReceiverAddress = common.HexToAddress("0x4444444444444444444444444444444444444444")
 		burnedTxFeeAddress   = common.HexToAddress("0x0100000000000000000000000000000000000000")
-		WAVAXAddress         = common.HexToAddress("0xd7c9Afe074ECbFc34d83b90B2f968c4c8Da66f0f") // derived from deployer address with nonce 1
+		// derived from deployer address with nonce 1
+		WAVAXAddress = common.HexToAddress("0xd7c9Afe074ECbFc34d83b90B2f968c4c8Da66f0f")
 
 		burnedFeesReportingRewardPercentage = big.NewInt(3)
 
@@ -298,7 +299,10 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		)
 		Expect(err).Should(BeNil())
 		Expect(burnedTxFeesBalanceDest.Cmp(common.Big0) > 0).Should(BeTrue())
-		burnReward := utils.BigIntDiv(utils.BigIntMul(burnedTxFeesBalanceDest, burnedFeesReportingRewardPercentage), big.NewInt(100))
+		burnReward := utils.BigIntDiv(
+			utils.BigIntMul(burnedTxFeesBalanceDest, burnedFeesReportingRewardPercentage),
+			big.NewInt(100),
+		)
 		tokensToBurn := utils.BigIntSub(burnedTxFeesBalanceDest, burnReward)
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, destSubnet.EVMChainID)

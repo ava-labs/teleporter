@@ -12,11 +12,7 @@ import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
 import {WAVAX} from "./WAVAX.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterFeeInfo,
-    TeleporterMessageInput
-} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
@@ -94,7 +90,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         currentReserveImbalance = initialReserveImbalance_;
 
         require(
-            burnedFeesReportingRewardPercentage_ <= 100, "NativeTokenDestination: invalid percentage"
+            burnedFeesReportingRewardPercentage_ <= 100,
+            "NativeTokenDestination: invalid percentage"
         );
         burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
 
