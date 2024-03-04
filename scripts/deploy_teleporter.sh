@@ -123,7 +123,7 @@ deployment_tx_id=$(echo $deployment_result | jq -r .transactionHash)
 if [[ $deployment_status != "0x1" ]]; then 
     echo "TeleporterMessenger deployment transaction failed. Transaction ID: $deployment_tx_id"
     echo "Check failure reason and, if necessary, investigate deployment through state upgrade."
-    echo "See https://github.com/ava-labs/subnet-evm/tree/master/stateupgrade."
+    echo "See https://github.com/ava-labs/subnet-evm/tree/master/stateupgrade"
     exit 1
 fi
 
