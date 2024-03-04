@@ -71,5 +71,4 @@ jobs:
             ${{ env.deployer_addr_fn }}
             ${{ env.contract_addr_fn }}
             ${{ env.teleporter_messenger_bytecode_fn }}
-            ${{ env.teleporter_registry_bytecode_fn }}
     
