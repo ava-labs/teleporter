@@ -17,7 +17,6 @@ jobs:
       deployer_addr_fn: TeleporterMessenger_Deployer_Address_${{ github.ref_name }}.txt
       contract_addr_fn: TeleporterMessenger_Contract_Address_${{ github.ref_name }}.txt
       teleporter_messenger_bytecode_fn: TeleporterMessenger_Bytecode_${{ github.ref_name }}.txt
-      teleporter_registry_bytecode_fn: TeleporterRegistry_Bytecode_${{ github.ref_name }}.txt
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -59,7 +58,6 @@ jobs:
           mv UniversalTeleporterDeployerAddress.txt ${{ env.deployer_addr_fn }}
           mv UniversalTeleporterMessengerContractAddress.txt ${{ env.contract_addr_fn }}
           mv contracts/out/TeleporterMessenger.sol/TeleporterMessenger.bin ${{ env.teleporter_messenger_bytecode_fn }}
-          mv contracts/out/TeleporterRegistry.sol/TeleporterRegistry.bin ${{ env.teleporter_registry_bytecode_fn }}
 
       - name: Create release
         uses: softprops/action-gh-release@v1

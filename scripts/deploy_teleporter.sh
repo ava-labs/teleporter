@@ -9,8 +9,14 @@ TELEPORTER_PATH=$(
     cd .. && pwd
 )
 
-if ! command -v forge &> /dev/null; then
-    echo "forge not found. You can install by calling $TELEPORTER_PATH/scripts/install_foundry.sh" && exit 1
+# Check that foundry (specifically cast) is installed
+if ! command -v cast &> /dev/null; then
+    echo "cast not found. You can install by calling $TELEPORTER_PATH/scripts/install_foundry.sh" && exit 1
+fi
+
+# Check that jq is installed.
+if ! command -v jq &> /dev/null; then
+    echo "jq not found. It is required to be installed before proceeding." && exit 1
 fi
 
 function printHelp() {
@@ -90,11 +96,10 @@ teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/teleporter/re
 echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_deployer_address"
 teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Deployment_Transaction_$teleporter_version.txt)
 teleporter_messenger_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Bytecode_$teleporter_version.txt)
-teleporter_registry_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterRegistry_Bytecode_$teleporter_version.txt)
 
 # Check if this TeleporterMessenger version has already been deployed on this chain.
-teleporter_contract_code=$(cast code --rpc-url $rpc_url $teleporter_contract_address)
-if [[ $teleporter_contract_code != "0x" ]]; then
+teleporter_contract_code=$(cast codesize $teleporter_contract_address --rpc-url $rpc_url)
+if [[ $teleporter_contract_code != "0" ]]; then
     echo "TeleporterMessenger $teleporter_version has already been deployed on this chain." && exit 0
 fi
 
@@ -123,14 +128,15 @@ fi
 # Deploy the TeleporterMessenger contract by publishing the raw Nick's method transaction.
 echo "Deploying TeleporterMessenger $teleporter_version"
 deployment_result=$(cast publish --rpc-url $rpc_url $teleporter_deploy_tx)
-deployment_status=$(echo $deployment_result | jq .status)
+deployment_status=$(echo $deployment_result | jq -r .status)
+deployment_tx_id=$(echo $deployment_result | jq -r .transactionHash)
 if [[ $deployment_status != "0x1" ]]; then 
-    echo "TeleporterMessenger deployment transaction failed. (Transaction ID: $deployment_tx_id)"
+    echo "TeleporterMessenger deployment transaction failed. Transaction ID: $deployment_tx_id"
     echo "Check failure reason and, if necessary, investigate deployment through state upgrade."
     echo "See https://github.com/ava-labs/subnet-evm/tree/master/stateupgrade."
     exit 1
 fi
 
-echo "Success! TeleporterMessenger $teleporter_version deployed to $teleporter_contract_address"
+echo "Success! TeleporterMessenger $teleporter_version deployed to $teleporter_contract_address in transaction $deployment_tx_id."
 
 exit 0
