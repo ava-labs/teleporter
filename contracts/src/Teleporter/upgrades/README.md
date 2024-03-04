@@ -16,25 +16,6 @@ The `TeleporterRegistry` maintains a mapping of `TeleporterMessenger` contract v
 
 In the `TeleporterRegistry` contract, the `latestVersion` state variable returns the highest version number that has been registered in the registry. The `getLatestTeleporter` function returns the `ITeleporterMessenger` that is registered with the corresponding version.
 
-## TeleporterRegistry Deployment
-
-`TeleporterRegistry` is not strictly necessary for apps that want to leverage Teleporter for cross-chain communication. However, it is recommended, as it provides a way to integrate with new versions of `TeleporterMessenger` contracts.
-
-Unlike `TeleporterMessenger`, the registry **does not** need to be deployed at the same address on all blockchains, and does not need a Nick's method transaction. There should only be one canonical `TeleporterRegistry` contract on each blockchain, and can be deployed with the following inputs and command from the root of the repository:
-
-````bash
-
-- `$user_private_key`: private key of the user deploying the contract.
-- `$subnet_rpc_url`: RPC URL of the subnet where the contract will be deployed.
-- `$teleporter_version`: version number of the `TeleporterMessenger` contract being registered on this blockchain. For example, if it's the first `TeleporterMessenger` contract being registered, the version number would be 1.
-- `$teleporter_contract_address`: address of the `TeleporterMessenger` contract being registered on this blockchain.
-
-```bash
-cd contracts
-forge create --private-key $user_private_key \
-        --rpc-url $subnet_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[($teleporter_version,$teleporter_contract_address)]"
-```
-
 ## Design
 
 - `TeleporterRegistry` is deployed on each blockchain that needs to keep track of `TeleporterMessenger` contract versions.
@@ -169,4 +150,3 @@ Dapps that inherit from `TeleporterUpgradeable` can pause Teleporter interaction
 As with pausing, dapps can unpause Teleporter interactions by calling `TeleporterUpgradeable.unpauseTeleporterAddress`. This unpause function allows receiving Teleporter message from the unpaused Teleporter address, and also enables the sending of messages through the unpaused Teleporter address in `_getTeleporterMessenger()`. Unpausing is also only allowed by addresses with the dapp's upgrade access.
 
 Note that receiving Teleporter messages is still governed by the `minTeleporterVersion` check, so even if a Teleporter address is unpaused, the dapp will not receive messages from the unpaused Teleporter address if the Teleporter version is less than `minTeleporterVersion`.
-````

@@ -17,8 +17,9 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 - [E2E tests](#e2e-tests)
   - [Run specific E2E tests](#run-specific-e2e-tests)
   - [Run the E2E tests on another network](#run-the-e2e-tests-on-another-network)
-- [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet)
 - [Upgradeability](#upgradeability)
+- [Deploy Teleporter to a subnet's chain](#deploy-teleporter-to-a-subnets-chain)
+- [Deploy TeleporterRegistry to a subnet's chain](#deploy-teleporterregistry-to-a-subnets-chain)
 - [ABI Bindings](#abi-bindings)
 - [Docs](#docs)
 - [Resources](#resources)
@@ -164,7 +165,15 @@ cp .env.example .env # Set proper values after copying.
 
 The user wallet set in `.env` must have native tokens for each of the subnets used in order for the test flows to be able to send transactions on those networks.
 
-## Deploy Teleporter to a Subnet
+## Upgradeability
+
+The Teleporter contract is non-upgradeable and can not be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging. However, to allow for new features and potential bug fixes, new versions of the Teleporter contract can be deployed to different addresses. The [TeleporterRegistry](./contracts/src/Teleporter/TeleporterRegistry.sol) is used to keep track of the deployed versions of Teleporter, and to provide a standard interface for dApps to interact with the different Teleporter versions.
+
+`TeleporterRegistry` **is not mandatory** for dApps built on top of Teleporter, but is recommended in order to get the latest changes of the Teleporter protocol incorporated to the dApp. There should be a single canonical `TeleporterRegistry` for each subnet chain, and unlike the Teleporter contract, the registry does not need to be deployed to the same address on every chain. This means the registry does not need a Nick's method deployment, and can be at different contract addresses on different chains.
+
+For more information on the registry and how to integrate with Teleporter dApps, see the [Upgradeability doc](./contracts/src/Teleporter/upgrades/README.md).
+
+## Deploy Teleporter to a subnet's chain
 
 From the root of the repo, the TeleporterMessenger contract can be deployed by calling
 
@@ -182,13 +191,20 @@ To ensure that Teleporter can be deployed to the same address on every EVM based
 
 `deploy_teleporter.sh` will send the necessary native tokens to the deployer address if it is provided with a private key for an account with sufficient funds. Alternatively, the deployer address can be funded externally. The deployer address for each version can be found by looking up the appropriate version at https://github.com/ava-labs/teleporter/releases and downloading `TeleporterMessenger_Deployer_Address_<VERSION>.txt`.
 
-## Upgradeability
+## Deploy TeleporterRegistry to a subnet's chain
 
-The Teleporter contract is non-upgradeable and can not be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging. However, to allow for new features and potential bug fixes, new versions of the Teleporter contract can be deployed to different addresses. The [TeleporterRegistry](./contracts/src/Teleporter/TeleporterRegistry.sol) is used to keep track of the deployed versions of Teleporter, and to provide a standard interface for dApps to interact with the different Teleporter versions.
+There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can get the latest changes of the Teleporter protocol. Since the registry does not need to be deployed to the same address on every chain, it does not need a Nick's method deployment, and can be deployed using `forge create` from the root of the repo:
 
-`TeleporterRegistry` **is not mandatory** for dApps built on top of Teleporter, but is recommended in order to get the latest changes of the Teleporter protocol incorporated to the dApp. There should be a single canonical `TeleporterRegistry` for each subnet chain, and unlike the Teleporter contract, the registry does not need to be deployed to the same address on every chain. This means the registry does not need a Nick's method deployment, and can be at different contract addresses on different chains.
+```bash
+cd contracts
+forge create --private-key $user_private_key \
+        --rpc-url $subnet_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[($teleporter_version,$teleporter_contract_address)]"
+```
 
-For more information on the registry and how to integrate with Teleporter dApps, see the [Upgradeability doc](./contracts/src/Teleporter/upgrades/README.md).
+- `$user_private_key`: private key of the user deploying the contract.
+- `$subnet_rpc_url`: RPC URL of the subnet where the contract will be deployed.
+- `$teleporter_version`: version number of the `TeleporterMessenger` contract being registered on this blockchain. For example, if it's the first `TeleporterMessenger` contract being registered, the version number would be 1.
+- `$teleporter_contract_address`: address of the `TeleporterMessenger` contract being registered on this blockchain.
 
 ## ABI Bindings
 
