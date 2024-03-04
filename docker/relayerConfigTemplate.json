@@ -2,7 +2,7 @@
     "p-chain-api-url": "http://127.0.0.1:9650",
     "info-api-url": "http://127.0.0.1:9650",
     "process-missed-blocks": false,
-    "source-subnets": [
+    "source-blockchains": [
         {
             "subnet-id": "11111111111111111111111111111111LpoYY",
             "blockchain-id": "<C_CHAIN_BLOCKCHAIN_ID>",
@@ -64,7 +64,7 @@
             }
         }
     ],
-    "destination-subnets": [
+    "destination-blockchains": [
         {
             "subnet-id": "11111111111111111111111111111111LpoYY",
             "blockchain-id": "<C_CHAIN_BLOCKCHAIN_ID>",
