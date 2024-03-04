@@ -20,7 +20,9 @@ In the `TeleporterRegistry` contract, the `latestVersion` state variable returns
 
 `TeleporterRegistry` is not strictly necessary for apps that want to leverage Teleporter for cross-chain communication. However, it is recommended, as it provides a way to integrate with new versions of `TeleporterMessenger` contracts.
 
-Unlike `TeleporterMessenger`, the registry **does not** need to be deployed at the same address on all blockchains, and does not need a Nick's method transaction. There should only be one canonical `TeleporterRegistry` contract on each blockchain, and can be deployed with the following inputs and command:
+Unlike `TeleporterMessenger`, the registry **does not** need to be deployed at the same address on all blockchains, and does not need a Nick's method transaction. There should only be one canonical `TeleporterRegistry` contract on each blockchain, and can be deployed with the following inputs and command from the root of the repository:
+
+````bash
 
 - `$user_private_key`: private key of the user deploying the contract.
 - `$subnet_rpc_url`: RPC URL of the subnet where the contract will be deployed.
@@ -28,9 +30,10 @@ Unlike `TeleporterMessenger`, the registry **does not** need to be deployed at t
 - `$teleporter_contract_address`: address of the `TeleporterMessenger` contract being registered on this blockchain.
 
 ```bash
+cd contracts
 forge create --private-key $user_private_key \
-        --rpc-url $subnet_rpc_url contracts/src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[($teleporter_version,$teleporter_contract_address)]"
-```
+        --rpc-url $subnet_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[($teleporter_version,$teleporter_contract_address)]"
+````
 
 ## Design
 
@@ -41,7 +44,7 @@ forge create --private-key $user_private_key \
 - Version zero is an invalid version, and is used to indicate that a `TeleporterMessenger` contract has not been registered yet.
 - Once a version number is registered in the registry, it cannot be changed, but a previous registered protocol address can be added to the registry with a new version. This is especially important in the case of a rollback to a previous Teleporter version, in which case the previous Teleporter contract address would need to be registered with a new version to the registry.
 
-## How to integrate `TeleporterRegistry` (TeleporterUpgradeable)
+## Integrating `TeleporterRegistry` with `TeleporterUpgradeable`
 
 <div align="center">
   <img src="./upgrade-uml.png?raw=true" alt="Upgrade UML diagram"/>
