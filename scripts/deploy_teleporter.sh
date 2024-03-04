@@ -63,6 +63,22 @@ while [ $# -gt 0 ]; do
     shift
 done
 
+if [ -z "$teleporter_version" ]
+then
+        echo error: you must specify release version
+        echo
+        printUsage
+        exit 1
+fi
+
+if [ -z "$rpc_url" ]
+then
+        echo error: you must specify rpc url
+        echo
+        printUsage
+        exit 1
+fi
+
 # Tokens required to deploy the contract.
 # Equal to contractCreationGasLimit * contractCreationGasPrice
 # from utils/deployment-utils/deployment_utils.go
@@ -90,7 +106,7 @@ else
     # Calculate how many wei the deployer address needs to create the contract.
     transfer_amount=$(echo "$gas_tokens_required-$deployer_balance" | bc)
     if [[ $user_private_key == "" ]]; then
-        echo "No private key provided. Deployer address must be funded with $transfer_amount wei to deploy contract" && exit 1
+        echo "error: no private key provided. Deployer address must be funded with $transfer_amount wei to deploy contract" && exit 1
     fi
     echo "Funding deployer address with $transfer_amount wei"
     cast send --rpc-url $rpc_url --private-key $user_private_key --value $transfer_amount $teleporter_deployer_address
