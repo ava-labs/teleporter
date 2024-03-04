@@ -21,10 +21,7 @@ const (
 	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 	warpGenesisFile        = "./tests/utils/warp-genesis.json"
 
-	crossChainAppsLabel      = "cross chain apps"
 	teleporterMessengerLabel = "TeleporterMessenger"
-	upgradeabilityLabel      = "upgradeability"
-	utilsLabel               = "utils"
 )
 
 var (
