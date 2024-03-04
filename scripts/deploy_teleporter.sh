@@ -93,9 +93,9 @@ if [[ $teleporter_contract_code != "0" ]]; then
     echo "TeleporterMessenger $teleporter_version has already been deployed on this chain." && exit 0
 fi
 
-# Check if the deployer address is allowed to deploy contracts on this chain by attempting to
-# estimate the amount of gas required to deploy the TeleporterMessenger byte code from the Teleporter
-# deployer address.
+# Estimate the amount of gas required to deploy the TeleporterMessenger bytecode from the Teleporter
+# deployer address in order to simulate the transaction. This will error if the TeleporterMessenger
+# contract is unable to be deployed from the deployer address.
 cast estimate --rpc-url $rpc_url \
     --from $teleporter_deployer_address \
     --create $teleporter_messenger_bytecode > /dev/null
