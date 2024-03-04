@@ -61,13 +61,6 @@ while [ $# -gt 0 ]; do
                 echo "Invalid private key $2" && printHelp && exit 1
             fi 
             shift;;
-        --deploy-registry) 
-            if [[ $2 != --* ]]; then
-                registry_version_id=$2
-            else 
-                echo "Invalid version ID for TeleporterRegistry $2" && printHelp && exit 1
-            fi 
-            shift;;
         --help) 
             printHelp && exit 0 ;;
         *) 
