@@ -19,7 +19,9 @@ In the `TeleporterRegistry` contract, the `latestVersion` state variable returns
 ## Design
 
 - `TeleporterRegistry` is deployed on each blockchain that needs to keep track of `TeleporterMessenger` contract versions.
+- The registry's contract address on each blockchain does not need to be the same, and does not require a Nick's method transaction for deployment.
 - Each registry's mapping of version to contract address is independent of registries on other blockchains, and chains can decide on their own registry mapping entries.
+- Each blockchain should only have one canonical `TeleporterRegistry` contract.
 - `TeleporterRegistry` contract can be initialized through a list of initial registry entries, which are `TeleporterMessenger` contract versions and their addresses.
 - The registry keeps track of a mapping of `TeleporterMessenger` contract versions to their addresses, and vice versa, a mapping of `TeleporterMessenger` contract addresses to their versions.
 - Version zero is an invalid version, and is used to indicate that a `TeleporterMessenger` contract has not been registered yet.
