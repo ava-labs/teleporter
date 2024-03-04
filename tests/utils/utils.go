@@ -762,6 +762,10 @@ func BigIntMul(v1 *big.Int, v2 *big.Int) *big.Int {
 	return big.NewInt(0).Mul(v1, v2)
 }
 
+func BigIntDiv(v1 *big.Int, v2 *big.Int) *big.Int {
+	return big.NewInt(0).Div(v1, v2)
+}
+
 func ERC20Approve(
 	ctx context.Context,
 	token *exampleerc20.ExampleERC20,

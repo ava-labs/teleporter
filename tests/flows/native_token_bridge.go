@@ -9,6 +9,7 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	nativetokendestination "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/NativeTokenDestination"
 	nativetokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/NativeTokenSource"
+	wavax "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/WAVAX"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
@@ -26,6 +27,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		deployerKeyStr                     = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
 		NativeTokenSourceByteCodeFile      = "./contracts/out/NativeTokenSource.sol/NativeTokenSource.json"
 		NativeTokenDestinationByteCodeFile = "./contracts/out/NativeTokenDestination.sol/NativeTokenDestination.json"
+		WAVAXByteCodeFile                  = "./contracts/out/WAVAX.sol/WAVAX.json"
 	)
 	var (
 		initialReserveImbalance = big.NewInt(0).Mul(big.NewInt(1e15), big.NewInt(1e9))
@@ -35,7 +37,9 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		deployerAddress         = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
 		tokenReceiverAddress    = common.HexToAddress("0x0123456789012345678901234567890123456789")
 		burnedTxFeeAddressDest  = common.HexToAddress("0x0100000000000000000000000000000000000000")
-		burnAddressSource       = common.HexToAddress("0x0100000000000000000000000000000000010203")
+		WAVAXAddress            = common.HexToAddress("0xd7c9Afe074ECbFc34d83b90B2f968c4c8Da66f0f") // derived from deployer address with nonce 1
+
+		burnedFeesReportingRewardPercentage = big.NewInt(3)
 
 		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
 			FeeTokenAddress: common.Address{},
@@ -114,6 +118,18 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			sourceSubnet.BlockchainID,
 			bridgeContractAddress,
 			initialReserveImbalance,
+			burnedFeesReportingRewardPercentage,
+			WAVAXAddress,
+		)
+
+		wavaxAbi, err := wavax.WAVAXMetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		utils.DeployContract(
+			ctx,
+			WAVAXByteCodeFile,
+			deployerPK,
+			destSubnet,
+			wavaxAbi,
 		)
 
 		log.Info("Finished deploying Bridge contracts")
@@ -265,6 +281,8 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		)
 		Expect(err).Should(BeNil())
 		Expect(burnedTxFeesBalanceDest.Cmp(common.Big0) > 0).Should(BeTrue())
+		burnReward := utils.BigIntDiv(utils.BigIntMul(burnedTxFeesBalanceDest, burnedFeesReportingRewardPercentage), big.NewInt(100))
+		tokensToBurn := utils.BigIntSub(burnedTxFeesBalanceDest, burnReward)
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, destSubnet.EVMChainID)
 		Expect(err).Should(BeNil())
@@ -281,11 +299,14 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			nativeTokenDestination.ParseReportBurnedTxFees,
 		)
 		Expect(err).Should(BeNil())
-		utils.ExpectBigEqual(reportEvent.BurnAddressBalance, burnedTxFeesBalanceDest)
+		utils.ExpectBigEqual(reportEvent.FeesBurned, tokensToBurn)
+
+		generalBurnAddress, err := nativeTokenDestination.GENERALBURNADDRESS(&bind.CallOpts{})
+		Expect(err).Should(BeNil())
 
 		burnedTxFeesBalanceSource, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
-			burnAddressSource,
+			generalBurnAddress,
 			nil,
 		)
 		Expect(err).Should(BeNil())
@@ -297,21 +318,18 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			ctx,
 			sourceChainReceipt,
 			sourceSubnet,
-			nativeTokenSource.ParseBurnTokens,
+			nativeTokenSource.ParseUnlockTokens,
 		)
-		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
+		Expect(burnEvent.Recipient).Should(Equal(generalBurnAddress))
+		utils.ExpectBigEqual(tokensToBurn, burnEvent.Amount)
 
 		burnedTxFeesBalanceSource2, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
-			burnAddressSource,
+			generalBurnAddress,
 			nil,
 		)
 		Expect(err).Should(BeNil())
-		Expect(
-			burnedTxFeesBalanceSource2.Cmp(
-				big.NewInt(0).Add(burnedTxFeesBalanceSource, burnEvent.Amount),
-			) >= 0,
-		).Should(BeTrue())
+		utils.ExpectBigEqual(burnedTxFeesBalanceSource2, tokensToBurn)
 	}
 }
 

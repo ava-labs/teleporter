@@ -51,7 +51,6 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     WAVAX public immutable wavaxContract;
 
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
-    uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 100_000;
     bytes32 public immutable sourceBlockchainID;
     address public immutable nativeTokenSourceAddress;
     uint256 public immutable burnedFeesReportingRewardPercentage;
@@ -171,15 +170,13 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         NATIVE_MINTER.mintNativeCoin(address(this), reward);
 
         wavaxContract.deposit{value: reward}();
-        ITeleporterMessenger teleporter = _getTeleporterMessenger();
-        wavaxContract.approve(address(teleporter), reward);
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: address(wavaxContract), amount: reward}),
-                requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
+                requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
                 message: abi.encode(GENERAL_BURN_ADDRESS, burnedTxFees)
             })

@@ -15,6 +15,7 @@ import {
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {WAVAX} from "../WAVAX.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     NativeTokenDestination public nativeTokenDestination;
@@ -29,7 +30,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     );
     event CollateralAdded(uint256 amount, uint256 remaining);
     event NativeTokensMinted(address indexed recipient, uint256 amount);
-    event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 burnAddressBalance);
+    event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     function setUp() public virtual override {
         NativeTokenBridgeTest.setUp();
@@ -47,6 +48,16 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEES_REWARD_PERCENTAGE,
             wavaxContractAddress: _MOCK_WAVAX_ADDRESS
         });
+        vm.mockCall(_MOCK_WAVAX_ADDRESS, abi.encodeWithSelector(WAVAX.deposit.selector), "");
+        vm.mockCall(_MOCK_WAVAX_ADDRESS, abi.encodeWithSelector(WAVAX.approve.selector), "");
+        vm.mockCall(
+            _MOCK_WAVAX_ADDRESS,
+            abi.encodeCall(
+                IERC20.allowance,
+                (address(nativeTokenDestination), MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
+            abi.encode(0)
+        );
     }
 
     function collateralizeBridge() public {
@@ -154,24 +165,27 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     }
 
     function testReportBurnedTxFees() public {
+        uint256 initialBurnBalance = 12345;
+        // uint256 secondBurnBalance = 67890;
+        vm.deal(nativeTokenDestination.BURNED_TX_FEES_ADDRESS(), initialBurnBalance);
+
         uint256 burnedFees = nativeTokenDestination.BURNED_TX_FEES_ADDRESS().balance;
+        uint256 reward = burnedFees * _DEFAULT_BURN_FEES_REWARD_PERCENTAGE / 100;
+        uint256 tokensToBurn = burnedFees - reward;
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit ReportBurnedTxFees({
             teleporterMessageID: _MOCK_MESSAGE_ID,
-            burnAddressBalance: burnedFees
+            feesBurned: tokensToBurn
         });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(mockERC20),
-                amount: _DEFAULT_FEE_AMOUNT
-            }),
-            requiredGasLimit: nativeTokenDestination.REPORT_BURNED_TOKENS_REQUIRED_GAS(),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(_MOCK_WAVAX_ADDRESS), amount: reward}),
+            requiredGasLimit: nativeTokenDestination.TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: abi.encode(nativeTokenDestination.GENERAL_BURN_ADDRESS, burnedFees)
+            message: abi.encode(nativeTokenDestination.GENERAL_BURN_ADDRESS, tokensToBurn)
         });
 
         vm.expectCall(
@@ -179,19 +193,10 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
 
+        vm.expectCall(address(_MOCK_WAVAX_ADDRESS), abi.encodeCall(WAVAX.deposit, ()));
         vm.expectCall(
-            address(mockERC20),
-            abi.encodeCall(
-                IERC20.transferFrom,
-                (address(this), address(nativeTokenDestination), _DEFAULT_FEE_AMOUNT)
-            )
-        );
-        vm.expectCall(
-            address(mockERC20),
-            abi.encodeCall(
-                IERC20.allowance,
-                (address(nativeTokenDestination), MOCK_TELEPORTER_MESSENGER_ADDRESS)
-            )
+            address(_MOCK_WAVAX_ADDRESS),
+            abi.encodeCall(IERC20.approve, (address(MOCK_TELEPORTER_MESSENGER_ADDRESS), reward))
         );
 
         nativeTokenDestination.reportBurnedTxFees(new address[](0));
