@@ -33,17 +33,17 @@ In the `TeleporterRegistry` contract, the `latestVersion` state variable returns
   <img src="./upgrade-uml.png?raw=true" alt="Upgrade UML diagram"/>
 </div>
 
-[TeleporterUpgradeable](./TeleporterUpgradeable.sol) is an abstract contract that helps integrate the `TeleporterRegistry` into a dapp built on top of Teleporter. By inheriting from `TeleporterUpgradeable`, dapps get:
+[TeleporterUpgradeable](./TeleporterUpgradeable.sol) is an abstract contract that helps integrate the `TeleporterRegistry` into a dApp built on top of Teleporter. By inheriting from `TeleporterUpgradeable`, dapps get:
 
-- Ability to send Teleporter messages through the latest version of the Teleporter contract registered in the Teleporter registry. (The dapp can also override this to use a specific version of the Teleporter contract.)
-- `minTeleporterVersion` management that allows the dapp to specify the minimum Teleporter version that can send messages to the dapp.
+- Ability to send Teleporter messages through the latest version of the Teleporter contract registered in the Teleporter registry. (The dApp can also override this to use a specific version of the Teleporter contract.)
+- `minTeleporterVersion` management that allows the dApp to specify the minimum Teleporter version that can send messages to the dApp.
 - Access controlled utility to update the `minTeleporterVersion`
 - Access controlled utility to pause/unpause interaction with specific Teleporter addresses.
 
-To integrate `TeleporterUpgradeable` with a dapp pass in the Teleporter registry address inside the constructor. An example app looks like:
+To integrate `TeleporterUpgradeable` with a dApp pass in the Teleporter registry address inside the constructor. An example dApp looks like:
 
 ```solidity
-// An example app that integrates with the Teleporter registry
+// An example dApp that integrates with the Teleporter registry
 // to send/receive Teleporter messages.
 contract ExampleApp is
     TeleporterUpgradeable
@@ -68,7 +68,7 @@ contract ExampleApp is
         // implementation
     }
 
-    // Implements the access control checks for the dapp's interaction with Teleporter versions.
+    // Implements the access control checks for the dApp's interaction with Teleporter versions.
     function _checkTeleporterUpgradeAccess() internal view virtual override {
         //implementation
     }
@@ -80,15 +80,15 @@ contract ExampleApp is
 
 #### Initialization
 
-The `TeleporterUpgradeable` contract constructor saves the Teleporter registry in a state variable used by the inheriting contract, and initializes a `minTeleporterVersion` to the highest `TeleporterMessenger` version registered in `TeleporterRegistry`. `minTeleporterVersion` is used to allow dapp's to specify the Teleporter versions allowed to interact with it.
+The `TeleporterUpgradeable` contract constructor saves the Teleporter registry in a state variable used by the inheriting contract, and initializes a `minTeleporterVersion` to the highest `TeleporterMessenger` version registered in `TeleporterRegistry`. `minTeleporterVersion` is used to allow dApp's to specify the Teleporter versions allowed to interact with it.
 
 #### Updating `minTeleporterVersion`
 
-The `TeleporterUpgradeable.updateMinTeleporterVersion` function updates the `minTeleporterVersion` used to check which Teleporter versions can deliver messages to the dapp, and emits the `MinTeleporterVersionUpdated` event. The `updateMinTeleporterVersion` function should **ONLY** be called by the dapp when it completes delivery of messages from the old Teleporter contract, and now wants to update the `minTeleporterVersion` to only allow the new Teleporter version. By default, `updateMinTeleporterVersion` can only be called with a version greater than the current `minTeleporterVersion` and less than `latestVersion` in the Teleporter registry. So once this function is called, the dapp will no longer be able to receive messages from the old Teleporter contract version, unless the old version's Teleporter address was registered in the registry again with a new version.
+The `TeleporterUpgradeable.updateMinTeleporterVersion` function updates the `minTeleporterVersion` used to check which Teleporter versions can deliver messages to the dApp, and emits the `MinTeleporterVersionUpdated` event. The `updateMinTeleporterVersion` function should **ONLY** be called by the dApp when it completes delivery of messages from the old Teleporter contract, and now wants to update the `minTeleporterVersion` to only allow the new Teleporter version. By default, `updateMinTeleporterVersion` can only be called with a version greater than the current `minTeleporterVersion` and less than `latestVersion` in the Teleporter registry. So once this function is called, the dApp will no longer be able to receive messages from the old Teleporter contract version, unless the old version's Teleporter address was registered in the registry again with a new version.
 
 #### Checking Teleporter upgrade access
 
-To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which would disallow messages from old Teleporter versions from being received, this function should be safeguarded with access controls. All contracts deriving from `TeleporterUpgradeable` will need to implement `TeleporterUpgradeable._checkTeleporterUpgradeAccess`. For example, [TeleporterOwnerUpgrade](./TeleporterOwnerUpgradeable.sol) is an abstract contract that inherits `TeleporterUpgradeable`, and implements `_checkTeleporterUpgradeAccess` to check whether the caller is the owner.
+To prevent anyone from calling the dApp's `updateMinTeleporterVersion`, which would disallow messages from old Teleporter versions from being received, this function should be safeguarded with access controls. All contracts deriving from `TeleporterUpgradeable` will need to implement `TeleporterUpgradeable._checkTeleporterUpgradeAccess`. For example, [TeleporterOwnerUpgrade](./TeleporterOwnerUpgradeable.sol) is an abstract contract that inherits `TeleporterUpgradeable`, and implements `_checkTeleporterUpgradeAccess` to check whether the caller is the owner.
 
 ```solidity
     function _checkTeleporterUpgradeAccess() internal view virtual override {
@@ -96,7 +96,7 @@ To prevent anyone from calling the dapp's `updateMinTeleporterVersion`, which wo
     }
 ```
 
-Another example would be a dapp that has different roles and priveleges. `_checkTeleporterUpgradeAccess` can be implemented to check whether the caller is a specific role.
+Another example would be a dApp that has different roles and priveleges. `_checkTeleporterUpgradeAccess` can be implemented to check whether the caller is a specific role.
 
 ```solidity
     function _checkTeleporterUpgradeAccess() internal view virtual override {
@@ -109,9 +109,9 @@ Another example would be a dapp that has different roles and priveleges. `_check
 
 #### Sending with specific Teleporter version
 
-For sending messages with the Teleporter registry, dapps should use `TeleporterUpgradeable._getTeleporterMessenger`. This function by default extends `TeleporterRegistry.getLatestTeleporter`, using the latest version, and adds an extra check on whether the latest Teleporter address is paused. If the dapp wants to send a message through a specific Teleporter version, it can override `_getTeleporterMessenger()` to use the specific Teleporter version with `TeleporterRegistry.getTeleporterFromVersion`.
+For sending messages with the Teleporter registry, dapps should use `TeleporterUpgradeable._getTeleporterMessenger`. This function by default extends `TeleporterRegistry.getLatestTeleporter`, using the latest version, and adds an extra check on whether the latest Teleporter address is paused. If the dApp wants to send a message through a specific Teleporter version, it can override `_getTeleporterMessenger()` to use the specific Teleporter version with `TeleporterRegistry.getTeleporterFromVersion`.
 
-The `TeleporterUpgradeable._sendTeleporterMessage` function makes sending Teleporter messages easier. The function uses `_getTeleporterMessenger` to get the sending Teleporter version, pays for Teleporter fees from the dapp's balance, and sends the cross chain message.
+The `TeleporterUpgradeable._sendTeleporterMessage` function makes sending Teleporter messages easier. The function uses `_getTeleporterMessenger` to get the sending Teleporter version, pays for Teleporter fees from the dApp's balance, and sends the cross chain message.
 
 Using latest version:
 
@@ -139,16 +139,16 @@ Using specific version:
 
 #### Receiving from specific Teleporter versions
 
-`TeleporterUpgradeable` also provides an initial implementation of [ITeleporterReceiver.receiveTeleporterMessage](../ITeleporterReceiver.sol) that ensures `_msgSender` is a `TeleporterMessenger` contract with a version greater than or equal to `minTeleporterVersion`. This supports the case where a dapp wants to upgrade to a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract.The dapp can override `_receiveTeleporterMessage` to implement its own logic for receiving messages from Teleporter contracts.
+`TeleporterUpgradeable` also provides an initial implementation of [ITeleporterReceiver.receiveTeleporterMessage](../ITeleporterReceiver.sol) that ensures `_msgSender` is a `TeleporterMessenger` contract with a version greater than or equal to `minTeleporterVersion`. This supports the case where a dApp wants to upgrade to a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract.The dApp can override `_receiveTeleporterMessage` to implement its own logic for receiving messages from Teleporter contracts.
 
 #### Pausing Teleporter version interactions
 
 Dapps that inherit from `TeleporterUpgradeable` can pause Teleporter interactions by calling `TeleporterUpgradeable.pauseTeleporterAddress`. This function prevents the contract from interacting with the paused Teleporter address when sending or receiving Teleporter messages.
 
-`pauseTeleporterAddress` can only be called by addresses with the dapp's upgrade access, checked through `TeleporterUpgradeable._checkTeleporterUpgradeAccess`.
+`pauseTeleporterAddress` can only be called by addresses with the dApp's upgrade access, checked through `TeleporterUpgradeable._checkTeleporterUpgradeAccess`.
 
 #### Unpausing Teleporter version interactions
 
-As with pausing, dapps can unpause Teleporter interactions by calling `TeleporterUpgradeable.unpauseTeleporterAddress`. This unpause function allows receiving Teleporter message from the unpaused Teleporter address, and also enables the sending of messages through the unpaused Teleporter address in `_getTeleporterMessenger()`. Unpausing is also only allowed by addresses with the dapp's upgrade access.
+As with pausing, dapps can unpause Teleporter interactions by calling `TeleporterUpgradeable.unpauseTeleporterAddress`. This unpause function allows receiving Teleporter message from the unpaused Teleporter address, and also enables the sending of messages through the unpaused Teleporter address in `_getTeleporterMessenger()`. Unpausing is also only allowed by addresses with the dApp's upgrade access.
 
-Note that receiving Teleporter messages is still governed by the `minTeleporterVersion` check, so even if a Teleporter address is unpaused, the dapp will not receive messages from the unpaused Teleporter address if the Teleporter version is less than `minTeleporterVersion`.
+Note that receiving Teleporter messages is still governed by the `minTeleporterVersion` check, so even if a Teleporter address is unpaused, the dApp will not receive messages from the unpaused Teleporter address if the Teleporter version is less than `minTeleporterVersion`.
