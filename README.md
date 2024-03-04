@@ -28,17 +28,59 @@ Other than simple transfers from source to destination chains, the token bridge 
 ### Dependencies
 
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
+- [Ginkgo](https://onsi.github.io/ginkgo/#installing-ginkgo) for running the end-to-end tests
 
 ## Structure
 
 - `contracts/` is a Foundry project that includes the implementation of the token bridge contracts
 - `scripts` includes various bash scripts for utility
+- `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
 
-## Tests
+## Solidity Unit Tests
 
 Unit tests are written under `contracts/test/` and can be run with `forge`:
 
 ```
 cd contracts/test
 forge test -vvv
+```
+
+## E2E tests
+
+In addition to the docker setup, end-to-end integration tests written using Ginkgo are provided in the `tests/` directory. E2E tests are run as part of CI, but can also be run locally. Any new features or cross-chain example applications checked into the repository should be accompanied by an end-to-end tests.
+
+To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo).
+
+Then run the following command from the root of the repository:
+
+```bash
+./scripts/local/e2e_test.sh
+```
+
+### Run specific E2E tests
+
+To run a specific E2E test, specify the environment variable `GINKGO_FOCUS`, which will then look for test descriptions that match the provided input. For example, to run the `Calculate Teleporter message IDs` test:
+
+```bash
+GINKGO_FOCUS="Calculate Teleporter message IDs" ./scripts/local/e2e_test.sh
+```
+
+A substring of the full test description can be used as well:
+
+```bash
+GINKGO_FOCUS="Calculate Teleporter" ./scripts/local/e2e_test.sh
+```
+
+The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all E2E tests for the example cross chain applications:
+
+```bash
+	ginkgo.It("Send native tokens from subnet A to B and back",
+		ginkgo.Label("cross chain apps"),
+		func() {
+			flows.NativeTokenBridge(LocalNetworkInstance)
+		})
+```
+
+```bash
+GINKGO_LABEL_FILTER="cross chain apps" ./scripts/local/e2e_test.sh
 ```
