@@ -84,6 +84,12 @@ func initializeSubnetInfo(
 	}
 
 	rpcURLStr := os.Getenv(subnetPrefix + rpcURLSuffix)
+
+	// Create the client using a cookiejar to try to use the same node for each
+	// request when using public RPC endpoints. Having requests routed to different
+	// nodes behind a load balancer may cause issues with nodes serving slightly stale
+	// data from before they see recently accepted transactions.
+	// See here: https://docs.avax.network/tooling/rpc-providers#sticky-sessions
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
