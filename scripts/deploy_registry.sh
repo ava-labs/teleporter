@@ -86,6 +86,7 @@ if [ "$teleporter_registry_bytecode" == "Not Found" ]; then
 fi
 
 # Encode the constructor arguments
+# TODO: Update to iterate through all release major versions once we have multiple Teleporter versions.
 constructor_encoding=$(cast abi-encode "constructor((uint256,address)[])" "[(1, $teleporter_contract_address)]")
 
 # remove the 0x prefix
