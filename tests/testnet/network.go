@@ -5,6 +5,8 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"math/big"
+	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetevminterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
+	"github.com/ava-labs/subnet-evm/rpc"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
@@ -81,12 +84,27 @@ func initializeSubnetInfo(
 	}
 
 	rpcURLStr := os.Getenv(subnetPrefix + rpcURLSuffix)
-	rpcClient, err := ethclient.Dial(rpcURLStr)
+	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
 
-	evmChainID, err := rpcClient.ChainID(context.Background())
+	httpClient := &http.Client{
+		Jar: jar,
+	}
+
+	rpcClient, err := rpc.DialOptions(
+		context.Background(),
+		rpcURLStr,
+		rpc.WithHTTPClient(httpClient),
+	)
+	if err != nil {
+		return interfaces.SubnetTestInfo{}, err
+	}
+
+	ethClient := ethclient.NewClient(rpcClient)
+
+	evmChainID, err := ethClient.ChainID(context.Background())
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
@@ -98,13 +116,13 @@ func initializeSubnetInfo(
 	teleporterRegistryAddress := common.HexToAddress(teleporterRegistryAddressStr)
 
 	teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, rpcClient,
+		teleporterContractAddress, ethClient,
 	)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
 
-	teleporterRegistry, err := teleporterregistry.NewTeleporterRegistry(teleporterRegistryAddress, rpcClient)
+	teleporterRegistry, err := teleporterregistry.NewTeleporterRegistry(teleporterRegistryAddress, ethClient)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
@@ -113,7 +131,7 @@ func initializeSubnetInfo(
 		SubnetID:                  subnetID,
 		BlockchainID:              blockchainID,
 		NodeURIs:                  []string{}, // no specific node URIs for a testnet subnet, only RPC endpoints.
-		RPCClient:                 rpcClient,
+		RPCClient:                 ethClient,
 		WSClient:                  nil,
 		EVMChainID:                evmChainID,
 		TeleporterRegistryAddress: teleporterRegistryAddress,
