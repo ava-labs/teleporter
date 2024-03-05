@@ -178,14 +178,17 @@ For more information on the registry and how to integrate with Teleporter dApps,
 From the root of the repo, the TeleporterMessenger contract can be deployed by calling
 
 ```bash
-./scripts/deploy_teleporter.sh <options>
+./scripts/deploy_teleporter.sh --version <version> --rpc-url <url> [OPTIONS]
 ```
 
-Options for this script:
+Required arguments:
 
-- `--version <version>` Required. Specify the release version to deploy. These will all be of the form `v1.X.0`. Each Teleporter version can only send and receive messages from the **same** Teleporter version on another chain. You can see a list of released versions at https://github.com/ava-labs/teleporter/releases.
-- `--rpc-url <url>` Required. Specify the rpc url of the node to use.
-- `--fund-deployer <private_key>` Optional. Funds the deployer address with the account held by `<private_key>`
+- `--version <version>` Specify the release version to deploy. These will all be of the form `v1.X.0`. Each Teleporter version can only send and receive messages from the **same** Teleporter version on another chain. You can see a list of released versions at https://github.com/ava-labs/teleporter/releases.
+- `--rpc-url <url>` Specify the rpc url of the node to use.
+
+Options:
+
+- `--private-key <private_key>` Funds the deployer address with the account held by `<private_key>`
 
 To ensure that Teleporter can be deployed to the same address on every EVM based chain, it uses [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c) to deploy from a static deployer address. Teleporter costs exactly `10eth` in the subnet's native gas token to deploy, which must be sent to the deployer address.
 
@@ -193,18 +196,19 @@ To ensure that Teleporter can be deployed to the same address on every EVM based
 
 ## Deploy TeleporterRegistry to a Subnet
 
-There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. Since the registry does not need to be deployed to the same address on every chain, it does not need a Nick's method deployment, and can be deployed using `forge create` from the root of the repo:
+There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. The registry does not need to be deployed to the same address on every chain, and therefore does not need a Nick's method transaction. To deploy, run the following command from the root of the repository:
 
 ```bash
-cd contracts
-forge create --private-key $user_private_key \
-        --rpc-url $subnet_rpc_url src/Teleporter/upgrades/TeleporterRegistry.sol:TeleporterRegistry --constructor-args "[($teleporter_version,$teleporter_contract_address)]"
+./scripts/deploy_registry.sh --version <version> --rpc-url <url> --private-key <private_key> [OPTIONS]
 ```
 
-- `$user_private_key`: private key of the user deploying the contract.
-- `$subnet_rpc_url`: RPC URL of the subnet where the contract will be deployed.
-- `$teleporter_version`: version number of the `TeleporterMessenger` contract being registered on this blockchain. For example, if it's the first `TeleporterMessenger` contract being registered, the version number would be 1.
-- `$teleporter_contract_address`: address of the `TeleporterMessenger` contract being registered on this blockchain.
+Required arguments:
+
+- `--version <version>` Specify the release version to deploy. These will all be of the form `v1.X.0`.
+- `--rpc-url <url>` Specify the rpc url of the node to use.
+- `--private-key <private_key>` Funds the deployer address with the account held by `<private_key>`
+
+`deploy_registry.sh` will deploy a new `TeleporterRegistry` contract for the intended release version, and will also have the corresponding `TeleporterMessenger` contract registered as the initial protocol version.
 
 ## ABI Bindings
 

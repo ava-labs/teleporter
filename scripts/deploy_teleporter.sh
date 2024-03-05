@@ -20,18 +20,22 @@ if ! command -v jq &> /dev/null; then
 fi
 
 function printHelp() {
-    echo "Usage: ./scripts/deploy_teleporter.sh [OPTIONS]"
+    echo "Usage: ./scripts/deploy_teleporter.sh --version <version> --rpc-url <url> [OPTIONS]"
+    echo ""
     echo "Deploys a selected TeleporterMessenger contract to the specified chain"
     echo "For a list of releases, go to https://github.com/ava-labs/teleporter/releases"
     printUsage
 }
 
 function printUsage() {
-    echo "Options:"
-    echo "  --version <version>              Required. Specify the release version to deploy"
-    echo "  --rpc-url <url>                  Required. Specify the rpc url of the node to use"
-    echo "  --private-key <private_key>      Optional. Private key of account to use to fund the Teleporter deployer address, if necessary."
-    echo "  --help                           Print this help message"
+    cat << EOF
+Arguments:
+    --version <version>              Specify the release version to deploy
+    --rpc-url <url>                  Specify the rpc url of the node to use
+Options:
+    --private-key <private_key>      Private key of account to use to fund the Teleporter deployer address, if necessary.
+    --help                           Print this help message
+EOF
 }
 
 teleporter_version=
@@ -44,7 +48,7 @@ while [ $# -gt 0 ]; do
             if [[ $2 != --* ]]; then
                 teleporter_version=$2
             else 
-                echo "Invalid teleporter version $2" && printHelp && exit 1
+                echo "Invalid Teleporter version $2" && printHelp && exit 1
             fi 
             shift;;
         --rpc-url)  
@@ -86,6 +90,10 @@ teleporter_deployer_address=$(curl -sL https://github.com/ava-labs/teleporter/re
 echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_deployer_address"
 teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Deployment_Transaction_$teleporter_version.txt)
 teleporter_messenger_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Bytecode_$teleporter_version.txt)
+if [ "$teleporter_contract_address" == "Not Found" ]; then
+    echo "Error: TeleporterMessenger $teleporter_version contract address not found."
+    exit 1
+fi
 
 # Check if this TeleporterMessenger version has already been deployed on this chain.
 teleporter_contract_code=$(cast codesize $teleporter_contract_address --rpc-url $rpc_url)
