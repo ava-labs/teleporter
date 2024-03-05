@@ -91,8 +91,8 @@ echo "TeleporterMessenger $teleporter_version deployer address: $teleporter_depl
 teleporter_deploy_tx=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Deployment_Transaction_$teleporter_version.txt)
 teleporter_messenger_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Bytecode_$teleporter_version.txt)
 if [ "$teleporter_contract_address" == "Not Found" ]; then
-  echo "Error: TeleporterMessenger $teleporter_version contract address not found."
-  exit 1
+    echo "Error: TeleporterMessenger $teleporter_version contract address not found."
+    exit 1
 fi
 
 # Check if this TeleporterMessenger version has already been deployed on this chain.

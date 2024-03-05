@@ -81,8 +81,8 @@ fi
 teleporter_registry_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterRegistry_Bytecode_$teleporter_version.txt)
 teleporter_contract_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Contract_Address_$teleporter_version.txt)
 if [ "$teleporter_registry_bytecode" == "Not Found" ]; then
-  echo "Error: TeleporterRegistry $teleporter_version byte code not found."
-  exit 1
+    echo "Error: TeleporterRegistry $teleporter_version byte code not found."
+    exit 1
 fi
 
 # Encode the constructor arguments
