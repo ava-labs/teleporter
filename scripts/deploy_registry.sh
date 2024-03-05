@@ -92,6 +92,13 @@ constructor_encoding=$(cast abi-encode "constructor((uint256,address)[])" "[(1, 
 # remove the 0x prefix
 constructor_encoding=${constructor_encoding:2}
 
+# Estimate the amount of gas required to deploy the TeleporterRegistry bytecode from the Teleporter
+# deployer address in order to simulate the transaction. This will error if the TeleporterMessenger
+# contract is unable to be deployed from the deployer address.
+cast estimate --rpc-url $rpc_url \
+    --from $(cast wallet address --private-key $user_private_key) \
+    --create $teleporter_messenger_bytecode$constructor_encoding > /dev/null
+
 # Deploy the TeleporterRegistry contract 
 deployment_result=$(cast send --private-key $user_private_key --rpc-url $rpc_url --json --create $teleporter_registry_bytecode$constructor_encoding)
 teleporter_registry_address=$(echo $deployment_result | jq -r .contractAddress)
@@ -101,7 +108,6 @@ if [[ $deployment_status != "0x1" ]]; then
     echo "TeleporterRegistry deployment transaction failed. Transaction ID: $deployment_tx_id"
     exit 1
 fi
-echo $teleporter_registry_address
 echo "Success! TeleporterRegistry deployed to $teleporter_registry_address in transaction $deployment_tx_id."
 
 exit 0
