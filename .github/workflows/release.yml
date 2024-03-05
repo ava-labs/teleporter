@@ -17,12 +17,13 @@ jobs:
       deployer_addr_fn: TeleporterMessenger_Deployer_Address_${{ github.ref_name }}.txt
       contract_addr_fn: TeleporterMessenger_Contract_Address_${{ github.ref_name }}.txt
       teleporter_messenger_bytecode_fn: TeleporterMessenger_Bytecode_${{ github.ref_name }}.txt
+      teleporter_registry_bytecode_fn: TeleporterRegistry_Bytecode_${{ github.ref_name }}.txt
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
       - name: Set Go version
         run: |
           source ./scripts/versions.sh
@@ -31,11 +32,11 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-            go-version: ${{ env.GO_VERSION }}
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Install Foundry
         run: ./scripts/install_foundry.sh
-    
+
       - name: Build Contracts
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
@@ -58,6 +59,7 @@ jobs:
           mv UniversalTeleporterDeployerAddress.txt ${{ env.deployer_addr_fn }}
           mv UniversalTeleporterMessengerContractAddress.txt ${{ env.contract_addr_fn }}
           mv contracts/out/TeleporterMessenger.sol/TeleporterMessenger.bin ${{ env.teleporter_messenger_bytecode_fn }}
+          mv contracts/out/TeleporterRegistry.sol/TeleporterRegistry.bin ${{ env.teleporter_registry_bytecode_fn }}
 
       - name: Create release
         uses: softprops/action-gh-release@v1
@@ -71,4 +73,3 @@ jobs:
             ${{ env.deployer_addr_fn }}
             ${{ env.contract_addr_fn }}
             ${{ env.teleporter_messenger_bytecode_fn }}
-    
