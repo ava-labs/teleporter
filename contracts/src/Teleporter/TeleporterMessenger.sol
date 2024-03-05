@@ -37,8 +37,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     using ReceiptQueue for ReceiptQueue.TeleporterMessageReceiptQueue;
 
     /**
-     *  @notice SentMessageInfo includes the fee information for a given message submitted
-     *  to be sent, along with the hash of the message itself.
+     * @notice SentMessageInfo includes the fee information for a given message submitted
+     * to be sent, along with the hash of the message itself.
      */
     struct SentMessageInfo {
         bytes32 messageHash;
@@ -46,65 +46,65 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
     }
 
     /**
-     *  @notice Warp precompile used for sending and receiving Warp messages.
+     * @notice Warp precompile used for sending and receiving Warp messages.
      */
     IWarpMessenger public constant WARP_MESSENGER =
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     /**
-     *  @notice The blockchain ID of the chain the contract is deployed on.
-     *  @dev Can be initialized by calling initializeBlockchainID, or will be initialized
-     *  automatically on the first successful call to send or receive a message.
+     * @notice The blockchain ID of the chain the contract is deployed on.
+     * @dev Can be initialized by calling initializeBlockchainID, or will be initialized
+     * automatically on the first successful call to send or receive a message.
      */
     bytes32 public blockchainID;
 
     /**
-     *  @notice A monotonically incremented integer tracking the total number of messages sent by this TeleporterMessenger contract.
-     *  @dev Used to provide uniqueness when generating message IDs for new messages. The first message sent will use a
-     *  messageNonce of 1 such that the nonce value can be used to provide replay protection for a given message ID.
+     * @notice A monotonically incremented integer tracking the total number of messages sent by this TeleporterMessenger contract.
+     * @dev Used to provide uniqueness when generating message IDs for new messages. The first message sent will use a
+     * messageNonce of 1 such that the nonce value can be used to provide replay protection for a given message ID.
      */
     uint256 public messageNonce;
 
     /**
-     *  @notice Tracks the outstanding receipts to send back to a given chain in subsequent messages sent to that chain.
-     *  @dev The key is the blockchain ID of the other chain, and the value is a queue of pending receipts for messages
-     *  received from that chain.
+     * @notice Tracks the outstanding receipts to send back to a given chain in subsequent messages sent to that chain.
+     * @dev The key is the blockchain ID of the other chain, and the value is a queue of pending receipts for messages
+     * received from that chain.
      */
     mapping(bytes32 sourceBlockchainID => ReceiptQueue.TeleporterMessageReceiptQueue receiptQueue)
         public receiptQueues;
 
     /**
-     *  @notice Tracks the message hash and fee information for each message sent that has yet to be acknowledged
-     *  with a receipt.
-     *  @dev The key is the message ID, and the value is the info for the uniquely identified message.
+     * @notice Tracks the message hash and fee information for each message sent that has yet to be acknowledged
+     * with a receipt.
+     * @dev The key is the message ID, and the value is the info for the uniquely identified message.
      */
     mapping(bytes32 messageID => SentMessageInfo messageInfo) public sentMessageInfo;
 
     /**
-     *  @notice  Tracks the hash of messages that have been received but have never succeeded in execution.
-     *  @dev Enables retrying of failed messages with higher gas limits. Message execution is guaranteed to
-     *  succeed at most once. The key is the message ID, and the value is the hash of the uniquely
-     *  identified message whose execution failed.
+     * @notice  Tracks the hash of messages that have been received but have never succeeded in execution.
+     * @dev Enables retrying of failed messages with higher gas limits. Message execution is guaranteed to
+     * succeed at most once. The key is the message ID, and the value is the hash of the uniquely
+     * identified message whose execution failed.
      */
     mapping(bytes32 messageID => bytes32 messageHash) public receivedFailedMessageHashes;
 
     /**
-     *  @dev Tracks the message nonce for each message that has been received. The key is the message ID,
-     *  and the value is the nonce value that was received as a part of that message.
-     *  Note: the `messageNonce` values are also used to determine if a given message has been received or not.
+     * @dev Tracks the message nonce for each message that has been received. The key is the message ID,
+     * and the value is the nonce value that was received as a part of that message.
+     * Note: the `messageNonce` values are also used to determine if a given message has been received or not.
      */
     mapping(bytes32 messageID => uint256 messageNonce) internal _receivedMessageNonces;
 
     /**
-     *  @dev Tracks the relayer reward address for each message that has been received.
-     *  The key is the message ID, and the value is the reward address provided by the deliverer of the message.
+     * @dev Tracks the relayer reward address for each message that has been received.
+     * The key is the message ID, and the value is the reward address provided by the deliverer of the message.
      */
     mapping(bytes32 messageID => address relayerRewardAddress) internal _relayerRewardAddresses;
 
     /**
-     *  @dev Tracks the reward amounts for a given asset able to be redeemed by a given relayer.
-     *  The first key is the relayer reward address, the second key is the fee token contract address,
-     *  and the value is the amount of the asset redeemable by the relayer.
+     * @dev Tracks the reward amounts for a given asset able to be redeemed by a given relayer.
+     * The first key is the relayer reward address, the second key is the fee token contract address,
+     * and the value is the amount of the asset redeemable by the relayer.
      */
     mapping(
         address relayerRewardAddress
