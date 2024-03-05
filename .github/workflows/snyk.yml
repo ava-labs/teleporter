@@ -16,7 +16,7 @@ jobs:
           submodules: recursive
 
       - name: Run Snyk
-        uses: snyk/actions/golang@v2
+        uses: snyk/actions/golang@v0.4.0
         continue-on-error: true # To make sure that SARIF upload gets called
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -52,7 +52,7 @@ jobs:
         # Snyk can be used to break the build when it detects vulnerabilities.
         # In this case we want to upload the issues to GitHub Code Scanning
         # continue-on-error: true
-        uses: snyk/actions/docker@v2
+        uses: snyk/actions/docker@v0.4.0
         env:
           # In order to use the Snyk Action you will need to have a Snyk API token.
           # More details in https://github.com/snyk/actions#getting-your-snyk-token
