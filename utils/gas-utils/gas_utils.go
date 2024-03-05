@@ -8,12 +8,12 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/utils/math"
+	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 )
 
 const (
-	ReceiveCrossChainMessageStaticGasCost           uint64 = 2_000_000
-	ReceiveCrossChainMessageGasCostPerAggregatedKey uint64 = 1_000
-	ReceiveMessageGasLimitBufferAmount              uint64 = 100_000
+	ReceiveCrossChainMessageStaticGasCost uint64 = 300_000 + warp.GasCostPerSignatureVerification
+	ReceiveMessageGasLimitBufferAmount    uint64 = 100_000
 
 	BaseFeeFactor        = 2
 	MaxPriorityFeePerGas = 2500000000 // 2.5 gwei
@@ -32,7 +32,7 @@ func CalculateReceiveMessageGasLimit(numSigners int, executionRequiredGasLimit *
 	gasAmounts := []uint64{
 		executionRequiredGasLimit.Uint64(),
 		ReceiveCrossChainMessageStaticGasCost,
-		uint64(numSigners) * ReceiveCrossChainMessageGasCostPerAggregatedKey,
+		uint64(numSigners) * warp.GasCostPerSignatureVerification,
 		ReceiveMessageGasLimitBufferAmount,
 	}
 
