@@ -34,7 +34,7 @@ func CalculateReceiveMessageGasLimit(numSigners int, executionRequiredGasLimit *
 	gasAmounts := []uint64{
 		executionRequiredGasLimit.Uint64(),
 		ReceiveCrossChainMessageStaticGasCost,
-		uint64(numSigners) * warp.GasCostPerSignatureVerification,
+		uint64(numSigners) * warp.GasCostPerWarpSigner,
 		ReceiveMessageGasLimitBufferAmount,
 	}
 
