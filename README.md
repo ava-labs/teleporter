@@ -196,7 +196,7 @@ To ensure that Teleporter can be deployed to the same address on every EVM based
 
 ## Deploy TeleporterRegistry to a Subnet
 
-There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. The registry does not need to be deployed to the same address on every chain, therefore does not need a Nick's method transaction. To deploy, run the following command from the root of the repository:
+There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. The registry does not need to be deployed to the same address on every chain, and therefore does not need a Nick's method transaction. To deploy, run the following command from the root of the repository:
 
 ```bash
 ./scripts/deploy_registry.sh --version <version> --rpc-url <url> --private-key <private_key> [OPTIONS]
