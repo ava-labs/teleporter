@@ -12,10 +12,7 @@ import (
 )
 
 const (
-	// The total gas cost for a single call to receiveCrossChainMessage is ~500_000. Add 300_000 to the
-	// static gas cost charged by the Warp precompile per signature verification (200_000) to arrive at this number.
-	ReceiveCrossChainMessageStaticGasCost uint64 = 300_000 + warp.GasCostPerSignatureVerification // Totals 500_000
-	ReceiveMessageGasLimitBufferAmount    uint64 = 100_000
+	ReceiveCrossChainMessageStaticGasCost uint64 = 500_000
 
 	BaseFeeFactor        = 2
 	MaxPriorityFeePerGas = 2500000000 // 2.5 gwei
@@ -35,7 +32,7 @@ func CalculateReceiveMessageGasLimit(numSigners int, executionRequiredGasLimit *
 		executionRequiredGasLimit.Uint64(),
 		ReceiveCrossChainMessageStaticGasCost,
 		uint64(numSigners) * warp.GasCostPerWarpSigner,
-		ReceiveMessageGasLimitBufferAmount,
+		warp.GasCostPerSignatureVerification,
 	}
 
 	res := gasAmounts[0]
