@@ -204,7 +204,7 @@ There should only be one canonical `TeleporterRegistry` deployed for each chain,
 
 Required arguments:
 
-- `--version <version>` Specify the release version to deploy. These will all be of the form `v1.X.0`. Each Teleporter version can only send and receive messages from the **same** Teleporter version on another chain. You can see a list of released versions at https://github.com/ava-labs/teleporter/releases.
+- `--version <version>` Specify the release version to deploy. These will all be of the form `v1.X.0`.
 - `--rpc-url <url>` Specify the rpc url of the node to use.
 - `--private-key <private_key>` Funds the deployer address with the account held by `<private_key>`
 
