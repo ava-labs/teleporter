@@ -196,7 +196,7 @@ To ensure that Teleporter can be deployed to the same address on every EVM based
 
 ## Deploy TeleporterRegistry to a Subnet
 
-There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. The registry does not need to be deployed to the same address on every chain, and does not need a Nick's method transaction to deploy
+There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. The registry does not need to be deployed to the same address on every chain, therefore does not need a Nick's method transaction. To deploy, run the following from root:
 
 ```bash
 ./scripts/deploy_registry.sh --version <version> --rpc-url <url> --private-key <private_key> [OPTIONS]
@@ -207,10 +207,6 @@ Required arguments:
 - `--version <version>` Specify the release version to deploy. These will all be of the form `v1.X.0`. Each Teleporter version can only send and receive messages from the **same** Teleporter version on another chain. You can see a list of released versions at https://github.com/ava-labs/teleporter/releases.
 - `--rpc-url <url>` Specify the rpc url of the node to use.
 - `--fund-deployer <private_key>` Funds the deployer address with the account held by `<private_key>`
-
-Options:
-
-- `--constructor-args '[(<teleporter_version>, <teleporter_contract_address>) ...]` Constructor arguments for the TeleporterRegistry contract. The constructor takes a list of tuples, where each tuple is a Teleporter version `uint256` and the address of the Teleporter contract `address` for that version.
 
 ## ABI Bindings
 

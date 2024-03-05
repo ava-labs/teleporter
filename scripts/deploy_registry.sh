@@ -34,8 +34,6 @@ Arguments:
     --rpc-url <url>                  Specify the rpc url of the node to use
     --private-key <private_key>      Private key of account to deploy TeleporterRegistry
 Options:
-    --constructor-args '[(<teleporter_version>,<teleporter_contract_address)...]' 
-            Constructor arguments for the TeleporterRegistry contract
     --help                           Print this help message
 EOF
 }
@@ -43,7 +41,6 @@ EOF
 teleporter_version=
 user_private_key=
 rpc_url=
-constructor_args=
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -68,13 +65,6 @@ while [ $# -gt 0 ]; do
                 echo "Invalid private key $2" && printHelp && exit 1
             fi 
             shift;;
-        --constructor-args) 
-            if [[ $2 != --* ]]; then
-                constructor_args=$2
-            else 
-                echo "Invalid constructor args $2" && printHelp && exit 1
-            fi 
-            shift;;
         --help) 
             printHelp && exit 0 ;;
         *) 
@@ -89,17 +79,14 @@ if [[ $teleporter_version == "" || $rpc_url == "" || $user_private_key == "" ]];
 fi
 
 teleporter_registry_bytecode=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterRegistry_Bytecode_$teleporter_version.txt)
+teleporter_contract_address=$(curl -sL https://github.com/ava-labs/teleporter/releases/download/$teleporter_version/TeleporterMessenger_Contract_Address_$teleporter_version.txt)
 if [ "$teleporter_registry_bytecode" == "Not Found" ]; then
   echo "Error: TeleporterRegistry $teleporter_version byte code not found."
   exit 1
 fi
 
 # Encode the constructor arguments
-if [[ $constructor_args == "" ]]; then
-    echo "No TeleporterRegistry constructor arguments provided. Using default constructor."
-    constructor_args="[]"
-fi
-constructor_encoding=$(cast abi-encode "constructor((uint256,address)[])" "$constructor_args")
+constructor_encoding=$(cast abi-encode "constructor((uint256,address)[])" "[(1, $teleporter_contract_address)]")
 
 # remove the 0x prefix
 constructor_encoding=${constructor_encoding:2}
