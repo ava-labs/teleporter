@@ -117,6 +117,3 @@ echo $teleporter_registry_address
 echo "Success! TeleporterRegistry deployed to $teleporter_registry_address in transaction $deployment_tx_id."
 
 exit 0
-
-
-
