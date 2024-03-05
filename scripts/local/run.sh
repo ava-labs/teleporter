@@ -27,7 +27,7 @@ LOCAL_RELAYER_IMAGE=
 RUN_STOP_FLAG="-c"
 while [ $# -gt 0 ]; do
     case "$1" in
-        -l | --local-relayer-image) LOCAL_RELAYER_IMAGE=$2 ;;
+        -l | --local-relayer-image) LOCAL_RELAYER_IMAGE=$2 && shift;;
         -p | --pause) RUN_STOP_FLAG= ;;
         -h | --help) printHelp && exit 0 ;;
         *)  echo "Invalid option: $1" && printHelp && exit 1;;
