@@ -92,9 +92,9 @@ constructor_encoding=$(cast abi-encode "constructor((uint256,address)[])" "[(1, 
 # remove the 0x prefix
 constructor_encoding=${constructor_encoding:2}
 
-# Estimate the amount of gas required to deploy the TeleporterRegistry bytecode from the Teleporter
-# deployer address in order to simulate the transaction. This will error if the TeleporterMessenger
-# contract is unable to be deployed from the deployer address.
+# Estimate the amount of gas required to deploy the TeleporterRegistry bytecode from the user's
+# account address in order to simulate the transaction. This will error if the TeleporterRegistry
+# contract is unable to be deployed.
 cast estimate --rpc-url $rpc_url \
     --from $(cast wallet address --private-key $user_private_key) \
     --create $teleporter_messenger_bytecode$constructor_encoding > /dev/null
