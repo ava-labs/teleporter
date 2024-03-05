@@ -88,7 +88,10 @@ func initializeSubnetInfo(
 	// Create the client using a cookiejar to try to use the same node for each
 	// request when using public RPC endpoints. Having requests routed to different
 	// nodes behind a load balancer may cause issues with nodes serving slightly stale
-	// data from before they see recently accepted transactions.
+	// data from before they see recently accepted transactions. Responses generally
+	// have cookies identifying which node served the request, and those cookies can
+	// be added to the cookiejar to be included on future requests to attempt to have
+	// the same node serve it.
 	// See here: https://docs.avax.network/tooling/rpc-providers#sticky-sessions
 	jar, err := cookiejar.New(nil)
 	if err != nil {
