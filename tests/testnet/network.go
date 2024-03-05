@@ -5,6 +5,8 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"math/big"
+	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetevminterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
+	"github.com/ava-labs/subnet-evm/rpc"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
@@ -81,12 +84,36 @@ func initializeSubnetInfo(
 	}
 
 	rpcURLStr := os.Getenv(subnetPrefix + rpcURLSuffix)
-	rpcClient, err := ethclient.Dial(rpcURLStr)
+
+	// Create the client using a cookiejar to try to use the same node for each
+	// request when using public RPC endpoints. Having requests routed to different
+	// nodes behind a load balancer may cause issues with nodes serving slightly stale
+	// data from before they see recently accepted transactions. Responses generally
+	// have cookies identifying which node served the request, and those cookies can
+	// be added to the cookiejar to be included on future requests to attempt to have
+	// the same node serve it.
+	// See here: https://docs.avax.network/tooling/rpc-providers#sticky-sessions
+	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
 
-	evmChainID, err := rpcClient.ChainID(context.Background())
+	httpClient := &http.Client{
+		Jar: jar,
+	}
+
+	rpcClient, err := rpc.DialOptions(
+		context.Background(),
+		rpcURLStr,
+		rpc.WithHTTPClient(httpClient),
+	)
+	if err != nil {
+		return interfaces.SubnetTestInfo{}, err
+	}
+
+	ethClient := ethclient.NewClient(rpcClient)
+
+	evmChainID, err := ethClient.ChainID(context.Background())
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
@@ -98,13 +125,13 @@ func initializeSubnetInfo(
 	teleporterRegistryAddress := common.HexToAddress(teleporterRegistryAddressStr)
 
 	teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, rpcClient,
+		teleporterContractAddress, ethClient,
 	)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
 
-	teleporterRegistry, err := teleporterregistry.NewTeleporterRegistry(teleporterRegistryAddress, rpcClient)
+	teleporterRegistry, err := teleporterregistry.NewTeleporterRegistry(teleporterRegistryAddress, ethClient)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
@@ -113,7 +140,7 @@ func initializeSubnetInfo(
 		SubnetID:                  subnetID,
 		BlockchainID:              blockchainID,
 		NodeURIs:                  []string{}, // no specific node URIs for a testnet subnet, only RPC endpoints.
-		RPCClient:                 rpcClient,
+		RPCClient:                 ethClient,
 		WSClient:                  nil,
 		EVMChainID:                evmChainID,
 		TeleporterRegistryAddress: teleporterRegistryAddress,

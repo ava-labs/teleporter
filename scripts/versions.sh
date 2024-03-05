@@ -6,7 +6,7 @@ set -e
 set -o pipefail
 
 # The go version for this project is set from a combination of major.minor from go.mod and the patch version set here.
-GO_PATCH_VERSION=7
+GO_PATCH_VERSION=8
 
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
