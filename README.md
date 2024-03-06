@@ -1,4 +1,8 @@
-## Overview
+<p align="center">
+  <img width="85%" alt="teleporter" src="resources/TeleporterLogo.png"/>
+</p>
+
+---
 
 Teleporter is an EVM compatible cross-subnet communication protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm), and implemented as a Solidity smart contract. It provides a mechanism to asynchronously invoke smart contract functions on other EVM blockchains within Avalanche. Teleporter provides a handful of useful features on top of AWM, such as specifying relayer incentives for message delivery, replay protection, message delivery and execution retries, and a standard interface for sending and receiving messages within a dApp deployed across multiple subnets.
 
@@ -6,7 +10,6 @@ It's important to understand the distinction between Avalanche Warp Messaging an
 
 The Teleporter protocol, on the other hand, is implemented at the smart contract level, and is a user-friendly interface to AWM, aimed at dApp developers. All of the message signing and verification is abstracted away from developers. Instead, developers simply call `sendCrossChainMessage` on the `TeleporterMessenger` contract to send a message invoking a smart contract on another subnet, and implement the `ITeleporterReceiver` interface to receive messages on the destination subnet. Teleporter handles all of the Warp message construction and sending, as well as the message delivery and execution.
 
-- [Overview](#overview)
 - [Deployed Addresses](#deployed-addresses)
 - [Setup](#setup)
   - [Initialize the repository](#initialize-the-repository)
