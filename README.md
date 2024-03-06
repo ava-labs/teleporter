@@ -33,9 +33,9 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 | `TeleporterRegistry`  | **0x7C43605E14F391720e1b37E49C78C4b03A488d98** | Mainnet C-Chain          |
 | `TeleporterRegistry`  | **0xf86cb19ad8405aefa7d09c778215d2cb6ebfb228** | Fuji C-Chain             |
 
-- `TeleporterMessenger` is deployed to the same address on all chains using Nick's method. See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet) for more details.
+- When deployed using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` will be at the same address on all chains. See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet) for more details.
 
-- `TeleporterRegistry` can be deployed to any address. See [Deploy TeleporterRegistry to a Subnet](#deploy-teleporterregistry-to-a-subnet) The table above enumerates the canonical registry addresses on the Mainnet and Fuji C-Chains.
+- `TeleporterRegistry` can be deployed to any address. See [Deploy TeleporterRegistry to a Subnet](#deploy-teleporterregistry-to-a-subnet) for details. The table above enumerates the canonical registry addresses on the Mainnet and Fuji C-Chains.
 
 ## Setup
 
