@@ -31,7 +31,7 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 | --------------------- | ---------------------------------------------- | ------------------------ |
 | `TeleporterMessenger` | **0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf** | All chains, all networks |
 | `TeleporterRegistry`  | **0x7C43605E14F391720e1b37E49C78C4b03A488d98** | Mainnet C-Chain          |
-| `TeleporterRegistry`  | **0xf86cb19ad8405aefa7d09c778215d2cb6ebfb228** | Fuji C-Chain             |
+| `TeleporterRegistry`  | **0xF86Cb19Ad8405AEFa7d09C778215D2Cb6eBfB228** | Fuji C-Chain             |
 
 - When deployed using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` will be at the same address on all chains. See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet) for more details.
 
