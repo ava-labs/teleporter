@@ -98,7 +98,7 @@ function sendMessage(
     uint256 feeAmount,
     uint256 requiredGasLimit,
     string calldata message
-) external returns (uint256 messageID) {}
+) external returns (bytes32 messageID) {}
 ```
 
 `MyExampleCrossChainMessenger` also needs to implement `ITeleporterReceiver` by adding the method `receiveTeleporterMessage` that receives the cross-chain messages from Teleporter.
@@ -148,7 +148,7 @@ function sendMessage(
     uint256 feeAmount,
     uint256 requiredGasLimit,
     string calldata message
-) external returns (uint256 messageID) {
+) external returns (bytes32 messageID) {
     // For non-zero fee amounts, first transfer the fee to this contract, and then
     // allow the Teleporter contract to spend it.
     uint256 adjustedFeeAmount;
