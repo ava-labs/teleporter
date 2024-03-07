@@ -14,6 +14,9 @@ import {INativeTokenDestination} from "./INativeTokenDestination.sol";
 import {ITokenSource} from "./ITokenSource.sol";
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
+// TeleporterUpgradeable import is used for natspec importdoc
+// solhint-disable-next-line no-unused-import
+import {TeleporterUpgradeable} from "@teleporter/upgrades/TeleporterUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 // We need IAllowList as an indirect dependency in order to compile.
@@ -26,57 +29,90 @@ import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfac
  */
 
 /**
- * @dev Implementation of the {INativeTokenDestination} interface.
+ * @notice Implementation of the {INativeTokenDestination} interface.
  *
- * This contract pairs with exactly one `TokenSource` contract on the source chain.
+ * @dev This contract pairs with exactly one `TokenSource` contract on the source chain.
  * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
  */
 contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDestination {
     /**
-     *  The address where the burned transaction fees are credited.
-     *  Defined as BLACKHOLE_ADDRESS at
-     *  https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
+     * @notice The address where the burned transaction fees are credited.
+     *
+     * @dev Defined as BLACKHOLE_ADDRESS at
+     * https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
      */
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
+
     /**
-     *  Designated Blackhole Address for this contract. Tokens are sent here to be "burned" before
-     *  sending an unlock message to the source chain. Different from the burned tx fee address so
-     *  they can be tracked separately.
+     * @notice Designated Blackhole Address for this contract.
+     *
+     * @dev Tokens are sent here to be "burned" before sending an unlock message to the source chain. Different
+     * from the burned tx fee address so they can be tracked separately.
      */
     address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000010203;
 
+    /**
+     * @notice Address of the Native Minter precompile contract.
+     */
     INativeMinter public constant NATIVE_MINTER =
         INativeMinter(0x0200000000000000000000000000000000000001);
 
+    /**
+     * @notice Estimated gas needed for a transfer call to execute successfully on the source chain.
+     */
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
+
+    /**
+     * @notice Estimated gas needed for a burn call to execute successfully on the source chain.
+     */
     uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 100_000;
+
+    /**
+     * @notice ID of the paired blockchain containing the token source contract.
+     */
     bytes32 public immutable sourceBlockchainID;
+
+    /**
+     * @notice Address of the paired token source contract.
+     */
     address public immutable nativeTokenSourceAddress;
 
     /**
-     *  The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
-     *  `initialReserveImbalance` should be constructed to match the initial token supply of this subnet.
-     *  This means tokens will not be minted until the source contact is collateralized.
+     * @notice Initial reserve imbalance that must be collateralized on the source before minting.
+     *
+     * @dev The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
+     * `initialReserveImbalance` should be constructed to match the initial token supply of this subnet.
+     * This means tokens will not be minted until the source contact is collateralized.
      */
     uint256 public immutable initialReserveImbalance;
+
+    /**
+     * @notice Tokens will not be minted until this value is 0 meaning the source contact is collateralized.
+     */
     uint256 public currentReserveImbalance;
+
+    /**
+     * @notice Total number of tokens minted by this contract through the native minter precompile.
+     */
     uint256 public totalMinted;
 
     /**
-     *  tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
-     *  the source chain. This can be used to normalize the number of decimals places between the tokens on
-     *  the two subnets. Is calculated as 10^d, where d is decimalsShift specified in the constructor.
+     * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
+     * the source chain.
+     *
+     * @dev This can be used to normalize the number of decimals places between the tokens on
+     * the two subnets. Is calculated as 10^d, where d is decimalsShift specified in the constructor.
      */
     uint256 public immutable tokenMultiplier;
+
     /**
-     *  If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
-     *  are transferred from the source chain into this destination chain, and divided by `tokenMultiplier` when
-     *  tokens are transferred from this destination chain back to the source chain. This is intended
-     *  when the "decimals" value on the source chain is less than the native EVM denomination of 18.
-     *  If multiplyOnReceive is false, the raw token amount value will be divided by `tokenMultiplier` when tokens
-     *  are transferred from the source chain into this destination chain, and multiplied by `tokenMultiplier` when
-     *  tokens are transferred from this destination chain back to the source chain. This is intended
-     *  when the "decimals" value on the source chain is greater than the native EVM denomination of 18.
+     * @notice If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
+     * are transferred from the source chain into this destination chain, and divided by `tokenMultiplier` when
+     * tokens are transferred from this destination chain back to the source chain. This is intended
+     * when the "decimals" value on the source chain is less than the native EVM denomination of 18.
+     * If multiplyOnReceive is false, the raw token amount value will be divided by `tokenMultiplier` when tokens
+     * are transferred from the source chain into this destination chain, and multiplied by `tokenMultiplier` when
+     * tokens are transferred from this destination chain back to the source chain.
      */
     bool public immutable multiplyOnReceive;
 
@@ -118,7 +154,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     }
 
     /**
-     * @dev See {INativeTokenDestination-transferToSource}.
+     * @inheritdoc INativeTokenDestination
      */
     function transferToSource(
         address recipient,
@@ -136,9 +172,9 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         require(scaledAmount > 0, "NativeTokenDestination: zero transfer value");
 
         /**
-         *  Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
-         *  implementations by only transferring the actual balance increase reflected by the call
-         *  to transferFrom.
+         * Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
+         * implementations by only transferring the actual balance increase reflected by the call
+         * to transferFrom.
          */
         uint256 adjustedFeeAmount;
         if (feeInfo.amount > 0) {
@@ -175,7 +211,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     }
 
     /**
-     * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
+     * @inheritdoc INativeTokenDestination
      */
     function reportTotalBurnedTxFees(
         TeleporterFeeInfo calldata feeInfo,
@@ -211,14 +247,14 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     }
 
     /**
-     * @dev See {INativeTokenDestination-isCollateralized}.
+     * @inheritdoc INativeTokenDestination
      */
     function isCollateralized() external view returns (bool) {
         return currentReserveImbalance == 0;
     }
 
     /**
-     * @dev See {INativeTokenDestination-totalSupply}.
+     * @inheritdoc INativeTokenDestination
      */
     function totalSupply() external view returns (uint256) {
         uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURN_FOR_TRANSFER_ADDRESS.balance;
@@ -228,9 +264,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     }
 
     /**
-     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
-     *
-     * Receives a Teleporter message.
+     * @inheritdoc TeleporterUpgradeable
      */
     function _receiveTeleporterMessage(
         bytes32 sourceBlockchainID_,
