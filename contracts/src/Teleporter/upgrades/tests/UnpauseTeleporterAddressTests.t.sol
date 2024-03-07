@@ -15,7 +15,7 @@ contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
 
     function testUnpauseLessThanMinimumVersion() public {
         // Check the case where a Teleporter address was previously paused, and now updates the minimum version.
-        // If the dapp unpauses the previous Teleporter address, it still can not receive messages from it,
+        // If the dApp unpauses the previous Teleporter address, it still can not receive messages from it,
         // since receiving messages still checks against minimum Teleporter version.
 
         // Pause the Teleporter address
