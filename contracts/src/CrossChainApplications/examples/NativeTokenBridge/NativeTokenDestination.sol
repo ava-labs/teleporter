@@ -132,7 +132,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
         uint256 value = msg.value;
-        require(value > 0, "NativeTokenDestination: zero transfer value");
+        uint256 scaledAmount = _scaleTokens(value, false);
+        require(scaledAmount > 0, "NativeTokenDestination: zero transfer value");
 
         /**
          *  Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
@@ -145,8 +146,6 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 IERC20(feeInfo.feeTokenAddress), feeInfo.amount
             );
         }
-
-        uint256 scaledAmount = _scaleTokens(value, false);
 
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
         Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
