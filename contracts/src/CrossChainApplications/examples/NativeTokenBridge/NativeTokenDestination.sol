@@ -238,10 +238,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             })
         );
 
-        emit ReportTotalBurnedTxFees({
-            teleporterMessageID: messageID,
-            burnAddressBalance: amount
-        });
+        emit ReportTotalBurnedTxFees({teleporterMessageID: messageID, burnAddressBalance: amount});
     }
 
     /**
