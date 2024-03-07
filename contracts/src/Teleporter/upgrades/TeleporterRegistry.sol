@@ -11,11 +11,7 @@ import {
     WarpMessage
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 
-/**
- * @dev Registry entry that represents a mapping between protocolAddress and version.
- *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
- */
+// Registry entry that represents a mapping between protocolAddress and Teleporter version.
 struct ProtocolRegistryEntry {
     uint256 version;
     address protocolAddress;
@@ -24,37 +20,52 @@ struct ProtocolRegistryEntry {
 /**
  * @dev TeleporterRegistry contract provides an upgrade mechanism for {ITeleporterMessenger} contracts
  * through Warp off-chain messages
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 contract TeleporterRegistry {
-    // Address that the off-chain Warp message sets as the "source" address.
-    // The address is not owned by any EOA or smart contract account, so it
-    // cannot possibly be the source address of any other Warp message emitted by the VM.
+    /**
+     * @notice Address that the off-chain Warp message sets as the "source" address.
+     * @dev The address is not owned by any EOA or smart contract account, so it
+     * cannot possibly be the source address of any other Warp message emitted by the VM.
+     */
     address public constant VALIDATORS_SOURCE_ADDRESS = address(0);
 
-    // Warp precompile used for sending and receiving Warp messages.
+    /**
+     * @notice Warp precompile used for sending and receiving Warp messages.
+     */
     IWarpMessenger public constant WARP_MESSENGER =
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
-    // The blockchain ID of the chain the contract is deployed on.
+    /**
+     * @notice The blockchain ID of the chain the contract is deployed on.
+     */
     bytes32 public immutable blockchainID;
 
-    // The maximum version increment allowed when adding a new protocol version.
+    /**
+     * @notice The maximum version increment allowed when adding a new protocol version.
+     */
     uint256 public constant MAX_VERSION_INCREMENT = 500;
 
-    // The latest protocol version. 0 means no protocol version has been added, and isn't a valid version.
+    /**
+     * @notice The latest protocol version.
+     * @dev 0 means no protocol version has been added, and isn't a valid version.
+     */
     uint256 public latestVersion;
 
-    // Mappings that keep track of the protocol version and corresponding contract address.
+    /**
+     * @notice Mappings that keep track of the protocol version and corresponding contract address.
+     */
     mapping(uint256 version => address protocolAddress) private _versionToAddress;
     mapping(address protocolAddress => uint256 version) private _addressToVersion;
 
     /**
-     * @dev Emitted when a new protocol version is added to the registry.
+     * @notice Emitted when a new protocol version is added to the registry.
      */
     event AddProtocolVersion(uint256 indexed version, address indexed protocolAddress);
 
     /**
-     * @dev Emitted when the latest version is updated.
+     * @notice Emitted when the latest version is updated.
      */
     event LatestVersionUpdated(uint256 indexed oldVersion, uint256 indexed newVersion);
 

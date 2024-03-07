@@ -98,7 +98,7 @@ function sendMessage(
     uint256 feeAmount,
     uint256 requiredGasLimit,
     string calldata message
-) external returns (uint256 messageID) {}
+) external returns (bytes32 messageID) {}
 ```
 
 `MyExampleCrossChainMessenger` also needs to implement `ITeleporterReceiver` by adding the method `receiveTeleporterMessage` that receives the cross-chain messages from Teleporter.
@@ -148,7 +148,7 @@ function sendMessage(
     uint256 feeAmount,
     uint256 requiredGasLimit,
     string calldata message
-) external returns (uint256 messageID) {
+) external returns (bytes32 messageID) {
     // For non-zero fee amounts, first transfer the fee to this contract, and then
     // allow the Teleporter contract to spend it.
     uint256 adjustedFeeAmount;
@@ -263,7 +263,7 @@ function getCurrentMessage(
 
 ## Step 5: Upgrade Support
 
-At this point, the contract is now fully usable, and can be used to send arbitrary string data between chains. However, there are a few more modifications that need to be made to support upgrades to `TeleporterMessenger`. For a more in-depth explanation of how to support upgrades, see the Upgrades README [here](../Teleporter/Upgrades/README.md).
+At this point, the contract is now fully usable, and can be used to send arbitrary string data between chains. However, there are a few more modifications that need to be made to support upgrades to `TeleporterMessenger`. For a more in-depth explanation of how to support upgrades, see the Upgrades README [here](../Teleporter/upgrades/README.md).
 
 The first change to make is to inherit from `TeleporterOwnerUpgradeable` instead of `ITeleporterReceiver`. `TeleporterOwnerUpgradeable` integrates with the `TeleporterRegistry` via `TeleporterUpgradeable` to easily utilize the latest `TeleporterMessenger` implementation. `TeleporterOwnerUpgradeable` also ensures that only an admin address for managing Teleporter versions, specified by the constructor argument `teleporterManager`, is able to upgrade the `TeleporterMessenger` implementation used by the contract.
 

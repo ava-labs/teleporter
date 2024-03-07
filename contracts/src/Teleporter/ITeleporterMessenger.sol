@@ -53,7 +53,7 @@ struct TeleporterFeeInfo {
  */
 interface ITeleporterMessenger {
     /**
-     * Emitted when the blockchain ID of the contract instance is initialized using the Warp precompile.
+     * @notice Emitted when the blockchain ID of the contract instance is initialized using the Warp precompile.
      */
     event BlockchainIDInitialized(bytes32 indexed blockchainID);
 
