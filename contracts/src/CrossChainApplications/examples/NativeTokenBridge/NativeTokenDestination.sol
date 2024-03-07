@@ -65,7 +65,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     /**
      *  tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
      *  the source chain. This can be used to normalize the number of decimals places between the tokens on
-     *  the two subnets.
+     *  the two subnets. Is calculated as 10^d, where d is decimalsShift specified in the constructor.
      */
     uint256 public immutable tokenMultiplier;
     /**
@@ -86,7 +86,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         bytes32 sourceBlockchainID_,
         address nativeTokenSourceAddress_,
         uint256 initialReserveImbalance_,
-        uint256 tokenMultiplier_,
+        uint256 decimalsShift,
         bool multiplyOnReceive_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         require(
@@ -112,8 +112,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         initialReserveImbalance = initialReserveImbalance_;
         currentReserveImbalance = initialReserveImbalance_;
 
-        require(tokenMultiplier_ != 0, "NativeTokenDestination: zero tokenMultiplier");
-        tokenMultiplier = tokenMultiplier_;
+        require(decimalsShift <= 18, "NativeTokenDestination: invalid decimalsShift");
+        tokenMultiplier = 10 ** decimalsShift;
         multiplyOnReceive = multiplyOnReceive_;
     }
 
@@ -274,8 +274,11 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
 
         totalMinted += adjustedAmount;
         emit NativeTokensMinted(recipient, adjustedAmount);
-        // Calls NativeMinter precompile through INativeMinter interface.
-        NATIVE_MINTER.mintNativeCoin(recipient, adjustedAmount);
+        // Only call the native minter precompile if we are minting any coins.
+        if (adjustedAmount > 0) {
+            // Calls NativeMinter precompile through INativeMinter interface.
+            NATIVE_MINTER.mintNativeCoin(recipient, adjustedAmount);
+        }
     }
 
     /**
@@ -287,15 +290,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         if (multiplyOnReceive == isReceive) {
             return value * tokenMultiplier;
         }
-
         // Otherwise divide.
-        // On sends, require value to be evenly divisible by tokenMultiplier.
-        if (!isReceive) {
-            require(
-                value % tokenMultiplier == 0,
-                "NativeTokenDestination: value not divisible by multiplier"
-            );
-        }
         return value / tokenMultiplier;
     }
 }

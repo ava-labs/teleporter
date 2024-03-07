@@ -19,7 +19,8 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     NativeTokenDestination public nativeTokenDestination;
-    uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 2;
+    uint256 internal constant _DEFAULT_DECIMALS_SHIFT = 1;
+    uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 10 ** _DEFAULT_DECIMALS_SHIFT;
 
     event TransferToSource(
         address indexed sender,
@@ -44,7 +45,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
             nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnReceive_: true
         });
     }
@@ -115,7 +116,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
             nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnReceive_: false
         });
 
@@ -283,7 +284,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
             nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnReceive_: true
         });
     }
@@ -297,7 +298,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             sourceBlockchainID_: bytes32(0),
             nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnReceive_: true
         });
     }
@@ -312,13 +313,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             sourceBlockchainID_: _MOCK_BLOCKCHAIN_ID,
             nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnReceive_: true
         });
     }
 
-    function testZeroMultiplier() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero tokenMultiplier"));
+    function invalidDecimalsShift() public {
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("invalid decimalsShift"));
 
         nativeTokenDestination = new NativeTokenDestination({
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -326,7 +327,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
             nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            tokenMultiplier_: 0,
+            decimalsShift: 19,
             multiplyOnReceive_: true
         });
     }
@@ -340,7 +341,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
             nativeTokenSourceAddress_: address(0),
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnReceive_: true
         });
     }
@@ -354,7 +355,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             sourceBlockchainID_: _DEFAULT_OTHER_CHAIN_ID,
             nativeTokenSourceAddress_: _DEFAULT_OTHER_BRIDGE_ADDRESS,
             initialReserveImbalance_: 0,
-            tokenMultiplier_: _DEFAULT_TOKEN_MULTIPLIER,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnReceive_: true
         });
     }
