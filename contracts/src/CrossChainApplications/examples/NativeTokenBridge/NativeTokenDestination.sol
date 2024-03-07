@@ -14,9 +14,6 @@ import {INativeTokenDestination} from "./INativeTokenDestination.sol";
 import {ITokenSource} from "./ITokenSource.sol";
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
-// TeleporterUpgradeable import is used for natspec importdoc
-// solhint-disable-next-line no-unused-import
-import {TeleporterUpgradeable} from "@teleporter/upgrades/TeleporterUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 // We need IAllowList as an indirect dependency in order to compile.
@@ -154,7 +151,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     }
 
     /**
-     * @inheritdoc INativeTokenDestination
+     * @dev See {INativeTokenDestination-transferToSource}.
      */
     function transferToSource(
         address recipient,
@@ -206,12 +203,12 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             sender: msg.sender,
             recipient: recipient,
             teleporterMessageID: messageID,
-            amount: scaledAmount
+            amount: value
         });
     }
 
     /**
-     * @inheritdoc INativeTokenDestination
+     * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
     function reportTotalBurnedTxFees(
         TeleporterFeeInfo calldata feeInfo,
@@ -224,7 +221,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             );
         }
 
-        uint256 scaledAmount = _scaleTokens(BURNED_TX_FEES_ADDRESS.balance, false);
+        uint256 amount = BURNED_TX_FEES_ADDRESS.balance;
+        uint256 scaledAmount = _scaleTokens(amount, false);
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
@@ -242,19 +240,19 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
 
         emit ReportTotalBurnedTxFees({
             teleporterMessageID: messageID,
-            burnAddressBalance: scaledAmount
+            burnAddressBalance: amount
         });
     }
 
     /**
-     * @inheritdoc INativeTokenDestination
+     * @dev See {INativeTokenDestination-isCollateralized}.
      */
     function isCollateralized() external view returns (bool) {
         return currentReserveImbalance == 0;
     }
 
     /**
-     * @inheritdoc INativeTokenDestination
+     * @dev See {INativeTokenDestination-totalSupply}.
      */
     function totalSupply() external view returns (uint256) {
         uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURN_FOR_TRANSFER_ADDRESS.balance;
@@ -264,7 +262,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     }
 
     /**
-     * @inheritdoc TeleporterUpgradeable
+     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
      */
     function _receiveTeleporterMessage(
         bytes32 sourceBlockchainID_,
@@ -285,9 +283,9 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
 
         (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
-        require(amount != 0, "NativeTokenDestination: zero transfer value");
 
         uint256 scaledAmount = _scaleTokens(amount, true);
+        require(scaledAmount >= 0, "NativeTokenDestination: zero scaled amount received");
 
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
@@ -299,16 +297,18 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 adjustedAmount = scaledAmount - currentReserveImbalance;
                 currentReserveImbalance = 0;
             } else {
-                currentReserveImbalance -= scaledAmount;
                 emit CollateralAdded({amount: scaledAmount, remaining: currentReserveImbalance});
-                return;
+                adjustedAmount = 0;
+                currentReserveImbalance -= scaledAmount;
             }
         }
 
-        totalMinted += adjustedAmount;
+        // emit an event even if we're minting 0 tokens to be clear to the user.
         emit NativeTokensMinted(recipient, adjustedAmount);
+
         // Only call the native minter precompile if we are minting any coins.
         if (adjustedAmount > 0) {
+            totalMinted += adjustedAmount;
             // Calls NativeMinter precompile through INativeMinter interface.
             NATIVE_MINTER.mintNativeCoin(recipient, adjustedAmount);
         }
