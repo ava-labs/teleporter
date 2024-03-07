@@ -256,7 +256,7 @@ Next, add a function called `getCurrentMessage` that allows users or contracts t
 function getCurrentMessage(
     bytes32 sourceBlockchainID
 ) external view returns (address, string memory) {
-    Message memory messageInfo = messages[sourceBlockchainID];
+    Message memory messageInfo = _messages[sourceBlockchainID];
     return (messageInfo.sender, messageInfo.message);
 }
 ```
