@@ -276,7 +276,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
     }
 
     function testTransferZeroAmount() public {
-        vm.expectRevert(_formatNativeTokenSourceErrorMessage("zero transfer value"));
+        vm.expectRevert(_formatNativeTokenSourceErrorMessage("zero scaled amount to transfer"));
 
         nativeTokenSource.transferToDestination{value: 0}(
             _DEFAULT_RECIPIENT,
