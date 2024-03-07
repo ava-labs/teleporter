@@ -169,7 +169,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         );
         uint256 value = msg.value;
         uint256 scaledAmount = _scaleTokens(value, false);
-        require(scaledAmount > 0, "NativeTokenDestination: zero transfer value");
+        require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to transfer");
 
         /**
          * Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
