@@ -287,15 +287,19 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         // as needed from the transfer as needed. If there are any excess tokens, they will
         // be minted and sent to the recipient.
         uint256 adjustedAmount = scaledAmount;
-        if (currentReserveImbalance > 0) {
-            if (scaledAmount > currentReserveImbalance) {
-                emit CollateralAdded({amount: currentReserveImbalance, remaining: 0});
-                adjustedAmount = scaledAmount - currentReserveImbalance;
+        uint256 reserveImbalance = currentReserveImbalance;
+        if (reserveImbalance > 0) {
+            if (scaledAmount > reserveImbalance) {
+                emit CollateralAdded({amount: reserveImbalance, remaining: 0});
+                adjustedAmount = scaledAmount - reserveImbalance;
                 currentReserveImbalance = 0;
             } else {
-                currentReserveImbalance -= scaledAmount;
-                emit CollateralAdded({amount: scaledAmount, remaining: currentReserveImbalance});
+                emit CollateralAdded({
+                    amount: scaledAmount,
+                    remaining: reserveImbalance - scaledAmount
+                });
                 adjustedAmount = 0;
+                currentReserveImbalance -= scaledAmount;
             }
         }
 

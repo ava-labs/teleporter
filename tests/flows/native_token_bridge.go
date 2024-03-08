@@ -163,11 +163,12 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			nativeTokenDestination,
 		)
 
-		_, err = utils.GetEventFromLogs(
+		mintEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
 			nativeTokenDestination.ParseNativeTokensMinted,
 		)
-		Expect(err).ShouldNot(BeNil())
+		Expect(err).Should(BeNil())
+		Expect(mintEvent.Amount.Int64()).Should(Equal(0))
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
