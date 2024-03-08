@@ -286,7 +286,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
         // be minted and sent to the recipient.
-        uint256 adjustedAmount = scaledAmount;
+        uint256 adjustedAmount;
         uint256 reserveImbalance = currentReserveImbalance;
         if (reserveImbalance > 0) {
             if (scaledAmount > reserveImbalance) {
