@@ -17,29 +17,26 @@ BASEDIR=${BASEDIR:-"$HOME/.teleporter-deps"}
 cwd=$(pwd)
 # Install the avalanchego and subnet-evm binaries
 rm -rf $BASEDIR/avalanchego
-BASEDIR=$BASEDIR AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego ./scripts/install_avalanchego_release.sh
-BASEDIR=$BASEDIR ./scripts/install_subnetevm_release.sh
+BASEDIR=$BASEDIR AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego $TELEPORTER_PATH/scripts/install_avalanchego_release.sh
+BASEDIR=$BASEDIR $TELEPORTER_PATH/scripts/install_subnetevm_release.sh
 
 cp ${BASEDIR}/subnet-evm/subnet-evm ${BASEDIR}/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
 echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/plugins/"
 
 export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 
-cd $REPO_PATH/contracts
 if command -v forge &> /dev/null; then
-  forge build
+  FORGE_COMMAND="forge build"
 else
   echo "Forge command not found, attempting to use from $HOME"
-  $HOME/.foundry/bin/forge build
+  FORGE_COMMAND="$HOME/.foundry/bin/forge build"
 fi
 
+cd $REPO_PATH/contracts
+$FORGE_COMMAND
+
 cd $TELEPORTER_PATH/contracts
-if command -v forge &> /dev/null; then
-  forge build
-else
-  echo "Forge command not found, attempting to use from $HOME"
-  $HOME/.foundry/bin/forge build
-fi
+$FORGE_COMMAND
 
 cd $cwd
 # Build ginkgo
