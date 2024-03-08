@@ -29,7 +29,9 @@ Next, define the initial empty contract. The contract inherits from `ReentrancyG
 contract MyExampleCrossChainMessenger is
     ReentrancyGuard,
     ITeleporterReceiver
-{}
+{
+
+}
 ```
 
 Finally, add the following struct and event declarations into the body of the contract, which will be integrated in later:
@@ -97,7 +99,9 @@ To start, create the function declaration for `sendMessage`, which will send str
         uint256 feeAmount,
         uint256 requiredGasLimit,
         string calldata message
-    ) external returns (bytes32 messageID) {}
+    ) external returns (bytes32 messageID) {
+
+    }
 ```
 
 `MyExampleCrossChainMessenger` also needs to implement `ITeleporterReceiver` by adding the method `receiveTeleporterMessage` that receives the cross-chain messages from Teleporter.
@@ -108,7 +112,9 @@ To start, create the function declaration for `sendMessage`, which will send str
         bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes calldata message
-    ) external {}
+    ) external {
+
+    }
 ```
 
 Now it's time to implement the methods, starting with `sendMessage`. First, add the necessary imports.
@@ -279,7 +285,7 @@ contract MyExampleCrossChainMessenger is
      ReentrancyGuard,
 -    ITeleporterReceiver
 +    TeleporterOwnerUpgradeable
-{}
+{
 ```
 
 Next, update the constructor to invoke the `TeleporterOwnerUpgradeable` constructor.
