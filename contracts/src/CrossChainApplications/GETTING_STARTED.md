@@ -159,12 +159,7 @@ Then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, 
 
 ```solidity
     function sendMessage(
-        bytes32 destinationBlockchainID,
-        address destinationAddress,
-        address feeTokenAddress,
-        uint256 feeAmount,
-        uint256 requiredGasLimit,
-        string calldata message
+        ...
     ) external returns (bytes32 messageID) {
 ```
 ```solidity
@@ -261,17 +256,11 @@ Start by adding a map to the body of the contract, in which the key is the `sour
 Next, update `receiveTeleporterMessage` to save the message into the mapping after it is received and verified that it's sent from Teleporter. ABI decode the `message` bytes into a string. Also, emit the `ReceiveMessage` event.
 
 ```solidity
-    /**
-     * @dev Receive a new message from another chain.
-     */
     function receiveTeleporterMessage(
-        bytes32 sourceBlockchainID,
-        address originSenderAddress,
-        bytes calldata message
+        ...
     ) external {
-        // Only the Teleporter receiver can deliver a message.
-        require(msg.sender == address(teleporterMessenger), "Unauthorized.");
-
+        ...
+        // do something with message.
 ```
 ```solidity
         // Store the message.
