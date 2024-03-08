@@ -76,11 +76,15 @@ contract MyExampleCrossChainMessenger is
     ReentrancyGuard,
     ITeleporterReceiver
 {
+```
+```solidity
     ITeleporterMessenger public immutable teleporterMessenger;
 
     constructor(address teleporterMessengerAddress) {
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
     }
+```
+```solidity
 }
 ```
 
@@ -138,7 +142,11 @@ contract MyExampleCrossChainMessenger is
     ReentrancyGuard,
     ITeleporterReceiver
 {
+```
+```solidity
     using SafeERC20 for IERC20;
+```
+```solidity
     ...
 }
 ```
@@ -154,6 +162,8 @@ Then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, 
         uint256 requiredGasLimit,
         string calldata message
     ) external returns (bytes32 messageID) {
+```
+```solidity
         // For non-zero fee amounts, first transfer the fee to this contract, and then
         // allow the Teleporter contract to spend it.
         uint256 adjustedFeeAmount;
@@ -167,6 +177,8 @@ Then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, 
                 adjustedFeeAmount
             );
         }
+```
+```solidity
     }
 ```
 
@@ -210,10 +222,14 @@ With the sending side complete, the next step is to implement `ITeleporterReceiv
         address originSenderAddress,
         bytes calldata message
     ) external {
+```
+```solidity
         // Only the Teleporter receiver can deliver a message.
         require(msg.sender == address(teleporterMessenger), "Unauthorized.");
 
         // do something with message.
+```
+```solidity
     }
 ```
 
@@ -238,7 +254,9 @@ Next, update `receiveTeleporterMessage` to save the message into the mapping aft
     ) external {
         // Only the Teleporter receiver can deliver a message.
         require(msg.sender == address(teleporterMessenger), "Unauthorized.");
-    
+
+```
+```solidity
         // Store the message.
         string memory messageString = abi.decode(message, (string));
         _messages[sourceBlockchainID] = Message(
@@ -250,6 +268,8 @@ Next, update `receiveTeleporterMessage` to save the message into the mapping aft
             originSenderAddress,
             messageString
         );
+```
+```solidity
     }
 ```
 
