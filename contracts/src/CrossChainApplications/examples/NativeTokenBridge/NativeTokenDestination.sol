@@ -282,7 +282,6 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
 
         uint256 scaledAmount = _scaleTokens(amount, true);
-        require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount received");
 
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
@@ -300,7 +299,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             }
         }
 
-        // Emit an event even if the amount is zero to improve traceability. 
+        // Emit an event even if the amount is zero to improve traceability.
         emit NativeTokensMinted(recipient, adjustedAmount);
 
         // Only call the native minter precompile if we are minting any coins.

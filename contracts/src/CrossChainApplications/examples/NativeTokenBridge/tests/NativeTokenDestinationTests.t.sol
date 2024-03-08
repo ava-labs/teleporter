@@ -404,17 +404,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         );
     }
 
-    function testInvalidTransferAmount() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero scaled amount received"));
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        nativeTokenDestination.receiveTeleporterMessage(
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(_DEFAULT_RECIPIENT, 0)
-        );
-    }
-
     function testZeroRecipient() public {
         collateralizeBridge();
         vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero recipient address"));
