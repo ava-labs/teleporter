@@ -78,7 +78,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         emit TransferToSource({
             sender: address(this),
             recipient: _DEFAULT_RECIPIENT,
-            amount: _DEFAULT_TRANSFER_AMOUNT / _DEFAULT_TOKEN_MULTIPLIER,
+            amount: _DEFAULT_TRANSFER_AMOUNT,
             teleporterMessageID: _MOCK_MESSAGE_ID
         });
 
@@ -143,7 +143,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         emit TransferToSource({
             sender: address(this),
             recipient: _DEFAULT_RECIPIENT,
-            amount: _DEFAULT_TRANSFER_AMOUNT * _DEFAULT_TOKEN_MULTIPLIER,
+            amount: _DEFAULT_TRANSFER_AMOUNT,
             teleporterMessageID: _MOCK_MESSAGE_ID
         });
 
@@ -405,7 +405,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     }
 
     function testInvalidTransferAmount() public {
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero transfer value"));
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero scaled amount received"));
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenDestination.receiveTeleporterMessage(
@@ -438,7 +438,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
     function testTransferZeroAmount() public {
         collateralizeBridge();
-        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero transfer value"));
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero scaled amount to transfer"));
 
         nativeTokenDestination.transferToSource{value: 0}(
             _DEFAULT_RECIPIENT,
