@@ -72,20 +72,11 @@ Now that the initial empty `MyExampleCrossChainMessenger` is defined, it's time 
 Create a state variable of `ITeleporterMessenger` type called `teleporterMessenger`. Then create a constructor that takes in an address where the Teleporter Messenger would be deployed on this chain, and set the corresponding state variable.
 
 ```solidity
-contract MyExampleCrossChainMessenger is
-    ReentrancyGuard,
-    ITeleporterReceiver
-{
-```
-```solidity
     ITeleporterMessenger public immutable teleporterMessenger;
 
     constructor(address teleporterMessengerAddress) {
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
     }
-```
-```solidity
-}
 ```
 
 ## Step 3: Send and Receive
