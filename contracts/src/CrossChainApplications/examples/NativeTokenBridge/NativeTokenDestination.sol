@@ -294,12 +294,10 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 adjustedAmount = scaledAmount - reserveImbalance;
                 currentReserveImbalance = 0;
             } else {
-                emit CollateralAdded({
-                    amount: scaledAmount,
-                    remaining: reserveImbalance - scaledAmount
-                });
+                uint256 updatedReserveImbalance = reserveImbalance - scaledAmount;
+                emit CollateralAdded({amount: scaledAmount, remaining: updatedReserveImbalance});
                 adjustedAmount = 0;
-                currentReserveImbalance = reserveImbalance - scaledAmount;
+                currentReserveImbalance = updatedReserveImbalance;
             }
         }
 
