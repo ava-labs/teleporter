@@ -115,15 +115,8 @@ To start, create the function declaration for `sendMessage`, which will send str
 Now it's time to implement the methods, starting with `sendMessage`. First, add the necessary imports.
 
 ```solidity
-import {
-    ITeleporterMessenger,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFrom.sol";
-import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 ```
 
 Next, add a `using` directive in the contract declaration to specify `SafeERC20` as the `IERC20` implementation to use:
