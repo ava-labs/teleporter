@@ -337,7 +337,11 @@ Then, remove the `teleporterMessenger` state variable, and at the beginning of `
     function sendMessage(
         ...
     ) external returns (bytes32 messageID) {
+```
+```solidity
         ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
+```
+```solidity
         ...
     }
 ```
