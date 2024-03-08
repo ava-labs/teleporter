@@ -35,7 +35,9 @@ contract MyExampleCrossChainMessenger is
 Finally, add the following struct and event declarations into the body of the contract, which will be integrated in later:
 
 ```solidity
-    // Messages sent to this contract.
+    /**
+     * @dev Messages sent to this contract.
+     */
     struct Message {
         address sender;
         string message;
@@ -84,7 +86,9 @@ Now that `MyExampleCrossChainMessenger` has an instantiation of `ITeleporterMess
 To start, create the function declaration for `sendMessage`, which will send string data cross-chain to the specified destination address' receiver. This function allows callers to specify the destination chain ID, destination address to send to, relayer fees, required gas limit for message execution at the destination address.
 
 ```solidity
-    // Send a new message to another chain.
+    /**
+     * @dev Send a new message to another chain.
+     */
     function sendMessage(
         bytes32 destinationBlockchainID,
         address destinationAddress,
@@ -116,7 +120,9 @@ Then declare that the contract will implement it:
 And then finally add the method `receiveTeleporterMessage` that receives the cross-chain messages from Teleporter.
 
 ```solidity
-    // Receive a new message from another chain.
+    /**
+     * @dev Receive a new message from another chain.
+     */
     function receiveTeleporterMessage(
         bytes32 sourceBlockchainID,
         address originSenderAddress,
@@ -223,7 +229,9 @@ Next, add the event to emit, as well as the call to the `TeleporterMessenger` co
 With the sending side complete, the next step is to implement `ITeleporterReceiver.receiveTeleporterMessage`. The receiver in this example will just receive the arbitrary string data, and check that the message is sent through Teleporter.
 
 ```solidity
-    // Receive a new message from another chain.
+    /**
+     * @dev Receive a new message from another chain.
+     */
     function receiveTeleporterMessage(
         bytes32 sourceBlockchainID,
         address originSenderAddress,
@@ -253,7 +261,9 @@ Start by adding a map to the body of the contract, in which the key is the `sour
 Next, update `receiveTeleporterMessage` to save the message into the mapping after it is received and verified that it's sent from Teleporter. ABI decode the `message` bytes into a string. Also, emit the `ReceiveMessage` event.
 
 ```solidity
-    // Receive a new message from another chain.
+    /**
+     * @dev Receive a new message from another chain.
+     */
     function receiveTeleporterMessage(
         bytes32 sourceBlockchainID,
         address originSenderAddress,
@@ -283,7 +293,9 @@ Next, update `receiveTeleporterMessage` to save the message into the mapping aft
 Next, add a function to the contract called `getCurrentMessage` that allows users or contracts to easily query the contract for the latest message sent by a specified chain.
 
 ```solidity
-    // Check the current message from another chain.
+    /**
+     * @dev Check the current message from another chain.
+     */
     function getCurrentMessage(
         bytes32 sourceBlockchainID
     ) external view returns (address, string memory) {
