@@ -32,7 +32,7 @@ contract MyExampleCrossChainMessenger is
 {}
 ```
 
-Finally, add the following struct and event declarations to the contract, which will be integrated in later:
+Finally, add the following struct and event declarations into the body of the contract, which will be integrated in later:
 
 ```solidity
 // Messages sent to this contract.
@@ -66,7 +66,7 @@ event ReceiveMessage(
 
 ## Step 2: Integrating Teleporter Messenger
 
-Now that the initial empty `MyExampleCrossChainMessenger` is defined, it's time to integrate the `ITeleporterMessenger` that will provide the functionality to deliver cross chain messages.
+Now that the initial empty `MyExampleCrossChainMessenger` is defined, it's time to integrate with `ITeleporterMessenger`, which will provide the functionality to deliver cross chain messages.
 
 Create a state variable of `ITeleporterMessenger` type called `teleporterMessenger`. Then create a constructor that takes in an address where the Teleporter Messenger would be deployed on this chain, and set the corresponding state variable.
 
@@ -85,9 +85,9 @@ contract MyExampleCrossChainMessenger is
 
 ## Step 3: Send and Receive
 
-Now that `MyExampleCrossChainMessenger` has an instantiation of `ITeleporterMessenger`, the next step is to add in functionality of sending and receiving arbitrary string data between chains.
+Now that `MyExampleCrossChainMessenger` has an instantiation of `ITeleporterMessenger`, the next step is to add in the functionality of sending and receiving arbitrary string data between chains.
 
-To start, create the function declarations for `sendMessage`, which will send string data cross-chain to the specified destination address' receiver. This function allows callers to specify the destination chain ID, destination address to send to, relayer fees, required gas limit for message execution at the destination address.
+To start, create the function declaration for `sendMessage`, which will send string data cross-chain to the specified destination address' receiver. This function allows callers to specify the destination chain ID, destination address to send to, relayer fees, required gas limit for message execution at the destination address.
 
 ```solidity
 // Send a new message to another chain.
@@ -165,7 +165,7 @@ function sendMessage(
 }
 ```
 
-Note: Relayer fees are an optional way to incentive relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
+Note: Relayer fees are an optional way to incentivize relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
 
 Next, add the event to emit, as well as the call to the `TeleporterMessenger` contract with the message data to be executed when delivered to the destination address. In `sendMessage`, form a `TeleporterMessageInput` and call `sendCrossChainMessage` on the `TeleporterMessenger` instance to start the cross chain messaging process.
 
@@ -217,7 +217,7 @@ The base of sending and receiving messages cross chain is complete. `MyExampleCr
 
 ## Step 4: Storing the Message
 
-Start by adding a map where the key is the `sourceBlockchainID`, and the value is the latest `message` sent from that chain. The `message` is of type `Message`, which is already declared in the contract.
+Start by adding a map to the body of the contract, in which the key is the `sourceBlockchainID` and the value is the latest `message` sent from that chain. The `message` is of type `Message`, which is already declared in the contract.
 
 ```solidity
 mapping(bytes32 sourceBlockchainID => Message message) private _messages;
@@ -249,7 +249,7 @@ function receiveTeleporterMessage(
 }
 ```
 
-Next, add a function called `getCurrentMessage` that allows users or contracts to easily query the contract for the latest message sent by a specified chain.
+Next, add a function to the contract called `getCurrentMessage` that allows users or contracts to easily query the contract for the latest message sent by a specified chain.
 
 ```solidity
 // Check the current message from another chain.
