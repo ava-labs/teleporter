@@ -114,6 +114,8 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			sourceSubnet.BlockchainID,
 			bridgeContractAddress,
 			initialReserveImbalance,
+			big.NewInt(0),
+			true,
 		)
 
 		log.Info("Finished deploying Bridge contracts")
@@ -161,11 +163,12 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			nativeTokenDestination,
 		)
 
-		_, err = utils.GetEventFromLogs(
+		mintEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
 			nativeTokenDestination.ParseNativeTokensMinted,
 		)
-		Expect(err).ShouldNot(BeNil())
+		Expect(err).Should(BeNil())
+		Expect(mintEvent.Amount.Uint64()).Should(Equal(uint64(0)))
 
 		// Check intermediate balance, no tokens should be minted because we haven't collateralized
 		utils.CheckBalance(ctx, tokenReceiverAddress, common.Big0, destSubnet.RPCClient)
