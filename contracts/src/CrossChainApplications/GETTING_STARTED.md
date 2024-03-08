@@ -35,33 +35,32 @@ contract MyExampleCrossChainMessenger is
 Finally, add the following struct and event declarations into the body of the contract, which will be integrated in later:
 
 ```solidity
-// Messages sent to this contract.
-struct Message {
-    address sender;
-    string message;
-}
+    // Messages sent to this contract.
+    struct Message {
+        address sender;
+        string message;
+    }
 
-/**
- * @dev Emitted when a message is submited to be sent.
- */
-event SendMessage(
-    bytes32 indexed destinationBlockchainID,
-    address indexed destinationAddress,
-    address feeTokenAddress,
-    uint256 feeAmount,
-    uint256 requiredGasLimit,
-    string message
-);
+    /**
+     * @dev Emitted when a message is submited to be sent.
+     */
+    event SendMessage(
+        bytes32 indexed destinationBlockchainID,
+        address indexed destinationAddress,
+        address feeTokenAddress,
+        uint256 feeAmount,
+        uint256 requiredGasLimit,
+        string message
+    );
 
-/**
- * @dev Emitted when a new message is received from a given chain ID.
- */
-event ReceiveMessage(
-    bytes32 indexed sourceBlockchainID,
-    address indexed originSenderAddress,
-    string message
-);
-
+    /**
+     * @dev Emitted when a new message is received from a given chain ID.
+     */
+    event ReceiveMessage(
+        bytes32 indexed sourceBlockchainID,
+        address indexed originSenderAddress,
+        string message
+    );
 ```
 
 ## Step 2: Integrating Teleporter Messenger
@@ -90,26 +89,26 @@ Now that `MyExampleCrossChainMessenger` has an instantiation of `ITeleporterMess
 To start, create the function declaration for `sendMessage`, which will send string data cross-chain to the specified destination address' receiver. This function allows callers to specify the destination chain ID, destination address to send to, relayer fees, required gas limit for message execution at the destination address.
 
 ```solidity
-// Send a new message to another chain.
-function sendMessage(
-    bytes32 destinationBlockchainID,
-    address destinationAddress,
-    address feeTokenAddress,
-    uint256 feeAmount,
-    uint256 requiredGasLimit,
-    string calldata message
-) external returns (bytes32 messageID) {}
+    // Send a new message to another chain.
+    function sendMessage(
+        bytes32 destinationBlockchainID,
+        address destinationAddress,
+        address feeTokenAddress,
+        uint256 feeAmount,
+        uint256 requiredGasLimit,
+        string calldata message
+    ) external returns (bytes32 messageID) {}
 ```
 
 `MyExampleCrossChainMessenger` also needs to implement `ITeleporterReceiver` by adding the method `receiveTeleporterMessage` that receives the cross-chain messages from Teleporter.
 
 ```solidity
-// Receive a new message from another chain.
-function receiveTeleporterMessage(
-    bytes32 sourceBlockchainID,
-    address originSenderAddress,
-    bytes calldata message
-) external {}
+    // Receive a new message from another chain.
+    function receiveTeleporterMessage(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        bytes calldata message
+    ) external {}
 ```
 
 Now it's time to implement the methods, starting with `sendMessage`. First, add the necessary imports.
@@ -141,28 +140,28 @@ contract MyExampleCrossChainMessenger is
 Then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeTokenAddress` to the Teleporter Messenger saved as a state variable.
 
 ```solidity
-function sendMessage(
-    bytes32 destinationBlockchainID,
-    address destinationAddress,
-    address feeTokenAddress,
-    uint256 feeAmount,
-    uint256 requiredGasLimit,
-    string calldata message
-) external returns (bytes32 messageID) {
-    // For non-zero fee amounts, first transfer the fee to this contract, and then
-    // allow the Teleporter contract to spend it.
-    uint256 adjustedFeeAmount;
-    if (feeAmount > 0) {
-        adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-            IERC20(feeTokenAddress),
-            feeAmount
-        );
-        IERC20(feeTokenAddress).safeIncreaseAllowance(
-            address(teleporterMessenger),
-            adjustedFeeAmount
-        );
+    function sendMessage(
+        bytes32 destinationBlockchainID,
+        address destinationAddress,
+        address feeTokenAddress,
+        uint256 feeAmount,
+        uint256 requiredGasLimit,
+        string calldata message
+    ) external returns (bytes32 messageID) {
+        // For non-zero fee amounts, first transfer the fee to this contract, and then
+        // allow the Teleporter contract to spend it.
+        uint256 adjustedFeeAmount;
+        if (feeAmount > 0) {
+            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
+                IERC20(feeTokenAddress),
+                feeAmount
+            );
+            IERC20(feeTokenAddress).safeIncreaseAllowance(
+                address(teleporterMessenger),
+                adjustedFeeAmount
+            );
+        }
     }
-}
 ```
 
 > Note: Relayer fees are an optional way to incentivize relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
@@ -172,44 +171,44 @@ Next, add the event to emit, as well as the call to the `TeleporterMessenger` co
 > Note: `allowedRelayerAddresses` is empty in this example, meaning any relayer can try to deliver this cross chain message. Specific relayer addresses can be specified to ensure only those relayers can deliver the message.
 
 ```solidity
-emit SendMessage({
-    destinationBlockchainID: destinationBlockchainID,
-    destinationAddress: destinationAddress,
-    feeTokenAddress: feeTokenAddress,
-    feeAmount: adjustedFeeAmount,
-    requiredGasLimit: requiredGasLimit,
-    message: message
-});
-return
-    teleporterMessenger.sendCrossChainMessage(
-        TeleporterMessageInput({
+        emit SendMessage({
             destinationBlockchainID: destinationBlockchainID,
             destinationAddress: destinationAddress,
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: feeTokenAddress,
-                amount: adjustedFeeAmount
-            }),
+            feeTokenAddress: feeTokenAddress,
+            feeAmount: adjustedFeeAmount,
             requiredGasLimit: requiredGasLimit,
-            allowedRelayerAddresses: new address[](0),
-            message: abi.encode(message)
-        })
-    );
+            message: message
+        });
+        return
+            teleporterMessenger.sendCrossChainMessage(
+                TeleporterMessageInput({
+                    destinationBlockchainID: destinationBlockchainID,
+                    destinationAddress: destinationAddress,
+                    feeInfo: TeleporterFeeInfo({
+                        feeTokenAddress: feeTokenAddress,
+                        amount: adjustedFeeAmount
+                    }),
+                    requiredGasLimit: requiredGasLimit,
+                    allowedRelayerAddresses: new address[](0),
+                    message: abi.encode(message)
+                })
+            );
 ```
 
 With the sending side complete, the next step is to implement `ITeleporterReceiver.receiveTeleporterMessage`. The receiver in this example will just receive the arbitrary string data, and check that the message is sent through Teleporter.
 
 ```solidity
-// Receive a new message from another chain.
-function receiveTeleporterMessage(
-    bytes32 sourceBlockchainID,
-    address originSenderAddress,
-    bytes calldata message
-) external {
-    // Only the Teleporter receiver can deliver a message.
-    require(msg.sender == address(teleporterMessenger), "Unauthorized.");
+    // Receive a new message from another chain.
+    function receiveTeleporterMessage(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        bytes calldata message
+    ) external {
+        // Only the Teleporter receiver can deliver a message.
+        require(msg.sender == address(teleporterMessenger), "Unauthorized.");
 
-    // do something with message.
-}
+        // do something with message.
+    }
 ```
 
 The base of sending and receiving messages cross chain is complete. `MyExampleCrossChainMessenger` can now be expanded with functionality that saves the received messages, and allows users to query for the latest message received from a specified chain.
@@ -219,45 +218,45 @@ The base of sending and receiving messages cross chain is complete. `MyExampleCr
 Start by adding a map to the body of the contract, in which the key is the `sourceBlockchainID` and the value is the latest `message` sent from that chain. The `message` is of type `Message`, which is already declared in the contract.
 
 ```solidity
-mapping(bytes32 sourceBlockchainID => Message message) private _messages;
+    mapping(bytes32 sourceBlockchainID => Message message) private _messages;
 ```
 
 Next, update `receiveTeleporterMessage` to save the message into the mapping after it is received and verified that it's sent from Teleporter. ABI decode the `message` bytes into a string. Also, emit the `ReceiveMessage` event.
 
 ```solidity
-// Receive a new message from another chain.
-function receiveTeleporterMessage(
-    bytes32 sourceBlockchainID,
-    address originSenderAddress,
-    bytes calldata message
-) external {
-    // Only the Teleporter receiver can deliver a message.
-    require(msg.sender == address(teleporterMessenger), "Unauthorized.");
-
-    // Store the message.
-    string memory messageString = abi.decode(message, (string));
-    _messages[sourceBlockchainID] = Message(
-        originSenderAddress,
-        messageString
-    );
-    emit ReceiveMessage(
-        sourceBlockchainID,
-        originSenderAddress,
-        messageString
-    );
-}
+    // Receive a new message from another chain.
+    function receiveTeleporterMessage(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        bytes calldata message
+    ) external {
+        // Only the Teleporter receiver can deliver a message.
+        require(msg.sender == address(teleporterMessenger), "Unauthorized.");
+    
+        // Store the message.
+        string memory messageString = abi.decode(message, (string));
+        _messages[sourceBlockchainID] = Message(
+            originSenderAddress,
+            messageString
+        );
+        emit ReceiveMessage(
+            sourceBlockchainID,
+            originSenderAddress,
+            messageString
+        );
+    }
 ```
 
 Next, add a function to the contract called `getCurrentMessage` that allows users or contracts to easily query the contract for the latest message sent by a specified chain.
 
 ```solidity
-// Check the current message from another chain.
-function getCurrentMessage(
-    bytes32 sourceBlockchainID
-) external view returns (address, string memory) {
-    Message memory messageInfo = _messages[sourceBlockchainID];
-    return (messageInfo.sender, messageInfo.message);
-}
+    // Check the current message from another chain.
+    function getCurrentMessage(
+        bytes32 sourceBlockchainID
+    ) external view returns (address, string memory) {
+        Message memory messageInfo = _messages[sourceBlockchainID];
+        return (messageInfo.sender, messageInfo.message);
+    }
 ```
 
 ## Step 5: Upgrade Support
@@ -286,19 +285,19 @@ contract MyExampleCrossChainMessenger is
 Next, update the constructor to invoke the `TeleporterOwnerUpgradeable` constructor.
 
 ```diff
-- constructor(address teleporterMessengerAddress) {
--     teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
-- }
-+ constructor(
-+     address teleporterRegistryAddress,
-+     address teleporterManager
-+ ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {}
+-     constructor(address teleporterMessengerAddress) {
+-         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
+-     }
++     constructor(
++         address teleporterRegistryAddress,
++         address teleporterManager
++     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {}
 ```
 
 Then, remove the `teleporterMessenger` state variable, and at the beginning of `sendMessage()` add a call to get the latest `ITeleporterMessenger` implementation from `TeleporterRegistry`.
 
 ```diff
-- ITeleporterMessenger public immutable teleporterMessenger;
+-     ITeleporterMessenger public immutable teleporterMessenger;
 ```
 ```solidity
     function sendMessage(
@@ -312,16 +311,16 @@ Then, remove the `teleporterMessenger` state variable, and at the beginning of `
 And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, mark it as `internal override`, and change the data location of its `message` parameter to `memory`. It's also safe to remove the check against `teleporterMessenger` in `_receiveTeleporterMessage`, since that same check is handled in `TeleporterOwnerUpgradeable`'s `receiveTeleporterMessage` function.
 
 ```diff
-- function receiveTeleporterMessage(
-+ function _receiveTeleporterMessage(
-    bytes32 sourceBlockchainID,
-    address originSenderAddress,
--   bytes calldata message
-+   bytes memory message
-- ) external {
-+ ) internal override {
--    // Only the Teleporter receiver can deliver a message.
--    require(msg.sender == address(teleporterMessenger), "Unauthorized.");
+-     function receiveTeleporterMessage(
++     function _receiveTeleporterMessage(
+          bytes32 sourceBlockchainID,
+          address originSenderAddress,
+-         bytes calldata message
++         bytes memory message
+-     ) external {
++     ) internal override {
+-          // Only the Teleporter receiver can deliver a message.
+-          require(msg.sender == address(teleporterMessenger), "Unauthorized.");
 ```
 
 `MyExampleCrossChainMessenger` is now a working cross-chain dApp built on top of Teleporter! Full example [here](./ExampleMessenger/ExampleCrossChainMessenger.sol).
