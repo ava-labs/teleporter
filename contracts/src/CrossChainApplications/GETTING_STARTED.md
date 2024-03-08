@@ -87,7 +87,7 @@ contract ExampleCrossChainMessenger is
 
 Now that `MyExampleCrossChainMessenger` has an instantiation of `ITeleporterMessenger`, the next step is to add in functionality of sending and receiving arbitrary string data between chains.
 
-To start, create the function declarations for `sendMessage`, which will send string data cross-chain to the specified destination address' receiver. This function allows callers to specify the destination chain ID, destination address to send to, relayer fees, required gas limit for message execution at the destination address' `receiveTeleporterMessage` function, and the actual message data.
+To start, create the function declarations for `sendMessage`, which will send string data cross-chain to the specified destination address' receiver. This function allows callers to specify the destination chain ID, destination address to send to, relayer fees, required gas limit for message execution at the destination address.
 
 ```solidity
 // Send a new message to another chain.
