@@ -256,7 +256,7 @@ Next, add a function called `getCurrentMessage` that allows users or contracts t
 function getCurrentMessage(
     bytes32 sourceBlockchainID
 ) external view returns (address, string memory) {
-    Message memory messageInfo = messages[sourceBlockchainID];
+    Message memory messageInfo = _messages[sourceBlockchainID];
     return (messageInfo.sender, messageInfo.message);
 }
 ```
@@ -302,14 +302,15 @@ Then, remove the `teleporterMessenger` state variable, and add a call to get the
 - ITeleporterMessenger public immutable teleporterMessenger;
 ```
 
-And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, and mark it as `internal override`. It's also safe to remove the check against `teleporterMessenger` in `_receiveTeleporterMessage`, since that same check is handled in `TeleporterOwnerUpgradeable`'s `receiveTeleporterMessage` function.
+And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, mark it as `internal override`, and change the data location of its `message` parameter to `memory`. It's also safe to remove the check against `teleporterMessenger` in `_receiveTeleporterMessage`, since that same check is handled in `TeleporterOwnerUpgradeable`'s `receiveTeleporterMessage` function.
 
 ```diff
 - function receiveTeleporterMessage(
 + function _receiveTeleporterMessage(
     bytes32 sourceBlockchainID,
     address originSenderAddress,
-    bytes memory message
+-   bytes calldata message
++   bytes memory message
 - external {
 + internal override {
 -    // Only the Teleporter receiver can deliver a message.
