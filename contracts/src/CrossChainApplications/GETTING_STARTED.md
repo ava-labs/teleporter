@@ -165,12 +165,11 @@ function sendMessage(
 }
 ```
 
-Note: Relayer fees are an optional way to incentivize relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
+> Note: Relayer fees are an optional way to incentivize relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
 
-Next, add the event to emit, as well as the call to the `TeleporterMessenger` contract with the message data to be executed when delivered to the destination address. In `sendMessage`, form a `TeleporterMessageInput` and call `sendCrossChainMessage` on the `TeleporterMessenger` instance to start the cross chain messaging process.
+Next, add the event to emit, as well as the call to the `TeleporterMessenger` contract with the message data to be executed when delivered to the destination address. In `sendMessage`, form a `TeleporterMessageInput` and call `sendCrossChainMessage` on the `TeleporterMessenger` instance to start the cross chain messaging process. The `message` must be ABI encoded so that it can be properly decoded on the receiving end.
 
-> `allowedRelayerAddresses` is empty in this example, meaning any relayer can try to deliver this cross chain message. Specific relayer addresses can be specified to ensure only those relayers can deliver the message.
-> The `message` must be ABI encoded so that it can be properly decoded on the receiving end.
+> Note: `allowedRelayerAddresses` is empty in this example, meaning any relayer can try to deliver this cross chain message. Specific relayer addresses can be specified to ensure only those relayers can deliver the message.
 
 ```solidity
 emit SendMessage({
