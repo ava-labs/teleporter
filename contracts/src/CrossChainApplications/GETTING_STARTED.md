@@ -71,7 +71,7 @@ Now that the initial empty `MyExampleCrossChainMessenger` is defined, it's time 
 Create a state variable of `ITeleporterMessenger` type called `teleporterMessenger`. Then create a constructor that takes in an address where the Teleporter Messenger would be deployed on this chain, and set the corresponding state variable.
 
 ```solidity
-contract ExampleCrossChainMessenger is
+contract MyExampleCrossChainMessenger is
     ReentrancyGuard,
     ITeleporterReceiver
 {
@@ -129,7 +129,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/Reentrancy
 Next, add a `using` directive in the contract declaration to specify `SafeERC20` as the `IERC20` implementation to use:
 
 ```solidity
-contract ExampleCrossChainMessenger is
+contract MyExampleCrossChainMessenger is
     ReentrancyGuard,
     ITeleporterReceiver
 {
@@ -277,7 +277,7 @@ To start, replace the import for `ITeleporterReceiver` with `TeleporterOwnerUpgr
 Also, replace the contract declaration to inherit from `TeleporterOwnerUpgradeable` instead of `ITeleporterReceiver`:
 
 ```diff
-contract ExampleCrossChainMessenger is
+contract MyExampleCrossChainMessenger is
      ReentrancyGuard,
 -    ITeleporterReceiver
 +    TeleporterOwnerUpgradeable
