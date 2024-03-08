@@ -319,8 +319,8 @@ And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, m
     address originSenderAddress,
 -   bytes calldata message
 +   bytes memory message
-- external {
-+ internal override {
+- ) external {
++ ) internal override {
 -    // Only the Teleporter receiver can deliver a message.
 -    require(msg.sender == address(teleporterMessenger), "Unauthorized.");
 ```
