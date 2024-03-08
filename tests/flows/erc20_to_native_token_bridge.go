@@ -192,7 +192,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 			nativeTokenDestination.ParseNativeTokensMinted,
 		)
 		Expect(err).Should(BeNil())
-		Expect(mintEvent.Amount.Int64()).Should(Equal(0))
+		Expect(mintEvent.Amount.Uint64()).Should(Equal(uint64(0)))
 
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 
