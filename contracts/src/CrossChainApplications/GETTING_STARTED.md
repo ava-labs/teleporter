@@ -328,11 +328,14 @@ Next, update the constructor to invoke the `TeleporterOwnerUpgradeable` construc
 +     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {}
 ```
 
-Then, remove the `teleporterMessenger` state variable, and at the beginning of `sendMessage()` add a call to get the latest `ITeleporterMessenger` implementation from `TeleporterRegistry`.
+Then, remove the `teleporterMessenger` state variable:
 
 ```diff
 -     ITeleporterMessenger public immutable teleporterMessenger;
 ```
+
+And at the beginning of `sendMessage()` add a call to get the latest `ITeleporterMessenger` implementation from `TeleporterRegistry`:
+
 ```solidity
     function sendMessage(
         ...
