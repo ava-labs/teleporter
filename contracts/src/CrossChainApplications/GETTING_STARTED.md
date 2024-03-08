@@ -189,6 +189,12 @@ Next, add the event to emit, as well as the call to the `TeleporterMessenger` co
 > Note: `allowedRelayerAddresses` is empty in this example, meaning any relayer can try to deliver this cross chain message. Specific relayer addresses can be specified to ensure only those relayers can deliver the message.
 
 ```solidity
+    function sendMessage(
+        ...
+    ) external returns (bytes32 messageID) {
+        ...
+```
+```solidity
         emit SendMessage({
             destinationBlockchainID: destinationBlockchainID,
             destinationAddress: destinationAddress,
@@ -211,6 +217,9 @@ Next, add the event to emit, as well as the call to the `TeleporterMessenger` co
                     message: abi.encode(message)
                 })
             );
+```
+```solidity
+}
 ```
 
 With the sending side complete, the next step is to implement `ITeleporterReceiver.receiveTeleporterMessage`. The receiver in this example will just receive the arbitrary string data, and check that the message is sent through Teleporter.
