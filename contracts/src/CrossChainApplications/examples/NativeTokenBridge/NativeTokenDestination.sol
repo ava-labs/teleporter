@@ -300,7 +300,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             }
         }
 
-        // emit an event even if we're minting 0 tokens to be clear to the user.
+        // Emit an event even if the amount is zero to improve traceability. 
         emit NativeTokensMinted(recipient, adjustedAmount);
 
         // Only call the native minter precompile if we are minting any coins.
