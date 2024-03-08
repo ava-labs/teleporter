@@ -9,6 +9,7 @@ REPO_PATH=$(
   cd .. && pwd
 )
 
+source "$REPO_PATH"/scripts/constants.sh
 source "$REPO_PATH"/scripts/versions.sh
 
 BASEDIR=${BASEDIR:-"$HOME/.teleporter-deps"}
@@ -25,6 +26,14 @@ echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/p
 export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 
 cd $REPO_PATH/contracts
+if command -v forge &> /dev/null; then
+  forge build
+else
+  echo "Forge command not found, attempting to use from $HOME"
+  $HOME/.foundry/bin/forge build
+fi
+
+cd $TELEPORTER_PATH/contracts
 if command -v forge &> /dev/null; then
   forge build
 else

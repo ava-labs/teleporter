@@ -8,6 +8,14 @@
 # Set the PATHS
 GOPATH="$(go env GOPATH)"
 
+
+REPO_PATH=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  cd .. && pwd
+)
+
+TELEPORTER_PATH="$REPO_PATH"/contracts/lib/teleporter
+
 # Current branch
 current_branch=$(git symbolic-ref -q --short HEAD || git describe --tags --exact-match || true)
 

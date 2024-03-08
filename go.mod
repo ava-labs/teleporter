@@ -3,8 +3,6 @@ module github.com/ava-labs/teleporter-token-bridge
 go 1.21
 
 require (
-	github.com/ava-labs/avalanchego v1.11.1
-	github.com/ava-labs/awm-relayer v0.2.13
 	github.com/ava-labs/teleporter v0.2.0
 	github.com/ethereum/go-ethereum v1.12.0
 	github.com/onsi/ginkgo/v2 v2.15.0
@@ -17,6 +15,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.10.0 // indirect
 	github.com/ava-labs/avalanche-network-runner v1.7.6 // indirect
+	github.com/ava-labs/avalanchego v1.11.1 // indirect
 	github.com/ava-labs/coreth v0.13.0-rc.0 // indirect
 	github.com/ava-labs/subnet-evm v0.6.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
