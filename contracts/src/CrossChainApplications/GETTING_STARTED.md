@@ -296,10 +296,18 @@ Next, update the constructor to invoke the `TeleporterOwnerUpgradeable` construc
 + ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {}
 ```
 
-Then, remove the `teleporterMessenger` state variable, and add a call to get the latest `ITeleporterMessenger` implementation from `TeleporterRegistry` in `sendMessage`.
+Then, remove the `teleporterMessenger` state variable, and at the beginning of `sendMessage()` add a call to get the latest `ITeleporterMessenger` implementation from `TeleporterRegistry`.
 
 ```diff
 - ITeleporterMessenger public immutable teleporterMessenger;
+```
+```solidity
+    function sendMessage(
+        ...
+    ) external returns (bytes32 messageID) {
+        ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
+        ...
+    }
 ```
 
 And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, mark it as `internal override`, and change the data location of its `message` parameter to `memory`. It's also safe to remove the check against `teleporterMessenger` in `_receiveTeleporterMessage`, since that same check is handled in `TeleporterOwnerUpgradeable`'s `receiveTeleporterMessage` function.
