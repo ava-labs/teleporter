@@ -20,15 +20,13 @@ pragma solidity 0.8.18;
 
 import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
-import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 ```
 
-Next, define the initial empty contract. The contract inherits from `ReentrancyGuard` to prevent reentrancy attacks, and inherits from `ITeleporterReceiver` to allow the contract to receive messages from Teleporter.
+Next, define the initial empty contract. The contract inherits from `ReentrancyGuard` to prevent reentrancy attacks.
 
 ```solidity
 contract MyExampleCrossChainMessenger is
-    ReentrancyGuard,
-    ITeleporterReceiver
+    ReentrancyGuard
 {
 
 }
@@ -99,7 +97,23 @@ To start, create the function declaration for `sendMessage`, which will send str
     }
 ```
 
-`MyExampleCrossChainMessenger` also needs to implement `ITeleporterReceiver` by adding the method `receiveTeleporterMessage` that receives the cross-chain messages from Teleporter.
+`MyExampleCrossChainMessenger` also needs to implement `ITeleporterReceiver`. First, add the import of this interface:
+
+```solidity
+import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
+```
+
+Then declare that the contract will implement it:
+
+```diff
+  contract MyExampleCrossChainMessenger is
+-     ReentrancyGuard
++     ReentrancyGuard,
++     ITeleporterReceiver
+  {
+```
+
+And then finally add the method `receiveTeleporterMessage` that receives the cross-chain messages from Teleporter.
 
 ```solidity
     // Receive a new message from another chain.
