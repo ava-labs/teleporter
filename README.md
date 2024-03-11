@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="85%" alt="teleporter" src="resources/TeleporterLogo.png"/>
+  <img width="85%" alt="teleporter" src="resources/TeleporterLogo.png?raw=true"/>
 </p>
 
 ---
