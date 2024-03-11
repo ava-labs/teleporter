@@ -346,12 +346,14 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	}
 
 	if len(logs) == 0 {
-		return nil, errors.New("Failed to find ReceiveCrossChainMessage log for relayed message")
+		return nil, errors.New("failed to find ReceiveCrossChainMessage log for relayed message")
 	} else if len(logs) > 1 {
-		return nil, errors.New("Found multiple ReceiveCrossChainMessage logs for relayed message")
+		return nil, errors.New("found multiple ReceiveCrossChainMessage logs for relayed message")
 	}
 
-	return destination.RPCClient.TransactionReceipt(ctx, logs[0].TxHash)
+	// The transaction should already be mined, but WaitMined will also wait for the eth_blockNumber
+	// endpoint to refelct the block that the transaction has been included in.
+	return utils.WaitMined(ctx, destination.RPCClient, logs[0].TxHash)
 }
 
 func (n *testNetwork) GetSignedMessage(
