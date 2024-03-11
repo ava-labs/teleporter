@@ -179,7 +179,7 @@ cp .env.example .env # Set proper values after copying.
 ./scripts/testnet/run_testnet_e2e_flows.sh
 ```
 
-The user wallet set in `.env` must have native tokens for each of the subnets used in order for the test flows to be able to send transactions on those networks, which can be obtained for public testnet subnets at [the Avalanche Testnet Faucet](https://core.app/tools/testnet-faucet).
+The user wallet set in `.env` must have native tokens for each of the Subnets used in order for the test flows to be able to send transactions on those networks. The [Avalanche Testnet Faucet](https://core.app/tools/testnet-faucet) can be used to obtain native tokens for certain public testnet Subnets.
 
 ## Upgradeability
 
