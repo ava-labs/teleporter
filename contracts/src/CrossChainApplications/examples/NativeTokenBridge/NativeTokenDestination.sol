@@ -299,6 +299,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 adjustedAmount = 0;
                 currentReserveImbalance = updatedReserveImbalance;
             }
+        } else {
+            adjustedAmount = scaledAmount;
         }
 
         // Emit an event even if the amount is zero to improve traceability.
