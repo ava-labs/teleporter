@@ -13,7 +13,7 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-import {UnitTestMockERC20} from "../lib/teleporter/contracts/src/Mocks/UnitTestMockERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {
     ITeleporterTokenBridge, SendTokensInput
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
@@ -31,6 +31,10 @@ contract ExampleSourceApp is TeleporterTokenSource {
     }
 
     function _withdraw(address recipient, uint256 amount) internal virtual override {}
+
+    function _deposit(uint256 amount) internal virtual override returns (uint256) {
+        return amount;
+    }
 }
 
 contract TeleporterTokenSourceTest is Test {
@@ -50,12 +54,12 @@ contract TeleporterTokenSourceTest is Test {
         bytes32(hex"1111111111111111111111111111111111111111111111111111111111111111");
 
     ExampleSourceApp public app;
-    UnitTestMockERC20 public mockERC20;
+    ExampleERC20 public mockERC20;
 
     event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
 
     function setUp() public virtual {
-        mockERC20 = new UnitTestMockERC20();
+        mockERC20 = new ExampleERC20();
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),

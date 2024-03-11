@@ -10,7 +10,6 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
 import {ITeleporterTokenBridge, SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -33,7 +32,7 @@ abstract contract TeleporterTokenDestination is
     /// @notice The address of the source token bridge instance this contract receives tokens from.
     address public immutable tokenSourceAddress;
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
-    IERC20 public immutable feeToken;
+    address public immutable feeTokenAddress;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
@@ -44,14 +43,14 @@ abstract contract TeleporterTokenDestination is
         address teleporterManager,
         bytes32 sourceBlockchainID_,
         address tokenSourceAddress_,
-        address feeToken_
+        address feeTokenAddress_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         sourceBlockchainID = sourceBlockchainID_;
         tokenSourceAddress = tokenSourceAddress_;
         // TODO: figure out if NativeTokenDestination passes in token or not.
         // NativeTokenDestination will pass in erc20 token it deposits native tokens to pay for fees.
         // ERC20Destination will pass in the erc20 token it's bridging.
-        feeToken = IERC20(feeToken_);
+        feeTokenAddress = feeTokenAddress_;
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
     }
 
@@ -59,7 +58,6 @@ abstract contract TeleporterTokenDestination is
      * @notice Sends tokens to the specified destination token bridge instance.
      *
      * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message.
-     * TODO: Determine if this can be abstracted to a common function with {TeleporterTokenSource}
      * Requirements:
      *
      * - `input.destinationBlockchainID` cannot be the same as the current blockchainID
@@ -78,9 +76,13 @@ abstract contract TeleporterTokenDestination is
             "TeleporterTokenDestination: zero destination bridge address"
         );
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
+
+        // Deposit the funds sent from the user to the bridge,
+        // and set to adjusted amount after deposit
+        amount = _deposit(amount);
         require(amount > 0, "TeleporterTokenDestination: zero send amount");
         require(
-            amount > input.primaryFee,
+            amount > input.primaryFee + input.secondaryFee,
             "TeleporterTokenDestination: insufficient amount to cover fees"
         );
 
@@ -94,10 +96,7 @@ abstract contract TeleporterTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: address(feeToken),
-                    amount: input.primaryFee
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
                 // TODO: placeholder value
                 requiredGasLimit: 0,
                 allowedRelayerAddresses: input.allowedRelayerAddresses,
@@ -143,17 +142,24 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
-     * @notice Burns tokens from the sender's balance.
-     * @param amount The amount of tokens to burn
+     * @notice Deposits tokens from the sender to this contract,
+     * and returns the adjusted amount of tokens deposited.
+     * @param amount is initial amount sent to this contract.
+     * @return The actual amount deposited to this contract.
      */
-    // solhint-disable-next-line no-empty-blocks
-    function _burn(uint256 amount) internal virtual;
+    function _deposit(uint256 amount) internal virtual returns (uint256);
 
     /**
      * @notice Withdraws tokens to the recipient address.
      * @param recipient The address to withdraw tokens to
      * @param amount The amount of tokens to withdraw
      */
-    // solhint-disable-next-line no-empty-blocks
     function _withdraw(address recipient, uint256 amount) internal virtual;
+
+    /**
+     * @notice Burns a fee adjusted amount of tokens that the user
+     * has deposited to this token bridge instance.
+     * @param amount The amount of tokens to burn
+     */
+    function _burn(uint256 amount) internal virtual;
 }
