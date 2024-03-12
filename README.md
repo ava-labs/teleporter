@@ -62,13 +62,13 @@ Then run the following command from the root of the repository:
 To run a specific E2E test, specify the environment variable `GINKGO_FOCUS`, which will then look for test descriptions that match the provided input. For example, to run the `Calculate Teleporter message IDs` test:
 
 ```bash
-GINKGO_FOCUS="Calculate Teleporter message IDs" ./scripts/local/e2e_test.sh
+GINKGO_FOCUS="TODO" ./scripts/local/e2e_test.sh
 ```
 
 A substring of the full test description can be used as well:
 
 ```bash
-GINKGO_FOCUS="Calculate Teleporter" ./scripts/local/e2e_test.sh
+GINKGO_FOCUS="TODO" ./scripts/local/e2e_test.sh
 ```
 
 The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all E2E tests for the example cross chain applications:
