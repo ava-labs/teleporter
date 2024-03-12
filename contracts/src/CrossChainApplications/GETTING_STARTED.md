@@ -145,7 +145,7 @@ Next, add a `using` directive to the top of the contract body specifying `SafeER
     using SafeERC20 for IERC20;
 ```
 
-Then implement the `sendMessage` function with a check for whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeTokenAddress` to the Teleporter Messenger saved as a state variable.
+Then add a check to the `sendMessage` function for whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeTokenAddress` to the Teleporter Messenger saved as a state variable.
 
 ```solidity
         // For non-zero fee amounts, first transfer the fee to this contract, and then
@@ -194,7 +194,7 @@ Next, to the end of the `sendMessage` function, add the event to emit, as well a
             );
 ```
 
-With the sending side complete, the next step is to implement `ITeleporterReceiver.receiveTeleporterMessage`. The receiver in this example will just receive the arbitrary string data, and check that the message is sent through Teleporter.
+With the sending side complete, the next step is to implement `ITeleporterReceiver.receiveTeleporterMessage`. The receiver in this example will just receive the arbitrary string data, and check that the message is sent through Teleporter. To the `receiveTeleporterMessage` function, add:
 
 ```solidity
         // Only the Teleporter receiver can deliver a message.
