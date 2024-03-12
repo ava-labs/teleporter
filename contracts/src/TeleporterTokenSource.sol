@@ -59,7 +59,6 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
      *
      * @dev Increases the bridge balance sent to each destination token bridge instance,
      * and uses Teleporter to send a cross chain message.
-     * TODO: Determine if this can be abstracted to a common function with {TeleporterTokenDestination}
      * Requirements:
      *
      * - `input.destinationBlockchainID` cannot be the same as the current blockchainID
@@ -78,6 +77,10 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             "TeleporterTokenSource: zero destination bridge address"
         );
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
+
+        // Deposit the funds sent from the user to the bridge,
+        // and set to adjusted amount after deposit
+        amount = _deposit(amount);
         require(amount > 0, "TeleporterTokenSource: zero send amount");
         require(
             amount > input.primaryFee, "TeleporterTokenSource: insufficient amount to cover fees"
@@ -106,6 +109,18 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         emit SendTokens(messageID, msg.sender, amount);
     }
 
+    /**
+     * @dev See {ITeleporterUpgradeable-_receiveTeleporterMessage}
+     *
+     * Verifies the Teleporter token bridge sending back tokens has enough balance,
+     * and adjusts the bridge balance accordingly. If the final destination for this token
+     * is this contract, the tokens are withdrawn and sent to the recipient. Otherwise,
+     * a multihop is performed, and the tokens are forwarded to the destination token bridge.
+     * Requirements:
+     *
+     * - `sourceBlockchainID` and `originSenderAddress` have enough bridge balance to send back.
+     * - `input.destinationBridgeAddress` is this contract is this chain is the final destination.
+     */
     function _receiveTeleporterMessage(
         bytes32 sourceBlockchainID,
         address originSenderAddress,
@@ -133,6 +148,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         _send(input, amount);
     }
 
-    // solhint-disable-next-line no-empty-blocks
+    function _deposit(uint256 amount) internal virtual returns (uint256);
+
     function _withdraw(address recipient, uint256 amount) internal virtual;
 }
