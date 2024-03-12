@@ -61,6 +61,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             0
         );
 
+        bool isCollateralized = nativeTokenDestination.isCollateralized();
+        assertEq(isCollateralized, false);
+
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenDestination.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
@@ -69,6 +72,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
                 _DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE / _DEFAULT_TOKEN_MULTIPLIER
             )
         );
+
+        isCollateralized = nativeTokenDestination.isCollateralized();
+        assertEq(isCollateralized, true);
     }
 
     function testTransferToSource() public {
@@ -109,7 +115,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         );
     }
 
-    function testTransferToSourceDivideOnSend() public {
+    function testTransferToSourceDivideOnReceive() public {
         nativeTokenDestination = new NativeTokenDestination({
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: _DEFAULT_OWNER_ADDRESS,
@@ -137,6 +143,17 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             abi.encode(
                 _DEFAULT_RECIPIENT, _DEFAULT_INITIAL_RESERVE_IMBALANCE * _DEFAULT_TOKEN_MULTIPLIER
             )
+        );
+
+        vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
+        emit NativeTokensMinted(_DEFAULT_RECIPIENT, 0);
+
+        // A call that should mint 0
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        nativeTokenDestination.receiveTeleporterMessage(
+            _DEFAULT_OTHER_CHAIN_ID,
+            _DEFAULT_OTHER_BRIDGE_ADDRESS,
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TOKEN_MULTIPLIER - 1)
         );
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
