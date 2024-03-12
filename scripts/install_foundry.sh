@@ -5,10 +5,10 @@
 set -e
 set -o pipefail
 
-REPO_PATH=$(
+TELEPORTER_TOKEN_BRIDGE_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
 
-source $REPO_PATH/scripts/constants.sh
+source $TELEPORTER_TOKEN_BRIDGE_PATH/scripts/constants.sh
 $TELEPORTER_PATH/scripts/install_foundry.sh

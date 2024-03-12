@@ -4,15 +4,15 @@
 
 set -e
 
-REPO_PATH=$(
+TELEPORTER_TOKEN_BRIDGE_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
 
-source "$REPO_PATH"/scripts/constants.sh
-source "$REPO_PATH"/scripts/versions.sh
+source "$TELEPORTER_TOKEN_BRIDGE_PATH"/scripts/constants.sh
+source "$TELEPORTER_TOKEN_BRIDGE_PATH"/scripts/versions.sh
 
-BASEDIR=${BASEDIR:-"$HOME/.teleporter-deps"}
+BASEDIR=${BASEDIR:-"$HOME/.teleporter-token-bridge-deps"}
 
 cwd=$(pwd)
 # Install the avalanchego and subnet-evm binaries
@@ -32,7 +32,7 @@ else
   FORGE_COMMAND="$HOME/.foundry/bin/forge build"
 fi
 
-cd $REPO_PATH/contracts
+cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts
 $FORGE_COMMAND
 
 cd $TELEPORTER_PATH/contracts

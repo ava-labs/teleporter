@@ -5,10 +5,10 @@
 # Use lower_case variables in the scripts and UPPER_CASE variables for override
 # Use the constants.sh for env overrides
 
-REPO_PATH=$(
+TELEPORTER_TOKEN_BRIDGE_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
 
-TELEPORTER_PATH="$REPO_PATH"/contracts/lib/teleporter
+TELEPORTER_PATH="$TELEPORTER_TOKEN_BRIDGE_PATH"/contracts/lib/teleporter
 source $TELEPORTER_PATH/scripts/constants.sh
