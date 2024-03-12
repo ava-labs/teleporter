@@ -35,7 +35,6 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		deployerAddress         = common.HexToAddress("0x1337cfd2dCff6270615B90938aCB1efE79801704")
 		tokenReceiverAddress    = common.HexToAddress("0x0123456789012345678901234567890123456789")
 		burnedTxFeeAddressDest  = common.HexToAddress("0x0100000000000000000000000000000000000000")
-		burnAddressSource       = common.HexToAddress("0x0100000000000000000000000000000000010203")
 
 		emptyDestFeeInfo = nativetokendestination.TeleporterFeeInfo{
 			FeeTokenAddress: common.Address{},
@@ -271,9 +270,8 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 		transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, destSubnet.EVMChainID)
 		Expect(err).Should(BeNil())
-		tx, err := nativeTokenDestination.ReportTotalBurnedTxFees(
+		tx, err := nativeTokenDestination.ReportBurnedTxFees(
 			transactor,
-			emptyDestFeeInfo,
 			[]common.Address{},
 		)
 		Expect(err).Should(BeNil())
@@ -282,14 +280,17 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 
 		reportEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
-			nativeTokenDestination.ParseReportTotalBurnedTxFees,
+			nativeTokenDestination.ParseReportBurnedTxFees,
 		)
 		Expect(err).Should(BeNil())
-		utils.ExpectBigEqual(reportEvent.BurnAddressBalance, burnedTxFeesBalanceDest)
+		utils.ExpectBigEqual(reportEvent.FeesBurned, burnedTxFeesBalanceDest)
+
+		generalBurnAddress, err := nativeTokenDestination.GENERALBURNADDRESS(&bind.CallOpts{})
+		Expect(err).Should(BeNil())
 
 		burnedTxFeesBalanceSource, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
-			burnAddressSource,
+			generalBurnAddress,
 			nil,
 		)
 		Expect(err).Should(BeNil())
@@ -301,13 +302,14 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			ctx,
 			sourceChainReceipt,
 			sourceSubnet,
-			nativeTokenSource.ParseBurnTokens,
+			nativeTokenSource.ParseUnlockTokens,
 		)
+		Expect(burnEvent.Recipient).Should(Equal(generalBurnAddress))
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
 		burnedTxFeesBalanceSource2, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
-			burnAddressSource,
+			generalBurnAddress,
 			nil,
 		)
 		Expect(err).Should(BeNil())
