@@ -352,7 +352,7 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	}
 
 	// The transaction should already be mined, but WaitMined will also wait for the eth_blockNumber
-	// endpoint to refelct the block that the transaction has been included in.
+	// endpoint to reflect the block that the transaction has been included in.
 	return utils.WaitMined(ctx, destination.RPCClient, logs[0].TxHash)
 }
 
