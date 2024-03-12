@@ -287,16 +287,7 @@ Then, remove the `teleporterMessenger` state variable:
 And at the beginning of `sendMessage()` add a call to get the latest `ITeleporterMessenger` implementation from `TeleporterRegistry`:
 
 ```solidity
-    function sendMessage(
-        ...
-    ) external returns (bytes32 messageID) {
-```
-```solidity
         ITeleporterMessenger teleporterMessenger = teleporterRegistry.getLatestTeleporter();
-```
-```solidity
-        ...
-    }
 ```
 
 And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, mark it as `internal override`, and change the data location of its `message` parameter to `memory`. It's also safe to remove the check against `teleporterMessenger` in `_receiveTeleporterMessage`, since that same check is handled in `TeleporterOwnerUpgradeable`'s `receiveTeleporterMessage` function.
