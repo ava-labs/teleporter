@@ -139,7 +139,7 @@ import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFro
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 ```
 
-Next, add a `using` directive to the top of the contract body specify `SafeERC20` as the `IERC20` implementation to use:
+Next, add a `using` directive to the top of the contract body specifying `SafeERC20` as the `IERC20` implementation to use:
 
 ```solidity
     using SafeERC20 for IERC20;
