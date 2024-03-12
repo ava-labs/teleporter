@@ -139,29 +139,14 @@ import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFro
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 ```
 
-Next, add a `using` directive in the contract declaration to specify `SafeERC20` as the `IERC20` implementation to use:
+Next, add a `using` directive to the top of the contract body specify `SafeERC20` as the `IERC20` implementation to use:
 
-```solidity
-contract MyExampleCrossChainMessenger is
-    ReentrancyGuard,
-    ITeleporterReceiver
-{
-```
 ```solidity
     using SafeERC20 for IERC20;
 ```
-```solidity
-    ...
-}
-```
 
-Then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeTokenAddress` to the Teleporter Messenger saved as a state variable.
+Then implement the `sendMessage` function with a check for whether `feeAmount` is greater than zero. If it is, transfer and approve the amount of IERC20 asset at `feeTokenAddress` to the Teleporter Messenger saved as a state variable.
 
-```solidity
-    function sendMessage(
-        ...
-    ) external returns (bytes32 messageID) {
-```
 ```solidity
         // For non-zero fee amounts, first transfer the fee to this contract, and then
         // allow the Teleporter contract to spend it.
@@ -177,22 +162,13 @@ Then in `sendMessage` check whether `feeAmount` is greater than zero. If it is, 
             );
         }
 ```
-```solidity
-    }
-```
 
 > Note: Relayer fees are an optional way to incentivize relayers to deliver a Teleporter message to its destination. They are not strictly necessary, and may be omitted if a relayer is willing to relay messages with no fee, such as with a self-hosted relayer.
 
-Next, add the event to emit, as well as the call to the `TeleporterMessenger` contract with the message data to be executed when delivered to the destination address. In `sendMessage`, form a `TeleporterMessageInput` and call `sendCrossChainMessage` on the `TeleporterMessenger` instance to start the cross chain messaging process. The `message` must be ABI encoded so that it can be properly decoded on the receiving end.
+Next, to the end of the `sendMessage` function, add the event to emit, as well as the call to the `TeleporterMessenger` contract with the message data to be executed when delivered to the destination address. Form a `TeleporterMessageInput` and call `sendCrossChainMessage` on the `TeleporterMessenger` instance to start the cross chain messaging process. The `message` must be ABI encoded so that it can be properly decoded on the receiving end.
 
 > Note: `allowedRelayerAddresses` is empty in this example, meaning any relayer can try to deliver this cross chain message. Specific relayer addresses can be specified to ensure only those relayers can deliver the message.
 
-```solidity
-    function sendMessage(
-        ...
-    ) external returns (bytes32 messageID) {
-        ...
-```
 ```solidity
         emit SendMessage({
             destinationBlockchainID: destinationBlockchainID,
@@ -217,30 +193,14 @@ Next, add the event to emit, as well as the call to the `TeleporterMessenger` co
                 })
             );
 ```
-```solidity
-}
-```
 
 With the sending side complete, the next step is to implement `ITeleporterReceiver.receiveTeleporterMessage`. The receiver in this example will just receive the arbitrary string data, and check that the message is sent through Teleporter.
 
-```solidity
-    /**
-     * @dev Receive a new message from another chain.
-     */
-    function receiveTeleporterMessage(
-        bytes32 sourceBlockchainID,
-        address originSenderAddress,
-        bytes calldata message
-    ) external {
-```
 ```solidity
         // Only the Teleporter receiver can deliver a message.
         require(msg.sender == address(teleporterMessenger), "Unauthorized.");
 
         // do something with message.
-```
-```solidity
-    }
 ```
 
 The base of sending and receiving messages cross chain is complete. `MyExampleCrossChainMessenger` can now be expanded with functionality that saves the received messages, and allows users to query for the latest message received from a specified chain.
@@ -253,15 +213,8 @@ Start by adding a map to the body of the contract, in which the key is the `sour
     mapping(bytes32 sourceBlockchainID => Message message) private _messages;
 ```
 
-Next, update `receiveTeleporterMessage` to save the message into the mapping after it is received and verified that it's sent from Teleporter. ABI decode the `message` bytes into a string. Also, emit the `ReceiveMessage` event.
+Next, update `receiveTeleporterMessage` to save the message into the mapping after it is received and verified that it's sent from Teleporter. At the end of that function, ABI decode the `message` bytes into a string, and emit the `ReceiveMessage` event.
 
-```solidity
-    function receiveTeleporterMessage(
-        ...
-    ) external {
-        ...
-        // do something with message.
-```
 ```solidity
         // Store the message.
         string memory messageString = abi.decode(message, (string));
@@ -274,9 +227,6 @@ Next, update `receiveTeleporterMessage` to save the message into the mapping aft
             originSenderAddress,
             messageString
         );
-```
-```solidity
-    }
 ```
 
 Next, add a function to the contract called `getCurrentMessage` that allows users or contracts to easily query the contract for the latest message sent by a specified chain.
