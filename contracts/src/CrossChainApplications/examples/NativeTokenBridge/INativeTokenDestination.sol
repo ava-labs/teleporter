@@ -40,7 +40,7 @@ interface INativeTokenDestination {
     /**
      * @dev Emitted when reporting total burned tx fees to source chain.
      */
-    event ReportTotalBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 burnAddressBalance);
+    event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     /**
      * @dev Burns native tokens on the destination contract chain, and sends a message to the source
@@ -53,12 +53,9 @@ interface INativeTokenDestination {
     ) external payable;
 
     /**
-     * @dev Reports the current total burned transaction fees on this chain to the source chain.
+     * @dev Sends a message to burn transaction fees from this chain on the source chain.
      */
-    function reportTotalBurnedTxFees(
-        TeleporterFeeInfo calldata feeInfo,
-        address[] calldata allowedRelayerAddresses
-    ) external;
+    function reportBurnedTxFees(address[] calldata allowedRelayerAddresses) external;
 
     /**
      * @dev Returns true if the reserve imbalance for this contract has been accounted for.

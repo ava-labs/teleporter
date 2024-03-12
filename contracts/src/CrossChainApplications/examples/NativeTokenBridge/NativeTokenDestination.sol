@@ -11,7 +11,6 @@ import {IWarpMessenger} from
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
-import {ITokenSource} from "./ITokenSource.sol";
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
@@ -41,12 +40,10 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
 
     /**
-     * @notice Designated Blackhole Address for this contract.
-     *
-     * @dev Tokens are sent here to be "burned" before sending an unlock message to the source chain. Different
-     * from the burned tx fee address so they can be tracked separately.
+     * @dev Used when reporting burned gas fees to the source chain. Fees will be unlocked and sent to this address.
+     * Different from the burned tx fee address so they can be tracked separately.
      */
-    address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000010203;
+    address public constant GENERAL_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
      * @notice Address of the Native Minter precompile contract.
@@ -58,11 +55,6 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      * @notice Estimated gas needed for a transfer call to execute successfully on the source chain.
      */
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
-
-    /**
-     * @notice Estimated gas needed for a burn call to execute successfully on the source chain.
-     */
-    uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 100_000;
 
     /**
      * @notice ID of the paired blockchain containing the token source contract.
@@ -92,6 +84,11 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      * @notice Total number of tokens minted by this contract through the native minter precompile.
      */
     uint256 public totalMinted;
+
+    /**
+     * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the source chain.
+     */
+    uint256 public lastestBurnedFeesReported;
 
     /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
@@ -181,7 +178,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         }
 
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
-        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
+        Address.sendValue(payable(GENERAL_BURN_ADDRESS), value);
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
@@ -193,9 +190,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 }),
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(
-                    ITokenSource.SourceAction.Unlock, abi.encode(recipient, scaledAmount)
-                    )
+                message: abi.encode(recipient, scaledAmount)
             })
         );
 
@@ -210,35 +205,23 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportTotalBurnedTxFees(
-        TeleporterFeeInfo calldata feeInfo,
-        address[] calldata allowedRelayerAddresses
-    ) external {
-        uint256 adjustedFeeAmount;
-        if (feeInfo.amount > 0) {
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeInfo.feeTokenAddress), feeInfo.amount
-            );
-        }
+    function reportBurnedTxFees(address[] calldata allowedRelayerAddresses) external {
+        uint256 burnedDifference = BURNED_TX_FEES_ADDRESS.balance - lastestBurnedFeesReported;
 
-        uint256 amount = BURNED_TX_FEES_ADDRESS.balance;
-        uint256 scaledAmount = _scaleTokens(amount, false);
+        uint256 scaledAmount = _scaleTokens(burnedDifference, false);
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: nativeTokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: feeInfo.feeTokenAddress,
-                    amount: adjustedFeeAmount
-                }),
-                requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}),
+                requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(scaledAmount))
+                message: abi.encode(GENERAL_BURN_ADDRESS, scaledAmount)
             })
         );
 
-        emit ReportTotalBurnedTxFees({teleporterMessageID: messageID, burnAddressBalance: amount});
+        emit ReportBurnedTxFees({teleporterMessageID: messageID, feesBurned: burnedDifference});
     }
 
     /**
@@ -252,7 +235,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      * @dev See {INativeTokenDestination-totalSupply}.
      */
     function totalSupply() external view returns (uint256) {
-        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURN_FOR_TRANSFER_ADDRESS.balance;
+        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + GENERAL_BURN_ADDRESS.balance;
         uint256 created = totalMinted + initialReserveImbalance;
 
         return created - burned;
