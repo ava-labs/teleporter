@@ -120,6 +120,8 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 			sourceSubnet.BlockchainID,
 			bridgeContractAddress,
 			initialReserveImbalance,
+			big.NewInt(0),
+			true,
 		)
 
 		exampleERC20Abi, err := exampleerc20.ExampleERC20MetaData.GetAbi()
@@ -185,11 +187,12 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(collateralEvent.Amount, valueToSend)
 
-		_, err = utils.GetEventFromLogs(
+		mintEvent, err := utils.GetEventFromLogs(
 			destChainReceipt.Logs,
 			nativeTokenDestination.ParseNativeTokensMinted,
 		)
-		Expect(err).ShouldNot(BeNil())
+		Expect(err).Should(BeNil())
+		Expect(mintEvent.Amount.Uint64()).Should(Equal(uint64(0)))
 
 		checkReserveImbalance(intermediateReserveImbalance, nativeTokenDestination)
 

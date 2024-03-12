@@ -256,7 +256,7 @@ Next, add a function called `getCurrentMessage` that allows users or contracts t
 function getCurrentMessage(
     bytes32 sourceBlockchainID
 ) external view returns (address, string memory) {
-    Message memory messageInfo = messages[sourceBlockchainID];
+    Message memory messageInfo = _messages[sourceBlockchainID];
     return (messageInfo.sender, messageInfo.message);
 }
 ```
@@ -302,14 +302,15 @@ Then, remove the `teleporterMessenger` state variable, and add a call to get the
 - ITeleporterMessenger public immutable teleporterMessenger;
 ```
 
-And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, and mark it as `internal override`. It's also safe to remove the check against `teleporterMessenger` in `_receiveTeleporterMessage`, since that same check is handled in `TeleporterOwnerUpgradeable`'s `receiveTeleporterMessage` function.
+And finally, change `receiveTeleporterMessage` to `_receiveTeleporterMessage`, mark it as `internal override`, and change the data location of its `message` parameter to `memory`. It's also safe to remove the check against `teleporterMessenger` in `_receiveTeleporterMessage`, since that same check is handled in `TeleporterOwnerUpgradeable`'s `receiveTeleporterMessage` function.
 
 ```diff
 - function receiveTeleporterMessage(
 + function _receiveTeleporterMessage(
     bytes32 sourceBlockchainID,
     address originSenderAddress,
-    bytes memory message
+-   bytes calldata message
++   bytes memory message
 - external {
 + internal override {
 -    // Only the Teleporter receiver can deliver a message.
@@ -328,4 +329,25 @@ For testing, `scripts/local/e2e_test.sh` sets up a local test environment consis
 4. Sends `"Hello, world!"` from subnet A to subnet B's cross-chain messenger to receive.
 5. Calls `getCurrentMessage` on subnet B to make sure the right message and sender are received.
 
-To run this test against the newly created `MyExampleCrossChainMessenger`, first generate the ABI Go bindings by running `./scripts/abi_bindings.sh` from the root of this repository. Then, modify `example_messenger.go` to use the ABI bindings for `MyExampleCrossChainMessenger` instead of `ExampleCrossChainMessenger`.
+To run this test against the newly created `MyExampleCrossChainMessenger`, first generate the ABI Go bindings by running `./scripts/abi_bindings.sh --contract MyExampleCrossChainMessenger` from the root of this repository. Then, add to the generated Go package the `SendMessageRequiredGas` constant, which is required by the tests, in a new file `abi-bindings/go/CrossChainApplications/MyExampleCrossChainMessenger/MyExampleCrossChainMessenger/constants.go`:
+
+```go
+package myexamplecrosschainmessenger
+
+import "math/big"
+
+var SendMessageRequiredGas = big.NewInt(300000)
+```
+
+Next, modify `tests/utils/utils.go`, which is used by `tests/flows/example_messenger.go`, to use the ABI bindings for `MyExampleCrossChainMessenger` instead of `ExampleCrossChainMessenger`. First replace the import:
+```diff
+-       examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/ExampleMessenger/ExampleCrossChainMessenger"
++       myexamplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/MyExampleCrossChainMessenger/MyExampleCrossChainMessenger"
+```
+Then, in that same `utils.go`, replace all instances of to `examplecrosschainmessenger` with `myexamplecrosschainmessenger` and all instances of `ExampleCrossChainMessenger` with `MyExampleCrossChainMessenger`.
+
+Finally, from the root of the repository, invoke the tests with an extra bit of configuration that tells the Ginkgo test framework to focus only on the tests of this example contract (excluding all of the broader tests of Teleporter):
+
+```bash
+GINKGO_FOCUS="Example cross chain messenger" scripts/local/e2e_test.sh
+```
