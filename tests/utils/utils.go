@@ -133,15 +133,12 @@ func RedeemRelayerRewardsAndConfirm(
 	)
 	Expect(err).Should(BeNil())
 	receipt := WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	log.Info("redeem rewards transaction", "receipt", receipt)
 
 	// Check that the ERC20 balance was incremented
 	balanceAfterRedemption, err := feeToken.BalanceOf(
 		&bind.CallOpts{}, redeemerAddress,
 	)
 	Expect(err).Should(BeNil())
-	log.Info("Original balance", "amount", balanceBeforeRedemption.String())
-	log.Info("New balance", "amount", balanceAfterRedemption.String())
 	Expect(balanceAfterRedemption).Should(
 		Equal(
 			big.NewInt(0).Add(
@@ -591,7 +588,9 @@ func WaitMined(ctx context.Context, rpcClient ethclient.Client, txHash common.Ha
 		if currentBlockNumber >= receipt.BlockNumber.Uint64() {
 			return receipt, nil
 		} else {
-			log.Info("Waiting for block height transaction was included in", "txHash", receipt.TxHash, "blockNumber", receipt.BlockNumber.Uint64())
+			log.Info("Waiting for block height where transaction was included", "txHash",
+				receipt.TxHash, "blockNumber",
+				receipt.BlockNumber.Uint64())
 		}
 
 		// Wait for the next round.
