@@ -80,6 +80,8 @@ A docker setup for running a local network with Teleporter deployed is provided.
 
     - Tested on arm64 architecture (Apple silicon).
 
+_Note:_ An alternative Docker setup is provided in [teleporter-starter-kit](https://github.com/ava-labs/teleporter-starter-kit), which supports remote workflows via Github Codespaces, and is a suitable choice for platforms not supported by this Docker setup.
+
 ### Start up the local testnet
 
 - Run `./scripts/local/run.sh` to run the local testnet in Docker containers with the ability to interact with the nodes directly.
