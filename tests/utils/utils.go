@@ -588,7 +588,7 @@ func WaitMined(ctx context.Context, rpcClient ethclient.Client, txHash common.Ha
 		if currentBlockNumber >= receipt.BlockNumber.Uint64() {
 			return receipt, nil
 		} else {
-			log.Info("Waiting for block height where transaction was included", "txHash",
+			log.Debug("Waiting for block height where transaction was included", "txHash",
 				receipt.TxHash, "blockNumber",
 				receipt.BlockNumber.Uint64())
 		}
