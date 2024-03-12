@@ -34,6 +34,8 @@ abstract contract TeleporterTokenDestination is
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
     address public immutable feeTokenAddress;
 
+    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 300_000;
+
     /**
      * @notice Initializes this destination token bridge instance to receive
      * tokens from the specified source blockchain and token bridge instance.
@@ -98,7 +100,7 @@ abstract contract TeleporterTokenDestination is
                 destinationAddress: tokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
                 // TODO: placeholder value
-                requiredGasLimit: 0,
+                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: input.allowedRelayerAddresses,
                 message: abi.encode(
                     SendTokensInput({

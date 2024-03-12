@@ -41,6 +41,8 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             => mapping(address destinationBridgeAddress => uint256 balance)
     ) public bridgedBalances;
 
+    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 300_000;
+
     /**
      * @notice Initializes this source token bridge instance to send
      * tokens to the specified destination chain and token bridge instance.
@@ -67,7 +69,11 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
      * - `amount` must be greater than 0
      * - `amount` must be greater than `input.primaryFee`
      */
-    function _send(SendTokensInput memory input, uint256 amount) internal virtual {
+    function _send(
+        SendTokensInput memory input,
+        uint256 amount,
+        bool isMultihop
+    ) internal virtual {
         require(
             input.destinationBlockchainID != blockchainID,
             "TeleporterTokenSource: cannot bridge to same chain"
@@ -78,9 +84,12 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         );
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
 
-        // Deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit
-        amount = _deposit(amount);
+        // If this send is not a multihop, deposit the funds sent from the user to the bridge,
+        // and set to adjusted amount after deposit. If it is a multihop, the amount is already
+        // deposited.
+        if (!isMultihop) {
+            amount = _deposit(amount);
+        }
         require(amount > 0, "TeleporterTokenSource: zero send amount");
         require(
             amount > input.primaryFee, "TeleporterTokenSource: insufficient amount to cover fees"
@@ -100,7 +109,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                     amount: input.primaryFee
                 }),
                 // TODO: Set requiredGasLimit
-                requiredGasLimit: 0,
+                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: input.allowedRelayerAddresses,
                 message: abi.encode(input.recipient, amount)
             })
@@ -143,9 +152,10 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 "TeleporterTokenSource: invalid bridge address"
             );
             _withdraw(input.recipient, amount);
+            return;
         }
 
-        _send(input, amount);
+        _send(input, amount, true);
     }
 
     function _deposit(uint256 amount) internal virtual returns (uint256);

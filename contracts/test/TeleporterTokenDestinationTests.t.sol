@@ -194,7 +194,7 @@ contract TeleporterTokenDestinationTest is Test {
             destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             destinationAddress: TOKEN_SOURCE_ADDRESS,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: input.primaryFee}),
-            requiredGasLimit: 0,
+            requiredGasLimit: app.SEND_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: input.allowedRelayerAddresses,
             message: abi.encode(
                 SendTokensInput({

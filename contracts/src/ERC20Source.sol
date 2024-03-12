@@ -47,7 +47,7 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
      * @dev See {IERC20Bridge-send}
      */
     function send(SendTokensInput calldata input, uint256 amount) external {
-        _send(input, amount);
+        _send(input, amount, false);
     }
 
     /**

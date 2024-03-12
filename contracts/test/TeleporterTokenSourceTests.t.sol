@@ -27,7 +27,7 @@ contract ExampleSourceApp is TeleporterTokenSource {
     ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress) {}
 
     function send(SendTokensInput calldata input, uint256 amount) external {
-        _send(input, amount);
+        _send(input, amount, false);
     }
 
     function _withdraw(address recipient, uint256 amount) internal virtual override {}
@@ -188,6 +188,36 @@ contract TeleporterTokenSourceTest is Test {
         );
     }
 
+    function testBridgeBackSuccess() public {
+        uint256 amount = 2;
+        _sendSuccess(amount, 0);
+
+        uint256 feeAmount = 1;
+        uint256 bridgedAmount = amount - feeAmount;
+        SendTokensInput memory input = SendTokensInput({
+            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: address(app),
+            recipient: DEFAULT_RECIPIENT_ADDRESS,
+            primaryFee: feeAmount,
+            secondaryFee: 0,
+            allowedRelayerAddresses: new address[](0)
+        });
+
+        // Expect to call {TeleporterTokenSource-_send} for a multihop transfer
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        app.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            abi.encode(input, bridgedAmount)
+        );
+
+        // Make sure the bridge balance is increased
+        assertEq(
+            app.bridgedBalances(DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS),
+            bridgedAmount
+        );
+    }
+
     function testMultiHopTransfer() public {
         // First send to destination blockchain to increase the bridge balance
         uint256 amount = 2;
@@ -273,7 +303,7 @@ contract TeleporterTokenSourceTest is Test {
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: input.primaryFee}),
-            requiredGasLimit: 0,
+            requiredGasLimit: app.SEND_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: input.allowedRelayerAddresses,
             message: abi.encode(DEFAULT_RECIPIENT_ADDRESS, bridgeAmount)
         });
