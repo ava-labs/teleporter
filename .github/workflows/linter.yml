@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - "*"
+      - "**"
 
 jobs:
   solhint:
@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout teleporter
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install solhint
         run: |

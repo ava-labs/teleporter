@@ -1,0 +1,27 @@
+# Copyright (C) 2024, Ava Labs, Inc. All rights reserved.
+# See the file LICENSE for licensing terms.
+
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "gomod" # See documentation for possible values
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "daily"
+    ignore:
+      # Update go-ethereum only via subnet-evm or avalanchego
+      - dependency-name: "github.com/ethereum/go-ethereum"
+      # Avalanchego is updated to stay compatible with subnet-evm
+      - dependency-name: "github.com/ava-labs/avalanchego"
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
