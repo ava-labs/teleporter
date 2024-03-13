@@ -29,7 +29,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
     bytes32 public immutable blockchainID;
 
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
-    IERC20 public immutable feeToken;
+    address public immutable feeTokenAddress;
 
     /**
      * @notice Tracks the balances of tokens sent to other bridge instances.
@@ -50,9 +50,9 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address feeToken_
+        address feeTokenAddress_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
-        feeToken = IERC20(feeToken_);
+        feeTokenAddress = feeTokenAddress_;
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
     }
 
@@ -105,7 +105,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: address(feeToken),
+                    feeTokenAddress: address(feeTokenAddress),
                     amount: input.primaryFee
                 }),
                 // TODO: Set requiredGasLimit

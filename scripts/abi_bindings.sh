@@ -15,7 +15,7 @@ source $TELEPORTER_PATH/scripts/utils.sh
 
 setARCH
 
-DEFAULT_CONTRACT_LIST="ERC20Source ERC20Destination"
+DEFAULT_CONTRACT_LIST="ERC20Source ERC20Destination NativeTokenSource"
 
 CONTRACT_LIST=
 HELP=

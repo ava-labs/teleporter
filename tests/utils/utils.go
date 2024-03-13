@@ -12,6 +12,7 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	erc20destination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Destination"
 	erc20source "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Source"
+	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
@@ -82,6 +83,32 @@ func DeployERC20Destination(
 	return address, erc20Destination
 }
 
+func DeployNativeTokenSource(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	teleporterManager common.Address,
+	feeTokenAddress common.Address,
+) (common.Address, *nativetokensource.NativeTokenSource) {
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		senderKey,
+		subnet.EVMChainID,
+	)
+	Expect(err).Should(BeNil())
+	address, tx, nativeTokenSource, err := nativetokensource.DeployNativeTokenSource(
+		opts,
+		subnet.RPCClient,
+		subnet.TeleporterRegistryAddress,
+		teleporterManager,
+		feeTokenAddress,
+	)
+	Expect(err).Should(BeNil())
+
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	return address, nativeTokenSource
+}
+
 func SendERC20Source(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
@@ -115,6 +142,35 @@ func SendERC20Source(
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseSendTokens)
+	Expect(err).Should(BeNil())
+	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
+	Expect(event.Amount).Should(Equal(bridgedAmount))
+
+	return receipt, event.TeleporterMessageID, event.Amount
+}
+
+func SendNativeTokenSource(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	nativeTokenSource *nativetokensource.NativeTokenSource,
+	nativeTokenSourceAddress common.Address,
+	input nativetokensource.SendTokensInput,
+	amount *big.Int,
+	senderKey *ecdsa.PrivateKey,
+) (*types.Receipt, [32]byte, *big.Int) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	opts.Value = amount
+
+	tx, err := nativeTokenSource.Send(
+		opts,
+		input,
+	)
+	Expect(err).Should(BeNil())
+	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
+
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseSendTokens)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	Expect(event.Amount).Should(Equal(bridgedAmount))
