@@ -76,7 +76,6 @@ A docker setup for running a local network with Teleporter deployed is provided.
 
   ```
     -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub
-    -p, --pause                       Pause the network on stop. Will attempt to restart the paused network on subsequent runs
     -h, --help                        Print this help message
   ```
 
@@ -115,11 +114,10 @@ source vars.sh                # source the variables needed to interact with the
     - These examples can be adapted to send messages between any two subnets, or between the C-Chain and any subnet by changing the RPC URLs.
     - Use these as a starting point to build and interact with your own cross-chain applications on top of Teleporter!
 
-- The script `./scripts/local/run_stop.sh` should be used to gracefully shut down the containers, preserving the local network state between runs. This script is called automatically at the end of `./scripts/local/run.sh`, but can be called at any time from a separate terminal to pause the network.
+- The script `./scripts/local/run_stop.sh` should be used to gracefully shut down the containers. This script is called automatically at the end of `./scripts/local/run.sh`, but can be called at any time from a separate terminal to pause the network.
   - `./scripts/local/run_stop.sh` usage is as follows:
   ```
-  ./run_stop.sh             # stop the running containers and preserve the network for subsequent runs
-  ./run_stop.sh -c          # stop the running containers and clean the network
+  ./run_stop.sh          # stop the running containers and clean the network
   ```
 
 ### Additional notes

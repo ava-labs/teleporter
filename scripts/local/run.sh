@@ -13,22 +13,19 @@ function printHelp {
     echo ""
     echo "Options:"
     echo "  -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub"
-    echo "  -p, --pause                       Pause the network on stop. Will attempt to restart the paused network on subsequent runs"
     echo "  -h, --help                        Print this help message"
 }
 
 function cleanup {
     echo "Shutting down network before exiting..."
-    ./scripts/local/run_stop.sh $RUN_STOP_FLAG
+    ./scripts/local/run_stop.sh
     echo "Network stopped"
 }
 
 LOCAL_RELAYER_IMAGE=
-RUN_STOP_FLAG="-c"
 while [ $# -gt 0 ]; do
     case "$1" in
         -l | --local-relayer-image) LOCAL_RELAYER_IMAGE=$2 && shift;;
-        -p | --pause) RUN_STOP_FLAG= ;;
         -h | --help) printHelp && exit 0 ;;
         *)  echo "Invalid option: $1" && printHelp && exit 1;;
     esac

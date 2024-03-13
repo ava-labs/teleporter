@@ -5,26 +5,13 @@
 set -e # Stop on first error
 source ./scripts/utils.sh
 
-if [[ $# -gt 1 ]]; then
+if [[ $# -gt 0 ]]; then
     echo "Invalid number of arguments. Usage:"
     echo "   ./scripts/local/run_stop.sh             # stop the running containers and preserve the network for subsequent runs"
-    echo "   ./scripts/local/run_stop.sh -c          # stop the running containers and clean the network"
     exit 1
 fi
 
-clean=false
-while getopts c flag
-do
-    case "${flag}" in
-        c ) clean=true;;
-    esac
-done
-
-# If clean flag is set we remove network running file to start the network from scratch
-if $clean
-then
-    echo "Cleaning network"
-    rm -f NETWORK_RUNNING
-fi
-
+echo "Cleaning network"
+rm -f NETWORK_RUNNING
 docker compose -f docker/docker-compose-run.yml --project-directory ./ stop
+echo "Network cleaned"
