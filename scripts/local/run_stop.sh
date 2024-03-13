@@ -7,7 +7,7 @@ source ./scripts/utils.sh
 
 if [[ $# -gt 0 ]]; then
     echo "Invalid number of arguments. Usage:"
-    echo "   ./scripts/local/run_stop.sh             # stop the running containers and preserve the network for subsequent runs"
+    echo "   ./scripts/local/run_stop.sh             # stop the running containers and clean the network"
     exit 1
 fi
 
