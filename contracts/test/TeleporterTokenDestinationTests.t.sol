@@ -102,14 +102,6 @@ contract TeleporterTokenDestinationTest is Test {
     /**
      * Send tokens unit tests
      */
-
-    function testSendToSameChain() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.destinationBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
-        vm.expectRevert(_formatTokenDestinationErrorMessage("cannot bridge to same chain"));
-        app.send(input, 0);
-    }
-
     function testZeroDestinationBridge() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(0);
@@ -121,6 +113,21 @@ contract TeleporterTokenDestinationTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.recipient = address(0);
         vm.expectRevert(_formatTokenDestinationErrorMessage("zero recipient address"));
+        app.send(input, 0);
+    }
+
+    function testInvalidSendingBackToSourceBlockchain() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBridgeAddress = address(this);
+        vm.expectRevert(_formatTokenDestinationErrorMessage("invalid destination bridge address"));
+        app.send(input, 0);
+    }
+
+    function testSendingToSameInstance() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBlockchainID = app.blockchainID();
+        input.destinationBridgeAddress = address(app);
+        vm.expectRevert(_formatTokenDestinationErrorMessage("invalid destination bridge address"));
         app.send(input, 0);
     }
 
@@ -146,6 +153,21 @@ contract TeleporterTokenDestinationTest is Test {
         uint256 amount = 2;
         uint256 primaryFee = 0;
         _sendSuccess(amount, primaryFee);
+    }
+
+    function testSendToSameBlockchainDifferentDestination() public {
+        // Send a transfer to the same app itself
+        uint256 amount = 2;
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBlockchainID = app.blockchainID();
+        input.destinationBridgeAddress = address(this);
+
+        uint256 bridgedAmount = amount - input.primaryFee;
+        _checkExpectedTeleporterCalls(input, bridgedAmount);
+
+        vm.expectEmit(true, true, true, true, address(app));
+        emit SendTokens(_MOCK_MESSAGE_ID, address(this), bridgedAmount);
+        app.send(input, amount);
     }
 
     /**

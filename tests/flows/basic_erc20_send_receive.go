@@ -104,9 +104,9 @@ func BasicERC20SendReceive(network interfaces.Network) {
 	utils.CheckERC20DestinationWithdrawal(
 		ctx,
 		erc20Destination,
+		receipt,
 		recipientAddress,
 		bridgedAmount,
-		receipt,
 	)
 
 	// Check that the recipient received the tokens
@@ -158,9 +158,9 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		ctx,
 		erc20SourceAddress,
 		sourceToken,
+		receipt,
 		recipientAddress,
 		bridgedAmount,
-		receipt,
 	)
 
 	// Check that the recipient received the tokens

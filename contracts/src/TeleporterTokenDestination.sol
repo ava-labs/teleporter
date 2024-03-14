@@ -62,9 +62,10 @@ abstract contract TeleporterTokenDestination is
      * @notice Sends tokens to the specified destination token bridge instance.
      *
      * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message.
+     * Tokens can be sent to the same blockchain this bridge instance is deployed on,
+     * to another destination bridge instance.
      * Requirements:
      *
-     * - `input.destinationBlockchainID` cannot be the same as the current blockchainID
      * - `input.destinationBridgeAddress` cannot be the zero address
      * - `input.recipient` cannot be the zero address
      * - `amount` must be greater than 0
@@ -72,14 +73,26 @@ abstract contract TeleporterTokenDestination is
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal virtual {
         require(
-            input.destinationBlockchainID != blockchainID,
-            "TeleporterTokenDestination: cannot bridge to same chain"
-        );
-        require(
             input.destinationBridgeAddress != address(0),
             "TeleporterTokenDestination: zero destination bridge address"
         );
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
+
+        // If the destination blockchain is the source bridge instance's blockchain,
+        // the destination bridge address must match the token source address.
+        if (input.destinationBlockchainID == sourceBlockchainID) {
+            require(
+                input.destinationBridgeAddress == tokenSourceAddress,
+                "TeleporterTokenDestination: invalid destination bridge address"
+            );
+        }
+
+        if (input.destinationBlockchainID == blockchainID) {
+            require(
+                input.destinationBridgeAddress != address(this),
+                "TeleporterTokenDestination: invalid destination bridge address"
+            );
+        }
 
         // Deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit
