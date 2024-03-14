@@ -17,9 +17,10 @@ function printHelp {
 }
 
 function cleanup {
-    echo "Shutting down network before exiting..."
-    ./scripts/local/run_stop.sh
-    echo "Network stopped"
+    echo "Shutting down and cleaning network before exiting..."
+    rm -f NETWORK_READY
+    docker compose -f docker/docker-compose-run.yml --project-directory ./ stop
+    echo "Network cleaned and stopped"
 }
 
 LOCAL_RELAYER_IMAGE=

@@ -114,12 +114,6 @@ source vars.sh                # source the variables needed to interact with the
     - These examples can be adapted to send messages between any two subnets, or between the C-Chain and any subnet by changing the RPC URLs.
     - Use these as a starting point to build and interact with your own cross-chain applications on top of Teleporter!
 
-- The script `./scripts/local/run_stop.sh` should be used to gracefully shut down the containers. This script is called automatically at the end of `./scripts/local/run.sh`, but can be called at any time from a separate terminal to pause the network.
-  - `./scripts/local/run_stop.sh` usage is as follows:
-  ```
-  ./run_stop.sh          # stop the running containers and clean the network
-  ```
-
 ### Additional notes
 
 - The `./scripts/local/run.sh` script runs five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
