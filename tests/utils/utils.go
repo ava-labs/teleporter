@@ -543,10 +543,11 @@ func waitForTransaction(
 // either a transaction receipt returned, or the context is cancelled or expired.
 func waitForTransactionReceipt(
 	cctx context.Context,
-	queryTicker *time.Ticker,
 	rpcClient ethclient.Client,
 	txHash common.Hash,
 ) (*types.Receipt, error) {
+	queryTicker := time.NewTicker(200 * time.Millisecond)
+	defer queryTicker.Stop()
 	for {
 		receipt, err := rpcClient.TransactionReceipt(cctx, txHash)
 		if err == nil {
@@ -570,13 +571,15 @@ func waitForTransactionReceipt(
 }
 
 // Polls for the eth_blockNumber endpoint for the latest blockheight on each queryTicker tick until
-// either the returned height is greater than or equal to the expectedBlockNumber, or the context is cancelled or expired.
+// either the returned height is greater than or equal to the expectedBlockNumber, or the context
+// is cancelled or expired.
 func waitForBlockHeight(
 	cctx context.Context,
-	queryTicker *time.Ticker,
 	rpcClient ethclient.Client,
 	expectedBlockNumber uint64,
 ) error {
+	queryTicker := time.NewTicker(2 * time.Second)
+	defer queryTicker.Stop()
 	for {
 		currentBlockNumber, err := rpcClient.BlockNumber(cctx)
 		if err != nil {
@@ -604,12 +607,10 @@ func waitForBlockHeight(
 // Takes a tx hash instead of the full tx in the subnet-evm version of this function.
 // Copied and modified from https://github.com/ava-labs/subnet-evm/blob/v0.6.0-fuji/accounts/abi/bind/util.go#L42
 func WaitMined(ctx context.Context, rpcClient ethclient.Client, txHash common.Hash) (*types.Receipt, error) {
-	queryTicker := time.NewTicker(200 * time.Millisecond)
-	defer queryTicker.Stop()
-	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 
-	receipt, err := waitForTransactionReceipt(cctx, queryTicker, rpcClient, txHash)
+	receipt, err := waitForTransactionReceipt(cctx, rpcClient, txHash)
 	if err != nil {
 		return nil, err
 	}
@@ -621,7 +622,7 @@ func WaitMined(ctx context.Context, rpcClient ethclient.Client, txHash common.Ha
 	// configured to return the lowest value currently returned by any node behind the load balancer, so waiting for
 	// it to be at least as high as the block height specified in the receipt should provide a relatively strong
 	// indication that the transaction has been seen widely throughout the network.
-	err = waitForBlockHeight(cctx, queryTicker, rpcClient, receipt.BlockNumber.Uint64())
+	err = waitForBlockHeight(cctx, rpcClient, receipt.BlockNumber.Uint64())
 	if err != nil {
 		return nil, err
 	}

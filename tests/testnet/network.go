@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
-	"math/big"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
@@ -16,7 +15,6 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	subnetevminterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	"github.com/ava-labs/subnet-evm/rpc"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
@@ -252,49 +250,26 @@ func (n *testNetwork) SupportsIndependentRelaying() bool {
 // The implementation checks for the deliver of the given message on the destination
 // within a time window of {relayWaitTime} seconds, and returns the receipt of the
 // transaction that delivered the message.
-func (n *testNetwork) RelayMessage(ctx context.Context,
+func (n *testNetwork) RelayMessage(
+	ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
-	expectSuccess bool) *types.Receipt {
-	// Set the context to expire after 20 seconds
-	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
-	defer cancel()
-
-	sourceSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		n.teleporterContractAddress, source.RPCClient,
-	)
-	Expect(err).Should(BeNil())
-
+	expectSuccess bool,
+) *types.Receipt {
 	// Get the Teleporter message ID from the receipt
 	sendEvent, err := utils.GetEventFromLogs(
-		sourceReceipt.Logs, sourceSubnetTeleporterMessenger.ParseSendCrossChainMessage,
+		sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
 
 	teleporterMessageID := sendEvent.MessageID
 
-	receipt, err := n.getMessageDeliveryTransactionReceipt(cctx, source.BlockchainID, destination, teleporterMessageID)
+	receipt, err := n.getMessageDeliveryTransactionReceipt(ctx, source.BlockchainID, destination, teleporterMessageID)
 	Expect(err).Should(BeNil())
 	Expect(receipt).ShouldNot(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	return receipt
-}
-
-func (n *testNetwork) checkMessageDelivered(
-	sourceBlockchainID ids.ID,
-	destination interfaces.SubnetTestInfo,
-	teleporterMessageID ids.ID) (bool, error) {
-	destinationTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		n.teleporterContractAddress,
-		destination.RPCClient)
-	if err != nil {
-		return false, err
-	}
-
-	return destinationTeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, teleporterMessageID,
-	)
 }
 
 func (n *testNetwork) getMessageDeliveryTransactionReceipt(
@@ -303,14 +278,28 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	destination interfaces.SubnetTestInfo,
 	teleporterMessageID ids.ID) (*types.Receipt, error) {
 	// Wait until the message is delivered.
-	delivered := false
-	var err error
-	for !delivered || err != nil {
-		if ctx.Err() != nil {
-			return nil, ctx.Err()
+	queryTicker := time.NewTicker(time.Millisecond * 500)
+	defer queryTicker.Stop()
+
+	// Wait a maximum of 20 seconds.
+	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
+	for {
+		delivered, err := destination.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, teleporterMessageID)
+		if err != nil {
+			return nil, err
 		}
-		delivered, err = n.checkMessageDelivered(sourceBlockchainID, destination, teleporterMessageID)
-		time.Sleep(time.Second)
+		if delivered {
+			break
+		}
+
+		// Wait for the next round.
+		select {
+		case <-cctx.Done():
+			return nil, cctx.Err()
+		case <-queryTicker.C:
+		}
 	}
 
 	// Get the latest block height
@@ -326,34 +315,32 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 		startBlock = 0
 	}
 
-	abi, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
-
 	// Get the log event of the delivery. The log must be in the last {receiveCrossChainMessageLookBackBlocks} blocks.
-	logs, err := destination.RPCClient.FilterLogs(ctx, subnetevminterfaces.FilterQuery{
-		FromBlock: big.NewInt(int64(startBlock)),
-		Addresses: []common.Address{n.teleporterContractAddress},
-		Topics: [][]common.Hash{
-			{abi.Events[receiveCrossChainMessageEventName].ID},
-			{common.BytesToHash(teleporterMessageID[:])},
-			{common.BytesToHash(sourceBlockchainID[:])},
+	logIter, err := destination.TeleporterMessenger.FilterReceiveCrossChainMessage(
+		&bind.FilterOpts{
+			Start:   startBlock,
+			Context: cctx,
 		},
-	})
+		[][32]byte{teleporterMessageID},
+		[][32]byte{sourceBlockchainID},
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(logs) == 0 {
+	// There should be exactly one matching event.
+	if !logIter.Next() {
 		return nil, errors.New("failed to find ReceiveCrossChainMessage log for relayed message")
-	} else if len(logs) > 1 {
+	}
+	receiveEvent := logIter.Event
+	if logIter.Next() {
 		return nil, errors.New("found multiple ReceiveCrossChainMessage logs for relayed message")
 	}
 
 	// The transaction should already be mined, but WaitMined will also wait for the eth_blockNumber
 	// endpoint to reflect the block that the transaction has been included in.
-	return utils.WaitMined(ctx, destination.RPCClient, logs[0].TxHash)
+	return utils.WaitMined(ctx, destination.RPCClient, receiveEvent.Raw.TxHash)
 }
 
 func (n *testNetwork) GetSignedMessage(
