@@ -38,7 +38,7 @@ interface INativeTokenDestination {
     event NativeTokensMinted(address indexed recipient, uint256 amount);
 
     /**
-     * @dev Emitted when reporting total burned tx fees to source chain.
+     * @dev Emitted when reporting burned tx fees to source chain.
      */
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 

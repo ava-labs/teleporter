@@ -44,8 +44,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      * @dev Native tokens are burned by this contract by sending them to this address when transferring tokens back to
      * the source chain. When reporting burned transaction fee amounts, this address is used as the recipient
      * address for the funds to be sent to be burned on the source chain.
-     * Different from BURNED_TX_FEES_ADDRESS so that the total amount burned in transaction fees and the amount 
-     * total amount burned to be sent back to the source chain can be tracked separately. 
+     * Different from BURNED_TX_FEES_ADDRESS so that the total amount burned in transaction fees and the amount
+     * total amount burned to be sent back to the source chain can be tracked separately.
      */
     address public constant GENERAL_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
 
