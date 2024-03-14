@@ -41,6 +41,8 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             => mapping(address destinationBridgeAddress => uint256 balance)
     ) public bridgedBalances;
 
+    // TODO: these are values brought from the example ERC20Bridge contract.
+    // Need to figure out appropriate values.
     uint256 public constant SEND_TOKENS_REQUIRED_GAS = 300_000;
 
     /**
@@ -145,7 +147,8 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         // Decrement the bridge balance by the unwrap amount
         bridgedBalances[sourceBlockchainID][originSenderAddress] = senderBalance - amount;
 
-        // decrement totalAmount from bridge balance
+        // If the final destination of the transfer is this source bridge instance, withdraw the tokens.abi
+        // Otherwise, perform a multihop transfer to the input destination bridge instance.
         if (input.destinationBlockchainID == blockchainID) {
             require(
                 input.destinationBridgeAddress == address(this),

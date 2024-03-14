@@ -34,6 +34,8 @@ abstract contract TeleporterTokenDestination is
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
     address public immutable feeTokenAddress;
 
+    // TODO: these are values brought from the example ERC20Bridge contract.
+    // Need to figure out appropriate values.
     uint256 public constant SEND_TOKENS_REQUIRED_GAS = 300_000;
 
     /**

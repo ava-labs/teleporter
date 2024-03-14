@@ -8,6 +8,7 @@ import (
 	"crypto/ecdsa"
 	"math/big"
 
+	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	erc20destination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Destination"
@@ -52,12 +53,11 @@ func DeployERC20Destination(
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
-	sourceSubnet interfaces.SubnetTestInfo,
+	sourceBlockchainID ids.ID,
 	tokenSourceAddress common.Address,
 	tokenName string,
 	tokenSymbol string,
 	tokenDecimals uint8,
-
 ) (common.Address, *erc20destination.ERC20Destination) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
@@ -69,7 +69,7 @@ func DeployERC20Destination(
 		subnet.RPCClient,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
-		sourceSubnet.BlockchainID,
+		sourceBlockchainID,
 		tokenSourceAddress,
 		tokenName,
 		tokenSymbol,
@@ -164,27 +164,27 @@ func CheckERC20SourceWithdrawal(
 	ctx context.Context,
 	erc20SourceAddress common.Address,
 	sourceToken *exampleerc20.ExampleERC20,
-	recipientAddress common.Address,
-	amount *big.Int,
 	receipt *types.Receipt,
+	expectedRecipientAddress common.Address,
+	expectedAmount *big.Int,
 ) {
 	sourceTransferEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, sourceToken.ParseTransfer)
 	Expect(err).Should(BeNil())
 	Expect(sourceTransferEvent.From).Should(Equal(erc20SourceAddress))
-	Expect(sourceTransferEvent.To).Should(Equal(recipientAddress))
-	Expect(sourceTransferEvent.Value).Should(Equal(amount))
+	Expect(sourceTransferEvent.To).Should(Equal(expectedRecipientAddress))
+	Expect(sourceTransferEvent.Value).Should(Equal(expectedAmount))
 }
 
 func CheckERC20DestinationWithdrawal(
 	ctx context.Context,
 	erc20Destination *erc20destination.ERC20Destination,
-	recipientAddress common.Address,
-	amount *big.Int,
 	receipt *types.Receipt,
+	expectedRecipientAddress common.Address,
+	expectedAmount *big.Int,
 ) {
 	transferEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Destination.ParseTransfer)
 	Expect(err).Should(BeNil())
 	Expect(transferEvent.From).Should(Equal(common.Address{}))
-	Expect(transferEvent.To).Should(Equal(recipientAddress))
-	Expect(transferEvent.Value).Should(Equal(amount))
+	Expect(transferEvent.To).Should(Equal(expectedRecipientAddress))
+	Expect(transferEvent.Value).Should(Equal(expectedAmount))
 }

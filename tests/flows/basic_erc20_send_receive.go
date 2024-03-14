@@ -54,7 +54,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		fundedKey,
 		subnetBInfo,
 		fundedAddress,
-		subnetAInfo,
+		subnetAInfo.BlockchainID,
 		erc20SourceAddress,
 		tokenName,
 		tokenSymbol,
