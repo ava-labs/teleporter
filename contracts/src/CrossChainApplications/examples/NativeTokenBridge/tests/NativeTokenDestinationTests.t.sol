@@ -133,7 +133,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         vm.expectCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(INativeMinter.mintNativeCoin.selector),
-            0
+            0 // 0 calls to this function
         );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -229,8 +229,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
         vm.expectCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(INativeMinter.mintNativeCoin.selector),
-            2
+            abi.encodeCall(INativeMinter.mintNativeCoin, (_DEFAULT_RECIPIENT, firstTransfer))
         );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -250,6 +249,11 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         // Receive another transfer after the bridge has been totally collateralized
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
         emit NativeTokensMinted(_DEFAULT_RECIPIENT, secondTransfer);
+
+        vm.expectCall(
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (_DEFAULT_RECIPIENT, secondTransfer))
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         nativeTokenDestination.receiveTeleporterMessage(
