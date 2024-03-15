@@ -285,8 +285,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         );
 
         nativeTokenDestination.reportBurnedTxFees(
-            TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
-            new address[](0)
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
         );
     }
 
