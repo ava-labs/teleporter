@@ -17,10 +17,10 @@ function printHelp {
 }
 
 function cleanup {
-    echo "Shutting down and cleaning network before exiting..."
+    echo "Shutting down network before exiting..."
     rm -f NETWORK_READY
     docker compose -f docker/docker-compose-run.yml --project-directory ./ stop
-    echo "Network cleaned and stopped"
+    echo "Network stopped"
 }
 
 LOCAL_RELAYER_IMAGE=
@@ -45,6 +45,7 @@ setARCH
 
 if [ -z "$LOCAL_RELAYER_IMAGE" ]; then
     echo "Using published awm-relayer image"
+    echo "Starting new network instance"
     docker compose -f docker/docker-compose-run.yml --project-directory ./ up --abort-on-container-exit --build --force-recreate &
     docker_pid=$!
 else
@@ -55,6 +56,7 @@ else
     fi
     rm -f docker/docker-compose-run-local.yml
     sed "s/<TAG>/$LOCAL_RELAYER_IMAGE/g" docker/docker-compose-run-local-template.yml > docker/docker-compose-run-local.yml
+    echo "Starting new network instance"
     docker compose -f docker/docker-compose-run-local.yml --project-directory ./ up --abort-on-container-exit --build --force-recreate &
     docker_pid=$!
 fi

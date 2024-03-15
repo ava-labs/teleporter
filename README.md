@@ -117,6 +117,7 @@ source vars.sh                # source the variables needed to interact with the
 ### Additional notes
 
 - The `./scripts/local/run.sh` script runs five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
+- `./scripts/local/run.sh` will force-recreate the containers, which will reset the network state on each subsequent run.
 - Logs from the subnets on one of the five nodes are printed to stdout when run using either script.
 - These logs can also be found at `~/.avalanche-cli/runs/network_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log` in the `local_network_run` container.
 
