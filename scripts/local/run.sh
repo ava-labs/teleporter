@@ -45,7 +45,7 @@ setARCH
 
 if [ -z "$LOCAL_RELAYER_IMAGE" ]; then
     echo "Using published awm-relayer image"
-    docker compose -f docker/docker-compose-run.yml --project-directory ./ up --abort-on-container-exit --build &
+    docker compose -f docker/docker-compose-run.yml --project-directory ./ up --abort-on-container-exit --build --force-recreate &
     docker_pid=$!
 else
     echo "Using local awm-relayer image: $LOCAL_RELAYER_IMAGE"
@@ -55,7 +55,7 @@ else
     fi
     rm -f docker/docker-compose-run-local.yml
     sed "s/<TAG>/$LOCAL_RELAYER_IMAGE/g" docker/docker-compose-run-local-template.yml > docker/docker-compose-run-local.yml
-    docker compose -f docker/docker-compose-run-local.yml --project-directory ./ up --abort-on-container-exit --build &
+    docker compose -f docker/docker-compose-run-local.yml --project-directory ./ up --abort-on-container-exit --build --force-recreate &
     docker_pid=$!
 fi
 
