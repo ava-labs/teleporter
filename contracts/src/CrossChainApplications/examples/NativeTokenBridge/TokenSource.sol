@@ -71,7 +71,6 @@ abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable {
             originSenderAddress == nativeTokenDestinationAddress, "TokenSource: unauthorized sender"
         );
 
-        // Route to the appropriate function.
         (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
         _unlockTokens(recipient, amount);
     }

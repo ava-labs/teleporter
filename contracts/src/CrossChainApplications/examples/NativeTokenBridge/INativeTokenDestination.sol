@@ -55,7 +55,10 @@ interface INativeTokenDestination {
     /**
      * @dev Sends a message to burn transaction fees from this chain on the source chain.
      */
-    function reportBurnedTxFees(address[] calldata allowedRelayerAddresses) external;
+    function reportBurnedTxFees(
+        TeleporterFeeInfo calldata feeInfo,
+        address[] calldata allowedRelayerAddresses
+    ) external;
 
     /**
      * @dev Returns true if the reserve imbalance for this contract has been accounted for.

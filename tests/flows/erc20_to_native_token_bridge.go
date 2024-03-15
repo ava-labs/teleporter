@@ -301,6 +301,7 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		tx, err := nativeTokenDestination.ReportBurnedTxFees(
 			transactor,
+			emptyDestFeeInfo,
 			[]common.Address{},
 		)
 		Expect(err).Should(BeNil())
@@ -314,10 +315,10 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(reportEvent.FeesBurned, burnedTxFeesBalanceDest)
 
-		generalBurnAddress, err := nativeTokenDestination.GENERALBURNADDRESS(&bind.CallOpts{})
+		sourceChainBurnAddress, err := nativeTokenDestination.SOURCECHAINBURNADDRESS(&bind.CallOpts{})
 		Expect(err).Should(BeNil())
 
-		burnedTxFeesBalanceSource, err := exampleERC20.BalanceOf(nil, generalBurnAddress)
+		burnedTxFeesBalanceSource, err := exampleERC20.BalanceOf(nil, sourceChainBurnAddress)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceSource, common.Big0)
 
@@ -328,10 +329,10 @@ func ERC20ToNativeTokenBridge(network interfaces.LocalNetwork) {
 			erc20TokenSource.ParseUnlockTokens,
 		)
 		Expect(err).Should(BeNil())
-		Expect(burnEvent.Recipient).Should(Equal(generalBurnAddress))
+		Expect(burnEvent.Recipient).Should(Equal(sourceChainBurnAddress))
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
-		burnedTxFeesBalanceSource2, err := exampleERC20.BalanceOf(nil, generalBurnAddress)
+		burnedTxFeesBalanceSource2, err := exampleERC20.BalanceOf(nil, sourceChainBurnAddress)
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(burnedTxFeesBalanceSource2, burnEvent.Amount)
 	}

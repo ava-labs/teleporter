@@ -272,6 +272,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		tx, err := nativeTokenDestination.ReportBurnedTxFees(
 			transactor,
+			emptyDestFeeInfo,
 			[]common.Address{},
 		)
 		Expect(err).Should(BeNil())
@@ -285,12 +286,12 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		utils.ExpectBigEqual(reportEvent.FeesBurned, burnedTxFeesBalanceDest)
 
-		generalBurnAddress, err := nativeTokenDestination.GENERALBURNADDRESS(&bind.CallOpts{})
+		sourceChainBurnAddress, err := nativeTokenDestination.SOURCECHAINBURNADDRESS(&bind.CallOpts{})
 		Expect(err).Should(BeNil())
 
 		burnedTxFeesBalanceSource, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
-			generalBurnAddress,
+			sourceChainBurnAddress,
 			nil,
 		)
 		Expect(err).Should(BeNil())
@@ -304,12 +305,12 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 			sourceSubnet,
 			nativeTokenSource.ParseUnlockTokens,
 		)
-		Expect(burnEvent.Recipient).Should(Equal(generalBurnAddress))
+		Expect(burnEvent.Recipient).Should(Equal(sourceChainBurnAddress))
 		utils.ExpectBigEqual(burnedTxFeesBalanceDest, burnEvent.Amount)
 
 		burnedTxFeesBalanceSource2, err := sourceSubnet.RPCClient.BalanceAt(
 			ctx,
-			generalBurnAddress,
+			sourceChainBurnAddress,
 			nil,
 		)
 		Expect(err).Should(BeNil())

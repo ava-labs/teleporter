@@ -274,7 +274,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             requiredGasLimit: nativeTokenDestination.TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: abi.encode(
-                nativeTokenDestination.GENERAL_BURN_ADDRESS(), burnedFees / _DEFAULT_TOKEN_MULTIPLIER
+                nativeTokenDestination.SOURCE_CHAIN_BURN_ADDRESS(),
+                burnedFees / _DEFAULT_TOKEN_MULTIPLIER
                 )
         });
 
@@ -283,7 +284,10 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
 
-        nativeTokenDestination.reportBurnedTxFees(new address[](0));
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
+            new address[](0)
+        );
     }
 
     function testZeroTeleporterAddress() public {
