@@ -19,9 +19,7 @@ func BasicSendReceive(network interfaces.Network) {
 	teleporterContractAddress := network.GetTeleporterContractAddress()
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
-	//
 	// Send a transaction to Subnet A to issue a Warp Message from the Teleporter contract to Subnet B
-	//
 	ctx := context.Background()
 
 	// Clear the receipt queue from Subnet B -> Subnet A to have a clean slate for the test flow.
@@ -68,27 +66,21 @@ func BasicSendReceive(network interfaces.Network) {
 	)
 	expectedReceiptID := teleporterMessageID
 
-	//
 	// Relay the message to the destination
-	//
 	deliveryReceipt := network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 	receiveEvent, err := utils.GetEventFromLogs(
 		deliveryReceipt.Logs,
 		subnetBInfo.TeleporterMessenger.ParseReceiveCrossChainMessage)
 	Expect(err).Should(BeNil())
 
-	//
 	// Check Teleporter message received on the destination
-	//
 	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
-	//
 	// Send a transaction to Subnet B to issue a Warp Message from the Teleporter contract to Subnet A
-	//
 	sendCrossChainMessageInput.DestinationBlockchainID = subnetAInfo.BlockchainID
 	sendCrossChainMessageInput.FeeInfo.Amount = big.NewInt(0)
 	receipt, teleporterMessageID = utils.SendCrossChainMessageAndWaitForAcceptance(
@@ -99,14 +91,12 @@ func BasicSendReceive(network interfaces.Network) {
 		fundedKey,
 	)
 
-	//
 	// Relay the message to the destination
-	//
 	deliveryReceipt = network.RelayMessage(ctx, receipt, subnetBInfo, subnetAInfo, true)
 
 	// Check that the receipt was received for expected Teleporter message ID
-	// This check is not performed for external networks because unrelated messages may have already changed
-	// the state of the receipt queues.
+	// This check is not performed for external networks because the specific receipt for this message
+	// may not have been included if the receipt queue had an existing build up of more than 5 messages.
 	if !network.IsExternalNetwork() {
 		Expect(utils.CheckReceiptReceived(
 			deliveryReceipt,
@@ -114,9 +104,7 @@ func BasicSendReceive(network interfaces.Network) {
 			subnetAInfo.TeleporterMessenger)).Should(BeTrue())
 	}
 
-	//
 	// Check Teleporter message received on the destination
-	//
 	delivered, err = subnetAInfo.TeleporterMessenger.MessageReceived(
 		&bind.CallOpts{}, teleporterMessageID,
 	)
@@ -124,8 +112,9 @@ func BasicSendReceive(network interfaces.Network) {
 	Expect(delivered).Should(BeTrue())
 
 	// If the reward address of the message from A->B is the funded address, which is able to send
-	// transactions on subnet A, then redeem the rewards.
-	if receiveEvent.RewardRedeemer == fundedAddress {
+	// transactions on subnet A, then redeem the rewards. This check is not performed for external
+	// networks since the specific receipt may not have been included in the message, as noted above.
+	if !network.IsExternalNetwork() && receiveEvent.RewardRedeemer == fundedAddress {
 		utils.RedeemRelayerRewardsAndConfirm(
 			ctx, subnetAInfo, feeToken, feeTokenAddress, fundedKey, feeAmount,
 		)
