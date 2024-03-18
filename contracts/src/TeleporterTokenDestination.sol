@@ -85,9 +85,7 @@ abstract contract TeleporterTokenDestination is
                 input.destinationBridgeAddress == tokenSourceAddress,
                 "TeleporterTokenDestination: invalid destination bridge address"
             );
-        }
-
-        if (input.destinationBlockchainID == blockchainID) {
+        } else if (input.destinationBlockchainID == blockchainID) {
             require(
                 input.destinationBridgeAddress != address(this),
                 "TeleporterTokenDestination: invalid destination bridge address"
