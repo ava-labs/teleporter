@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
-	"github.com/ava-labs/teleporter/tests/flows"
+	"github.com/ava-labs/teleporter-token-bridge/tests/flows"
 	"github.com/ava-labs/teleporter/tests/local"
+	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -19,7 +19,8 @@ const (
 	teleporterByteCodeFile = "./contracts/lib/teleporter/contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 	warpGenesisFile        = "./tests/utils/warp-genesis.json"
 
-	teleporterMessengerLabel = "TeleporterMessenger"
+	erc20SourceLabel      = "ERC20Source"
+	erc20DestinationLabel = "ERC20Destination"
 )
 
 var (
@@ -68,9 +69,9 @@ var _ = ginkgo.AfterSuite(func() {
 
 var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 	// Teleporter tests
-	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A",
-		ginkgo.Label(teleporterMessengerLabel),
+	ginkgo.It("Bridge an ERC20 token between two Subnets",
+		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel),
 		func() {
-			flows.BasicSendReceive(LocalNetworkInstance)
+			flows.BasicERC20SendReceive(LocalNetworkInstance)
 		})
 })

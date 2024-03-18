@@ -59,28 +59,28 @@ Then run the following command from the root of the repository:
 
 ### Run specific E2E tests
 
-To run a specific E2E test, specify the environment variable `GINKGO_FOCUS`, which will then look for test descriptions that match the provided input. For example, to run the `Calculate Teleporter message IDs` test:
+To run a specific E2E test, specify the environment variable `GINKGO_FOCUS`, which will then look for test descriptions that match the provided input. For example, to run the `Bridge an ERC20 token between two Subnets` test:
 
 ```bash
-GINKGO_FOCUS="TODO" ./scripts/local/e2e_test.sh
+GINKGO_FOCUS="Bridge an ERC20 token between two Subnets" ./scripts/local/e2e_test.sh
 ```
 
 A substring of the full test description can be used as well:
 
 ```bash
-GINKGO_FOCUS="TODO" ./scripts/local/e2e_test.sh
+GINKGO_FOCUS="Bridge an ERC20 token" ./scripts/local/e2e_test.sh
 ```
 
-The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all E2E tests for the example cross chain applications:
+The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all `ERC20Source` E2E tests:
 
 ```bash
-	ginkgo.It("Send native tokens from subnet A to B and back",
-		ginkgo.Label("cross chain apps"),
+	ginkgo.It("Bridge an ERC20 token between two Subnets",
+		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel),
 		func() {
-			flows.NativeTokenBridge(LocalNetworkInstance)
+			flows.BasicERC20SendReceive(LocalNetworkInstance)
 		})
 ```
 
 ```bash
-GINKGO_LABEL_FILTER="cross chain apps" ./scripts/local/e2e_test.sh
+GINKGO_LABEL_FILTER="ERC20Source" ./scripts/local/e2e_test.sh
 ```
