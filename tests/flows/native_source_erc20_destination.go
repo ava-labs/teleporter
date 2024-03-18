@@ -27,13 +27,27 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 
 	// Deploy a native token source on subnet A
 	// TODO: for now use empty fee token address, later on need a token like WAVAX
+	wavaxAddress, wavax := utils.DeployExampleWAVAX(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+	)
+
 	nativeTokenSourceAddress, nativeTokenSource := utils.DeployNativeTokenSource(
 		ctx,
 		fundedKey,
 		subnetAInfo,
 		fundedAddress,
-		common.Address{},
+		wavaxAddress,
 	)
+
+	// Token representation on subnet B will have same name, symbol, and decimals
+	tokenName, err := wavax.Name(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	tokenSymbol, err := wavax.Symbol(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	tokenDecimals, err := wavax.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
 
 	// Deploy an ERC20Destination for the token source on subnet A
 	erc20DestinationAddress, erc20Destination := utils.DeployERC20Destination(
@@ -41,11 +55,11 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		fundedKey,
 		subnetBInfo,
 		fundedAddress,
-		subnetAInfo,
+		subnetAInfo.BlockchainID,
 		nativeTokenSourceAddress,
-		"nativeTokenA",
-		"A",
-		18,
+		tokenName,
+		tokenSymbol,
+		tokenDecimals,
 	)
 
 	// Generate new recipient to receive bridged tokens
@@ -95,9 +109,9 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	utils.CheckERC20DestinationWithdrawal(
 		ctx,
 		erc20Destination,
+		receipt,
 		recipientAddress,
 		bridgedAmount,
-		receipt,
 	)
 
 	// Check that the recipient received the tokens
@@ -146,7 +160,13 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	Expect(messageExecutedEvent.MessageID).Should(Equal(teleporterMessageID))
 
 	// Check that the recipient received the tokens
-	// TODO: There should be a corresponding func CheckNativeTokenSourceWithdrawal
-	// after NativeTokenSource is integrated with erc20 for fees.
+	utils.CheckNativeTokenSourceWithdrawal(
+		ctx,
+		nativeTokenSourceAddress,
+		wavax,
+		receipt,
+		bridgedAmount,
+	)
+
 	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, subnetAInfo.RPCClient)
 }
