@@ -275,6 +275,6 @@ func CheckNativeTokenSourceWithdrawal(
 ) {
 	withdrawalEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, sourceToken.ParseWithdrawal)
 	Expect(err).Should(BeNil())
-	Expect(withdrawalEvent.Src).Should(Equal(nativeTokenSourceAddress))
-	Expect(withdrawalEvent.Wad).Should(Equal(expectedAmount))
+	Expect(withdrawalEvent.Sender).Should(Equal(nativeTokenSourceAddress))
+	Expect(withdrawalEvent.Amount).Should(Equal(expectedAmount))
 }
