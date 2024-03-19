@@ -26,6 +26,9 @@ import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     using SafeERC20 for IERC20;
 
+    /**
+     * @notice The wrapped native token contract that represents the native tokens on this chain.
+     */
     IWrappedNativeToken public immutable token;
 
     /**
@@ -42,6 +45,9 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         token = IWrappedNativeToken(feeTokenAddress);
     }
 
+    /**
+     * @dev See {INativeTokenBridge-receive}
+     */
     receive() external payable {
         require(msg.sender == feeTokenAddress, "NativeTokenSource: invalid receive payable sender");
     }

@@ -13,11 +13,11 @@ import {ITeleporterTokenBridge, SendTokensInput} from "./ITeleporterTokenBridge.
  */
 
 /**
- * @dev Interface for a Teleporter token bridge that sends ERC20 tokens to another chain.
+ * @notice Interface for a Teleporter token bridge that sends ERC20 tokens to another chain.
  */
 interface IERC20Bridge is ITeleporterTokenBridge {
     /**
-     * @dev Sends ERC20 tokens transferred to this contract to the destination token bridge instance.
+     * @notice Sends ERC20 tokens transferred to this contract to the destination token bridge instance.
      * @param input specifies information for delivery of the tokens
      * @param amount amount of tokens to send
      */
