@@ -7,7 +7,7 @@ require (
 	github.com/ava-labs/subnet-evm v0.6.1
 	github.com/ava-labs/teleporter v1.0.0
 	github.com/ethereum/go-ethereum v1.12.0
-	github.com/onsi/ginkgo/v2 v2.16.0
+	github.com/onsi/ginkgo/v2 v2.17.0
 	github.com/onsi/gomega v1.31.1
 )
 
