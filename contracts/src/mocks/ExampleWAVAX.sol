@@ -17,17 +17,14 @@ contract ExampleWAVAX is IWrappedNativeToken {
     string public symbol = "WAVAX";
     uint8 public decimals = 18;
 
-    event Deposit(address indexed dst, uint wad);
-    event Withdrawal(address indexed src, uint wad);
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
 
-    mapping(address => uint) public balanceOf;
-    mapping(address => mapping(address => uint)) public allowance;
-
-    fallback() external payable {
+    receive() external payable {
         deposit();
     }
 
-    receive() external payable {
+    fallback() external payable {
         deposit();
     }
 
@@ -36,40 +33,40 @@ contract ExampleWAVAX is IWrappedNativeToken {
         emit Deposit(msg.sender, msg.value);
     }
 
-    function withdraw(uint wad) public {
-        require(balanceOf[msg.sender] >= wad);
-        balanceOf[msg.sender] -= wad;
-        payable(msg.sender).transfer(wad);
-        emit Withdrawal(msg.sender, wad);
+    function withdraw(uint256 amount) public {
+        require(balanceOf[msg.sender] >= amount, "ExampleWAVAX: insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
+        emit Withdrawal(msg.sender, amount);
     }
 
-    function totalSupply() public view returns (uint) {
-        return address(this).balance;
-    }
-
-    function approve(address guy, uint wad) public returns (bool) {
-        allowance[msg.sender][guy] = wad;
-        emit Approval(msg.sender, guy, wad);
+    function approve(address spender, uint256 amount) public returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
         return true;
     }
 
-    function transfer(address dst, uint wad) public returns (bool) {
-        return transferFrom(msg.sender, dst, wad);
+    function transfer(address to, uint256 amount) public returns (bool) {
+        return transferFrom(msg.sender, to, amount);
     }
 
-    function transferFrom(address src, address dst, uint wad) public returns (bool) {
-        require(balanceOf[src] >= wad);
+    function transferFrom(address from, address to, uint256 amount) public returns (bool) {
+        require(balanceOf[from] >= amount, "ExampleWAVAX: insufficient balance");
 
-        if (src != msg.sender) {
-            require(allowance[src][msg.sender] >= wad);
-            allowance[src][msg.sender] -= wad;
+        if (from != msg.sender) {
+            require(allowance[from][msg.sender] >= amount, "ExampleWAVAX: insufficient allowance");
+            allowance[from][msg.sender] -= amount;
         }
 
-        balanceOf[src] -= wad;
-        balanceOf[dst] += wad;
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
 
-        emit Transfer(src, dst, wad);
+        emit Transfer(from, to, amount);
 
         return true;
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return address(this).balance;
     }
 }

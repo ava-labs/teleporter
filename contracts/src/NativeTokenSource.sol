@@ -11,7 +11,6 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
-// import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -29,10 +28,6 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
 
     IWrappedNativeToken public immutable token;
 
-    receive() external payable {
-        require(msg.sender == feeTokenAddress, "NativeTokenSource: invalid receive payable sender");
-    }
-
     /**
      * @notice Initializes this source token bridge instance to send
      * tokens to the specified destination chain and token bridge instance.
@@ -47,6 +42,10 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         token = IWrappedNativeToken(feeTokenAddress);
     }
 
+    receive() external payable {
+        require(msg.sender == feeTokenAddress, "NativeTokenSource: invalid receive payable sender");
+    }
+
     /**
      * @dev See {IERC20Bridge-send}
      */
@@ -56,21 +55,19 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
 
     /**
      * @dev See {TeleportTokenSource-_deposit}
+     * Deposits the native tokens sent to this contract
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        // TODO: Deposit native token for fee token and transfer to bridge
-        // Return the amount after fee is transferred to bridge
         token.deposit{value: amount}();
-        // SafeERC20TransferFrom.safeTransferFrom(token, amount);
         return amount;
     }
 
     /**
      * @dev See {TeleportTokenSource-_withdraw}
+     * Withdraws the wrapped tokens for native tokens,
+     * and sends them to the recipient.
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
-        // TODO: Withdraw erc20 token amount into native tokens
-        // Transfer the native tokens to the recipient
         token.withdraw(amount);
         payable(recipient).transfer(amount);
     }

@@ -31,8 +31,8 @@ var (
 
 // ExampleWAVAXMetaData contains all meta data concerning the ExampleWAVAX contract.
 var ExampleWAVAXMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"dst\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\"}],\"name\":\"Deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"src\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\"}],\"name\":\"Withdrawal\",\"type\":\"event\"},{\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"guy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"dst\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"src\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"dst\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}]",
-	Bin: "0x60c0604052600c60809081526b0aee4c2e0e0cac84082ac82b60a31b60a05260009061002b9082610114565b506040805180820190915260058152640ae82ac82b60db1b60208201526001906100559082610114565b506002805460ff1916601217905534801561006f57600080fd5b506101d3565b634e487b7160e01b600052604160045260246000fd5b600181811c9082168061009f57607f821691505b6020821081036100bf57634e487b7160e01b600052602260045260246000fd5b50919050565b601f82111561010f57600081815260208120601f850160051c810160208610156100ec5750805b601f850160051c820191505b8181101561010b578281556001016100f8565b5050505b505050565b81516001600160401b0381111561012d5761012d610075565b6101418161013b845461008b565b846100c5565b602080601f831160018114610176576000841561015e5750858301515b600019600386901b1c1916600185901b17855561010b565b600085815260208120601f198616915b828110156101a557888601518255948401946001909101908401610186565b50858210156101c35787850151600019600388901b60f8161c191681555b5050505050600190811b01905550565b610786806101e26000396000f3fe6080604052600436106100a05760003560e01c8063313ce56711610064578063313ce5671461016f57806370a082311461019b57806395d89b41146101c8578063a9059cbb146101dd578063d0e30db0146100af578063dd62ed3e146101fd576100af565b806306fdde03146100b7578063095ea7b3146100e257806318160ddd1461011257806323b872dd1461012f5780632e1a7d4d1461014f576100af565b366100af576100ad610235565b005b6100ad610235565b3480156100c357600080fd5b506100cc610290565b6040516100d991906105a3565b60405180910390f35b3480156100ee57600080fd5b506101026100fd36600461060d565b61031e565b60405190151581526020016100d9565b34801561011e57600080fd5b50475b6040519081526020016100d9565b34801561013b57600080fd5b5061010261014a366004610637565b61038b565b34801561015b57600080fd5b506100ad61016a366004610673565b6104dc565b34801561017b57600080fd5b506002546101899060ff1681565b60405160ff90911681526020016100d9565b3480156101a757600080fd5b506101216101b636600461068c565b60036020526000908152604090205481565b3480156101d457600080fd5b506100cc610582565b3480156101e957600080fd5b506101026101f836600461060d565b61058f565b34801561020957600080fd5b506101216102183660046106a7565b600460209081526000928352604080842090915290825290205481565b33600090815260036020526040812080543492906102549084906106f0565b909155505060405134815233907fe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c9060200160405180910390a2565b6000805461029d90610703565b80601f01602080910402602001604051908101604052809291908181526020018280546102c990610703565b80156103165780601f106102eb57610100808354040283529160200191610316565b820191906000526020600020905b8154815290600101906020018083116102f957829003601f168201915b505050505081565b3360008181526004602090815260408083206001600160a01b038716808552925280832085905551919290917f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925906103799086815260200190565b60405180910390a35060015b92915050565b6001600160a01b0383166000908152600360205260408120548211156103b057600080fd5b6001600160a01b0384163314610429576001600160a01b03841660009081526004602090815260408083203384529091529020548211156103f057600080fd5b6001600160a01b03841660009081526004602090815260408083203384529091528120805484929061042390849061073d565b90915550505b6001600160a01b0384166000908152600360205260408120805484929061045190849061073d565b90915550506001600160a01b0383166000908152600360205260408120805484929061047e9084906106f0565b92505081905550826001600160a01b0316846001600160a01b03167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef846040516104ca91815260200190565b60405180910390a35060019392505050565b336000908152600360205260409020548111156104f857600080fd5b336000908152600360205260408120805483929061051790849061073d565b9091555050604051339082156108fc029083906000818181858888f19350505050158015610549573d6000803e3d6000fd5b5060405181815233907f7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b659060200160405180910390a250565b6001805461029d90610703565b600061059c33848461038b565b9392505050565b600060208083528351808285015260005b818110156105d0578581018301518582016040015282016105b4565b506000604082860101526040601f19601f8301168501019250505092915050565b80356001600160a01b038116811461060857600080fd5b919050565b6000806040838503121561062057600080fd5b610629836105f1565b946020939093013593505050565b60008060006060848603121561064c57600080fd5b610655846105f1565b9250610663602085016105f1565b9150604084013590509250925092565b60006020828403121561068557600080fd5b5035919050565b60006020828403121561069e57600080fd5b61059c826105f1565b600080604083850312156106ba57600080fd5b6106c3836105f1565b91506106d1602084016105f1565b90509250929050565b634e487b7160e01b600052601160045260246000fd5b80820180821115610385576103856106da565b600181811c9082168061071757607f821691505b60208210810361073757634e487b7160e01b600052602260045260246000fd5b50919050565b81810381811115610385576103856106da56fea2646970667358221220fb29afe74523277f1ef85a31a14c450c9d901d1e391498886182351ab6e6b3b264736f6c63430008120033",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Withdrawal\",\"type\":\"event\"},{\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}]",
+	Bin: "0x60c0604052600c60809081526b0aee4c2e0e0cac84082ac82b60a31b60a05260009061002b9082610114565b506040805180820190915260058152640ae82ac82b60db1b60208201526001906100559082610114565b506002805460ff1916601217905534801561006f57600080fd5b506101d3565b634e487b7160e01b600052604160045260246000fd5b600181811c9082168061009f57607f821691505b6020821081036100bf57634e487b7160e01b600052602260045260246000fd5b50919050565b601f82111561010f57600081815260208120601f850160051c810160208610156100ec5750805b601f850160051c820191505b8181101561010b578281556001016100f8565b5050505b505050565b81516001600160401b0381111561012d5761012d610075565b6101418161013b845461008b565b846100c5565b602080601f831160018114610176576000841561015e5750858301515b600019600386901b1c1916600185901b17855561010b565b600085815260208120601f198616915b828110156101a557888601518255948401946001909101908401610186565b50858210156101c35787850151600019600388901b60f8161c191681555b5050505050600190811b01905550565b610846806101e26000396000f3fe6080604052600436106100a05760003560e01c8063313ce56711610064578063313ce5671461016f57806370a082311461019b57806395d89b41146101c8578063a9059cbb146101dd578063d0e30db0146100af578063dd62ed3e146101fd576100af565b806306fdde03146100b7578063095ea7b3146100e257806318160ddd1461011257806323b872dd1461012f5780632e1a7d4d1461014f576100af565b366100af576100ad610235565b005b6100ad610235565b3480156100c357600080fd5b506100cc610290565b6040516100d99190610621565b60405180910390f35b3480156100ee57600080fd5b506101026100fd36600461068b565b61031e565b60405190151581526020016100d9565b34801561011e57600080fd5b50475b6040519081526020016100d9565b34801561013b57600080fd5b5061010261014a3660046106b5565b61038b565b34801561015b57600080fd5b506100ad61016a3660046106f1565b610547565b34801561017b57600080fd5b506002546101899060ff1681565b60405160ff90911681526020016100d9565b3480156101a757600080fd5b506101216101b636600461070a565b60036020526000908152604090205481565b3480156101d457600080fd5b506100cc610600565b3480156101e957600080fd5b506101026101f836600461068b565b61060d565b34801561020957600080fd5b50610121610218366004610725565b600460209081526000928352604080842090915290825290205481565b336000908152600360205260408120805434929061025490849061076e565b909155505060405134815233907fe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c9060200160405180910390a2565b6000805461029d90610781565b80601f01602080910402602001604051908101604052809291908181526020018280546102c990610781565b80156103165780601f106102eb57610100808354040283529160200191610316565b820191906000526020600020905b8154815290600101906020018083116102f957829003601f168201915b505050505081565b3360008181526004602090815260408083206001600160a01b038716808552925280832085905551919290917f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925906103799086815260200190565b60405180910390a35060015b92915050565b6001600160a01b0383166000908152600360205260408120548211156103cc5760405162461bcd60e51b81526004016103c3906107bb565b60405180910390fd5b6001600160a01b0384163314610494576001600160a01b038416600090815260046020908152604080832033845290915290205482111561045b5760405162461bcd60e51b8152602060048201526024808201527f4578616d706c6557415641583a20696e73756666696369656e7420616c6c6f77604482015263616e636560e01b60648201526084016103c3565b6001600160a01b03841660009081526004602090815260408083203384529091528120805484929061048e9084906107fd565b90915550505b6001600160a01b038416600090815260036020526040812080548492906104bc9084906107fd565b90915550506001600160a01b038316600090815260036020526040812080548492906104e990849061076e565b92505081905550826001600160a01b0316846001600160a01b03167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef8460405161053591815260200190565b60405180910390a35060019392505050565b336000908152600360205260409020548111156105765760405162461bcd60e51b81526004016103c3906107bb565b33600090815260036020526040812080548392906105959084906107fd565b9091555050604051339082156108fc029083906000818181858888f193505050501580156105c7573d6000803e3d6000fd5b5060405181815233907f7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b659060200160405180910390a250565b6001805461029d90610781565b600061061a33848461038b565b9392505050565b600060208083528351808285015260005b8181101561064e57858101830151858201604001528201610632565b506000604082860101526040601f19601f8301168501019250505092915050565b80356001600160a01b038116811461068657600080fd5b919050565b6000806040838503121561069e57600080fd5b6106a78361066f565b946020939093013593505050565b6000806000606084860312156106ca57600080fd5b6106d38461066f565b92506106e16020850161066f565b9150604084013590509250925092565b60006020828403121561070357600080fd5b5035919050565b60006020828403121561071c57600080fd5b61061a8261066f565b6000806040838503121561073857600080fd5b6107418361066f565b915061074f6020840161066f565b90509250929050565b634e487b7160e01b600052601160045260246000fd5b8082018082111561038557610385610758565b600181811c9082168061079557607f821691505b6020821081036107b557634e487b7160e01b600052602260045260246000fd5b50919050565b60208082526022908201527f4578616d706c6557415641583a20696e73756666696369656e742062616c616e604082015261636560f01b606082015260800190565b818103818111156103855761038561075856fea26469706673582212202378730db1c44bbdff7d50b2db47edac25162ad9b9ad48610efbdce570df096764736f6c63430008120033",
 }
 
 // ExampleWAVAXABI is the input ABI used to generate the binding from.
@@ -390,23 +390,23 @@ func (_ExampleWAVAX *ExampleWAVAXCallerSession) TotalSupply() (*big.Int, error) 
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
-// Solidity: function approve(address guy, uint256 wad) returns(bool)
-func (_ExampleWAVAX *ExampleWAVAXTransactor) Approve(opts *bind.TransactOpts, guy common.Address, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.contract.Transact(opts, "approve", guy, wad)
+// Solidity: function approve(address spender, uint256 amount) returns(bool)
+func (_ExampleWAVAX *ExampleWAVAXTransactor) Approve(opts *bind.TransactOpts, spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.contract.Transact(opts, "approve", spender, amount)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
-// Solidity: function approve(address guy, uint256 wad) returns(bool)
-func (_ExampleWAVAX *ExampleWAVAXSession) Approve(guy common.Address, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.Contract.Approve(&_ExampleWAVAX.TransactOpts, guy, wad)
+// Solidity: function approve(address spender, uint256 amount) returns(bool)
+func (_ExampleWAVAX *ExampleWAVAXSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.Contract.Approve(&_ExampleWAVAX.TransactOpts, spender, amount)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
-// Solidity: function approve(address guy, uint256 wad) returns(bool)
-func (_ExampleWAVAX *ExampleWAVAXTransactorSession) Approve(guy common.Address, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.Contract.Approve(&_ExampleWAVAX.TransactOpts, guy, wad)
+// Solidity: function approve(address spender, uint256 amount) returns(bool)
+func (_ExampleWAVAX *ExampleWAVAXTransactorSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.Contract.Approve(&_ExampleWAVAX.TransactOpts, spender, amount)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0xd0e30db0.
@@ -432,65 +432,65 @@ func (_ExampleWAVAX *ExampleWAVAXTransactorSession) Deposit() (*types.Transactio
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
-// Solidity: function transfer(address dst, uint256 wad) returns(bool)
-func (_ExampleWAVAX *ExampleWAVAXTransactor) Transfer(opts *bind.TransactOpts, dst common.Address, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.contract.Transact(opts, "transfer", dst, wad)
+// Solidity: function transfer(address to, uint256 amount) returns(bool)
+func (_ExampleWAVAX *ExampleWAVAXTransactor) Transfer(opts *bind.TransactOpts, to common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.contract.Transact(opts, "transfer", to, amount)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
-// Solidity: function transfer(address dst, uint256 wad) returns(bool)
-func (_ExampleWAVAX *ExampleWAVAXSession) Transfer(dst common.Address, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.Contract.Transfer(&_ExampleWAVAX.TransactOpts, dst, wad)
+// Solidity: function transfer(address to, uint256 amount) returns(bool)
+func (_ExampleWAVAX *ExampleWAVAXSession) Transfer(to common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.Contract.Transfer(&_ExampleWAVAX.TransactOpts, to, amount)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
-// Solidity: function transfer(address dst, uint256 wad) returns(bool)
-func (_ExampleWAVAX *ExampleWAVAXTransactorSession) Transfer(dst common.Address, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.Contract.Transfer(&_ExampleWAVAX.TransactOpts, dst, wad)
+// Solidity: function transfer(address to, uint256 amount) returns(bool)
+func (_ExampleWAVAX *ExampleWAVAXTransactorSession) Transfer(to common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.Contract.Transfer(&_ExampleWAVAX.TransactOpts, to, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
-// Solidity: function transferFrom(address src, address dst, uint256 wad) returns(bool)
-func (_ExampleWAVAX *ExampleWAVAXTransactor) TransferFrom(opts *bind.TransactOpts, src common.Address, dst common.Address, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.contract.Transact(opts, "transferFrom", src, dst, wad)
+// Solidity: function transferFrom(address from, address to, uint256 amount) returns(bool)
+func (_ExampleWAVAX *ExampleWAVAXTransactor) TransferFrom(opts *bind.TransactOpts, from common.Address, to common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.contract.Transact(opts, "transferFrom", from, to, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
-// Solidity: function transferFrom(address src, address dst, uint256 wad) returns(bool)
-func (_ExampleWAVAX *ExampleWAVAXSession) TransferFrom(src common.Address, dst common.Address, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.Contract.TransferFrom(&_ExampleWAVAX.TransactOpts, src, dst, wad)
+// Solidity: function transferFrom(address from, address to, uint256 amount) returns(bool)
+func (_ExampleWAVAX *ExampleWAVAXSession) TransferFrom(from common.Address, to common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.Contract.TransferFrom(&_ExampleWAVAX.TransactOpts, from, to, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
-// Solidity: function transferFrom(address src, address dst, uint256 wad) returns(bool)
-func (_ExampleWAVAX *ExampleWAVAXTransactorSession) TransferFrom(src common.Address, dst common.Address, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.Contract.TransferFrom(&_ExampleWAVAX.TransactOpts, src, dst, wad)
+// Solidity: function transferFrom(address from, address to, uint256 amount) returns(bool)
+func (_ExampleWAVAX *ExampleWAVAXTransactorSession) TransferFrom(from common.Address, to common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.Contract.TransferFrom(&_ExampleWAVAX.TransactOpts, from, to, amount)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x2e1a7d4d.
 //
-// Solidity: function withdraw(uint256 wad) returns()
-func (_ExampleWAVAX *ExampleWAVAXTransactor) Withdraw(opts *bind.TransactOpts, wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.contract.Transact(opts, "withdraw", wad)
+// Solidity: function withdraw(uint256 amount) returns()
+func (_ExampleWAVAX *ExampleWAVAXTransactor) Withdraw(opts *bind.TransactOpts, amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.contract.Transact(opts, "withdraw", amount)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x2e1a7d4d.
 //
-// Solidity: function withdraw(uint256 wad) returns()
-func (_ExampleWAVAX *ExampleWAVAXSession) Withdraw(wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.Contract.Withdraw(&_ExampleWAVAX.TransactOpts, wad)
+// Solidity: function withdraw(uint256 amount) returns()
+func (_ExampleWAVAX *ExampleWAVAXSession) Withdraw(amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.Contract.Withdraw(&_ExampleWAVAX.TransactOpts, amount)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x2e1a7d4d.
 //
-// Solidity: function withdraw(uint256 wad) returns()
-func (_ExampleWAVAX *ExampleWAVAXTransactorSession) Withdraw(wad *big.Int) (*types.Transaction, error) {
-	return _ExampleWAVAX.Contract.Withdraw(&_ExampleWAVAX.TransactOpts, wad)
+// Solidity: function withdraw(uint256 amount) returns()
+func (_ExampleWAVAX *ExampleWAVAXTransactorSession) Withdraw(amount *big.Int) (*types.Transaction, error) {
+	return _ExampleWAVAX.Contract.Withdraw(&_ExampleWAVAX.TransactOpts, amount)
 }
 
 // Fallback is a paid mutator transaction binding the contract fallback function.
@@ -758,22 +758,22 @@ func (it *ExampleWAVAXDepositIterator) Close() error {
 
 // ExampleWAVAXDeposit represents a Deposit event raised by the ExampleWAVAX contract.
 type ExampleWAVAXDeposit struct {
-	Dst common.Address
-	Wad *big.Int
-	Raw types.Log // Blockchain specific contextual infos
+	Sender common.Address
+	Amount *big.Int
+	Raw    types.Log // Blockchain specific contextual infos
 }
 
 // FilterDeposit is a free log retrieval operation binding the contract event 0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c.
 //
-// Solidity: event Deposit(address indexed dst, uint256 wad)
-func (_ExampleWAVAX *ExampleWAVAXFilterer) FilterDeposit(opts *bind.FilterOpts, dst []common.Address) (*ExampleWAVAXDepositIterator, error) {
+// Solidity: event Deposit(address indexed sender, uint256 amount)
+func (_ExampleWAVAX *ExampleWAVAXFilterer) FilterDeposit(opts *bind.FilterOpts, sender []common.Address) (*ExampleWAVAXDepositIterator, error) {
 
-	var dstRule []interface{}
-	for _, dstItem := range dst {
-		dstRule = append(dstRule, dstItem)
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
 	}
 
-	logs, sub, err := _ExampleWAVAX.contract.FilterLogs(opts, "Deposit", dstRule)
+	logs, sub, err := _ExampleWAVAX.contract.FilterLogs(opts, "Deposit", senderRule)
 	if err != nil {
 		return nil, err
 	}
@@ -782,15 +782,15 @@ func (_ExampleWAVAX *ExampleWAVAXFilterer) FilterDeposit(opts *bind.FilterOpts, 
 
 // WatchDeposit is a free log subscription operation binding the contract event 0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c.
 //
-// Solidity: event Deposit(address indexed dst, uint256 wad)
-func (_ExampleWAVAX *ExampleWAVAXFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *ExampleWAVAXDeposit, dst []common.Address) (event.Subscription, error) {
+// Solidity: event Deposit(address indexed sender, uint256 amount)
+func (_ExampleWAVAX *ExampleWAVAXFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *ExampleWAVAXDeposit, sender []common.Address) (event.Subscription, error) {
 
-	var dstRule []interface{}
-	for _, dstItem := range dst {
-		dstRule = append(dstRule, dstItem)
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
 	}
 
-	logs, sub, err := _ExampleWAVAX.contract.WatchLogs(opts, "Deposit", dstRule)
+	logs, sub, err := _ExampleWAVAX.contract.WatchLogs(opts, "Deposit", senderRule)
 	if err != nil {
 		return nil, err
 	}
@@ -824,7 +824,7 @@ func (_ExampleWAVAX *ExampleWAVAXFilterer) WatchDeposit(opts *bind.WatchOpts, si
 
 // ParseDeposit is a log parse operation binding the contract event 0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c.
 //
-// Solidity: event Deposit(address indexed dst, uint256 wad)
+// Solidity: event Deposit(address indexed sender, uint256 amount)
 func (_ExampleWAVAX *ExampleWAVAXFilterer) ParseDeposit(log types.Log) (*ExampleWAVAXDeposit, error) {
 	event := new(ExampleWAVAXDeposit)
 	if err := _ExampleWAVAX.contract.UnpackLog(event, "Deposit", log); err != nil {
@@ -1057,22 +1057,22 @@ func (it *ExampleWAVAXWithdrawalIterator) Close() error {
 
 // ExampleWAVAXWithdrawal represents a Withdrawal event raised by the ExampleWAVAX contract.
 type ExampleWAVAXWithdrawal struct {
-	Src common.Address
-	Wad *big.Int
-	Raw types.Log // Blockchain specific contextual infos
+	Sender common.Address
+	Amount *big.Int
+	Raw    types.Log // Blockchain specific contextual infos
 }
 
 // FilterWithdrawal is a free log retrieval operation binding the contract event 0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65.
 //
-// Solidity: event Withdrawal(address indexed src, uint256 wad)
-func (_ExampleWAVAX *ExampleWAVAXFilterer) FilterWithdrawal(opts *bind.FilterOpts, src []common.Address) (*ExampleWAVAXWithdrawalIterator, error) {
+// Solidity: event Withdrawal(address indexed sender, uint256 amount)
+func (_ExampleWAVAX *ExampleWAVAXFilterer) FilterWithdrawal(opts *bind.FilterOpts, sender []common.Address) (*ExampleWAVAXWithdrawalIterator, error) {
 
-	var srcRule []interface{}
-	for _, srcItem := range src {
-		srcRule = append(srcRule, srcItem)
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
 	}
 
-	logs, sub, err := _ExampleWAVAX.contract.FilterLogs(opts, "Withdrawal", srcRule)
+	logs, sub, err := _ExampleWAVAX.contract.FilterLogs(opts, "Withdrawal", senderRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1081,15 +1081,15 @@ func (_ExampleWAVAX *ExampleWAVAXFilterer) FilterWithdrawal(opts *bind.FilterOpt
 
 // WatchWithdrawal is a free log subscription operation binding the contract event 0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65.
 //
-// Solidity: event Withdrawal(address indexed src, uint256 wad)
-func (_ExampleWAVAX *ExampleWAVAXFilterer) WatchWithdrawal(opts *bind.WatchOpts, sink chan<- *ExampleWAVAXWithdrawal, src []common.Address) (event.Subscription, error) {
+// Solidity: event Withdrawal(address indexed sender, uint256 amount)
+func (_ExampleWAVAX *ExampleWAVAXFilterer) WatchWithdrawal(opts *bind.WatchOpts, sink chan<- *ExampleWAVAXWithdrawal, sender []common.Address) (event.Subscription, error) {
 
-	var srcRule []interface{}
-	for _, srcItem := range src {
-		srcRule = append(srcRule, srcItem)
+	var senderRule []interface{}
+	for _, senderItem := range sender {
+		senderRule = append(senderRule, senderItem)
 	}
 
-	logs, sub, err := _ExampleWAVAX.contract.WatchLogs(opts, "Withdrawal", srcRule)
+	logs, sub, err := _ExampleWAVAX.contract.WatchLogs(opts, "Withdrawal", senderRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1123,7 +1123,7 @@ func (_ExampleWAVAX *ExampleWAVAXFilterer) WatchWithdrawal(opts *bind.WatchOpts,
 
 // ParseWithdrawal is a log parse operation binding the contract event 0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65.
 //
-// Solidity: event Withdrawal(address indexed src, uint256 wad)
+// Solidity: event Withdrawal(address indexed sender, uint256 amount)
 func (_ExampleWAVAX *ExampleWAVAXFilterer) ParseWithdrawal(log types.Log) (*ExampleWAVAXWithdrawal, error) {
 	event := new(ExampleWAVAXWithdrawal)
 	if err := _ExampleWAVAX.contract.UnpackLog(event, "Withdrawal", log); err != nil {
