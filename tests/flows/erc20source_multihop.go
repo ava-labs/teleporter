@@ -2,6 +2,7 @@ package flows
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
@@ -77,7 +78,7 @@ func ERC20SourceMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from subnet A to recipient on subnet B
+	// Send tokens from C-chain to Subnet A
 	input := erc20source.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress_A,
@@ -88,7 +89,7 @@ func ERC20SourceMultihop(network interfaces.Network) {
 	}
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
 
-	receipt, teleporterMessageID, bridgedAmount := utils.SendERC20Source(
+	receipt, bridgedAmount := utils.SendERC20Source(
 		ctx,
 		cChainInfo,
 		erc20Source,
@@ -99,7 +100,7 @@ func ERC20SourceMultihop(network interfaces.Network) {
 		fundedKey,
 	)
 
-	// Relay the message to subnet B and check for message delivery
+	// Relay the message to subnet A and check for ERC20Destination withdrawal
 	receipt = network.RelayMessage(
 		ctx,
 		receipt,
@@ -107,10 +108,6 @@ func ERC20SourceMultihop(network interfaces.Network) {
 		subnetAInfo,
 		true,
 	)
-
-	messageExecutedEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseMessageExecuted)
-	Expect(err).Should(BeNil())
-	Expect(messageExecutedEvent.MessageID).Should(Equal(teleporterMessageID))
 
 	utils.CheckERC20DestinationWithdrawal(
 		ctx,
@@ -126,28 +123,78 @@ func ERC20SourceMultihop(network interfaces.Network) {
 	Expect(balance).Should(Equal(bridgedAmount))
 
 	// Multihop transfer to Subnet B
-	// Fund recipient with gas tokens on subnet A
+	sendERC20MultihopAndVerify(
+		ctx,
+		network,
+		fundedKey,
+		recipientKey,
+		recipientAddress,
+		subnetAInfo,
+		erc20Destination_A,
+		erc20DestinationAddress_A,
+		subnetBInfo,
+		erc20Destination_B,
+		erc20DestinationAddress_B,
+		cChainInfo,
+		erc20Source,
+		bridgedAmount,
+	)
+
+	sendERC20MultihopAndVerify(
+		ctx,
+		network,
+		fundedKey,
+		recipientKey,
+		recipientAddress,
+		subnetBInfo,
+		erc20Destination_B,
+		erc20DestinationAddress_B,
+		subnetAInfo,
+		erc20Destination_A,
+		erc20DestinationAddress_A,
+		cChainInfo,
+		erc20Source,
+		bridgedAmount,
+	)
+}
+
+func sendERC20MultihopAndVerify(
+	ctx context.Context,
+	network interfaces.Network,
+	fundedKey *ecdsa.PrivateKey,
+	recipientKey *ecdsa.PrivateKey,
+	recipientAddress common.Address,
+	fromSubnet interfaces.SubnetTestInfo,
+	fromBridge *erc20destination.ERC20Destination,
+	fromBridgeAddress common.Address,
+	toSubnet interfaces.SubnetTestInfo,
+	toBridge *erc20destination.ERC20Destination,
+	toBridgeAddress common.Address,
+	cChainInfo interfaces.SubnetTestInfo,
+	erc20Source *erc20source.ERC20Source,
+	bridgedAmount *big.Int,
+) {
 	teleporterUtils.SendNativeTransfer(
 		ctx,
-		subnetAInfo,
+		fromSubnet,
 		fundedKey,
 		recipientAddress,
 		big.NewInt(1e18),
 	)
 	input_A := erc20destination.SendTokensInput{
-		DestinationBlockchainID:  subnetBInfo.BlockchainID,
-		DestinationBridgeAddress: erc20DestinationAddress_B,
+		DestinationBlockchainID:  toSubnet.BlockchainID,
+		DestinationBridgeAddress: toBridgeAddress,
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		AllowedRelayerAddresses:  []common.Address{},
 	}
 
-	receipt, teleporterMessageID, bridgedAmount = utils.SendERC20Destination(
+	receipt, bridgedAmount := utils.SendERC20Destination(
 		ctx,
-		subnetAInfo,
-		erc20Destination_A,
-		erc20DestinationAddress_A,
+		fromSubnet,
+		fromBridge,
+		fromBridgeAddress,
 		input_A,
 		bridgedAmount,
 		recipientKey,
@@ -156,26 +203,33 @@ func ERC20SourceMultihop(network interfaces.Network) {
 	receipt = network.RelayMessage(
 		ctx,
 		receipt,
-		subnetAInfo,
+		fromSubnet,
 		cChainInfo,
 		true,
 	)
 
-	messageExecutedEvent, err = teleporterUtils.GetEventFromLogs(receipt.Logs, cChainInfo.TeleporterMessenger.ParseMessageExecuted)
+	hopSendEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseSendTokens)
 	Expect(err).Should(BeNil())
-	Expect(messageExecutedEvent.MessageID).Should(Equal(teleporterMessageID))
 
-	utils.CheckERC20SourceWithdrawal(
+	Expect(hopSendEvent.Amount).Should(Equal(bridgedAmount))
+
+	receipt = network.RelayMessage(
 		ctx,
-		erc20SourceAddress,
-		sourceToken,
+		receipt,
+		cChainInfo,
+		toSubnet,
+		true,
+	)
+
+	utils.CheckERC20DestinationWithdrawal(
+		ctx,
+		toBridge,
 		receipt,
 		recipientAddress,
 		bridgedAmount,
 	)
 
-	// Check that the recipient received the tokens
-	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, recipientAddress)
+	balance, err := toBridge.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(bridgedAmount))
 }

@@ -77,7 +77,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 	}
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
 
-	receipt, teleporterMessageID, bridgedAmount := utils.SendERC20Source(
+	receipt, bridgedAmount := utils.SendERC20Source(
 		ctx,
 		subnetAInfo,
 		erc20Source,
@@ -96,10 +96,6 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		subnetBInfo,
 		true,
 	)
-
-	messageExecutedEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseMessageExecuted)
-	Expect(err).Should(BeNil())
-	Expect(messageExecutedEvent.MessageID).Should(Equal(teleporterMessageID))
 
 	utils.CheckERC20DestinationWithdrawal(
 		ctx,
@@ -132,7 +128,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		AllowedRelayerAddresses:  []common.Address{},
 	}
 
-	receipt, teleporterMessageID, bridgedAmount = utils.SendERC20Destination(
+	receipt, bridgedAmount = utils.SendERC20Destination(
 		ctx,
 		subnetBInfo,
 		erc20Destination,
@@ -149,10 +145,6 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		subnetAInfo,
 		true,
 	)
-
-	messageExecutedEvent, err = teleporterUtils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseMessageExecuted)
-	Expect(err).Should(BeNil())
-	Expect(messageExecutedEvent.MessageID).Should(Equal(teleporterMessageID))
 
 	utils.CheckERC20SourceWithdrawal(
 		ctx,

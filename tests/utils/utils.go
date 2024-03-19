@@ -139,7 +139,7 @@ func SendERC20Source(
 	input erc20source.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
-) (*types.Receipt, [32]byte, *big.Int) {
+) (*types.Receipt, *big.Int) {
 	// Approve the ERC20Source to spend the tokens
 	teleporterUtils.ERC20Approve(
 		ctx,
@@ -167,7 +167,7 @@ func SendERC20Source(
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	Expect(event.Amount).Should(Equal(bridgedAmount))
 
-	return receipt, event.TeleporterMessageID, event.Amount
+	return receipt, event.Amount
 }
 
 func SendNativeTokenSource(
@@ -207,7 +207,7 @@ func SendERC20Destination(
 	input erc20destination.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
-) (*types.Receipt, [32]byte, *big.Int) {
+) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	tx, err := erc20Destination.Approve(
@@ -234,7 +234,7 @@ func SendERC20Destination(
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	Expect(event.Amount).Should(Equal(bridgedAmount))
 
-	return receipt, event.TeleporterMessageID, event.Amount
+	return receipt, event.Amount
 }
 
 func CheckERC20SourceWithdrawal(

@@ -75,6 +75,12 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 			flows.BasicERC20SendReceive(LocalNetworkInstance)
 		})
 
+	ginkgo.It("Bridge an ERC20 token between two Subnets with a multihop",
+		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel),
+		func() {
+			flows.ERC20SourceMultihop(LocalNetworkInstance)
+		})
+
 	ginkgo.It("Bridge a native token to an ERC20 token",
 		func() {
 			flows.NativeSourceERC20Destination(LocalNetworkInstance)
