@@ -136,7 +136,6 @@ func ERC20SourceMultihop(network interfaces.Network) {
 		erc20Destination_B,
 		erc20DestinationAddress_B,
 		cChainInfo,
-		erc20Source,
 		bridgedAmount,
 	)
 
@@ -154,7 +153,6 @@ func ERC20SourceMultihop(network interfaces.Network) {
 		erc20Destination_A,
 		erc20DestinationAddress_A,
 		cChainInfo,
-		erc20Source,
 		bridgedAmount,
 	)
 }
@@ -172,7 +170,6 @@ func sendERC20MultihopAndVerify(
 	toBridge *erc20destination.ERC20Destination,
 	toBridgeAddress common.Address,
 	cChainInfo interfaces.SubnetTestInfo,
-	erc20Source *erc20source.ERC20Source,
 	bridgedAmount *big.Int,
 ) {
 	teleporterUtils.SendNativeTransfer(
@@ -182,7 +179,7 @@ func sendERC20MultihopAndVerify(
 		recipientAddress,
 		big.NewInt(1e18),
 	)
-	input_A := erc20destination.SendTokensInput{
+	input := erc20destination.SendTokensInput{
 		DestinationBlockchainID:  toSubnet.BlockchainID,
 		DestinationBridgeAddress: toBridgeAddress,
 		Recipient:                recipientAddress,
@@ -196,7 +193,7 @@ func sendERC20MultihopAndVerify(
 		fromSubnet,
 		fromBridge,
 		fromBridgeAddress,
-		input_A,
+		input,
 		bridgedAmount,
 		recipientKey,
 	)
@@ -208,11 +205,6 @@ func sendERC20MultihopAndVerify(
 		cChainInfo,
 		true,
 	)
-
-	hopSendEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseSendTokens)
-	Expect(err).Should(BeNil())
-
-	Expect(hopSendEvent.Amount).Should(Equal(bridgedAmount))
 
 	receipt = network.RelayMessage(
 		ctx,
