@@ -140,6 +140,7 @@ func ERC20SourceMultihop(network interfaces.Network) {
 		bridgedAmount,
 	)
 
+	// Multihop transfer back to Subnet A
 	sendERC20MultihopAndVerify(
 		ctx,
 		network,
