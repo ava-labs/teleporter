@@ -137,7 +137,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	}
 
 	// Send tokens on subnet B back for native tokens on subnet A
-	receipt, teleporterMessageID, bridgedAmount = utils.SendERC20Destination(
+	receipt, bridgedAmount = utils.SendERC20Destination(
 		ctx,
 		subnetBInfo,
 		erc20Destination,
