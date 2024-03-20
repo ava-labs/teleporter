@@ -23,8 +23,8 @@ contract ERC20SourceTest is TeleporterTokenSourceTest {
 
     ERC20Source public app;
 
-    function setUp() public virtual override {
-        TeleporterTokenSourceTest.setUp();
+    function setUp() public override {
+        super.setUp();
         app = new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
