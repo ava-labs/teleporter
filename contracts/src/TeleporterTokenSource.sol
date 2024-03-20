@@ -105,10 +105,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: address(feeTokenAddress),
-                    amount: input.primaryFee
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
                 // TODO: Set requiredGasLimit
                 requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: input.allowedRelayerAddresses,
