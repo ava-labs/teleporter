@@ -178,7 +178,7 @@ func SendNativeTokenSource(
 	input nativetokensource.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
-) (*types.Receipt, [32]byte, *big.Int) {
+) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	opts.Value = amount
@@ -196,7 +196,7 @@ func SendNativeTokenSource(
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	Expect(event.Amount).Should(Equal(bridgedAmount))
 
-	return receipt, event.TeleporterMessageID, event.Amount
+	return receipt, event.Amount
 }
 
 func SendERC20Destination(
@@ -235,6 +235,76 @@ func SendERC20Destination(
 	Expect(event.Amount).Should(Equal(bridgedAmount))
 
 	return receipt, event.Amount
+}
+
+func SendERC20MultihopAndVerify(
+	ctx context.Context,
+	network interfaces.Network,
+	fundedKey *ecdsa.PrivateKey,
+	recipientKey *ecdsa.PrivateKey,
+	recipientAddress common.Address,
+	fromSubnet interfaces.SubnetTestInfo,
+	fromBridge *erc20destination.ERC20Destination,
+	fromBridgeAddress common.Address,
+	toSubnet interfaces.SubnetTestInfo,
+	toBridge *erc20destination.ERC20Destination,
+	toBridgeAddress common.Address,
+	cChainInfo interfaces.SubnetTestInfo,
+	bridgedAmount *big.Int,
+) {
+	teleporterUtils.SendNativeTransfer(
+		ctx,
+		fromSubnet,
+		fundedKey,
+		recipientAddress,
+		big.NewInt(1e18),
+	)
+	input := erc20destination.SendTokensInput{
+		DestinationBlockchainID:  toSubnet.BlockchainID,
+		DestinationBridgeAddress: toBridgeAddress,
+		Recipient:                recipientAddress,
+		PrimaryFee:               big.NewInt(0),
+		SecondaryFee:             big.NewInt(0),
+		AllowedRelayerAddresses:  []common.Address{},
+	}
+
+	receipt, bridgedAmount := SendERC20Destination(
+		ctx,
+		fromSubnet,
+		fromBridge,
+		fromBridgeAddress,
+		input,
+		bridgedAmount,
+		recipientKey,
+	)
+
+	receipt = network.RelayMessage(
+		ctx,
+		receipt,
+		fromSubnet,
+		cChainInfo,
+		true,
+	)
+
+	receipt = network.RelayMessage(
+		ctx,
+		receipt,
+		cChainInfo,
+		toSubnet,
+		true,
+	)
+
+	CheckERC20DestinationWithdrawal(
+		ctx,
+		toBridge,
+		receipt,
+		recipientAddress,
+		bridgedAmount,
+	)
+
+	balance, err := toBridge.BalanceOf(&bind.CallOpts{}, recipientAddress)
+	Expect(err).Should(BeNil())
+	Expect(balance).Should(Equal(bridgedAmount))
 }
 
 func CheckERC20SourceWithdrawal(

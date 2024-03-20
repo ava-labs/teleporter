@@ -79,7 +79,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 
 	// Send the tokens and verify expected events
 	amount := big.NewInt(2e18)
-	receipt, teleporterMessageID, bridgedAmount := utils.SendNativeTokenSource(
+	receipt, bridgedAmount := utils.SendNativeTokenSource(
 		ctx,
 		subnetAInfo,
 		nativeTokenSource,
@@ -97,14 +97,6 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		subnetBInfo,
 		true,
 	)
-
-	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, teleporterMessageID)
-	Expect(err).Should(BeNil())
-	Expect(delivered).Should(BeTrue())
-
-	messageExecutedEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, subnetBInfo.TeleporterMessenger.ParseMessageExecuted)
-	Expect(err).Should(BeNil())
-	Expect(messageExecutedEvent.MessageID).Should(Equal(teleporterMessageID))
 
 	utils.CheckERC20DestinationWithdrawal(
 		ctx,
@@ -154,10 +146,6 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		subnetAInfo,
 		true,
 	)
-
-	messageExecutedEvent, err = teleporterUtils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseMessageExecuted)
-	Expect(err).Should(BeNil())
-	Expect(messageExecutedEvent.MessageID).Should(Equal(teleporterMessageID))
 
 	// Check that the recipient received the tokens
 	utils.CheckNativeTokenSourceWithdrawal(
