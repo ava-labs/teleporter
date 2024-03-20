@@ -32,10 +32,8 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     IWrappedNativeToken public immutable token;
 
     /**
-     * @notice Initializes this source token bridge instance to send
-     * tokens to the specified destination chain and token bridge instance.
-     *
-     * Teleporter fees are paid by the same token that is being bridged.
+     * @notice Initializes this source token bridge instance
+     * @dev Teleporter fees are paid by a {IWrappedNativeToken} instance.
      */
     constructor(
         address teleporterRegistryAddress,
@@ -53,7 +51,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     }
 
     /**
-     * @dev See {IERC20Bridge-send}
+     * @dev See {INativeTokenBridge-send}
      */
     function send(SendTokensInput calldata input) external payable {
         _send(input, msg.value, false);
