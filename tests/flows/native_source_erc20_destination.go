@@ -26,7 +26,6 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy a native token source on subnet A
-	// TODO: for now use empty fee token address, later on need a token like WAVAX
 	wavaxAddress, wavax := utils.DeployExampleWAVAX(
 		ctx,
 		fundedKey,
