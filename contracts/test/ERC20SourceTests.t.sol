@@ -76,15 +76,15 @@ contract ERC20SourceTest is TeleporterTokenSourceTest {
     }
 
     function testZeroSendAmount() public {
-        vm.expectRevert(_formatTokenSourceErrorMessage("zero send amount"));
+        vm.expectRevert("SafeERC20TransferFrom: balance not increased");
         app.send(_createDefaultSendTokensInput(), 0);
     }
 
     function testInsufficientAmountToCoverFees() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = 1;
-        vm.expectRevert(_formatTokenSourceErrorMessage("insufficient amount to cover fees"));
         mockERC20.safeIncreaseAllowance(address(app), input.primaryFee);
+        vm.expectRevert(_formatTokenSourceErrorMessage("insufficient amount to cover fees"));
         app.send(input, input.primaryFee);
     }
 
@@ -247,14 +247,19 @@ contract ERC20SourceTest is TeleporterTokenSourceTest {
     }
 
     function _sendSuccess(uint256 amount, uint256 feeAmount) internal {
+        mockERC20.safeIncreaseAllowance(address(app), amount);
+
         uint256 bridgedAmount = amount - feeAmount;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        // TODO: Check that deposit was called.
+        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
+        vm.expectCall(
+            address(mockERC20),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(app), amount))
+        );
 
         _checkExpectedTeleporterCalls(input, bridgedAmount);
-
         vm.expectEmit(true, true, true, true, address(app));
         emit SendTokens(_MOCK_MESSAGE_ID, address(this), bridgedAmount);
         app.send(input, amount);
