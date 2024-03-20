@@ -15,33 +15,37 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// NativeSourceERC20Destination deploys NativeTokenSource to subnet A and ERC20Destination to subnet B.
-// Then it sends native tokens from subnet A for an erc20 token on subnet B, and transfers back to
-// subnet A for its original native tokens.
 func NativeSourceERC20Destination(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := teleporterUtils.GetTwoSubnets(network)
+	/**
+	 * Deploy a native token source on the primary network
+	 * Deploys ERC20Destination to Subnet A
+	 * Bridges C-chain native tokens to Subnet A
+	 * Bridge back tokens from Subnet A to C-chain
+	 */
+
+	cChainInfo := network.GetPrimaryNetworkInfo()
+	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
-	// Deploy a native token source on subnet A
-	// TODO: for now use empty fee token address, later on need a token like WAVAX
+	// Deploy an example WAVAX on the primary network
 	wavaxAddress, wavax := utils.DeployExampleWAVAX(
 		ctx,
 		fundedKey,
-		subnetAInfo,
+		cChainInfo,
 	)
 
+	// Create a NativeTokenSource for bridging the native token
 	nativeTokenSourceAddress, nativeTokenSource := utils.DeployNativeTokenSource(
 		ctx,
 		fundedKey,
-		subnetAInfo,
+		cChainInfo,
 		fundedAddress,
 		wavaxAddress,
 	)
 
-	// Token representation on subnet B will have same name, symbol, and decimals
+	// Token representation on subnet A will have same name, symbol, and decimals
 	tokenName, err := wavax.Name(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	tokenSymbol, err := wavax.Symbol(&bind.CallOpts{})
@@ -49,13 +53,13 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	tokenDecimals, err := wavax.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Deploy an ERC20Destination for the token source on subnet A
+	// Deploy an ERC20Destination to Subnet A
 	erc20DestinationAddress, erc20Destination := utils.DeployERC20Destination(
 		ctx,
 		fundedKey,
-		subnetBInfo,
+		subnetAInfo,
 		fundedAddress,
-		subnetAInfo.BlockchainID,
+		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
 		tokenName,
 		tokenSymbol,
@@ -67,9 +71,9 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from subnet A to recipient on subnet B
+	// Send tokens from C-chain to recipient on subnet A
 	input := nativetokensource.SendTokensInput{
-		DestinationBlockchainID:  subnetBInfo.BlockchainID,
+		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress,
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
@@ -81,7 +85,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	amount := big.NewInt(2e18)
 	receipt, bridgedAmount := utils.SendNativeTokenSource(
 		ctx,
-		subnetAInfo,
+		cChainInfo,
 		nativeTokenSource,
 		nativeTokenSourceAddress,
 		input,
@@ -89,12 +93,12 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		fundedKey,
 	)
 
-	// Relay the message to subnet B and check for message delivery
+	// Relay the message to Subnet A and check for message delivery
 	receipt = network.RelayMessage(
 		ctx,
 		receipt,
+		cChainInfo,
 		subnetAInfo,
-		subnetBInfo,
 		true,
 	)
 
@@ -111,16 +115,16 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(bridgedAmount))
 
-	// Fund recipient with gas tokens on subnet B
+	// Fund recipient with gas tokens on subnet A
 	teleporterUtils.SendNativeTransfer(
 		ctx,
-		subnetBInfo,
+		subnetAInfo,
 		fundedKey,
 		recipientAddress,
 		big.NewInt(1e18),
 	)
-	inputB := erc20destination.SendTokensInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
+	input_A := erc20destination.SendTokensInput{
+		DestinationBlockchainID:  cChainInfo.BlockchainID,
 		DestinationBridgeAddress: nativeTokenSourceAddress,
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
@@ -128,13 +132,13 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		AllowedRelayerAddresses:  []common.Address{},
 	}
 
-	// Send tokens on subnet B back for native tokens on subnet A
+	// Send tokens on Subnet A back for native tokens on C-chain
 	receipt, bridgedAmount = utils.SendERC20Destination(
 		ctx,
-		subnetBInfo,
+		subnetAInfo,
 		erc20Destination,
 		erc20DestinationAddress,
-		inputB,
+		input_A,
 		bridgedAmount,
 		recipientKey,
 	)
@@ -142,8 +146,8 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	receipt = network.RelayMessage(
 		ctx,
 		receipt,
-		subnetBInfo,
 		subnetAInfo,
+		cChainInfo,
 		true,
 	)
 
@@ -156,5 +160,5 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		bridgedAmount,
 	)
 
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, subnetAInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, cChainInfo.RPCClient)
 }

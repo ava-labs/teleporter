@@ -15,32 +15,37 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// BasicERC20SendReceive deploys ERC20Source to subnet A and ERC20Destination to subnet B.
-// Then it sends tokens from subnet A to subnet B and back to subnet A.
 func BasicERC20SendReceive(network interfaces.Network) {
-	subnetAInfo := network.GetPrimaryNetworkInfo()
-	subnetBInfo, _ := teleporterUtils.GetTwoSubnets(network)
+	/**
+	 * Deploy an ERC20 token source on the primary network
+	 * Deploys ERC20Destination to Subnet A
+	 * Bridges C-chain example erc20 tokens to Subnet A
+	 * Bridge tokens from Subnet A to C-chain
+	 */
+
+	cChainInfo := network.GetPrimaryNetworkInfo()
+	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
-	// Deploy an ExampleERC20 on subnet A as the source token to be bridged
+	// Deploy an ExampleERC20 on the primary network as the source token to be bridged
 	sourceTokenAddress, sourceToken := teleporterUtils.DeployExampleERC20(
 		ctx,
 		fundedKey,
-		subnetAInfo,
+		cChainInfo,
 	)
 
 	// Create an ERC20Source for bridging the source token
 	erc20SourceAddress, erc20Source := utils.DeployERC20Source(
 		ctx,
 		fundedKey,
-		subnetAInfo,
+		cChainInfo,
 		fundedAddress,
 		sourceTokenAddress,
 	)
 
-	// Token representation on subnet B will have same name, symbol, and decimals
+	// Token representation on subnet A will have same name, symbol, and decimals
 	tokenName, err := sourceToken.Name(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	tokenSymbol, err := sourceToken.Symbol(&bind.CallOpts{})
@@ -48,13 +53,13 @@ func BasicERC20SendReceive(network interfaces.Network) {
 	tokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Deploy an ERC20Destination for the token source on subnet A
+	// Deploy an ERC20Destination to Subnet A
 	erc20DestinationAddress, erc20Destination := utils.DeployERC20Destination(
 		ctx,
 		fundedKey,
-		subnetBInfo,
+		subnetAInfo,
 		fundedAddress,
-		subnetAInfo.BlockchainID,
+		cChainInfo.BlockchainID,
 		erc20SourceAddress,
 		tokenName,
 		tokenSymbol,
@@ -66,9 +71,9 @@ func BasicERC20SendReceive(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from subnet A to recipient on subnet B
+	// Send tokens from C-chain to recipient on subnet A
 	input := erc20source.SendTokensInput{
-		DestinationBlockchainID:  subnetBInfo.BlockchainID,
+		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress,
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(1e18),
@@ -79,7 +84,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 
 	receipt, bridgedAmount := utils.SendERC20Source(
 		ctx,
-		subnetAInfo,
+		cChainInfo,
 		erc20Source,
 		erc20SourceAddress,
 		sourceToken,
@@ -88,12 +93,12 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		fundedKey,
 	)
 
-	// Relay the message to subnet B and check for message delivery
+	// Relay the message to Subnet A and check for message delivery
 	receipt = network.RelayMessage(
 		ctx,
 		receipt,
+		cChainInfo,
 		subnetAInfo,
-		subnetBInfo,
 		true,
 	)
 
@@ -111,16 +116,16 @@ func BasicERC20SendReceive(network interfaces.Network) {
 	Expect(balance).Should(Equal(bridgedAmount))
 
 	// Bridge back to source
-	// Fund recipient with gas tokens on subnet B
+	// Fund recipient with gas tokens on subnet A
 	teleporterUtils.SendNativeTransfer(
 		ctx,
-		subnetBInfo,
+		subnetAInfo,
 		fundedKey,
 		recipientAddress,
 		big.NewInt(1e18),
 	)
 	inputB := erc20destination.SendTokensInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
+		DestinationBlockchainID:  cChainInfo.BlockchainID,
 		DestinationBridgeAddress: erc20SourceAddress,
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
@@ -130,7 +135,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 
 	receipt, bridgedAmount = utils.SendERC20Destination(
 		ctx,
-		subnetBInfo,
+		subnetAInfo,
 		erc20Destination,
 		erc20DestinationAddress,
 		inputB,
@@ -141,8 +146,8 @@ func BasicERC20SendReceive(network interfaces.Network) {
 	receipt = network.RelayMessage(
 		ctx,
 		receipt,
-		subnetBInfo,
 		subnetAInfo,
+		cChainInfo,
 		true,
 	)
 
