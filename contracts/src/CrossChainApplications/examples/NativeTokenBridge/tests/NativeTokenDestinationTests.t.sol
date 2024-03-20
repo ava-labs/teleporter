@@ -266,6 +266,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
 
     function testReportBurnedTxFees() public {
         uint256 burnedFees = 123456;
+        uint256 burnedFees2 = 234567;
+        uint256 burnedFeesDifference = burnedFees2 - burnedFees;
+
         vm.deal(nativeTokenDestination.BURNED_TX_FEES_ADDRESS(), burnedFees);
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
@@ -282,6 +285,29 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
                 burnedFees / _DEFAULT_TOKEN_MULTIPLIER
                 )
         });
+
+        vm.expectCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
+        );
+
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
+        );
+
+        // Second Burn
+        vm.deal(nativeTokenDestination.BURNED_TX_FEES_ADDRESS(), burnedFees2);
+
+        vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
+        emit ReportBurnedTxFees({
+            teleporterMessageID: _MOCK_MESSAGE_ID,
+            feesBurned: burnedFeesDifference
+        });
+
+        expectedMessageInput.message = abi.encode(
+            nativeTokenDestination.SOURCE_CHAIN_BURN_ADDRESS(),
+            burnedFeesDifference / _DEFAULT_TOKEN_MULTIPLIER
+        );
 
         vm.expectCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -451,6 +477,17 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             _DEFAULT_RECIPIENT,
             TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
             new address[](0)
+        );
+    }
+
+    function testBurnZeroAmount() public {
+        collateralizeBridge();
+
+        vm.deal(nativeTokenDestination.BURNED_TX_FEES_ADDRESS(), _DEFAULT_TOKEN_MULTIPLIER - 1);
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero scaled amount to burn"));
+
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
         );
     }
 

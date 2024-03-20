@@ -230,8 +230,12 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             );
         }
 
-        uint256 burnedDifference = BURNED_TX_FEES_ADDRESS.balance - latestBurnedFeesReported;
+        uint256 burnedAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
+        uint256 burnedDifference = burnedAddressBalance - latestBurnedFeesReported;
+        latestBurnedFeesReported = burnedAddressBalance;
+
         uint256 scaledAmount = _scaleTokens(burnedDifference, false);
+        require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to burn");
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
