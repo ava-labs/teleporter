@@ -53,8 +53,9 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         address teleporterManager,
         address feeTokenAddress_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
-        feeTokenAddress = feeTokenAddress_;
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
+        require(feeTokenAddress_ != address(0), "TeleporterTokenSource: zero fee token address");
+        feeTokenAddress = feeTokenAddress_;
     }
 
     /**

@@ -86,6 +86,24 @@ contract TeleporterTokenSourceTest is Test {
     }
 
     /**
+     * Initialization unit tests
+     */
+    function testZeroTeleporterRegistryAddress() public {
+        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
+        new ExampleSourceApp(address(0), address(this), address(mockERC20));
+    }
+
+    function testZeroTeleporterManagerAddress() public {
+        vm.expectRevert("Ownable: new owner is the zero address");
+        new ExampleSourceApp(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(0), address(mockERC20));
+    }
+
+    function testZeroFeeTokenAddress() public {
+        vm.expectRevert(_formatTokenSourceErrorMessage("zero fee token address"));
+        new ExampleSourceApp(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
+    }
+
+    /**
      * Send tokens unit tests
      */
 

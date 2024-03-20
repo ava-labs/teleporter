@@ -17,13 +17,6 @@ import {ITeleporterTokenBridge, SendTokensInput} from "./ITeleporterTokenBridge.
  */
 interface INativeTokenBridge is ITeleporterTokenBridge {
     /**
-     * @notice Receives native tokens transferred to this contract.
-     * @dev This function is called when the token bridge is withdrawing native tokens to
-     * transfer to the recipient. The caller must be the wrapped native token contract.
-     */
-    receive() external payable;
-
-    /**
      * @notice Sends native tokens transferred to this contract to the destination token bridge instance.
      * @param input specifies information for delivery of the tokens
      */
