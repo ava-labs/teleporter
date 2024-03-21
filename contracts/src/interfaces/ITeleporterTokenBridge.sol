@@ -13,7 +13,7 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  */
 
 /**
- * @dev Parameters for delivery of tokens to another chain and destination recipient.
+ * @notice Parameters for delivery of tokens to another chain and destination recipient.
  * @param destinationBlockchainID blockchainID of the destination
  * @param destinationBridgeAddress address of the destination token bridge instance
  * @param recipient address of the recipient on the destination chain
@@ -31,11 +31,11 @@ struct SendTokensInput {
 }
 
 /**
- * @dev Interface for a Teleporter token bridge that sends tokens to another chain.
+ * @notice Interface for a Teleporter token bridge that sends tokens to another chain.
  */
 interface ITeleporterTokenBridge is ITeleporterReceiver {
     /**
-     * @dev Emitted when tokens are sent to another chain.
+     * @notice Emitted when tokens are sent to another chain.
      * TODO: might want to add SendTokensInput as a parameter
      */
     event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);

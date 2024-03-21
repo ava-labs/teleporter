@@ -13,11 +13,11 @@ import {ITeleporterTokenBridge, SendTokensInput} from "./ITeleporterTokenBridge.
  */
 
 /**
- * @dev Interface for a Teleporter token bridge that sends native tokens to another chain.
+ * @notice Interface for a Teleporter token bridge that sends native tokens to another chain.
  */
 interface INativeTokenBridge is ITeleporterTokenBridge {
     /**
-     * @dev Sends native tokens transferred to this contract to the destination token bridge instance.
+     * @notice Sends native tokens transferred to this contract to the destination token bridge instance.
      * @param input specifies information for delivery of the tokens
      */
     function send(SendTokensInput calldata input) external payable;

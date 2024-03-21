@@ -10,7 +10,6 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
 import {ITeleporterTokenBridge, SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -29,7 +28,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
     bytes32 public immutable blockchainID;
 
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
-    IERC20 public immutable feeToken;
+    address public immutable feeTokenAddress;
 
     /**
      * @notice Tracks the balances of tokens sent to other bridge instances.
@@ -52,10 +51,11 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address feeToken_
+        address feeTokenAddress_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
-        feeToken = IERC20(feeToken_);
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
+        require(feeTokenAddress_ != address(0), "TeleporterTokenSource: zero fee token address");
+        feeTokenAddress = feeTokenAddress_;
     }
 
     /**
@@ -106,10 +106,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: address(feeToken),
-                    amount: input.primaryFee
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
                 // TODO: Set requiredGasLimit
                 requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: input.allowedRelayerAddresses,
