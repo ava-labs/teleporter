@@ -16,14 +16,6 @@ pragma solidity 0.8.18;
  */
 interface ITokenSource {
     /**
-     * @dev Enum representing the action to take on receiving a Teleporter message.
-     */
-    enum SourceAction {
-        Unlock,
-        Burn
-    }
-
-    /**
      * @dev Emitted when native tokens are locked in the source contract to be transferred to the destination chain.
      */
     event TransferToDestination(
@@ -37,9 +29,4 @@ interface ITokenSource {
      * @dev Emitted when tokens are unlocked on this chain.
      */
     event UnlockTokens(address indexed recipient, uint256 amount);
-
-    /**
-     * @dev Emitted when tokens are burned on this chain.
-     */
-    event BurnTokens(uint256 amount);
 }

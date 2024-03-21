@@ -6,7 +6,6 @@
 pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
-import {ITokenSource} from "../ITokenSource.sol";
 import {NativeTokenDestination} from "../NativeTokenDestination.sol";
 import {
     ITeleporterMessenger,
@@ -15,7 +14,6 @@ import {
 } from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     NativeTokenDestination public nativeTokenDestination;
@@ -30,7 +28,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     );
     event CollateralAdded(uint256 amount, uint256 remaining);
     event NativeTokensMinted(address indexed recipient, uint256 amount);
-    event ReportTotalBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 burnAddressBalance);
+    event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     function setUp() public virtual override {
         NativeTokenBridgeTest.setUp();
@@ -98,8 +96,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             requiredGasLimit: nativeTokenDestination.TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT / _DEFAULT_TOKEN_MULTIPLIER)
+                _DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT / _DEFAULT_TOKEN_MULTIPLIER
                 )
         });
 
@@ -174,8 +171,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             requiredGasLimit: nativeTokenDestination.TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT * _DEFAULT_TOKEN_MULTIPLIER)
+                _DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT * _DEFAULT_TOKEN_MULTIPLIER
                 )
         });
 
@@ -269,25 +265,24 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
     }
 
     function testReportBurnedTxFees() public {
-        uint256 burnedFees = nativeTokenDestination.BURNED_TX_FEES_ADDRESS().balance;
+        uint256 burnedFees = 123456;
+        uint256 burnedFees2 = 234567;
+        uint256 burnedFeesDifference = burnedFees2 - burnedFees;
+
+        vm.deal(nativeTokenDestination.BURNED_TX_FEES_ADDRESS(), burnedFees);
 
         vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
-        emit ReportTotalBurnedTxFees({
-            teleporterMessageID: _MOCK_MESSAGE_ID,
-            burnAddressBalance: burnedFees / _DEFAULT_TOKEN_MULTIPLIER
-        });
+        emit ReportBurnedTxFees({teleporterMessageID: _MOCK_MESSAGE_ID, feesBurned: burnedFees});
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: _DEFAULT_OTHER_CHAIN_ID,
             destinationAddress: _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(mockERC20),
-                amount: _DEFAULT_FEE_AMOUNT
-            }),
-            requiredGasLimit: nativeTokenDestination.REPORT_BURNED_TOKENS_REQUIRED_GAS(),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}),
+            requiredGasLimit: nativeTokenDestination.TRANSFER_NATIVE_TOKENS_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: abi.encode(
-                ITokenSource.SourceAction.Burn, abi.encode(burnedFees / _DEFAULT_TOKEN_MULTIPLIER)
+                nativeTokenDestination.SOURCE_CHAIN_BURN_ADDRESS(),
+                burnedFees / _DEFAULT_TOKEN_MULTIPLIER
                 )
         });
 
@@ -296,24 +291,31 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
 
-        vm.expectCall(
-            address(mockERC20),
-            abi.encodeCall(
-                IERC20.transferFrom,
-                (address(this), address(nativeTokenDestination), _DEFAULT_FEE_AMOUNT)
-            )
-        );
-        vm.expectCall(
-            address(mockERC20),
-            abi.encodeCall(
-                IERC20.allowance,
-                (address(nativeTokenDestination), MOCK_TELEPORTER_MESSENGER_ADDRESS)
-            )
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
         );
 
-        nativeTokenDestination.reportTotalBurnedTxFees(
-            TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
-            new address[](0)
+        // Second Burn
+        vm.deal(nativeTokenDestination.BURNED_TX_FEES_ADDRESS(), burnedFees2);
+
+        vm.expectEmit(true, true, true, true, address(nativeTokenDestination));
+        emit ReportBurnedTxFees({
+            teleporterMessageID: _MOCK_MESSAGE_ID,
+            feesBurned: burnedFeesDifference
+        });
+
+        expectedMessageInput.message = abi.encode(
+            nativeTokenDestination.SOURCE_CHAIN_BURN_ADDRESS(),
+            burnedFeesDifference / _DEFAULT_TOKEN_MULTIPLIER
+        );
+
+        vm.expectCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
+        );
+
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
         );
     }
 
@@ -475,6 +477,36 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
             _DEFAULT_RECIPIENT,
             TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
             new address[](0)
+        );
+    }
+
+    function testBurnZeroAmount() public {
+        collateralizeBridge();
+
+        vm.deal(nativeTokenDestination.BURNED_TX_FEES_ADDRESS(), _DEFAULT_TOKEN_MULTIPLIER - 1);
+        vm.expectRevert(_formatNativeTokenDestinationErrorMessage("zero scaled amount to burn"));
+
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
+        );
+    }
+
+    function testBurnZeroDifference() public {
+        collateralizeBridge();
+
+        vm.deal(nativeTokenDestination.BURNED_TX_FEES_ADDRESS(), 100);
+
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
+        );
+
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage(
+                "burn address balance not greater than last report"
+            )
+        );
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
         );
     }
 

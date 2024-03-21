@@ -6,7 +6,6 @@
 pragma solidity 0.8.18;
 
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTest.t.sol";
-import {ITokenSource} from "../ITokenSource.sol";
 import {NativeTokenSource} from "../NativeTokenSource.sol";
 import {
     ITeleporterMessenger,
@@ -24,7 +23,6 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         uint256 amount
     );
     event UnlockTokens(address indexed recipient, uint256 amount);
-    event BurnTokens(uint256 amount);
 
     function setUp() public virtual override {
         NativeTokenBridgeTest.setUp();
@@ -95,61 +93,10 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
         );
 
         assertEq(_DEFAULT_TRANSFER_AMOUNT, _DEFAULT_RECIPIENT.balance);
-    }
-
-    function testBurnedTxFees() public {
-        // Give the contract some tokens to burn.
-        nativeTokenSource.transferToDestination{value: _DEFAULT_TRANSFER_AMOUNT}(
-            _DEFAULT_RECIPIENT,
-            TeleporterFeeInfo({feeTokenAddress: address(mockERC20), amount: _DEFAULT_FEE_AMOUNT}),
-            new address[](0)
-        );
-
-        uint256 burnedTxFees = 100;
-        uint256 additionalTxFees = 50;
-        assertEq(0, nativeTokenSource.destinationBurnedTotal());
-
-        vm.expectEmit(true, true, true, true, address(nativeTokenSource));
-        emit BurnTokens(burnedTxFees);
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        nativeTokenSource.receiveTeleporterMessage(
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees))
-        );
-
-        assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURN_ADDRESS().balance);
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        nativeTokenSource.receiveTeleporterMessage(
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees - 1))
-        );
-
-        assertEq(burnedTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees, nativeTokenSource.BURN_ADDRESS().balance);
-
-        emit BurnTokens(additionalTxFees);
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        nativeTokenSource.receiveTeleporterMessage(
-            _DEFAULT_OTHER_CHAIN_ID,
-            _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(ITokenSource.SourceAction.Burn, abi.encode(burnedTxFees + additionalTxFees))
-        );
-
-        assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.destinationBurnedTotal());
-        assertEq(burnedTxFees + additionalTxFees, nativeTokenSource.BURN_ADDRESS().balance);
     }
 
     function testZeroTeleporterAddress() public {
@@ -203,10 +150,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
         );
     }
 
@@ -217,10 +161,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         nativeTokenSource.receiveTeleporterMessage(
             _MOCK_BLOCKCHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
         );
     }
 
@@ -231,10 +172,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             address(0x123),
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
         );
     }
 
@@ -245,9 +183,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock, abi.encode(address(0x0), _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(address(0x0), _DEFAULT_TRANSFER_AMOUNT)
         );
     }
 
@@ -268,10 +204,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest {
         nativeTokenSource.receiveTeleporterMessage(
             _DEFAULT_OTHER_CHAIN_ID,
             _DEFAULT_OTHER_BRIDGE_ADDRESS,
-            abi.encode(
-                ITokenSource.SourceAction.Unlock,
-                abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
-            )
+            abi.encode(_DEFAULT_RECIPIENT, _DEFAULT_TRANSFER_AMOUNT)
         );
     }
 
