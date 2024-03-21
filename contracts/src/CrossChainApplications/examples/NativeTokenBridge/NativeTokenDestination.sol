@@ -102,7 +102,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     /**
      * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the source chain.
      */
-    uint256 public latestBurnedFeesReported;
+    uint256 public latestBurnAddressBalance;
 
     /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
@@ -230,9 +230,14 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             );
         }
 
-        uint256 burnedAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
-        uint256 burnedDifference = burnedAddressBalance - latestBurnedFeesReported;
-        latestBurnedFeesReported = burnedAddressBalance;
+        uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
+        require(
+            burnAddressBalance > latestBurnAddressBalance,
+            "NativeTokenDestination: burn address balance not greater than last report"
+        );
+
+        uint256 burnedDifference = burnAddressBalance - latestBurnAddressBalance;
+        latestBurnAddressBalance = burnAddressBalance;
 
         uint256 scaledAmount = _scaleTokens(burnedDifference, false);
         require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to burn");

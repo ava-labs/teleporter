@@ -491,6 +491,25 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest {
         );
     }
 
+    function testBurnZeroDifference() public {
+        collateralizeBridge();
+
+        vm.deal(nativeTokenDestination.BURNED_TX_FEES_ADDRESS(), 100);
+
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
+        );
+
+        vm.expectRevert(
+            _formatNativeTokenDestinationErrorMessage(
+                "burn address balance not greater than last report"
+            )
+        );
+        nativeTokenDestination.reportBurnedTxFees(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}), new address[](0)
+        );
+    }
+
     function _formatNativeTokenDestinationErrorMessage(string memory errorMessage)
         private
         pure
