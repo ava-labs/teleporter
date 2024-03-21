@@ -44,7 +44,9 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     }
 
     /**
-     * @dev See {INativeTokenBridge-receive}
+     * @notice Receives native tokens transferred to this contract.
+     * @dev This function is called when the token bridge is withdrawing native tokens to
+     * transfer to the recipient. The caller must be the wrapped native token contract.
      */
     receive() external payable {
         require(msg.sender == feeTokenAddress, "NativeTokenSource: invalid receive payable sender");

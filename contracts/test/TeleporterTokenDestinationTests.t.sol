@@ -100,6 +100,71 @@ contract TeleporterTokenDestinationTest is Test {
     }
 
     /**
+     * Initialization unit tests
+     */
+    function testZeroTeleporterRegistryAddress() public {
+        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
+        new ExampleDestinationApp(
+            address(0),
+            address(this),
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            TOKEN_SOURCE_ADDRESS,
+            address(mockERC20));
+    }
+
+    function testZeroTeleporterManagerAddress() public {
+        vm.expectRevert("Ownable: new owner is the zero address");
+        new ExampleDestinationApp(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(0),
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            TOKEN_SOURCE_ADDRESS,
+            address(mockERC20));
+    }
+
+    function testZeroBlockchainID() public {
+        vm.expectRevert(_formatTokenDestinationErrorMessage("zero source blockchain ID"));
+        new ExampleDestinationApp(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(this),
+            bytes32(0),
+            TOKEN_SOURCE_ADDRESS,
+            address(mockERC20));
+    }
+
+    function testDeployToSameBlockchain() public {
+        vm.expectRevert(
+            _formatTokenDestinationErrorMessage("cannot deploy to same blockchain as source")
+        );
+        new ExampleDestinationApp(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(this),
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            TOKEN_SOURCE_ADDRESS,
+            address(mockERC20));
+    }
+
+    function testZeroTokenSourceAddress() public {
+        vm.expectRevert(_formatTokenDestinationErrorMessage("zero token source address"));
+        new ExampleDestinationApp(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(this),
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            address(0),
+            address(mockERC20));
+    }
+
+    function testZeroFeeTokenAddress() public {
+        vm.expectRevert(_formatTokenDestinationErrorMessage("zero fee token address"));
+        new ExampleDestinationApp(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(this),
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            TOKEN_SOURCE_ADDRESS,
+            address(0));
+    }
+
+    /**
      * Send tokens unit tests
      */
     function testZeroDestinationBridge() public {
