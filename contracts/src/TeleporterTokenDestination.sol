@@ -49,13 +49,25 @@ abstract contract TeleporterTokenDestination is
         address tokenSourceAddress_,
         address feeTokenAddress_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
+        blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
+        require(
+            sourceBlockchainID_ != bytes32(0),
+            "TeleporterTokenDestination: zero source blockchain ID"
+        );
+        require(
+            sourceBlockchainID_ != blockchainID,
+            "TeleporterTokenDestination: cannot deploy to same blockchain as source"
+        );
+        require(
+            tokenSourceAddress_ != address(0),
+            "TeleporterTokenDestination: zero token source address"
+        );
+        require(
+            feeTokenAddress_ != address(0), "TeleporterTokenDestination: zero fee token address"
+        );
         sourceBlockchainID = sourceBlockchainID_;
         tokenSourceAddress = tokenSourceAddress_;
-        // TODO: figure out if NativeTokenDestination passes in token or not.
-        // NativeTokenDestination will pass in erc20 token it deposits native tokens to pay for fees.
-        // ERC20Destination will pass in the erc20 token it's bridging.
         feeTokenAddress = feeTokenAddress_;
-        blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
     }
 
     /**
@@ -85,9 +97,7 @@ abstract contract TeleporterTokenDestination is
                 input.destinationBridgeAddress == tokenSourceAddress,
                 "TeleporterTokenDestination: invalid destination bridge address"
             );
-        }
-
-        if (input.destinationBlockchainID == blockchainID) {
+        } else if (input.destinationBlockchainID == blockchainID) {
             require(
                 input.destinationBridgeAddress != address(this),
                 "TeleporterTokenDestination: invalid destination bridge address"

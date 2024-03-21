@@ -21,7 +21,7 @@
         "maxLength": 75
       }
     ],
-    "custom-errors": "off",
+    "gas-custom-errors": "off",
     "ordering": "error",
     "immutable-vars-naming": [
       "warn",

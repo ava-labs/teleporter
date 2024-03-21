@@ -53,8 +53,9 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         address teleporterManager,
         address feeTokenAddress_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
-        feeTokenAddress = feeTokenAddress_;
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
+        require(feeTokenAddress_ != address(0), "TeleporterTokenSource: zero fee token address");
+        feeTokenAddress = feeTokenAddress_;
     }
 
     /**
@@ -105,10 +106,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: address(feeTokenAddress),
-                    amount: input.primaryFee
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
                 // TODO: Set requiredGasLimit
                 requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: input.allowedRelayerAddresses,

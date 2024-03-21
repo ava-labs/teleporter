@@ -14,11 +14,13 @@ import (
 	erc20destination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Destination"
 	erc20source "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Source"
 	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
+	examplewavax "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleWAVAX"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/log"
 
 	. "github.com/onsi/gomega"
 )
@@ -107,6 +109,25 @@ func DeployNativeTokenSource(
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	return address, nativeTokenSource
+}
+
+func DeployExampleWAVAX(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+) (common.Address, *examplewavax.ExampleWAVAX) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+
+	// Deploy mock WAVAX contract
+	address, tx, token, err := examplewavax.DeployExampleWAVAX(opts, subnet.RPCClient)
+	Expect(err).Should(BeNil())
+	log.Info("Deployed ExampleWAVAX contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
+
+	// Wait for the transaction to be mined
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	return address, token
 }
 
 func SendERC20Source(
@@ -243,4 +264,17 @@ func CheckERC20DestinationWithdrawal(
 	Expect(transferEvent.From).Should(Equal(common.Address{}))
 	Expect(transferEvent.To).Should(Equal(expectedRecipientAddress))
 	Expect(transferEvent.Value).Should(Equal(expectedAmount))
+}
+
+func CheckNativeTokenSourceWithdrawal(
+	ctx context.Context,
+	nativeTokenSourceAddress common.Address,
+	sourceToken *examplewavax.ExampleWAVAX,
+	receipt *types.Receipt,
+	expectedAmount *big.Int,
+) {
+	withdrawalEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, sourceToken.ParseWithdrawal)
+	Expect(err).Should(BeNil())
+	Expect(withdrawalEvent.Sender).Should(Equal(nativeTokenSourceAddress))
+	Expect(withdrawalEvent.Amount).Should(Equal(expectedAmount))
 }

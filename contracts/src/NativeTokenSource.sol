@@ -10,6 +10,7 @@ import {INativeTokenBridge} from "./interfaces/INativeTokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
+import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -26,19 +27,33 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     using SafeERC20 for IERC20;
 
     /**
-     * @notice Initializes this source token bridge instance to send
-     * tokens to the specified destination chain and token bridge instance.
-     *
-     * Teleporter fees are paid by the same token that is being bridged.
+     * @notice The wrapped native token contract that represents the native tokens on this chain.
+     */
+    IWrappedNativeToken public immutable token;
+
+    /**
+     * @notice Initializes this source token bridge instance
+     * @dev Teleporter fees are paid by a {IWrappedNativeToken} instance.
      */
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
         address feeTokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress) {}
+    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress) {
+        token = IWrappedNativeToken(feeTokenAddress);
+    }
 
     /**
-     * @dev See {IERC20Bridge-send}
+     * @notice Receives native tokens transferred to this contract.
+     * @dev This function is called when the token bridge is withdrawing native tokens to
+     * transfer to the recipient. The caller must be the wrapped native token contract.
+     */
+    receive() external payable {
+        require(msg.sender == feeTokenAddress, "NativeTokenSource: invalid receive payable sender");
+    }
+
+    /**
+     * @dev See {INativeTokenBridge-send}
      */
     function send(SendTokensInput calldata input) external payable {
         _send(input, msg.value, false);
@@ -46,19 +61,20 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
 
     /**
      * @dev See {TeleportTokenSource-_deposit}
+     * Deposits the native tokens sent to this contract
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        // TODO: Deposit native token for fee token and transfer to bridge
-        // Return the amount after fee is transferred to bridge
+        token.deposit{value: amount}();
         return amount;
     }
 
     /**
      * @dev See {TeleportTokenSource-_withdraw}
+     * Withdraws the wrapped tokens for native tokens,
+     * and sends them to the recipient.
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
-        // TODO: Withdraw erc20 token amount into native tokens
-        // Transfer the native tokens to the recipient
+        token.withdraw(amount);
         payable(recipient).transfer(amount);
     }
 }
