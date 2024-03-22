@@ -15,8 +15,12 @@ import {
 } from "@teleporter/ITeleporterMessenger.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 
 abstract contract INativeTokenBridgeTest is ITeleporterTokenBridgeTest {
+    event Deposit(address indexed sender, uint256 amount);
+    event Withdrawal(address indexed sender, uint256 amount);
+
     INativeTokenBridge public nativeTokenBridge;
 
     function testZeroSendAmount() public {
@@ -28,5 +32,9 @@ abstract contract INativeTokenBridgeTest is ITeleporterTokenBridgeTest {
         nativeTokenBridge.send{value: amount}(input);
     }
 
-    function _checkDeposit(uint256 amount) internal virtual override {}
+    function _checkDeposit(uint256 amount) internal virtual override {
+        vm.expectCall(address(feeToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
+        vm.expectEmit(true, true, true, true, address(feeToken));
+        emit Deposit(address(nativeTokenBridge), amount);
+    }
 }

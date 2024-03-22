@@ -32,14 +32,7 @@ contract ERC20SourceTest is IERC20BridgeTest, TeleporterTokenSourceTest {
     function setUp() public override {
         TeleporterTokenSourceTest.setUp();
 
-        // IERC20BridgeTest.setUp();
-
         mockERC20 = new ExampleERC20();
-        // vm.mockCall(
-        //     WARP_PRECOMPILE_ADDRESS,
-        //     abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
-        //     abi.encode(DEFAULT_SOURCE_BLOCKCHAIN_ID)
-        // );
         app = new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -78,11 +71,11 @@ contract ERC20SourceTest is IERC20BridgeTest, TeleporterTokenSourceTest {
         );
     }
 
-    /**
-     * Send tokens unit tests
-     */
-
-    /**
-     * Receive tokens unit tests
-     */
+    function _checkWithdrawal(address recipient, uint256 amount) internal override {
+        vm.expectCall(
+            address(mockERC20), abi.encodeCall(IERC20.transfer, (address(recipient), amount))
+        );
+        vm.expectEmit(true, true, true, true, address(mockERC20));
+        emit Transfer(address(app), recipient, amount);
+    }
 }

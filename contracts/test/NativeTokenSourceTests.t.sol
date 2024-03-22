@@ -59,4 +59,12 @@ contract NativeTokenSourceTest is INativeTokenBridgeTest, TeleporterTokenSourceT
         vm.expectRevert(_formatErrorMessage("zero fee token address"));
         new NativeTokenSource(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
     }
+
+    function _checkWithdrawal(address, uint256 amount) internal override {
+        vm.expectCall(
+            address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
+        );
+        vm.expectEmit(true, true, true, true, address(mockWrappedToken));
+        emit Withdrawal(address(app), amount);
+    }
 }

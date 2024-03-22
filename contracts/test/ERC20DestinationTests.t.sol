@@ -25,8 +25,6 @@ import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 contract ERC20DestinationTest is IERC20BridgeTest, TeleporterTokenDestinationTest {
     using SafeERC20 for IERC20;
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
     ERC20Destination public app;
 
     string public constant MOCK_TOKEN_NAME = "Test Token";
@@ -125,5 +123,10 @@ contract ERC20DestinationTest is IERC20BridgeTest, TeleporterTokenDestinationTes
             MOCK_TOKEN_SYMBOL,
             MOCK_TOKEN_DECIMALS
         );
+    }
+
+    function _checkWithdrawal(address recipient, uint256 amount) internal override {
+        vm.expectEmit(true, true, true, true, address(app));
+        emit Transfer(address(0), recipient, amount);
     }
 }

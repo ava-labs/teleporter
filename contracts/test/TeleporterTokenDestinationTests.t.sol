@@ -67,7 +67,7 @@ abstract contract TeleporterTokenDestinationTest is ITeleporterTokenBridgeTest {
         _sendSuccess(amount, input.primaryFee);
     }
 
-    function testInvalidSourceChain() public {
+    function testReceiveInvalidSourceChain() public {
         vm.expectRevert(_formatErrorMessage("invalid source chain"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
@@ -75,7 +75,7 @@ abstract contract TeleporterTokenDestinationTest is ITeleporterTokenBridgeTest {
         );
     }
 
-    function testInvalidTokenSourceAddress() public {
+    function testReceiveInvalidTokenSourceAddress() public {
         vm.expectRevert(_formatErrorMessage("invalid token source address"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
@@ -83,11 +83,22 @@ abstract contract TeleporterTokenDestinationTest is ITeleporterTokenBridgeTest {
         );
     }
 
-    function testReceivedInvalidMessage() public {
+    function testReceiveInvalidMessage() public {
         vm.expectRevert();
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, bytes("test")
+        );
+    }
+
+    function testReceiveWithdrawSuccess() public {
+        uint256 amount = 2;
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        _checkWithdrawal(DEFAULT_RECIPIENT_ADDRESS, amount);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            TOKEN_SOURCE_ADDRESS,
+            abi.encode(DEFAULT_RECIPIENT_ADDRESS, amount)
         );
     }
 

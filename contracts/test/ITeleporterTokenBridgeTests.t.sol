@@ -41,6 +41,8 @@ abstract contract ITeleporterTokenBridgeTest is Test {
 
     event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
 
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
     ITeleporterTokenBridge public tokenBridge;
     IERC20 public feeToken;
 
@@ -144,6 +146,8 @@ abstract contract ITeleporterTokenBridgeTest is Test {
     }
 
     function _checkDeposit(uint256 amount) internal virtual;
+
+    function _checkWithdrawal(address recipient, uint256 amount) internal virtual;
 
     function _checkExpectedTeleporterCalls(
         SendTokensInput memory input,
