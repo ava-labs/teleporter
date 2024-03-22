@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
+import {IERC20BridgeTest} from "./IERC20BridgeTests.t.sol";
 import {ERC20Destination} from "../src/ERC20Destination.sol";
 import {
     ITeleporterTokenBridge, SendTokensInput
@@ -17,8 +17,11 @@ import {
 } from "@teleporter/ITeleporterMessenger.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IWarpMessenger} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
+import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 
-contract ERC20DestinationTest is TeleporterTokenDestinationTest {
+contract ERC20DestinationTest is IERC20BridgeTest {
     using SafeERC20 for IERC20;
 
     event Transfer(address indexed from, address indexed to, uint256 value);
@@ -29,8 +32,25 @@ contract ERC20DestinationTest is TeleporterTokenDestinationTest {
     string public constant MOCK_TOKEN_SYMBOL = "TST";
     uint8 public constant MOCK_TOKEN_DECIMALS = 18;
 
-    function setUp() public override {
-        super.setUp();
+    function setUp() public virtual {
+        // super.setUp();
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
+            abi.encode(DEFAULT_DESTINATION_BLOCKCHAIN_ID)
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
+        );
+        _initMockTeleporterRegistry();
+
+        vm.expectCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
+            )
+        );
+
         app = new ERC20Destination(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
@@ -38,7 +58,11 @@ contract ERC20DestinationTest is TeleporterTokenDestinationTest {
             TOKEN_SOURCE_ADDRESS,
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS);
+            MOCK_TOKEN_DECIMALS
+        );
+        erc20Bridge = app;
+        tokenBridge = app;
+        feeToken = IERC20(app);
 
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(this), 10e18);
@@ -61,7 +85,8 @@ contract ERC20DestinationTest is TeleporterTokenDestinationTest {
             TOKEN_SOURCE_ADDRESS,
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS);
+            MOCK_TOKEN_DECIMALS
+        );
     }
 
     function testZeroTeleporterManagerAddress() public {
@@ -73,7 +98,8 @@ contract ERC20DestinationTest is TeleporterTokenDestinationTest {
             TOKEN_SOURCE_ADDRESS,
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS);
+            MOCK_TOKEN_DECIMALS
+        );
     }
 
     function testZeroBlockchainID() public {
@@ -85,7 +111,8 @@ contract ERC20DestinationTest is TeleporterTokenDestinationTest {
             TOKEN_SOURCE_ADDRESS,
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS);
+            MOCK_TOKEN_DECIMALS
+        );
     }
 
     function testDeployToSameBlockchain() public {
@@ -99,7 +126,8 @@ contract ERC20DestinationTest is TeleporterTokenDestinationTest {
             TOKEN_SOURCE_ADDRESS,
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS);
+            MOCK_TOKEN_DECIMALS
+        );
     }
 
     function testZeroTokenSourceAddress() public {
@@ -111,38 +139,13 @@ contract ERC20DestinationTest is TeleporterTokenDestinationTest {
             address(0),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS);
+            MOCK_TOKEN_DECIMALS
+        );
     }
-
-    // function testZeroFeeTokenAddress() public {
-    //     vm.expectRevert(_formatTokenDestinationErrorMessage("zero fee token address"));
-    //     new ERC20Destination(
-    //         MOCK_TELEPORTER_REGISTRY_ADDRESS,
-    //         address(this),
-    //         DEFAULT_SOURCE_BLOCKCHAIN_ID,
-    //         address(0),
-    //         MOCK_TOKEN_NAME,
-    //         MOCK_TOKEN_SYMBOL,
-    //         MOCK_TOKEN_DECIMALS);
-    // }
 
     /**
      * Send tokens unit tests
      */
-    function testZeroDestinationBridge() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.destinationBridgeAddress = address(0);
-        vm.expectRevert(_formatTokenDestinationErrorMessage("zero destination bridge address"));
-        app.send(input, 0);
-    }
-
-    function testZeroRecipient() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.recipient = address(0);
-        vm.expectRevert(_formatTokenDestinationErrorMessage("zero recipient address"));
-        app.send(input, 0);
-    }
-
     function testInvalidSendingBackToSourceBlockchain() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(this);
@@ -156,33 +159,6 @@ contract ERC20DestinationTest is TeleporterTokenDestinationTest {
         input.destinationBridgeAddress = address(app);
         vm.expectRevert(_formatTokenDestinationErrorMessage("invalid destination bridge address"));
         app.send(input, 0);
-    }
-
-    function testZeroSendAmount() public {
-        vm.expectRevert("SafeERC20TransferFrom: balance not increased");
-        app.send(_createDefaultSendTokensInput(), 0);
-    }
-
-    function testInsufficientAmountToCoverFees() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.primaryFee = 1;
-        uint256 amount = input.primaryFee;
-
-        IERC20(app).safeIncreaseAllowance(address(app), amount);
-        vm.expectRevert(_formatTokenDestinationErrorMessage("insufficient amount to cover fees"));
-        app.send(input, amount);
-    }
-
-    function testSendWithFees() public {
-        uint256 amount = 2;
-        uint256 primaryFee = 1;
-        _sendSuccess(amount, primaryFee);
-    }
-
-    function testSendNoFees() public {
-        uint256 amount = 2;
-        uint256 primaryFee = 0;
-        _sendSuccess(amount, primaryFee);
     }
 
     function testSendToSameBlockchainDifferentDestination() public {
@@ -221,63 +197,57 @@ contract ERC20DestinationTest is TeleporterTokenDestinationTest {
         );
     }
 
-    function _sendSuccess(uint256 amount, uint256 feeAmount) internal {
-        IERC20(app).safeIncreaseAllowance(address(app), amount);
-        uint256 bridgedAmount = amount - feeAmount;
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.primaryFee = feeAmount;
-
-        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
-        vm.expectCall(
-            address(app), abi.encodeCall(IERC20.transferFrom, (address(this), address(app), amount))
-        );
-
-        _checkExpectedTeleporterCalls(input, bridgedAmount);
-
-        vm.expectEmit(true, true, true, true, address(app));
-        emit SendTokens(_MOCK_MESSAGE_ID, address(this), bridgedAmount);
-        app.send(input, amount);
+    function _createDefaultSendTokensInput()
+        internal
+        pure
+        override
+        returns (SendTokensInput memory)
+    {
+        return SendTokensInput({
+            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: TOKEN_SOURCE_ADDRESS,
+            recipient: DEFAULT_RECIPIENT_ADDRESS,
+            primaryFee: 0,
+            secondaryFee: 0,
+            allowedRelayerAddresses: new address[](0)
+        });
     }
 
-    function _checkExpectedTeleporterCalls(
-        SendTokensInput memory input,
-        uint256 bridgeAmount
-    ) internal {
-        TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
-            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            destinationAddress: TOKEN_SOURCE_ADDRESS,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(app), amount: input.primaryFee}),
-            requiredGasLimit: app.SEND_TOKENS_REQUIRED_GAS(),
-            allowedRelayerAddresses: input.allowedRelayerAddresses,
-            message: abi.encode(
-                SendTokensInput({
-                    destinationBlockchainID: input.destinationBlockchainID,
-                    destinationBridgeAddress: input.destinationBridgeAddress,
-                    recipient: input.recipient,
-                    primaryFee: input.secondaryFee,
-                    secondaryFee: 0,
-                    allowedRelayerAddresses: input.allowedRelayerAddresses
-                }),
-                bridgeAmount
-                )
-        });
+    function _formatErrorMessage(string memory message)
+        internal
+        pure
+        override
+        returns (bytes memory)
+    {
+        return _formatTokenDestinationErrorMessage(message);
+    }
 
-        if (input.primaryFee > 0) {
-            vm.expectCall(
-                address(app),
-                abi.encodeCall(
-                    IERC20.allowance, (address(app), address(MOCK_TELEPORTER_MESSENGER_ADDRESS))
-                )
-            );
-        }
-        vm.mockCall(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
-            abi.encode(_MOCK_MESSAGE_ID)
+    function _requiredGasLimit() internal view virtual override returns (uint256) {
+        return app.SEND_TOKENS_REQUIRED_GAS();
+    }
+
+    function _encodeMessage(
+        SendTokensInput memory input,
+        uint256 amount
+    ) internal pure virtual override returns (bytes memory) {
+        return abi.encode(
+            SendTokensInput({
+                destinationBlockchainID: input.destinationBlockchainID,
+                destinationBridgeAddress: input.destinationBridgeAddress,
+                recipient: input.recipient,
+                primaryFee: input.secondaryFee,
+                secondaryFee: 0,
+                allowedRelayerAddresses: input.allowedRelayerAddresses
+            }),
+            amount
         );
-        vm.expectCall(
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
-        );
+    }
+
+    function _formatTokenDestinationErrorMessage(string memory errorMessage)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return bytes(string.concat("TeleporterTokenDestination: ", errorMessage));
     }
 }
