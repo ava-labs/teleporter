@@ -19,16 +19,6 @@ import {INativeTokenBridge} from "./INativeTokenBridge.sol";
  */
 interface INativeTokenDestination is INativeTokenBridge {
     /**
-     * @dev Emitted when tokens are burned in the destination contract and to be unlocked on the source contract.
-     */
-    event TransferToSource(
-        address indexed sender,
-        address indexed recipient,
-        bytes32 indexed teleporterMessageID,
-        uint256 amount
-    );
-
-    /**
      * @dev Emitted when tokens are not minted in order to collateralize the source contract.
      */
     event CollateralAdded(uint256 amount, uint256 remaining);
@@ -44,20 +34,10 @@ interface INativeTokenDestination is INativeTokenBridge {
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     /**
-     * @dev Burns native tokens on the destination contract chain, and sends a message to the source
-     * contract to unlock corresponding tokens.
-     */
-    function transferToSource(
-        address recipient,
-        TeleporterFeeInfo calldata feeInfo,
-        address[] calldata allowedRelayerAddresses
-    ) external payable;
-
-    /**
      * @dev Sends a message to burn transaction fees from this chain on the source chain.
      */
     function reportBurnedTxFees(
-        TeleporterFeeInfo calldata feeInfo,
+        uint256 feeAmount,
         address[] calldata allowedRelayerAddresses
     ) external;
 

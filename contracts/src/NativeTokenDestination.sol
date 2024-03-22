@@ -5,6 +5,7 @@
 
 pragma solidity 0.8.18;
 
+import {TeleporterTokenDestination} from "./TeleporterTokenDestination.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
@@ -18,6 +19,8 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 // We need IAllowList as an indirect dependency in order to compile.
 // solhint-disable-next-line no-unused-import
 import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IAllowList.sol";
+import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
+import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -30,7 +33,7 @@ import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfac
  * @dev This contract pairs with exactly one `TokenSource` contract on the source chain.
  * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
  */
-contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDestination {
+contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDestination, TeleporterTokenDestination {
     /**
      * @notice The address where the burned transaction fees are credited.
      *
@@ -69,16 +72,6 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      * @notice Estimated gas needed for a transfer call to execute successfully on the source chain.
      */
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
-
-    /**
-     * @notice ID of the paired blockchain containing the token source contract.
-     */
-    bytes32 public immutable sourceBlockchainID;
-
-    /**
-     * @notice Address of the paired token source contract.
-     */
-    address public immutable nativeTokenSourceAddress;
 
     /**
      * @notice Initial reserve imbalance that must be collateralized on the source before minting.
@@ -124,31 +117,26 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      */
     bool public immutable multiplyOnReceive;
 
+    /**
+     * @notice The wrapped native token contract that represents the native tokens on this chain.
+     */
+    IWrappedNativeToken public immutable token;
+
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
         bytes32 sourceBlockchainID_,
-        address nativeTokenSourceAddress_,
+        address tokenSourceAddress_,
+        address feeTokenAddress_,
         uint256 initialReserveImbalance_,
         uint256 decimalsShift,
         bool multiplyOnReceive_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
+    ) TeleporterTokenDestination(teleporterRegistryAddress, teleporterManager, sourceBlockchainID_, tokenSourceAddress_, feeTokenAddress_) {
         require(
-            sourceBlockchainID_ != bytes32(0), "NativeTokenDestination: zero source blockchain ID"
+            feeTokenAddress != address(0), "NativeTokenDestination: zero feeTokenAddress"
         );
-        require(
-            sourceBlockchainID_
-                != IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID(),
-            "NativeTokenDestination: cannot bridge with same blockchain"
-        );
-        sourceBlockchainID = sourceBlockchainID_;
-
-        require(
-            nativeTokenSourceAddress_ != address(0),
-            "NativeTokenDestination: zero source contract address"
-        );
-        nativeTokenSourceAddress = nativeTokenSourceAddress_;
-
+        token = IWrappedNativeToken(feeTokenAddress);
+        
         require(
             initialReserveImbalance_ != 0, "NativeTokenDestination: zero initial reserve imbalance"
         );
@@ -161,72 +149,31 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         multiplyOnReceive = multiplyOnReceive_;
     }
 
-    /**
-     * @dev See {INativeTokenDestination-transferToSource}.
-     */
-    function transferToSource(
-        address recipient,
-        TeleporterFeeInfo calldata feeInfo,
-        address[] calldata allowedRelayerAddresses
-    ) external payable nonReentrant {
-        // The recipient cannot be the zero address.
-        require(recipient != address(0), "NativeTokenDestination: zero recipient address");
-
+    function send(SendTokensInput calldata input) external payable {
         require(
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
-        uint256 value = msg.value;
-        uint256 scaledAmount = _scaleTokens(value, false);
+
+        // TODO we need to guarantee that this function deposits the whole amount, or find a workaround. 
+        _deposit(input.primaryFee);
+
+        uint256 scaledAmount = _scaleTokens(msg.value - input.primaryFee, false);
         require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to transfer");
-
-        /**
-         * Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
-         * implementations by only transferring the actual balance increase reflected by the call
-         * to transferFrom.
-         */
-        uint256 adjustedFeeAmount;
-        if (feeInfo.amount > 0) {
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeInfo.feeTokenAddress), feeInfo.amount
-            );
-        }
-
-        // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
-        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), value);
-
-        bytes32 messageID = _sendTeleporterMessage(
-            TeleporterMessageInput({
-                destinationBlockchainID: sourceBlockchainID,
-                destinationAddress: nativeTokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: feeInfo.feeTokenAddress,
-                    amount: adjustedFeeAmount
-                }),
-                requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(recipient, scaledAmount)
-            })
-        );
-
-        emit TransferToSource({
-            sender: msg.sender,
-            recipient: recipient,
-            teleporterMessageID: messageID,
-            amount: value
-        });
+        
+        _send(input, scaledAmount);
     }
 
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
     function reportBurnedTxFees(
-        TeleporterFeeInfo calldata feeInfo,
+        uint256 feeAmount,
         address[] calldata allowedRelayerAddresses
     ) external {
         uint256 adjustedFeeAmount;
-        if (feeInfo.amount > 0) {
+        if (feeAmount > 0) {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeInfo.feeTokenAddress), feeInfo.amount
+                IERC20(feeTokenAddress), feeAmount
             );
         }
 
@@ -245,14 +192,21 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
-                destinationAddress: nativeTokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: feeInfo.feeTokenAddress,
-                    amount: adjustedFeeAmount
-                }),
-                requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
+                destinationAddress: tokenSourceAddress,
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: adjustedFeeAmount}),
+                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(SOURCE_CHAIN_BURN_ADDRESS, scaledAmount)
+                message: abi.encode(
+                    SendTokensInput({
+                        destinationBlockchainID: sourceBlockchainID,
+                        destinationBridgeAddress: tokenSourceAddress,
+                        recipient: SOURCE_CHAIN_BURN_ADDRESS,
+                        primaryFee: 0,
+                        secondaryFee: 0,
+                        allowedRelayerAddresses: allowedRelayerAddresses
+                    }),
+                    scaledAmount
+                    )
             })
         );
 
@@ -277,26 +231,16 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     }
 
     /**
-     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
+     * @dev See {TeleportTokenDestination-_deposit}
      */
-    function _receiveTeleporterMessage(
-        bytes32 sourceBlockchainID_,
-        address originSenderAddress,
-        bytes memory message
-    ) internal override {
-        // Only allow messages from the source chain.
-        require(
-            sourceBlockchainID_ == sourceBlockchainID,
-            "NativeTokenDestination: invalid source chain"
-        );
+    function _deposit(uint256 amount) internal virtual override returns (uint256) {
+        return SafeERC20TransferFrom.safeTransferFrom(token, amount);
+    }
 
-        // Only allow the partner contract to send messages.
-        require(
-            originSenderAddress == nativeTokenSourceAddress,
-            "NativeTokenDestination: unauthorized sender"
-        );
-
-        (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
+    /**
+     * @dev See {TeleportTokenDestination-_withdraw}
+     */
+    function _withdraw(address recipient, uint256 amount) internal virtual override {
         require(recipient != address(0), "NativeTokenDestination: zero recipient address");
 
         uint256 scaledAmount = _scaleTokens(amount, true);
@@ -328,6 +272,14 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             // Calls NativeMinter precompile through INativeMinter interface.
             NATIVE_MINTER.mintNativeCoin(recipient, adjustedAmount);
         }
+    }
+
+    /**
+     * @dev See {TeleportTokenDestination-_burn}
+     */
+    function _burn(uint256 amount) internal virtual override {
+        // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
+        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), amount);
     }
 
     /**

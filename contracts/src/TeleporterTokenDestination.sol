@@ -113,9 +113,6 @@ abstract contract TeleporterTokenDestination is
             "TeleporterTokenDestination: insufficient amount to cover fees"
         );
 
-        // TODO: For NativeTokenDestination before this _send, we should exchange the fee amount
-        // in native tokens for the fee amount in erc20 tokens. For ERC20Destination, we simply
-        // safeTransferFrom the full amount.
         amount -= input.primaryFee;
         _burn(amount);
 
