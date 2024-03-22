@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {ITeleporterTokenBridgeTest} from "./ITeleporterTokenBridgeTests.t.sol";
-import {IERC20Bridge} from "../src/interfaces/IERC20Bridge.sol";
+import {INativeTokenBridge} from "../src/interfaces/INativeTokenBridge.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {
     ITeleporterMessenger,
@@ -16,26 +16,17 @@ import {
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract IERC20BridgeTest is ITeleporterTokenBridgeTest {
-    using SafeERC20 for IERC20;
-
-    IERC20Bridge public erc20Bridge;
+abstract contract INativeTokenBridgeTest is ITeleporterTokenBridgeTest {
+    INativeTokenBridge public nativeTokenBridge;
 
     function testZeroSendAmount() public {
-        vm.expectRevert("SafeERC20TransferFrom: balance not increased");
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
         _send(_createDefaultSendTokensInput(), 0);
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
-        erc20Bridge.send(input, amount);
+        nativeTokenBridge.send{value: amount}(input);
     }
 
-    function _checkDeposit(uint256 amount) internal virtual override {
-        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
-        feeToken.safeIncreaseAllowance(address(tokenBridge), amount);
-        vm.expectCall(
-            address(feeToken),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), amount))
-        );
-    }
+    function _checkDeposit(uint256 amount) internal virtual override {}
 }

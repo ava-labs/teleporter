@@ -75,6 +75,40 @@ abstract contract ITeleporterTokenBridgeTest is Test {
         );
     }
 
+    function testZeroDestinationBridge() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBridgeAddress = address(0);
+        vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
+        _send(input, 0);
+    }
+
+    function testZeroRecipient() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.recipient = address(0);
+        vm.expectRevert(_formatErrorMessage("zero recipient address"));
+        _send(input, 0);
+    }
+
+    function testInsufficientAmountToCoverFees() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFee = 1;
+        _checkDeposit(input.primaryFee);
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        _send(input, input.primaryFee);
+    }
+
+    function testSendWithFees() public {
+        uint256 amount = 2;
+        uint256 primaryFee = 1;
+        _sendSuccess(amount, primaryFee);
+    }
+
+    function testSendNoFees() public {
+        uint256 amount = 2;
+        uint256 primaryFee = 0;
+        _sendSuccess(amount, primaryFee);
+    }
+
     function _createDefaultSendTokensInput()
         internal
         pure

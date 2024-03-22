@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {Test} from "forge-std/Test.sol";
+import {ITeleporterTokenBridgeTest} from "./ITeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenDestination, IWarpMessenger} from "../src/TeleporterTokenDestination.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {
@@ -13,29 +13,14 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-import {UnitTestMockERC20} from "../lib/teleporter/contracts/src/Mocks/UnitTestMockERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {
     ITeleporterTokenBridge, SendTokensInput
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
-contract TeleporterTokenDestinationTest is Test {
-    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
-        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-    bytes32 public constant DEFAULT_DESTINATION_BLOCKCHAIN_ID =
-        bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
-    address public constant TOKEN_SOURCE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
-    address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
-    address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
-
-    address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
-        0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
-    address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS =
-        0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
-    bytes32 internal constant _MOCK_MESSAGE_ID =
-        bytes32(hex"1111111111111111111111111111111111111111111111111111111111111111");
-
-    event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
+abstract contract TeleporterTokenDestinationTest is ITeleporterTokenBridgeTest {
+    TeleporterTokenDestination public tokenDestination;
 
     function setUp() public virtual {
         vm.mockCall(
@@ -43,7 +28,6 @@ contract TeleporterTokenDestinationTest is Test {
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
             abi.encode(DEFAULT_DESTINATION_BLOCKCHAIN_ID)
         );
-
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
         );
@@ -58,38 +42,61 @@ contract TeleporterTokenDestinationTest is Test {
         );
     }
 
-    function _initMockTeleporterRegistry() internal {
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
-            ),
-            abi.encode(1)
-        );
+    function testInvalidSendingBackToSourceBlockchain() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBridgeAddress = address(this);
+        vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
+        _send(input, 0);
+    }
 
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry.getVersionFromAddress.selector,
-                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
-            ),
-            abi.encode(1)
-        );
+    function testSendingToSameInstance() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBlockchainID = tokenDestination.blockchainID();
+        input.destinationBridgeAddress = address(tokenDestination);
+        vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
+        _send(input, 0);
+    }
 
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(TeleporterRegistry.getAddressFromVersion.selector, (1)),
-            abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
-        );
+    function testSendToSameBlockchainDifferentDestination() public {
+        // Send a transfer to the same app itself
+        uint256 amount = 2;
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBlockchainID = tokenDestination.blockchainID();
+        input.destinationBridgeAddress = address(this);
 
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(TeleporterRegistry.getLatestTeleporter.selector),
-            abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
+        _sendSuccess(amount, input.primaryFee);
+    }
+
+    function testInvalidSourceChain() public {
+        vm.expectRevert(_formatErrorMessage("invalid source chain"));
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, new bytes(0)
         );
     }
 
-    function _createDefaultSendTokensInput() internal pure returns (SendTokensInput memory) {
+    function testInvalidTokenSourceAddress() public {
+        vm.expectRevert(_formatErrorMessage("invalid token source address"));
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, address(0), new bytes(0)
+        );
+    }
+
+    function testReceivedInvalidMessage() public {
+        vm.expectRevert();
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, bytes("test")
+        );
+    }
+
+    function _createDefaultSendTokensInput()
+        internal
+        pure
+        override
+        returns (SendTokensInput memory)
+    {
         return SendTokensInput({
             destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             destinationBridgeAddress: TOKEN_SOURCE_ADDRESS,
@@ -100,11 +107,33 @@ contract TeleporterTokenDestinationTest is Test {
         });
     }
 
-    function _formatTokenDestinationErrorMessage(string memory errorMessage)
+    function _formatErrorMessage(string memory message)
         internal
         pure
+        override
         returns (bytes memory)
     {
-        return bytes(string.concat("TeleporterTokenDestination: ", errorMessage));
+        return bytes(string.concat("TeleporterTokenDestination: ", message));
+    }
+
+    function _requiredGasLimit() internal view virtual override returns (uint256) {
+        return tokenDestination.SEND_TOKENS_REQUIRED_GAS();
+    }
+
+    function _encodeMessage(
+        SendTokensInput memory input,
+        uint256 amount
+    ) internal pure virtual override returns (bytes memory) {
+        return abi.encode(
+            SendTokensInput({
+                destinationBlockchainID: input.destinationBlockchainID,
+                destinationBridgeAddress: input.destinationBridgeAddress,
+                recipient: input.recipient,
+                primaryFee: input.secondaryFee,
+                secondaryFee: 0,
+                allowedRelayerAddresses: input.allowedRelayerAddresses
+            }),
+            amount
+        );
     }
 }

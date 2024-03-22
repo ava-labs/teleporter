@@ -45,7 +45,7 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
     function testSendToSameChain() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
-        vm.expectRevert(_formatTokenSourceErrorMessage("cannot bridge to same chain"));
+        vm.expectRevert(_formatErrorMessage("cannot bridge to same chain"));
         _send(input, 0);
     }
 
@@ -58,7 +58,7 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
     }
 
     function testReceiveInsufficientBridgeBalance() public {
-        vm.expectRevert(_formatTokenSourceErrorMessage("insufficient bridge balance"));
+        vm.expectRevert(_formatErrorMessage("insufficient bridge balance"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -80,7 +80,7 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
     function testReceiveInvalidDestinationBridgeAddress() public {
         // First send to destination blockchain to increase the bridge balance
         _sendSuccess(2, 0);
-        vm.expectRevert(_formatTokenSourceErrorMessage("invalid bridge address"));
+        vm.expectRevert(_formatErrorMessage("invalid bridge address"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -179,7 +179,7 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
             allowedRelayerAddresses: new address[](0)
         });
 
-        vm.expectRevert(_formatTokenSourceErrorMessage("insufficient amount to cover fees"));
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -218,7 +218,7 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
         override
         returns (bytes memory)
     {
-        return _formatTokenSourceErrorMessage(message);
+        return bytes(string.concat("TeleporterTokenSource: ", message));
     }
 
     function _requiredGasLimit() internal view virtual override returns (uint256) {
@@ -230,13 +230,5 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
         uint256 amount
     ) internal pure virtual override returns (bytes memory) {
         return abi.encode(input.recipient, amount);
-    }
-
-    function _formatTokenSourceErrorMessage(string memory errorMessage)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return bytes(string.concat("TeleporterTokenSource: ", errorMessage));
     }
 }
