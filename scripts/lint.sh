@@ -26,7 +26,7 @@ function solFormatCheck() {
 function solLinter() {
     # lint solidity contracts
     echo "Linting Solidity contracts..."
-    cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/src
+    cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/
     # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
     # in subdirectories. The former only checks sol files in the current directory and directories one level down.
     solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0

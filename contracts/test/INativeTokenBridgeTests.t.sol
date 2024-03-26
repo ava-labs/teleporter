@@ -8,20 +8,13 @@ pragma solidity 0.8.18;
 import {ITeleporterTokenBridgeTest} from "./ITeleporterTokenBridgeTests.t.sol";
 import {INativeTokenBridge} from "../src/interfaces/INativeTokenBridge.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 
 abstract contract INativeTokenBridgeTest is ITeleporterTokenBridgeTest {
+    INativeTokenBridge public nativeTokenBridge;
+
     event Deposit(address indexed sender, uint256 amount);
     event Withdrawal(address indexed sender, uint256 amount);
-
-    INativeTokenBridge public nativeTokenBridge;
 
     function testZeroSendAmount() public {
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));

@@ -8,19 +8,8 @@ pragma solidity 0.8.18;
 import {IERC20BridgeTest} from "./IERC20BridgeTests.t.sol";
 import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
 import {ERC20Destination} from "../src/ERC20Destination.sol";
-import {
-    ITeleporterTokenBridge, SendTokensInput
-} from "../src/interfaces/ITeleporterTokenBridge.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {IWarpMessenger} from
-    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 
 contract ERC20DestinationTest is IERC20BridgeTest, TeleporterTokenDestinationTest {
     using SafeERC20 for IERC20;
@@ -31,6 +20,7 @@ contract ERC20DestinationTest is IERC20BridgeTest, TeleporterTokenDestinationTes
     string public constant MOCK_TOKEN_SYMBOL = "TST";
     uint8 public constant MOCK_TOKEN_DECIMALS = 18;
 
+    //solhint-disable func-named-parameters
     function setUp() public virtual override {
         TeleporterTokenDestinationTest.setUp();
 
@@ -43,6 +33,7 @@ contract ERC20DestinationTest is IERC20BridgeTest, TeleporterTokenDestinationTes
             MOCK_TOKEN_SYMBOL,
             MOCK_TOKEN_DECIMALS
         );
+
         erc20Bridge = app;
         tokenDestination = app;
         tokenBridge = app;
@@ -124,6 +115,7 @@ contract ERC20DestinationTest is IERC20BridgeTest, TeleporterTokenDestinationTes
             MOCK_TOKEN_DECIMALS
         );
     }
+    //solhint-enable func-named-parameters
 
     function _checkWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(app));

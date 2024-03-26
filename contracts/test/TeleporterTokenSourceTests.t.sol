@@ -8,16 +8,7 @@ pragma solidity 0.8.18;
 import {ITeleporterTokenBridgeTest} from "./ITeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenSource, IWarpMessenger} from "../src/TeleporterTokenSource.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
-import {
-    ITeleporterTokenBridge, SendTokensInput
-} from "../src/interfaces/ITeleporterTokenBridge.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 
 abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
@@ -197,6 +188,10 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
         );
     }
 
+    function _requiredGasLimit() internal view virtual override returns (uint256) {
+        return tokenSource.SEND_TOKENS_REQUIRED_GAS();
+    }
+
     function _createDefaultSendTokensInput()
         internal
         pure
@@ -220,10 +215,6 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
         returns (bytes memory)
     {
         return bytes(string.concat("TeleporterTokenSource: ", message));
-    }
-
-    function _requiredGasLimit() internal view virtual override returns (uint256) {
-        return tokenSource.SEND_TOKENS_REQUIRED_GAS();
     }
 
     function _encodeMessage(

@@ -31,6 +31,7 @@
     ],
     "func-named-parameters": ["error", 5],
     "one-contract-per-file": "off",
-    "no-empty-blocks": "off"
+    "no-empty-blocks": "off",
+    "check-send-result": "off"
   }
 }

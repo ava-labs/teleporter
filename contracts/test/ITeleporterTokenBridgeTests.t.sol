@@ -6,7 +6,6 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
-import {TeleporterTokenSource, IWarpMessenger} from "../src/TeleporterTokenSource.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {
     ITeleporterMessenger,
@@ -39,43 +38,12 @@ abstract contract ITeleporterTokenBridgeTest is Test {
     bytes32 internal constant _MOCK_MESSAGE_ID =
         bytes32(hex"1111111111111111111111111111111111111111111111111111111111111111");
 
-    event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
-
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
     ITeleporterTokenBridge public tokenBridge;
     IERC20 public feeToken;
 
-    function _initMockTeleporterRegistry() internal {
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
-            ),
-            abi.encode(1)
-        );
+    event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
 
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry.getVersionFromAddress.selector,
-                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
-            ),
-            abi.encode(1)
-        );
-
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(TeleporterRegistry.getAddressFromVersion.selector, (1)),
-            abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
-        );
-
-        vm.mockCall(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(TeleporterRegistry.getLatestTeleporter.selector),
-            abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
-        );
-    }
+    event Transfer(address indexed from, address indexed to, uint256 value);
 
     function testZeroDestinationBridge() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
@@ -111,24 +79,36 @@ abstract contract ITeleporterTokenBridgeTest is Test {
         _sendSuccess(amount, primaryFee);
     }
 
-    function _createDefaultSendTokensInput()
-        internal
-        pure
-        virtual
-        returns (SendTokensInput memory);
+    function _initMockTeleporterRegistry() internal {
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
+            ),
+            abi.encode(1)
+        );
 
-    function _formatErrorMessage(string memory message)
-        internal
-        pure
-        virtual
-        returns (bytes memory);
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(
+                TeleporterRegistry.getVersionFromAddress.selector,
+                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
+            ),
+            abi.encode(1)
+        );
 
-    function _requiredGasLimit() internal view virtual returns (uint256);
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(TeleporterRegistry.getAddressFromVersion.selector, (1)),
+            abi.encode(MOCK_TELEPORTER_MESSENGER_ADDRESS)
+        );
 
-    function _encodeMessage(
-        SendTokensInput memory input,
-        uint256 amount
-    ) internal pure virtual returns (bytes memory);
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(TeleporterRegistry.getLatestTeleporter.selector),
+            abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
+        );
+    }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual;
 
@@ -181,4 +161,23 @@ abstract contract ITeleporterTokenBridgeTest is Test {
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
     }
+
+    function _requiredGasLimit() internal view virtual returns (uint256);
+
+    function _createDefaultSendTokensInput()
+        internal
+        pure
+        virtual
+        returns (SendTokensInput memory);
+
+    function _formatErrorMessage(string memory message)
+        internal
+        pure
+        virtual
+        returns (bytes memory);
+
+    function _encodeMessage(
+        SendTokensInput memory input,
+        uint256 amount
+    ) internal pure virtual returns (bytes memory);
 }

@@ -6,22 +6,10 @@
 pragma solidity 0.8.18;
 
 import {TeleporterTokenSourceTest} from "./TeleporterTokenSourceTests.t.sol";
-import {ITeleporterTokenBridgeTest} from "./ITeleporterTokenBridgeTests.t.sol";
 import {INativeTokenBridgeTest} from "./INativeTokenBridgeTests.t.sol";
 import {NativeTokenSource} from "../src/NativeTokenSource.sol";
-import {
-    ITeleporterTokenBridge, SendTokensInput
-} from "../src/interfaces/ITeleporterTokenBridge.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {IWarpMessenger} from
-    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 
 contract NativeTokenSourceTest is INativeTokenBridgeTest, TeleporterTokenSourceTest {
     NativeTokenSource public app;
