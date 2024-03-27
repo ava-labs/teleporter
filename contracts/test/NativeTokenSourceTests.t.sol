@@ -6,12 +6,12 @@
 pragma solidity 0.8.18;
 
 import {TeleporterTokenSourceTest} from "./TeleporterTokenSourceTests.t.sol";
-import {INativeTokenBridgeTest} from "./INativeTokenBridgeTests.t.sol";
+import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {NativeTokenSource} from "../src/NativeTokenSource.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
 
-contract NativeTokenSourceTest is INativeTokenBridgeTest, TeleporterTokenSourceTest {
+contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTest {
     NativeTokenSource public app;
     IWrappedNativeToken public mockWrappedToken;
 

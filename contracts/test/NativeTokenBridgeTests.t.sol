@@ -5,12 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {ITeleporterTokenBridgeTest} from "./ITeleporterTokenBridgeTests.t.sol";
+import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {INativeTokenBridge} from "../src/interfaces/INativeTokenBridge.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 
-abstract contract INativeTokenBridgeTest is ITeleporterTokenBridgeTest {
+abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
     INativeTokenBridge public nativeTokenBridge;
 
     event Deposit(address indexed sender, uint256 amount);

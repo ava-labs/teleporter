@@ -5,12 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {ITeleporterTokenBridgeTest} from "./ITeleporterTokenBridgeTests.t.sol";
+import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenSource, IWarpMessenger} from "../src/TeleporterTokenSource.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 
-abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
+abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
 
     function setUp() public virtual {

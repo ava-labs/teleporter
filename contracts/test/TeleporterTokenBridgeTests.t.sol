@@ -12,14 +12,13 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-
 import {
     ITeleporterTokenBridge, SendTokensInput
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract ITeleporterTokenBridgeTest is Test {
+abstract contract TeleporterTokenBridgeTest is Test {
     using SafeERC20 for IERC20;
 
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
