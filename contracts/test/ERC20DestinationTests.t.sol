@@ -5,13 +5,13 @@
 
 pragma solidity 0.8.18;
 
-import {IERC20BridgeTest} from "./IERC20BridgeTests.t.sol";
+import {ERC20BridgeTest} from "./ERC20BridgeTests.t.sol";
 import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
 import {ERC20Destination} from "../src/ERC20Destination.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-contract ERC20DestinationTest is IERC20BridgeTest, TeleporterTokenDestinationTest {
+contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest {
     using SafeERC20 for IERC20;
 
     ERC20Destination public app;
@@ -20,7 +20,6 @@ contract ERC20DestinationTest is IERC20BridgeTest, TeleporterTokenDestinationTes
     string public constant MOCK_TOKEN_SYMBOL = "TST";
     uint8 public constant MOCK_TOKEN_DECIMALS = 18;
 
-    //solhint-disable func-named-parameters
     function setUp() public virtual override {
         TeleporterTokenDestinationTest.setUp();
 
@@ -66,58 +65,57 @@ contract ERC20DestinationTest is IERC20BridgeTest, TeleporterTokenDestinationTes
 
     function testZeroTeleporterManagerAddress() public {
         vm.expectRevert("Ownable: new owner is the zero address");
-        new ERC20Destination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            address(0),
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            TOKEN_SOURCE_ADDRESS,
-            MOCK_TOKEN_NAME,
-            MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
-        );
+        new ERC20Destination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: address(0),
+            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+            tokenName: MOCK_TOKEN_NAME,
+            tokenSymbol: MOCK_TOKEN_SYMBOL,
+            tokenDecimals: MOCK_TOKEN_DECIMALS
+        });
     }
 
     function testZeroBlockchainID() public {
         vm.expectRevert(_formatErrorMessage("zero source blockchain ID"));
-        new ERC20Destination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            address(this),
-            bytes32(0),
-            TOKEN_SOURCE_ADDRESS,
-            MOCK_TOKEN_NAME,
-            MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
-        );
+        new ERC20Destination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: address(this),
+            sourceBlockchainID: bytes32(0),
+            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+            tokenName: MOCK_TOKEN_NAME,
+            tokenSymbol: MOCK_TOKEN_SYMBOL,
+            tokenDecimals: MOCK_TOKEN_DECIMALS
+        });
     }
 
     function testDeployToSameBlockchain() public {
         vm.expectRevert(_formatErrorMessage("cannot deploy to same blockchain as source"));
-        new ERC20Destination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            address(this),
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            TOKEN_SOURCE_ADDRESS,
-            MOCK_TOKEN_NAME,
-            MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
-        );
+        new ERC20Destination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: address(this),
+            sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+            tokenName: MOCK_TOKEN_NAME,
+            tokenSymbol: MOCK_TOKEN_SYMBOL,
+            tokenDecimals: MOCK_TOKEN_DECIMALS
+        });
     }
 
     function testZeroTokenSourceAddress() public {
         vm.expectRevert(_formatErrorMessage("zero token source address"));
-        new ERC20Destination(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            address(this),
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            address(0),
-            MOCK_TOKEN_NAME,
-            MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
-        );
+        new ERC20Destination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: address(this),
+            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            tokenSourceAddress: address(0),
+            tokenName: MOCK_TOKEN_NAME,
+            tokenSymbol: MOCK_TOKEN_SYMBOL,
+            tokenDecimals: MOCK_TOKEN_DECIMALS
+        });
     }
-    //solhint-enable func-named-parameters
 
-    function _checkWithdrawal(address recipient, uint256 amount) internal override {
+    function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), recipient, amount);
     }

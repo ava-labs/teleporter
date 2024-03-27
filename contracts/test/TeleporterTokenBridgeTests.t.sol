@@ -12,14 +12,13 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-
 import {
     ITeleporterTokenBridge, SendTokensInput
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract ITeleporterTokenBridgeTest is Test {
+abstract contract TeleporterTokenBridgeTest is Test {
     using SafeERC20 for IERC20;
 
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
@@ -69,7 +68,7 @@ abstract contract ITeleporterTokenBridgeTest is Test {
     function testInsufficientAmountToCoverFees() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = 1;
-        _checkDeposit(input.primaryFee);
+        _setUpExpectedDeposit(input.primaryFee);
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
         _send(input, input.primaryFee);
     }
@@ -124,7 +123,7 @@ abstract contract ITeleporterTokenBridgeTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        _checkDeposit(amount);
+        _setUpExpectedDeposit(amount);
 
         _checkExpectedTeleporterCalls(input, bridgedAmount);
         vm.expectEmit(true, true, true, true, address(tokenBridge));
@@ -132,9 +131,9 @@ abstract contract ITeleporterTokenBridgeTest is Test {
         _send(input, amount);
     }
 
-    function _checkDeposit(uint256 amount) internal virtual;
+    function _setUpExpectedDeposit(uint256 amount) internal virtual;
 
-    function _checkWithdrawal(address recipient, uint256 amount) internal virtual;
+    function _checkExpectedWithdrawal(address recipient, uint256 amount) internal virtual;
 
     function _checkExpectedTeleporterCalls(
         SendTokensInput memory input,

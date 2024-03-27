@@ -48,7 +48,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	tokenDecimals, err := wavax.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Deploy an ERC20Destination for the token source on subnet A
+	// Deploy an ERC20Destination on subnet B for the token source on subnet A
 	erc20DestinationAddress, erc20Destination := utils.DeployERC20Destination(
 		ctx,
 		fundedKey,

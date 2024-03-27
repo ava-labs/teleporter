@@ -5,12 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {ITeleporterTokenBridgeTest} from "./ITeleporterTokenBridgeTests.t.sol";
+import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenDestination, IWarpMessenger} from "../src/TeleporterTokenDestination.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 
-abstract contract TeleporterTokenDestinationTest is ITeleporterTokenBridgeTest {
+abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     TeleporterTokenDestination public tokenDestination;
 
     function setUp() public virtual {
@@ -87,7 +87,7 @@ abstract contract TeleporterTokenDestinationTest is ITeleporterTokenBridgeTest {
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(tokenDestination));
         emit WithdrawTokens(DEFAULT_RECIPIENT_ADDRESS, amount);
-        _checkWithdrawal(DEFAULT_RECIPIENT_ADDRESS, amount);
+        _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, amount);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
             TOKEN_SOURCE_ADDRESS,
