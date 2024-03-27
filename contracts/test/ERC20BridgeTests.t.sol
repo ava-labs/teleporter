@@ -33,5 +33,7 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
             address(feeToken),
             abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), amount))
         );
+        vm.expectEmit(true, true, true, true, address(feeToken));
+        emit Transfer(address(this), address(tokenBridge), amount);
     }
 }
