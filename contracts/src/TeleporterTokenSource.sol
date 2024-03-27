@@ -40,9 +40,8 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             => mapping(address destinationBridgeAddress => uint256 balance)
     ) public bridgedBalances;
 
-    // TODO: these are values brought from the example ERC20Bridge contract.
-    // Need to figure out appropriate values.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 300_000;
+    /// @notice Required gas limit for sending tokens to another chain.
+    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 70_000;
 
     /**
      * @notice Initializes this source token bridge instance to send
@@ -106,14 +105,13 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
-                // TODO: Set requiredGasLimit
                 requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: input.allowedRelayerAddresses,
                 message: abi.encode(input.recipient, amount)
             })
         );
 
-        emit SendTokens(messageID, msg.sender, amount);
+        emit SendTokens(messageID, msg.sender, input, amount);
     }
 
     /**
@@ -150,6 +148,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 input.destinationBridgeAddress == address(this),
                 "TeleporterTokenSource: invalid bridge address"
             );
+            emit WithdrawTokens(input.recipient, amount);
             _withdraw(input.recipient, amount);
             return;
         }

@@ -106,6 +106,8 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
         });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        vm.expectEmit(true, true, true, true, address(tokenSource));
+        emit WithdrawTokens(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
         _checkWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -141,7 +143,9 @@ abstract contract TeleporterTokenSourceTest is ITeleporterTokenBridgeTest {
         _checkExpectedTeleporterCalls(input, bridgedAmount);
 
         vm.expectEmit(true, true, true, true, address(tokenSource));
-        emit SendTokens(_MOCK_MESSAGE_ID, address(MOCK_TELEPORTER_MESSENGER_ADDRESS), bridgedAmount);
+        emit SendTokens(
+            _MOCK_MESSAGE_ID, address(MOCK_TELEPORTER_MESSENGER_ADDRESS), input, bridgedAmount
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(

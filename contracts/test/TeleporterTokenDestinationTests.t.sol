@@ -85,6 +85,8 @@ abstract contract TeleporterTokenDestinationTest is ITeleporterTokenBridgeTest {
     function testReceiveWithdrawSuccess() public {
         uint256 amount = 2;
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        vm.expectEmit(true, true, true, true, address(tokenDestination));
+        emit WithdrawTokens(DEFAULT_RECIPIENT_ADDRESS, amount);
         _checkWithdrawal(DEFAULT_RECIPIENT_ADDRESS, amount);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID,

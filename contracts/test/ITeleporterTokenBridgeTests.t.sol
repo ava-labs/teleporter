@@ -41,7 +41,14 @@ abstract contract ITeleporterTokenBridgeTest is Test {
     ITeleporterTokenBridge public tokenBridge;
     IERC20 public feeToken;
 
-    event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
+    event SendTokens(
+        bytes32 indexed teleporterMessageID,
+        address indexed sender,
+        SendTokensInput input,
+        uint256 amount
+    );
+
+    event WithdrawTokens(address indexed recipient, uint256 amount);
 
     event Transfer(address indexed from, address indexed to, uint256 value);
 
@@ -121,7 +128,7 @@ abstract contract ITeleporterTokenBridgeTest is Test {
 
         _checkExpectedTeleporterCalls(input, bridgedAmount);
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit SendTokens(_MOCK_MESSAGE_ID, address(this), bridgedAmount);
+        emit SendTokens(_MOCK_MESSAGE_ID, address(this), input, bridgedAmount);
         _send(input, amount);
     }
 

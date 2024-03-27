@@ -36,7 +36,16 @@ struct SendTokensInput {
 interface ITeleporterTokenBridge is ITeleporterReceiver {
     /**
      * @notice Emitted when tokens are sent to another chain.
-     * TODO: might want to add SendTokensInput as a parameter
      */
-    event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
+    event SendTokens(
+        bytes32 indexed teleporterMessageID,
+        address indexed sender,
+        SendTokensInput input,
+        uint256 amount
+    );
+
+    /**
+     * @notice Emitted when tokens are withdrawn from the token bridge contract.
+     */
+    event WithdrawTokens(address indexed recipient, uint256 amount);
 }
