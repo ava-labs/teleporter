@@ -115,7 +115,7 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         });
     }
 
-    function _checkWithdrawal(address recipient, uint256 amount) internal override {
+    function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), recipient, amount);
     }

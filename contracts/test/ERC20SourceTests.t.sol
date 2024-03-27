@@ -60,7 +60,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         );
     }
 
-    function _checkWithdrawal(address recipient, uint256 amount) internal override {
+    function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectCall(
             address(mockERC20), abi.encodeCall(IERC20.transfer, (address(recipient), amount))
         );

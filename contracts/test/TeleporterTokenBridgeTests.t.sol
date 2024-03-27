@@ -61,7 +61,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function testInsufficientAmountToCoverFees() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = 1;
-        _checkDeposit(input.primaryFee);
+        _setUpExpectedDeposit(input.primaryFee);
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
         _send(input, input.primaryFee);
     }
@@ -116,7 +116,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        _checkDeposit(amount);
+        _setUpExpectedDeposit(amount);
 
         _checkExpectedTeleporterCalls(input, bridgedAmount);
         vm.expectEmit(true, true, true, true, address(tokenBridge));
@@ -124,9 +124,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
         _send(input, amount);
     }
 
-    function _checkDeposit(uint256 amount) internal virtual;
+    function _setUpExpectedDeposit(uint256 amount) internal virtual;
 
-    function _checkWithdrawal(address recipient, uint256 amount) internal virtual;
+    function _checkExpectedWithdrawal(address recipient, uint256 amount) internal virtual;
 
     function _checkExpectedTeleporterCalls(
         SendTokensInput memory input,

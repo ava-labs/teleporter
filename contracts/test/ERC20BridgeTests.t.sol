@@ -25,9 +25,10 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
         erc20Bridge.send(input, amount);
     }
 
-    function _checkDeposit(uint256 amount) internal virtual override {
-        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
+    function _setUpExpectedDeposit(uint256 amount) internal virtual override {
+        // Increase the allowance of the bridge to transfer the funds from the user
         feeToken.safeIncreaseAllowance(address(tokenBridge), amount);
+        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
         vm.expectCall(
             address(feeToken),
             abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), amount))

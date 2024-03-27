@@ -25,7 +25,7 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
         nativeTokenBridge.send{value: amount}(input);
     }
 
-    function _checkDeposit(uint256 amount) internal virtual override {
+    function _setUpExpectedDeposit(uint256 amount) internal virtual override {
         vm.expectCall(address(feeToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
         vm.expectEmit(true, true, true, true, address(feeToken));
         emit Deposit(address(nativeTokenBridge), amount);

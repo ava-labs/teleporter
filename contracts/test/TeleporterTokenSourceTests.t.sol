@@ -106,7 +106,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        _checkWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
+        _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
