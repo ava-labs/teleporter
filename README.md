@@ -54,7 +54,7 @@ To run the E2E tests locally, you'll need to install Gingko following the instru
 Then run the following command from the root of the repository:
 
 ```bash
-./scripts/local/e2e_test.sh
+./scripts/e2e_test.sh
 ```
 
 ### Run specific E2E tests
@@ -62,13 +62,13 @@ Then run the following command from the root of the repository:
 To run a specific E2E test, specify the environment variable `GINKGO_FOCUS`, which will then look for test descriptions that match the provided input. For example, to run the `Bridge an ERC20 token between two Subnets` test:
 
 ```bash
-GINKGO_FOCUS="Bridge an ERC20 token between two Subnets" ./scripts/local/e2e_test.sh
+GINKGO_FOCUS="Bridge an ERC20 token between two Subnets" ./scripts/e2e_test.sh
 ```
 
 A substring of the full test description can be used as well:
 
 ```bash
-GINKGO_FOCUS="Bridge an ERC20 token" ./scripts/local/e2e_test.sh
+GINKGO_FOCUS="Bridge an ERC20 token" ./scripts/e2e_test.sh
 ```
 
 The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all `ERC20Source` E2E tests:
@@ -82,5 +82,5 @@ The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test 
 ```
 
 ```bash
-GINKGO_LABEL_FILTER="ERC20Source" ./scripts/local/e2e_test.sh
+GINKGO_LABEL_FILTER="ERC20Source" ./scripts/e2e_test.sh
 ```

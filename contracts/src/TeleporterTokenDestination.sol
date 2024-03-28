@@ -107,7 +107,6 @@ abstract contract TeleporterTokenDestination is
         // Deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit
         amount = _deposit(amount);
-        require(amount > 0, "TeleporterTokenDestination: zero send amount");
         require(
             amount > input.primaryFee + input.secondaryFee,
             "TeleporterTokenDestination: insufficient amount to cover fees"
