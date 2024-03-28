@@ -15,14 +15,13 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+/**
+ * Deploy a native token source on the primary network
+ * Deploys ERC20Destination to Subnet A
+ * Bridges C-Chain native tokens to Subnet A
+ * Bridge back tokens from Subnet A to C-Chain
+ */
 func NativeSourceERC20Destination(network interfaces.Network) {
-	/**
-	 * Deploy a native token source on the primary network
-	 * Deploys ERC20Destination to Subnet A
-	 * Bridges C-chain native tokens to Subnet A
-	 * Bridge back tokens from Subnet A to C-chain
-	 */
-
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -71,7 +70,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-chain to recipient on subnet A
+	// Send tokens from C-Chain to recipient on subnet A
 	input := nativetokensource.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress,
@@ -132,7 +131,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		AllowedRelayerAddresses:  []common.Address{},
 	}
 
-	// Send tokens on Subnet A back for native tokens on C-chain
+	// Send tokens on Subnet A back for native tokens on C-Chain
 	receipt, bridgedAmount = utils.SendERC20Destination(
 		ctx,
 		subnetAInfo,

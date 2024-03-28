@@ -15,15 +15,14 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+/**
+ * Deploy a native token source on the primary network
+ * Deploys ERC20Destination to Subnet A and Subnet B
+ * Bridges C-Chain native tokens to Subnet A
+ * Bridge tokens from Subnet A to Subnet B through multihop
+ * Brige back tokens from Subnet B to Subnet A through multihop
+ */
 func NativeTokenSourceMultihop(network interfaces.Network) {
-	/**
-	 * Deploy a native token source on the primary network
-	 * Deploys ERC20Destination to Subnet A and Subnet B
-	 * Bridges C-chain native tokens to Subnet A
-	 * Bridge tokens from Subnet A to Subnet B through multihop
-	 * Brige back tokens from Subnet B to Subnet A through multihop
-	 */
-
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()

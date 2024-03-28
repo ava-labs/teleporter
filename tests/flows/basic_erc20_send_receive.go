@@ -15,14 +15,13 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+/**
+ * Deploy an ERC20 token source on the primary network
+ * Deploys ERC20Destination to Subnet A
+ * Bridges C-Chain example erc20 tokens to Subnet A
+ * Bridge tokens from Subnet A to C-Chain
+ */
 func BasicERC20SendReceive(network interfaces.Network) {
-	/**
-	 * Deploy an ERC20 token source on the primary network
-	 * Deploys ERC20Destination to Subnet A
-	 * Bridges C-chain example erc20 tokens to Subnet A
-	 * Bridge tokens from Subnet A to C-chain
-	 */
-
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -71,7 +70,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-chain to recipient on subnet A
+	// Send tokens from C-Chain to recipient on subnet A
 	input := erc20source.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress,

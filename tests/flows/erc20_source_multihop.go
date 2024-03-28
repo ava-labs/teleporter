@@ -14,15 +14,14 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+/**
+ * Deploy a erc20 token source on the primary network
+ * Deploys ERC20Destination to Subnet A and Subnet B
+ * Bridges C-Chain example erc20 tokens to Subnet A
+ * Bridge tokens from Subnet A to Subnet B through multihop
+ * Brige back tokens from Subnet B to Subnet A through multihop
+ */
 func ERC20SourceMultihop(network interfaces.Network) {
-	/**
-	 * Deploy a erc20 token source on the primary network
-	 * Deploys ERC20Destination to Subnet A and Subnet B
-	 * Bridges C-chain example erc20 tokens to Subnet A
-	 * Bridge tokens from Subnet A to Subnet B through multihop
-	 * Brige back tokens from Subnet B to Subnet A through multihop
-	 */
-
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -84,7 +83,7 @@ func ERC20SourceMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-chain to Subnet A
+	// Send tokens from C-Chain to Subnet A
 	input := erc20source.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress_A,

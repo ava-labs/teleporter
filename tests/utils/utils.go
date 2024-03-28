@@ -268,7 +268,8 @@ func SendERC20MultihopAndVerify(
 		AllowedRelayerAddresses:  []common.Address{},
 	}
 
-	receipt, bridgedAmount := SendERC20Destination(
+	// Send tokens through a multihop transfer
+	originReceipt, bridgedAmount := SendERC20Destination(
 		ctx,
 		fromSubnet,
 		fromBridge,
@@ -278,17 +279,22 @@ func SendERC20MultihopAndVerify(
 		recipientKey,
 	)
 
-	receipt = network.RelayMessage(
+	// Relay the first message back to the home-chain, in this case C-Chain,
+	// which then performs the multihop transfer to the destination chain
+	intermediateReceipt := network.RelayMessage(
 		ctx,
-		receipt,
+		originReceipt,
 		fromSubnet,
 		cChainInfo,
 		true,
 	)
 
-	receipt = network.RelayMessage(
+	// When we relay the above message to the home-chain, a multihop transfer
+	// is performed to the destination chain. Parse for the send tokens event
+	// and relay to final destination.
+	destinationReceipt := network.RelayMessage(
 		ctx,
-		receipt,
+		intermediateReceipt,
 		cChainInfo,
 		toSubnet,
 		true,
@@ -297,7 +303,7 @@ func SendERC20MultihopAndVerify(
 	CheckERC20DestinationWithdrawal(
 		ctx,
 		toBridge,
-		receipt,
+		destinationReceipt,
 		recipientAddress,
 		bridgedAmount,
 	)
