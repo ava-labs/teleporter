@@ -18,7 +18,7 @@ import (
 /**
  * Deploy an ERC20 token source on the primary network
  * Deploys ERC20Destination to Subnet A
- * Bridges C-Chain example erc20 tokens to Subnet A
+ * Bridges C-Chain example ERC20 tokens to Subnet A
  * Bridge tokens from Subnet A to C-Chain
  */
 func BasicERC20SendReceive(network interfaces.Network) {

@@ -15,9 +15,9 @@ import (
 )
 
 /**
- * Deploy a erc20 token source on the primary network
+ * Deploy a ERC20 token source on the primary network
  * Deploys ERC20Destination to Subnet A and Subnet B
- * Bridges C-Chain example erc20 tokens to Subnet A
+ * Bridges C-Chain example ERC20 tokens to Subnet A
  * Bridge tokens from Subnet A to Subnet B through multihop
  * Brige back tokens from Subnet B to Subnet A through multihop
  */
