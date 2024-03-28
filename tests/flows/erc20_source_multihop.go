@@ -44,7 +44,7 @@ func ERC20SourceMultihop(network interfaces.Network) {
 		sourceTokenAddress,
 	)
 
-	// Token representation on subnet B will have same name, symbol, and decimals
+	// Token representation on subnets A and B will have same name, symbol, and decimals
 	tokenName, err := sourceToken.Name(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	tokenSymbol, err := sourceToken.Symbol(&bind.CallOpts{})
