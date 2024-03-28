@@ -33,7 +33,11 @@ import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
  * @dev This contract pairs with exactly one `TokenSource` contract on the source chain.
  * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
  */
-contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDestination, TeleporterTokenDestination {
+contract NativeTokenDestination is
+    TeleporterOwnerUpgradeable,
+    INativeTokenDestination,
+    TeleporterTokenDestination
+{
     /**
      * @notice The address where the burned transaction fees are credited.
      *
@@ -131,12 +135,18 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         uint256 initialReserveImbalance_,
         uint256 decimalsShift,
         bool multiplyOnReceive_
-    ) TeleporterTokenDestination(teleporterRegistryAddress, teleporterManager, sourceBlockchainID_, tokenSourceAddress_, feeTokenAddress_) {
-        require(
-            feeTokenAddress != address(0), "NativeTokenDestination: zero feeTokenAddress"
-        );
+    )
+        TeleporterTokenDestination(
+            teleporterRegistryAddress,
+            teleporterManager,
+            sourceBlockchainID_,
+            tokenSourceAddress_,
+            feeTokenAddress_
+        )
+    {
+        require(feeTokenAddress != address(0), "NativeTokenDestination: zero feeTokenAddress");
         token = IWrappedNativeToken(feeTokenAddress);
-        
+
         require(
             initialReserveImbalance_ != 0, "NativeTokenDestination: zero initial reserve imbalance"
         );
@@ -154,12 +164,12 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
 
-        // TODO we need to guarantee that this function deposits the whole amount, or find a workaround. 
+        // TODO we need to guarantee that this function deposits the whole amount, or find a workaround.
         _deposit(input.primaryFee);
 
         uint256 scaledAmount = _scaleTokens(msg.value - input.primaryFee, false);
         require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to transfer");
-        
+
         _send(input, scaledAmount);
     }
 
@@ -172,9 +182,8 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     ) external {
         uint256 adjustedFeeAmount;
         if (feeAmount > 0) {
-            adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(feeTokenAddress), feeAmount
-            );
+            adjustedFeeAmount =
+                SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
         }
 
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
