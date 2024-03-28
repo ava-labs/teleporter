@@ -136,7 +136,7 @@ func NativeTokenSourceMultihop(network interfaces.Network) {
 		recipientAddress,
 		subnetAInfo,
 		erc20Destination_A,
-		erc20DestinationAddress_B,
+		erc20DestinationAddress_A,
 		subnetBInfo,
 		erc20Destination_B,
 		erc20DestinationAddress_B,
