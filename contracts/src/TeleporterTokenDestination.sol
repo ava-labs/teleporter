@@ -107,15 +107,11 @@ abstract contract TeleporterTokenDestination is
         // Deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit
         amount = _deposit(amount);
-        require(amount > 0, "TeleporterTokenDestination: zero send amount");
         require(
             amount > input.primaryFee + input.secondaryFee,
             "TeleporterTokenDestination: insufficient amount to cover fees"
         );
 
-        // TODO: For NativeTokenDestination before this _send, we should exchange the fee amount
-        // in native tokens for the fee amount in erc20 tokens. For ERC20Destination, we simply
-        // safeTransferFrom the full amount.
         amount -= input.primaryFee;
         _burn(amount);
 

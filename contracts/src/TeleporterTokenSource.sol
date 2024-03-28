@@ -92,7 +92,6 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         if (!isMultihop) {
             amount = _deposit(amount);
         }
-        require(amount > 0, "TeleporterTokenSource: zero send amount");
         require(
             amount > input.primaryFee, "TeleporterTokenSource: insufficient amount to cover fees"
         );
