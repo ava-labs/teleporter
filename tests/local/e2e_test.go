@@ -19,8 +19,9 @@ const (
 	teleporterByteCodeFile = "./contracts/lib/teleporter/contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 	warpGenesisFile        = "./tests/utils/warp-genesis.json"
 
-	erc20SourceLabel      = "ERC20Source"
-	erc20DestinationLabel = "ERC20Destination"
+	erc20SourceLabel       = "ERC20Source"
+	erc20DestinationLabel  = "ERC20Destination"
+	nativeTokenSourceLabel = "NativeTokenSource"
 )
 
 var (
@@ -68,15 +69,24 @@ var _ = ginkgo.AfterSuite(func() {
 })
 
 var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
-	// Teleporter tests
 	ginkgo.It("Bridge an ERC20 token between two Subnets",
 		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel),
 		func() {
 			flows.BasicERC20SendReceive(LocalNetworkInstance)
 		})
-
 	ginkgo.It("Bridge a native token to an ERC20 token",
+		ginkgo.Label(nativeTokenSourceLabel, erc20DestinationLabel),
 		func() {
 			flows.NativeSourceERC20Destination(LocalNetworkInstance)
+		})
+	ginkgo.It("Bridge an ERC20 token with ERC20Source multihop",
+		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel),
+		func() {
+			flows.ERC20SourceMultihop(LocalNetworkInstance)
+		})
+	ginkgo.It("Bridge an ERC20 token with NativeTokenSource multihop",
+		ginkgo.Label(nativeTokenSourceLabel, erc20DestinationLabel),
+		func() {
+			flows.NativeTokenSourceMultihop(LocalNetworkInstance)
 		})
 })
