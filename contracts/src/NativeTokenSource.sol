@@ -20,6 +20,8 @@ import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
  * @notice This contract is an {INativeTokenBridge} that sends native tokens to another chain's
  * {ITeleporterTokenBridge} instance, and gets represented by the tokens of that destination
  * token bridge instance.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     /**
@@ -60,6 +62,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * Deposits the native tokens sent to this contract
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
+        // TODO: Do this need a before and after check similar to SafeERC20TransferFrom.safeTransferFrom?
         token.deposit{value: amount}();
         return amount;
     }

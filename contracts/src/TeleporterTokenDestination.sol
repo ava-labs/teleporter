@@ -19,6 +19,8 @@ import {IWarpMessenger} from
 /**
  * @title TeleporterTokenDestination
  * @dev Abstract contract for a Teleporter token bridge that receives tokens from a {TeleporterTokenSource} in exchange for the tokens of this token bridge instance.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 abstract contract TeleporterTokenDestination is
     ITeleporterTokenBridge,
