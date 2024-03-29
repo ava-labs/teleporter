@@ -41,7 +41,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
     ) public bridgedBalances;
 
     /// @notice Required gas limit for sending tokens to another chain.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 70_000;
+    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 80_000;
 
     /**
      * @notice Initializes this source token bridge instance to send
@@ -75,6 +75,10 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         uint256 amount,
         bool isMultihop
     ) internal virtual {
+        require(
+            input.destinationBlockchainID != bytes32(0),
+            "TeleporterTokenSource: zero destination blockchain ID"
+        );
         require(
             input.destinationBlockchainID != blockchainID,
             "TeleporterTokenSource: cannot bridge to same chain"

@@ -51,6 +51,13 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     event Transfer(address indexed from, address indexed to, uint256 value);
 
+    function testZeroDestinationBlockchainID() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBlockchainID = bytes32(0);
+        vm.expectRevert(_formatErrorMessage("zero destination blockchain ID"));
+        _send(input, 0);
+    }
+
     function testZeroDestinationBridge() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(0);

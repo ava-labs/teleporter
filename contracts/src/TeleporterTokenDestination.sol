@@ -35,7 +35,7 @@ abstract contract TeleporterTokenDestination is
     address public immutable feeTokenAddress;
 
     /// @notice Required gas limit for sending tokens to another chain.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 100_000;
+    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 220_000;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
@@ -83,6 +83,10 @@ abstract contract TeleporterTokenDestination is
      * - `amount` must be greater than `input.primaryFee`
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal virtual {
+        require(
+            input.destinationBlockchainID != bytes32(0),
+            "TeleporterTokenDestination: zero destination blockchain ID"
+        );
         require(
             input.destinationBridgeAddress != address(0),
             "TeleporterTokenDestination: zero destination bridge address"
