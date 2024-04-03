@@ -110,8 +110,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             destinationBridgeAddress: TOKEN_SOURCE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: 0,
-            secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            secondaryFee: 0
         });
     }
 
@@ -134,8 +133,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 destinationBridgeAddress: input.destinationBridgeAddress,
                 recipient: input.recipient,
                 primaryFee: input.secondaryFee,
-                secondaryFee: 0,
-                allowedRelayerAddresses: input.allowedRelayerAddresses
+                secondaryFee: 0
             }),
             amount
         );

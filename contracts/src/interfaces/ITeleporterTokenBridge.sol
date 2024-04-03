@@ -27,7 +27,7 @@ struct SendTokensInput {
     address recipient;
     uint256 primaryFee;
     uint256 secondaryFee;
-    address[] allowedRelayerAddresses;
+    uint256 requiredGasLimit;
 }
 
 /**

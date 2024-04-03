@@ -35,7 +35,7 @@ abstract contract TeleporterTokenDestination is
     address public immutable feeTokenAddress;
 
     /// @notice Required gas limit for sending tokens to another chain.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 220_000;
+    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 100_000;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
@@ -124,7 +124,7 @@ abstract contract TeleporterTokenDestination is
                 destinationAddress: tokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
                 requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: input.allowedRelayerAddresses,
+                allowedRelayerAddresses: new address[](0),
                 message: abi.encode(
                     SendTokensInput({
                         destinationBlockchainID: input.destinationBlockchainID,
@@ -132,8 +132,7 @@ abstract contract TeleporterTokenDestination is
                         recipient: input.recipient,
                         primaryFee: input.secondaryFee,
                         secondaryFee: 0,
-                        // TODO: Does multihop allowed relayer need to be separate parameter?
-                        allowedRelayerAddresses: input.allowedRelayerAddresses
+                        requiredGasLimit: input.requiredGasLimit
                     }),
                     amount
                     )

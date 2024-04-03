@@ -151,7 +151,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
             requiredGasLimit: _requiredGasLimit(),
-            allowedRelayerAddresses: input.allowedRelayerAddresses,
+            allowedRelayerAddresses: new address[](0),
             message: _encodeMessage(input, bridgeAmount)
         });
 

@@ -60,8 +60,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                     destinationBridgeAddress: address(this),
                     recipient: DEFAULT_RECIPIENT_ADDRESS,
                     primaryFee: 0,
-                    secondaryFee: 0,
-                    allowedRelayerAddresses: new address[](0)
+                    secondaryFee: 0
                 }),
                 1
             )
@@ -82,8 +81,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                     destinationBridgeAddress: address(0),
                     recipient: DEFAULT_RECIPIENT_ADDRESS,
                     primaryFee: 0,
-                    secondaryFee: 0,
-                    allowedRelayerAddresses: new address[](0)
+                    secondaryFee: 0
                 }),
                 1
             )
@@ -101,8 +99,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             destinationBridgeAddress: address(tokenSource),
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: feeAmount,
-            secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            secondaryFee: 0
         });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -136,8 +133,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: feeAmount,
-            secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            secondaryFee: 0
         });
 
         _checkExpectedTeleporterCalls(input, bridgedAmount);
@@ -171,8 +167,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: feeAmount,
-            secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            secondaryFee: 0
         });
 
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
@@ -207,8 +202,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: 0,
-            secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            secondaryFee: 0
         });
     }
 
