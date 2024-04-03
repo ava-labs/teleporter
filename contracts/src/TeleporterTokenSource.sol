@@ -85,6 +85,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             "TeleporterTokenSource: zero destination bridge address"
         );
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
+        require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
 
         // If this send is not a multihop, deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit. If it is a multihop, the amount is already

@@ -34,7 +34,7 @@ abstract contract TeleporterTokenDestination is
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
     address public immutable feeTokenAddress;
 
-    /// @notice Required gas limit for sending tokens to another chain.
+    /// @notice Required gas limit for sending tokens back to the source blockchain.
     uint256 public constant SEND_TOKENS_REQUIRED_GAS = 100_000;
 
     /**
@@ -100,6 +100,11 @@ abstract contract TeleporterTokenDestination is
                 input.destinationBridgeAddress == tokenSourceAddress,
                 "TeleporterTokenDestination: invalid destination bridge address"
             );
+            require(
+                input.requiredGasLimit == 0,
+                "TeleporterTokenDestination: non-zero required gas limit"
+            );
+            require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
         } else if (input.destinationBlockchainID == blockchainID) {
             require(
                 input.destinationBridgeAddress != address(this),
