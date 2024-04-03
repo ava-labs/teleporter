@@ -173,6 +173,10 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function _expectedRequiredGasLimit() internal view virtual override returns (uint256) {
+        return DEFAULT_REQUIRED_GAS_LIMIT;
+    }
+
     function _createDefaultSendTokensInput()
         internal
         view
@@ -198,10 +202,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             secondaryFee: 0,
             requiredGasLimit: 0
         });
-    }
-
-    function _expectedRequiredGasLimit() internal view virtual override returns (uint256) {
-        return DEFAULT_REQUIRED_GAS_LIMIT;
     }
 
     function _formatErrorMessage(string memory message)

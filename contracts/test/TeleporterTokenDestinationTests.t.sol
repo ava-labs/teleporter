@@ -109,6 +109,10 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function _expectedRequiredGasLimit() internal view virtual override returns (uint256) {
+        return tokenDestination.SEND_TOKENS_REQUIRED_GAS();
+    }
+
     function _createDefaultSendTokensInput()
         internal
         pure
@@ -123,10 +127,6 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             secondaryFee: 0,
             requiredGasLimit: 0
         });
-    }
-
-    function _expectedRequiredGasLimit() internal view virtual override returns (uint256) {
-        return tokenDestination.SEND_TOKENS_REQUIRED_GAS();
     }
 
     function _formatErrorMessage(string memory message)

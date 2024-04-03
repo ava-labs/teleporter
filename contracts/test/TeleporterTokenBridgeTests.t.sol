@@ -176,13 +176,13 @@ abstract contract TeleporterTokenBridgeTest is Test {
         );
     }
 
+    function _expectedRequiredGasLimit() internal view virtual returns (uint256);
+
     function _createDefaultSendTokensInput()
         internal
         view
         virtual
         returns (SendTokensInput memory);
-
-    function _expectedRequiredGasLimit() internal view virtual returns (uint256);
 
     function _formatErrorMessage(string memory message)
         internal
