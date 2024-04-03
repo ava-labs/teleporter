@@ -176,11 +176,18 @@ contract NativeTokenDestination is
         require(
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
+        uint256 amount = msg.value;
+        require(
+            amount > input.primaryFee + input.secondaryFee,
+            "NativeTokenDestination: insufficient amount to cover fees"
+        );
 
         // TODO we need to guarantee that this function deposits the whole amount, or find a workaround.
-        _deposit(input.primaryFee);
+        if (input.primaryFee > 0) {
+            _deposit(input.primaryFee);
+            amount -= input.primaryFee;
+        }
 
-        uint256 amount = msg.value - input.primaryFee;
         _burn(amount);
 
         _send(input, _scaleTokens(amount, false));
@@ -260,8 +267,6 @@ contract NativeTokenDestination is
      * @dev See {TeleportTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
-        require(recipient != address(0), "NativeTokenDestination: zero recipient address");
-
         uint256 scaledAmount = _scaleTokens(amount, true);
 
         // If the contract has not yet been collateralized, we will deduct as many tokens

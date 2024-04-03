@@ -66,7 +66,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         amount = _deposit(amount);
         require(
             amount > input.primaryFee + input.secondaryFee,
-            "TeleporterTokenDestination: insufficient amount to cover fees"
+            "ERC20Destination: insufficient amount to cover fees"
         );
 
         amount -= input.primaryFee;

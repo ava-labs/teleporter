@@ -25,6 +25,11 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function setUp() public override {
         TeleporterTokenDestinationTest.setUp();
 
+        vm.mockCall(
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(INativeMinter.mintNativeCoin.selector),
+            ""
+        );
         mockWrappedToken = new ExampleWAVAX();
         app = new NativeTokenDestination({
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
