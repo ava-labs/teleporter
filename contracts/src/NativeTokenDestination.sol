@@ -5,14 +5,13 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenDestination} from "./TeleporterTokenDestination.sol";
+import {TeleporterTokenDestination, TeleporterFeeInfo, TeleporterMessageInput} from "./TeleporterTokenDestination.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./interfaces/INativeTokenDestination.sol";
-import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
@@ -159,31 +158,43 @@ contract NativeTokenDestination is
         multiplyOnReceive = multiplyOnReceive_;
     }
 
+    /**
+     * @notice Receives native tokens transferred to this contract.
+     * @dev This function is called when the token bridge is withdrawing native tokens to
+     * transfer to the recipient. The caller must be the wrapped native token contract.
+     */
+    receive() external payable {
+        require(msg.sender == feeTokenAddress, "NativeTokenDestination: invalid receive payable sender");
+    }
+
+    /**
+     * @dev See {INativeTokenBridge-send}.
+     */
     function send(SendTokensInput calldata input) external payable {
         require(
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
 
         // TODO we need to guarantee that this function deposits the whole amount, or find a workaround.
-        _deposit(input.primaryFee);
+        uint256 amount = msg.value;
+        _deposit(amount);
+        // token.approve(address(_getTeleporterMessenger()), input.primaryFee);
 
-        uint256 scaledAmount = _scaleTokens(msg.value - input.primaryFee, false);
-        require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to transfer");
+        amount -= input.primaryFee;
+        _burn(amount);
 
-        _send(input, scaledAmount);
+        _send(input, _scaleTokens(amount, false));
     }
 
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
     function reportBurnedTxFees(
-        uint256 feeAmount,
         address[] calldata allowedRelayerAddresses
-    ) external {
+    ) external payable {
         uint256 adjustedFeeAmount;
-        if (feeAmount > 0) {
-            adjustedFeeAmount =
-                SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+        if (msg.value > 0) {
+            adjustedFeeAmount = _deposit(msg.value);
         }
 
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
@@ -243,7 +254,8 @@ contract NativeTokenDestination is
      * @dev See {TeleportTokenDestination-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return SafeERC20TransferFrom.safeTransferFrom(token, amount);
+        token.deposit{value: amount}();
+        return amount;
     }
 
     /**
@@ -288,6 +300,7 @@ contract NativeTokenDestination is
      */
     function _burn(uint256 amount) internal virtual override {
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
+        token.withdraw(amount);
         Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), amount);
     }
 

@@ -104,17 +104,6 @@ abstract contract TeleporterTokenDestination is
             );
         }
 
-        // Deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit
-        amount = _deposit(amount);
-        require(
-            amount > input.primaryFee + input.secondaryFee,
-            "TeleporterTokenDestination: insufficient amount to cover fees"
-        );
-
-        amount -= input.primaryFee;
-        _burn(amount);
-
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,

@@ -29,6 +29,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
     address public constant TOKEN_SOURCE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
+    address public constant NATIVE_MINTER_PRECOMPILE_ADDRESS =
+        address(0x0200000000000000000000000000000000000001);
 
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
@@ -36,6 +38,12 @@ abstract contract TeleporterTokenBridgeTest is Test {
         0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
     bytes32 internal constant _MOCK_MESSAGE_ID =
         bytes32(hex"1111111111111111111111111111111111111111111111111111111111111111");
+
+    uint256 internal constant _DEFAULT_FEE_AMOUNT = 123456;
+    uint256 internal constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
+    uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE  = 1e18;
+    uint256 internal constant _DEFAULT_DECIMALS_SHIFT = 1;
+    uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 10 ** _DEFAULT_DECIMALS_SHIFT;
 
     ITeleporterTokenBridge public tokenBridge;
     IERC20 public feeToken;

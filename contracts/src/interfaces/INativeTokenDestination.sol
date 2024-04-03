@@ -34,14 +34,6 @@ interface INativeTokenDestination is INativeTokenBridge {
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     /**
-     * @dev Sends a message to burn transaction fees from this chain on the source chain.
-     */
-    function reportBurnedTxFees(
-        uint256 feeAmount,
-        address[] calldata allowedRelayerAddresses
-    ) external;
-
-    /**
      * @dev Returns true if the reserve imbalance for this contract has been accounted for.
      *  When this is true, all tokens sent to this chain will be minted, and sending tokens
      *  to the source chain is allowed.

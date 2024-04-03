@@ -99,7 +99,6 @@ func NativeTokenSourceMultihop(network interfaces.Network) {
 		ctx,
 		cChainInfo,
 		nativeTokenSource,
-		nativeTokenSourceAddress,
 		input,
 		amount,
 		fundedKey,

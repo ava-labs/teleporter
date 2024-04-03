@@ -6,6 +6,7 @@ package utils
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -13,8 +14,8 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	erc20destination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Destination"
 	erc20source "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Source"
-	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
 	nativetokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenDestination"
+	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
 	examplewavax "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleWAVAX"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -97,11 +98,13 @@ func DeployNativeTokenDestination(
 	decimalsShift *big.Int,
 	multiplyOnReceive bool,
 ) (common.Address, *nativetokendestination.NativeTokenDestination) {
-	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract. 
+	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract.
 	// The resulting contract address has been added to the genesis file as an admin for the Native Minter precompile.
+	// Corresponds to address 0x1337cfd2dCff6270615B90938aCB1efE79801704
 	const deployerKeyStr = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
 	Expect(err).Should(BeNil())
+	fmt.Println("Deployer Key: ", crypto.PubkeyToAddress(deployerPK.PublicKey))
 
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		deployerPK,
@@ -217,7 +220,6 @@ func SendNativeTokenSource(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
 	nativeTokenSource *nativetokensource.NativeTokenSource,
-	nativeTokenSourceAddress common.Address,
 	input nativetokensource.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
@@ -235,6 +237,34 @@ func SendNativeTokenSource(
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseSendTokens)
+	Expect(err).Should(BeNil())
+	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
+	Expect(event.Amount).Should(Equal(bridgedAmount))
+
+	return receipt, event.Amount
+}
+
+func SendNativeTokenDestination(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
+	input nativetokendestination.SendTokensInput,
+	amount *big.Int,
+	senderKey *ecdsa.PrivateKey,
+) (*types.Receipt, *big.Int) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	opts.Value = amount
+
+	tx, err := nativeTokenDestination.Send(
+		opts,
+		input,
+	)
+	Expect(err).Should(BeNil())
+	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
+
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseSendTokens)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	Expect(event.Amount).Should(Equal(bridgedAmount))
@@ -396,4 +426,31 @@ func CheckNativeTokenSourceWithdrawal(
 	Expect(err).Should(BeNil())
 	Expect(withdrawalEvent.Sender).Should(Equal(nativeTokenSourceAddress))
 	Expect(withdrawalEvent.Amount).Should(Equal(expectedAmount))
+}
+
+func CheckNativeTokenDestinationMint(
+	ctx context.Context,
+	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
+	recipient common.Address,
+	receipt *types.Receipt,
+	expectedAmount *big.Int,
+) {
+	mintEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseNativeTokensMinted)
+	Expect(err).Should(BeNil())
+	Expect(mintEvent.Recipient).Should(Equal(recipient))
+	teleporterUtils.ExpectBigEqual(mintEvent.Amount,expectedAmount)
+}
+
+func CheckNativeTokenDestinationCollateralize(
+	ctx context.Context,
+	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
+	receipt *types.Receipt,
+	expectedAmount *big.Int,
+	expectedRemaining *big.Int,
+) {
+	collateralEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseCollateralAdded)
+	Expect(err).Should(BeNil())
+	fmt.Println("log ", collateralEvent)
+	teleporterUtils.ExpectBigEqual(collateralEvent.Amount, expectedAmount)
+	teleporterUtils.ExpectBigEqual(collateralEvent.Remaining, expectedRemaining)
 }
