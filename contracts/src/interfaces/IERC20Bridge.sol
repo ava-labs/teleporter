@@ -5,7 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import {ITeleporterTokenBridge, SendTokensInput} from "./ITeleporterTokenBridge.sol";
+import {
+    ITeleporterTokenBridge, SendTokensInput, SendAndCallInput
+} from "./ITeleporterTokenBridge.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -22,4 +24,11 @@ interface IERC20Bridge is ITeleporterTokenBridge {
      * @param amount amount of tokens to send
      */
     function send(SendTokensInput calldata input, uint256 amount) external;
+
+    /**
+     * @notice Sends ERC20 tokens transferred to this contract to the destination token bridge instance.
+     * @param input specifies information for delivery of the tokens
+     * @param amount amount of tokens to send
+     */
+    function sendAndCall(SendAndCallInput calldata input, uint256 amount) external;
 }

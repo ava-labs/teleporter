@@ -31,6 +31,71 @@ struct SendTokensInput {
 }
 
 /**
+ * @notice Parameters for briding tokens to another chain and calling a contract on that chain
+ * @param destinationBlockchainID blockchainID of the destination
+ * @param destinationBridgeAddress address of the destination token bridge instance
+ * @param recipientContract the contract on the destination chain that will be called
+ * @param recipientPayload the payload that will be provided to the recipient contract on the destination chain
+ * @param recipientGasLimit the amount of gas that will provided to the recipient contract on the destination chain
+ * @param fallbackRecipient address where the bridged tokens are sent if the call to the recipient contract fails.
+ * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
+ * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed
+ * @param allowedRelayerAddresses addresses of relayers allowed to send the message
+ */
+struct SendAndCallInput {
+    bytes32 destinationBlockchainID;
+    address destinationBridgeAddress;
+    address recipientContract;
+    bytes recipientPayload;
+    uint256 recipientGasLimit;
+    address fallbackRecipient;
+    uint256 primaryFee;
+    uint256 secondaryFee;
+    address[] allowedRelayerAddresses;
+}
+
+enum BridgeMessageType {
+    SINGLE_HOP_SEND,
+    SINGLE_HOP_CALL,
+    MULTI_HOP_SEND,
+    MULTI_HOP_CALL
+}
+
+struct BridgeMessage {
+    BridgeMessageType messageType;
+    uint256 amount;
+    bytes payload;
+}
+
+struct SingleHopSendMessage {
+    address recipient;
+}
+
+struct SingleHopCallMessage {
+    address recipientContract;
+    bytes recipientPayload;
+    uint256 recipientGasLimit;
+    address fallbackRecipient;
+}
+
+struct MultiHopSendMessage {
+    bytes32 destinationBlockchainID;
+    address destinationBridgeAddress;
+    address recipient;
+    uint256 secondaryFee;
+}
+
+struct MultiHopCallMessage {
+    bytes32 destinationBlockchainID;
+    address destinationBridgeAddress;
+    address recipientContract;
+    bytes recipientPayload;
+    uint256 recipientGasLimit;
+    address fallbackRecipient;
+    uint256 secondaryFee;
+}
+
+/**
  * @notice Interface for a Teleporter token bridge that sends tokens to another chain.
  */
 interface ITeleporterTokenBridge is ITeleporterReceiver {

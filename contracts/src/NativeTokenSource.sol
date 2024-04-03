@@ -7,8 +7,9 @@ pragma solidity 0.8.18;
 
 import {TeleporterTokenSource} from "./TeleporterTokenSource.sol";
 import {INativeTokenBridge} from "./interfaces/INativeTokenBridge.sol";
-import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
+import {SendTokensInput, SingleHopCallMessage} from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
+import {GasUtils} from "./utils/GasUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -22,6 +23,8 @@ import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
  * token bridge instance.
  */
 contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
+    using GasUtils for *;
+
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
@@ -72,5 +75,23 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     function _withdraw(address recipient, uint256 amount) internal virtual override {
         token.withdraw(amount);
         payable(recipient).transfer(amount);
+    }
+
+    function _handleSendAndCall(
+        SingleHopCallMessage memory message,
+        uint256 amount
+    ) internal virtual override {
+        // Withdraw the native token from the wrapped native token contract.
+        token.withdraw(amount);
+
+        // Call the destination contract with the given payload, gas amount, and value.
+        bool success = GasUtils._callWithExactGasAndValue(
+            message.recipientGasLimit, amount, message.recipientContract, message.recipientPayload
+        );
+
+        // If the call failed, send the funds to the fallback recipient.
+        if (!success) {
+            payable(message.fallbackRecipient).transfer(amount);
+        }
     }
 }

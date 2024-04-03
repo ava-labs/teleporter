@@ -10,7 +10,12 @@ import {IERC20Bridge} from "./interfaces/IERC20Bridge.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
+import {
+    SendTokensInput,
+    SendAndCallInput,
+    SingleHopCallMessage
+} from "./interfaces/ITeleporterTokenBridge.sol";
+import {GasUtils} from "./utils/GasUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -25,6 +30,7 @@ import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
  */
 contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     using SafeERC20 for IERC20;
+    using GasUtils for *;
 
     uint8 private immutable _decimals;
 
@@ -65,6 +71,13 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     }
 
     /**
+     * @dev See {IERC20Bridge-sendAndCall}
+     */
+    function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
+        _sendAndCall(input, amount);
+    }
+
+    /**
      * @dev See {IERC20-decimals}
      */
     function decimals() public view virtual override returns (uint8) {
@@ -94,5 +107,29 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      */
     function _burn(uint256 amount) internal virtual override {
         _burn(address(this), amount);
+    }
+
+    function _handleSendAndCall(
+        SingleHopCallMessage memory message,
+        uint256 amount
+    ) internal virtual override {
+        // Mint the tokens to this contract address.
+        _mint(address(this), amount);
+
+        // Approve the destination contract to spend the amount.
+        _approve(address(this), message.recipientContract, amount);
+
+        // Call the destination contract with the given payload and gas amount.
+        bool success = GasUtils._callWithExactGas(
+            message.recipientGasLimit, message.recipientContract, message.recipientPayload
+        );
+
+        // Reset the destination contract allowance to 0.
+        _approve(address(this), message.recipientContract, 0);
+
+        // If the call failed, send the funds to the fallback recipient.
+        if (!success) {
+            _transfer(address(this), message.fallbackRecipient, amount);
+        }
     }
 }
