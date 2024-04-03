@@ -7,6 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterTokenSource} from "./TeleporterTokenSource.sol";
 import {INativeTokenBridge} from "./interfaces/INativeTokenBridge.sol";
+import {INativeSendAndCallReceiver} from "./interfaces/INativeSendAndCallReceiver.sol";
 import {SendTokensInput, SingleHopCallMessage} from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 import {GasUtils} from "./utils/GasUtils.sol";
@@ -84,9 +85,13 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         // Withdraw the native token from the wrapped native token contract.
         token.withdraw(amount);
 
+        // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
+        bytes memory payload =
+            abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (message.recipientPayload));
+
         // Call the destination contract with the given payload, gas amount, and value.
         bool success = GasUtils._callWithExactGasAndValue(
-            message.recipientGasLimit, amount, message.recipientContract, message.recipientPayload
+            message.recipientGasLimit, amount, message.recipientContract, payload
         );
 
         // If the call failed, send the funds to the fallback recipient.

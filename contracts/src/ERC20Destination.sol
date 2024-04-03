@@ -7,6 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterTokenDestination} from "./TeleporterTokenDestination.sol";
 import {IERC20Bridge} from "./interfaces/IERC20Bridge.sol";
+import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
@@ -119,9 +120,15 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         // Approve the destination contract to spend the amount.
         _approve(address(this), message.recipientContract, amount);
 
+        // Encode the call to {IERC20SendAndCallReceiver-receiveTokens}
+        bytes memory payload = abi.encodeCall(
+            IERC20SendAndCallReceiver.receiveTokens,
+            (address(this), amount, message.recipientPayload)
+        );
+
         // Call the destination contract with the given payload and gas amount.
         bool success = GasUtils._callWithExactGas(
-            message.recipientGasLimit, message.recipientContract, message.recipientPayload
+            message.recipientGasLimit, message.recipientContract, payload
         );
 
         // Reset the destination contract allowance to 0.

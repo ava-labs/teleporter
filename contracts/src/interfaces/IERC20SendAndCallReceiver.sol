@@ -13,7 +13,7 @@ pragma solidity 0.8.18;
 /**
  * @notice Interface for a contracts that are called to receive bridge tokens.
  */
-interface ISendAndCallReceiver {
+interface IERC20SendAndCallReceiver {
     /**
      * @notice Called to receive the amount of the given token
      * @param token address of the token to be received
