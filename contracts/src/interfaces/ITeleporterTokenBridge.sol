@@ -18,8 +18,8 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * @param destinationBridgeAddress address of the destination token bridge instance
  * @param recipient address of the recipient on the destination chain
  * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
- * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed.
- * @param allowedRelayerAddresses addresses of relayers allowed to send the message
+ * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed
+ * @param requiredGasLimit gas limit requirement for sending to a destination token bridge
  */
 struct SendTokensInput {
     bytes32 destinationBlockchainID;
@@ -27,7 +27,7 @@ struct SendTokensInput {
     address recipient;
     uint256 primaryFee;
     uint256 secondaryFee;
-    address[] allowedRelayerAddresses;
+    uint256 requiredGasLimit;
 }
 
 /**

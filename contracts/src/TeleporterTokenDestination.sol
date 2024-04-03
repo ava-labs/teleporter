@@ -36,8 +36,8 @@ abstract contract TeleporterTokenDestination is
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
     address public immutable feeTokenAddress;
 
-    /// @notice Required gas limit for sending tokens to another chain.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 220_000;
+    /// @notice Required gas limit for sending tokens back to the source blockchain.
+    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 100_000;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
@@ -102,6 +102,11 @@ abstract contract TeleporterTokenDestination is
                 input.destinationBridgeAddress == tokenSourceAddress,
                 "TeleporterTokenDestination: invalid destination bridge address"
             );
+            require(
+                input.requiredGasLimit == 0,
+                "TeleporterTokenDestination: non-zero required gas limit"
+            );
+            require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
         } else if (input.destinationBlockchainID == blockchainID) {
             require(
                 input.destinationBridgeAddress != address(this),
@@ -126,7 +131,7 @@ abstract contract TeleporterTokenDestination is
                 destinationAddress: tokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
                 requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: input.allowedRelayerAddresses,
+                allowedRelayerAddresses: new address[](0),
                 message: abi.encode(
                     SendTokensInput({
                         destinationBlockchainID: input.destinationBlockchainID,
@@ -134,8 +139,7 @@ abstract contract TeleporterTokenDestination is
                         recipient: input.recipient,
                         primaryFee: input.secondaryFee,
                         secondaryFee: 0,
-                        // TODO: Does multihop allowed relayer need to be separate parameter?
-                        allowedRelayerAddresses: input.allowedRelayerAddresses
+                        requiredGasLimit: input.requiredGasLimit
                     }),
                     amount
                     )

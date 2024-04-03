@@ -33,10 +33,24 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testInvalidSendingBackToSourceBlockchain() public {
+    function testInvalidSourceBlockchainBridgeAddress() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(this);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
+        _send(input, 0);
+    }
+
+    function testNonZeroSecondaryFeeToSourceBlockchain() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.secondaryFee = 1;
+        vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
+        _send(input, 0);
+    }
+
+    function testNonZeroRequiredGasLimitToSourceBlockchain() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.requiredGasLimit = DEFAULT_REQUIRED_GAS_LIMIT;
+        vm.expectRevert(_formatErrorMessage("non-zero required gas limit"));
         _send(input, 0);
     }
 
@@ -95,7 +109,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function _requiredGasLimit() internal view virtual override returns (uint256) {
+    function _expectedRequiredGasLimit() internal view virtual override returns (uint256) {
         return tokenDestination.SEND_TOKENS_REQUIRED_GAS();
     }
 
@@ -111,7 +125,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: 0,
             secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            requiredGasLimit: 0
         });
     }
 
@@ -135,7 +149,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 recipient: input.recipient,
                 primaryFee: input.secondaryFee,
                 secondaryFee: 0,
-                allowedRelayerAddresses: input.allowedRelayerAddresses
+                requiredGasLimit: input.requiredGasLimit
             }),
             amount
         );

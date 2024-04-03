@@ -42,9 +42,6 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             => mapping(address destinationBridgeAddress => uint256 balance)
     ) public bridgedBalances;
 
-    /// @notice Required gas limit for sending tokens to another chain.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 80_000;
-
     /**
      * @notice Initializes this source token bridge instance to send
      * tokens to the specified destination chain and token bridge instance.
@@ -90,6 +87,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             "TeleporterTokenSource: zero destination bridge address"
         );
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
+        require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
 
         // If this send is not a multihop, deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit. If it is a multihop, the amount is already
@@ -111,8 +109,8 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
-                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: input.allowedRelayerAddresses,
+                requiredGasLimit: input.requiredGasLimit,
+                allowedRelayerAddresses: new address[](0),
                 message: abi.encode(input.recipient, amount)
             })
         );

@@ -29,6 +29,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     address public constant TOKEN_SOURCE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
+    uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 100_000;
 
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
@@ -150,8 +151,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
-            requiredGasLimit: _requiredGasLimit(),
-            allowedRelayerAddresses: input.allowedRelayerAddresses,
+            requiredGasLimit: _expectedRequiredGasLimit(),
+            allowedRelayerAddresses: new address[](0),
             message: _encodeMessage(input, bridgeAmount)
         });
 
@@ -175,11 +176,11 @@ abstract contract TeleporterTokenBridgeTest is Test {
         );
     }
 
-    function _requiredGasLimit() internal view virtual returns (uint256);
+    function _expectedRequiredGasLimit() internal view virtual returns (uint256);
 
     function _createDefaultSendTokensInput()
         internal
-        pure
+        view
         virtual
         returns (SendTokensInput memory);
 
