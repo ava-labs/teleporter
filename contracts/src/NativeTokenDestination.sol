@@ -5,16 +5,16 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenDestination, TeleporterFeeInfo, TeleporterMessageInput} from "./TeleporterTokenDestination.sol";
+import {
+    TeleporterTokenDestination,
+    TeleporterFeeInfo,
+    TeleporterMessageInput
+} from "./TeleporterTokenDestination.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
-import {IWarpMessenger} from
-    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./interfaces/INativeTokenDestination.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 // We need IAllowList as an indirect dependency in order to compile.
 // solhint-disable-next-line no-unused-import
 import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IAllowList.sol";
@@ -164,7 +164,9 @@ contract NativeTokenDestination is
      * transfer to the recipient. The caller must be the wrapped native token contract.
      */
     receive() external payable {
-        require(msg.sender == feeTokenAddress, "NativeTokenDestination: invalid receive payable sender");
+        require(
+            msg.sender == feeTokenAddress, "NativeTokenDestination: invalid receive payable sender"
+        );
     }
 
     /**
@@ -176,11 +178,9 @@ contract NativeTokenDestination is
         );
 
         // TODO we need to guarantee that this function deposits the whole amount, or find a workaround.
-        uint256 amount = msg.value;
-        _deposit(amount);
-        // token.approve(address(_getTeleporterMessenger()), input.primaryFee);
+        _deposit(input.primaryFee);
 
-        amount -= input.primaryFee;
+        uint256 amount = msg.value - input.primaryFee;
         _burn(amount);
 
         _send(input, _scaleTokens(amount, false));
@@ -189,9 +189,7 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportBurnedTxFees(
-        address[] calldata allowedRelayerAddresses
-    ) external payable {
+    function reportBurnedTxFees(address[] calldata allowedRelayerAddresses) external payable {
         uint256 adjustedFeeAmount;
         if (msg.value > 0) {
             adjustedFeeAmount = _deposit(msg.value);
@@ -300,7 +298,6 @@ contract NativeTokenDestination is
      */
     function _burn(uint256 amount) internal virtual override {
         // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
-        token.withdraw(amount);
         Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), amount);
     }
 

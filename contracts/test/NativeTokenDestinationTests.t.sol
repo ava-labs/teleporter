@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
-import {NativeTokenDestination, TeleporterMessageInput, TeleporterFeeInfo, SendTokensInput} from "../src/NativeTokenDestination.sol";
+import {NativeTokenDestination, TeleporterMessageInput, TeleporterFeeInfo} from "../src/NativeTokenDestination.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
 import {INativeMinter} from
