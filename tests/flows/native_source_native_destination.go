@@ -22,7 +22,7 @@ var (
 	valueToReceive          = big.NewInt(0).Div(initialReserveImbalance, big.NewInt(4))
 	valueToSend             = big.NewInt(0).Div(valueToReceive, tokenMultipler)
 	valueToReturn           = big.NewInt(0).Div(valueToReceive, big.NewInt(4))
-	multiplyOnReceive = true
+	multiplyOnReceive       = true
 )
 
 /**
@@ -52,7 +52,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		subnetAInfo,
 	)
 
-	// Create a NativeTokenSource for bridging the native token
+	// Create a NativeTokenSource on the primary network
 	nativeTokenSourceAddress, nativeTokenSource := utils.DeployNativeTokenSource(
 		ctx,
 		fundedKey,
@@ -125,7 +125,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			teleporterUtils.BigIntSub(initialReserveImbalance, scaledBridgedAmount),
 		)
 	}
-	
+
 	// Send tokens from C-Chain to recipient on subnet A that over-collateralize bridge
 	{
 		input := nativetokensource.SendTokensInput{
