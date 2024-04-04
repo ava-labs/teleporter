@@ -438,15 +438,18 @@ func CheckNativeTokenSourceWithdrawal(
 
 func CheckNativeTokenDestinationMint(
 	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
 	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
 	recipient common.Address,
 	receipt *types.Receipt,
-	expectedAmount *big.Int,
+	expectedMint *big.Int,
+	expectedBalance *big.Int,
 ) {
 	mintEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseNativeTokensMinted)
 	Expect(err).Should(BeNil())
 	Expect(mintEvent.Recipient).Should(Equal(recipient))
-	teleporterUtils.ExpectBigEqual(mintEvent.Amount,expectedAmount)
+	teleporterUtils.ExpectBigEqual(mintEvent.Amount,expectedMint)
+	teleporterUtils.CheckBalance(ctx, recipient, expectedBalance, subnet.RPCClient)
 }
 
 func CheckNativeTokenDestinationCollateralize(

@@ -79,9 +79,8 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens that don't fully collateralize bridge
+	// Send tokens from C-Chain to recipient on subnet A that don't fully collateralize bridge
 	{
-		// Send tokens from C-Chain to recipient on subnet A
 		input := nativetokensource.SendTokensInput{
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
 			DestinationBridgeAddress: nativeTokenDestinationAddress,
@@ -91,7 +90,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			AllowedRelayerAddresses:  []common.Address{},
 		}
 
-		// Send the tokens and verify expected events
 		receipt, bridgedAmount := utils.SendNativeTokenSource(
 			ctx,
 			cChainInfo,
@@ -102,7 +100,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		)
 		scaledBridgedAmount := teleporterUtils.BigIntMul(bridgedAmount, tokenMultipler)
 
-		// Relay the message to Subnet A and check for message delivery
 		receipt = network.RelayMessage(
 			ctx,
 			receipt,
@@ -113,9 +110,11 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 
 		utils.CheckNativeTokenDestinationMint(
 			ctx,
+			subnetAInfo,
 			nativeTokenDestination,
 			recipientAddress,
 			receipt,
+			big.NewInt(0),
 			big.NewInt(0),
 		)
 		utils.CheckNativeTokenDestinationCollateralize(
@@ -125,14 +124,10 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			scaledBridgedAmount,
 			teleporterUtils.BigIntSub(initialReserveImbalance, scaledBridgedAmount),
 		)
-
-		// Check that the recipient received no tokens
-		teleporterUtils.CheckBalance(ctx, recipientAddress, big.NewInt(0), subnetAInfo.RPCClient)
 	}
 	
-	// Send tokens that over-collateralize bridge
+	// Send tokens from C-Chain to recipient on subnet A that over-collateralize bridge
 	{
-		// Send tokens from C-Chain to recipient on subnet A
 		input := nativetokensource.SendTokensInput{
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
 			DestinationBridgeAddress: nativeTokenDestinationAddress,
@@ -142,7 +137,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			AllowedRelayerAddresses:  []common.Address{},
 		}
 
-		// Send initialReserveImbalance tokens to over-collateralize bridge and verify expected events
+		// Send initialReserveImbalance tokens to over-collateralize bridge
 		receipt, _ := utils.SendNativeTokenSource(
 			ctx,
 			cChainInfo,
@@ -152,7 +147,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			fundedKey,
 		)
 
-		// Relay the message to Subnet A and check for message delivery
 		receipt = network.RelayMessage(
 			ctx,
 			receipt,
@@ -163,9 +157,11 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 
 		utils.CheckNativeTokenDestinationMint(
 			ctx,
+			subnetAInfo,
 			nativeTokenDestination,
 			recipientAddress,
 			receipt,
+			valueToReceive,
 			valueToReceive,
 		)
 		utils.CheckNativeTokenDestinationCollateralize(
@@ -175,48 +171,47 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			teleporterUtils.BigIntSub(initialReserveImbalance, valueToReceive),
 			big.NewInt(0),
 		)
-
-		// Check that the recipient received no tokens
-		teleporterUtils.CheckBalance(ctx, recipientAddress, valueToReceive, subnetAInfo.RPCClient)
-	}
-
-	input_A := nativetokendestination.SendTokensInput{
-		DestinationBlockchainID:  cChainInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenSourceAddress,
-		Recipient:                recipientAddress,
-		PrimaryFee:               big.NewInt(0),
-		SecondaryFee:             big.NewInt(0),
-		AllowedRelayerAddresses:  []common.Address{},
 	}
 
 	// Send tokens on Subnet A back for native tokens on C-Chain
-	receipt, bridgedAmount := utils.SendNativeTokenDestination(
-		ctx,
-		subnetAInfo,
-		nativeTokenDestination,
-		input_A,
-		valueToReturn,
-		recipientKey,
-		tokenMultipler,
-		multiplyOnReceive,
-	)
+	{
+		input_A := nativetokendestination.SendTokensInput{
+			DestinationBlockchainID:  cChainInfo.BlockchainID,
+			DestinationBridgeAddress: nativeTokenSourceAddress,
+			Recipient:                recipientAddress,
+			PrimaryFee:               big.NewInt(0),
+			SecondaryFee:             big.NewInt(0),
+			AllowedRelayerAddresses:  []common.Address{},
+		}
 
-	receipt = network.RelayMessage(
-		ctx,
-		receipt,
-		subnetAInfo,
-		cChainInfo,
-		true,
-	)
+		receipt, bridgedAmount := utils.SendNativeTokenDestination(
+			ctx,
+			subnetAInfo,
+			nativeTokenDestination,
+			input_A,
+			valueToReturn,
+			recipientKey,
+			tokenMultipler,
+			multiplyOnReceive,
+		)
 
-	// Check that the recipient received the tokens
-	utils.CheckNativeTokenSourceWithdrawal(
-		ctx,
-		nativeTokenSourceAddress,
-		wavaxA,
-		receipt,
-		bridgedAmount,
-	)
+		receipt = network.RelayMessage(
+			ctx,
+			receipt,
+			subnetAInfo,
+			cChainInfo,
+			true,
+		)
 
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, cChainInfo.RPCClient)
+		// Check that the recipient received the tokens
+		utils.CheckNativeTokenSourceWithdrawal(
+			ctx,
+			nativeTokenSourceAddress,
+			wavaxA,
+			receipt,
+			bridgedAmount,
+		)
+
+		teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, cChainInfo.RPCClient)
+	}
 }
