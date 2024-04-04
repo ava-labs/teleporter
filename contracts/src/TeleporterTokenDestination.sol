@@ -158,7 +158,7 @@ abstract contract TeleporterTokenDestination is
     function _sendAndCall(SendAndCallInput memory input, uint256 amount) internal virtual {
         require(
             input.recipientContract != address(0),
-            "TeleporterTokenDestination: zero recipient address"
+            "TeleporterTokenDestination: zero recipient contract address"
         );
         require(
             input.recipientGasLimit >= 21_000,
@@ -166,7 +166,7 @@ abstract contract TeleporterTokenDestination is
         );
         require(
             input.fallbackRecipient != address(0),
-            "TeleporterTokenDestination: zero recipient address"
+            "TeleporterTokenDestination: zero fallback recipient address"
         );
         amount = _prepareSend(
             input.destinationBlockchainID,

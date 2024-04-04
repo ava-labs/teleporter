@@ -104,4 +104,7 @@ interface ITeleporterTokenBridge is ITeleporterReceiver {
      * TODO: might want to add SendTokensInput as a parameter
      */
     event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
+
+    event CallSucceeded(address indexed recipientContract, uint256 amount);
+    event CallFailed(address indexed recipientContract, uint256 amount);
 }

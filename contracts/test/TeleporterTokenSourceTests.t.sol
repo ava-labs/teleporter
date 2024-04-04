@@ -8,7 +8,11 @@ pragma solidity 0.8.18;
 import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenSource, IWarpMessenger} from "../src/TeleporterTokenSource.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
-import {SendTokensInput, MultiHopSendMessage} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {
+    SendTokensInput,
+    SendAndCallInput,
+    MultiHopSendMessage
+} from "../src/interfaces/ITeleporterTokenBridge.sol";
 
 abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
@@ -172,6 +176,25 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
+            primaryFee: 0,
+            secondaryFee: 0,
+            allowedRelayerAddresses: new address[](0)
+        });
+    }
+
+    function _createDefaultSendAndCallInput()
+        internal
+        pure
+        override
+        returns (SendAndCallInput memory)
+    {
+        return SendAndCallInput({
+            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: new bytes(16),
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
             primaryFee: 0,
             secondaryFee: 0,
             allowedRelayerAddresses: new address[](0)

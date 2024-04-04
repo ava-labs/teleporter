@@ -35,6 +35,11 @@ abstract contract TeleporterTokenBridgeTest is Test {
     address public constant DEFAULT_DESTINATION_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant TOKEN_SOURCE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
+    address public constant DEFAULT_RECIPIENT_CONTRACT_ADDRESS =
+        0xa83114A443dA1CecEFC50368531cACE9F37fCCcb;
+    uint256 public constant DEFAULT_RECIPIENT_GAS_LIMIT = 100_000;
+    address public constant DEFAULT_FALLBACK_RECIPIENT_ADDRESS =
+        0xe69Ea1BAF997002602c0A3D451b2b5c9B7F8E6A1;
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
@@ -48,8 +53,10 @@ abstract contract TeleporterTokenBridgeTest is Test {
     IERC20 public feeToken;
 
     event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
-
+    event CallSucceeded(address indexed recipientContract, uint256 amount);
+    event CallFailed(address indexed recipientContract, uint256 amount);
     event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 
     function testZeroDestinationBlockchainID() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
@@ -190,6 +197,12 @@ abstract contract TeleporterTokenBridgeTest is Test {
         pure
         virtual
         returns (SendTokensInput memory);
+
+    function _createDefaultSendAndCallInput()
+        internal
+        pure
+        virtual
+        returns (SendAndCallInput memory);
 
     function _formatErrorMessage(string memory message)
         internal

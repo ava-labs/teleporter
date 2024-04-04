@@ -79,14 +79,14 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     }
 
     /**
-     * @dev See {IERC20-decimals}
+     * @dev See {ERC20-decimals}
      */
     function decimals() public view virtual override returns (uint8) {
         return _decimals;
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_deposit}
+     * @dev See {TeleporterTokenDestination-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
         // TODO: can copy logic from SafeERC20TransferFrom.safeTransferFrom directly
@@ -135,7 +135,10 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         _approve(address(this), message.recipientContract, 0);
 
         // If the call failed, send the funds to the fallback recipient.
-        if (!success) {
+        if (success) {
+            emit CallSucceeded(message.recipientContract, amount);
+        } else {
+            emit CallFailed(message.recipientContract, amount);
             _transfer(address(this), message.fallbackRecipient, amount);
         }
     }
