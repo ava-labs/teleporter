@@ -41,7 +41,7 @@ $FORGE_COMMAND
 cd $cwd
 # Build ginkgo
 # to install the ginkgo binary (required for test build and run)
-go install -v github.com/onsi/ginkgo/v2/ginkgo@${GINKGO_VERSION}
+go install -v github.com/onsi/ginkgo/v2/ginkgo
 
 ginkgo build ./tests/local/
 
