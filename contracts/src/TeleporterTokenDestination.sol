@@ -35,7 +35,7 @@ abstract contract TeleporterTokenDestination is
     address public immutable feeTokenAddress;
 
     /// @notice Required gas limit for sending tokens back to the source blockchain.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 100_000;
+    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 220_000;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
