@@ -151,7 +151,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
-            requiredGasLimit: _expectedRequiredGasLimit(),
+            requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeMessage(input, bridgeAmount)
         });
@@ -176,11 +176,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
         );
     }
 
-    function _expectedRequiredGasLimit() internal view virtual returns (uint256);
-
     function _createDefaultSendTokensInput()
         internal
-        view
+        pure
         virtual
         returns (SendTokensInput memory);
 

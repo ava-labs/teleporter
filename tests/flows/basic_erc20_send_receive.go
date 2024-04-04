@@ -76,7 +76,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         big.NewInt(70_000),
+		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
 
@@ -128,7 +128,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         big.NewInt(0),
+		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}
 
 	receipt, bridgedAmount = utils.SendERC20Destination(

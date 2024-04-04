@@ -35,7 +35,7 @@ abstract contract TeleporterTokenDestination is
     address public immutable feeTokenAddress;
 
     /// @notice Required gas limit for sending tokens back to the source blockchain.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 220_000;
+    uint256 public constant MULTIHOP_REQUIRED_GAS = 220_000;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
@@ -93,23 +93,33 @@ abstract contract TeleporterTokenDestination is
         );
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
 
-        // If the destination blockchain is the source bridge instance's blockchain,
-        // the destination bridge address must match the token source address.
+        // If the destination blockchain is the source blockchain,
+        // no multihop is needed. Only the required gas limit for the Teleporter message back to
+        // `sourceBlockchainID` is needed, which is provided by `input.requiredGasLimit`.
+        // Else, there will be a multihop transfer to the final destination.
+        // The first hop back to `sourceBlockchainID` requires `MULTIHOP_REQUIRED_GAS`,
+        // and the second hop to the final destination requires `input.requiredGasLimit`.
+        uint256 firstHopRequiredGas = input.requiredGasLimit;
+        uint256 secondHopRequiredGas;
         if (input.destinationBlockchainID == sourceBlockchainID) {
+            // If the destination blockchain is the source bridge instance's blockchain,
+            // the destination bridge address must match the token source address,
+            // and no secondary fee is needed.
             require(
                 input.destinationBridgeAddress == tokenSourceAddress,
                 "TeleporterTokenDestination: invalid destination bridge address"
             );
-            require(
-                input.requiredGasLimit == 0,
-                "TeleporterTokenDestination: non-zero required gas limit"
-            );
             require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
-        } else if (input.destinationBlockchainID == blockchainID) {
-            require(
-                input.destinationBridgeAddress != address(this),
-                "TeleporterTokenDestination: invalid destination bridge address"
-            );
+        } else {
+            // Do not allow bridging to the same token bridge instance.
+            if (input.destinationBlockchainID == blockchainID) {
+                require(
+                    input.destinationBridgeAddress != address(this),
+                    "TeleporterTokenDestination: invalid destination bridge address"
+                );
+            }
+            firstHopRequiredGas = MULTIHOP_REQUIRED_GAS;
+            secondHopRequiredGas = input.requiredGasLimit;
         }
 
         // Deposit the funds sent from the user to the bridge,
@@ -128,7 +138,7 @@ abstract contract TeleporterTokenDestination is
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
-                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
+                requiredGasLimit: firstHopRequiredGas,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(
                     SendTokensInput({
@@ -137,7 +147,7 @@ abstract contract TeleporterTokenDestination is
                         recipient: input.recipient,
                         primaryFee: input.secondaryFee,
                         secondaryFee: 0,
-                        requiredGasLimit: input.requiredGasLimit
+                        requiredGasLimit: secondHopRequiredGas
                     }),
                     amount
                     )

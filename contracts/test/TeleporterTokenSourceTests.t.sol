@@ -118,7 +118,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: feeAmount,
             secondaryFee: 0,
-            requiredGasLimit: _expectedRequiredGasLimit()
+            requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
         });
 
         _checkExpectedTeleporterCalls(input, bridgedAmount);
@@ -173,13 +173,20 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function _expectedRequiredGasLimit() internal view virtual override returns (uint256) {
-        return DEFAULT_REQUIRED_GAS_LIMIT;
+    function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
+        return SendTokensInput({
+            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: address(tokenSource),
+            recipient: DEFAULT_RECIPIENT_ADDRESS,
+            primaryFee: 0,
+            secondaryFee: 0,
+            requiredGasLimit: 0
+        });
     }
 
     function _createDefaultSendTokensInput()
         internal
-        view
+        pure
         override
         returns (SendTokensInput memory)
     {
@@ -189,18 +196,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: 0,
             secondaryFee: 0,
-            requiredGasLimit: _expectedRequiredGasLimit()
-        });
-    }
-
-    function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
-        return SendTokensInput({
-            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: address(tokenSource),
-            recipient: DEFAULT_RECIPIENT_ADDRESS,
-            primaryFee: 0,
-            secondaryFee: 0,
-            requiredGasLimit: 0
+            requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
         });
     }
 

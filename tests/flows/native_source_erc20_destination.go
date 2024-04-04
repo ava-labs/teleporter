@@ -76,7 +76,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         big.NewInt(70_000),
+		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}
 
 	// Send the tokens and verify expected events
@@ -127,7 +127,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         big.NewInt(0),
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 	}
 
 	// Send tokens on Subnet A back for native tokens on C-Chain
