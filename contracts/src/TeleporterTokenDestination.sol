@@ -95,7 +95,7 @@ abstract contract TeleporterTokenDestination is
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal virtual {
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
-        _prepareSend(
+        amount = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
@@ -168,7 +168,7 @@ abstract contract TeleporterTokenDestination is
             input.fallbackRecipient != address(0),
             "TeleporterTokenDestination: zero recipient address"
         );
-        _prepareSend(
+        amount = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,

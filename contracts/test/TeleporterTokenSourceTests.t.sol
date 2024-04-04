@@ -8,7 +8,7 @@ pragma solidity 0.8.18;
 import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenSource, IWarpMessenger} from "../src/TeleporterTokenSource.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
-import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {SendTokensInput, MultiHopSendMessage} from "../src/interfaces/ITeleporterTokenBridge.sol";
 
 abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
@@ -54,39 +54,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
-            abi.encode(
-                SendTokensInput({
-                    destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                    destinationBridgeAddress: address(this),
-                    recipient: DEFAULT_RECIPIENT_ADDRESS,
-                    primaryFee: 0,
-                    secondaryFee: 0,
-                    allowedRelayerAddresses: new address[](0)
-                }),
-                1
-            )
-        );
-    }
-
-    function testReceiveInvalidDestinationBridgeAddress() public {
-        // First send to destination blockchain to increase the bridge balance
-        _sendSuccess(2, 0);
-        vm.expectRevert(_formatErrorMessage("invalid bridge address"));
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
-            abi.encode(
-                SendTokensInput({
-                    destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                    destinationBridgeAddress: address(0),
-                    recipient: DEFAULT_RECIPIENT_ADDRESS,
-                    primaryFee: 0,
-                    secondaryFee: 0,
-                    allowedRelayerAddresses: new address[](0)
-                }),
-                1
-            )
+            _encodeSingleHopSendMessage(1, DEFAULT_RECIPIENT_ADDRESS)
         );
     }
 
@@ -96,21 +64,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         uint256 feeAmount = 1;
         uint256 bridgedAmount = amount - feeAmount;
-        SendTokensInput memory input = SendTokensInput({
-            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: address(tokenSource),
-            recipient: DEFAULT_RECIPIENT_ADDRESS,
-            primaryFee: feeAmount,
-            secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
-        });
-
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
-            abi.encode(input, bridgedAmount)
+            _encodeSingleHopSendMessage(bridgedAmount, DEFAULT_RECIPIENT_ADDRESS)
         );
 
         // Make sure the bridge balance is increased
@@ -128,7 +87,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _sendSuccess(amount, 0);
 
         uint256 feeAmount = 1;
-        uint256 bridgedAmount = amount - feeAmount;
+        uint256 bridgeAmount = amount - feeAmount;
         SendTokensInput memory input = SendTokensInput({
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
@@ -137,17 +96,24 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             secondaryFee: 0,
             allowedRelayerAddresses: new address[](0)
         });
-
-        _checkExpectedTeleporterCalls(input, bridgedAmount);
+        _checkExpectedTeleporterCallsForSend(
+            _createExpectedTeleporterMessageInput(input, bridgeAmount), feeAmount
+        );
 
         vm.expectEmit(true, true, true, true, address(tokenSource));
-        emit SendTokens(_MOCK_MESSAGE_ID, address(MOCK_TELEPORTER_MESSENGER_ADDRESS), bridgedAmount);
+        emit SendTokens(_MOCK_MESSAGE_ID, address(MOCK_TELEPORTER_MESSENGER_ADDRESS), bridgeAmount);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
-            abi.encode(input, amount)
+            _encodeMultiHopSendMessage(
+                amount,
+                input.destinationBlockchainID,
+                input.destinationBridgeAddress,
+                input.recipient,
+                input.primaryFee
+            )
         );
     }
 
@@ -162,13 +128,11 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         // Fail due to insufficient amount to cover fees
         uint256 feeAmount = amount;
-        SendTokensInput memory input = SendTokensInput({
+        MultiHopSendMessage memory message = MultiHopSendMessage({
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
-            primaryFee: feeAmount,
-            secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            secondaryFee: feeAmount
         });
 
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
@@ -176,7 +140,13 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
-            abi.encode(input, amount)
+            _encodeMultiHopSendMessage(
+                amount,
+                message.destinationBlockchainID,
+                message.destinationBridgeAddress,
+                message.recipient,
+                message.secondaryFee
+            )
         );
 
         // Make sure the bridge balance is still the same
@@ -215,12 +185,5 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         returns (bytes memory)
     {
         return bytes(string.concat("TeleporterTokenSource: ", message));
-    }
-
-    function _encodeMessage(
-        SendTokensInput memory input,
-        uint256 amount
-    ) internal pure virtual override returns (bytes memory) {
-        return abi.encode(input.recipient, amount);
     }
 }

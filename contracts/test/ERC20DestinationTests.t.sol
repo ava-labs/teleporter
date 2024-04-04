@@ -43,7 +43,9 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         app.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, abi.encode(address(this), 10e18)
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            TOKEN_SOURCE_ADDRESS,
+            _encodeSingleHopSendMessage(10e18, address(this))
         );
     }
 

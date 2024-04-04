@@ -87,7 +87,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         bool isMultihop
     ) internal virtual {
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
-        _prepareSend(
+        amount = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
@@ -131,7 +131,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         require(
             input.fallbackRecipient != address(0), "TeleporterTokenSource: zero recipient address"
         );
-        _prepareSend(
+        amount = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,

@@ -34,18 +34,22 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testInvalidSendingBackToSourceBlockchain() public {
+        uint256 amount = 3;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(this);
+        _setUpExpectedDeposit(amount);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
-        _send(input, 0);
+        _send(input, amount);
     }
 
     function testSendingToSameInstance() public {
+        uint256 amount = 3;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         input.destinationBridgeAddress = address(tokenDestination);
+        _setUpExpectedDeposit(amount);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
-        _send(input, 0);
+        _send(input, amount);
     }
 
     function testSendToSameBlockchainDifferentDestination() public {
@@ -89,7 +93,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
             TOKEN_SOURCE_ADDRESS,
-            abi.encode(DEFAULT_RECIPIENT_ADDRESS, amount)
+            _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
         );
     }
 
@@ -120,22 +124,5 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         returns (bytes memory)
     {
         return bytes(string.concat("TeleporterTokenDestination: ", message));
-    }
-
-    function _encodeMessage(
-        SendTokensInput memory input,
-        uint256 amount
-    ) internal pure virtual override returns (bytes memory) {
-        return abi.encode(
-            SendTokensInput({
-                destinationBlockchainID: input.destinationBlockchainID,
-                destinationBridgeAddress: input.destinationBridgeAddress,
-                recipient: input.recipient,
-                primaryFee: input.secondaryFee,
-                secondaryFee: 0,
-                allowedRelayerAddresses: input.allowedRelayerAddresses
-            }),
-            amount
-        );
     }
 }
