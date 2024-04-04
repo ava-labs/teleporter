@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {ERC20BridgeTest} from "./ERC20BridgeTests.t.sol";
-import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
+import {TeleporterTokenDestinationTest, SendTokensInput} from "./TeleporterTokenDestinationTests.t.sol";
 import {ERC20Destination} from "../src/ERC20Destination.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
@@ -114,6 +114,14 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
             tokenSymbol: MOCK_TOKEN_SYMBOL,
             tokenDecimals: MOCK_TOKEN_DECIMALS
         });
+    }
+
+    function testInsufficientAmountToCoverFees() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFee = 1;
+        _setUpExpectedDeposit(input.primaryFee);
+        vm.expectRevert("ERC20Destination: insufficient amount to cover fees");
+        _send(input, input.primaryFee);
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {

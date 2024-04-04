@@ -188,6 +188,14 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testInsufficientAmountToCoverFees() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFee = 1;
+        _setUpExpectedDeposit(input.primaryFee);
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        _send(input, input.primaryFee);
+    }
+
     function _requiredGasLimit() internal view virtual override returns (uint256) {
         return tokenSource.SEND_TOKENS_REQUIRED_GAS();
     }

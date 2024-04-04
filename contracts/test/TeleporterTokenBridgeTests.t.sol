@@ -63,17 +63,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function testZeroRecipient() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.recipient = address(0);
-        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
+        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("zero recipient address"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
-    }
-
-    function testInsufficientAmountToCoverFees() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.primaryFee = 1;
-        _setUpExpectedDeposit(input.primaryFee);
-        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
-        _send(input, input.primaryFee);
     }
 
     function testSendWithFees() public {
