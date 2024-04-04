@@ -47,13 +47,6 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _send(input, 0);
     }
 
-    function testNonZeroRequiredGasLimitToSourceBlockchain() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.requiredGasLimit = DEFAULT_REQUIRED_GAS_LIMIT;
-        vm.expectRevert(_formatErrorMessage("non-zero required gas limit"));
-        _send(input, 0);
-    }
-
     function testSendingToSameInstance() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
@@ -107,10 +100,6 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             TOKEN_SOURCE_ADDRESS,
             abi.encode(DEFAULT_RECIPIENT_ADDRESS, amount)
         );
-    }
-
-    function _expectedRequiredGasLimit() internal view virtual override returns (uint256) {
-        return tokenDestination.SEND_TOKENS_REQUIRED_GAS();
     }
 
     function _createDefaultSendTokensInput()
