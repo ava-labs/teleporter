@@ -41,7 +41,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     uint256 internal constant _DEFAULT_FEE_AMOUNT = 123456;
     uint256 internal constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
-    uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE  = 1e18;
+    uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1e18;
     uint256 internal constant _DEFAULT_DECIMALS_SHIFT = 1;
     uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 10 ** _DEFAULT_DECIMALS_SHIFT;
 
@@ -54,16 +54,18 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     function testZeroDestinationBridge() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
+        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
         input.destinationBridgeAddress = address(0);
         vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testZeroRecipient() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.recipient = address(0);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("zero recipient address"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testInsufficientAmountToCoverFees() public {

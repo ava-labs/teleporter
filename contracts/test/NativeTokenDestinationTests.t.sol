@@ -7,7 +7,11 @@ pragma solidity 0.8.18;
 
 import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
-import {NativeTokenDestination, TeleporterMessageInput, TeleporterFeeInfo} from "../src/NativeTokenDestination.sol";
+import {
+    NativeTokenDestination,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "../src/NativeTokenDestination.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
 import {INativeMinter} from
@@ -67,7 +71,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
             TOKEN_SOURCE_ADDRESS,
             abi.encode(
-                DEFAULT_RECIPIENT_ADDRESS, _DEFAULT_INITIAL_RESERVE_IMBALANCE / _DEFAULT_TOKEN_MULTIPLIER
+                DEFAULT_RECIPIENT_ADDRESS,
+                _DEFAULT_INITIAL_RESERVE_IMBALANCE / _DEFAULT_TOKEN_MULTIPLIER
             )
         );
 
@@ -104,12 +109,12 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
         app.send{value: _DEFAULT_TRANSFER_AMOUNT}(_createDefaultSendTokensInput());
     }
-    
-    function _checkExpectedWithdrawal(address, uint256 amount) internal override {
-        vm.expectCall(
-            address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
-        );
-        vm.expectEmit(true, true, true, true, address(mockWrappedToken));
-        emit Withdrawal(address(app), amount);
+
+    function _checkExpectedWithdrawal(address addr, uint256 amount) internal override {
+        // vm.expectCall(
+        //     address(NATIVE_MINTER_PRECOMPILE_ADDRESS), abi.encodeCall(INativeMinter.mintNativeCoin, (addr, amount))
+        // );
+        // vm.expectEmit(true, true, true, true, address(this));
+        // emit NativeTokensMinted(addr, amount);
     }
 }

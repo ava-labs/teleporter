@@ -36,16 +36,18 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     function testInvalidSendingBackToSourceBlockchain() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(this);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendingToSameInstance() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         input.destinationBridgeAddress = address(tokenDestination);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendToSameBlockchainDifferentDestination() public {

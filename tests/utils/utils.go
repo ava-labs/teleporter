@@ -251,6 +251,8 @@ func SendNativeTokenDestination(
 	input nativetokendestination.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
+	tokenMultiplier *big.Int,
+	multiplyOnReceive bool,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -262,12 +264,18 @@ func SendNativeTokenDestination(
 	)
 	Expect(err).Should(BeNil())
 	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
+	var scaledBridgedAmount *big.Int
+	if (multiplyOnReceive) {
+		scaledBridgedAmount = big.NewInt(0).Div(bridgedAmount, tokenMultiplier)
+	} else {
+		scaledBridgedAmount = teleporterUtils.BigIntMul(bridgedAmount, tokenMultiplier)
+	}
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseSendTokens)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	Expect(event.Amount).Should(Equal(bridgedAmount))
+	Expect(event.Amount).Should(Equal(scaledBridgedAmount))
 
 	return receipt, event.Amount
 }

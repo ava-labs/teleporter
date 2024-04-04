@@ -22,6 +22,7 @@ var (
 	valueToReceive          = big.NewInt(0).Div(initialReserveImbalance, big.NewInt(4))
 	valueToSend             = big.NewInt(0).Div(valueToReceive, tokenMultipler)
 	valueToReturn           = big.NewInt(0).Div(valueToReceive, big.NewInt(4))
+	multiplyOnReceive = true
 )
 
 /**
@@ -70,7 +71,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		wavaxAddressB,
 		initialReserveImbalance,
 		decimalsShift,
-		true,
+		multiplyOnReceive,
 	)
 
 	// Generate new recipient to receive bridged tokens
@@ -196,6 +197,8 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		input_A,
 		valueToReturn,
 		recipientKey,
+		tokenMultipler,
+		multiplyOnReceive,
 	)
 
 	receipt = network.RelayMessage(

@@ -37,7 +37,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
         vm.expectRevert(_formatErrorMessage("cannot bridge to same chain"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testReceiveInvalidMessage() public {
