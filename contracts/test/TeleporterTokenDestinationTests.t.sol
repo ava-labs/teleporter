@@ -97,6 +97,22 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testInvalidMessageType() public {
+        vm.expectRevert(_formatErrorMessage("invalid message type"));
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            TOKEN_SOURCE_ADDRESS,
+            _encodeMultiHopSendMessage(
+                1,
+                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                DEFAULT_DESTINATION_ADDRESS,
+                DEFAULT_RECIPIENT_ADDRESS,
+                0
+            )
+        );
+    }
+
     function _requiredGasLimit() internal view virtual override returns (uint256) {
         return tokenDestination.SEND_TOKENS_REQUIRED_GAS();
     }

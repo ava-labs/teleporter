@@ -5,7 +5,9 @@
 
 pragma solidity 0.8.18;
 
-import {ITeleporterTokenBridge, SendTokensInput} from "./ITeleporterTokenBridge.sol";
+import {
+    ITeleporterTokenBridge, SendTokensInput, SendAndCallInput
+} from "./ITeleporterTokenBridge.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -21,4 +23,10 @@ interface INativeTokenBridge is ITeleporterTokenBridge {
      * @param input specifies information for delivery of the tokens
      */
     function send(SendTokensInput calldata input) external payable;
+
+    /**
+     * @notice Sends native tokens transferred to this contract to the destination token bridge instance.
+     * @param input specifies information for delivery of the tokens and destinatino contract to be called.
+     */
+    function sendAndCall(SendAndCallInput calldata input) external payable;
 }

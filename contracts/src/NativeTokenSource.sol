@@ -8,7 +8,11 @@ pragma solidity 0.8.18;
 import {TeleporterTokenSource} from "./TeleporterTokenSource.sol";
 import {INativeTokenBridge} from "./interfaces/INativeTokenBridge.sol";
 import {INativeSendAndCallReceiver} from "./interfaces/INativeSendAndCallReceiver.sol";
-import {SendTokensInput, SingleHopCallMessage} from "./interfaces/ITeleporterTokenBridge.sol";
+import {
+    SendTokensInput,
+    SendAndCallInput,
+    SingleHopCallMessage
+} from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 import {GasUtils} from "./utils/GasUtils.sol";
 
@@ -57,6 +61,10 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      */
     function send(SendTokensInput calldata input) external payable {
         _send(input, msg.value, false);
+    }
+
+    function sendAndCall(SendAndCallInput calldata input) external payable {
+        _sendAndCall(input, msg.value, false);
     }
 
     /**

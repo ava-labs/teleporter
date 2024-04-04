@@ -78,7 +78,7 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         });
     }
 
-    function testZeroBlockchainID() public {
+    function testZeroSourceBlockchainID() public {
         vm.expectRevert(_formatErrorMessage("zero source blockchain ID"));
         new ERC20Destination({
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,

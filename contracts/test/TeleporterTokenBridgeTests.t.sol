@@ -15,6 +15,7 @@ import {
 import {
     ITeleporterTokenBridge,
     SendTokensInput,
+    SendAndCallInput,
     BridgeMessageType,
     BridgeMessage,
     SingleHopSendMessage,
@@ -49,6 +50,13 @@ abstract contract TeleporterTokenBridgeTest is Test {
     event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
 
     event Transfer(address indexed from, address indexed to, uint256 value);
+
+    function testZeroDestinationBlockchainID() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBlockchainID = bytes32(0);
+        vm.expectRevert(_formatErrorMessage("zero destination blockchain ID"));
+        _send(input, 0);
+    }
 
     function testZeroDestinationBridge() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
@@ -116,6 +124,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual;
+
+    function _sendAndCall(SendAndCallInput memory input, uint256 amount) internal virtual;
 
     function _sendSuccess(uint256 amount, uint256 feeAmount) internal {
         uint256 bridgedAmount = amount - feeAmount;
