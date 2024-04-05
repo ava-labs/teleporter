@@ -172,6 +172,49 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         return tokenDestination.SEND_TOKENS_REQUIRED_GAS();
     }
 
+    function _createMultiHopSendTeleporterMessageInput(
+        SendTokensInput memory input,
+        uint256 bridgeAmount
+    ) internal view returns (TeleporterMessageInput memory) {
+        return TeleporterMessageInput({
+            destinationBlockchainID: tokenDestination.sourceBlockchainID(),
+            destinationAddress: tokenDestination.tokenSourceAddress(),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            requiredGasLimit: _requiredGasLimit(),
+            allowedRelayerAddresses: input.allowedRelayerAddresses,
+            message: _encodeMultiHopSendMessage(
+                bridgeAmount,
+                input.destinationBlockchainID,
+                input.destinationBridgeAddress,
+                input.recipient,
+                input.secondaryFee
+                )
+        });
+    }
+
+    function _createMultiHopCallTeleporterMessageInput(
+        SendAndCallInput memory input,
+        uint256 bridgeAmount
+    ) internal view returns (TeleporterMessageInput memory) {
+        return TeleporterMessageInput({
+            destinationBlockchainID: tokenDestination.sourceBlockchainID(),
+            destinationAddress: tokenDestination.tokenSourceAddress(),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            requiredGasLimit: _requiredGasLimit(),
+            allowedRelayerAddresses: input.allowedRelayerAddresses,
+            message: _encodeMultiHopCallMessage({
+                amount: bridgeAmount,
+                destinationBlockchainID: input.destinationBlockchainID,
+                destinationBridgeAddress: input.destinationBridgeAddress,
+                recipientContract: input.recipientContract,
+                recipientPayload: input.recipientPayload,
+                recipientGasLimit: input.recipientGasLimit,
+                fallbackRecipient: input.fallbackRecipient,
+                secondaryFee: input.secondaryFee
+            })
+        });
+    }
+
     function _createDefaultSendTokensInput()
         internal
         pure
@@ -214,48 +257,5 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         returns (bytes memory)
     {
         return bytes(string.concat("TeleporterTokenDestination: ", message));
-    }
-
-    function _createMultiHopSendTeleporterMessageInput(
-        SendTokensInput memory input,
-        uint256 bridgeAmount
-    ) internal view returns (TeleporterMessageInput memory) {
-        return TeleporterMessageInput({
-            destinationBlockchainID: tokenDestination.sourceBlockchainID(),
-            destinationAddress: tokenDestination.tokenSourceAddress(),
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
-            requiredGasLimit: _requiredGasLimit(),
-            allowedRelayerAddresses: input.allowedRelayerAddresses,
-            message: _encodeMultiHopSendMessage(
-                bridgeAmount,
-                input.destinationBlockchainID,
-                input.destinationBridgeAddress,
-                input.recipient,
-                input.secondaryFee
-                )
-        });
-    }
-
-    function _createMultiHopCallTeleporterMessageInput(
-        SendAndCallInput memory input,
-        uint256 bridgeAmount
-    ) internal view returns (TeleporterMessageInput memory) {
-        return TeleporterMessageInput({
-            destinationBlockchainID: tokenDestination.sourceBlockchainID(),
-            destinationAddress: tokenDestination.tokenSourceAddress(),
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
-            requiredGasLimit: _requiredGasLimit(),
-            allowedRelayerAddresses: input.allowedRelayerAddresses,
-            message: _encodeMultiHopCallMessage({
-                amount: bridgeAmount,
-                destinationBlockchainID: input.destinationBlockchainID,
-                destinationBridgeAddress: input.destinationBridgeAddress,
-                recipientContract: input.recipientContract,
-                recipientPayload: input.recipientPayload,
-                recipientGasLimit: input.recipientGasLimit,
-                fallbackRecipient: input.fallbackRecipient,
-                secondaryFee: input.secondaryFee
-            })
-        });
     }
 }

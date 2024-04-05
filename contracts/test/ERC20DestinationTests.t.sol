@@ -19,7 +19,7 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
     string public constant MOCK_TOKEN_SYMBOL = "TST";
     uint8 public constant MOCK_TOKEN_DECIMALS = 18;
 
-    ERC20Destination app;
+    ERC20Destination public app;
 
     function setUp() public virtual override {
         TeleporterTokenDestinationTest.setUp();
