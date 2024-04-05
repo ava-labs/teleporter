@@ -101,7 +101,10 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
         SafeERC20.safeApprove(token, message.recipientContract, 0);
 
         // If the call failed, send the funds to the fallback recipient.
-        if (!success) {
+        if (success) {
+            emit CallSucceeded(message.recipientContract, amount);
+        } else {
+            emit CallFailed(message.recipientContract, amount);
             token.safeTransfer(message.fallbackRecipient, amount);
         }
     }

@@ -126,7 +126,6 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
     function testReceiveSendAndCallSuccess() public {
         uint256 amount = 2;
         bytes memory payload = hex"DEADBEEF";
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
 
         // The bridge tokens will be minted to the contract itself
         vm.expectEmit(true, true, true, true, address(app));
@@ -163,6 +162,7 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
             DEFAULT_RECIPIENT_GAS_LIMIT,
             DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         );
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
         );
@@ -171,7 +171,6 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
     function testReceiveSendAndCallFailure() public {
         uint256 amount = 2;
         bytes memory payload = hex"DEADBEEF";
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
 
         // The bridge tokens will be minted to the contract itself
         vm.expectEmit(true, true, true, true, address(app));
@@ -212,6 +211,7 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
             DEFAULT_RECIPIENT_GAS_LIMIT,
             DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         );
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
         );

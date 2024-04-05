@@ -64,16 +64,16 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
     function testReceiveWithdrawSuccess() public {
         uint256 amount = 2;
-        _sendSuccess(amount, 0);
+        _sendSingleHopSendSuccess(amount, 0);
 
         uint256 feeAmount = 1;
-        uint256 bridgedAmount = amount - feeAmount;
+        uint256 bridgeAmount = amount - feeAmount;
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
+        _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgeAmount);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
-            _encodeSingleHopSendMessage(bridgedAmount, DEFAULT_RECIPIENT_ADDRESS)
+            _encodeSingleHopSendMessage(bridgeAmount, DEFAULT_RECIPIENT_ADDRESS)
         );
 
         // Make sure the bridge balance is increased
@@ -81,14 +81,14 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             tokenSource.bridgedBalances(
                 DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
             ),
-            bridgedAmount
+            bridgeAmount
         );
     }
 
     function testMultiHopTransfer() public {
         // First send to destination blockchain to increase the bridge balance
         uint256 amount = 2;
-        _sendSuccess(amount, 0);
+        _sendSingleHopSendSuccess(amount, 0);
 
         uint256 feeAmount = 1;
         uint256 bridgeAmount = amount - feeAmount;
@@ -101,7 +101,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             allowedRelayerAddresses: new address[](0)
         });
         _checkExpectedTeleporterCallsForSend(
-            _createExpectedTeleporterMessageInput(input, bridgeAmount), feeAmount
+            _createSingleHopTeleporterMessageInput(input, bridgeAmount), feeAmount
         );
 
         vm.expectEmit(true, true, true, true, address(tokenSource));
@@ -124,7 +124,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     function testMultiHopTransferFails() public {
         // First send to destination blockchain to increase the bridge balance
         uint256 amount = 2;
-        _sendSuccess(amount, 0);
+        _sendSingleHopSendSuccess(amount, 0);
         uint256 balanceBefore = tokenSource.bridgedBalances(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
         );

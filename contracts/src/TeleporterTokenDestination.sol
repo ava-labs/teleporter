@@ -160,10 +160,7 @@ abstract contract TeleporterTokenDestination is
             input.recipientContract != address(0),
             "TeleporterTokenDestination: zero recipient contract address"
         );
-        require(
-            input.recipientGasLimit >= 21_000,
-            "TeleporterTokenDestination: invalid recipient gas limit"
-        );
+        require(input.recipientGasLimit > 0, "TeleporterTokenDestination: zero recipient gas limit");
         require(
             input.fallbackRecipient != address(0),
             "TeleporterTokenDestination: zero fallback recipient address"
@@ -177,6 +174,7 @@ abstract contract TeleporterTokenDestination is
         );
 
         BridgeMessage memory message;
+        uint256 requiredGas = SEND_TOKENS_REQUIRED_GAS;
         if (input.destinationBlockchainID == sourceBlockchainID) {
             // If the destination blockchain is the source bridge instance's blockchain,
             // the destination bridge address must match the token source address.
@@ -197,6 +195,7 @@ abstract contract TeleporterTokenDestination is
                     })
                     )
             });
+            requiredGas += input.recipientGasLimit;
         } else {
             // If the destination blockchain ID is this blockchian, the destination
             // bridge address must be a differet contract. This is a multi-hop case to
@@ -228,11 +227,11 @@ abstract contract TeleporterTokenDestination is
         // Send message to the destination bridge address
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
-                destinationBlockchainID: input.destinationBlockchainID,
-                destinationAddress: input.destinationBridgeAddress,
+                destinationBlockchainID: sourceBlockchainID,
+                destinationAddress: tokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
                 // TODO: Set requiredGasLimit
-                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS + input.recipientGasLimit,
+                requiredGasLimit: requiredGas,
                 allowedRelayerAddresses: input.allowedRelayerAddresses,
                 message: abi.encode(message)
             })

@@ -123,13 +123,13 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         bool isMultihop
     ) internal virtual {
         require(
-            input.recipientContract != address(0), "TeleporterTokenSource: zero recipient address"
+            input.recipientContract != address(0),
+            "TeleporterTokenSource: zero recipient contract address"
         );
+        require(input.recipientGasLimit > 0, "TeleporterTokenSource: zero recipient gas limit");
         require(
-            input.recipientGasLimit >= 21_000, "TeleporterTokenSource: invalid recipient gas limit"
-        );
-        require(
-            input.fallbackRecipient != address(0), "TeleporterTokenSource: zero recipient address"
+            input.fallbackRecipient != address(0),
+            "TeleporterTokenSource: zero fallback recipient address"
         );
         amount = _prepareSend(
             input.destinationBlockchainID,
