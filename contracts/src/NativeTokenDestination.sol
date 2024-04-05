@@ -202,7 +202,7 @@ contract NativeTokenDestination is
         if (msg.value > 0) {
             adjustedFeeAmount = _deposit(msg.value);
         }
-        
+
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
         require(
             burnAddressBalance > latestBurnAddressBalance,
@@ -229,7 +229,7 @@ contract NativeTokenDestination is
                         recipient: SOURCE_CHAIN_BURN_ADDRESS,
                         primaryFee: 0,
                         secondaryFee: 0,
-                        allowedRelayerAddresses: allowedRelayerAddresses
+                        allowedRelayerAddresses: new address[](0)
                     }),
                     scaledAmount
                     )
