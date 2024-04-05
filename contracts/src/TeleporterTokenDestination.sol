@@ -34,7 +34,10 @@ abstract contract TeleporterTokenDestination is
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
     address public immutable feeTokenAddress;
 
-    /// @notice Required gas limit for sending tokens back to the source blockchain.
+    /**
+     * @notice Fixed gas cost for performing a multihop transfer on the `sourceBlockchainID`
+     * , before forwarding to the final destination bridge instance.
+     */
     uint256 public constant MULTIHOP_REQUIRED_GAS = 220_000;
 
     /**
