@@ -213,7 +213,7 @@ contract NativeTokenDestination is
         latestBurnAddressBalance = burnAddressBalance;
 
         uint256 scaledAmount = _scaleTokens(burnedDifference, false);
-        require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to burn");
+        require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to report burn");
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
