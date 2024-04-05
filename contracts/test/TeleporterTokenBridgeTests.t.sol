@@ -29,6 +29,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     address public constant TOKEN_SOURCE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
+    uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 100_000;
 
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
@@ -40,9 +41,23 @@ abstract contract TeleporterTokenBridgeTest is Test {
     ITeleporterTokenBridge public tokenBridge;
     IERC20 public feeToken;
 
-    event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
+    event SendTokens(
+        bytes32 indexed teleporterMessageID,
+        address indexed sender,
+        SendTokensInput input,
+        uint256 amount
+    );
+
+    event WithdrawTokens(address indexed recipient, uint256 amount);
 
     event Transfer(address indexed from, address indexed to, uint256 value);
+
+    function testZeroDestinationBlockchainID() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBlockchainID = bytes32(0);
+        vm.expectRevert(_formatErrorMessage("zero destination blockchain ID"));
+        _send(input, 0);
+    }
 
     function testZeroDestinationBridge() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
@@ -120,7 +135,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
         _checkExpectedTeleporterCalls(input, bridgedAmount);
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit SendTokens(_MOCK_MESSAGE_ID, address(this), bridgedAmount);
+        emit SendTokens(_MOCK_MESSAGE_ID, address(this), input, bridgedAmount);
         _send(input, amount);
     }
 
@@ -136,8 +151,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
-            requiredGasLimit: _requiredGasLimit(),
-            allowedRelayerAddresses: input.allowedRelayerAddresses,
+            requiredGasLimit: input.requiredGasLimit,
+            allowedRelayerAddresses: new address[](0),
             message: _encodeMessage(input, bridgeAmount)
         });
 
@@ -160,8 +175,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
     }
-
-    function _requiredGasLimit() internal view virtual returns (uint256);
 
     function _createDefaultSendTokensInput()
         internal

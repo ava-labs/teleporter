@@ -33,10 +33,17 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testInvalidSendingBackToSourceBlockchain() public {
+    function testInvalidSourceBlockchainBridgeAddress() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(this);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
+        _send(input, 0);
+    }
+
+    function testNonZeroSecondaryFeeToSourceBlockchain() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.secondaryFee = 1;
+        vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
         _send(input, 0);
     }
 
@@ -85,16 +92,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     function testReceiveWithdrawSuccess() public {
         uint256 amount = 2;
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        vm.expectEmit(true, true, true, true, address(tokenDestination));
+        emit WithdrawTokens(DEFAULT_RECIPIENT_ADDRESS, amount);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, amount);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
             TOKEN_SOURCE_ADDRESS,
             abi.encode(DEFAULT_RECIPIENT_ADDRESS, amount)
         );
-    }
-
-    function _requiredGasLimit() internal view virtual override returns (uint256) {
-        return tokenDestination.SEND_TOKENS_REQUIRED_GAS();
     }
 
     function _createDefaultSendTokensInput()
@@ -109,7 +114,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: 0,
             secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            requiredGasLimit: 0
         });
     }
 
@@ -133,7 +138,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 recipient: input.recipient,
                 primaryFee: input.secondaryFee,
                 secondaryFee: 0,
-                allowedRelayerAddresses: input.allowedRelayerAddresses
+                requiredGasLimit: input.requiredGasLimit
             }),
             amount
         );

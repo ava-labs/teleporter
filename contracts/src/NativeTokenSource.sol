@@ -51,7 +51,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     /**
      * @dev See {INativeTokenBridge-send}
      */
-    function send(SendTokensInput calldata input) external payable {
+    function send(SendTokensInput calldata input) external payable nonReentrant {
         _send(input, msg.value, false);
     }
 

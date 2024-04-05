@@ -60,7 +60,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      *
      * @dev See {IERC20Bridge-send}
      */
-    function send(SendTokensInput calldata input, uint256 amount) external {
+    function send(SendTokensInput calldata input, uint256 amount) external nonReentrant {
         _send(input, amount);
     }
 
