@@ -34,6 +34,8 @@ struct SendTokensInput {
 
 /**
  * @notice Interface for a Teleporter token bridge that sends tokens to another chain.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 interface ITeleporterTokenBridge is ITeleporterReceiver {
     /**

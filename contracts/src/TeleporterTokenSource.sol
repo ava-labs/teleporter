@@ -22,6 +22,8 @@ import {IWarpMessenger} from
  *
  * This contract also handles multihop transfers, where tokens sent from a {TeleporterTokenDestination}
  * instance are forwarded to another {TeleporterTokenDestination} instance.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwnerUpgradeable {
     /// @notice The blockchain ID of the chain this contract is deployed on.
@@ -158,7 +160,18 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         _send(input, amount, true);
     }
 
+    /**
+     * @notice Deposits tokens from the sender to this contract,
+     * and returns the adjusted amount of tokens deposited.
+     * @param amount is initial amount sent to this contract.
+     * @return The actual amount deposited to this contract.
+     */
     function _deposit(uint256 amount) internal virtual returns (uint256);
 
+    /**
+     * @notice Withdraws tokens to the recipient address.
+     * @param recipient The address to withdraw tokens to
+     * @param amount The amount of tokens to withdraw
+     */
     function _withdraw(address recipient, uint256 amount) internal virtual;
 }
