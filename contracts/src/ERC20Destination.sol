@@ -75,8 +75,6 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * @dev See {TeleportTokenDestination-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        // TODO: can copy logic from SafeERC20TransferFrom.safeTransferFrom directly
-        // figure out if has gas savings.
         return SafeERC20TransferFrom.safeTransferFrom(this, amount);
     }
 
