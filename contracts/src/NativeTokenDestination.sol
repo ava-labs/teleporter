@@ -29,7 +29,8 @@ import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
 /**
  * @notice Implementation of the {INativeTokenDestination} interface.
  *
- * @dev This contract pairs with exactly one `TokenSource` contract on the source chain.
+ * @dev This contract pairs with exactly one `TokenSource` contract on the source chain and one wrapped native
+ * token on the chain this contract is deployed to.
  * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
  */
 contract NativeTokenDestination is
@@ -196,12 +197,12 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportBurnedTxFees(address[] calldata allowedRelayerAddresses) external payable {
+    function reportBurnedTxFees() external payable {
         uint256 adjustedFeeAmount;
         if (msg.value > 0) {
             adjustedFeeAmount = _deposit(msg.value);
         }
-
+        
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
         require(
             burnAddressBalance > latestBurnAddressBalance,
@@ -220,7 +221,7 @@ contract NativeTokenDestination is
                 destinationAddress: tokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: adjustedFeeAmount}),
                 requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: allowedRelayerAddresses,
+                allowedRelayerAddresses: new address[](0),
                 message: abi.encode(
                     SendTokensInput({
                         destinationBlockchainID: sourceBlockchainID,
