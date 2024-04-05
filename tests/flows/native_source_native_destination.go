@@ -23,6 +23,8 @@ var (
 	valueToSend             = big.NewInt(0).Div(valueToReceive, tokenMultipler)
 	valueToReturn           = big.NewInt(0).Div(valueToReceive, big.NewInt(4))
 	multiplyOnReceive       = true
+
+	burnedFeesReportingRewardPercentage = big.NewInt(1)
 )
 
 /**
@@ -72,6 +74,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
+		burnedFeesReportingRewardPercentage,
 	)
 
 	// Generate new recipient to receive bridged tokens

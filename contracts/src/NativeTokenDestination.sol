@@ -87,6 +87,12 @@ contract NativeTokenDestination is
     uint256 public immutable initialReserveImbalance;
 
     /**
+     * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering
+     * the message created by calling calling reportBurnedTxFees().
+     */
+    uint256 public immutable burnedFeesReportingRewardPercentage;
+
+    /**
      * @notice Tokens will not be minted until this value is 0 meaning the source contact is collateralized.
      */
     uint256 public currentReserveImbalance;
@@ -99,7 +105,7 @@ contract NativeTokenDestination is
     /**
      * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the source chain.
      */
-    uint256 public latestBurnAddressBalance;
+    uint256 public lastestBurnedFeesReported;
 
     /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
@@ -134,7 +140,8 @@ contract NativeTokenDestination is
         address feeTokenAddress_,
         uint256 initialReserveImbalance_,
         uint256 decimalsShift,
-        bool multiplyOnReceive_
+        bool multiplyOnReceive_,
+        uint256 burnedFeesReportingRewardPercentage_
     )
         TeleporterTokenDestination(
             teleporterRegistryAddress,
@@ -157,6 +164,12 @@ contract NativeTokenDestination is
         require(decimalsShift <= 18, "NativeTokenDestination: invalid decimalsShift");
         tokenMultiplier = 10 ** decimalsShift;
         multiplyOnReceive = multiplyOnReceive_;
+
+        require(
+            burnedFeesReportingRewardPercentage_ <= 100,
+            "NativeTokenDestination: invalid percentage"
+        );
+        burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
     }
 
     /**
@@ -197,29 +210,33 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportBurnedTxFees() external payable {
-        uint256 adjustedFeeAmount;
-        if (msg.value > 0) {
-            adjustedFeeAmount = _deposit(msg.value);
-        }
-        
+    function reportBurnedTxFees() external {
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
         require(
-            burnAddressBalance > latestBurnAddressBalance,
+            burnAddressBalance > lastestBurnedFeesReported,
             "NativeTokenDestination: burn address balance not greater than last report"
         );
 
-        uint256 burnedDifference = burnAddressBalance - latestBurnAddressBalance;
-        latestBurnAddressBalance = burnAddressBalance;
+        uint256 burnedDifference = burnAddressBalance - lastestBurnedFeesReported;
+        uint256 reward = burnedDifference * burnedFeesReportingRewardPercentage / 100;
+        uint256 burnedTxFees = burnedDifference - reward;
 
-        uint256 scaledAmount = _scaleTokens(burnedDifference, false);
+        totalMinted += reward;
+        emit NativeTokensMinted(address(this), reward);
+        // Calls NativeMinter precompile through INativeMinter interface.
+        NATIVE_MINTER.mintNativeCoin(address(this), reward);
+
+        _deposit(reward);
+
+        uint256 scaledAmount = _scaleTokens(burnedTxFees, false);
         require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to report burn");
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: adjustedFeeAmount}),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: reward}),
+                // TODO: placeholder value
                 requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(
@@ -229,14 +246,14 @@ contract NativeTokenDestination is
                         recipient: SOURCE_CHAIN_BURN_ADDRESS,
                         primaryFee: 0,
                         secondaryFee: 0,
-                        allowedRelayerAddresses: allowedRelayerAddresses
+                        allowedRelayerAddresses: new address[](0)
                     }),
                     scaledAmount
                     )
             })
         );
 
-        emit ReportBurnedTxFees({teleporterMessageID: messageID, feesBurned: burnedDifference});
+        emit ReportBurnedTxFees({teleporterMessageID: messageID, feesBurned: burnedTxFees});
     }
 
     /**

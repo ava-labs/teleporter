@@ -97,6 +97,7 @@ func DeployNativeTokenDestination(
 	initialReserveImbalance *big.Int,
 	decimalsShift *big.Int,
 	multiplyOnReceive bool,
+	burnedFeesReportingRewardPercentage *big.Int,
 ) (common.Address, *nativetokendestination.NativeTokenDestination) {
 	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract.
 	// The resulting contract address has been added to the genesis file as an admin for the Native Minter precompile.
@@ -123,6 +124,7 @@ func DeployNativeTokenDestination(
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
+		burnedFeesReportingRewardPercentage,
 	)
 	Expect(err).Should(BeNil())
 
