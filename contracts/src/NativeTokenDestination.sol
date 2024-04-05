@@ -144,7 +144,6 @@ contract NativeTokenDestination is
             feeTokenAddress_
         )
     {
-        require(feeTokenAddress != address(0), "NativeTokenDestination: zero feeTokenAddress");
         token = IWrappedNativeToken(feeTokenAddress);
 
         require(
