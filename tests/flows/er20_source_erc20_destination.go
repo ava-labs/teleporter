@@ -20,7 +20,7 @@ import (
  * Bridges C-Chain example ERC20 tokens to Subnet A
  * Bridge tokens from Subnet A to C-Chain
  */
-func BasicERC20SendReceive(network interfaces.Network) {
+func ERC20SourceERC20Destination(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
