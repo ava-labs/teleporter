@@ -17,6 +17,11 @@ import (
 const (
 	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 	warpGenesisFile        = "./tests/utils/warp-genesis.json"
+
+	crossChainAppsLabel      = "cross chain apps"
+	teleporterMessengerLabel = "TeleporterMessenger"
+	upgradeabilityLabel      = "upgradeability"
+	utilsLabel               = "utils"
 )
 
 var (
@@ -65,70 +70,115 @@ var _ = ginkgo.AfterSuite(func() {
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Cross-chain application tests
-	ginkgo.It("Send native tokens from subnet A to B and back", func() {
-		flows.NativeTokenBridge(LocalNetworkInstance)
-	})
-	ginkgo.It("Send ERC20 tokens from subnet A to Native tokens on subnet B and back", func() {
-		flows.ERC20ToNativeTokenBridge(LocalNetworkInstance)
-	})
-	ginkgo.It("Example cross chain messenger", func() {
-		flows.ExampleMessenger(LocalNetworkInstance)
-	})
-	ginkgo.It("ERC20 bridge multihop", func() {
-		flows.ERC20BridgeMultihop(LocalNetworkInstance)
-	})
-	ginkgo.It("Block hash publish and receive", func() {
-		flows.BlockHashPublishReceive(LocalNetworkInstance)
-	})
+	ginkgo.It("Send native tokens from subnet A to B and back",
+		ginkgo.Label(crossChainAppsLabel),
+		func() {
+			flows.NativeTokenBridge(LocalNetworkInstance)
+		})
+	ginkgo.It("Send ERC20 tokens from subnet A to Native tokens on subnet B and back",
+		ginkgo.Label(crossChainAppsLabel),
+		func() {
+			flows.ERC20ToNativeTokenBridge(LocalNetworkInstance)
+		})
+	ginkgo.It("Example cross chain messenger",
+		ginkgo.Label(crossChainAppsLabel),
+		func() {
+			flows.ExampleMessenger(LocalNetworkInstance)
+		})
+	ginkgo.It("ERC20 bridge multihop",
+		ginkgo.Label(crossChainAppsLabel),
+		func() {
+			flows.ERC20BridgeMultihop(LocalNetworkInstance)
+		})
+	ginkgo.It("Block hash publish and receive",
+		ginkgo.Label(crossChainAppsLabel),
+		func() {
+			flows.BlockHashPublishReceive(LocalNetworkInstance)
+		})
 
 	// Teleporter tests
-	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A", func() {
-		flows.BasicSendReceive(LocalNetworkInstance)
-	})
-	ginkgo.It("Deliver to the wrong chain", func() {
-		flows.DeliverToWrongChain(LocalNetworkInstance)
-	})
-	ginkgo.It("Deliver to non-existent contract", func() {
-		flows.DeliverToNonExistentContract(LocalNetworkInstance)
-	})
-	ginkgo.It("Retry successful execution", func() {
-		flows.RetrySuccessfulExecution(LocalNetworkInstance)
-	})
-	ginkgo.It("Unallowed relayer", func() {
-		flows.UnallowedRelayer(LocalNetworkInstance)
-	})
-	ginkgo.It("Relay message twice", func() {
-		flows.RelayMessageTwice(LocalNetworkInstance)
-	})
-	ginkgo.It("Add additional fee amount", func() {
-		flows.AddFeeAmount(LocalNetworkInstance)
-	})
-	ginkgo.It("Send specific receipts", func() {
-		flows.SendSpecificReceipts(LocalNetworkInstance)
-	})
-	ginkgo.It("Insufficient gas", func() {
-		flows.InsufficientGas(LocalNetworkInstance)
-	})
-	ginkgo.It("Resubmit altered message", func() {
-		flows.ResubmitAlteredMessage(LocalNetworkInstance)
-	})
-	ginkgo.It("Pause and Unpause Teleporter", func() {
-		flows.PauseTeleporter(LocalNetworkInstance)
-	})
-	ginkgo.It("Test Calculating Teleporter Message IDs", func() {
-		flows.CalculateMessageID(LocalNetworkInstance)
-	})
+	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.BasicSendReceive(LocalNetworkInstance)
+		})
+	ginkgo.It("Deliver to the wrong chain",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.DeliverToWrongChain(LocalNetworkInstance)
+		})
+	ginkgo.It("Deliver to non-existent contract",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.DeliverToNonExistentContract(LocalNetworkInstance)
+		})
+	ginkgo.It("Retry successful execution",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.RetrySuccessfulExecution(LocalNetworkInstance)
+		})
+	ginkgo.It("Unallowed relayer",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.UnallowedRelayer(LocalNetworkInstance)
+		})
+	ginkgo.It("Relay message twice",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.RelayMessageTwice(LocalNetworkInstance)
+		})
+	ginkgo.It("Add additional fee amount",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.AddFeeAmount(LocalNetworkInstance)
+		})
+	ginkgo.It("Send specific receipts",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.SendSpecificReceipts(LocalNetworkInstance)
+		})
+	ginkgo.It("Insufficient gas",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.InsufficientGas(LocalNetworkInstance)
+		})
+	ginkgo.It("Resubmit altered message",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.ResubmitAlteredMessage(LocalNetworkInstance)
+		})
+	ginkgo.It("Check upgrade access",
+		ginkgo.Label(upgradeabilityLabel),
+		func() {
+			flows.CheckUpgradeAccess(LocalNetworkInstance)
+		})
+	ginkgo.It("Pause and Unpause Teleporter",
+		ginkgo.Label(upgradeabilityLabel),
+		func() {
+			flows.PauseTeleporter(LocalNetworkInstance)
+		})
+	ginkgo.It("Calculate Teleporter message IDs",
+		ginkgo.Label(utilsLabel),
+		func() {
+			flows.CalculateMessageID(LocalNetworkInstance)
+		})
 
 	// The following tests require special behavior by the relayer, so we only run them on a local network
-	ginkgo.It("Relayer modifies message", func() {
-		flows.RelayerModifiesMessage(LocalNetworkInstance)
-	})
-	ginkgo.It("Teleporter registry", func() {
-		flows.TeleporterRegistry(LocalNetworkInstance)
-	})
-	ginkgo.It("Validator churn", func() {
-		flows.ValidatorChurn(LocalNetworkInstance)
-	})
+	ginkgo.It("Relayer modifies message",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.RelayerModifiesMessage(LocalNetworkInstance)
+		})
+	ginkgo.It("Teleporter registry",
+		ginkgo.Label(upgradeabilityLabel),
+		func() {
+			flows.TeleporterRegistry(LocalNetworkInstance)
+		})
+	ginkgo.It("Validator churn",
+		ginkgo.Label(teleporterMessengerLabel),
+		func() {
+			flows.ValidatorChurn(LocalNetworkInstance)
+		})
 	// Since the validator churn test modifies the network topology, we put it last for now.
 	// It should not affect the other tests, but we get some errors if we run it before the other tests.
 	// TODO: we should fix this so that the order of the tests does not matter.

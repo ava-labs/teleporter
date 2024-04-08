@@ -39,7 +39,7 @@ func waitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 	defer cancel()
 	for i, uri := range nodeURIs {
 		chainAWSURI := utils.HttpToWebsocketURI(uri, blockchainID.String())
-		log.Info("Creating ethclient for blockchain", "blockchainID", blockchainID.String(), "wsURI", chainAWSURI)
+		log.Debug("Creating ethclient for blockchain", "blockchainID", blockchainID.String(), "wsURI", chainAWSURI)
 		client, err := ethclient.Dial(chainAWSURI)
 		Expect(err).Should(BeNil())
 		defer client.Close()
@@ -49,7 +49,7 @@ func waitForAllValidatorsToAcceptBlock(ctx context.Context, nodeURIs []string, b
 			block, err := client.BlockByNumber(cctx, nil)
 			Expect(err).Should(BeNil())
 			if block.NumberU64() >= height {
-				log.Info("client accepted the block containing SendWarpMessage", "client", i, "height", block.NumberU64())
+				log.Debug("Client accepted the block containing SendWarpMessage", "client", i, "height", block.NumberU64())
 				break
 			}
 		}

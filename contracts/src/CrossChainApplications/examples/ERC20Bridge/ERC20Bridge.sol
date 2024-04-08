@@ -7,11 +7,7 @@ pragma solidity 0.8.18;
 
 import {IERC20Bridge} from "./IERC20Bridge.sol";
 import {BridgeToken} from "./BridgeToken.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IWarpMessenger} from
@@ -91,9 +87,10 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
      * @dev Initializes the Teleporter Messenger used for sending and receiving messages,
      * and initializes the current chain ID.
      */
-    constructor(address teleporterRegistryAddress)
-        TeleporterOwnerUpgradeable(teleporterRegistryAddress)
-    {
+    constructor(
+        address teleporterRegistryAddress,
+        address teleporterManager
+    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         currentBlockchainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS).getBlockchainID();
     }
 
@@ -202,26 +199,25 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
         require(
             destinationBridgeAddress != address(0), "ERC20Bridge: zero destination bridge address"
         );
-        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
-
-        // For non-zero fee amounts, first transfer the fee to this contract, and then
-        // allow the Teleporter contract to spend it.
-        uint256 adjustedFeeAmount;
-        if (messageFeeAmount > 0) {
-            adjustedFeeAmount =
-                SafeERC20TransferFrom.safeTransferFrom(IERC20(messageFeeAsset), messageFeeAmount);
-            IERC20(messageFeeAsset).safeIncreaseAllowance(
-                address(teleporterMessenger), adjustedFeeAmount
-            );
-        }
 
         // Create the calldata to create the bridge token on the destination chain.
         bytes memory messageData = encodeCreateBridgeTokenData(
             address(nativeToken), nativeToken.name(), nativeToken.symbol(), nativeToken.decimals()
         );
 
+        submittedBridgeTokenCreations[destinationBlockchainID][destinationBridgeAddress][address(
+            nativeToken
+        )] = true;
+
+        // For non-zero fee amounts, first transfer the fee to this contract.
+        uint256 adjustedFeeAmount;
+        if (messageFeeAmount > 0) {
+            adjustedFeeAmount =
+                SafeERC20TransferFrom.safeTransferFrom(IERC20(messageFeeAsset), messageFeeAmount);
+        }
+
         // Send Teleporter message.
-        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: destinationBridgeAddress,
@@ -231,10 +227,6 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
                 message: messageData
             })
         );
-
-        submittedBridgeTokenCreations[destinationBlockchainID][destinationBridgeAddress][address(
-            nativeToken
-        )] = true;
 
         emit SubmitCreateBridgeToken(
             destinationBlockchainID, destinationBridgeAddress, address(nativeToken), messageID
@@ -523,14 +515,6 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
             destinationBlockchainID != currentBlockchainID,
             "ERC20Bridge: cannot bridge to same chain"
         );
-        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
-
-        // Allow the Teleporter Messenger to spend the fee amount.
-        if (feeAmount > 0) {
-            IERC20(nativeContractAddress).safeIncreaseAllowance(
-                address(teleporterMessenger), feeAmount
-            );
-        }
 
         // Update balances.
         uint256 bridgeAmount = totalAmount - feeAmount;
@@ -541,7 +525,7 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
         bytes memory messageData =
             encodeMintBridgeTokensData(nativeContractAddress, recipient, bridgeAmount);
 
-        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: destinationBridgeAddress,
@@ -572,26 +556,6 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
     function _processWrappedTokenTransfer(WrappedTokenTransferInfo memory wrappedTransferInfo)
         private
     {
-        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
-
-        // If necessary, transfer the primary fee amount to this contract and approve the
-        // Teleporter Messenger to spend it when the first message back to the native subnet
-        // is submitted. The secondary fee amount is then handled by the native subnet when
-        // submitting a message to the destination chain, if applicable.
-        uint256 adjustedPrimaryFeeAmount;
-        if (wrappedTransferInfo.primaryFeeAmount > 0) {
-            // We know that the ERC20 contract is not a "fee on transfer" or "burn on transfer" contract
-            // because it is a BridgeToken contract instance that was deployed by this contract itself.
-            // However, we still use safeTransferFrom for completeness.
-            adjustedPrimaryFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
-                IERC20(wrappedTransferInfo.wrappedContractAddress),
-                wrappedTransferInfo.primaryFeeAmount
-            );
-            IERC20(wrappedTransferInfo.wrappedContractAddress).safeIncreaseAllowance(
-                address(teleporterMessenger), adjustedPrimaryFeeAmount
-            );
-        }
-
         // Burn the wrapped tokens to be bridged.
         // The bridge amount is the total amount minus the original fee amount. Even if the adjusted fee amount
         // is less than the original fee amount, the original amount is the portion that is spent out of the total
@@ -625,7 +589,22 @@ contract ERC20Bridge is IERC20Bridge, TeleporterOwnerUpgradeable {
             feeAmount: wrappedTransferInfo.secondaryFeeAmount
         });
 
-        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
+        // If necessary, transfer the primary fee amount to this contract and approve the
+        // Teleporter Messenger to spend it when the first message back to the native subnet
+        // is submitted. The secondary fee amount is then handled by the native subnet when
+        // submitting a message to the destination chain, if applicable.
+        uint256 adjustedPrimaryFeeAmount;
+        if (wrappedTransferInfo.primaryFeeAmount > 0) {
+            // We know that the ERC20 contract is not a "fee on transfer" or "burn on transfer" contract
+            // because it is a BridgeToken contract instance that was deployed by this contract itself.
+            // However, we still use safeTransferFrom for completeness.
+            adjustedPrimaryFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
+                IERC20(wrappedTransferInfo.wrappedContractAddress),
+                wrappedTransferInfo.primaryFeeAmount
+            );
+        }
+
+        bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: nativeBlockchainID,
                 destinationAddress: nativeBridgeAddress,

@@ -6,7 +6,7 @@ set -e
 set -o pipefail
 
 # The go version for this project is set from a combination of major.minor from go.mod and the patch version set here.
-GO_PATCH_VERSION=12
+GO_PATCH_VERSION=8
 
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -29,7 +29,7 @@ extract_commit() {
 }
 
 # AWM_RELAYER_VERSION is needed for the docker run setup, but is not a go module dependency.
-AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v0.2.9'}
+AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v1.0.0'}
 
 # This needs to be exported to be picked up by the dockerfile.
 export GO_VERSION=${GO_VERSION:-$(getDepVersion go).$GO_PATCH_VERSION}

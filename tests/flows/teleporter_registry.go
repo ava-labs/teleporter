@@ -15,7 +15,7 @@ const (
 )
 
 func TeleporterRegistry(network interfaces.LocalNetwork) {
-	// Deploy dapp on both chains that use Teleporter Registry
+	// Deploy dApp on both chains that use Teleporter Registry
 	// Deploy version 2 of Teleporter to both chains
 	// Construct AddProtocolVersion txs for both chains
 	// Send tx for one of the two chains, verify events emitted
@@ -24,18 +24,26 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	// Send same message from chain with old version, verify message is not received
 	// Send a message from chain with new version to chain with old version, verify message is not received
 	// Send tx with new protocol version to other chain, verify events emitted
-	// Retry the previously failed message execution, verify message is now able to be delivered to dapp
+	// Retry the previously failed message execution, verify message is now able to be delivered to dApp
 
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)
-	_, fundedKey := network.GetFundedAccountInfo()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
 	// Deploy an example cross chain messenger to both chains
-	exampleMessengerContractC, exampleMessengerC := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, cChainInfo)
+	exampleMessengerContractC, exampleMessengerC := utils.DeployExampleCrossChainMessenger(
+		ctx,
+		fundedKey,
+		fundedAddress,
+		cChainInfo,
+	)
 	exampleMessengerContractB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(
-		ctx, fundedKey, subnetBInfo,
+		ctx,
+		fundedKey,
+		fundedAddress,
+		subnetBInfo,
 	)
 
 	// Deploy the new version of Teleporter to both chains
@@ -105,7 +113,7 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	tx, err := exampleMessengerB.UpdateMinTeleporterVersion(opts, latestVersionB)
 	Expect(err).Should(BeNil())
 
-	receipt := utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx)
+	receipt := utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx.Hash())
 
 	// Verify that minTeleporterVersion updated
 	minTeleporterVersionUpdatedEvent, err := utils.GetEventFromLogs(

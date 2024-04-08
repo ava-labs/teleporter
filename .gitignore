@@ -16,7 +16,6 @@ relayerConfig.json
 subnetGenesis_*
 vars.sh
 NETWORK_READY
-NETWORK_RUNNING
 .awm-relayer-storage/
 
 # Raw Contract Deployment Transaction

@@ -4,7 +4,8 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
-	"math/big"
+	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"time"
 
@@ -14,8 +15,8 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
-	subnetevminterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
+	"github.com/ava-labs/subnet-evm/rpc"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
@@ -36,7 +37,7 @@ const (
 	teleporterContractAddress       = "teleporter_contract_address"
 	teleporterRegistryAddressSuffix = "_teleporter_registry_address"
 	subnetIDSuffix                  = "_subnet_id"
-	blockchainIDSuffix              = "_chain_id"
+	blockchainIDSuffix              = "_blockchain_id"
 	rpcURLSuffix                    = "_rpc_url"
 	wsURLSuffix                     = "_ws_url"
 	userAddress                     = "user_address"
@@ -69,42 +70,66 @@ func initializeSubnetInfo(
 	subnetIDStr := os.Getenv(subnetPrefix + subnetIDSuffix)
 	subnetID, err := ids.FromString(subnetIDStr)
 	if err != nil {
+		log.Info("Error decoding subnet ID", "subnetPrefix", subnetPrefix)
 		return interfaces.SubnetTestInfo{}, err
 	}
 
 	blockchainIDStr := os.Getenv(subnetPrefix + blockchainIDSuffix)
 	blockchainID, err := ids.FromString(blockchainIDStr)
 	if err != nil {
+		log.Info("Error decoding blockchain ID", "subnetPrefix", subnetPrefix)
 		return interfaces.SubnetTestInfo{}, err
 	}
 
 	rpcURLStr := os.Getenv(subnetPrefix + rpcURLSuffix)
-	rpcClient, err := ethclient.Dial(rpcURLStr)
+
+	// Create the client using a cookiejar to try to use the same node for each
+	// request when using public RPC endpoints. Having requests routed to different
+	// nodes behind a load balancer may cause issues with nodes serving slightly stale
+	// data from before they see recently accepted transactions. Responses generally
+	// have cookies identifying which node served the request, and those cookies can
+	// be added to the cookiejar to be included on future requests to attempt to have
+	// the same node serve it.
+	// See here: https://docs.avax.network/tooling/rpc-providers#sticky-sessions
+	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
 
-	wsURLStr := os.Getenv(subnetPrefix + wsURLSuffix)
-	wsClient, err := ethclient.Dial(wsURLStr)
-	if err != nil {
-		return interfaces.SubnetTestInfo{}, err
+	httpClient := &http.Client{
+		Jar: jar,
 	}
 
-	evmChainID, err := rpcClient.ChainID(context.Background())
-	if err != nil {
-		return interfaces.SubnetTestInfo{}, err
-	}
-
-	teleporterRegistryAddress := common.HexToAddress(os.Getenv(subnetPrefix + teleporterRegistryAddressSuffix))
-
-	teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		teleporterContractAddress, rpcClient,
+	rpcClient, err := rpc.DialOptions(
+		context.Background(),
+		rpcURLStr,
+		rpc.WithHTTPClient(httpClient),
 	)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
 
-	teleporterRegistry, err := teleporterregistry.NewTeleporterRegistry(teleporterRegistryAddress, rpcClient)
+	ethClient := ethclient.NewClient(rpcClient)
+
+	evmChainID, err := ethClient.ChainID(context.Background())
+	if err != nil {
+		return interfaces.SubnetTestInfo{}, err
+	}
+
+	teleporterRegistryAddressStr := os.Getenv(subnetPrefix + teleporterRegistryAddressSuffix)
+	if !common.IsHexAddress(teleporterRegistryAddressStr) {
+		return interfaces.SubnetTestInfo{}, errors.New("invalid teleporter regirstry address")
+	}
+	teleporterRegistryAddress := common.HexToAddress(teleporterRegistryAddressStr)
+
+	teleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
+		teleporterContractAddress, ethClient,
+	)
+	if err != nil {
+		return interfaces.SubnetTestInfo{}, err
+	}
+
+	teleporterRegistry, err := teleporterregistry.NewTeleporterRegistry(teleporterRegistryAddress, ethClient)
 	if err != nil {
 		return interfaces.SubnetTestInfo{}, err
 	}
@@ -113,8 +138,8 @@ func initializeSubnetInfo(
 		SubnetID:                  subnetID,
 		BlockchainID:              blockchainID,
 		NodeURIs:                  []string{}, // no specific node URIs for a testnet subnet, only RPC endpoints.
-		RPCClient:                 rpcClient,
-		WSClient:                  wsClient,
+		RPCClient:                 ethClient,
+		WSClient:                  nil,
 		EVMChainID:                evmChainID,
 		TeleporterRegistryAddress: teleporterRegistryAddress,
 		TeleporterRegistry:        teleporterRegistry,
@@ -137,16 +162,11 @@ func NewTestNetwork() (*testNetwork, error) {
 		return nil, err
 	}
 
-	subnetCInfo, err := initializeSubnetInfo(subnetCPrefix, teleporterContractAddress)
-	if err != nil {
-		return nil, err
-	}
-
 	cChainInfo, err := initializeSubnetInfo(cChainPrefix, teleporterContractAddress)
 	if err != nil {
 		return nil, err
 	}
-	log.Info("Set testnet subnet info", subnetAPrefix, subnetAInfo, subnetBPrefix, subnetBInfo, subnetCPrefix, subnetCInfo)
+	log.Info("Set testnet subnet info", subnetAPrefix, subnetAInfo, subnetBPrefix, subnetBInfo)
 
 	fundedAddressStr := os.Getenv(userAddress)
 	fundedKeyStr := os.Getenv(userPrivateKey)
@@ -165,7 +185,6 @@ func NewTestNetwork() (*testNetwork, error) {
 	subnetsInfo := make(map[ids.ID]*interfaces.SubnetTestInfo)
 	subnetsInfo[subnetAInfo.SubnetID] = &subnetAInfo
 	subnetsInfo[subnetBInfo.SubnetID] = &subnetBInfo
-	subnetsInfo[subnetCInfo.SubnetID] = &subnetCInfo
 	return &testNetwork{
 		teleporterContractAddress: teleporterContractAddress,
 		primaryNetwork:            &cChainInfo,
@@ -231,49 +250,26 @@ func (n *testNetwork) SupportsIndependentRelaying() bool {
 // The implementation checks for the deliver of the given message on the destination
 // within a time window of {relayWaitTime} seconds, and returns the receipt of the
 // transaction that delivered the message.
-func (n *testNetwork) RelayMessage(ctx context.Context,
+func (n *testNetwork) RelayMessage(
+	ctx context.Context,
 	sourceReceipt *types.Receipt,
 	source interfaces.SubnetTestInfo,
 	destination interfaces.SubnetTestInfo,
-	expectSuccess bool) *types.Receipt {
-	// Set the context to expire after 20 seconds
-	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
-	defer cancel()
-
-	sourceSubnetTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		n.teleporterContractAddress, source.RPCClient,
-	)
-	Expect(err).Should(BeNil())
-
+	expectSuccess bool,
+) *types.Receipt {
 	// Get the Teleporter message ID from the receipt
 	sendEvent, err := utils.GetEventFromLogs(
-		sourceReceipt.Logs, sourceSubnetTeleporterMessenger.ParseSendCrossChainMessage,
+		sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage,
 	)
 	Expect(err).Should(BeNil())
 
 	teleporterMessageID := sendEvent.MessageID
 
-	receipt, err := n.getMessageDeliveryTransactionReceipt(cctx, source.BlockchainID, destination, teleporterMessageID)
+	receipt, err := n.getMessageDeliveryTransactionReceipt(ctx, source.BlockchainID, destination, teleporterMessageID)
 	Expect(err).Should(BeNil())
 	Expect(receipt).ShouldNot(BeNil())
 	Expect(receipt.Status).Should(Equal(types.ReceiptStatusSuccessful))
 	return receipt
-}
-
-func (n *testNetwork) checkMessageDelivered(
-	sourceBlockchainID ids.ID,
-	destination interfaces.SubnetTestInfo,
-	teleporterMessageID ids.ID) (bool, error) {
-	destinationTeleporterMessenger, err := teleportermessenger.NewTeleporterMessenger(
-		n.teleporterContractAddress,
-		destination.RPCClient)
-	if err != nil {
-		return false, err
-	}
-
-	return destinationTeleporterMessenger.MessageReceived(
-		&bind.CallOpts{}, teleporterMessageID,
-	)
 }
 
 func (n *testNetwork) getMessageDeliveryTransactionReceipt(
@@ -282,14 +278,28 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	destination interfaces.SubnetTestInfo,
 	teleporterMessageID ids.ID) (*types.Receipt, error) {
 	// Wait until the message is delivered.
-	delivered := false
-	var err error
-	for !delivered || err != nil {
-		if ctx.Err() != nil {
-			return nil, ctx.Err()
+	queryTicker := time.NewTicker(time.Millisecond * 500)
+	defer queryTicker.Stop()
+
+	// Wait a maximum of 20 seconds.
+	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
+	for {
+		delivered, err := destination.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, teleporterMessageID)
+		if err != nil {
+			return nil, err
 		}
-		delivered, err = n.checkMessageDelivered(sourceBlockchainID, destination, teleporterMessageID)
-		time.Sleep(time.Second)
+		if delivered {
+			break
+		}
+
+		// Wait for the next round.
+		select {
+		case <-cctx.Done():
+			return nil, cctx.Err()
+		case <-queryTicker.C:
+		}
 	}
 
 	// Get the latest block height
@@ -305,32 +315,32 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 		startBlock = 0
 	}
 
-	abi, err := teleportermessenger.TeleporterMessengerMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
-
 	// Get the log event of the delivery. The log must be in the last {receiveCrossChainMessageLookBackBlocks} blocks.
-	logs, err := destination.RPCClient.FilterLogs(ctx, subnetevminterfaces.FilterQuery{
-		FromBlock: big.NewInt(int64(startBlock)),
-		Addresses: []common.Address{n.teleporterContractAddress},
-		Topics: [][]common.Hash{
-			{abi.Events[receiveCrossChainMessageEventName].ID},
-			{common.BytesToHash(sourceBlockchainID[:])},
-			{common.BytesToHash(teleporterMessageID[:])},
+	logIter, err := destination.TeleporterMessenger.FilterReceiveCrossChainMessage(
+		&bind.FilterOpts{
+			Start:   startBlock,
+			Context: cctx,
 		},
-	})
+		[][32]byte{teleporterMessageID},
+		[][32]byte{sourceBlockchainID},
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(logs) == 0 {
-		return nil, errors.New("Failed to find ReceiveCrossChainMessage log for relayed message")
-	} else if len(logs) > 1 {
-		return nil, errors.New("Found multiple ReceiveCrossChainMessage logs for relayed message")
+	// There should be exactly one matching event.
+	if !logIter.Next() {
+		return nil, errors.New("failed to find ReceiveCrossChainMessage log for relayed message")
+	}
+	receiveEvent := logIter.Event
+	if logIter.Next() {
+		return nil, errors.New("found multiple ReceiveCrossChainMessage logs for relayed message")
 	}
 
-	return destination.RPCClient.TransactionReceipt(ctx, logs[0].TxHash)
+	// The transaction should already be mined, but WaitMined will also wait for the eth_blockNumber
+	// endpoint to reflect the block that the transaction has been included in.
+	return utils.WaitMined(ctx, destination.RPCClient, receiveEvent.Raw.TxHash)
 }
 
 func (n *testNetwork) GetSignedMessage(

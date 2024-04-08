@@ -10,6 +10,9 @@ TELEPORTER_PATH=$(
 )
 
 set -a
+
+source "$TELEPORTER_PATH"/scripts/versions.sh
 source $TELEPORTER_PATH/.env
 source $TELEPORTER_PATH/.env.testnet
+
 go run tests/testnet/main/run_testnet_flows.go

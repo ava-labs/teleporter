@@ -18,7 +18,7 @@ import (
 func DeliverToNonExistentContract(network interfaces.Network) {
 	subnetAInfo := network.GetPrimaryNetworkInfo()
 	subnetBInfo, _ := utils.GetTwoSubnets(network)
-	_, fundedKey := network.GetFundedAccountInfo()
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	deployerKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
@@ -41,7 +41,12 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	// Send a message that should fail to be executed on Subnet B
 	//
 	log.Info("Deploying ExampleMessenger to Subnet A")
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
+	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(
+		ctx,
+		fundedKey,
+		fundedAddress,
+		subnetAInfo,
+	)
 
 	// Derive the eventual address of the destination contract on Subnet B
 	nonce, err := subnetBInfo.RPCClient.NonceAt(ctx, deployerAddress, nil)
@@ -69,7 +74,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
+	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
 	sendEvent, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
@@ -112,8 +117,12 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	// Deploy the contract on Subnet B
 	//
 	log.Info("Deploying the contract on Subnet B")
-	exampleMessengerContractB, subnetBExampleMessenger :=
-		utils.DeployExampleCrossChainMessenger(ctx, deployerKey, subnetBInfo)
+	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
+		ctx,
+		deployerKey,
+		deployerAddress,
+		subnetBInfo,
+	)
 
 	// Confirm that it was deployed at the expected address
 	Expect(exampleMessengerContractB).Should(Equal(destinationContractAddress))

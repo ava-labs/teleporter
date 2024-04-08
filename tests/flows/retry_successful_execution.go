@@ -21,9 +21,17 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	//
 	ctx := context.Background()
 
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(ctx, fundedKey, subnetAInfo)
+	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(
+		ctx,
+		fundedKey,
+		fundedAddress,
+		subnetAInfo,
+	)
 	exampleMessengerContractAddressB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
-		ctx, fundedKey, subnetBInfo,
+		ctx,
+		fundedKey,
+		fundedAddress,
+		subnetBInfo,
 	)
 
 	//
@@ -44,7 +52,7 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Wait for the transaction to be mined
-	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx)
+	receipt := utils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
 
 	event, err := utils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())

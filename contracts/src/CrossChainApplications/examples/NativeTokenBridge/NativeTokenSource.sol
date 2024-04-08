@@ -8,14 +8,9 @@ pragma solidity 0.8.18;
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {INativeTokenSource} from "./INativeTokenSource.sol";
 import {TokenSource} from "./TokenSource.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterFeeInfo,
-    TeleporterMessageInput
-} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -30,10 +25,16 @@ import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC
 contract NativeTokenSource is INativeTokenSource, TokenSource {
     constructor(
         address teleporterRegistryAddress,
+        address teleporterManager,
         bytes32 destinationBlockchainID_,
         address nativeTokenDestinationAddress_
     )
-        TokenSource(teleporterRegistryAddress, destinationBlockchainID_, nativeTokenDestinationAddress_)
+        TokenSource(
+            teleporterRegistryAddress,
+            teleporterManager,
+            destinationBlockchainID_,
+            nativeTokenDestinationAddress_
+        )
     {}
 
     /**
@@ -44,10 +45,10 @@ contract NativeTokenSource is INativeTokenSource, TokenSource {
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external payable nonReentrant {
-        ITeleporterMessenger teleporterMessenger = _getTeleporterMessenger();
-
         // The recipient cannot be the zero address.
         require(recipient != address(0), "NativeTokenSource: zero recipient address");
+        uint256 value = msg.value;
+        require(value > 0, "NativeTokenSource: zero transfer value");
 
         // Lock tokens in this bridge instance. Supports "fee/burn on transfer" ERC20 token
         // implementations by only bridging the actual balance increase reflected by the call
@@ -57,27 +58,24 @@ contract NativeTokenSource is INativeTokenSource, TokenSource {
             adjustedFeeAmount = SafeERC20TransferFrom.safeTransferFrom(
                 IERC20(feeInfo.feeTokenAddress), feeInfo.amount
             );
-            SafeERC20.safeIncreaseAllowance(
-                IERC20(feeInfo.feeTokenAddress), address(teleporterMessenger), adjustedFeeAmount
-            );
         }
 
-        bytes32 messageID = teleporterMessenger.sendCrossChainMessage(
+        bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: destinationBlockchainID,
                 destinationAddress: nativeTokenDestinationAddress,
                 feeInfo: feeInfo,
                 requiredGasLimit: MINT_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(recipient, msg.value)
+                message: abi.encode(recipient, value)
             })
         );
 
         emit TransferToDestination({
             sender: msg.sender,
             recipient: recipient,
-            amount: msg.value,
-            teleporterMessageID: messageID
+            teleporterMessageID: messageID,
+            amount: value
         });
     }
 
@@ -91,24 +89,5 @@ contract NativeTokenSource is INativeTokenSource, TokenSource {
         // Transfer to recipient
         emit UnlockTokens(recipient, amount);
         Address.sendValue(payable(recipient), amount);
-    }
-
-    /**
-     * @dev See {TokenSource-_handleBurnTokens}
-     */
-    function _handleBurnTokens(uint256 newBurnTotal) internal override {
-        if (newBurnTotal > destinationBurnedTotal) {
-            uint256 difference = newBurnTotal - destinationBurnedTotal;
-            _burnTokens(difference);
-            destinationBurnedTotal = newBurnTotal;
-        }
-    }
-
-    /**
-     * @dev See {TokenSource-_burnTokens}
-     */
-    function _burnTokens(uint256 amount) private {
-        emit BurnTokens(amount);
-        Address.sendValue(payable(BURN_ADDRESS), amount);
     }
 }

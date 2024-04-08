@@ -6,16 +6,12 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
+import {ERC20Bridge, BridgeToken, IERC20, ERC20, IWarpMessenger} from "../ERC20Bridge.sol";
 import {
-    ERC20Bridge,
-    BridgeToken,
-    IERC20,
-    ERC20,
+    ITeleporterMessenger,
     TeleporterMessageInput,
-    TeleporterFeeInfo,
-    IWarpMessenger,
-    ITeleporterMessenger
-} from "../ERC20Bridge.sol";
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 
@@ -33,6 +29,7 @@ contract ERC20BridgeTest is Test {
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     address private constant _DEFAULT_OTHER_BRIDGE_ADDRESS =
         0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    address private constant _DEFAULT_OWNER_ADDRESS = 0x1234512345123451234512345123451234512345;
     string private constant _DEFAULT_TOKEN_NAME = "Test Token";
     string private constant _DEFAULT_SYMBOL = "TSTTK";
     uint8 private constant _DEFAULT_DECIMALS = 18;
@@ -85,7 +82,7 @@ contract ERC20BridgeTest is Test {
             )
         );
 
-        erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS);
+        erc20Bridge = new ERC20Bridge(MOCK_TELEPORTER_REGISTRY_ADDRESS, _DEFAULT_OWNER_ADDRESS);
         mockERC20 = new UnitTestMockERC20();
     }
 
@@ -519,7 +516,7 @@ contract ERC20BridgeTest is Test {
 
     function testZeroTeleporterRegistryAddress() public {
         vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new ERC20Bridge(address(0));
+        new ERC20Bridge(address(0), _DEFAULT_OWNER_ADDRESS);
     }
 
     function _initMockTeleporterRegistry() internal {

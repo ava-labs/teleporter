@@ -1,16 +1,14 @@
 {
-    "network-id": 1337,
     "p-chain-api-url": "http://127.0.0.1:9650",
-    "encrypt-connection": false,
+    "info-api-url": "http://127.0.0.1:9650",
     "process-missed-blocks": false,
-    "source-subnets": [
+    "source-blockchains": [
         {
             "subnet-id": "11111111111111111111111111111111LpoYY",
             "blockchain-id": "<C_CHAIN_BLOCKCHAIN_ID>",
             "vm": "evm",
-            "api-node-host": "127.0.0.1",
-            "api-node-port": 9650,
-            "encrypt-connection": false,
+            "rpc-endpoint": "http://127.0.0.1:9650/ext/bc/C/rpc",
+            "ws-endpoint": "ws://127.0.0.1:9650/ext/bc/C/ws",
             "message-contracts": {
                 "<TELEPORTER_CONTRACT_ADDRESS>": {
                     "message-format": "teleporter",
@@ -24,9 +22,8 @@
             "subnet-id": "<SUBNET_A_SUBNET_ID>",
             "blockchain-id": "<SUBNET_A_BLOCKCHAIN_ID>",
             "vm": "evm",
-            "api-node-host": "127.0.0.1",
-            "api-node-port": 9650,
-            "encrypt-connection": false,
+            "rpc-endpoint": "http://127.0.0.1:9650/ext/bc/<SUBNET_A_BLOCKCHAIN_ID>/rpc",
+            "ws-endpoint": "ws://127.0.0.1:9650/ext/bc/<SUBNET_A_BLOCKCHAIN_ID>/ws",
             "message-contracts": {
                 "<TELEPORTER_CONTRACT_ADDRESS>": {
                     "message-format": "teleporter",
@@ -40,9 +37,8 @@
             "subnet-id": "<SUBNET_B_SUBNET_ID>",
             "blockchain-id": "<SUBNET_B_BLOCKCHAIN_ID>",
             "vm": "evm",
-            "api-node-host": "127.0.0.1",
-            "api-node-port": 9650,
-            "encrypt-connection": false,
+            "rpc-endpoint": "http://127.0.0.1:9650/ext/bc/<SUBNET_B_BLOCKCHAIN_ID>/rpc",
+            "ws-endpoint": "ws://127.0.0.1:9650/ext/bc/<SUBNET_B_BLOCKCHAIN_ID>/ws",
             "message-contracts": {
                 "<TELEPORTER_CONTRACT_ADDRESS>": {
                     "message-format": "teleporter",
@@ -56,9 +52,8 @@
             "subnet-id": "<SUBNET_C_SUBNET_ID>",
             "blockchain-id": "<SUBNET_C_BLOCKCHAIN_ID>",
             "vm": "evm",
-            "api-node-host": "127.0.0.1",
-            "api-node-port": 9650,
-            "encrypt-connection": false,
+            "rpc-endpoint": "http://127.0.0.1:9650/ext/bc/<SUBNET_C_BLOCKCHAIN_ID>/rpc",
+            "ws-endpoint": "ws://127.0.0.1:9650/ext/bc/<SUBNET_C_BLOCKCHAIN_ID>/ws",
             "message-contracts": {
                 "<TELEPORTER_CONTRACT_ADDRESS>": {
                     "message-format": "teleporter",
@@ -69,13 +64,12 @@
             }
         }
     ],
-    "destination-subnets": [
+    "destination-blockchains": [
         {
             "subnet-id": "11111111111111111111111111111111LpoYY",
             "blockchain-id": "<C_CHAIN_BLOCKCHAIN_ID>",
             "vm": "evm",
-            "api-node-host": "127.0.0.1",
-            "api-node-port": 9650,
+            "rpc-endpoint": "http://127.0.0.1:9650/ext/bc/C/rpc",
             "encrypt-connection": false,
             "account-private-key": "<ACCOUNT_PRIVATE_KEY>"
         },
@@ -83,27 +77,21 @@
             "subnet-id": "<SUBNET_A_SUBNET_ID>",
             "blockchain-id": "<SUBNET_A_BLOCKCHAIN_ID>",
             "vm": "evm",
-            "api-node-host": "127.0.0.1",
-            "api-node-port": 9650,
-            "encrypt-connection": false,
+            "rpc-endpoint": "http://127.0.0.1:9650/ext/bc/<SUBNET_A_BLOCKCHAIN_ID>/rpc",
             "account-private-key": "<ACCOUNT_PRIVATE_KEY>"
         },
         {
             "subnet-id": "<SUBNET_B_SUBNET_ID>",
             "blockchain-id": "<SUBNET_B_BLOCKCHAIN_ID>",
             "vm": "evm",
-            "api-node-host": "127.0.0.1",
-            "api-node-port": 9650,
-            "encrypt-connection": false,
+            "rpc-endpoint": "http://127.0.0.1:9650/ext/bc/<SUBNET_B_BLOCKCHAIN_ID>/rpc",
             "account-private-key": "<ACCOUNT_PRIVATE_KEY>"
         },
         {
             "subnet-id": "<SUBNET_C_SUBNET_ID>",
             "blockchain-id": "<SUBNET_C_BLOCKCHAIN_ID>",
             "vm": "evm",
-            "api-node-host": "127.0.0.1",
-            "api-node-port": 9650,
-            "encrypt-connection": false,
+            "rpc-endpoint": "http://127.0.0.1:9650/ext/bc/<SUBNET_C_BLOCKCHAIN_ID>/rpc",
             "account-private-key": "<ACCOUNT_PRIVATE_KEY>"
         }
     ]
