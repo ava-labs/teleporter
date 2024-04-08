@@ -265,7 +265,7 @@ func SendNativeTokenDestination(
 	Expect(err).Should(BeNil())
 	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
 	var scaledBridgedAmount *big.Int
-	if (multiplyOnReceive) {
+	if multiplyOnReceive {
 		scaledBridgedAmount = big.NewInt(0).Div(bridgedAmount, tokenMultiplier)
 	} else {
 		scaledBridgedAmount = teleporterUtils.BigIntMul(bridgedAmount, tokenMultiplier)
@@ -346,7 +346,7 @@ func SendERC20MultihopAndVerify(
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		AllowedRelayerAddresses:  []common.Address{},
+		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
 	}
 
 	// Send tokens through a multihop transfer
@@ -448,7 +448,7 @@ func CheckNativeTokenDestinationMint(
 	mintEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseNativeTokensMinted)
 	Expect(err).Should(BeNil())
 	Expect(mintEvent.Recipient).Should(Equal(recipient))
-	teleporterUtils.ExpectBigEqual(mintEvent.Amount,expectedMint)
+	teleporterUtils.ExpectBigEqual(mintEvent.Amount, expectedMint)
 	teleporterUtils.CheckBalance(ctx, recipient, expectedBalance, subnet.RPCClient)
 }
 

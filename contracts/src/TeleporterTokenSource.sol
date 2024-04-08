@@ -22,6 +22,8 @@ import {IWarpMessenger} from
  *
  * This contract also handles multihop transfers, where tokens sent from a {TeleporterTokenDestination}
  * instance are forwarded to another {TeleporterTokenDestination} instance.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwnerUpgradeable {
     /// @notice The blockchain ID of the chain this contract is deployed on.
@@ -39,10 +41,6 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         bytes32 destinationBlockchainID
             => mapping(address destinationBridgeAddress => uint256 balance)
     ) public bridgedBalances;
-
-    // TODO: these are values brought from the example ERC20Bridge contract.
-    // Need to figure out appropriate values.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 300_000;
 
     /**
      * @notice Initializes this source token bridge instance to send
@@ -77,6 +75,10 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         bool isMultihop
     ) internal virtual {
         require(
+            input.destinationBlockchainID != bytes32(0),
+            "TeleporterTokenSource: zero destination blockchain ID"
+        );
+        require(
             input.destinationBlockchainID != blockchainID,
             "TeleporterTokenSource: cannot bridge to same chain"
         );
@@ -85,6 +87,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             "TeleporterTokenSource: zero destination bridge address"
         );
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
+        require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
 
         // If this send is not a multihop, deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit. If it is a multihop, the amount is already
@@ -106,14 +109,13 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
-                // TODO: Set requiredGasLimit
-                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: input.allowedRelayerAddresses,
+                requiredGasLimit: input.requiredGasLimit,
+                allowedRelayerAddresses: new address[](0),
                 message: abi.encode(input.recipient, amount)
             })
         );
 
-        emit SendTokens(messageID, msg.sender, amount);
+        emit SendTokens(messageID, msg.sender, input, amount);
     }
 
     /**
@@ -150,6 +152,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 input.destinationBridgeAddress == address(this),
                 "TeleporterTokenSource: invalid bridge address"
             );
+            emit WithdrawTokens(input.recipient, amount);
             _withdraw(input.recipient, amount);
             return;
         }
@@ -157,7 +160,18 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         _send(input, amount, true);
     }
 
+    /**
+     * @notice Deposits tokens from the sender to this contract,
+     * and returns the adjusted amount of tokens deposited.
+     * @param amount is initial amount sent to this contract.
+     * @return The actual amount deposited to this contract.
+     */
     function _deposit(uint256 amount) internal virtual returns (uint256);
 
+    /**
+     * @notice Withdraws tokens to the recipient address.
+     * @param recipient The address to withdraw tokens to
+     * @param amount The amount of tokens to withdraw
+     */
     function _withdraw(address recipient, uint256 amount) internal virtual;
 }

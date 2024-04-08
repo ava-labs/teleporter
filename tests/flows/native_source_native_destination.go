@@ -87,7 +87,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			Recipient:                recipientAddress,
 			PrimaryFee:               big.NewInt(0),
 			SecondaryFee:             big.NewInt(0),
-			AllowedRelayerAddresses:  []common.Address{},
 		}
 
 		receipt, bridgedAmount := utils.SendNativeTokenSource(
@@ -134,7 +133,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			Recipient:                recipientAddress,
 			PrimaryFee:               big.NewInt(0),
 			SecondaryFee:             big.NewInt(0),
-			AllowedRelayerAddresses:  []common.Address{},
 		}
 
 		// Send initialReserveImbalance tokens to over-collateralize bridge

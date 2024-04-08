@@ -23,6 +23,7 @@ const (
 	erc20DestinationLabel       = "ERC20Destination"
 	nativeTokenSourceLabel      = "NativeTokenSource"
 	nativeTokenDestinationLabel = "NativeTokenDestination"
+	multiHopLabel               = "MultiHop"
 )
 
 var LocalNetworkInstance *local.LocalNetwork
@@ -42,7 +43,8 @@ var _ = ginkgo.BeforeSuite(func() {
 	LocalNetworkInstance = local.NewLocalNetwork(warpGenesisFile)
 
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(
+	teleporterDeployerTransaction, teleporterDeployerAddress,
+		teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(
 		teleporterByteCodeFile,
 		false,
 		deploymentUtils.GetDefaultContractCreationGasPrice(),
@@ -83,12 +85,12 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 			flows.NativeSourceNativeDestination(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge an ERC20 token with ERC20Source multihop",
-		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel),
+		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel, multiHopLabel),
 		func() {
 			flows.ERC20SourceMultihop(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge an ERC20 token with NativeTokenSource multihop",
-		ginkgo.Label(nativeTokenSourceLabel, erc20DestinationLabel),
+		ginkgo.Label(nativeTokenSourceLabel, erc20DestinationLabel, multiHopLabel),
 		func() {
 			flows.NativeTokenSourceMultihop(LocalNetworkInstance)
 		})

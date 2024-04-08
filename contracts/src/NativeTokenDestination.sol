@@ -196,7 +196,7 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportBurnedTxFees() external payable {
+    function reportBurnedTxFees(uint256 requiredGasLimit) external payable {
         uint256 adjustedFeeAmount;
         if (msg.value > 0) {
             adjustedFeeAmount = _deposit(msg.value);
@@ -219,7 +219,7 @@ contract NativeTokenDestination is
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: adjustedFeeAmount}),
-                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
+                requiredGasLimit: requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(
                     SendTokensInput({
@@ -228,7 +228,7 @@ contract NativeTokenDestination is
                         recipient: SOURCE_CHAIN_BURN_ADDRESS,
                         primaryFee: 0,
                         secondaryFee: 0,
-                        allowedRelayerAddresses: new address[](0)
+                        requiredGasLimit: 0
                     }),
                     scaledAmount
                     )
