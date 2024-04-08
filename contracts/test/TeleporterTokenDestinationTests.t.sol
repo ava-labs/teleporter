@@ -44,8 +44,9 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     function testNonZeroSecondaryFeeToSourceBlockchain() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.secondaryFee = 1;
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendingToSameInstance() public {
