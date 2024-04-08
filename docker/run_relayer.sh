@@ -34,13 +34,6 @@ set +a
 reward_address=0xA100fF48a37cab9f87c8b5Da933DA46ea1a5fb80
 account_private_key=C2CE4E001B7585F543982A01FBC537CFF261A672FA8BD1FAFC08A207098FE2DE
 
-# Send 500 native tokens to cover gas costs for the relayers.
-cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_a_rpc_url
-cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_b_rpc_url
-cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $subnet_c_rpc_url
-cast send --private-key $user_private_key --value 500ether $relayer_address --rpc-url $c_chain_rpc_url
-echo "Sent ether to relayer account on each subnet."
-
 # Populate the relayer configuration
 relayerConfigFile=./relayerConfig.json
 rm -f $relayerConfigFile
