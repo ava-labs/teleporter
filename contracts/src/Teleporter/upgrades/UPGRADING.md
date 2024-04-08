@@ -2,7 +2,7 @@
 
 This document outlines the high-level steps necessary to upgrade Teleporter as a subnet operator, a relayer operator, and a dApp admin. As a reference, the [Teleporter Registry test suite](../../../../tests/flows/teleporter_registry.go) implements the steps described in a test environment.
 
-## Register a new Teleporter version
+## Register a New Teleporter Version
 
 Once a new Teleporter contract instance is [deployed](../../../../utils/contract-deployment/README.md), the `addProtocolVersion` method of [TeleporterRegistry.sol](./TeleporterRegistry.sol) must be called. This method is only callable if the associated Warp message was sent via an off-chain Warp message, which is provided by a validator's chain config.
 
