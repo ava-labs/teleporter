@@ -42,7 +42,8 @@ contract NativeTokenDestination is
      * @notice The address where the burned transaction fees are credited.
      *
      * @dev Defined as BLACKHOLE_ADDRESS at
-     * https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
+     * https://github.com/ava-labs/subnet-evm/blob/v0.6.0/constants/constants.go
+     * C-Chain value found at https://github.com/ava-labs/coreth/blob/v0.13.2/constants/constants.go
      * It is a system-reserved address by default in subnet-evm and coreth, and transfers cannot be sent here manually.
      */
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
