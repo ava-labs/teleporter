@@ -10,7 +10,6 @@ import (
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -87,6 +86,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			Recipient:                recipientAddress,
 			PrimaryFee:               big.NewInt(0),
 			SecondaryFee:             big.NewInt(0),
+			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
 		receipt, bridgedAmount := utils.SendNativeTokenSource(
@@ -133,6 +133,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			Recipient:                recipientAddress,
 			PrimaryFee:               big.NewInt(0),
 			SecondaryFee:             big.NewInt(0),
+			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
 		// Send initialReserveImbalance tokens to over-collateralize bridge
@@ -179,7 +180,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			Recipient:                recipientAddress,
 			PrimaryFee:               big.NewInt(0),
 			SecondaryFee:             big.NewInt(0),
-			AllowedRelayerAddresses:  []common.Address{},
+			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
 		receipt, bridgedAmount := utils.SendNativeTokenDestination(
