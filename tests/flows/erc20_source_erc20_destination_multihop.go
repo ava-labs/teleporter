@@ -20,7 +20,7 @@ import (
  * Bridge tokens from Subnet A to Subnet B through multihop
  * Bridge back tokens from Subnet B to Subnet A through multihop
  */
-func ERC20SourceMultihop(network interfaces.Network) {
+func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()

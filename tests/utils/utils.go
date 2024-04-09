@@ -318,6 +318,87 @@ func SendERC20Destination(
 	return receipt, event.Amount
 }
 
+func SendNativeMultihopAndVerify(
+	ctx context.Context,
+	network interfaces.Network,
+	fundedKey *ecdsa.PrivateKey,
+	recipientKey *ecdsa.PrivateKey,
+	recipientAddress common.Address,
+	fromSubnet interfaces.SubnetTestInfo,
+	fromBridge *nativetokendestination.NativeTokenDestination,
+	toSubnet interfaces.SubnetTestInfo,
+	toBridge *nativetokendestination.NativeTokenDestination,
+	toBridgeAddress common.Address,
+	cChainInfo interfaces.SubnetTestInfo,
+	bridgedAmount *big.Int,
+	tokenMultiplier *big.Int,
+	multiplyOnReceive bool,
+) {
+	teleporterUtils.SendNativeTransfer(
+		ctx,
+		fromSubnet,
+		fundedKey,
+		recipientAddress,
+		big.NewInt(1e18),
+	)
+	input := nativetokendestination.SendTokensInput{
+		DestinationBlockchainID:  toSubnet.BlockchainID,
+		DestinationBridgeAddress: toBridgeAddress,
+		Recipient:                recipientAddress,
+		PrimaryFee:               big.NewInt(0),
+		SecondaryFee:             big.NewInt(0),
+		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
+	}
+
+	// Send tokens through a multihop transfer
+	originReceipt, bridgedAmount := SendNativeTokenDestination(
+		ctx,
+		fromSubnet,
+		fromBridge,
+		input,
+		bridgedAmount,
+		recipientKey,
+		tokenMultiplier,
+		multiplyOnReceive,
+	)
+
+	// Relay the first message back to the home-chain, in this case C-Chain,
+	// which then performs the multihop transfer to the destination chain
+	intermediateReceipt := network.RelayMessage(
+		ctx,
+		originReceipt,
+		fromSubnet,
+		cChainInfo,
+		true,
+	)
+
+	// When we relay the above message to the home-chain, a multihop transfer
+	// is performed to the destination chain. Parse for the send tokens event
+	// and relay to final destination.
+	destinationReceipt := network.RelayMessage(
+		ctx,
+		intermediateReceipt,
+		cChainInfo,
+		toSubnet,
+		true,
+	)
+
+	CheckNativeTokenDestinationMint(
+		ctx,
+		toSubnet,
+		toBridge,
+		recipientAddress,
+		destinationReceipt,
+		bridgedAmount,
+		bridgedAmount,
+	)
+
+	// Verify the recipient received the tokens
+	balance, err := toSubnet.RPCClient.BalanceAt(ctx, recipientAddress, nil)
+	Expect(err).Should(BeNil())
+	Expect(balance).Should(Equal(bridgedAmount))
+}
+
 func SendERC20MultihopAndVerify(
 	ctx context.Context,
 	network interfaces.Network,

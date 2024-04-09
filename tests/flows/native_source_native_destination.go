@@ -16,10 +16,10 @@ import (
 
 var (
 	decimalsShift           = big.NewInt(1)
-	tokenMultipler          = big.NewInt(int64(math.Pow10(int(decimalsShift.Int64()))))
+	tokenMultiplier         = big.NewInt(int64(math.Pow10(int(decimalsShift.Int64()))))
 	initialReserveImbalance = big.NewInt(0).Mul(big.NewInt(1e15), big.NewInt(1e9))
 	valueToReceive          = big.NewInt(0).Div(initialReserveImbalance, big.NewInt(4))
-	valueToSend             = big.NewInt(0).Div(valueToReceive, tokenMultipler)
+	valueToSend             = big.NewInt(0).Div(valueToReceive, tokenMultiplier)
 	valueToReturn           = big.NewInt(0).Div(valueToReceive, big.NewInt(4))
 	multiplyOnReceive       = true
 )
@@ -89,15 +89,16 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
+		amount := big.NewInt(0).Mul(initialReserveImbalance, big.NewInt(2))
 		receipt, bridgedAmount := utils.SendNativeTokenSource(
 			ctx,
 			cChainInfo,
 			nativeTokenSource,
 			input,
-			valueToSend,
+			amount,
 			fundedKey,
 		)
-		scaledBridgedAmount := teleporterUtils.BigIntMul(bridgedAmount, tokenMultipler)
+		scaledBridgedAmount := teleporterUtils.BigIntMul(bridgedAmount, tokenMultiplier)
 
 		receipt = network.RelayMessage(
 			ctx,
@@ -142,7 +143,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			cChainInfo,
 			nativeTokenSource,
 			input,
-			big.NewInt(0).Div(initialReserveImbalance, tokenMultipler),
+			big.NewInt(0).Div(initialReserveImbalance, tokenMultiplier),
 			fundedKey,
 		)
 
@@ -190,7 +191,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			input_A,
 			valueToReturn,
 			recipientKey,
-			tokenMultipler,
+			tokenMultiplier,
 			multiplyOnReceive,
 		)
 
