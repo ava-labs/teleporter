@@ -15,6 +15,7 @@ import {
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 import {GasUtils} from "./utils/GasUtils.sol";
+import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -26,9 +27,12 @@ import {GasUtils} from "./utils/GasUtils.sol";
  * @notice This contract is an {INativeTokenBridge} that sends native tokens to another chain's
  * {ITeleporterTokenBridge} instance, and gets represented by the tokens of that destination
  * token bridge instance.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     using GasUtils for *;
+    using SafeWrappedNativeTokenDeposit for IWrappedNativeToken;
 
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
@@ -59,7 +63,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     /**
      * @dev See {INativeTokenBridge-send}
      */
-    function send(SendTokensInput calldata input) external payable {
+    function send(SendTokensInput calldata input) external payable nonReentrant {
         _send(input, msg.value, false);
     }
 
@@ -72,8 +76,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * Deposits the native tokens sent to this contract
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        token.deposit{value: amount}();
-        return amount;
+        return token.safeDeposit(amount);
     }
 
     /**

@@ -28,6 +28,8 @@ import {GasUtils} from "./utils/GasUtils.sol";
  * @notice This contract is an {IERC20Bridge} that sends ERC20 tokens to another chain's
  * {ITeleporterTokenBridge} instance, and gets represented by the tokens of that destination
  * token bridge instance.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
     using SafeERC20 for IERC20;
@@ -53,7 +55,7 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
     /**
      * @dev See {IERC20Bridge-send}
      */
-    function send(SendTokensInput calldata input, uint256 amount) external {
+    function send(SendTokensInput calldata input, uint256 amount) external nonReentrant {
         _send(input, amount, false);
     }
 

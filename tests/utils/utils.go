@@ -265,7 +265,7 @@ func SendERC20MultihopAndVerify(
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		AllowedRelayerAddresses:  []common.Address{},
+		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
 	}
 
 	// Send tokens through a multihop transfer

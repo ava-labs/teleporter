@@ -44,8 +44,7 @@ function golangLinter() {
 function runAll() {
     solFormat
     solLinter
-    # TODO: add back in when we have golang tests
-    # golangLinter
+    golangLinter
 }
 
 function printHelp() {

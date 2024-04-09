@@ -17,7 +17,7 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
     event Withdrawal(address indexed sender, uint256 amount);
 
     function testZeroSendAmount() public {
-        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        vm.expectRevert("SafeWrappedNativeTokenDeposit: balance not increased");
         _send(_createDefaultSendTokensInput(), 0);
     }
 

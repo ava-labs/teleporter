@@ -9,7 +9,6 @@ import (
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	. "github.com/onsi/gomega"
@@ -83,14 +82,14 @@ func NativeTokenSourceMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from subnet A to recipient on subnet B
+	// Send tokens from C-Chain to recipient on subnet A
 	input := nativetokensource.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress_A,
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		AllowedRelayerAddresses:  []common.Address{},
+		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}
 
 	// Send the tokens and verify expected events

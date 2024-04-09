@@ -10,7 +10,6 @@ import (
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -77,7 +76,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		AllowedRelayerAddresses:  []common.Address{},
+		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
 
@@ -129,7 +128,7 @@ func BasicERC20SendReceive(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		AllowedRelayerAddresses:  []common.Address{},
+		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}
 
 	receipt, bridgedAmount = utils.SendERC20Destination(

@@ -18,8 +18,10 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * @param destinationBridgeAddress address of the destination token bridge instance
  * @param recipient address of the recipient on the destination chain
  * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
- * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed.
- * @param allowedRelayerAddresses addresses of relayers allowed to send the message
+ * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed
+ * @param requiredGasLimit gas limit requirement for sending to a token bridge.
+ * This is required because the gas requirement varies based on the token bridge instance
+ * specified by `destinationBlockchainID` and `destinationBridgeAddress`.
  */
 struct SendTokensInput {
     bytes32 destinationBlockchainID;
@@ -27,7 +29,7 @@ struct SendTokensInput {
     address recipient;
     uint256 primaryFee;
     uint256 secondaryFee;
-    address[] allowedRelayerAddresses;
+    uint256 requiredGasLimit;
 }
 
 /**
@@ -36,22 +38,24 @@ struct SendTokensInput {
  * @param destinationBridgeAddress address of the destination token bridge instance
  * @param recipientContract the contract on the destination chain that will be called
  * @param recipientPayload the payload that will be provided to the recipient contract on the destination chain
- * @param recipientGasLimit the amount of gas that will provided to the recipient contract on the destination chain
+ * @param requiredGasLimit the required amount of gas needed to deliver the message on its destination chain,
+ *                         including token operations and the call the recipient contract.
+ * @param recipientGasLimit the amount of gas that will provided to the recipient contract on the destination chain,
+ *                          which must be less than the requiredGasLimit of the message as a whole.
  * @param fallbackRecipient address where the bridged tokens are sent if the call to the recipient contract fails.
  * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
  * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed
- * @param allowedRelayerAddresses addresses of relayers allowed to send the message
  */
 struct SendAndCallInput {
     bytes32 destinationBlockchainID;
     address destinationBridgeAddress;
     address recipientContract;
     bytes recipientPayload;
+    uint256 requiredGasLimit;
     uint256 recipientGasLimit;
     address fallbackRecipient;
     uint256 primaryFee;
     uint256 secondaryFee;
-    address[] allowedRelayerAddresses;
 }
 
 enum BridgeMessageType {
@@ -83,6 +87,7 @@ struct MultiHopSendMessage {
     address destinationBridgeAddress;
     address recipient;
     uint256 secondaryFee;
+    uint256 secondaryGasLimit;
 }
 
 struct MultiHopCallMessage {
@@ -90,6 +95,7 @@ struct MultiHopCallMessage {
     address destinationBridgeAddress;
     address recipientContract;
     bytes recipientPayload;
+    uint256 requiredGasLimit;
     uint256 recipientGasLimit;
     address fallbackRecipient;
     uint256 secondaryFee;
@@ -97,14 +103,43 @@ struct MultiHopCallMessage {
 
 /**
  * @notice Interface for a Teleporter token bridge that sends tokens to another chain.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 interface ITeleporterTokenBridge is ITeleporterReceiver {
     /**
      * @notice Emitted when tokens are sent to another chain.
-     * TODO: might want to add SendTokensInput as a parameter
      */
-    event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
+    event TokensSent(
+        bytes32 indexed teleporterMessageID,
+        address indexed sender,
+        SendTokensInput input,
+        uint256 amount
+    );
 
+    /**
+     * @notice Emitted when tokens are sent to another chain with caldata for a contract recipient.
+     */
+    event TokensAndCallSent(
+        bytes32 indexed teleporterMessageID,
+        address indexed sender,
+        SendAndCallInput input,
+        uint256 amount
+    );
+
+    /**
+     * @notice Emitted when tokens are withdrawn from the token bridge contract.
+     */
+    event TokensWithdrawn(address indexed recipient, uint256 amount);
+
+    /**
+     * @notice Emitted when a call to a recipient contract to receive token succeeds.
+     */
     event CallSucceeded(address indexed recipientContract, uint256 amount);
+
+    /**
+     * @notice Emitted when a call to a recipient contract to receive token fails, and the tokens are sent
+     * to a fallback recipient.
+     */
     event CallFailed(address indexed recipientContract, uint256 amount);
 }

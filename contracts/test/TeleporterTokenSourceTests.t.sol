@@ -44,6 +44,13 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _send(input, 0);
     }
 
+    function testNonZeroSecondaryFee() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.secondaryFee = 1;
+        vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
+        _send(input, 0);
+    }
+
     function testReceiveInvalidMessage() public {
         vm.expectRevert();
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -68,7 +75,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         uint256 feeAmount = 1;
         uint256 bridgeAmount = amount - feeAmount;
+        SendTokensInput memory input = _createDefaultReceiveTokensInput();
+        input.primaryFee = feeAmount;
+
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        vm.expectEmit(true, true, true, true, address(tokenSource));
+        emit TokensWithdrawn(DEFAULT_RECIPIENT_ADDRESS, bridgeAmount);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgeAmount);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -98,14 +110,16 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: feeAmount,
             secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
         });
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopTeleporterMessageInput(input, bridgeAmount), feeAmount
         );
 
         vm.expectEmit(true, true, true, true, address(tokenSource));
-        emit SendTokens(_MOCK_MESSAGE_ID, address(MOCK_TELEPORTER_MESSENGER_ADDRESS), bridgeAmount);
+        emit TokensSent(
+            _MOCK_MESSAGE_ID, address(MOCK_TELEPORTER_MESSENGER_ADDRESS), input, bridgeAmount
+        );
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
@@ -116,7 +130,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 input.destinationBlockchainID,
                 input.destinationBridgeAddress,
                 input.recipient,
-                input.primaryFee
+                input.primaryFee,
+                input.requiredGasLimit
             )
         );
     }
@@ -136,7 +151,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
-            secondaryFee: feeAmount
+            secondaryFee: feeAmount,
+            secondaryGasLimit: 50_000
         });
 
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
@@ -149,7 +165,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 message.destinationBlockchainID,
                 message.destinationBridgeAddress,
                 message.recipient,
-                message.secondaryFee
+                message.secondaryFee,
+                message.secondaryGasLimit
             )
         );
 
@@ -162,8 +179,15 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function _requiredGasLimit() internal view virtual override returns (uint256) {
-        return tokenSource.SEND_TOKENS_REQUIRED_GAS();
+    function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
+        return SendTokensInput({
+            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: address(tokenSource),
+            recipient: DEFAULT_RECIPIENT_ADDRESS,
+            primaryFee: 0,
+            secondaryFee: 0,
+            requiredGasLimit: 0
+        });
     }
 
     function _createDefaultSendTokensInput()
@@ -178,7 +202,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: 0,
             secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
         });
     }
 
@@ -193,11 +217,11 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: new bytes(16),
+            requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
             primaryFee: 0,
-            secondaryFee: 0,
-            allowedRelayerAddresses: new address[](0)
+            secondaryFee: 0
         });
     }
 

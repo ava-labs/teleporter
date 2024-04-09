@@ -32,6 +32,8 @@ import {IWarpMessenger} from
  *
  * This contract also handles multihop transfers, where tokens sent from a {TeleporterTokenDestination}
  * instance are forwarded to another {TeleporterTokenDestination} instance.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwnerUpgradeable {
     /// @notice The blockchain ID of the chain this contract is deployed on.
@@ -49,10 +51,6 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         bytes32 destinationBlockchainID
             => mapping(address destinationBridgeAddress => uint256 balance)
     ) public bridgedBalances;
-
-    // TODO: these are values brought from the example ERC20Bridge contract.
-    // Need to figure out appropriate values.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 300_000;
 
     /**
      * @notice Initializes this source token bridge instance to send
@@ -87,6 +85,8 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         bool isMultihop
     ) internal virtual {
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
+        require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
+        require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
         amount = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
@@ -107,14 +107,13 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
-                // TODO: Set requiredGasLimit
-                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: input.allowedRelayerAddresses,
+                requiredGasLimit: input.requiredGasLimit,
+                allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
             })
         );
 
-        emit SendTokens(messageID, msg.sender, amount);
+        emit TokensSent(messageID, msg.sender, input, amount);
     }
 
     function _sendAndCall(
@@ -126,7 +125,12 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
             input.recipientContract != address(0),
             "TeleporterTokenSource: zero recipient contract address"
         );
+        require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
         require(input.recipientGasLimit > 0, "TeleporterTokenSource: zero recipient gas limit");
+        require(
+            input.recipientGasLimit < input.requiredGasLimit,
+            "TeleporterTokenSource: recipient gas limit not less than required gas limit"
+        );
         require(
             input.fallbackRecipient != address(0),
             "TeleporterTokenSource: zero fallback recipient address"
@@ -158,14 +162,13 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
-                // TODO: Set requiredGasLimit
-                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS + input.recipientGasLimit,
-                allowedRelayerAddresses: input.allowedRelayerAddresses,
+                requiredGasLimit: input.requiredGasLimit,
+                allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
             })
         );
 
-        emit SendTokens(messageID, msg.sender, amount);
+        emit TokensAndCallSent(messageID, msg.sender, input, amount);
     }
 
     /**
@@ -201,6 +204,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
+            emit TokensWithdrawn(payload.recipient, bridgeMessage.amount);
             _withdraw(payload.recipient, bridgeMessage.amount);
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
@@ -218,7 +222,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                     recipient: payload.recipient,
                     primaryFee: payload.secondaryFee,
                     secondaryFee: 0,
-                    allowedRelayerAddresses: new address[](0)
+                    requiredGasLimit: payload.secondaryGasLimit
                 }),
                 bridgeMessage.amount,
                 true
@@ -233,11 +237,11 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                     destinationBridgeAddress: payload.destinationBridgeAddress,
                     recipientContract: payload.recipientContract,
                     recipientPayload: payload.recipientPayload,
+                    requiredGasLimit: payload.requiredGasLimit,
                     recipientGasLimit: payload.recipientGasLimit,
                     fallbackRecipient: payload.fallbackRecipient,
                     primaryFee: payload.secondaryFee,
-                    secondaryFee: 0,
-                    allowedRelayerAddresses: new address[](0)
+                    secondaryFee: 0
                 }),
                 bridgeMessage.amount,
                 true
@@ -248,8 +252,19 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         }
     }
 
+    /**
+     * @notice Deposits tokens from the sender to this contract,
+     * and returns the adjusted amount of tokens deposited.
+     * @param amount is initial amount sent to this contract.
+     * @return The actual amount deposited to this contract.
+     */
     function _deposit(uint256 amount) internal virtual returns (uint256);
 
+    /**
+     * @notice Withdraws tokens to the recipient address.
+     * @param recipient The address to withdraw tokens to
+     * @param amount The amount of tokens to withdraw
+     */
     function _withdraw(address recipient, uint256 amount) internal virtual;
 
     function _handleSendAndCall(

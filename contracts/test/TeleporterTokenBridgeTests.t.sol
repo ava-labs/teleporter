@@ -40,6 +40,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
     address public constant DEFAULT_RECIPIENT_CONTRACT_ADDRESS =
         0xa83114A443dA1CecEFC50368531cACE9F37fCCcb;
+    uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 200_000;
     uint256 public constant DEFAULT_RECIPIENT_GAS_LIMIT = 100_000;
     address public constant DEFAULT_FALLBACK_RECIPIENT_ADDRESS =
         0xe69Ea1BAF997002602c0A3D451b2b5c9B7F8E6A1;
@@ -55,7 +56,19 @@ abstract contract TeleporterTokenBridgeTest is Test {
     ITeleporterTokenBridge public tokenBridge;
     IERC20 public feeToken;
 
-    event SendTokens(bytes32 indexed teleporterMessageID, address indexed sender, uint256 amount);
+    event TokensSent(
+        bytes32 indexed teleporterMessageID,
+        address indexed sender,
+        SendTokensInput input,
+        uint256 amount
+    );
+    event TokensAndCallSent(
+        bytes32 indexed teleporterMessageID,
+        address indexed sender,
+        SendAndCallInput input,
+        uint256 amount
+    );
+    event TokensWithdrawn(address indexed recipient, uint256 amount);
     event CallSucceeded(address indexed recipientContract, uint256 amount);
     event CallFailed(address indexed recipientContract, uint256 amount);
     event Transfer(address indexed from, address indexed to, uint256 value);
@@ -174,7 +187,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             _createSingleHopTeleporterMessageInput(input, bridgeAmount), feeAmount
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit SendTokens(_MOCK_MESSAGE_ID, address(this), bridgeAmount);
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
         _send(input, amount);
     }
 
@@ -188,7 +201,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             _createSingleHopCallTeleporterMessageInput(input, bridgeAmount), feeAmount
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit SendTokens(_MOCK_MESSAGE_ID, address(this), bridgeAmount);
+        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
         _sendAndCall(input, amount);
     }
 
@@ -228,8 +241,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
-            requiredGasLimit: _requiredGasLimit(),
-            allowedRelayerAddresses: input.allowedRelayerAddresses,
+            requiredGasLimit: input.requiredGasLimit,
+            allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopSendMessage(bridgeAmount, input.recipient)
         });
     }
@@ -242,8 +255,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
-            requiredGasLimit: _requiredGasLimit() + input.recipientGasLimit,
-            allowedRelayerAddresses: input.allowedRelayerAddresses,
+            requiredGasLimit: input.requiredGasLimit,
+            allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopCallMessage(
                 bridgeAmount,
                 input.recipientContract,
@@ -253,8 +266,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
                 )
         });
     }
-
-    function _requiredGasLimit() internal view virtual returns (uint256);
 
     function _createDefaultSendTokensInput()
         internal
@@ -315,7 +326,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         address recipient,
-        uint256 secondaryFee
+        uint256 secondaryFee,
+        uint256 secondaryGasLimit
     ) internal pure returns (bytes memory) {
         return abi.encode(
             BridgeMessage({
@@ -326,7 +338,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
                         destinationBlockchainID: destinationBlockchainID,
                         destinationBridgeAddress: destinationBridgeAddress,
                         recipient: recipient,
-                        secondaryFee: secondaryFee
+                        secondaryFee: secondaryFee,
+                        secondaryGasLimit: secondaryGasLimit
                     })
                     )
             })
@@ -339,6 +352,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         address destinationBridgeAddress,
         address recipientContract,
         bytes memory recipientPayload,
+        uint256 requiredGasLimit,
         uint256 recipientGasLimit,
         address fallbackRecipient,
         uint256 secondaryFee
@@ -353,6 +367,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
                         destinationBridgeAddress: destinationBridgeAddress,
                         recipientContract: recipientContract,
                         recipientPayload: recipientPayload,
+                        requiredGasLimit: requiredGasLimit,
                         recipientGasLimit: recipientGasLimit,
                         fallbackRecipient: fallbackRecipient,
                         secondaryFee: secondaryFee

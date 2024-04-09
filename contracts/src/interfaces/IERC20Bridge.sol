@@ -16,6 +16,8 @@ import {
 
 /**
  * @notice Interface for a Teleporter token bridge that sends ERC20 tokens to another chain.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 interface IERC20Bridge is ITeleporterTokenBridge {
     /**
