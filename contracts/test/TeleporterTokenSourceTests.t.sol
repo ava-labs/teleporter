@@ -87,7 +87,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         uint256 amount = 200;
         _sendSuccess(amount, 0);
 
-        uint256 feeAmount = 1;
+        uint256 feeAmount = 2;
         uint256 bridgedAmount = amount - feeAmount;
         SendTokensInput memory input = _createDefaultReceiveTokensInput();
         input.primaryFee = feeAmount;
@@ -108,7 +108,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             tokenSource.bridgedBalances(
                 DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
             ),
-            bridgedAmount
+            feeAmount
         );
     }
 
