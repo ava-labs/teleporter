@@ -185,6 +185,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         );
     }
 
+    // This function is overridden by NativeTokenDestinationTests
     function _scaleTokens(
         uint256 amount,
         bool

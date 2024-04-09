@@ -76,11 +76,6 @@ contract NativeTokenDestination is
         INativeMinter(0x0200000000000000000000000000000000000001);
 
     /**
-     * @notice Estimated gas needed for a transfer call to execute successfully on the source chain.
-     */
-    uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 150_000;
-
-    /**
      * @notice Initial reserve imbalance that must be collateralized on the source before minting.
      *
      * @dev The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
