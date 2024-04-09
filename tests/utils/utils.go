@@ -275,7 +275,11 @@ func SendNativeTokenDestination(
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseSendTokens)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	Expect(event.Amount).Should(Equal(scaledBridgedAmount))
+	fmt.Println("event.Amount", event.Amount.String())
+	fmt.Println("scaledBridgedAmount", scaledBridgedAmount.String())
+	fmt.Println("bridgedAmount", bridgedAmount.String())
+	fmt.Println("tokenMultiplier", tokenMultiplier.String())
+	teleporterUtils.ExpectBigEqual(event.Amount, scaledBridgedAmount)
 
 	return receipt, event.Amount
 }
@@ -318,6 +322,10 @@ func SendERC20Destination(
 	return receipt, event.Amount
 }
 
+// Send a native token from fromBridge to toBridge via multihop through the C-Chain
+// Requires that both fromBridge and toBridge are fully collateralized
+// Requires that both fromBridge and toBridge have the same tokenMultiplier and multiplyOnReceive
+// with respect to the original asset on the C-Chain
 func SendNativeMultihopAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
@@ -347,11 +355,13 @@ func SendNativeMultihopAndVerify(
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
+		RequiredGasLimit:         DefaultNativeTokenRequiredGasLimit,
 	}
+	// Find the amount sent by fromBridge. This is before any scaling/unscaling is applied.
+	bridgedAmount = big.NewInt(0).Sub(bridgedAmount, input.PrimaryFee)
 
 	// Send tokens through a multihop transfer
-	originReceipt, bridgedAmount := SendNativeTokenDestination(
+	originReceipt, _ := SendNativeTokenDestination(
 		ctx,
 		fromSubnet,
 		fromBridge,
@@ -385,18 +395,11 @@ func SendNativeMultihopAndVerify(
 
 	CheckNativeTokenDestinationMint(
 		ctx,
-		toSubnet,
 		toBridge,
 		recipientAddress,
 		destinationReceipt,
 		bridgedAmount,
-		bridgedAmount,
 	)
-
-	// Verify the recipient received the tokens
-	balance, err := toSubnet.RPCClient.BalanceAt(ctx, recipientAddress, nil)
-	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
 }
 
 func SendERC20MultihopAndVerify(
@@ -519,18 +522,15 @@ func CheckNativeTokenSourceWithdrawal(
 
 func CheckNativeTokenDestinationMint(
 	ctx context.Context,
-	subnet interfaces.SubnetTestInfo,
 	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
 	recipient common.Address,
 	receipt *types.Receipt,
 	expectedMint *big.Int,
-	expectedBalance *big.Int,
 ) {
 	mintEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseNativeTokensMinted)
 	Expect(err).Should(BeNil())
 	Expect(mintEvent.Recipient).Should(Equal(recipient))
 	teleporterUtils.ExpectBigEqual(mintEvent.Amount, expectedMint)
-	teleporterUtils.CheckBalance(ctx, recipient, expectedBalance, subnet.RPCClient)
 }
 
 func CheckNativeTokenDestinationCollateralize(

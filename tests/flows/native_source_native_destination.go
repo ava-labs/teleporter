@@ -110,12 +110,16 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 
 		utils.CheckNativeTokenDestinationMint(
 			ctx,
-			subnetAInfo,
 			nativeTokenDestination,
 			recipientAddress,
 			receipt,
 			big.NewInt(0),
+		)
+		teleporterUtils.CheckBalance(
+			ctx,
+			recipientAddress,
 			big.NewInt(0),
+			subnetAInfo.RPCClient,
 		)
 		utils.CheckNativeTokenDestinationCollateralize(
 			ctx,
@@ -157,13 +161,18 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 
 		utils.CheckNativeTokenDestinationMint(
 			ctx,
-			subnetAInfo,
 			nativeTokenDestination,
 			recipientAddress,
 			receipt,
 			valueToReceive,
-			valueToReceive,
 		)
+		teleporterUtils.CheckBalance(
+			ctx,
+			recipientAddress,
+			valueToReceive,
+			subnetAInfo.RPCClient,
+		)
+
 		utils.CheckNativeTokenDestinationCollateralize(
 			ctx,
 			nativeTokenDestination,

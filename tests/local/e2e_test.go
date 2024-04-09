@@ -95,8 +95,13 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 			flows.NativeSourceERC20DestinationMultihop(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge a Native token with ERC20Source",
-		ginkgo.Label(erc20SourceLabel, nativeTokenDestinationLabel, multiHopLabel),
+		ginkgo.Label(erc20SourceLabel, nativeTokenDestinationLabel),
 		func() {
 			flows.ERC20SourceNativeDestination(LocalNetworkInstance)
+		})
+	ginkgo.It("Bridge a Native token with ERC20Source multihop",
+		ginkgo.Label(erc20SourceLabel, nativeTokenDestinationLabel, multiHopLabel),
+		func() {
+			flows.ERC20SourceNativeDestinationMultihop(LocalNetworkInstance)
 		})
 })

@@ -105,12 +105,16 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 
 	utils.CheckNativeTokenDestinationMint(
 		ctx,
-		subnetAInfo,
 		nativeTokenDestinationA,
 		recipientAddress,
 		receipt,
 		receivedAmount,
+	)
+	teleporterUtils.CheckBalance(
+		ctx,
+		recipientAddress,
 		receivedAmount,
+		subnetAInfo.RPCClient,
 	)
 
 	// Verify the recipient received the tokens
