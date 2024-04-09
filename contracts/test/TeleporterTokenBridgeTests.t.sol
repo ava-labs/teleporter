@@ -141,9 +141,12 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
         _setUpExpectedDeposit(amount);
 
+        // Only tokens destinations scale tokens, so isReceive is always false here.
+        uint256 scaledBridgedAmount = _scaleTokens(bridgedAmount, false);
+
         _checkExpectedTeleporterCalls(input, bridgedAmount);
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit SendTokens(_MOCK_MESSAGE_ID, address(this), input, bridgedAmount);
+        emit SendTokens(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
         _send(input, amount);
     }
 

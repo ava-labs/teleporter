@@ -81,7 +81,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             teleporterMessageID: _MOCK_MESSAGE_ID,
             sender: address(this),
             input: input,
-            amount: _DEFAULT_TRANSFER_AMOUNT
+            amount: _scaleTokens(_DEFAULT_TRANSFER_AMOUNT, false)
         });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({

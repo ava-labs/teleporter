@@ -160,7 +160,7 @@ abstract contract TeleporterTokenDestination is
             })
         );
 
-        emit SendTokens(messageID, msg.sender, input, amount);
+        emit SendTokens(messageID, msg.sender, input, scaledAmount);
     }
 
     /**
