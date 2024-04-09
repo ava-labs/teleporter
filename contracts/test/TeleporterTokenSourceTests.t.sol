@@ -13,11 +13,17 @@ import {
     SendAndCallInput,
     MultiHopSendMessage
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 
 abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
 
     function setUp() public virtual {
+        vm.mockCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
+            abi.encode(_MOCK_MESSAGE_ID)
+        );
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
@@ -41,7 +47,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
         vm.expectRevert(_formatErrorMessage("cannot bridge to same chain"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testNonZeroSecondaryFee() public {
@@ -70,30 +76,31 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testReceiveWithdrawSuccess() public {
-        uint256 amount = 2;
+        uint256 amount = 200;
         _sendSingleHopSendSuccess(amount, 0);
 
-        uint256 feeAmount = 1;
+        uint256 feeAmount = 10;
         uint256 bridgeAmount = amount - feeAmount;
         SendTokensInput memory input = _createDefaultReceiveTokensInput();
         input.primaryFee = feeAmount;
 
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(tokenSource));
         emit TokensWithdrawn(DEFAULT_RECIPIENT_ADDRESS, bridgeAmount);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgeAmount);
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
             _encodeSingleHopSendMessage(bridgeAmount, DEFAULT_RECIPIENT_ADDRESS)
         );
 
-        // Make sure the bridge balance is increased
+        // Make sure the bridge balance is correct. Only the fee amount remains locked in the source
+        // contract. The rest is withdrawn.
         assertEq(
             tokenSource.bridgedBalances(
                 DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
             ),
-            bridgeAmount
+            feeAmount
         );
     }
 

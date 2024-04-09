@@ -106,7 +106,10 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         );
 
         // If the call failed, send the funds to the fallback recipient.
-        if (!success) {
+        if (success) {
+            emit CallSucceeded(message.recipientContract, amount);
+        } else {
+            emit CallFailed(message.recipientContract, amount);
             payable(message.fallbackRecipient).transfer(amount);
         }
     }

@@ -45,13 +45,20 @@ abstract contract TeleporterTokenBridgeTest is Test {
     address public constant DEFAULT_FALLBACK_RECIPIENT_ADDRESS =
         0xe69Ea1BAF997002602c0A3D451b2b5c9B7F8E6A1;
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
-
+    address public constant NATIVE_MINTER_PRECOMPILE_ADDRESS =
+        address(0x0200000000000000000000000000000000000001);
     address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
         0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
     address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS =
         0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
     bytes32 internal constant _MOCK_MESSAGE_ID =
         bytes32(hex"1111111111111111111111111111111111111111111111111111111111111111");
+
+    uint256 internal constant _DEFAULT_FEE_AMOUNT = 123456;
+    uint256 internal constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
+    uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1e18;
+    uint256 internal constant _DEFAULT_DECIMALS_SHIFT = 1;
+    uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 10 ** _DEFAULT_DECIMALS_SHIFT;
 
     ITeleporterTokenBridge public tokenBridge;
     IERC20 public feeToken;
@@ -76,21 +83,24 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     function testZeroDestinationBlockchainID() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
+        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
         input.destinationBlockchainID = bytes32(0);
         vm.expectRevert(_formatErrorMessage("zero destination blockchain ID"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testZeroDestinationBridge() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
+        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
         input.destinationBridgeAddress = address(0);
         vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testZeroRecipient() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.recipient = address(0);
+        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("zero recipient address"));
         _send(input, 0);
     }
@@ -125,20 +135,20 @@ abstract contract TeleporterTokenBridgeTest is Test {
     }
 
     function testSendWithFees() public {
-        uint256 amount = 2;
-        uint256 primaryFee = 1;
+        uint256 amount = 200_000;
+        uint256 primaryFee = 100;
         _sendSingleHopSendSuccess(amount, primaryFee);
     }
 
     function testSendNoFees() public {
-        uint256 amount = 2;
+        uint256 amount = 200_000;
         uint256 primaryFee = 0;
         _sendSingleHopSendSuccess(amount, primaryFee);
     }
 
     function testSendAndCallWithFees() public {
-        uint256 amount = 10;
-        uint256 primaryFee = 1;
+        uint256 amount = 100_000;
+        uint256 primaryFee = 10;
         _sendSingleHopCallSuccess(amount, primaryFee);
     }
 
@@ -153,10 +163,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry.getVersionFromAddress.selector,
-                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
-            ),
+            abi.encodeWithSelector(TeleporterRegistry.getVersionFromAddress.selector),
             abi.encode(1)
         );
 
@@ -171,6 +178,12 @@ abstract contract TeleporterTokenBridgeTest is Test {
             abi.encodeWithSelector(TeleporterRegistry.getLatestTeleporter.selector),
             abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
         );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(TeleporterRegistry.getVersionFromAddress.selector),
+            abi.encode(1)
+        );
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual;
@@ -183,11 +196,15 @@ abstract contract TeleporterTokenBridgeTest is Test {
         input.primaryFee = feeAmount;
 
         _setUpExpectedDeposit(amount);
+
+        // Only tokens destinations scale tokens, so isReceive is always false here.
+        uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
+
         _checkExpectedTeleporterCallsForSend(
-            _createSingleHopTeleporterMessageInput(input, bridgeAmount), feeAmount
+            _createSingleHopTeleporterMessageInput(input, scaledBridgedAmount), feeAmount
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
         _send(input, amount);
     }
 
@@ -196,12 +213,15 @@ abstract contract TeleporterTokenBridgeTest is Test {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = feeAmount;
 
+        // Only tokens destinations scale tokens, so isReceive is always false here.
+        uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
+
         _setUpExpectedDeposit(amount);
         _checkExpectedTeleporterCallsForSend(
-            _createSingleHopCallTeleporterMessageInput(input, bridgeAmount), feeAmount
+            _createSingleHopCallTeleporterMessageInput(input, scaledBridgedAmount), feeAmount
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
+        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
         _sendAndCall(input, amount);
     }
 
@@ -231,6 +251,11 @@ abstract contract TeleporterTokenBridgeTest is Test {
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
+    }
+
+    // This function is overridden by NativeTokenDestinationTests
+    function _scaleTokens(uint256 amount, bool) internal virtual returns (uint256) {
+        return amount;
     }
 
     function _createSingleHopTeleporterMessageInput(

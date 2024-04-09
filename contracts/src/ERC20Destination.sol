@@ -95,14 +95,14 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_withdraw}
+     * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
         _mint(recipient, amount);
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_burn}
+     * @dev See {TeleporterTokenDestination-_burn}
      *
      * Calls {ERC20-_burn} to burn tokens from this contract.
      */
@@ -141,5 +141,12 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
             emit CallFailed(message.recipientContract, amount);
             _transfer(address(this), message.fallbackRecipient, amount);
         }
+    }
+
+    /**
+     * @dev See {TeleporterTokenDestination-_scaleTokens}
+     */
+    function _scaleTokens(uint256 value, bool) internal pure override returns (uint256) {
+        return value;
     }
 }

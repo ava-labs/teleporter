@@ -10,11 +10,17 @@ import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenDestination, IWarpMessenger} from "../src/TeleporterTokenDestination.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 
 abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     TeleporterTokenDestination public tokenDestination;
 
     function setUp() public virtual {
+        vm.mockCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
+            abi.encode(_MOCK_MESSAGE_ID)
+        );
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeCall(IWarpMessenger.getBlockchainID, ()),
@@ -31,35 +37,32 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testInvalidSendingBackToSourceBlockchain() public {
-        uint256 amount = 3;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(this);
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
-        _send(input, amount);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testNonZeroSecondaryFeeToSourceBlockchain() public {
-        uint256 amount = 3;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.secondaryFee = 1;
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
-        _send(input, amount);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendingToSameInstance() public {
-        uint256 amount = 3;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         input.destinationBridgeAddress = address(tokenDestination);
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
-        _send(input, amount);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendToSameBlockchainDifferentDestination() public {
-        uint256 amount = 2;
+        uint256 amount = 200;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         // Set the desintation bridge address to an address different than the token destination contract.
@@ -107,10 +110,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testReceiveWithdrawSuccess() public {
-        uint256 amount = 2;
+        uint256 amount = 200;
+        uint256 scaledAmount = _scaleTokens(amount, true);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(tokenDestination));
-        emit TokensWithdrawn(DEFAULT_RECIPIENT_ADDRESS, amount);
+        emit TokensWithdrawn(DEFAULT_RECIPIENT_ADDRESS, scaledAmount);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, amount);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -148,11 +152,15 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.secondaryFee = secondaryFee;
 
         _setUpExpectedDeposit(amount);
+
+        // Only tokens destinations scale tokens, so isReceive is always false here.
+        uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
+
         _checkExpectedTeleporterCallsForSend(
-            _createMultiHopSendTeleporterMessageInput(input, bridgeAmount), primaryFee
+            _createMultiHopSendTeleporterMessageInput(input, scaledBridgedAmount), primaryFee
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
         _send(input, amount);
     }
 
@@ -168,11 +176,15 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.secondaryFee = secondaryFee;
 
         _setUpExpectedDeposit(amount);
+
+        // Only tokens destinations scale tokens, so isReceive is always false here.
+        uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
+
         _checkExpectedTeleporterCallsForSend(
-            _createMultiHopCallTeleporterMessageInput(input, bridgeAmount), primaryFee
+            _createMultiHopCallTeleporterMessageInput(input, scaledBridgedAmount), primaryFee
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
+        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
         _sendAndCall(input, amount);
     }
 

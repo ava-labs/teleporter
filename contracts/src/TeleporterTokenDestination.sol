@@ -286,18 +286,19 @@ abstract contract TeleporterTokenDestination is
             "TeleporterTokenDestination: invalid token source address"
         );
         BridgeMessage memory bridgeMessage = abi.decode(message, (BridgeMessage));
+        uint256 scaledAmount = _scaleTokens(bridgeMessage.amount, true);
 
         // Destination contracts should only ever receive single-hop messages because
         // multi-hop messages are always routed through the source contract.
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
-            emit TokensWithdrawn(payload.recipient, bridgeMessage.amount);
-            _withdraw(payload.recipient, bridgeMessage.amount);
+            emit TokensWithdrawn(payload.recipient, scaledAmount);
+            _withdraw(payload.recipient, scaledAmount);
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
             SingleHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
-            _handleSendAndCall(payload, bridgeMessage.amount);
+            _handleSendAndCall(payload, scaledAmount);
         } else {
             revert("TeleporterTokenDestination: invalid message type");
         }
@@ -330,6 +331,12 @@ abstract contract TeleporterTokenDestination is
         uint256 amount
     ) internal virtual;
 
+    /**
+     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
+     * Should be used for all tokens being transferred to/from other subnets.
+     */
+    function _scaleTokens(uint256 value, bool isReceive) internal view virtual returns (uint256);
+
     function _prepareSend(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
@@ -357,6 +364,9 @@ abstract contract TeleporterTokenDestination is
         amount -= primaryFee;
         _burn(amount);
 
-        return amount;
+        uint256 scaledAmount = _scaleTokens(amount, false);
+        require(scaledAmount > 0, "NativeTokenDestination: insufficient tokens to transfer");
+
+        return scaledAmount;
     }
 }
