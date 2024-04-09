@@ -84,7 +84,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testReceiveWithdrawSuccess() public {
-        uint256 amount = 2;
+        uint256 amount = 200;
         _sendSuccess(amount, 0);
 
         uint256 feeAmount = 1;
@@ -92,10 +92,11 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         SendTokensInput memory input = _createDefaultReceiveTokensInput();
         input.primaryFee = feeAmount;
 
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(tokenSource));
         emit WithdrawTokens(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
+        
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,

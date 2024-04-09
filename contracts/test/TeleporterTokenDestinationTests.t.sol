@@ -99,7 +99,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testReceiveWithdrawSuccess() public {
-        uint256 amount = 2;
+        uint256 amount = 200;
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(tokenDestination));
         emit WithdrawTokens(DEFAULT_RECIPIENT_ADDRESS, amount);

@@ -108,8 +108,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             abi.encodeWithSelector(
-                TeleporterRegistry.getVersionFromAddress.selector,
-                (MOCK_TELEPORTER_MESSENGER_ADDRESS)
+                TeleporterRegistry.getVersionFromAddress.selector
             ),
             abi.encode(1)
         );
@@ -125,11 +124,18 @@ abstract contract TeleporterTokenBridgeTest is Test {
             abi.encodeWithSelector(TeleporterRegistry.getLatestTeleporter.selector),
             abi.encode(ITeleporterMessenger(MOCK_TELEPORTER_MESSENGER_ADDRESS))
         );
+
+        vm.mockCall(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            abi.encodeWithSelector(TeleporterRegistry.getVersionFromAddress.selector),
+            abi.encode(1)
+        );
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual;
 
     function _sendSuccess(uint256 amount, uint256 feeAmount) internal {
+        // Only destinations scale tokens, so `isReceive` is always false.
         uint256 bridgedAmount = _scaleTokens(amount - feeAmount, false);
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
