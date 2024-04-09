@@ -98,12 +98,15 @@ abstract contract TeleporterTokenDestination is
         );
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
 
+        // Deposit the tokens sent from the user to the bridge,
+        // and set to adjusted amount after deposit.
         amount = _deposit(amount);
         require(
             amount > input.primaryFee + input.secondaryFee,
             "TeleporterTokenDestination: insufficient amount to cover fees"
         );
 
+        // Burn tokens, except for the primary fee, which is kept for teleporter rewards.
         amount -= input.primaryFee;
         _burn(amount);
 
