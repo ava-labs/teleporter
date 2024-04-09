@@ -85,13 +85,13 @@ abstract contract TeleporterTokenBridgeTest is Test {
     }
 
     function testSendWithFees() public {
-        uint256 amount = 2;
-        uint256 primaryFee = 1;
+        uint256 amount = 200;
+        uint256 primaryFee = 100;
         _sendSuccess(amount, primaryFee);
     }
 
     function testSendNoFees() public {
-        uint256 amount = 2;
+        uint256 amount = 200;
         uint256 primaryFee = 0;
         _sendSuccess(amount, primaryFee);
     }
@@ -130,7 +130,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function _send(SendTokensInput memory input, uint256 amount) internal virtual;
 
     function _sendSuccess(uint256 amount, uint256 feeAmount) internal {
-        uint256 bridgedAmount = amount - feeAmount;
+        uint256 bridgedAmount = _scaleTokens(amount - feeAmount, false);
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
@@ -177,6 +177,13 @@ abstract contract TeleporterTokenBridgeTest is Test {
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
+    }
+
+    function _scaleTokens(
+        uint256 amount,
+        bool
+    ) internal virtual returns (uint256) {
+        return amount;
     }
 
     function _createDefaultSendTokensInput()

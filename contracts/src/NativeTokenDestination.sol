@@ -10,7 +10,6 @@ import {
     TeleporterFeeInfo,
     TeleporterMessageInput
 } from "./TeleporterTokenDestination.sol";
-import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./interfaces/INativeTokenDestination.sol";
@@ -20,6 +19,7 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
 import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IAllowList.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
+import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -38,6 +38,8 @@ contract NativeTokenDestination is
     INativeTokenDestination,
     TeleporterTokenDestination
 {
+    using SafeWrappedNativeTokenDeposit for IWrappedNativeToken;
+
     /**
      * @notice The address where the burned transaction fees are credited.
      *
@@ -76,7 +78,7 @@ contract NativeTokenDestination is
     /**
      * @notice Estimated gas needed for a transfer call to execute successfully on the source chain.
      */
-    uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
+    uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 150_000;
 
     /**
      * @notice Initial reserve imbalance that must be collateralized on the source before minting.
@@ -177,18 +179,14 @@ contract NativeTokenDestination is
         require(
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
-        uint256 amount = msg.value;
+
+        uint256 amount = _deposit(msg.value);
         require(
             amount > input.primaryFee + input.secondaryFee,
             "NativeTokenDestination: insufficient amount to cover fees"
         );
 
-        // TODO we need to guarantee that this function deposits the whole amount, or find a workaround.
-        if (input.primaryFee > 0) {
-            _deposit(input.primaryFee);
-            amount -= input.primaryFee;
-        }
-
+        amount -= input.primaryFee;
         _burn(amount);
 
         _send(input, _scaleTokens(amount, false));
@@ -250,7 +248,7 @@ contract NativeTokenDestination is
      * @dev See {INativeTokenDestination-totalSupply}.
      */
     function totalSupply() external view returns (uint256) {
-        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURN_FOR_TRANSFER_ADDRESS.balance;
+        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + token.balanceOf(BURN_FOR_TRANSFER_ADDRESS);
         uint256 created = totalMinted + initialReserveImbalance;
 
         return created - burned;
@@ -260,8 +258,7 @@ contract NativeTokenDestination is
      * @dev See {TeleportTokenDestination-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        token.deposit{value: amount}();
-        return amount;
+        return token.safeDeposit(amount);
     }
 
     /**
@@ -303,8 +300,8 @@ contract NativeTokenDestination is
      * @dev See {TeleportTokenDestination-_burn}
      */
     function _burn(uint256 amount) internal virtual override {
-        // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
-        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), amount);
+        // Burn native token by transferring to BURN_FOR_TRANSFER_ADDRESS
+        token.transfer(BURN_FOR_TRANSFER_ADDRESS, amount);
     }
 
     /**
