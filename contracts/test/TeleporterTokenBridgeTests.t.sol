@@ -135,8 +135,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function _send(SendTokensInput memory input, uint256 amount) internal virtual;
 
     function _sendSuccess(uint256 amount, uint256 feeAmount) internal {
-        // Only destinations scale tokens, so `isReceive` is always false.
-        uint256 bridgedAmount = _scaleTokens(amount - feeAmount, false);
+        uint256 bridgedAmount = amount - feeAmount;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
@@ -193,6 +192,11 @@ abstract contract TeleporterTokenBridgeTest is Test {
         return amount;
     }
 
+    function _encodeMessage(
+        SendTokensInput memory input,
+        uint256 amount
+    ) internal virtual returns (bytes memory);
+
     function _createDefaultSendTokensInput()
         internal
         pure
@@ -204,9 +208,4 @@ abstract contract TeleporterTokenBridgeTest is Test {
         pure
         virtual
         returns (bytes memory);
-
-    function _encodeMessage(
-        SendTokensInput memory input,
-        uint256 amount
-    ) internal pure virtual returns (bytes memory);
 }

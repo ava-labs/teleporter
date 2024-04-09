@@ -98,6 +98,18 @@ abstract contract TeleporterTokenDestination is
         );
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
 
+        amount = _deposit(amount);
+        require(
+            amount > input.primaryFee + input.secondaryFee,
+            "TeleporterTokenDestination: insufficient amount to cover fees"
+        );
+
+        amount -= input.primaryFee;
+        _burn(amount);
+
+        uint256 scaledAmount = _scaleTokens(amount, false);
+        require(scaledAmount > 0, "NativeTokenDestination: insufficient tokens to transfer");
+
         // If the destination blockchain is the source blockchain,
         // no multihop is needed. Only the required gas limit for the Teleporter message back to
         // `sourceBlockchainID` is needed, which is provided by `input.requiredGasLimit`.
@@ -143,7 +155,7 @@ abstract contract TeleporterTokenDestination is
                         secondaryFee: 0,
                         requiredGasLimit: secondHopRequiredGas
                     }),
-                    amount
+                    scaledAmount
                     )
             })
         );

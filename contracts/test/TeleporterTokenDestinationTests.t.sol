@@ -66,7 +66,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
     function testSendToSameBlockchainDifferentDestination() public {
         // Send a transfer to the same app itself
-        uint256 amount = 2;
+        uint256 amount = 200;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         input.destinationBridgeAddress = address(this);
@@ -98,6 +98,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testInsufficientAmountToCoverFees() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFee = 1;
+        _setUpExpectedDeposit(input.primaryFee);
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        _send(input, input.primaryFee);
+    }
+
     function testReceiveWithdrawSuccess() public {
         uint256 amount = 200;
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -108,6 +116,23 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
             TOKEN_SOURCE_ADDRESS,
             abi.encode(DEFAULT_RECIPIENT_ADDRESS, amount)
+        );
+    }
+
+    function _encodeMessage(
+        SendTokensInput memory input,
+        uint256 amount
+    ) internal virtual override returns (bytes memory) {
+        return abi.encode(
+            SendTokensInput({
+                destinationBlockchainID: input.destinationBlockchainID,
+                destinationBridgeAddress: input.destinationBridgeAddress,
+                recipient: input.recipient,
+                primaryFee: input.secondaryFee,
+                secondaryFee: 0,
+                requiredGasLimit: input.requiredGasLimit
+            }),
+            _scaleTokens(amount, false)
         );
     }
 
@@ -134,22 +159,5 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         returns (bytes memory)
     {
         return bytes(string.concat("TeleporterTokenDestination: ", message));
-    }
-
-    function _encodeMessage(
-        SendTokensInput memory input,
-        uint256 amount
-    ) internal pure virtual override returns (bytes memory) {
-        return abi.encode(
-            SendTokensInput({
-                destinationBlockchainID: input.destinationBlockchainID,
-                destinationBridgeAddress: input.destinationBridgeAddress,
-                recipient: input.recipient,
-                primaryFee: input.secondaryFee,
-                secondaryFee: 0,
-                requiredGasLimit: input.requiredGasLimit
-            }),
-            amount
-        );
     }
 }

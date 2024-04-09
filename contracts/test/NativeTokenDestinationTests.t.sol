@@ -101,7 +101,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
         );
 
-        app.send{value: _DEFAULT_TRANSFER_AMOUNT * _DEFAULT_TOKEN_MULTIPLIER}(input);
+        app.send{value: _DEFAULT_TRANSFER_AMOUNT}(input);
     }
 
     function _checkExpectedWithdrawal(address addr, uint256 amount) internal override {

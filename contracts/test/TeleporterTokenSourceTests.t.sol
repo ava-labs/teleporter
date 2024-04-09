@@ -188,6 +188,13 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _send(input, input.primaryFee);
     }
 
+    function _encodeMessage(
+        SendTokensInput memory input,
+        uint256 amount
+    ) internal virtual override returns (bytes memory) {
+        return abi.encode(input.recipient, amount);
+    }
+
     function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
         return SendTokensInput({
             destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -222,12 +229,5 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         returns (bytes memory)
     {
         return bytes(string.concat("TeleporterTokenSource: ", message));
-    }
-
-    function _encodeMessage(
-        SendTokensInput memory input,
-        uint256 amount
-    ) internal pure virtual override returns (bytes memory) {
-        return abi.encode(input.recipient, amount);
     }
 }

@@ -63,17 +63,6 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * @dev See {IERC20Bridge-send}
      */
     function send(SendTokensInput calldata input, uint256 amount) external nonReentrant {
-        // Deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit
-        amount = _deposit(amount);
-        require(
-            amount > input.primaryFee + input.secondaryFee,
-            "ERC20Destination: insufficient amount to cover fees"
-        );
-
-        amount -= input.primaryFee;
-        _burn(amount);
-
         _send(input, amount);
     }
 

@@ -175,16 +175,7 @@ contract NativeTokenDestination is
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
 
-        uint256 amount = _deposit(msg.value);
-        require(
-            amount > input.primaryFee + input.secondaryFee,
-            "NativeTokenDestination: insufficient amount to cover fees"
-        );
-
-        amount -= input.primaryFee;
-        _burn(amount);
-
-        _send(input, _scaleTokens(amount, false));
+        _send(input, msg.value);
     }
 
     /**
