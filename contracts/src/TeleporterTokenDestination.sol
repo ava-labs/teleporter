@@ -196,4 +196,10 @@ abstract contract TeleporterTokenDestination is
      * @param amount The amount of tokens to burn
      */
     function _burn(uint256 amount) internal virtual;
+
+    /**
+     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
+     * Should be used for all tokens being transferred to/from other subnets.
+     */
+    function _scaleTokens(uint256 value, bool isReceive) internal view virtual returns (uint256);
 }

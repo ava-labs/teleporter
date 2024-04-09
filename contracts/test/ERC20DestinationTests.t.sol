@@ -6,11 +6,13 @@
 pragma solidity 0.8.18;
 
 import {ERC20BridgeTest} from "./ERC20BridgeTests.t.sol";
-import {TeleporterTokenDestinationTest, SendTokensInput} from "./TeleporterTokenDestinationTests.t.sol";
+import {
+    TeleporterTokenDestinationTest,
+    SendTokensInput
+} from "./TeleporterTokenDestinationTests.t.sol";
 import {ERC20Destination} from "../src/ERC20Destination.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-
 
 contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest {
     using SafeERC20 for IERC20;
@@ -127,5 +129,5 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), recipient, amount);
-    }    
+    }
 }

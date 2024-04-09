@@ -250,14 +250,14 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_deposit}
+     * @dev See {TeleporterTokenDestination-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
         return token.safeDeposit(amount);
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_withdraw}
+     * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
         uint256 scaledAmount = _scaleTokens(amount, true);
@@ -292,7 +292,7 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_burn}
+     * @dev See {TeleporterTokenDestination-_burn}
      */
     function _burn(uint256 amount) internal virtual override {
         // Burn native token by transferring to BURN_FOR_TRANSFER_ADDRESS
@@ -300,10 +300,9 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
-     * Should be used for all tokens being transferred to/from other subnets.
+     * @dev See {TeleporterTokenDestination-_scaleTokens}
      */
-    function _scaleTokens(uint256 value, bool isReceive) private view returns (uint256) {
+    function _scaleTokens(uint256 value, bool isReceive) internal view override returns (uint256) {
         // Multiply when multiplyOnReceive and isReceive are both true or both false.
         if (multiplyOnReceive == isReceive) {
             return value * tokenMultiplier;
