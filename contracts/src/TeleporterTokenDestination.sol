@@ -185,7 +185,7 @@ abstract contract TeleporterTokenDestination is
         require(input.recipientGasLimit > 0, "TeleporterTokenDestination: zero recipient gas limit");
         require(
             input.recipientGasLimit < input.requiredGasLimit,
-            "TeleporterTokenDestation: recipient gas limit not less than required gas limit"
+            "TeleporterTokenDestation: invalid recipient gas limit"
         );
         require(
             input.fallbackRecipient != address(0),

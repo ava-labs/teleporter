@@ -125,14 +125,14 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
-            _encodeMultiHopSendMessage(
-                amount,
-                input.destinationBlockchainID,
-                input.destinationBridgeAddress,
-                input.recipient,
-                input.primaryFee,
-                input.requiredGasLimit
-            )
+            _encodeMultiHopSendMessage({
+                amount: amount,
+                destinationBlockchainID: input.destinationBlockchainID,
+                destinationBridgeAddress: input.destinationBridgeAddress,
+                recipient: input.recipient,
+                secondaryFee: input.primaryFee,
+                secondaryGasLimit: input.requiredGasLimit
+            })
         );
     }
 
@@ -160,14 +160,14 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
-            _encodeMultiHopSendMessage(
-                amount,
-                message.destinationBlockchainID,
-                message.destinationBridgeAddress,
-                message.recipient,
-                message.secondaryFee,
-                message.secondaryGasLimit
-            )
+            _encodeMultiHopSendMessage({
+                amount: amount,
+                destinationBlockchainID: message.destinationBlockchainID,
+                destinationBridgeAddress: message.destinationBridgeAddress,
+                recipient: message.recipient,
+                secondaryFee: message.secondaryFee,
+                secondaryGasLimit: message.secondaryGasLimit
+            })
         );
 
         // Make sure the bridge balance is still the same

@@ -162,7 +162,7 @@ func SendERC20Source(
 	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseSendTokens)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	Expect(event.Amount).Should(Equal(bridgedAmount))
@@ -191,7 +191,7 @@ func SendNativeTokenSource(
 	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseSendTokens)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	Expect(event.Amount).Should(Equal(bridgedAmount))
@@ -229,7 +229,7 @@ func SendERC20Destination(
 
 	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Destination.ParseSendTokens)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Destination.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	Expect(event.Amount).Should(Equal(bridgedAmount))

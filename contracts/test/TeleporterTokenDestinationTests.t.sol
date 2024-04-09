@@ -17,20 +17,16 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     function setUp() public virtual {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
+            abi.encodeCall(IWarpMessenger.getBlockchainID, ()),
             abi.encode(DEFAULT_DESTINATION_BLOCKCHAIN_ID)
         );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
-        );
+        vm.expectCall(WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getBlockchainID, ()));
 
         _initMockTeleporterRegistry();
 
         vm.expectCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
-            )
+            abi.encodeCall(TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion, ())
         );
     }
 
@@ -129,14 +125,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
             TOKEN_SOURCE_ADDRESS,
-            _encodeMultiHopSendMessage(
-                1,
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                DEFAULT_DESTINATION_ADDRESS,
-                DEFAULT_RECIPIENT_ADDRESS,
-                0,
-                1_000
-            )
+            _encodeMultiHopSendMessage({
+                amount: 1,
+                destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                recipient: DEFAULT_RECIPIENT_ADDRESS,
+                secondaryFee: 0,
+                secondaryGasLimit: 1_000
+            })
         );
     }
 
@@ -190,14 +186,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
             requiredGasLimit: tokenDestination.MULTIHOP_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
-            message: _encodeMultiHopSendMessage(
-                bridgeAmount,
-                input.destinationBlockchainID,
-                input.destinationBridgeAddress,
-                input.recipient,
-                input.secondaryFee,
-                input.requiredGasLimit
-                )
+            message: _encodeMultiHopSendMessage({
+                amount: bridgeAmount,
+                destinationBlockchainID: input.destinationBlockchainID,
+                destinationBridgeAddress: input.destinationBridgeAddress,
+                recipient: input.recipient,
+                secondaryFee: input.secondaryFee,
+                secondaryGasLimit: input.requiredGasLimit
+            })
         });
     }
 
