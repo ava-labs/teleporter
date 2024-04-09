@@ -125,7 +125,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		)
 	}
 
-	// Send tokens from C-Chain to recipient on subnet A that over-collateralize bridge
+	// Send tokens from C-Chain to recipient on subnet A that fully collateralize bridge with leftover tokens.
 	{
 		input := nativetokensource.SendTokensInput{
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
@@ -136,7 +136,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
-		// Send initialReserveImbalance tokens to over-collateralize bridge
+		// Send initialReserveImbalance tokens to fully collateralize bridge and mint the remainder.
 		receipt, _ := utils.SendNativeTokenSource(
 			ctx,
 			cChainInfo,
