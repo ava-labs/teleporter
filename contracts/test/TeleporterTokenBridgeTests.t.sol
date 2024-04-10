@@ -57,7 +57,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     uint256 internal constant _DEFAULT_FEE_AMOUNT = 123456;
     uint256 internal constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
     uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1e18;
-    uint256 internal constant _DEFAULT_DECIMALS_SHIFT = 1;
+    uint8 internal constant _DEFAULT_DECIMALS_SHIFT = 1;
     uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 10 ** _DEFAULT_DECIMALS_SHIFT;
 
     ITeleporterTokenBridge public tokenBridge;
@@ -81,7 +81,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    function testZeroDestinationBlockchainID() public {
+    function testSendZeroDestinationBlockchainID() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
         input.destinationBlockchainID = bytes32(0);
@@ -89,7 +89,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
-    function testZeroDestinationBridge() public {
+    function testSendZeroDestinationBridge() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
         input.destinationBridgeAddress = address(0);
@@ -97,7 +97,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
-    function testZeroRecipient() public {
+    function testSendZeroRecipient() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.recipient = address(0);
         feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
@@ -112,10 +112,32 @@ abstract contract TeleporterTokenBridgeTest is Test {
         _sendAndCall(input, 0);
     }
 
+    function testSendZeroRequiredGasLimit() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.requiredGasLimit = 0;
+        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
+        vm.expectRevert(_formatErrorMessage("zero required gas limit"));
+        _send(input, 0);
+    }
+
+    function testSendAndCallZeroRequiredGasLimit() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.requiredGasLimit = 0;
+        vm.expectRevert(_formatErrorMessage("zero required gas limit"));
+        _sendAndCall(input, 0);
+    }
+
     function testSendAndCallZeroRecipientGasLimit() public {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.recipientGasLimit = 0;
         vm.expectRevert(_formatErrorMessage("zero recipient gas limit"));
+        _sendAndCall(input, 0);
+    }
+
+    function testSendAndCallInvalidRecipientGasLimit() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.recipientGasLimit = input.requiredGasLimit + 1;
+        vm.expectRevert(_formatErrorMessage("invalid recipient gas limit"));
         _sendAndCall(input, 0);
     }
 
@@ -253,7 +275,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         );
     }
 
-    // This function is overridden by NativeTokenDestinationTests
+    // This function is overridden by TeleporterTokenDestinationTests
     function _scaleTokens(uint256 amount, bool) internal virtual returns (uint256) {
         return amount;
     }

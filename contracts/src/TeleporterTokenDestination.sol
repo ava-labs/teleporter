@@ -47,6 +47,26 @@ abstract contract TeleporterTokenDestination is
     address public immutable feeTokenAddress;
 
     /**
+     * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
+     * the source chain.
+     *
+     * @dev This can be used to normalize the number of decimals places between the tokens on
+     * the two subnets. Is calculated as 10^d, where d is decimalsShift specified in the constructor.
+     */
+    uint256 public immutable tokenMultiplier;
+
+    /**
+     * @notice If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
+     * are transferred from the source chain into this destination chain, and divided by `tokenMultiplier` when
+     * tokens are transferred from this destination chain back to the source chain. This is intended
+     * when the "decimals" value on the source chain is less than the native EVM denomination of 18.
+     * If multiplyOnReceive is false, the raw token amount value will be divided by `tokenMultiplier` when tokens
+     * are transferred from the source chain into this destination chain, and multiplied by `tokenMultiplier` when
+     * tokens are transferred from this destination chain back to the source chain.
+     */
+    bool public immutable multiplyOnReceive;
+
+    /**
      * @notice Fixed gas cost for performing a multihop transfer on the `sourceBlockchainID`,
      * before forwarding to the final destination bridge instance.
      */
@@ -67,7 +87,9 @@ abstract contract TeleporterTokenDestination is
         address teleporterManager,
         bytes32 sourceBlockchainID_,
         address tokenSourceAddress_,
-        address feeTokenAddress_
+        address feeTokenAddress_,
+        uint8 decimalsShift,
+        bool multiplyOnReceive_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
@@ -85,9 +107,25 @@ abstract contract TeleporterTokenDestination is
         require(
             feeTokenAddress_ != address(0), "TeleporterTokenDestination: zero fee token address"
         );
+        require(decimalsShift <= 18, "NativeTokenDestination: invalid decimalsShift");
         sourceBlockchainID = sourceBlockchainID_;
         tokenSourceAddress = tokenSourceAddress_;
         feeTokenAddress = feeTokenAddress_;
+        tokenMultiplier = 10 ** decimalsShift;
+        multiplyOnReceive = multiplyOnReceive_;
+    }
+
+    /**
+     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
+     * Should be used for all tokens being transferred to/from other subnets.
+     */
+    function scaleTokens(uint256 value, bool isReceive) public view virtual returns (uint256) {
+        // Multiply when multiplyOnReceive and isReceive are both true or both false.
+        if (multiplyOnReceive == isReceive) {
+            return value * tokenMultiplier;
+        }
+        // Otherwise divide.
+        return value / tokenMultiplier;
     }
 
     /**
@@ -185,7 +223,7 @@ abstract contract TeleporterTokenDestination is
         require(input.recipientGasLimit > 0, "TeleporterTokenDestination: zero recipient gas limit");
         require(
             input.recipientGasLimit < input.requiredGasLimit,
-            "TeleporterTokenDestation: invalid recipient gas limit"
+            "TeleporterTokenDestination: invalid recipient gas limit"
         );
         require(
             input.fallbackRecipient != address(0),
@@ -286,7 +324,7 @@ abstract contract TeleporterTokenDestination is
             "TeleporterTokenDestination: invalid token source address"
         );
         BridgeMessage memory bridgeMessage = abi.decode(message, (BridgeMessage));
-        uint256 scaledAmount = _scaleTokens(bridgeMessage.amount, true);
+        uint256 scaledAmount = scaleTokens(bridgeMessage.amount, true);
 
         // Destination contracts should only ever receive single-hop messages because
         // multi-hop messages are always routed through the source contract.
@@ -331,12 +369,6 @@ abstract contract TeleporterTokenDestination is
         uint256 amount
     ) internal virtual;
 
-    /**
-     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
-     * Should be used for all tokens being transferred to/from other subnets.
-     */
-    function _scaleTokens(uint256 value, bool isReceive) internal view virtual returns (uint256);
-
     function _prepareSend(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
@@ -364,8 +396,8 @@ abstract contract TeleporterTokenDestination is
         amount -= primaryFee;
         _burn(amount);
 
-        uint256 scaledAmount = _scaleTokens(amount, false);
-        require(scaledAmount > 0, "NativeTokenDestination: insufficient tokens to transfer");
+        uint256 scaledAmount = scaleTokens(amount, false);
+        require(scaledAmount > 0, "TeleporterTokenDestination: insufficient tokens to transfer");
 
         return scaledAmount;
     }

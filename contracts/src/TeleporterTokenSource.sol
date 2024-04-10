@@ -129,7 +129,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         require(input.recipientGasLimit > 0, "TeleporterTokenSource: zero recipient gas limit");
         require(
             input.recipientGasLimit < input.requiredGasLimit,
-            "TeleporterTokenSource: recipient gas limit not less than required gas limit"
+            "TeleporterTokenSource: invalid recipient gas limit"
         );
         require(
             input.fallbackRecipient != address(0),

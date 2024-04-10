@@ -44,6 +44,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
+    function testInvalidSendandCallingBackToSourceBlockchain() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.destinationBridgeAddress = address(this);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
+        vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
+        _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
     function testNonZeroSecondaryFeeToSourceBlockchain() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.secondaryFee = 1;
@@ -59,6 +67,27 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testSendAndCallingToSameInstance() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.destinationBlockchainID = tokenDestination.blockchainID();
+        input.destinationBridgeAddress = address(tokenDestination);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
+        vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
+        _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testSendZeroAmountAfterScaling() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.primaryFee = 0;
+        input.secondaryFee = 0;
+        uint256 amount = 1;
+        _setUpExpectedDeposit(amount);
+        if (_scaleTokens(amount, false) == 0) {
+            vm.expectRevert(_formatErrorMessage("insufficient tokens to transfer"));
+        }
+        _sendAndCall(input, amount);
     }
 
     function testSendToSameBlockchainDifferentDestination() public {
@@ -120,6 +149,48 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
             TOKEN_SOURCE_ADDRESS,
             _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
+        );
+    }
+
+    function testReceiveAndCallSuccess() public {
+        uint256 amount = 2;
+        bytes memory payload = hex"DEADBEEF";
+
+        _setUpExpectedSendAndCall(
+            DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount, payload, DEFAULT_RECIPIENT_GAS_LIMIT, true
+        );
+
+        bytes memory message = _encodeSingleHopCallMessage(
+            amount,
+            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            payload,
+            DEFAULT_RECIPIENT_GAS_LIMIT,
+            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        );
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
+        );
+    }
+
+    function testReceiveAndCallFailure() public {
+        uint256 amount = 2;
+        bytes memory payload = hex"DEADBEEF";
+
+        _setUpExpectedSendAndCall(
+            DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount, payload, DEFAULT_RECIPIENT_GAS_LIMIT, false
+        );
+
+        bytes memory message = _encodeSingleHopCallMessage(
+            amount,
+            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            payload,
+            DEFAULT_RECIPIENT_GAS_LIMIT,
+            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        );
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
         );
     }
 
@@ -187,6 +258,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
         _sendAndCall(input, amount);
     }
+
+    function _setUpExpectedSendAndCall(
+        address recipient,
+        uint256 amount,
+        bytes memory payload,
+        uint256 gasLimit,
+        bool expectSuccess
+    ) internal virtual;
 
     function _createMultiHopSendTeleporterMessageInput(
         SendTokensInput memory input,

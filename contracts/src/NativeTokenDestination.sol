@@ -110,26 +110,6 @@ contract NativeTokenDestination is
     uint256 public latestBurnAddressBalance;
 
     /**
-     * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
-     * the source chain.
-     *
-     * @dev This can be used to normalize the number of decimals places between the tokens on
-     * the two subnets. Is calculated as 10^d, where d is decimalsShift specified in the constructor.
-     */
-    uint256 public immutable tokenMultiplier;
-
-    /**
-     * @notice If multiplyOnReceive is true, the raw token amount value will be multiplied by `tokenMultiplier` when tokens
-     * are transferred from the source chain into this destination chain, and divided by `tokenMultiplier` when
-     * tokens are transferred from this destination chain back to the source chain. This is intended
-     * when the "decimals" value on the source chain is less than the native EVM denomination of 18.
-     * If multiplyOnReceive is false, the raw token amount value will be divided by `tokenMultiplier` when tokens
-     * are transferred from the source chain into this destination chain, and multiplied by `tokenMultiplier` when
-     * tokens are transferred from this destination chain back to the source chain.
-     */
-    bool public immutable multiplyOnReceive;
-
-    /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
     IWrappedNativeToken public immutable token;
@@ -141,7 +121,7 @@ contract NativeTokenDestination is
         address tokenSourceAddress_,
         address feeTokenAddress_,
         uint256 initialReserveImbalance_,
-        uint256 decimalsShift,
+        uint8 decimalsShift,
         bool multiplyOnReceive_
     )
         TeleporterTokenDestination(
@@ -149,7 +129,9 @@ contract NativeTokenDestination is
             teleporterManager,
             sourceBlockchainID_,
             tokenSourceAddress_,
-            feeTokenAddress_
+            feeTokenAddress_,
+            decimalsShift,
+            multiplyOnReceive_
         )
     {
         token = IWrappedNativeToken(feeTokenAddress);
@@ -160,10 +142,6 @@ contract NativeTokenDestination is
 
         initialReserveImbalance = initialReserveImbalance_;
         currentReserveImbalance = initialReserveImbalance_;
-
-        require(decimalsShift <= 18, "NativeTokenDestination: invalid decimalsShift");
-        tokenMultiplier = 10 ** decimalsShift;
-        multiplyOnReceive = multiplyOnReceive_;
     }
 
     /**
@@ -216,7 +194,7 @@ contract NativeTokenDestination is
         uint256 burnedDifference = burnAddressBalance - latestBurnAddressBalance;
         latestBurnAddressBalance = burnAddressBalance;
 
-        uint256 scaledAmount = _scaleTokens(burnedDifference, false);
+        uint256 scaledAmount = scaleTokens(burnedDifference, false);
         require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to report burn");
 
         BridgeMessage memory message = BridgeMessage({
@@ -285,9 +263,6 @@ contract NativeTokenDestination is
             }
         }
 
-        // Emit an event even if the amount is zero to improve traceability.
-        emit NativeTokensMinted(recipient, adjustedAmount);
-
         // Only call the native minter precompile if we are minting any coins.
         if (adjustedAmount > 0) {
             totalMinted += adjustedAmount;
@@ -319,6 +294,7 @@ contract NativeTokenDestination is
 
         // Mint the tokens to this contract address.
         NATIVE_MINTER.mintNativeCoin(address(this), amount);
+        require(address(this).balance >= amount, "huh failed here");
 
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
         bytes memory payload =
@@ -336,17 +312,5 @@ contract NativeTokenDestination is
             emit CallFailed(message.recipientContract, amount);
             payable(message.fallbackRecipient).transfer(amount);
         }
-    }
-
-    /**
-     * @dev See {TeleporterTokenDestination-_scaleTokens}
-     */
-    function _scaleTokens(uint256 value, bool isReceive) internal view override returns (uint256) {
-        // Multiply when multiplyOnReceive and isReceive are both true or both false.
-        if (multiplyOnReceive == isReceive) {
-            return value * tokenMultiplier;
-        }
-        // Otherwise divide.
-        return value / tokenMultiplier;
     }
 }
