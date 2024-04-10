@@ -152,13 +152,18 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testReceiveAndCallSuccess() public {
+    function testReceiveSendAndCallSuccess() public {
         uint256 amount = 2;
         bytes memory payload = hex"DEADBEEF";
 
-        _setUpExpectedSendAndCall(
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount, payload, DEFAULT_RECIPIENT_GAS_LIMIT, true
-        );
+        _setUpExpectedSendAndCall({
+            recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            amount: amount,
+            payload: payload,
+            gasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            targetHasCode: true,
+            expectSuccess: true
+        });
 
         bytes memory message = _encodeSingleHopCallMessage(
             amount,
@@ -173,13 +178,18 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testReceiveAndCallFailure() public {
+    function testReceiveSendAndCallFailure() public {
         uint256 amount = 2;
         bytes memory payload = hex"DEADBEEF";
 
-        _setUpExpectedSendAndCall(
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount, payload, DEFAULT_RECIPIENT_GAS_LIMIT, false
-        );
+        _setUpExpectedSendAndCall({
+            recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            amount: amount,
+            payload: payload,
+            gasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            targetHasCode: true,
+            expectSuccess: false
+        });
 
         bytes memory message = _encodeSingleHopCallMessage(
             amount,
@@ -190,6 +200,52 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
+        );
+    }
+
+    function testReceiveSendAndCallFailureNoCode() public {
+        uint256 amount = 2;
+        bytes memory payload = hex"DEADBEEF";
+
+        _setUpExpectedSendAndCall({
+            recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            amount: amount,
+            payload: payload,
+            gasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            targetHasCode: false,
+            expectSuccess: false
+        });
+
+        bytes memory message = _encodeSingleHopCallMessage(
+            amount,
+            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            payload,
+            DEFAULT_RECIPIENT_GAS_LIMIT,
+            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        );
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
+        );
+    }
+
+    function testReceiveSendAndCallFailureInsufficientGas() public {
+        uint256 amount = 200;
+        bytes memory payload = hex"DEADBEEF";
+        uint256 gasLimit = 5_000_000;
+        bytes memory message = _encodeSingleHopCallMessage({
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: gasLimit,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
+
+        _setUpMockMint(address(tokenDestination), amount);
+        vm.expectRevert("GasUtils: insufficient gas");
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage{gas: gasLimit - 1}(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
         );
     }
@@ -259,11 +315,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _sendAndCall(input, amount);
     }
 
+    function _setUpMockMint(address recipient, uint256 amount) internal virtual;
+
     function _setUpExpectedSendAndCall(
         address recipient,
         uint256 amount,
         bytes memory payload,
         uint256 gasLimit,
+        bool targetHasCode,
         bool expectSuccess
     ) internal virtual;
 

@@ -247,8 +247,6 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                 true
             );
             return;
-        } else {
-            revert("TeleporterTokenSource: unknown message type");
         }
     }
 

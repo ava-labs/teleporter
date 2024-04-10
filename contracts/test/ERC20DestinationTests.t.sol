@@ -133,6 +133,7 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         uint256 amount,
         bytes memory payload,
         uint256 gasLimit,
+        bool targetHasCode,
         bool expectSuccess
     ) internal override {
         // The bridge tokens will be minted to the contract itself
@@ -143,21 +144,27 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         vm.expectEmit(true, true, true, true, address(app));
         emit Approval(address(app), DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
 
-        bytes memory expectedCalldata =
-            abi.encodeCall(IERC20SendAndCallReceiver.receiveTokens, (address(app), amount, payload));
-        vm.etch(recipient, new bytes(1));
-        if (expectSuccess) {
-            vm.mockCall(recipient, expectedCalldata, new bytes(0));
+        if (targetHasCode) {
+            vm.etch(recipient, new bytes(1));
+
+            bytes memory expectedCalldata = abi.encodeCall(
+                IERC20SendAndCallReceiver.receiveTokens, (address(app), amount, payload)
+            );
+            if (expectSuccess) {
+                vm.mockCall(recipient, expectedCalldata, new bytes(0));
+            } else {
+                vm.mockCallRevert(recipient, expectedCalldata, new bytes(0));
+            }
+            vm.expectCall(recipient, 0, uint64(gasLimit), expectedCalldata);
         } else {
-            vm.mockCallRevert(recipient, expectedCalldata, new bytes(0));
+            vm.etch(recipient, new bytes(0));
         }
-        vm.expectCall(recipient, 0, uint64(gasLimit), expectedCalldata);
 
         // Then recipient contract approval is reset
         vm.expectEmit(true, true, true, true, address(app));
         emit Approval(address(app), DEFAULT_RECIPIENT_CONTRACT_ADDRESS, 0);
 
-        if (expectSuccess) {
+        if (targetHasCode && expectSuccess) {
             // The call should have succeeded.
             vm.expectEmit(true, true, true, true, address(app));
             emit CallSucceeded(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
@@ -170,6 +177,12 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
             vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(app), address(DEFAULT_FALLBACK_RECIPIENT_ADDRESS), amount);
         }
+    }
+
+    function _setUpMockMint(address, uint256) internal pure override {
+        // Don't need to mock the minting of an ERC20 destination since it is an internal call
+        // on the destination contract.
+        return;
     }
 
     function _scaleTokens(uint256 amount, bool) internal pure override returns (uint256) {

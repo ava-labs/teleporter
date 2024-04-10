@@ -151,6 +151,25 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         assertEq(app.scaleTokens(100_000, false), 100);
     }
 
+    function testReceiveSendAndCallFailureInsufficientValue() public {
+        uint256 amount = 200;
+        bytes memory payload = hex"DEADBEEF";
+        bytes memory message = _encodeSingleHopCallMessage(
+            amount,
+            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            payload,
+            DEFAULT_RECIPIENT_GAS_LIMIT,
+            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        );
+
+        _setUpMockMint(address(tokenDestination), amount);
+        vm.expectRevert("GasUtils: insufficient value");
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
+        );
+    }
+
     function _checkExpectedWithdrawal(address addr, uint256 amount) internal override {
         uint256 scaledAmount = _scaleTokens(amount, true);
         vm.mockCall(
@@ -165,11 +184,25 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         vm.deal(addr, scaledAmount);
     }
 
+    function _setUpMockMint(address recipient, uint256 amount) internal override {
+        uint256 scaledAmount = _scaleTokens(amount, true);
+        vm.mockCall(
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, scaledAmount)),
+            new bytes(0)
+        );
+        vm.expectCall(
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, scaledAmount))
+        );
+    }
+
     function _setUpExpectedSendAndCall(
         address recipient,
         uint256 amount,
         bytes memory payload,
         uint256 gasLimit,
+        bool targetHasCode,
         bool expectSuccess
     ) internal override {
         uint256 scaledAmount = _scaleTokens(amount, true);
@@ -186,15 +219,30 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         // Mock the native minter precompile crediting native balance to the contract.
         vm.deal(address(app), scaledAmount);
 
-        bytes memory expectedCalldata =
-            abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (payload));
-        vm.etch(recipient, new bytes(1));
-        if (expectSuccess) {
-            vm.mockCall(recipient, scaledAmount, expectedCalldata, new bytes(0));
+        if (targetHasCode) {
+            // Non-zero code length
+            vm.etch(recipient, new bytes(1));
+
+            bytes memory expectedCalldata =
+                abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (payload));
+            if (expectSuccess) {
+                vm.mockCall(recipient, scaledAmount, expectedCalldata, new bytes(0));
+            } else {
+                vm.mockCallRevert(recipient, scaledAmount, expectedCalldata, new bytes(0));
+            }
+            vm.expectCall(recipient, scaledAmount, uint64(gasLimit), expectedCalldata);
         } else {
-            vm.mockCallRevert(recipient, scaledAmount, expectedCalldata, new bytes(0));
+            // No code at target
+            vm.etch(recipient, new bytes(0));
         }
-        vm.expectCall(recipient, scaledAmount, uint64(gasLimit), expectedCalldata);
+
+        if (targetHasCode && expectSuccess) {
+            vm.expectEmit(true, true, true, true, address(app));
+            emit CallSucceeded(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, scaledAmount);
+        } else {
+            vm.expectEmit(true, true, true, true, address(app));
+            emit CallFailed(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, scaledAmount);
+        }
     }
 
     function _scaleTokens(
