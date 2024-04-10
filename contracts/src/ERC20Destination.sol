@@ -63,17 +63,6 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * @dev See {IERC20Bridge-send}
      */
     function send(SendTokensInput calldata input, uint256 amount) external nonReentrant {
-        // Deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit
-        amount = _deposit(amount);
-        require(
-            amount > input.primaryFee + input.secondaryFee,
-            "ERC20Destination: insufficient amount to cover fees"
-        );
-
-        amount -= input.primaryFee;
-        _burn(amount);
-
         _send(input, amount);
     }
 
@@ -85,25 +74,32 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_deposit}
+     * @dev See {TeleporterTokenDestination-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
         return SafeERC20TransferFrom.safeTransferFrom(this, amount);
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_withdraw}
+     * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
         _mint(recipient, amount);
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_burn}
+     * @dev See {TeleporterTokenDestination-_burn}
      *
      * Calls {ERC20-_burn} to burn tokens from this contract.
      */
     function _burn(uint256 amount) internal virtual override {
         _burn(address(this), amount);
+    }
+
+    /**
+     * @dev See {TeleporterTokenDestination-_scaleTokens}
+     */
+    function _scaleTokens(uint256 value, bool) internal pure override returns (uint256) {
+        return value;
     }
 }
