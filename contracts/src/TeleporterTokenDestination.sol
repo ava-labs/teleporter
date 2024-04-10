@@ -19,6 +19,8 @@ import {IWarpMessenger} from
 /**
  * @title TeleporterTokenDestination
  * @dev Abstract contract for a Teleporter token bridge that receives tokens from a {TeleporterTokenSource} in exchange for the tokens of this token bridge instance.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 abstract contract TeleporterTokenDestination is
     ITeleporterTokenBridge,
@@ -34,9 +36,11 @@ abstract contract TeleporterTokenDestination is
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
     address public immutable feeTokenAddress;
 
-    // TODO: these are values brought from the example ERC20Bridge contract.
-    // Need to figure out appropriate values.
-    uint256 public constant SEND_TOKENS_REQUIRED_GAS = 300_000;
+    /**
+     * @notice Fixed gas cost for performing a multihop transfer on the `sourceBlockchainID`
+     * , before forwarding to the final destination bridge instance.
+     */
+    uint256 public constant MULTIHOP_REQUIRED_GAS = 220_000;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
@@ -85,23 +89,57 @@ abstract contract TeleporterTokenDestination is
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal virtual {
         require(
+            input.destinationBlockchainID != bytes32(0),
+            "TeleporterTokenDestination: zero destination blockchain ID"
+        );
+        require(
             input.destinationBridgeAddress != address(0),
             "TeleporterTokenDestination: zero destination bridge address"
         );
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
 
-        // If the destination blockchain is the source bridge instance's blockchain,
-        // the destination bridge address must match the token source address.
+        // Deposit the tokens sent from the user to the bridge,
+        // and set to adjusted amount after deposit.
+        amount = _deposit(amount);
+        require(
+            amount > input.primaryFee + input.secondaryFee,
+            "TeleporterTokenDestination: insufficient amount to cover fees"
+        );
+
+        // Burn tokens, except for the primary fee, which is kept for teleporter rewards.
+        amount -= input.primaryFee;
+        _burn(amount);
+
+        uint256 scaledAmount = _scaleTokens(amount, false);
+        require(scaledAmount > 0, "NativeTokenDestination: insufficient tokens to transfer");
+
+        // If the destination blockchain is the source blockchain,
+        // no multihop is needed. Only the required gas limit for the Teleporter message back to
+        // `sourceBlockchainID` is needed, which is provided by `input.requiredGasLimit`.
+        // Else, there will be a multihop transfer to the final destination.
+        // The first hop back to `sourceBlockchainID` requires `MULTIHOP_REQUIRED_GAS`,
+        // and the second hop to the final destination requires `input.requiredGasLimit`.
+        uint256 firstHopRequiredGas = input.requiredGasLimit;
+        uint256 secondHopRequiredGas;
         if (input.destinationBlockchainID == sourceBlockchainID) {
+            // If the destination blockchain is the source bridge instance's blockchain,
+            // the destination bridge address must match the token source address,
+            // and no secondary fee is needed.
             require(
                 input.destinationBridgeAddress == tokenSourceAddress,
                 "TeleporterTokenDestination: invalid destination bridge address"
             );
-        } else if (input.destinationBlockchainID == blockchainID) {
-            require(
-                input.destinationBridgeAddress != address(this),
-                "TeleporterTokenDestination: invalid destination bridge address"
-            );
+            require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
+        } else {
+            // Do not allow bridging to the same token bridge instance.
+            if (input.destinationBlockchainID == blockchainID) {
+                require(
+                    input.destinationBridgeAddress != address(this),
+                    "TeleporterTokenDestination: invalid destination bridge address"
+                );
+            }
+            firstHopRequiredGas = MULTIHOP_REQUIRED_GAS;
+            secondHopRequiredGas = input.requiredGasLimit;
         }
 
         bytes32 messageID = _sendTeleporterMessage(
@@ -109,9 +147,8 @@ abstract contract TeleporterTokenDestination is
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
-                // TODO: placeholder value
-                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
-                allowedRelayerAddresses: input.allowedRelayerAddresses,
+                requiredGasLimit: firstHopRequiredGas,
+                allowedRelayerAddresses: new address[](0),
                 message: abi.encode(
                     SendTokensInput({
                         destinationBlockchainID: input.destinationBlockchainID,
@@ -119,15 +156,14 @@ abstract contract TeleporterTokenDestination is
                         recipient: input.recipient,
                         primaryFee: input.secondaryFee,
                         secondaryFee: 0,
-                        // TODO: Does multihop allowed relayer need to be separate parameter?
-                        allowedRelayerAddresses: input.allowedRelayerAddresses
+                        requiredGasLimit: secondHopRequiredGas
                     }),
-                    amount
+                    scaledAmount
                     )
             })
         );
 
-        emit SendTokens(messageID, msg.sender, amount);
+        emit SendTokens(messageID, msg.sender, input, scaledAmount);
     }
 
     /**
@@ -150,6 +186,7 @@ abstract contract TeleporterTokenDestination is
         );
         (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
 
+        emit WithdrawTokens(recipient, amount);
         _withdraw(recipient, amount);
     }
 
@@ -174,4 +211,10 @@ abstract contract TeleporterTokenDestination is
      * @param amount The amount of tokens to burn
      */
     function _burn(uint256 amount) internal virtual;
+
+    /**
+     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
+     * Should be used for all tokens being transferred to/from other subnets.
+     */
+    function _scaleTokens(uint256 value, bool isReceive) internal view virtual returns (uint256);
 }

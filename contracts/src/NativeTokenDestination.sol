@@ -10,7 +10,6 @@ import {
     TeleporterFeeInfo,
     TeleporterMessageInput
 } from "./TeleporterTokenDestination.sol";
-import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./interfaces/INativeTokenDestination.sol";
@@ -20,6 +19,7 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
 import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IAllowList.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
+import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -38,12 +38,15 @@ contract NativeTokenDestination is
     INativeTokenDestination,
     TeleporterTokenDestination
 {
+    using SafeWrappedNativeTokenDeposit for IWrappedNativeToken;
+
     /**
      * @notice The address where the burned transaction fees are credited.
      *
      * @dev Defined as BLACKHOLE_ADDRESS at
-     * https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
-     * It is a system-reserved address by default in subnet-evm, and transfers cannot be sent here manually.
+     * https://github.com/ava-labs/subnet-evm/blob/v0.6.0/constants/constants.go
+     * C-Chain value found at https://github.com/ava-labs/coreth/blob/v0.13.2/constants/constants.go
+     * It is a system-reserved address by default in subnet-evm and coreth, and transfers cannot be sent here manually.
      */
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
 
@@ -71,11 +74,6 @@ contract NativeTokenDestination is
      */
     INativeMinter public constant NATIVE_MINTER =
         INativeMinter(0x0200000000000000000000000000000000000001);
-
-    /**
-     * @notice Estimated gas needed for a transfer call to execute successfully on the source chain.
-     */
-    uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
 
     /**
      * @notice Initial reserve imbalance that must be collateralized on the source before minting.
@@ -189,27 +187,14 @@ contract NativeTokenDestination is
         require(
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
-        uint256 amount = msg.value;
-        require(
-            amount > input.primaryFee + input.secondaryFee,
-            "NativeTokenDestination: insufficient amount to cover fees"
-        );
 
-        // TODO we need to guarantee that this function deposits the whole amount, or find a workaround.
-        if (input.primaryFee > 0) {
-            _deposit(input.primaryFee);
-            amount -= input.primaryFee;
-        }
-
-        _burn(amount);
-
-        _send(input, _scaleTokens(amount, false));
+        _send(input, msg.value);
     }
 
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportBurnedTxFees() external {
+    function reportBurnedTxFees(uint256 requiredGasLimit) external {
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
         require(
             burnAddressBalance > lastestBurnedFeesReported,
@@ -235,8 +220,7 @@ contract NativeTokenDestination is
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: reward}),
-                // TODO: placeholder value
-                requiredGasLimit: SEND_TOKENS_REQUIRED_GAS,
+                requiredGasLimit: requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(
                     SendTokensInput({
@@ -245,7 +229,7 @@ contract NativeTokenDestination is
                         recipient: SOURCE_CHAIN_BURN_ADDRESS,
                         primaryFee: 0,
                         secondaryFee: 0,
-                        allowedRelayerAddresses: new address[](0)
+                        requiredGasLimit: 0
                     }),
                     scaledAmount
                     )
@@ -266,22 +250,21 @@ contract NativeTokenDestination is
      * @dev See {INativeTokenDestination-totalSupply}.
      */
     function totalSupply() external view returns (uint256) {
-        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURN_FOR_TRANSFER_ADDRESS.balance;
+        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + token.balanceOf(BURN_FOR_TRANSFER_ADDRESS);
         uint256 created = totalMinted + initialReserveImbalance;
 
         return created - burned;
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_deposit}
+     * @dev See {TeleporterTokenDestination-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        token.deposit{value: amount}();
-        return amount;
+        return token.safeDeposit(amount);
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_withdraw}
+     * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
         uint256 scaledAmount = _scaleTokens(amount, true);
@@ -316,18 +299,17 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_burn}
+     * @dev See {TeleporterTokenDestination-_burn}
      */
     function _burn(uint256 amount) internal virtual override {
-        // Burn native token by sending to BURN_FOR_TRANSFER_ADDRESS
-        Address.sendValue(payable(BURN_FOR_TRANSFER_ADDRESS), amount);
+        // Burn native token by transferring to BURN_FOR_TRANSFER_ADDRESS
+        token.transfer(BURN_FOR_TRANSFER_ADDRESS, amount);
     }
 
     /**
-     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
-     * Should be used for all tokens being transferred to/from other subnets.
+     * @dev See {TeleporterTokenDestination-_scaleTokens}
      */
-    function _scaleTokens(uint256 value, bool isReceive) private view returns (uint256) {
+    function _scaleTokens(uint256 value, bool isReceive) internal view override returns (uint256) {
         // Multiply when multiplyOnReceive and isReceive are both true or both false.
         if (multiplyOnReceive == isReceive) {
             return value * tokenMultiplier;

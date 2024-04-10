@@ -22,6 +22,8 @@ import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
  * @notice This contract is an {IERC20Bridge} that receives tokens from another chain's
  * {ITeleporterTokenBridge} instance, and represents the received tokens with an ERC20 token
  * on this destination chain.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     using SafeERC20 for IERC20;
@@ -60,18 +62,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      *
      * @dev See {IERC20Bridge-send}
      */
-    function send(SendTokensInput calldata input, uint256 amount) external {
-        // Deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit
-        amount = _deposit(amount);
-        require(
-            amount > input.primaryFee + input.secondaryFee,
-            "ERC20Destination: insufficient amount to cover fees"
-        );
-
-        amount -= input.primaryFee;
-        _burn(amount);
-
+    function send(SendTokensInput calldata input, uint256 amount) external nonReentrant {
         _send(input, amount);
     }
 
@@ -83,27 +74,32 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_deposit}
+     * @dev See {TeleporterTokenDestination-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        // TODO: can copy logic from SafeERC20TransferFrom.safeTransferFrom directly
-        // figure out if has gas savings.
         return SafeERC20TransferFrom.safeTransferFrom(this, amount);
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_withdraw}
+     * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
         _mint(recipient, amount);
     }
 
     /**
-     * @dev See {TeleportTokenDestination-_burn}
+     * @dev See {TeleporterTokenDestination-_burn}
      *
      * Calls {ERC20-_burn} to burn tokens from this contract.
      */
     function _burn(uint256 amount) internal virtual override {
         _burn(address(this), amount);
+    }
+
+    /**
+     * @dev See {TeleporterTokenDestination-_scaleTokens}
+     */
+    function _scaleTokens(uint256 value, bool) internal pure override returns (uint256) {
+        return value;
     }
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -77,7 +76,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		AllowedRelayerAddresses:  []common.Address{},
+		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}
 
 	// Send the tokens and verify expected events
@@ -127,7 +126,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		AllowedRelayerAddresses:  []common.Address{},
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 	}
 
 	// Send tokens on Subnet A back for native tokens on C-Chain

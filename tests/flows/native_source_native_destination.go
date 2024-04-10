@@ -10,7 +10,6 @@ import (
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
@@ -90,7 +89,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			Recipient:                recipientAddress,
 			PrimaryFee:               big.NewInt(0),
 			SecondaryFee:             big.NewInt(0),
-			AllowedRelayerAddresses:  []common.Address{},
+			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
 		receipt, bridgedAmount := utils.SendNativeTokenSource(
@@ -129,7 +128,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		)
 	}
 
-	// Send tokens from C-Chain to recipient on subnet A that over-collateralize bridge
+	// Send tokens from C-Chain to recipient on subnet A that fully collateralize bridge with leftover tokens.
 	{
 		input := nativetokensource.SendTokensInput{
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
@@ -137,10 +136,10 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			Recipient:                recipientAddress,
 			PrimaryFee:               big.NewInt(0),
 			SecondaryFee:             big.NewInt(0),
-			AllowedRelayerAddresses:  []common.Address{},
+			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
-		// Send initialReserveImbalance tokens to over-collateralize bridge
+		// Send initialReserveImbalance tokens to fully collateralize bridge and mint the remainder.
 		receipt, _ := utils.SendNativeTokenSource(
 			ctx,
 			cChainInfo,
@@ -184,7 +183,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			Recipient:                recipientAddress,
 			PrimaryFee:               big.NewInt(0),
 			SecondaryFee:             big.NewInt(0),
-			AllowedRelayerAddresses:  []common.Address{},
+			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
 		receipt, bridgedAmount := utils.SendNativeTokenDestination(
