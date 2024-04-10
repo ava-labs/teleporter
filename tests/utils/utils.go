@@ -27,6 +27,16 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+// Deployer keys set in the genesis file in order to determine the deployed address in advance.
+// The deployed address is set as an admin for the Native Minter precompile.
+var nativeTokenDestinationDeployerKeys = []string{
+	"aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985", //0x1337cfd2dCff6270615B90938aCB1efE79801704
+	"81e5e98c89023dabbe43e1081314eaae174330aae6b44c9d1371b6c0bb7ae74a", //0xFcec6c0674037f99fa473de09609B4b6D8158863
+	"5ded9cacaca7b88d6a3dc24641cfe41ef00186f98e7fa65135eac50fd5977f7a", //0x2e1533d976A675bCD6306deC3B05e9f73e6722Fb
+	"a6c530cb407778d10e1f70be6624aa57d0c724f6f9cb585e9744052d7f48ba19", //0xA638b0a597dc0520e2f20E83cFbeBBCd45a79990
+}
+var nativeTokenDestinationDeployerKeyIndex = 0
+
 func DeployERC20Source(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
@@ -100,11 +110,11 @@ func DeployNativeTokenDestination(
 ) (common.Address, *nativetokendestination.NativeTokenDestination) {
 	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract.
 	// The resulting contract address has been added to the genesis file as an admin for the Native Minter precompile.
-	// Corresponds to address 0x1337cfd2dCff6270615B90938aCB1efE79801704
-	const deployerKeyStr = "aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985"
+	Expect(nativeTokenDestinationDeployerKeyIndex).Should(BeNumerically("<", len(nativeTokenDestinationDeployerKeys)))
+	deployerKeyStr := nativeTokenDestinationDeployerKeys[nativeTokenDestinationDeployerKeyIndex]
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
 	Expect(err).Should(BeNil())
-	fmt.Println("Deployer Key: ", crypto.PubkeyToAddress(deployerPK.PublicKey))
+	fmt.Println("Deployer Address: ", crypto.PubkeyToAddress(deployerPK.PublicKey))
 
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		deployerPK,
@@ -127,6 +137,10 @@ func DeployNativeTokenDestination(
 	Expect(err).Should(BeNil())
 
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	fmt.Println("Deployed NativeTokenDestination contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
+
+	// Increment to the next deployer key so that the next contract deployment succeeds
+	nativeTokenDestinationDeployerKeyIndex++
 
 	return address, nativeTokenDestination
 }

@@ -26,7 +26,13 @@
     },
     "contractNativeMinterConfig": {
       "blockTimestamp": 0,
-      "adminAddresses": ["0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B", "0x3405506b3711859c5070949ed9b700c7ba7bf750"]
+      "adminAddresses": [
+        "0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B", 
+        "0x3405506b3711859c5070949ed9b700c7ba7bf750",
+        "0x962c62B01529ecc0561D85d3fe395921ddC3665B",
+        "0x1549B96D9D97F435CA9b25000FEDE3A7e54C0bb9",
+        "0x190110D1228EB2cDd36559b2215A572Dc8592C3d"
+      ]
     }
   },
   "alloc": {
@@ -34,6 +40,15 @@
       "balance": "0x52B7D2DCC80CD2E4000000"
     },
     "0x1337cfd2dCff6270615B90938aCB1efE79801704": {
+      "balance": "0x52B7D2DCC80CD2E4000000"
+    },
+    "0xFcec6c0674037f99fa473de09609B4b6D8158863": {
+      "balance": "0x52B7D2DCC80CD2E4000000"
+    },
+    "0x2e1533d976A675bCD6306deC3B05e9f73e6722Fb": {
+      "balance": "0x52B7D2DCC80CD2E4000000"
+    },
+    "0xA638b0a597dc0520e2f20E83cFbeBBCd45a79990": {
       "balance": "0x52B7D2DCC80CD2E4000000"
     }
   },

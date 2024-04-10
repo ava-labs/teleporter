@@ -147,7 +147,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 	{
 		inputB := erc20source.SendTokensInput{
 			DestinationBlockchainID:  subnetBInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenDestinationAddressA,
+			DestinationBridgeAddress: nativeTokenDestinationAddressB,
 			Recipient:                recipientAddress,
 			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),

@@ -89,13 +89,12 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
-		amount := big.NewInt(0).Mul(initialReserveImbalance, big.NewInt(2))
 		receipt, bridgedAmount := utils.SendNativeTokenSource(
 			ctx,
 			cChainInfo,
 			nativeTokenSource,
 			input,
-			amount,
+			valueToSend,
 			fundedKey,
 		)
 		scaledBridgedAmount := teleporterUtils.BigIntMul(bridgedAmount, tokenMultiplier)
