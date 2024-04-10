@@ -13,7 +13,7 @@ import (
 )
 
 /**
- * Deploy a b ative token source on the primary network
+ * Deploy a native token source on the primary network
  * Deploys NativeDestination to Subnet A and Subnet B
  * Bridges native tokens from the C-Chain to Subnet A as Subnet A's native token
  * Bridges native tokens from the C-Chain to Subnet B as Subnet B's native token to collateralize the Subnet B bridge
