@@ -44,7 +44,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		cChainInfo,
 	)
 
-	// Deploy an example WAVAX on the primary network
+	// Deploy an example WAVAX on the subnet
 	wavaxAddressB, _ := utils.DeployExampleWAVAX(
 		ctx,
 		fundedKey,
