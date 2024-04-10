@@ -16,6 +16,7 @@ import (
  * Deploy a ERC20 token source on the primary network
  * Deploys NativeDestination to Subnet A and Subnet B
  * Bridges C-Chain example ERC20 tokens to Subnet A as Subnet A's native token
+ * Bridges C-Chain example ERC20 tokens to Subnet B as Subnet B's native token to collateralize the bridge on Subnet B
  * Bridge tokens from Subnet A to Subnet B through multihop
  * Bridge back tokens from Subnet B to Subnet A through multihop
  */
@@ -197,14 +198,14 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 	}
 
 	// Multihop transfer to Subnet B
-	amountToSendA := big.NewInt(0).Div(receivedAmountA, big.NewInt(2)) // Send half of the received amount to account for gas expenses
+	// Send half of the received amount to account for gas expenses
+	amountToSendA := big.NewInt(0).Div(receivedAmountA, big.NewInt(2))
 
 	utils.SendNativeMultihopAndVerify(
 		ctx,
 		network,
 		fundedKey,
 		recipientKey,
-		recipientAddress,
 		subnetAInfo,
 		nativeTokenDestinationA,
 		subnetBInfo,
@@ -216,7 +217,8 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		multiplyOnReceive,
 	)
 
-	amountToSendB := big.NewInt(0).Div(amountToSendA, big.NewInt(2)) // Again, send half of the received amount to account for gas expenses
+	// Again, send half of the received amount to account for gas expenses
+	amountToSendB := big.NewInt(0).Div(amountToSendA, big.NewInt(2))
 
 	// Multihop transfer back to Subnet A
 	utils.SendNativeMultihopAndVerify(
@@ -224,7 +226,6 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		network,
 		fundedKey,
 		recipientKey,
-		recipientAddress,
 		subnetBInfo,
 		nativeTokenDestinationB,
 		subnetAInfo,

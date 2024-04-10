@@ -29,13 +29,31 @@ import (
 
 // Deployer keys set in the genesis file in order to determine the deployed address in advance.
 // The deployed address is set as an admin for the Native Minter precompile.
+
 var nativeTokenDestinationDeployerKeys = []string{
-	"aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985", //0x1337cfd2dCff6270615B90938aCB1efE79801704
-	"81e5e98c89023dabbe43e1081314eaae174330aae6b44c9d1371b6c0bb7ae74a", //0xFcec6c0674037f99fa473de09609B4b6D8158863
-	"5ded9cacaca7b88d6a3dc24641cfe41ef00186f98e7fa65135eac50fd5977f7a", //0x2e1533d976A675bCD6306deC3B05e9f73e6722Fb
-	"a6c530cb407778d10e1f70be6624aa57d0c724f6f9cb585e9744052d7f48ba19", //0xA638b0a597dc0520e2f20E83cFbeBBCd45a79990
-	"e95fa6fd1d2a6b02890b75062bed583ce6256c5b473b3323b93ac4cbf20dbe7a", //0x787C079cB0d5A7AA1Cae95d991F76Dce771A432D
-	"8a92f3f468ce5b0d99f9aaa55695f93e03dbbb6d5e3faba80f92a7876be740d6", //0x741D536f5B07bcD43727CD8435389CA36aE5A4Ae
+	// Deployer address: 			   0x1337cfd2dCff6270615B90938aCB1efE79801704
+	// NativeTokenDestination address: 0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B
+	"aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985",
+
+	// Deployer address: 			   0xFcec6c0674037f99fa473de09609B4b6D8158863
+	// NativeTokenDestination address: 0x962c62B01529ecc0561D85d3fe395921ddC3665B
+	"81e5e98c89023dabbe43e1081314eaae174330aae6b44c9d1371b6c0bb7ae74a",
+
+	// Deployer address:			   0x2e1533d976A675bCD6306deC3B05e9f73e6722Fb
+	// NativeTokenDestination address: 0x1549B96D9D97F435CA9b25000FEDE3A7e54C0bb9
+	"5ded9cacaca7b88d6a3dc24641cfe41ef00186f98e7fa65135eac50fd5977f7a",
+
+	// Deployer address:			   0xA638b0a597dc0520e2f20E83cFbeBBCd45a79990
+	// NativeTokenDestination address: 0x190110D1228EB2cDd36559b2215A572Dc8592C3d
+	"a6c530cb407778d10e1f70be6624aa57d0c724f6f9cb585e9744052d7f48ba19",
+
+	// Deployer address:			   0x787C079cB0d5A7AA1Cae95d991F76Dce771A432D
+	// NativeTokenDestination address: 0xf9EF017A764F265A1fD0975bfc200725E41d860E
+	"e95fa6fd1d2a6b02890b75062bed583ce6256c5b473b3323b93ac4cbf20dbe7a",
+
+	// Deployer address:			   0x741D536f5B07bcD43727CD8435389CA36aE5A4Ae
+	// NativeTokenDestination address: 0x4f3663be6d22B0F19F8617f1A9E9485aB0144Bff
+	"8a92f3f468ce5b0d99f9aaa55695f93e03dbbb6d5e3faba80f92a7876be740d6",
 }
 var nativeTokenDestinationDeployerKeyIndex = 0
 
@@ -291,10 +309,6 @@ func SendNativeTokenDestination(
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseSendTokens)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	fmt.Println("event.Amount", event.Amount.String())
-	fmt.Println("scaledBridgedAmount", scaledBridgedAmount.String())
-	fmt.Println("bridgedAmount", bridgedAmount.String())
-	fmt.Println("tokenMultiplier", tokenMultiplier.String())
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledBridgedAmount)
 
 	return receipt, event.Amount
@@ -347,7 +361,6 @@ func SendNativeMultihopAndVerify(
 	network interfaces.Network,
 	fundedKey *ecdsa.PrivateKey,
 	recipientKey *ecdsa.PrivateKey,
-	recipientAddress common.Address,
 	fromSubnet interfaces.SubnetTestInfo,
 	fromBridge *nativetokendestination.NativeTokenDestination,
 	toSubnet interfaces.SubnetTestInfo,
@@ -358,6 +371,7 @@ func SendNativeMultihopAndVerify(
 	tokenMultiplier *big.Int,
 	multiplyOnReceive bool,
 ) {
+	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 	teleporterUtils.SendNativeTransfer(
 		ctx,
 		fromSubnet,
