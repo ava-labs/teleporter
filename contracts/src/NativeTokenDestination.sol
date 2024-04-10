@@ -204,12 +204,9 @@ contract NativeTokenDestination is
         uint256 burnedDifference = burnAddressBalance - lastestBurnedFeesReported;
         uint256 reward = burnedDifference * burnedFeesReportingRewardPercentage / 100;
         uint256 burnedTxFees = burnedDifference - reward;
+        lastestBurnedFeesReported = burnAddressBalance;
 
-        totalMinted += reward;
-        emit NativeTokensMinted(address(this), reward);
-        // Calls NativeMinter precompile through INativeMinter interface.
-        NATIVE_MINTER.mintNativeCoin(address(this), reward);
-
+        _mint(address(this), reward);
         _deposit(reward);
 
         uint256 scaledAmount = _scaleTokens(burnedTxFees, false);
@@ -287,15 +284,7 @@ contract NativeTokenDestination is
             }
         }
 
-        // Emit an event even if the amount is zero to improve traceability.
-        emit NativeTokensMinted(recipient, adjustedAmount);
-
-        // Only call the native minter precompile if we are minting any coins.
-        if (adjustedAmount > 0) {
-            totalMinted += adjustedAmount;
-            // Calls NativeMinter precompile through INativeMinter interface.
-            NATIVE_MINTER.mintNativeCoin(recipient, adjustedAmount);
-        }
+        _mint(recipient, adjustedAmount);
     }
 
     /**
@@ -316,5 +305,20 @@ contract NativeTokenDestination is
         }
         // Otherwise divide.
         return value / tokenMultiplier;
+    }
+
+    /**
+     * @dev Mints coins to the recipient through the NativeMinter precompile.
+     */
+    function _mint(address recipient, uint256 amount) private {
+        // Emit an event even if the amount is zero to improve traceability.
+        emit NativeTokensMinted(recipient, amount);
+
+        // Only call the native minter precompile if we are minting any coins.
+        if (amount > 0) {
+            totalMinted += amount;
+            // Calls NativeMinter precompile through INativeMinter interface.
+            NATIVE_MINTER.mintNativeCoin(recipient, amount);
+        }
     }
 }
