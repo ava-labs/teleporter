@@ -359,8 +359,8 @@ func SendERC20Destination(
 func SendNativeMultihopAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
-	fundedKey *ecdsa.PrivateKey,
-	recipientKey *ecdsa.PrivateKey,
+	sendingKey *ecdsa.PrivateKey,
+	recipientAddress common.Address,
 	fromSubnet interfaces.SubnetTestInfo,
 	fromBridge *nativetokendestination.NativeTokenDestination,
 	toSubnet interfaces.SubnetTestInfo,
@@ -371,14 +371,6 @@ func SendNativeMultihopAndVerify(
 	tokenMultiplier *big.Int,
 	multiplyOnReceive bool,
 ) {
-	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
-	teleporterUtils.SendNativeTransfer(
-		ctx,
-		fromSubnet,
-		fundedKey,
-		recipientAddress,
-		big.NewInt(1e18),
-	)
 	input := nativetokendestination.SendTokensInput{
 		DestinationBlockchainID:  toSubnet.BlockchainID,
 		DestinationBridgeAddress: toBridgeAddress,
@@ -397,7 +389,7 @@ func SendNativeMultihopAndVerify(
 		fromBridge,
 		input,
 		bridgedAmount,
-		recipientKey,
+		sendingKey,
 		tokenMultiplier,
 		multiplyOnReceive,
 	)
@@ -436,7 +428,7 @@ func SendERC20MultihopAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
 	fundedKey *ecdsa.PrivateKey,
-	recipientKey *ecdsa.PrivateKey,
+	sendingKey *ecdsa.PrivateKey,
 	recipientAddress common.Address,
 	fromSubnet interfaces.SubnetTestInfo,
 	fromBridge *erc20destination.ERC20Destination,
@@ -471,7 +463,7 @@ func SendERC20MultihopAndVerify(
 		fromBridgeAddress,
 		input,
 		bridgedAmount,
-		recipientKey,
+		sendingKey,
 	)
 
 	// Relay the first message back to the home-chain, in this case C-Chain,
