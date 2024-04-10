@@ -98,6 +98,21 @@ abstract contract TeleporterTokenDestination is
         );
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
 
+        // Deposit the tokens sent from the user to the bridge,
+        // and set to adjusted amount after deposit.
+        amount = _deposit(amount);
+        require(
+            amount > input.primaryFee + input.secondaryFee,
+            "TeleporterTokenDestination: insufficient amount to cover fees"
+        );
+
+        // Burn tokens, except for the primary fee, which is kept for teleporter rewards.
+        amount -= input.primaryFee;
+        _burn(amount);
+
+        uint256 scaledAmount = _scaleTokens(amount, false);
+        require(scaledAmount > 0, "NativeTokenDestination: insufficient tokens to transfer");
+
         // If the destination blockchain is the source blockchain,
         // no multihop is needed. Only the required gas limit for the Teleporter message back to
         // `sourceBlockchainID` is needed, which is provided by `input.requiredGasLimit`.
@@ -127,17 +142,6 @@ abstract contract TeleporterTokenDestination is
             secondHopRequiredGas = input.requiredGasLimit;
         }
 
-        // Deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit
-        amount = _deposit(amount);
-        require(
-            amount > input.primaryFee + input.secondaryFee,
-            "TeleporterTokenDestination: insufficient amount to cover fees"
-        );
-
-        amount -= input.primaryFee;
-        _burn(amount);
-
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
@@ -154,12 +158,12 @@ abstract contract TeleporterTokenDestination is
                         secondaryFee: 0,
                         requiredGasLimit: secondHopRequiredGas
                     }),
-                    amount
+                    scaledAmount
                     )
             })
         );
 
-        emit SendTokens(messageID, msg.sender, input, amount);
+        emit SendTokens(messageID, msg.sender, input, scaledAmount);
     }
 
     /**
@@ -207,4 +211,10 @@ abstract contract TeleporterTokenDestination is
      * @param amount The amount of tokens to burn
      */
     function _burn(uint256 amount) internal virtual;
+
+    /**
+     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
+     * Should be used for all tokens being transferred to/from other subnets.
+     */
+    function _scaleTokens(uint256 value, bool isReceive) internal view virtual returns (uint256);
 }

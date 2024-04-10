@@ -19,15 +19,14 @@ const (
 	teleporterByteCodeFile = "./contracts/lib/teleporter/contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 	warpGenesisFile        = "./tests/utils/warp-genesis.json"
 
-	erc20SourceLabel       = "ERC20Source"
-	erc20DestinationLabel  = "ERC20Destination"
-	nativeTokenSourceLabel = "NativeTokenSource"
-	multiHopLabel          = "MultiHop"
+	erc20SourceLabel            = "ERC20Source"
+	erc20DestinationLabel       = "ERC20Destination"
+	nativeTokenSourceLabel      = "NativeTokenSource"
+	nativeTokenDestinationLabel = "NativeTokenDestination"
+	multiHopLabel               = "MultiHop"
 )
 
-var (
-	LocalNetworkInstance *local.LocalNetwork
-)
+var LocalNetworkInstance *local.LocalNetwork
 
 func TestE2E(t *testing.T) {
 	if os.Getenv("RUN_E2E") == "" {
@@ -44,12 +43,12 @@ var _ = ginkgo.BeforeSuite(func() {
 	LocalNetworkInstance = local.NewLocalNetwork(warpGenesisFile)
 
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(
-			teleporterByteCodeFile,
-			false,
-			deploymentUtils.GetDefaultContractCreationGasPrice(),
-		)
+	teleporterDeployerTransaction, teleporterDeployerAddress,
+		teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(
+		teleporterByteCodeFile,
+		false,
+		deploymentUtils.GetDefaultContractCreationGasPrice(),
+	)
 	Expect(err).Should(BeNil())
 
 	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
@@ -79,6 +78,11 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 		ginkgo.Label(nativeTokenSourceLabel, erc20DestinationLabel),
 		func() {
 			flows.NativeSourceERC20Destination(LocalNetworkInstance)
+		})
+	ginkgo.It("Bridge a native token to a native token",
+		ginkgo.Label(nativeTokenSourceLabel, nativeTokenDestinationLabel),
+		func() {
+			flows.NativeSourceNativeDestination(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge an ERC20 token with ERC20Source multihop",
 		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel, multiHopLabel),

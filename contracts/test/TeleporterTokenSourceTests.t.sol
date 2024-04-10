@@ -9,11 +9,17 @@ import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenSource, IWarpMessenger} from "../src/TeleporterTokenSource.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 
 abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
 
     function setUp() public virtual {
+        vm.mockCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeWithSelector(ITeleporterMessenger.sendCrossChainMessage.selector),
+            abi.encode(_MOCK_MESSAGE_ID)
+        );
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
@@ -37,7 +43,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
         vm.expectRevert(_formatErrorMessage("cannot bridge to same chain"));
-        _send(input, 0);
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testNonZeroSecondaryFee() public {
@@ -78,18 +84,19 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testReceiveWithdrawSuccess() public {
-        uint256 amount = 2;
+        uint256 amount = 200;
         _sendSuccess(amount, 0);
 
-        uint256 feeAmount = 1;
+        uint256 feeAmount = 2;
         uint256 bridgedAmount = amount - feeAmount;
         SendTokensInput memory input = _createDefaultReceiveTokensInput();
         input.primaryFee = feeAmount;
 
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectEmit(true, true, true, true, address(tokenSource));
         emit WithdrawTokens(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgedAmount);
+        
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
@@ -101,7 +108,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             tokenSource.bridgedBalances(
                 DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
             ),
-            bridgedAmount
+            feeAmount
         );
     }
 
@@ -173,6 +180,21 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testInsufficientAmountToCoverFees() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFee = 1;
+        _setUpExpectedDeposit(input.primaryFee);
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        _send(input, input.primaryFee);
+    }
+
+    function _encodeMessage(
+        SendTokensInput memory input,
+        uint256 amount
+    ) internal virtual override returns (bytes memory) {
+        return abi.encode(input.recipient, amount);
+    }
+
     function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
         return SendTokensInput({
             destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -207,12 +229,5 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         returns (bytes memory)
     {
         return bytes(string.concat("TeleporterTokenSource: ", message));
-    }
-
-    function _encodeMessage(
-        SendTokensInput memory input,
-        uint256 amount
-    ) internal pure virtual override returns (bytes memory) {
-        return abi.encode(input.recipient, amount);
     }
 }
