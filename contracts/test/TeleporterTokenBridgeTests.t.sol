@@ -59,6 +59,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1e18;
     uint8 internal constant _DEFAULT_DECIMALS_SHIFT = 1;
     uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 10 ** _DEFAULT_DECIMALS_SHIFT;
+    uint256 internal constant _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE = 1;
 
     ITeleporterTokenBridge public tokenBridge;
     IERC20 public feeToken;

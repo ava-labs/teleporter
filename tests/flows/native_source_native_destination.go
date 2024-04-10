@@ -15,13 +15,15 @@ import (
 )
 
 var (
-	decimalsShift           = big.NewInt(1)
-	tokenMultipler          = big.NewInt(int64(math.Pow10(int(decimalsShift.Int64()))))
+	decimalsShift           = uint8(1)
+	tokenMultipler          = big.NewInt(int64(math.Pow10(int(decimalsShift))))
 	initialReserveImbalance = big.NewInt(0).Mul(big.NewInt(1e15), big.NewInt(1e9))
 	valueToReceive          = big.NewInt(0).Div(initialReserveImbalance, big.NewInt(4))
 	valueToSend             = big.NewInt(0).Div(valueToReceive, tokenMultipler)
 	valueToReturn           = big.NewInt(0).Div(valueToReceive, big.NewInt(4))
 	multiplyOnReceive       = true
+
+	burnedFeesReportingRewardPercentage = big.NewInt(1)
 )
 
 /**
@@ -71,6 +73,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
+		burnedFeesReportingRewardPercentage,
 	)
 
 	// Generate new recipient to receive bridged tokens
@@ -107,15 +110,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			true,
 		)
 
-		utils.CheckNativeTokenDestinationMint(
-			ctx,
-			subnetAInfo,
-			nativeTokenDestination,
-			recipientAddress,
-			receipt,
-			big.NewInt(0),
-			big.NewInt(0),
-		)
+		teleporterUtils.CheckBalance(ctx, recipientAddress, big.NewInt(0), subnetAInfo.RPCClient)
 		utils.CheckNativeTokenDestinationCollateralize(
 			ctx,
 			nativeTokenDestination,
@@ -154,15 +149,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			true,
 		)
 
-		utils.CheckNativeTokenDestinationMint(
-			ctx,
-			subnetAInfo,
-			nativeTokenDestination,
-			recipientAddress,
-			receipt,
-			valueToReceive,
-			valueToReceive,
-		)
+		teleporterUtils.CheckBalance(ctx, recipientAddress, valueToReceive, subnetAInfo.RPCClient)
 		utils.CheckNativeTokenDestinationCollateralize(
 			ctx,
 			nativeTokenDestination,

@@ -95,6 +95,12 @@ contract NativeTokenDestination is
     uint256 public immutable initialReserveImbalance;
 
     /**
+     * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering
+     * the message created by calling calling reportBurnedTxFees().
+     */
+    uint256 public immutable burnedFeesReportingRewardPercentage;
+
+    /**
      * @notice Tokens will not be minted until this value is 0 meaning the source contact is collateralized.
      */
     uint256 public currentReserveImbalance;
@@ -107,7 +113,7 @@ contract NativeTokenDestination is
     /**
      * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the source chain.
      */
-    uint256 public latestBurnAddressBalance;
+    uint256 public lastestBurnedFeesReported;
 
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
@@ -122,7 +128,8 @@ contract NativeTokenDestination is
         address feeTokenAddress_,
         uint256 initialReserveImbalance_,
         uint8 decimalsShift,
-        bool multiplyOnReceive_
+        bool multiplyOnReceive_,
+        uint256 burnedFeesReportingRewardPercentage_
     )
         TeleporterTokenDestination(
             teleporterRegistryAddress,
@@ -142,6 +149,12 @@ contract NativeTokenDestination is
 
         initialReserveImbalance = initialReserveImbalance_;
         currentReserveImbalance = initialReserveImbalance_;
+
+        require(
+            burnedFeesReportingRewardPercentage_ <= 100,
+            "NativeTokenDestination: invalid percentage"
+        );
+        burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
     }
 
     /**
@@ -179,22 +192,22 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportBurnedTxFees(uint256 requiredGasLimit) external payable {
-        uint256 adjustedFeeAmount;
-        if (msg.value > 0) {
-            adjustedFeeAmount = _deposit(msg.value);
-        }
-
+    function reportBurnedTxFees(uint256 requiredGasLimit) external {
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
         require(
-            burnAddressBalance > latestBurnAddressBalance,
+            burnAddressBalance > lastestBurnedFeesReported,
             "NativeTokenDestination: burn address balance not greater than last report"
         );
 
-        uint256 burnedDifference = burnAddressBalance - latestBurnAddressBalance;
-        latestBurnAddressBalance = burnAddressBalance;
+        uint256 burnedDifference = burnAddressBalance - lastestBurnedFeesReported;
+        uint256 reward = burnedDifference * burnedFeesReportingRewardPercentage / 100;
+        uint256 burnedTxFees = burnedDifference - reward;
+        lastestBurnedFeesReported = burnAddressBalance;
 
-        uint256 scaledAmount = scaleTokens(burnedDifference, false);
+        _mint(address(this), reward);
+        _deposit(reward);
+
+        uint256 scaledAmount = scaleTokens(burnedTxFees, false);
         require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to report burn");
 
         BridgeMessage memory message = BridgeMessage({
@@ -207,14 +220,14 @@ contract NativeTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: adjustedFeeAmount}),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: reward}),
                 requiredGasLimit: requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
             })
         );
 
-        emit ReportBurnedTxFees({teleporterMessageID: messageID, feesBurned: burnedDifference});
+        emit ReportBurnedTxFees({teleporterMessageID: messageID, feesBurned: burnedTxFees});
     }
 
     /**
@@ -263,12 +276,7 @@ contract NativeTokenDestination is
             }
         }
 
-        // Only call the native minter precompile if we are minting any coins.
-        if (adjustedAmount > 0) {
-            totalMinted += adjustedAmount;
-            // Calls NativeMinter precompile through INativeMinter interface.
-            NATIVE_MINTER.mintNativeCoin(recipient, adjustedAmount);
-        }
+        _mint(recipient, adjustedAmount);
     }
 
     /**
@@ -311,6 +319,18 @@ contract NativeTokenDestination is
         } else {
             emit CallFailed(message.recipientContract, amount);
             payable(message.fallbackRecipient).transfer(amount);
+        }
+    }
+
+    /**
+     * @dev Mints coins to the recipient through the NativeMinter precompile.
+     */
+    function _mint(address recipient, uint256 amount) private {
+        // Only call the native minter precompile if we are minting any coins.
+        if (amount > 0) {
+            totalMinted += amount;
+            // Calls NativeMinter precompile through INativeMinter interface.
+            NATIVE_MINTER.mintNativeCoin(recipient, amount);
         }
     }
 }

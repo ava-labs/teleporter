@@ -39,7 +39,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             feeTokenAddress_: address(mockWrappedToken),
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnReceive_: true
+            multiplyOnReceive_: true,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
         });
         tokenDestination = app;
         nativeTokenBridge = app;
@@ -79,7 +80,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             feeTokenAddress_: address(mockWrappedToken),
             initialReserveImbalance_: 1_000,
             decimalsShift: 0,
-            multiplyOnReceive_: false
+            multiplyOnReceive_: false,
+            burnedFeesReportingRewardPercentage_: 1
         });
     }
 
@@ -125,7 +127,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             feeTokenAddress_: address(mockWrappedToken),
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: decimalShift,
-            multiplyOnReceive_: false
+            multiplyOnReceive_: false,
+            burnedFeesReportingRewardPercentage_: 1
         });
         assertEq(app.scaleTokens(100, false), 100_000);
         assertEq(app.scaleTokens(100_000, true), 100);
@@ -141,7 +144,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             feeTokenAddress_: address(mockWrappedToken),
             initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: decimalShift,
-            multiplyOnReceive_: true
+            multiplyOnReceive_: true,
+            burnedFeesReportingRewardPercentage_: 1
         });
         assertEq(app.scaleTokens(100, true), 100_000);
         assertEq(app.scaleTokens(100_000, false), 100);

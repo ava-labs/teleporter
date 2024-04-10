@@ -95,8 +95,9 @@ func DeployNativeTokenDestination(
 	tokenSourceAddress common.Address,
 	feeTokenAddress common.Address,
 	initialReserveImbalance *big.Int,
-	decimalsShift *big.Int,
+	decimalsShift uint8,
 	multiplyOnReceive bool,
+	burnedFeesReportingRewardPercentage *big.Int,
 ) (common.Address, *nativetokendestination.NativeTokenDestination) {
 	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract.
 	// The resulting contract address has been added to the genesis file as an admin for the Native Minter precompile.
@@ -123,6 +124,7 @@ func DeployNativeTokenDestination(
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
+		burnedFeesReportingRewardPercentage,
 	)
 	Expect(err).Should(BeNil())
 
@@ -434,22 +436,6 @@ func CheckNativeTokenSourceWithdrawal(
 	Expect(err).Should(BeNil())
 	Expect(withdrawalEvent.Sender).Should(Equal(nativeTokenSourceAddress))
 	Expect(withdrawalEvent.Amount).Should(Equal(expectedAmount))
-}
-
-func CheckNativeTokenDestinationMint(
-	ctx context.Context,
-	subnet interfaces.SubnetTestInfo,
-	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
-	recipient common.Address,
-	receipt *types.Receipt,
-	expectedMint *big.Int,
-	expectedBalance *big.Int,
-) {
-	mintEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseNativeTokensMinted)
-	Expect(err).Should(BeNil())
-	Expect(mintEvent.Recipient).Should(Equal(recipient))
-	teleporterUtils.ExpectBigEqual(mintEvent.Amount, expectedMint)
-	teleporterUtils.CheckBalance(ctx, recipient, expectedBalance, subnet.RPCClient)
 }
 
 func CheckNativeTokenDestinationCollateralize(
