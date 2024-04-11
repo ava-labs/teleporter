@@ -80,6 +80,14 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
         token.safeTransfer(recipient, amount);
     }
 
+    /**
+     * @dev See {TeleporterTokenDestination-_handleSendAndCall}
+     *
+     * Approves the recipient contract to spend the amount of tokens from this contract,
+     * and calls {IERC20SendAndCallReceiver-receiveTokens} on the recipient contract.
+     * If the call fails or doesn't spend all of the tokens, the remaining amount is
+     * sent to the fallback recipient.
+     */
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
@@ -98,16 +106,22 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
             message.recipientGasLimit, message.recipientContract, payload
         );
 
+        uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
+
         // Reset the destination contract allowance to 0.
         // Use of `safeApprove` is okay to reset the allowance to 0.
         SafeERC20.safeApprove(token, message.recipientContract, 0);
 
-        // If the call failed, send the funds to the fallback recipient.
         if (success) {
             emit CallSucceeded(message.recipientContract, amount);
         } else {
             emit CallFailed(message.recipientContract, amount);
-            token.safeTransfer(message.fallbackRecipient, amount);
+        }
+
+        // Transfer any remaining allowance to the fallback recipient. This will be the
+        // full amount if the call failed.
+        if (remainingAllowance > 0) {
+            token.safeTransfer(message.fallbackRecipient, remainingAllowance);
         }
     }
 }

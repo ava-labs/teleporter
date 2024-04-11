@@ -265,11 +265,21 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
      */
     function _withdraw(address recipient, uint256 amount) internal virtual;
 
+    /**
+     * @notice Processes a send and call message by calling the recipient contract.
+     * @param message The send and call message include recipient calldata
+     * @param amount The amount of tokens to be sent to the recipient
+     */
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
     ) internal virtual;
 
+    /**
+     * @dev Prepares tokens to be sent to another chain by handling the
+     * locking of the token amount in this contract and updating the accounting
+     * balances.
+     */
     function _prepareSend(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,

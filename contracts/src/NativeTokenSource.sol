@@ -89,6 +89,14 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         payable(recipient).transfer(amount);
     }
 
+    /**
+     * @dev See {TeleporterTokenDestination-_handleSendAndCall}
+     *
+     * Send the native tokens to the recipient contract as a part of the call to
+     * {INativeSendAndCallReceiver-receiveTokens} on the recipient contract.
+     * If the call fails or doesn't spend all of the tokens, the remaining amount is
+     * sent to the fallback recipient.
+     */
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount

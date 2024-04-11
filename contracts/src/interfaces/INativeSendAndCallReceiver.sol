@@ -15,7 +15,9 @@ pragma solidity 0.8.18;
  */
 interface INativeSendAndCallReceiver {
     /**
-     * @notice Called to receive the amount of the native token
+     * @notice Called to receive the amount of the native token. Implementations
+     * must properly handle the msg.value of the call in order to ensure it doesn't
+     * become improperly made inaccessible.
      * @param payload arbitrary data provided by the caller
      */
     function receiveTokens(bytes calldata payload) external payable;

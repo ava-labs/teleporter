@@ -214,6 +214,14 @@ abstract contract TeleporterTokenDestination is
         emit TokensSent(messageID, msg.sender, input, amount);
     }
 
+    /**
+     * @notice Sends tokens to the specified recipient contract on the destination chain by
+     * calling the {receiveTokens} method of the respective recipient.
+     *
+     * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message.
+     * Tokens and data can be sent to the same blockchain this bridge instance is deployed on,
+     * to another destination bridge instance.
+     */
     function _sendAndCall(SendAndCallInput memory input, uint256 amount) internal virtual {
         require(
             input.recipientContract != address(0),
@@ -364,11 +372,20 @@ abstract contract TeleporterTokenDestination is
      */
     function _burn(uint256 amount) internal virtual;
 
+    /**
+     * @notice Processes a send and call message by calling the recipient contract.
+     * @param message The send and call message include recipient calldata
+     * @param amount The amount of tokens to be sent to the recipient
+     */
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
     ) internal virtual;
 
+    /**
+     * @dev Prepares tokens to be sent to another chain by handling the
+     * deposit, burning, and scaling of the token amount.
+     */
     function _prepareSend(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,

@@ -28,7 +28,7 @@ interface INativeTokenBridge is ITeleporterTokenBridge {
 
     /**
      * @notice Sends native tokens transferred to this contract to the destination token bridge instance.
-     * @param input specifies information for delivery of the tokens and destinatino contract to be called.
+     * @param input specifies information for delivery of the tokens and destination contract to be called.
      */
     function sendAndCall(SendAndCallInput calldata input) external payable;
 }

@@ -287,6 +287,17 @@ contract NativeTokenDestination is
         token.transfer(BURN_FOR_TRANSFER_ADDRESS, amount);
     }
 
+    /**
+     * @dev See {TeleporterTokenDestination-_handleSendAndCall}
+     *
+     * Mints the tokens to this contract, and send them to the recipient contract as a
+     * part of the call to {INativeSendAndCallReceiver-receiveTokens} on the recipient contract.
+     * If the call fails, the amount is sent to the fallback recipient.
+     *
+     * Note: If the recipient contract does not properly handle the full msg.value sent,
+     * the balance can be locked in the recipient contract. Receiving contracts must make
+     * sure to properly handle the balance to ensure it does not get locked improperly.
+     */
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
