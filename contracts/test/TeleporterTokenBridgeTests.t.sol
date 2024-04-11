@@ -415,9 +415,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
                         destinationBridgeAddress: destinationBridgeAddress,
                         recipientContract: recipientContract,
                         recipientPayload: recipientPayload,
-                        requiredGasLimit: requiredGasLimit,
                         recipientGasLimit: recipientGasLimit,
                         fallbackRecipient: fallbackRecipient,
+                        secondaryRequiredGasLimit: requiredGasLimit,
                         secondaryFee: secondaryFee
                     })
                     )

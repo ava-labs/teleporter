@@ -237,7 +237,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
                     destinationBridgeAddress: payload.destinationBridgeAddress,
                     recipientContract: payload.recipientContract,
                     recipientPayload: payload.recipientPayload,
-                    requiredGasLimit: payload.requiredGasLimit,
+                    requiredGasLimit: payload.secondaryRequiredGasLimit,
                     recipientGasLimit: payload.recipientGasLimit,
                     fallbackRecipient: payload.fallbackRecipient,
                     primaryFee: payload.secondaryFee,

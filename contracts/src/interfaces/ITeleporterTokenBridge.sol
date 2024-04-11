@@ -71,10 +71,19 @@ struct BridgeMessage {
     bytes payload;
 }
 
+/**
+ * @dev Single hop send message payloads only include the recipient address.
+ * The destination chain and bridge address are defined by the Teleporter message.
+ */
 struct SingleHopSendMessage {
     address recipient;
 }
 
+/**
+ * @dev Single hop call message payloads include the required information to call
+ * the target contract on the destination chain. The destination chain and bridge
+ * address are defined by the Teleporter message.
+ */
 struct SingleHopCallMessage {
     address recipientContract;
     bytes recipientPayload;
@@ -82,6 +91,11 @@ struct SingleHopCallMessage {
     address fallbackRecipient;
 }
 
+/**
+ * @dev Multi hop send message payloads include the recipient address as well as all
+ * the information the intermediate (source) chain bridge contract needs to route
+ * the send message on to its final destination.
+ */
 struct MultiHopSendMessage {
     bytes32 destinationBlockchainID;
     address destinationBridgeAddress;
@@ -90,14 +104,22 @@ struct MultiHopSendMessage {
     uint256 secondaryGasLimit;
 }
 
+/**
+ * @dev Multi hop call message payloads include the required information to call the target contract on the
+ * destination chain, as well as the information the intermediate (source) chain bridge contract needs to route
+ * the call message on to its final destination. This includes the secondaryRequiredGasLimit, which is the
+ * required gas limit set for the second Teleporter message. The secondaryRequiredGasLimit should be sufficient
+ * to cover the destination token operations as well as the call to the recipient contract, and will always be
+ * greater than the recipientGasLimit.
+ */
 struct MultiHopCallMessage {
     bytes32 destinationBlockchainID;
     address destinationBridgeAddress;
     address recipientContract;
     bytes recipientPayload;
-    uint256 requiredGasLimit;
     uint256 recipientGasLimit;
     address fallbackRecipient;
+    uint256 secondaryRequiredGasLimit;
     uint256 secondaryFee;
 }
 

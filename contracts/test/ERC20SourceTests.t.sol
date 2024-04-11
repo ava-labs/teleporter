@@ -63,7 +63,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
 
     function testReceiveSendAndCallSuccess() public {
         // First send to destination blockchain to increase the bridge balance
-        uint256 amount = 2;
+        uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
         bytes memory payload = hex"DEADBEEF";
