@@ -171,7 +171,7 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenBridge-send}.
      */
-    function send(SendTokensInput calldata input) external payable {
+    function send(SendTokensInput calldata input) external payable nonReentrant {
         require(
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );
@@ -182,7 +182,7 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenBridge-sendAndCall}
      */
-    function sendAndCall(SendAndCallInput calldata input) external payable {
+    function sendAndCall(SendAndCallInput calldata input) external payable nonReentrant {
         require(
             currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
         );

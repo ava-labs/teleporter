@@ -62,7 +62,7 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
     /**
      * @dev See {IERC20Bridge-sendAndCall}
      */
-    function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
+    function sendAndCall(SendAndCallInput calldata input, uint256 amount) external nonReentrant {
         _sendAndCall(input, amount, false);
     }
 

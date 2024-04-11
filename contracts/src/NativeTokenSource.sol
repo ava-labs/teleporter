@@ -67,7 +67,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         _send(input, msg.value, false);
     }
 
-    function sendAndCall(SendAndCallInput calldata input) external payable {
+    function sendAndCall(SendAndCallInput calldata input) external payable nonReentrant {
         _sendAndCall(input, msg.value, false);
     }
 
