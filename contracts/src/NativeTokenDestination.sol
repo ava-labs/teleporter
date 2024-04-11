@@ -275,6 +275,7 @@ contract NativeTokenDestination is
             }
         }
 
+        // Call {_mint} even if the adjustedAmount is 0 to improve traceability.
         _mint(recipient, adjustedAmount);
     }
 
@@ -335,11 +336,8 @@ contract NativeTokenDestination is
      * @dev Mints coins to the recipient through the NativeMinter precompile.
      */
     function _mint(address recipient, uint256 amount) private {
-        // Only call the native minter precompile if we are minting any coins.
-        if (amount > 0) {
-            totalMinted += amount;
-            // Calls NativeMinter precompile through INativeMinter interface.
-            NATIVE_MINTER.mintNativeCoin(recipient, amount);
-        }
+        totalMinted += amount;
+        // Calls NativeMinter precompile through INativeMinter interface.
+        NATIVE_MINTER.mintNativeCoin(recipient, amount);
     }
 }

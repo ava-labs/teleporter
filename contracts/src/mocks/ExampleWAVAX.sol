@@ -12,7 +12,6 @@ import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
-
 contract ExampleWAVAX is IWrappedNativeToken, ERC20 {
     constructor() ERC20("Wrapped AVAX", "WAVAX") {}
 
