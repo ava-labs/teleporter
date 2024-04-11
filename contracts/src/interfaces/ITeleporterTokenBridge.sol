@@ -118,7 +118,7 @@ interface ITeleporterTokenBridge is ITeleporterReceiver {
     );
 
     /**
-     * @notice Emitted when tokens are sent to another chain with caldata for a contract recipient.
+     * @notice Emitted when tokens are sent to another chain with calldata for a contract recipient.
      */
     event TokensAndCallSent(
         bytes32 indexed teleporterMessageID,
