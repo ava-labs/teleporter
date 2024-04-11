@@ -368,9 +368,9 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 destinationBridgeAddress: input.destinationBridgeAddress,
                 recipientContract: input.recipientContract,
                 recipientPayload: input.recipientPayload,
-                requiredGasLimit: input.requiredGasLimit,
                 recipientGasLimit: input.recipientGasLimit,
                 fallbackRecipient: input.fallbackRecipient,
+                secondaryRequiredGasLimit: input.requiredGasLimit,
                 secondaryFee: input.secondaryFee
             })
         });

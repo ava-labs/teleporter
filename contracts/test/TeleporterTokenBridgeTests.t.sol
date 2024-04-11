@@ -400,9 +400,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
         address destinationBridgeAddress,
         address recipientContract,
         bytes memory recipientPayload,
-        uint256 requiredGasLimit,
         uint256 recipientGasLimit,
         address fallbackRecipient,
+        uint256 secondaryRequiredGasLimit,
         uint256 secondaryFee
     ) internal pure returns (bytes memory) {
         return abi.encode(
@@ -417,7 +417,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
                         recipientPayload: recipientPayload,
                         recipientGasLimit: recipientGasLimit,
                         fallbackRecipient: fallbackRecipient,
-                        secondaryRequiredGasLimit: requiredGasLimit,
+                        secondaryRequiredGasLimit: secondaryRequiredGasLimit,
                         secondaryFee: secondaryFee
                     })
                     )

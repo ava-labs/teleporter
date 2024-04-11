@@ -61,107 +61,58 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         );
     }
 
-    function testReceiveSendAndCallSuccess() public {
-        // First send to destination blockchain to increase the bridge balance
-        uint256 amount = 200_000;
-        _sendSingleHopSendSuccess(amount, 0);
-
-        bytes memory payload = hex"DEADBEEF";
-
-        // Then recipient contract will be approved to spend the tokens from the source bridge contract.
-        vm.expectEmit(true, true, true, true, address(mockERC20));
-        emit Approval(address(app), DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
-
-        // Then a call to the recipient is made.
-        bytes memory expectedCalldata = abi.encodeCall(
-            IERC20SendAndCallReceiver.receiveTokens, (address(mockERC20), amount, payload)
-        );
-        vm.etch(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, new bytes(1));
-        vm.mockCall(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, expectedCalldata, new bytes(0));
-        vm.expectCall(
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            0,
-            uint64(DEFAULT_RECIPIENT_GAS_LIMIT),
-            expectedCalldata
-        );
-
-        // Then recipient contract approval is reset
-        vm.expectEmit(true, true, true, true, address(mockERC20));
-        emit Approval(address(app), DEFAULT_RECIPIENT_CONTRACT_ADDRESS, 0);
-
-        // The call should have succeeded.
-        vm.expectEmit(true, true, true, true, address(app));
-        emit CallSucceeded(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
-
-        bytes memory message = _encodeSingleHopCallMessage(
-            amount,
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            payload,
-            DEFAULT_RECIPIENT_GAS_LIMIT,
-            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        );
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
-        );
-    }
-
-    function testReceiveSendAndCallFailure() public {
-        // First send to destination blockchain to increase the bridge balance
-        uint256 amount = 2;
-        _sendSingleHopSendSuccess(amount, 0);
-
-        bytes memory payload = hex"DEADBEEF";
-
-        // Then recipient contract will be approved to spend the tokens from the source bridge contract.
-        vm.expectEmit(true, true, true, true, address(mockERC20));
-        emit Approval(address(app), DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
-
-        // Then a call to the recipient is made. Mock it reverting
-        bytes memory expectedCalldata = abi.encodeCall(
-            IERC20SendAndCallReceiver.receiveTokens, (address(mockERC20), amount, payload)
-        );
-        vm.etch(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, new bytes(1));
-        vm.mockCallRevert(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, expectedCalldata, new bytes(0));
-        vm.expectCall(
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            0,
-            uint64(DEFAULT_RECIPIENT_GAS_LIMIT),
-            expectedCalldata
-        );
-
-        // Then recipient contract approval is reset
-        vm.expectEmit(true, true, true, true, address(mockERC20));
-        emit Approval(address(app), DEFAULT_RECIPIENT_CONTRACT_ADDRESS, 0);
-
-        // The call should have failed.
-        vm.expectEmit(true, true, true, true, address(app));
-        emit CallFailed(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
-
-        // The tokens should be transfered to the fallback recipient.
-        vm.expectEmit(true, true, true, true, address(mockERC20));
-        emit Transfer(address(app), DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
-
-        bytes memory message = _encodeSingleHopCallMessage(
-            amount,
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            payload,
-            DEFAULT_RECIPIENT_GAS_LIMIT,
-            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        );
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
-        );
-    }
-
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectCall(
             address(mockERC20), abi.encodeCall(IERC20.transfer, (address(recipient), amount))
         );
         vm.expectEmit(true, true, true, true, address(mockERC20));
         emit Transfer(address(app), recipient, amount);
+    }
+
+    function _setUpExpectedSendAndCall(
+        address recipient,
+        uint256 amount,
+        bytes memory payload,
+        uint256 gasLimit,
+        bool targetHasCode,
+        bool expectSuccess
+    ) internal override {
+        // The recipient contract will be approved to spend the tokens from the source bridge contract.
+        vm.expectEmit(true, true, true, true, address(mockERC20));
+        emit Approval(address(app), DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
+
+        if (targetHasCode) {
+            vm.etch(recipient, new bytes(1));
+
+            bytes memory expectedCalldata = abi.encodeCall(
+                IERC20SendAndCallReceiver.receiveTokens, (address(mockERC20), amount, payload)
+            );
+            if (expectSuccess) {
+                vm.mockCall(recipient, expectedCalldata, new bytes(0));
+            } else {
+                vm.mockCallRevert(recipient, expectedCalldata, new bytes(0));
+            }
+            vm.expectCall(recipient, 0, uint64(gasLimit), expectedCalldata);
+        } else {
+            vm.etch(recipient, new bytes(0));
+        }
+
+        // Then recipient contract approval is reset
+        vm.expectEmit(true, true, true, true, address(mockERC20));
+        emit Approval(address(app), DEFAULT_RECIPIENT_CONTRACT_ADDRESS, 0);
+
+        if (targetHasCode && expectSuccess) {
+            // The call should have succeeded.
+            vm.expectEmit(true, true, true, true, address(app));
+            emit CallSucceeded(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
+        } else {
+            // The call should have failed.
+            vm.expectEmit(true, true, true, true, address(app));
+            emit CallFailed(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
+
+            // Then the amount should be sent to the fallback recipient.
+            vm.expectEmit(true, true, true, true, address(mockERC20));
+            emit Transfer(address(app), address(DEFAULT_FALLBACK_RECIPIENT_ADDRESS), amount);
+        }
     }
 }

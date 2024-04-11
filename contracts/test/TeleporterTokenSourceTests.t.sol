@@ -104,9 +104,9 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testMultiHopTransfer() public {
+    function testMultiHopSendSuccess() public {
         // First send to destination blockchain to increase the bridge balance
-        uint256 amount = 2;
+        uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
         uint256 feeAmount = 1;
@@ -143,7 +143,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testMultiHopTransferFails() public {
+    function testMultiHopSendInsufficientFees() public {
         // First send to destination blockchain to increase the bridge balance
         uint256 amount = 2;
         _sendSingleHopSendSuccess(amount, 0);
@@ -185,6 +185,118 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             balanceBefore
         );
     }
+
+    function testMultiHopCallSuccess() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 200_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        uint256 feeAmount = 1;
+        uint256 bridgeAmount = amount - feeAmount;
+        SendAndCallInput memory input = SendAndCallInput({
+            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: hex"65465465",
+            requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+            primaryFee: feeAmount,
+            secondaryFee: 0
+        });
+        _checkExpectedTeleporterCallsForSend(
+            _createSingleHopCallTeleporterMessageInput(input, bridgeAmount), feeAmount
+        );
+
+        vm.expectEmit(true, true, true, true, address(tokenSource));
+        emit TokensAndCallSent(
+            _MOCK_MESSAGE_ID, address(MOCK_TELEPORTER_MESSENGER_ADDRESS), input, bridgeAmount
+        );
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeMultiHopCallMessage({
+                amount: amount,
+                destinationBlockchainID: input.destinationBlockchainID,
+                destinationBridgeAddress: input.destinationBridgeAddress,
+                recipientContract: input.recipientContract,
+                recipientPayload: input.recipientPayload,
+                recipientGasLimit: input.recipientGasLimit,
+                fallbackRecipient: input.fallbackRecipient,
+                secondaryRequiredGasLimit: input.requiredGasLimit,
+                secondaryFee: input.primaryFee
+            })
+        );
+    }
+
+    function testReceiveSendAndCallSuccess() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 200_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        bytes memory payload = hex"DEADBEEF";
+        _setUpExpectedSendAndCall({
+            recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            amount: amount,
+            payload: payload,
+            gasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            targetHasCode: true,
+            expectSuccess: true
+        });
+
+        bytes memory message = _encodeSingleHopCallMessage(
+            amount,
+            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            payload,
+            DEFAULT_RECIPIENT_GAS_LIMIT,
+            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        );
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
+        );
+    }
+
+    function testReceiveSendAndCallFailure() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 2;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        bytes memory payload = hex"DEADBEEF";
+        _setUpExpectedSendAndCall({
+            recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            amount: amount,
+            payload: payload,
+            gasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            targetHasCode: true,
+            expectSuccess: false
+        });
+
+        bytes memory message = _encodeSingleHopCallMessage(
+            amount,
+            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            payload,
+            DEFAULT_RECIPIENT_GAS_LIMIT,
+            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        );
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
+        );
+    }
+
+    function _setUpExpectedSendAndCall(
+        address recipient,
+        uint256 amount,
+        bytes memory payload,
+        uint256 gasLimit,
+        bool targetHasCode,
+        bool expectSuccess
+    ) internal virtual;
 
     function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
         return SendTokensInput({
