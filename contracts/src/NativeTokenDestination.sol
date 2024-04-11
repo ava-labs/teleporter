@@ -47,9 +47,6 @@ contract NativeTokenDestination is
     INativeTokenDestination,
     TeleporterTokenDestination
 {
-    using GasUtils for *;
-    using SafeWrappedNativeTokenDeposit for IWrappedNativeToken;
-
     /**
      * @notice The address where the burned transaction fees are credited.
      *
@@ -151,16 +148,16 @@ contract NativeTokenDestination is
         currentReserveImbalance = initialReserveImbalance_;
 
         require(
-            burnedFeesReportingRewardPercentage_ <= 100,
-            "NativeTokenDestination: invalid percentage"
+            burnedFeesReportingRewardPercentage_ < 100, "NativeTokenDestination: invalid percentage"
         );
         burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
     }
 
     /**
-     * @notice Receives native tokens transferred to this contract.
+     * @notice Receives native tokens transferred to this contract without calldata.
      * @dev This function is called when the token bridge is withdrawing native tokens to
-     * transfer to the recipient. The caller must be the wrapped native token contract.
+     * transfer to the recipient. Only the wrapped native token contract is allowed to call
+     * this function to prevent accidental loss of funds from other accounts.
      */
     receive() external payable {
         require(
@@ -200,12 +197,14 @@ contract NativeTokenDestination is
         );
 
         uint256 burnedDifference = burnAddressBalance - lastestBurnedFeesReported;
-        uint256 reward = burnedDifference * burnedFeesReportingRewardPercentage / 100;
+        uint256 reward = (burnedDifference * burnedFeesReportingRewardPercentage) / 100;
         uint256 burnedTxFees = burnedDifference - reward;
         lastestBurnedFeesReported = burnAddressBalance;
 
-        _mint(address(this), reward);
-        _deposit(reward);
+        if (reward > 0) {
+            _mint(address(this), reward);
+            _deposit(reward);
+        }
 
         uint256 scaledAmount = scaleTokens(burnedTxFees, false);
         require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to report burn");
@@ -251,7 +250,7 @@ contract NativeTokenDestination is
      * @dev See {TeleporterTokenDestination-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return token.safeDeposit(amount);
+        return SafeWrappedNativeTokenDeposit.safeDeposit(token, amount);
     }
 
     /**

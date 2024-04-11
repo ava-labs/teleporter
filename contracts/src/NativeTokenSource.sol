@@ -32,7 +32,6 @@ import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol
  */
 contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     using SafeWrappedNativeTokenDeposit for IWrappedNativeToken;
-    using GasUtils for *;
 
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.

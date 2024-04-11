@@ -33,7 +33,6 @@ import {GasUtils} from "./utils/GasUtils.sol";
  */
 contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     using SafeERC20 for IERC20;
-    using GasUtils for *;
 
     uint8 private immutable _decimals;
 

@@ -44,7 +44,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
-    function testInvalidSendandCallingBackToSourceBlockchain() public {
+    function testInvalidSendAndCallingBackToSourceBlockchain() public {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.destinationBridgeAddress = address(this);
         _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
@@ -246,7 +246,8 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         });
 
-        _setUpMockMint(address(tokenDestination), amount);
+        uint256 scaledAmount = _scaleTokens(amount, true);
+        _setUpMockMint(address(tokenDestination), scaledAmount);
         vm.expectRevert("GasUtils: insufficient gas");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage{gas: gasLimit - 1}(
@@ -288,7 +289,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
 
         _checkExpectedTeleporterCallsForSend(
-            _createMultiHopSendTeleporterMessageInput(input, scaledBridgedAmount), primaryFee
+            _createMultiHopSendTeleporterMessageInput(input, scaledBridgedAmount)
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
@@ -312,7 +313,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
 
         _checkExpectedTeleporterCallsForSend(
-            _createMultiHopCallTeleporterMessageInput(input, scaledBridgedAmount), primaryFee
+            _createMultiHopCallTeleporterMessageInput(input, scaledBridgedAmount)
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);

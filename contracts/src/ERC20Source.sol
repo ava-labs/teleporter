@@ -33,7 +33,6 @@ import {GasUtils} from "./utils/GasUtils.sol";
  */
 contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
     using SafeERC20 for IERC20;
-    using GasUtils for *;
 
     /// @notice The ERC20 token this source contract bridges to destination instances.
     IERC20 public immutable token;

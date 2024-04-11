@@ -120,7 +120,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
         });
         _checkExpectedTeleporterCallsForSend(
-            _createSingleHopTeleporterMessageInput(input, bridgeAmount), feeAmount
+            _createSingleHopTeleporterMessageInput(input, bridgeAmount)
         );
 
         vm.expectEmit(true, true, true, true, address(tokenSource));
@@ -205,7 +205,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             secondaryFee: 0
         });
         _checkExpectedTeleporterCallsForSend(
-            _createSingleHopCallTeleporterMessageInput(input, bridgeAmount), feeAmount
+            _createSingleHopCallTeleporterMessageInput(input, bridgeAmount)
         );
 
         vm.expectEmit(true, true, true, true, address(tokenSource));

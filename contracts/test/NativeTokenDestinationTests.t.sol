@@ -17,7 +17,7 @@ import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
+import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDestinationTest {
@@ -46,6 +46,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         nativeTokenBridge = app;
         tokenBridge = app;
         feeToken = mockWrappedToken;
+        assertEq(app.totalSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
         collateralizeBridge();
     }
 
@@ -70,6 +71,51 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         assertEq(isCollateralized, true);
     }
 
+    function testIsCollateralized() public {
+        app = new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            sourceBlockchainID_: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            tokenSourceAddress_: TOKEN_SOURCE_ADDRESS,
+            feeTokenAddress_: address(mockWrappedToken),
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
+            multiplyOnReceive_: true,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
+        });
+        assertFalse(app.isCollateralized());
+    }
+
+    function testZeroInitialReserveImbalance() public {
+        vm.expectRevert("NativeTokenDestination: zero initial reserve imbalance");
+        new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            sourceBlockchainID_: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            tokenSourceAddress_: TOKEN_SOURCE_ADDRESS,
+            feeTokenAddress_: address(mockWrappedToken),
+            initialReserveImbalance_: 0,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
+            multiplyOnReceive_: true,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
+        });
+    }
+
+    function testInvalidBurnedRewardPercentage() public {
+        vm.expectRevert("NativeTokenDestination: invalid percentage");
+        new NativeTokenDestination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            sourceBlockchainID_: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            tokenSourceAddress_: TOKEN_SOURCE_ADDRESS,
+            feeTokenAddress_: address(mockWrappedToken),
+            initialReserveImbalance_: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
+            multiplyOnReceive_: true,
+            burnedFeesReportingRewardPercentage_: 100
+        });
+    }
+
     function testZeroSourceBlockchainID() public {
         vm.expectRevert(_formatErrorMessage("zero source blockchain ID"));
         new NativeTokenDestination({
@@ -83,6 +129,25 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             multiplyOnReceive_: false,
             burnedFeesReportingRewardPercentage_: 1
         });
+    }
+
+    function testTotalSupply() public {
+        assertEq(app.totalSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
+
+        // Mock tokens being burned as tx fees.
+        vm.deal(app.BURNED_TX_FEES_ADDRESS(), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1);
+        assertEq(app.totalSupply(), 1);
+
+        // Reset the burned tx fee amount.
+        vm.deal(app.BURNED_TX_FEES_ADDRESS(), 0);
+        assertEq(app.totalSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
+
+        // Create wrapped native tokens and transfer them to burned address.
+        mockWrappedToken.deposit{value: _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1}();
+        mockWrappedToken.transfer(
+            app.BURN_FOR_TRANSFER_ADDRESS(), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1
+        );
+        assertEq(app.totalSupply(), 1);
     }
 
     function testTransferToSource() public {
@@ -162,12 +227,85 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         );
 
-        _setUpMockMint(address(tokenDestination), amount);
+        uint256 scaledAmount = _scaleTokens(amount, true);
+        _setUpMockMint(address(app), scaledAmount);
+        vm.deal(address(app), scaledAmount - 1);
         vm.expectRevert("GasUtils: insufficient value");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
         );
+    }
+
+    function testReportBurnFeesNoNewAmount() public {
+        vm.expectRevert("NativeTokenDestination: burn address balance not greater than last report");
+        app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
+    }
+
+    function testReportBurnFeesScaledToZero() public {
+        vm.deal(app.BURNED_TX_FEES_ADDRESS(), 1);
+        vm.expectRevert("NativeTokenDestination: zero scaled amount to report burn");
+        app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
+    }
+
+    function testReportBurnFeesSuccess() public {
+        // First difference is 100,000
+        uint256 initialBurnedTxFeeAmount = 100_003;
+        uint256 expectedReward = 1_000; // 1%, rounded down due to integer division.
+        uint256 expectedReportedAmount =
+            _scaleTokens(initialBurnedTxFeeAmount - expectedReward, false);
+        vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialBurnedTxFeeAmount);
+
+        _setUpMockMint(address(app), expectedReward);
+        TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
+            SendTokensInput({
+                destinationBlockchainID: app.sourceBlockchainID(),
+                destinationBridgeAddress: app.tokenSourceAddress(),
+                recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                primaryFee: expectedReward,
+                secondaryFee: 0,
+                requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
+            }),
+            expectedReportedAmount
+        );
+        _checkExpectedTeleporterCallsForSend(expectedMessageInput);
+        app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
+
+        // Calling it again should revert since no additional amount as been burned.
+        vm.expectRevert("NativeTokenDestination: burn address balance not greater than last report");
+        app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
+
+        // Mock more transaction fees being burned.
+        uint256 additionalBurnTxFeeAmount = 50_007;
+        expectedReward = 500; // 1%, rounded down due to integer division.
+        expectedReportedAmount = _scaleTokens(additionalBurnTxFeeAmount - expectedReward, false);
+        vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialBurnedTxFeeAmount + additionalBurnTxFeeAmount);
+
+        _setUpMockMint(address(app), expectedReward);
+        expectedMessageInput = _createSingleHopTeleporterMessageInput(
+            SendTokensInput({
+                destinationBlockchainID: app.sourceBlockchainID(),
+                destinationBridgeAddress: app.tokenSourceAddress(),
+                recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                primaryFee: expectedReward,
+                secondaryFee: 0,
+                requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
+            }),
+            expectedReportedAmount
+        );
+        _checkExpectedTeleporterCallsForSend(expectedMessageInput);
+        app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
+    }
+
+    function testReceive() public {
+        // Only the wrapped native token contract can transfer native tokens to the bridge contract without any calldata
+        vm.expectRevert("NativeTokenDestination: invalid receive payable sender");
+        payable(address(app)).transfer(1);
+
+        vm.deal(address(mockWrappedToken), 1);
+        vm.prank(address(mockWrappedToken));
+        payable(address(app)).transfer(1);
+        assertEq(address(app).balance, 1);
     }
 
     function _checkExpectedWithdrawal(address addr, uint256 amount) internal override {
@@ -185,16 +323,16 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function _setUpMockMint(address recipient, uint256 amount) internal override {
-        uint256 scaledAmount = _scaleTokens(amount, true);
         vm.mockCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, scaledAmount)),
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount)),
             new bytes(0)
         );
         vm.expectCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, scaledAmount))
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
         );
+        vm.deal(recipient, amount);
     }
 
     function _setUpExpectedSendAndCall(

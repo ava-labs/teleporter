@@ -224,7 +224,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
 
         _checkExpectedTeleporterCallsForSend(
-            _createSingleHopTeleporterMessageInput(input, scaledBridgedAmount), feeAmount
+            _createSingleHopTeleporterMessageInput(input, scaledBridgedAmount)
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
@@ -241,7 +241,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
         _setUpExpectedDeposit(amount);
         _checkExpectedTeleporterCallsForSend(
-            _createSingleHopCallTeleporterMessageInput(input, scaledBridgedAmount), feeAmount
+            _createSingleHopCallTeleporterMessageInput(input, scaledBridgedAmount)
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
@@ -253,12 +253,11 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal virtual;
 
     function _checkExpectedTeleporterCallsForSend(
-        TeleporterMessageInput memory expectedMessageInput,
-        uint256 expectedFeeAmount
+        TeleporterMessageInput memory expectedMessageInput
     ) internal {
-        if (expectedFeeAmount > 0) {
+        if (expectedMessageInput.feeInfo.amount > 0) {
             vm.expectCall(
-                address(feeToken),
+                expectedMessageInput.feeInfo.feeTokenAddress,
                 abi.encodeCall(
                     IERC20.allowance,
                     (address(tokenBridge), address(MOCK_TELEPORTER_MESSENGER_ADDRESS))
