@@ -34,8 +34,8 @@ In addition to supporting basic token transfers, the token bridge contracts offe
 
 ## Structure
 
-- `contracts/` is a Foundry project that includes the implementation of the token bridge contracts
-- `scripts` includes various bash scripts for utility
+- `contracts/` is a Foundry project that includes the implementation of the token bridge contracts and Solidity unit tests
+- `scripts/` includes various bash utility scripts
 - `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
 
 ## Solidity Unit Tests
@@ -43,8 +43,31 @@ In addition to supporting basic token transfers, the token bridge contracts offe
 Unit tests are written under `contracts/test/` and can be run with `forge`:
 
 ```
-cd contracts/test
+cd contracts
 forge test -vvv
+```
+
+Unit test coverage of the contracts can be viewed using `forge coverage`:
+```
+$ forge coverage
+[⠢] Compiling...
+[⠘] Compiling 66 files with 0.8.18
+[⠊] Solc 0.8.18 finished in 4.77s
+Compiler run successful!
+Analysing contracts...
+Running tests...
+| File                                  | % Lines           | % Statements      | % Branches       | % Funcs         |
+|---------------------------------------|-------------------|-------------------|------------------|-----------------|
+| src/ERC20Destination.sol              | 100.00% (17/17)   | 100.00% (20/20)   | 100.00% (4/4)    | 100.00% (7/7)   |
+| src/ERC20Source.sol                   | 100.00% (14/14)   | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (5/5)   |
+| src/NativeTokenDestination.sol        | 100.00% (49/49)   | 100.00% (62/62)   | 100.00% (18/18)  | 100.00% (10/10) |
+| src/NativeTokenSource.sol             | 100.00% (13/13)   | 100.00% (14/14)   | 100.00% (2/2)    | 100.00% (5/5)   |
+| src/SafeWrappedNativeTokenDeposit.sol | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (2/2)    | 100.00% (1/1)   |
+| src/TeleporterTokenDestination.sol    | 100.00% (58/58)   | 100.00% (65/65)   | 88.00% (44/50)   | 100.00% (5/5)   |
+| src/TeleporterTokenSource.sol         | 100.00% (50/50)   | 100.00% (55/55)   | 97.22% (35/36)   | 100.00% (4/4)   |
+| src/mocks/ExampleWAVAX.sol            | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (3/3)   |
+| src/utils/GasUtils.sol                | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)    | 100.00% (2/2)   |
+| Total                                 | 100.00% (220/220) | 100.00% (256/256) | 94.26% (115/122) | 100.00% (42/42) |
 ```
 
 ## E2E tests
