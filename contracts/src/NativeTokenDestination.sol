@@ -28,6 +28,7 @@ import {
     SingleHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {GasUtils} from "./utils/GasUtils.sol";
 
 /**
@@ -47,6 +48,8 @@ contract NativeTokenDestination is
     INativeTokenDestination,
     TeleporterTokenDestination
 {
+    using SafeERC20 for IWrappedNativeToken;
+
     /**
      * @notice The address where the burned transaction fees are credited.
      *
@@ -117,6 +120,11 @@ contract NativeTokenDestination is
      */
     IWrappedNativeToken public immutable token;
 
+    modifier onlyWhenCollateralized() {
+        require(_isCollateralized(), "NativeTokenDestination: contract undercollateralized");
+        _;
+    }
+
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
@@ -168,21 +176,24 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenBridge-send}.
      */
-    function send(SendTokensInput calldata input) external payable nonReentrant {
-        require(
-            currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
-        );
-
+    function send(SendTokensInput calldata input)
+        external
+        payable
+        nonReentrant
+        onlyWhenCollateralized
+    {
         _send(input, msg.value);
     }
 
     /**
      * @dev See {INativeTokenBridge-sendAndCall}
      */
-    function sendAndCall(SendAndCallInput calldata input) external payable nonReentrant {
-        require(
-            currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
-        );
+    function sendAndCall(SendAndCallInput calldata input)
+        external
+        payable
+        nonReentrant
+        onlyWhenCollateralized
+    {
         _sendAndCall(input, msg.value);
     }
 
@@ -233,7 +244,7 @@ contract NativeTokenDestination is
      * @dev See {INativeTokenDestination-isCollateralized}.
      */
     function isCollateralized() external view returns (bool) {
-        return currentReserveImbalance == 0;
+        return _isCollateralized();
     }
 
     /**
@@ -284,7 +295,7 @@ contract NativeTokenDestination is
      */
     function _burn(uint256 amount) internal virtual override {
         // Burn native token by transferring to BURN_FOR_TRANSFER_ADDRESS
-        token.transfer(BURN_FOR_TRANSFER_ADDRESS, amount);
+        token.safeTransfer(BURN_FOR_TRANSFER_ADDRESS, amount);
     }
 
     /**
@@ -306,7 +317,7 @@ contract NativeTokenDestination is
         // because it could result in unexpected behavior given that the amount of tokens used to make the
         // call to "receiveTokens" is less than expected. Instead, the amount is handled as a normal bridge
         // event to fallback recipient.
-        if (currentReserveImbalance > 0) {
+        if (!_isCollateralized()) {
             _withdraw(message.fallbackRecipient, amount);
             return;
         }
@@ -330,6 +341,14 @@ contract NativeTokenDestination is
             emit CallFailed(message.recipientContract, amount);
             payable(message.fallbackRecipient).transfer(amount);
         }
+    }
+
+    /**
+     * @dev Returns whether or not the NativeTokenDestination contract has been collateralized
+     * after being initialized with its given initialReserveImbalance.
+     */
+    function _isCollateralized() internal view returns (bool) {
+        return currentReserveImbalance == 0;
     }
 
     /**

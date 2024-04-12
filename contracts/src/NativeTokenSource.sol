@@ -45,9 +45,9 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address feeTokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress) {
-        token = IWrappedNativeToken(feeTokenAddress);
+        address feeTokenAddress_
+    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress_) {
+        token = IWrappedNativeToken(feeTokenAddress_);
     }
 
     /**
