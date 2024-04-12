@@ -121,25 +121,19 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     function testReceiveInvalidSourceChain() public {
         vm.expectRevert(_formatErrorMessage("invalid source chain"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenDestination.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, new bytes(0)
-        );
+        tokenDestination.receiveTeleporterMessage(DEFAULT_DESTINATION_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, new bytes(0));
     }
 
     function testReceiveInvalidTokenSourceAddress() public {
         vm.expectRevert(_formatErrorMessage("invalid token source address"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenDestination.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, address(0), new bytes(0)
-        );
+        tokenDestination.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, address(0), new bytes(0));
     }
 
     function testReceiveInvalidMessage() public {
         vm.expectRevert();
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenDestination.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, bytes("test")
-        );
+        tokenDestination.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, bytes("test"));
     }
 
     function testReceiveWithdrawSuccess() public {
@@ -177,9 +171,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         );
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenDestination.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
-        );
+        tokenDestination.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message);
     }
 
     function testReceiveSendAndCallFailure() public {
@@ -203,9 +195,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         );
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenDestination.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
-        );
+        tokenDestination.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message);
     }
 
     function testReceiveSendAndCallFailureNoCode() public {
@@ -229,9 +219,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         );
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenDestination.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
-        );
+        tokenDestination.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message);
     }
 
     function testReceiveSendAndCallFailureInsufficientGas() public {
@@ -248,7 +236,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         uint256 scaledAmount = _scaleTokens(amount, true);
         _setUpMockMint(address(tokenDestination), scaledAmount);
-        vm.expectRevert("GasUtils: insufficient gas");
+        vm.expectRevert("CallUtils: insufficient gas");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage{gas: gasLimit - 1}(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
@@ -272,11 +260,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function _sendMultiHopSendSuccess(
-        uint256 amount,
-        uint256 primaryFee,
-        uint256 secondaryFee
-    ) internal {
+    function _sendMultiHopSendSuccess(uint256 amount, uint256 primaryFee, uint256 secondaryFee) internal {
         uint256 bridgeAmount = amount - primaryFee;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
@@ -288,19 +272,13 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         // Only tokens destinations scale tokens, so isReceive is always false here.
         uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
 
-        _checkExpectedTeleporterCallsForSend(
-            _createMultiHopSendTeleporterMessageInput(input, scaledBridgedAmount)
-        );
+        _checkExpectedTeleporterCallsForSend(_createMultiHopSendTeleporterMessageInput(input, scaledBridgedAmount));
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
         _send(input, amount);
     }
 
-    function _sendMultiHopCallSuccess(
-        uint256 amount,
-        uint256 primaryFee,
-        uint256 secondaryFee
-    ) internal {
+    function _sendMultiHopCallSuccess(uint256 amount, uint256 primaryFee, uint256 secondaryFee) internal {
         uint256 bridgeAmount = amount - primaryFee;
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
@@ -312,9 +290,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         // Only tokens destinations scale tokens, so isReceive is always false here.
         uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
 
-        _checkExpectedTeleporterCallsForSend(
-            _createMultiHopCallTeleporterMessageInput(input, scaledBridgedAmount)
-        );
+        _checkExpectedTeleporterCallsForSend(_createMultiHopCallTeleporterMessageInput(input, scaledBridgedAmount));
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
         _sendAndCall(input, amount);
@@ -331,10 +307,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bool expectSuccess
     ) internal virtual;
 
-    function _createMultiHopSendTeleporterMessageInput(
-        SendTokensInput memory input,
-        uint256 bridgeAmount
-    ) internal view returns (TeleporterMessageInput memory) {
+    function _createMultiHopSendTeleporterMessageInput(SendTokensInput memory input, uint256 bridgeAmount)
+        internal
+        view
+        returns (TeleporterMessageInput memory)
+    {
         return TeleporterMessageInput({
             destinationBlockchainID: tokenDestination.sourceBlockchainID(),
             destinationAddress: tokenDestination.tokenSourceAddress(),
@@ -352,10 +329,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         });
     }
 
-    function _createMultiHopCallTeleporterMessageInput(
-        SendAndCallInput memory input,
-        uint256 bridgeAmount
-    ) internal view returns (TeleporterMessageInput memory) {
+    function _createMultiHopCallTeleporterMessageInput(SendAndCallInput memory input, uint256 bridgeAmount)
+        internal
+        view
+        returns (TeleporterMessageInput memory)
+    {
         return TeleporterMessageInput({
             destinationBlockchainID: tokenDestination.sourceBlockchainID(),
             destinationAddress: tokenDestination.tokenSourceAddress(),
@@ -377,12 +355,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         });
     }
 
-    function _createDefaultSendTokensInput()
-        internal
-        pure
-        override
-        returns (SendTokensInput memory)
-    {
+    function _createDefaultSendTokensInput() internal pure override returns (SendTokensInput memory) {
         return SendTokensInput({
             destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             destinationBridgeAddress: TOKEN_SOURCE_ADDRESS,
@@ -393,12 +366,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         });
     }
 
-    function _createDefaultSendAndCallInput()
-        internal
-        pure
-        override
-        returns (SendAndCallInput memory)
-    {
+    function _createDefaultSendAndCallInput() internal pure override returns (SendAndCallInput memory) {
         return SendAndCallInput({
             destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             destinationBridgeAddress: TOKEN_SOURCE_ADDRESS,
@@ -412,12 +380,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         });
     }
 
-    function _formatErrorMessage(string memory message)
-        internal
-        pure
-        override
-        returns (bytes memory)
-    {
+    function _formatErrorMessage(string memory message) internal pure override returns (bytes memory) {
         return bytes(string.concat("TeleporterTokenDestination: ", message));
     }
 }

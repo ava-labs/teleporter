@@ -11,12 +11,8 @@ import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {
-    SendTokensInput,
-    SendAndCallInput,
-    SingleHopCallMessage
-} from "./interfaces/ITeleporterTokenBridge.sol";
-import {GasUtils} from "./utils/GasUtils.sol";
+import {SendTokensInput, SendAndCallInput, SingleHopCallMessage} from "./interfaces/ITeleporterTokenBridge.sol";
+import {CallUtils} from "./utils/CallUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -119,10 +115,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * If the call fails or doesn't spend all of the tokens, the remaining amount is
      * sent to the fallback recipient.
      */
-    function _handleSendAndCall(
-        SingleHopCallMessage memory message,
-        uint256 amount
-    ) internal virtual override {
+    function _handleSendAndCall(SingleHopCallMessage memory message, uint256 amount) internal virtual override {
         // Mint the tokens to this contract address.
         _mint(address(this), amount);
 
@@ -130,15 +123,11 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         _approve(address(this), message.recipientContract, amount);
 
         // Encode the call to {IERC20SendAndCallReceiver-receiveTokens}
-        bytes memory payload = abi.encodeCall(
-            IERC20SendAndCallReceiver.receiveTokens,
-            (address(this), amount, message.recipientPayload)
-        );
+        bytes memory payload =
+            abi.encodeCall(IERC20SendAndCallReceiver.receiveTokens, (address(this), amount, message.recipientPayload));
 
         // Call the destination contract with the given payload and gas amount.
-        bool success = GasUtils._callWithExactGas(
-            message.recipientGasLimit, message.recipientContract, payload
-        );
+        bool success = CallUtils._callWithExactGas(message.recipientGasLimit, message.recipientContract, payload);
 
         // Check what the remaining allowance is to transfer to the fallback recipient.
         uint256 remainingAllowance = allowance(address(this), message.recipientContract);

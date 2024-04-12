@@ -4,16 +4,12 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.18;
 
-library GasUtils {
+library CallUtils {
     /**
      * @dev calls target address with exactly gasAmount gas and data as calldata
      * or reverts if at least gasAmount gas is not available.
      */
-    function _callWithExactGas(
-        uint256 gasAmount,
-        address target,
-        bytes memory data
-    ) internal returns (bool) {
+    function _callWithExactGas(uint256 gasAmount, address target, bytes memory data) internal returns (bool) {
         return _callWithExactGasAndValue(gasAmount, 0, target, data);
     }
 
@@ -21,14 +17,12 @@ library GasUtils {
      * @dev calls target address with exactly gasAmount gas and data as calldata
      * or reverts if at least gasAmount gas is not available.
      */
-    function _callWithExactGasAndValue(
-        uint256 gasAmount,
-        uint256 value,
-        address target,
-        bytes memory data
-    ) internal returns (bool) {
-        require(gasleft() >= gasAmount, "GasUtils: insufficient gas");
-        require(address(this).balance >= value, "GasUtils: insufficient value");
+    function _callWithExactGasAndValue(uint256 gasAmount, uint256 value, address target, bytes memory data)
+        internal
+        returns (bool)
+    {
+        require(gasleft() >= gasAmount, "CallUtils: insufficient gas");
+        require(address(this).balance >= value, "CallUtils: insufficient value");
 
         // If there is no code at the target, automatically consider the call to have failed since it
         // doesn't have any effect on state.

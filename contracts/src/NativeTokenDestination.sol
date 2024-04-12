@@ -29,7 +29,7 @@ import {
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {GasUtils} from "./utils/GasUtils.sol";
+import {CallUtils} from "./utils/CallUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -200,7 +200,7 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportBurnedTxFees(uint256 requiredGasLimit) external {
+    function reportBurnedTxFees(uint256 requiredGasLimit) external nonReentrant {
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
         require(
             burnAddressBalance > lastestBurnedFeesReported,
@@ -330,7 +330,7 @@ contract NativeTokenDestination is
             abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (message.recipientPayload));
 
         // Call the destination contract with the given payload, gas amount, and value.
-        bool success = GasUtils._callWithExactGasAndValue(
+        bool success = CallUtils._callWithExactGasAndValue(
             message.recipientGasLimit, amount, message.recipientContract, payload
         );
 
