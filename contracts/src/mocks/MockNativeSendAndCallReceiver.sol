@@ -17,9 +17,16 @@ import {INativeSendAndCallReceiver} from "../interfaces/INativeSendAndCallReceiv
  */
 contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
     /**
+     * @dev Emitted when receiveTokens is called.
+     */
+    event TokensReceived(uint256 amount, bytes payload);
+
+    /**
      * @dev See {INativeSendAndCallReceiver-receiveTokens}
      */
     function receiveTokens(bytes calldata payload) external payable {
+        emit TokensReceived(msg.value, payload);
+
         require(payload.length != 0, "MockNativeSendAndCallReceiver: empty payload");
         // No implementation required to accept native tokens
     }

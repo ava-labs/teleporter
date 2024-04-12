@@ -43,13 +43,13 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 		sourceTokenAddress,
 	)
 
-	sourceMockERC20SACRAddress, _ := utils.DeployMockERC20SendAndCallReceiver(
+	sourceMockERC20SACRAddress, sourceMockERC20SACR := utils.DeployMockERC20SendAndCallReceiver(
 		ctx,
 		fundedKey,
 		cChainInfo,
 	)
 
-	destMockERC20SACRAddress, _ := utils.DeployMockERC20SendAndCallReceiver(
+	destMockERC20SACRAddress, destMockERC20SACR := utils.DeployMockERC20SendAndCallReceiver(
 		ctx,
 		fundedKey,
 		subnetAInfo,
@@ -124,6 +124,11 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(event.RecipientContract).Should(Equal(input.RecipientContract))
 	Expect(event.Amount).Should(Equal(bridgedAmount))
+
+	receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, destMockERC20SACR.ParseTokensReceived)
+	Expect(err).Should(BeNil())
+	Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
+	Expect(receiverEvent.Payload).Should(Equal(input.RecipientPayload))
 
 	// Check that the contract received the tokens
 	balance, err := erc20Destination.BalanceOf(&bind.CallOpts{}, destMockERC20SACRAddress)
@@ -220,6 +225,11 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(sourceEvent.RecipientContract).Should(Equal(inputB.RecipientContract))
 	Expect(sourceEvent.Amount).Should(Equal(bridgedAmount))
+
+	receiverEvent, err = teleporterUtils.GetEventFromLogs(receipt.Logs, sourceMockERC20SACR.ParseTokensReceived)
+	Expect(err).Should(BeNil())
+	Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
+	Expect(receiverEvent.Payload).Should(Equal(inputB.RecipientPayload))
 
 	// Check that the recipient received the tokens
 	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, sourceMockERC20SACRAddress)
