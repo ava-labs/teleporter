@@ -62,6 +62,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
+		burnedFeesReportingRewardPercentage,
 	)
 
 	// Generate new recipient to receive bridged tokens
@@ -92,29 +93,15 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Amount received by the destination is bridgedAmount * 10 - initialReserveImbalance
-	receivedAmount := big.NewInt(0).Sub(big.NewInt(0).Mul(bridgedAmount, big.NewInt(10)), initialReserveImbalance)
+	receivedAmount := new(big.Int).Sub(new(big.Int).Mul(bridgedAmount, big.NewInt(10)), initialReserveImbalance)
 
 	// Relay the message to subnet A and check for a native token mint withdrawal
-	receipt = network.RelayMessage(
+	network.RelayMessage(
 		ctx,
 		receipt,
 		cChainInfo,
 		subnetAInfo,
 		true,
-	)
-
-	utils.CheckNativeTokenDestinationMint(
-		ctx,
-		nativeTokenDestinationA,
-		recipientAddress,
-		receipt,
-		receivedAmount,
-	)
-	teleporterUtils.CheckBalance(
-		ctx,
-		recipientAddress,
-		receivedAmount,
-		subnetAInfo.RPCClient,
 	)
 
 	// Verify the recipient received the tokens
@@ -130,7 +117,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 	}
 	// Send half of the received amount to account for gas expenses
-	amountToSend := big.NewInt(0).Div(receivedAmount, big.NewInt(2))
+	amountToSend := new(big.Int).Div(receivedAmount, big.NewInt(2))
 	receipt, bridgedAmount = utils.SendNativeTokenDestination(
 		ctx,
 		subnetAInfo,

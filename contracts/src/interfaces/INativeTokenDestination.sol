@@ -23,11 +23,6 @@ interface INativeTokenDestination is INativeTokenBridge {
     event CollateralAdded(uint256 amount, uint256 remaining);
 
     /**
-     * @dev Emitted when minting native tokens.
-     */
-    event NativeTokensMinted(address indexed recipient, uint256 amount);
-
-    /**
      * @dev Emitted when reporting burned tx fees to source chain.
      */
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);

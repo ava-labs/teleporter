@@ -7,9 +7,15 @@ pragma solidity 0.8.18;
 
 import {TeleporterTokenSource} from "./TeleporterTokenSource.sol";
 import {INativeTokenBridge} from "./interfaces/INativeTokenBridge.sol";
-import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
+import {INativeSendAndCallReceiver} from "./interfaces/INativeSendAndCallReceiver.sol";
+import {
+    SendTokensInput,
+    SendAndCallInput,
+    SingleHopCallMessage
+} from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
-import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol";
+import {CallUtils} from "./utils/CallUtils.sol";
+import {SafeWrappedNativeTokenDeposit} from "./utils/SafeWrappedNativeTokenDeposit.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -25,8 +31,6 @@ import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
-    using SafeWrappedNativeTokenDeposit for IWrappedNativeToken;
-
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
@@ -39,9 +43,9 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address feeTokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress) {
-        token = IWrappedNativeToken(feeTokenAddress);
+        address feeTokenAddress_
+    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress_) {
+        token = IWrappedNativeToken(feeTokenAddress_);
     }
 
     /**
@@ -56,16 +60,20 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     /**
      * @dev See {INativeTokenBridge-send}
      */
-    function send(SendTokensInput calldata input) external payable nonReentrant {
+    function send(SendTokensInput calldata input) external payable {
         _send(input, msg.value, false);
+    }
+
+    function sendAndCall(SendAndCallInput calldata input) external payable {
+        _sendAndCall(input, msg.value, false);
     }
 
     /**
      * @dev See {TeleportTokenSource-_deposit}
      * Deposits the native tokens sent to this contract
      */
-    function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return token.safeDeposit(amount);
+    function _deposit(uint256 amount) internal override returns (uint256) {
+        return SafeWrappedNativeTokenDeposit.safeDeposit(token, amount);
     }
 
     /**
@@ -73,8 +81,42 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * Withdraws the wrapped tokens for native tokens,
      * and sends them to the recipient.
      */
-    function _withdraw(address recipient, uint256 amount) internal virtual override {
+    function _withdraw(address recipient, uint256 amount) internal override {
+        emit TokensWithdrawn(recipient, amount);
         token.withdraw(amount);
         payable(recipient).transfer(amount);
+    }
+
+    /**
+     * @dev See {TeleporterTokenDestination-_handleSendAndCall}
+     *
+     * Send the native tokens to the recipient contract as a part of the call to
+     * {INativeSendAndCallReceiver-receiveTokens} on the recipient contract.
+     * If the call fails or doesn't spend all of the tokens, the remaining amount is
+     * sent to the fallback recipient.
+     */
+    function _handleSendAndCall(
+        SingleHopCallMessage memory message,
+        uint256 amount
+    ) internal override {
+        // Withdraw the native token from the wrapped native token contract.
+        token.withdraw(amount);
+
+        // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
+        bytes memory payload =
+            abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (message.recipientPayload));
+
+        // Call the destination contract with the given payload, gas amount, and value.
+        bool success = CallUtils._callWithExactGasAndValue(
+            message.recipientGasLimit, amount, message.recipientContract, payload
+        );
+
+        // If the call failed, send the funds to the fallback recipient.
+        if (success) {
+            emit CallSucceeded(message.recipientContract, amount);
+        } else {
+            emit CallFailed(message.recipientContract, amount);
+            payable(message.fallbackRecipient).transfer(amount);
+        }
     }
 }

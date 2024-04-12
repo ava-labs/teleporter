@@ -8,16 +8,18 @@ Please note that `teleporter-token-bridge` is still under active development and
 
 Teleporter token bridge is an application that allows users to transfer tokens between subnets. The bridge is a set of smart contracts that are deployed on both the source and destination subnets, and leverages [Teleporter](https://github.com/ava-labs/teleporter) for cross-chain communication. The token bridges are designed to be permissionless, as long as there is a compatible token bridge instance on a destination chain, users can transfer tokens from a home chain to that destination chain. The token bridge source on the home chain keeps track of token balances bridged to each destination token bridge instance, and handles returning the original tokens back to the user when bridged back to the home chain.
 
-The token bridge takes in either an ERC20 or native token to be bridged from a source chain, which can be referred to as the "home chain", and transfers the token to a destination chain to be represented as a new token. The new token representation on the destination chain can also either be an ERC20 or native token, allowing users to have any combination of ERC20 and native tokens between source and destination chains:
+The token bridge contracts take in either an ERC20 or native token to be bridged from a source chain, which can be referred to as the "home chain", and transfers the token to a destination chain to be represented as a new token. The new token representation on the destination chain can also either be an ERC20 or native token, allowing users to have any combination of ERC20 and native tokens between source and destination chains:
 
 - ERC20 -> ERC20
 - ERC20 -> Native
 - Native -> ERC20
 - Native -> Native
 
-The destination tokens are designed to by default have compatibility with the token bridges on the source chain, and allow any custom logic to be implemented in addition. For example, developers can inherit and extend the destination ERC20 token contract to add additional functionality, such as a custom minting or burning logic.
+The destination tokens are designed to by default have compatibility with the token bridges on the source chain, and allow any custom logic to be implemented in addition. For example, developers can inherit and extend the destination ERC20 token contract to add additional functionality, such as a custom minting, burning, or transfer logic.
 
-Other than simple transfers from source to destination chains, the token bridge also supports "multihop" transfers, where tokens can be transferred between destination chains. The multihop transfer first transfers the token from the first destination chain to the home chain, where token balances are updated, and then triggers a second transfer to the final destination chain.
+The token bridge also supports "multihop" transfers, where tokens can be transferred between destination chains. The multihop transfer first transfers the token from the origin destination chain to the home chain, where token balances are updated, and then triggers a second transfer to the final destination chain.
+
+In addition to supporting basic token transfers, the token bridge contracts offer a `sendAndCall` interface for atomically bridging tokens and using them to interact with a smart contract on the destination chain. If the call to the recipient smart contract fails, the bridged tokens are sent to a fallback recipient address. The `sendAndCall` interfaces enables the direct use of bridged tokens in dApps on other chains, such as performing swaps, using the tokens to pay for fees when invoking services, etc.
 
 ## Setup
 
@@ -32,8 +34,8 @@ Other than simple transfers from source to destination chains, the token bridge 
 
 ## Structure
 
-- `contracts/` is a Foundry project that includes the implementation of the token bridge contracts
-- `scripts` includes various bash scripts for utility
+- `contracts/` is a Foundry project that includes the implementation of the token bridge contracts and Solidity unit tests
+- `scripts/` includes various bash utility scripts
 - `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
 
 ## Solidity Unit Tests
@@ -41,8 +43,31 @@ Other than simple transfers from source to destination chains, the token bridge 
 Unit tests are written under `contracts/test/` and can be run with `forge`:
 
 ```
-cd contracts/test
+cd contracts
 forge test -vvv
+```
+
+Unit test coverage of the contracts can be viewed using `forge coverage`:
+```
+$ forge coverage
+[⠢] Compiling...
+[⠊] Compiling 67 files with 0.8.18
+[⠢] Solc 0.8.18 finished in 4.95s
+Compiler run successful!
+Analysing contracts...
+Running tests...
+| File                                        | % Lines           | % Statements      | % Branches       | % Funcs         |
+|---------------------------------------------|-------------------|-------------------|------------------|-----------------|
+| src/ERC20Destination.sol                    | 100.00% (17/17)   | 100.00% (20/20)   | 100.00% (4/4)    | 100.00% (7/7)   |
+| src/ERC20Source.sol                         | 100.00% (14/14)   | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (5/5)   |
+| src/NativeTokenDestination.sol              | 100.00% (48/48)   | 100.00% (62/62)   | 100.00% (14/14)  | 100.00% (11/11) |
+| src/NativeTokenSource.sol                   | 100.00% (13/13)   | 100.00% (14/14)   | 100.00% (2/2)    | 100.00% (5/5)   |
+| src/TeleporterTokenDestination.sol          | 100.00% (58/58)   | 100.00% (65/65)   | 88.00% (44/50)   | 100.00% (5/5)   |
+| src/TeleporterTokenSource.sol               | 100.00% (50/50)   | 100.00% (55/55)   | 97.22% (35/36)   | 100.00% (4/4)   |
+| src/mocks/ExampleWAVAX.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (3/3)   |
+| src/utils/CallUtils.sol                     | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)    | 100.00% (2/2)   |
+| src/utils/SafeWrappedNativeTokenDeposit.sol | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (2/2)    | 100.00% (1/1)   |
+| Total                                       | 100.00% (219/219) | 100.00% (256/256) | 94.07% (111/118) | 100.00% (43/43) |
 ```
 
 ## E2E tests

@@ -9,6 +9,7 @@ import {TeleporterTokenSourceTest} from "./TeleporterTokenSourceTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {NativeTokenSource} from "../src/NativeTokenSource.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
+import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
 
 contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTest {
@@ -54,5 +55,39 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         );
         vm.expectEmit(true, true, true, true, address(mockWrappedToken));
         emit Withdrawal(address(app), amount);
+    }
+
+    function _setUpExpectedSendAndCall(
+        address recipient,
+        uint256 amount,
+        bytes memory payload,
+        uint256 gasLimit,
+        bool targetHasCode,
+        bool expectSuccess
+    ) internal override {
+        if (targetHasCode) {
+            // Non-zero code length
+            vm.etch(recipient, new bytes(1));
+
+            bytes memory expectedCalldata =
+                abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (payload));
+            if (expectSuccess) {
+                vm.mockCall(recipient, amount, expectedCalldata, new bytes(0));
+            } else {
+                vm.mockCallRevert(recipient, amount, expectedCalldata, new bytes(0));
+            }
+            vm.expectCall(recipient, amount, uint64(gasLimit), expectedCalldata);
+        } else {
+            // No code at target
+            vm.etch(recipient, new bytes(0));
+        }
+
+        if (targetHasCode && expectSuccess) {
+            vm.expectEmit(true, true, true, true, address(app));
+            emit CallSucceeded(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
+        } else {
+            vm.expectEmit(true, true, true, true, address(app));
+            emit CallFailed(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
+        }
     }
 }

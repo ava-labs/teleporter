@@ -91,7 +91,7 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}
-	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
+	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 
 	receipt, bridgedAmount := utils.SendERC20Source(
 		ctx,

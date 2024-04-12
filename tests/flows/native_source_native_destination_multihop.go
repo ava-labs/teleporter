@@ -68,6 +68,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
+		burnedFeesReportingRewardPercentage,
 	)
 
 	// Deploy a NativeTokenDestination to Subnet B
@@ -81,6 +82,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
+		burnedFeesReportingRewardPercentage,
 	)
 
 	// Generate new recipient to receive bridged tokens
@@ -113,29 +115,15 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		)
 
 		// Amount received by the destination is bridgedAmount * 10 - initialReserveImbalance
-		receivedAmountA = big.NewInt(0).Sub(big.NewInt(0).Mul(bridgedAmountA, big.NewInt(10)), initialReserveImbalance)
+		receivedAmountA = new(big.Int).Sub(new(big.Int).Mul(bridgedAmountA, big.NewInt(10)), initialReserveImbalance)
 
 		// Relay the message to subnet A and check for a native token mint withdrawal
-		receipt = network.RelayMessage(
+		network.RelayMessage(
 			ctx,
 			receipt,
 			cChainInfo,
 			subnetAInfo,
 			true,
-		)
-
-		utils.CheckNativeTokenDestinationMint(
-			ctx,
-			nativeTokenDestinationA,
-			recipientAddress,
-			receipt,
-			receivedAmountA,
-		)
-		teleporterUtils.CheckBalance(
-			ctx,
-			recipientAddress,
-			receivedAmountA,
-			subnetAInfo.RPCClient,
 		)
 
 		// Verify the recipient received the tokens
@@ -164,29 +152,15 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		)
 
 		// Amount received by the destination is bridgedAmount * 10 - initialReserveImbalance
-		receivedAmountB = big.NewInt(0).Sub(big.NewInt(0).Mul(bridgedAmountB, big.NewInt(10)), initialReserveImbalance)
+		receivedAmountB = new(big.Int).Sub(new(big.Int).Mul(bridgedAmountB, big.NewInt(10)), initialReserveImbalance)
 
 		// Relay the message to subnet B and check for a native token mint withdrawal
-		receipt = network.RelayMessage(
+		network.RelayMessage(
 			ctx,
 			receipt,
 			cChainInfo,
 			subnetBInfo,
 			true,
-		)
-
-		utils.CheckNativeTokenDestinationMint(
-			ctx,
-			nativeTokenDestinationB,
-			recipientAddress,
-			receipt,
-			receivedAmountB,
-		)
-		teleporterUtils.CheckBalance(
-			ctx,
-			recipientAddress,
-			receivedAmountB,
-			subnetBInfo.RPCClient,
 		)
 
 		// Verify the recipient received the tokens
@@ -195,7 +169,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 
 	// Multihop transfer to Subnet B
 	// Send half of the received amount to account for gas expenses
-	amountToSendA := big.NewInt(0).Div(receivedAmountA, big.NewInt(2))
+	amountToSendA := new(big.Int).Div(receivedAmountA, big.NewInt(2))
 
 	utils.SendNativeMultihopAndVerify(
 		ctx,
@@ -214,7 +188,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Again, send half of the received amount to account for gas expenses
-	amountToSendB := big.NewInt(0).Div(amountToSendA, big.NewInt(2))
+	amountToSendB := new(big.Int).Div(amountToSendA, big.NewInt(2))
 
 	// Multihop transfer back to Subnet A
 	utils.SendNativeMultihopAndVerify(

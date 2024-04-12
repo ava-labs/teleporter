@@ -15,13 +15,15 @@ import (
 )
 
 var (
-	decimalsShift           = big.NewInt(1)
-	tokenMultiplier         = big.NewInt(int64(math.Pow10(int(decimalsShift.Int64()))))
-	initialReserveImbalance = big.NewInt(0).Mul(big.NewInt(1e15), big.NewInt(1e9))
-	valueToReceive          = big.NewInt(0).Div(initialReserveImbalance, big.NewInt(4))
-	valueToSend             = big.NewInt(0).Div(valueToReceive, tokenMultiplier)
-	valueToReturn           = big.NewInt(0).Div(valueToReceive, big.NewInt(4))
+	decimalsShift           = uint8(1)
+	tokenMultiplier         = big.NewInt(int64(math.Pow10(int(decimalsShift))))
+	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e15), big.NewInt(1e9))
+	valueToReceive          = new(big.Int).Div(initialReserveImbalance, big.NewInt(4))
+	valueToSend             = new(big.Int).Div(valueToReceive, tokenMultiplier)
+	valueToReturn           = new(big.Int).Div(valueToReceive, big.NewInt(4))
 	multiplyOnReceive       = true
+
+	burnedFeesReportingRewardPercentage = big.NewInt(1)
 )
 
 /**
@@ -71,6 +73,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
+		burnedFeesReportingRewardPercentage,
 	)
 
 	// Generate new recipient to receive bridged tokens
@@ -107,13 +110,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			true,
 		)
 
-		utils.CheckNativeTokenDestinationMint(
-			ctx,
-			nativeTokenDestination,
-			recipientAddress,
-			receipt,
-			big.NewInt(0),
-		)
 		teleporterUtils.CheckBalance(
 			ctx,
 			recipientAddress,
@@ -146,7 +142,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			cChainInfo,
 			nativeTokenSource,
 			input,
-			big.NewInt(0).Div(initialReserveImbalance, tokenMultiplier),
+			new(big.Int).Div(initialReserveImbalance, tokenMultiplier),
 			fundedKey,
 		)
 
@@ -158,13 +154,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			true,
 		)
 
-		utils.CheckNativeTokenDestinationMint(
-			ctx,
-			nativeTokenDestination,
-			recipientAddress,
-			receipt,
-			valueToReceive,
-		)
 		teleporterUtils.CheckBalance(
 			ctx,
 			recipientAddress,

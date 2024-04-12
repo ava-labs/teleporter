@@ -7,10 +7,16 @@ pragma solidity 0.8.18;
 
 import {TeleporterTokenDestination} from "./TeleporterTokenDestination.sol";
 import {IERC20Bridge} from "./interfaces/IERC20Bridge.sol";
+import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {SendTokensInput} from "./interfaces/ITeleporterTokenBridge.sol";
+import {
+    SendTokensInput,
+    SendAndCallInput,
+    SingleHopCallMessage
+} from "./interfaces/ITeleporterTokenBridge.sol";
+import {CallUtils} from "./utils/CallUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -37,8 +43,8 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        bytes32 sourceBlockchainID,
-        address tokenSourceAddress,
+        bytes32 sourceBlockchainID_,
+        address tokenSourceAddress_,
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals
@@ -46,9 +52,11 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         TeleporterTokenDestination(
             teleporterRegistryAddress,
             teleporterManager,
-            sourceBlockchainID,
-            tokenSourceAddress,
-            address(this)
+            sourceBlockchainID_,
+            tokenSourceAddress_,
+            address(this),
+            0,
+            false
         )
         ERC20(tokenName, tokenSymbol)
     {
@@ -62,28 +70,36 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      *
      * @dev See {IERC20Bridge-send}
      */
-    function send(SendTokensInput calldata input, uint256 amount) external nonReentrant {
+    function send(SendTokensInput calldata input, uint256 amount) external {
         _send(input, amount);
     }
 
     /**
-     * @dev See {IERC20-decimals}
+     * @dev See {IERC20Bridge-sendAndCall}
      */
-    function decimals() public view virtual override returns (uint8) {
+    function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
+        _sendAndCall(input, amount);
+    }
+
+    /**
+     * @dev See {ERC20-decimals}
+     */
+    function decimals() public view override returns (uint8) {
         return _decimals;
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_deposit}
      */
-    function _deposit(uint256 amount) internal virtual override returns (uint256) {
+    function _deposit(uint256 amount) internal override returns (uint256) {
         return SafeERC20TransferFrom.safeTransferFrom(this, amount);
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
-    function _withdraw(address recipient, uint256 amount) internal virtual override {
+    function _withdraw(address recipient, uint256 amount) internal override {
+        emit TokensWithdrawn(recipient, amount);
         _mint(recipient, amount);
     }
 
@@ -92,14 +108,55 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      *
      * Calls {ERC20-_burn} to burn tokens from this contract.
      */
-    function _burn(uint256 amount) internal virtual override {
+    function _burn(uint256 amount) internal override {
         _burn(address(this), amount);
     }
 
     /**
-     * @dev See {TeleporterTokenDestination-_scaleTokens}
+     * @dev See {TeleporterTokenDestination-_handleSendAndCall}
+     *
+     * Mints the tokens to this contract, approves the recipient contract to spend them,
+     * and calls {IERC20SendAndCallReceiver-receiveTokens} on the recipient contract.
+     * If the call fails or doesn't spend all of the tokens, the remaining amount is
+     * sent to the fallback recipient.
      */
-    function _scaleTokens(uint256 value, bool) internal pure override returns (uint256) {
-        return value;
+    function _handleSendAndCall(
+        SingleHopCallMessage memory message,
+        uint256 amount
+    ) internal override {
+        // Mint the tokens to this contract address.
+        _mint(address(this), amount);
+
+        // Approve the destination contract to spend the amount.
+        _approve(address(this), message.recipientContract, amount);
+
+        // Encode the call to {IERC20SendAndCallReceiver-receiveTokens}
+        bytes memory payload = abi.encodeCall(
+            IERC20SendAndCallReceiver.receiveTokens,
+            (address(this), amount, message.recipientPayload)
+        );
+
+        // Call the destination contract with the given payload and gas amount.
+        bool success = CallUtils._callWithExactGas(
+            message.recipientGasLimit, message.recipientContract, payload
+        );
+
+        // Check what the remaining allowance is to transfer to the fallback recipient.
+        uint256 remainingAllowance = allowance(address(this), message.recipientContract);
+
+        // Reset the destination contract allowance to 0.
+        _approve(address(this), message.recipientContract, 0);
+
+        if (success) {
+            emit CallSucceeded(message.recipientContract, amount);
+        } else {
+            emit CallFailed(message.recipientContract, amount);
+        }
+
+        // Transfer any remaining allowance to the fallback recipient. This will be the
+        // full amount if the call failed.
+        if (remainingAllowance > 0) {
+            _transfer(address(this), message.fallbackRecipient, remainingAllowance);
+        }
     }
 }
