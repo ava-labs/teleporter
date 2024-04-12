@@ -87,6 +87,8 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 	fallbackAddress := crypto.PubkeyToAddress(fallbackKey.PublicKey)
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
+	primaryFee := big.NewInt(1e18)
+	var bridgedAmount = teleporterUtils.BigIntSub(amount, primaryFee)
 
 	// Send tokens from C-Chain to Mock contract on subnet A
 	{
@@ -140,15 +142,6 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 
 	// Bridge ERC20 tokens to account on subnet A
 	{
-		// Fund recipient with gas tokens on subnet A
-		teleporterUtils.SendNativeTransfer(
-			ctx,
-			subnetAInfo,
-			fundedKey,
-			recipientAddress,
-			big.NewInt(1e18),
-		)
-
 		// Send ERC20 tokens from C-Chain to recipient on subnet A
 		input := erc20source.SendTokensInput{
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
@@ -195,6 +188,15 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 
 	// Send tokens to Mock contract on C-Chain using Send and Call
 	{
+		// Fund recipient with gas tokens on subnet A
+		teleporterUtils.SendNativeTransfer(
+			ctx,
+			subnetAInfo,
+			fundedKey,
+			recipientAddress,
+			big.NewInt(1e18),
+		)
+
 		inputB := erc20destination.SendAndCallInput{
 			DestinationBlockchainID:  cChainInfo.BlockchainID,
 			DestinationBridgeAddress: erc20SourceAddress,
@@ -213,7 +215,7 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			erc20Destination,
 			erc20DestinationAddress,
 			inputB,
-			amount,
+			bridgedAmount,
 			recipientKey,
 		)
 
