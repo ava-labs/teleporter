@@ -218,7 +218,7 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 
 	sourceEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseCallSucceeded)
 	Expect(err).Should(BeNil())
-	Expect(sourceEvent.RecipientContract).Should(Equal(input.RecipientContract))
+	Expect(sourceEvent.RecipientContract).Should(Equal(inputB.RecipientContract))
 	Expect(sourceEvent.Amount).Should(Equal(bridgedAmount))
 
 	// Check that the recipient received the tokens
