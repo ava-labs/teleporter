@@ -61,6 +61,11 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         );
     }
 
+    function testZeroSendAmount() public {
+        vm.expectRevert("SafeERC20TransferFrom: balance not increased");
+        _send(_createDefaultSendTokensInput(), 0);
+    }
+
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectCall(
             address(mockERC20), abi.encodeCall(IERC20.transfer, (address(recipient), amount))

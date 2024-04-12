@@ -8,7 +8,6 @@ pragma solidity 0.8.18;
 import {TeleporterTokenDestination} from "./TeleporterTokenDestination.sol";
 import {IERC20Bridge} from "./interfaces/IERC20Bridge.sol";
 import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {
@@ -54,7 +53,6 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
             teleporterManager,
             sourceBlockchainID_,
             tokenSourceAddress_,
-            address(this),
             0,
             false
         )
@@ -90,9 +88,15 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
 
     /**
      * @dev See {TeleporterTokenDestination-_deposit}
+     *
+     * Note: The amount returned must be the amount credited as a result of the transfer.
+     * For a standard ERC20 implementation such as this contract, that is equal to the full amount given.
+     * For fee/burn on transfer tokens, that amount could be less.
      */
     function _deposit(uint256 amount) internal override returns (uint256) {
-        return SafeERC20TransferFrom.safeTransferFrom(this, amount);
+        _spendAllowance(msg.sender, address(this), amount);
+        _transfer(msg.sender, address(this), amount);
+        return amount;
     }
 
     /**

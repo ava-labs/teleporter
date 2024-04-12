@@ -92,6 +92,11 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         });
     }
 
+    function testZeroSendAmount() public {
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        _send(_createDefaultSendTokensInput(), 0);
+    }
+
     function testDecimals() public {
         uint8 res = app.decimals();
         assertEq(MOCK_TOKEN_DECIMALS, res);

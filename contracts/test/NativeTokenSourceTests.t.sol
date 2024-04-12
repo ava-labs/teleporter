@@ -49,6 +49,11 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         new NativeTokenSource(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
     }
 
+    function testZeroSendAmount() public {
+        vm.expectRevert("SafeWrappedNativeTokenDeposit: balance not increased");
+        _send(_createDefaultSendTokensInput(), 0);
+    }
+
     function _checkExpectedWithdrawal(address, uint256 amount) internal override {
         vm.expectCall(
             address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
@@ -89,5 +94,11 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
             vm.expectEmit(true, true, true, true, address(app));
             emit CallFailed(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
         }
+    }
+
+    function _setUpExpectedDeposit(uint256 amount) internal override {
+        vm.expectCall(address(feeToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
+        vm.expectEmit(true, true, true, true, address(feeToken));
+        emit Deposit(address(nativeTokenBridge), amount);
     }
 }

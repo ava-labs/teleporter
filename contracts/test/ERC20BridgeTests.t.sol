@@ -16,11 +16,6 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
 
     IERC20Bridge public erc20Bridge;
 
-    function testZeroSendAmount() public {
-        vm.expectRevert("SafeERC20TransferFrom: balance not increased");
-        _send(_createDefaultSendTokensInput(), 0);
-    }
-
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
         erc20Bridge.send(input, amount);
     }
@@ -35,11 +30,15 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
     function _setUpExpectedDeposit(uint256 amount) internal virtual override {
         // Increase the allowance of the bridge to transfer the funds from the user
         feeToken.safeIncreaseAllowance(address(tokenBridge), amount);
+
         // Check that transferFrom is called to deposit the funds sent from the user to the bridge
-        vm.expectCall(
-            address(feeToken),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), amount))
-        );
+        // This is only the case if the bridge is not the fee token itself, in which case this is an internal call.
+        if (address(feeToken) != address(tokenBridge)) {
+            vm.expectCall(
+                address(feeToken),
+                abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), amount))
+            );
+        }
         vm.expectEmit(true, true, true, true, address(feeToken));
         emit Transfer(address(this), address(tokenBridge), amount);
     }
