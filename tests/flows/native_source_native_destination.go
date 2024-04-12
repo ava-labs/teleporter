@@ -16,11 +16,11 @@ import (
 
 var (
 	decimalsShift           = uint8(1)
-	tokenMultipler          = big.NewInt(int64(math.Pow10(int(decimalsShift))))
-	initialReserveImbalance = big.NewInt(0).Mul(big.NewInt(1e15), big.NewInt(1e9))
-	valueToReceive          = big.NewInt(0).Div(initialReserveImbalance, big.NewInt(4))
-	valueToSend             = big.NewInt(0).Div(valueToReceive, tokenMultipler)
-	valueToReturn           = big.NewInt(0).Div(valueToReceive, big.NewInt(4))
+	tokenMultiplier         = big.NewInt(int64(math.Pow10(int(decimalsShift))))
+	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e15), big.NewInt(1e9))
+	valueToReceive          = new(big.Int).Div(initialReserveImbalance, big.NewInt(4))
+	valueToSend             = new(big.Int).Div(valueToReceive, tokenMultiplier)
+	valueToReturn           = new(big.Int).Div(valueToReceive, big.NewInt(4))
 	multiplyOnReceive       = true
 
 	burnedFeesReportingRewardPercentage = big.NewInt(1)
@@ -46,7 +46,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		cChainInfo,
 	)
 
-	// Deploy an example WAVAX on the primary network
+	// Deploy an example WAVAX on the subnet
 	wavaxAddressB, _ := utils.DeployExampleWAVAX(
 		ctx,
 		fundedKey,
@@ -100,7 +100,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			valueToSend,
 			fundedKey,
 		)
-		scaledBridgedAmount := teleporterUtils.BigIntMul(bridgedAmount, tokenMultipler)
+		scaledBridgedAmount := teleporterUtils.BigIntMul(bridgedAmount, tokenMultiplier)
 
 		receipt = network.RelayMessage(
 			ctx,
@@ -110,7 +110,12 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			true,
 		)
 
-		teleporterUtils.CheckBalance(ctx, recipientAddress, big.NewInt(0), subnetAInfo.RPCClient)
+		teleporterUtils.CheckBalance(
+			ctx,
+			recipientAddress,
+			big.NewInt(0),
+			subnetAInfo.RPCClient,
+		)
 		utils.CheckNativeTokenDestinationCollateralize(
 			ctx,
 			nativeTokenDestination,
@@ -137,7 +142,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			cChainInfo,
 			nativeTokenSource,
 			input,
-			big.NewInt(0).Div(initialReserveImbalance, tokenMultipler),
+			new(big.Int).Div(initialReserveImbalance, tokenMultiplier),
 			fundedKey,
 		)
 
@@ -149,7 +154,13 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			true,
 		)
 
-		teleporterUtils.CheckBalance(ctx, recipientAddress, valueToReceive, subnetAInfo.RPCClient)
+		teleporterUtils.CheckBalance(
+			ctx,
+			recipientAddress,
+			valueToReceive,
+			subnetAInfo.RPCClient,
+		)
+
 		utils.CheckNativeTokenDestinationCollateralize(
 			ctx,
 			nativeTokenDestination,
@@ -177,7 +188,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			input_A,
 			valueToReturn,
 			recipientKey,
-			tokenMultipler,
+			tokenMultiplier,
 			multiplyOnReceive,
 		)
 
