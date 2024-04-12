@@ -17,8 +17,9 @@ import (
 /**
  * Deploy an ERC20 token source on the primary network
  * Deploys ERC20Destination to Subnet A
- * Bridges C-Chain example ERC20 tokens to Subnet A
- * Bridge tokens from Subnet A to C-Chain using Send and Call
+ * Bridges C-Chain example ERC20 tokens to Subnet A and calls contract on Subnet A using sendAndCall
+ * Bridges C-Chain example ERC20 to EOA on Subnet A, and then bridge tokens from Subnet A back
+ * C-Chain and calls contract on the C-Chain using sendAndCall
  */
 func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
