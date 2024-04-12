@@ -31,8 +31,6 @@ import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
-    using SafeWrappedNativeTokenDeposit for IWrappedNativeToken;
-
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
@@ -75,7 +73,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * Deposits the native tokens sent to this contract
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return token.safeDeposit(amount);
+        return SafeWrappedNativeTokenDeposit.safeDeposit(token, amount);
     }
 
     /**
