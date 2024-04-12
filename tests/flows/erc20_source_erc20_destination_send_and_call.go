@@ -18,7 +18,7 @@ import (
  * Deploy an ERC20 token source on the primary network
  * Deploys ERC20Destination to Subnet A
  * Bridges C-Chain example ERC20 tokens to Subnet A
- * Bridge tokens from Subnet A to C-Chain
+ * Bridge tokens from Subnet A to C-Chain using Send and Call
  */
 func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
@@ -86,56 +86,59 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	fallbackAddress := crypto.PubkeyToAddress(fallbackKey.PublicKey)
 
-	// Send tokens from C-Chain to recipient on subnet A
-	input := erc20source.SendAndCallInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: erc20DestinationAddress,
-		RecipientContract:        destMockERC20SACRAddress,
-		RecipientPayload:         []byte{1},
-		RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGasLimit),
-		RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGasLimit),
-		FallbackRecipient:        fallbackAddress,
-		PrimaryFee:               big.NewInt(1e18),
-		SecondaryFee:             big.NewInt(0),
-	}
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
 
-	receipt, bridgedAmount := utils.SendAndCallERC20Source(
-		ctx,
-		cChainInfo,
-		erc20Source,
-		erc20SourceAddress,
-		sourceToken,
-		input,
-		amount,
-		fundedKey,
-	)
+	// Send tokens from C-Chain to Mock contract on subnet A
+	{
+		input := erc20source.SendAndCallInput{
+			DestinationBlockchainID:  subnetAInfo.BlockchainID,
+			DestinationBridgeAddress: erc20DestinationAddress,
+			RecipientContract:        destMockERC20SACRAddress,
+			RecipientPayload:         []byte{1},
+			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGasLimit),
+			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGasLimit),
+			FallbackRecipient:        fallbackAddress,
+			PrimaryFee:               big.NewInt(1e18),
+			SecondaryFee:             big.NewInt(0),
+		}
 
-	// Relay the message to Subnet A and check for message delivery
-	receipt = network.RelayMessage(
-		ctx,
-		receipt,
-		cChainInfo,
-		subnetAInfo,
-		true,
-	)
+		receipt, bridgedAmount := utils.SendAndCallERC20Source(
+			ctx,
+			cChainInfo,
+			erc20Source,
+			erc20SourceAddress,
+			sourceToken,
+			input,
+			amount,
+			fundedKey,
+		)
 
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Destination.ParseCallSucceeded)
-	Expect(err).Should(BeNil())
-	Expect(event.RecipientContract).Should(Equal(input.RecipientContract))
-	Expect(event.Amount).Should(Equal(bridgedAmount))
+		// Relay the message to Subnet A and check for message delivery
+		receipt = network.RelayMessage(
+			ctx,
+			receipt,
+			cChainInfo,
+			subnetAInfo,
+			true,
+		)
 
-	receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, destMockERC20SACR.ParseTokensReceived)
-	Expect(err).Should(BeNil())
-	Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
-	Expect(receiverEvent.Payload).Should(Equal(input.RecipientPayload))
+		event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Destination.ParseCallSucceeded)
+		Expect(err).Should(BeNil())
+		Expect(event.RecipientContract).Should(Equal(input.RecipientContract))
+		Expect(event.Amount).Should(Equal(bridgedAmount))
 
-	// Check that the contract received the tokens
-	balance, err := erc20Destination.BalanceOf(&bind.CallOpts{}, destMockERC20SACRAddress)
-	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
+		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, destMockERC20SACR.ParseTokensReceived)
+		Expect(err).Should(BeNil())
+		Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
+		Expect(receiverEvent.Payload).Should(Equal(input.RecipientPayload))
 
-	// Bridge back to source
+		// Check that the contract received the tokens
+		balance, err := erc20Destination.BalanceOf(&bind.CallOpts{}, destMockERC20SACRAddress)
+		Expect(err).Should(BeNil())
+		Expect(balance).Should(Equal(bridgedAmount))
+	}
+
+	// Bridge ERC20 tokens to account on subnet A
 	{
 		// Fund recipient with gas tokens on subnet A
 		teleporterUtils.SendNativeTransfer(
@@ -155,7 +158,6 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			SecondaryFee:             big.NewInt(0),
 			RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 		}
-		amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
 
 		receipt, bridgedAmount := utils.SendERC20Source(
 			ctx,
@@ -191,48 +193,51 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 		Expect(balance).Should(Equal(bridgedAmount))
 	}
 
-	inputB := erc20destination.SendAndCallInput{
-		DestinationBlockchainID:  cChainInfo.BlockchainID,
-		DestinationBridgeAddress: erc20SourceAddress,
-		RecipientContract:        sourceMockERC20SACRAddress,
-		RecipientPayload:         []byte{1},
-		RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGasLimit),
-		RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGasLimit),
-		FallbackRecipient:        fallbackAddress,
-		PrimaryFee:               big.NewInt(0),
-		SecondaryFee:             big.NewInt(0),
+	// Send tokens to Mock contract on C-Chain using Send and Call
+	{
+		inputB := erc20destination.SendAndCallInput{
+			DestinationBlockchainID:  cChainInfo.BlockchainID,
+			DestinationBridgeAddress: erc20SourceAddress,
+			RecipientContract:        sourceMockERC20SACRAddress,
+			RecipientPayload:         []byte{1},
+			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGasLimit),
+			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGasLimit),
+			FallbackRecipient:        fallbackAddress,
+			PrimaryFee:               big.NewInt(0),
+			SecondaryFee:             big.NewInt(0),
+		}
+
+		receipt, bridgedAmount := utils.SendAndCallERC20Destination(
+			ctx,
+			subnetAInfo,
+			erc20Destination,
+			erc20DestinationAddress,
+			inputB,
+			amount,
+			recipientKey,
+		)
+
+		receipt = network.RelayMessage(
+			ctx,
+			receipt,
+			subnetAInfo,
+			cChainInfo,
+			true,
+		)
+
+		sourceEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseCallSucceeded)
+		Expect(err).Should(BeNil())
+		Expect(sourceEvent.RecipientContract).Should(Equal(inputB.RecipientContract))
+		Expect(sourceEvent.Amount).Should(Equal(bridgedAmount))
+
+		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, sourceMockERC20SACR.ParseTokensReceived)
+		Expect(err).Should(BeNil())
+		Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
+		Expect(receiverEvent.Payload).Should(Equal(inputB.RecipientPayload))
+
+		// Check that the recipient received the tokens
+		balance, err := sourceToken.BalanceOf(&bind.CallOpts{}, sourceMockERC20SACRAddress)
+		Expect(err).Should(BeNil())
+		Expect(balance).Should(Equal(bridgedAmount))
 	}
-
-	receipt, bridgedAmount = utils.SendAndCallERC20Destination(
-		ctx,
-		subnetAInfo,
-		erc20Destination,
-		erc20DestinationAddress,
-		inputB,
-		bridgedAmount,
-		recipientKey,
-	)
-
-	receipt = network.RelayMessage(
-		ctx,
-		receipt,
-		subnetAInfo,
-		cChainInfo,
-		true,
-	)
-
-	sourceEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseCallSucceeded)
-	Expect(err).Should(BeNil())
-	Expect(sourceEvent.RecipientContract).Should(Equal(inputB.RecipientContract))
-	Expect(sourceEvent.Amount).Should(Equal(bridgedAmount))
-
-	receiverEvent, err = teleporterUtils.GetEventFromLogs(receipt.Logs, sourceMockERC20SACR.ParseTokensReceived)
-	Expect(err).Should(BeNil())
-	Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
-	Expect(receiverEvent.Payload).Should(Equal(inputB.RecipientPayload))
-
-	// Check that the recipient received the tokens
-	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, sourceMockERC20SACRAddress)
-	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
 }
