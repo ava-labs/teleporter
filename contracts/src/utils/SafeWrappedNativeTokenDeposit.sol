@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
+import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 
 /**
  * @dev Provides a wrapper used for calling the {IWrappedNativeToken-deposit} method
@@ -17,7 +17,7 @@ import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
  * Note: A reentrancy guard must always be used when calling token.safeDeposit in order to
  * prevent against possible "before-after" pattern vulnerabilities.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 library SafeWrappedNativeTokenDeposit {
     /**

@@ -16,7 +16,7 @@ import {
     SendAndCallInput,
     SingleHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
-import {GasUtils} from "./utils/GasUtils.sol";
+import {CallUtils} from "./utils/CallUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -43,8 +43,8 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        bytes32 sourceBlockchainID,
-        address tokenSourceAddress,
+        bytes32 sourceBlockchainID_,
+        address tokenSourceAddress_,
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals
@@ -52,8 +52,8 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         TeleporterTokenDestination(
             teleporterRegistryAddress,
             teleporterManager,
-            sourceBlockchainID,
-            tokenSourceAddress,
+            sourceBlockchainID_,
+            tokenSourceAddress_,
             address(this),
             0,
             false
@@ -70,35 +70,35 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      *
      * @dev See {IERC20Bridge-send}
      */
-    function send(SendTokensInput calldata input, uint256 amount) external nonReentrant {
+    function send(SendTokensInput calldata input, uint256 amount) external {
         _send(input, amount);
     }
 
     /**
      * @dev See {IERC20Bridge-sendAndCall}
      */
-    function sendAndCall(SendAndCallInput calldata input, uint256 amount) external nonReentrant {
+    function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
         _sendAndCall(input, amount);
     }
 
     /**
      * @dev See {ERC20-decimals}
      */
-    function decimals() public view virtual override returns (uint8) {
+    function decimals() public view override returns (uint8) {
         return _decimals;
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_deposit}
      */
-    function _deposit(uint256 amount) internal virtual override returns (uint256) {
+    function _deposit(uint256 amount) internal override returns (uint256) {
         return SafeERC20TransferFrom.safeTransferFrom(this, amount);
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
-    function _withdraw(address recipient, uint256 amount) internal virtual override {
+    function _withdraw(address recipient, uint256 amount) internal override {
         _mint(recipient, amount);
     }
 
@@ -107,7 +107,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      *
      * Calls {ERC20-_burn} to burn tokens from this contract.
      */
-    function _burn(uint256 amount) internal virtual override {
+    function _burn(uint256 amount) internal override {
         _burn(address(this), amount);
     }
 
@@ -122,7 +122,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
-    ) internal virtual override {
+    ) internal override {
         // Mint the tokens to this contract address.
         _mint(address(this), amount);
 
@@ -136,7 +136,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         );
 
         // Call the destination contract with the given payload and gas amount.
-        bool success = GasUtils._callWithExactGas(
+        bool success = CallUtils._callWithExactGas(
             message.recipientGasLimit, message.recipientContract, payload
         );
 

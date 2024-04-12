@@ -18,6 +18,7 @@ import {
     MultiHopSendMessage,
     MultiHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
+import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 
@@ -34,7 +35,8 @@ import {IWarpMessenger} from
  */
 abstract contract TeleporterTokenDestination is
     ITeleporterTokenBridge,
-    TeleporterOwnerUpgradeable
+    TeleporterOwnerUpgradeable,
+    SendReentrancyGuard
 {
     /// @notice The blockchain ID of the chain this contract is deployed on.
     bytes32 public immutable blockchainID;
@@ -119,7 +121,7 @@ abstract contract TeleporterTokenDestination is
      * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
      * Should be used for all tokens being transferred to/from other subnets.
      */
-    function scaleTokens(uint256 value, bool isReceive) public view virtual returns (uint256) {
+    function scaleTokens(uint256 value, bool isReceive) public view returns (uint256) {
         // Multiply when multiplyOnReceive and isReceive are both true or both false.
         if (multiplyOnReceive == isReceive) {
             return value * tokenMultiplier;
@@ -141,7 +143,7 @@ abstract contract TeleporterTokenDestination is
      * - `amount` must be greater than 0
      * - `amount` must be greater than `input.primaryFee`
      */
-    function _send(SendTokensInput calldata input, uint256 amount) internal virtual {
+    function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
         require(input.requiredGasLimit != 0, "TeleporterTokenDestination: zero required gas limit");
         amount = _prepareSend(
@@ -222,7 +224,10 @@ abstract contract TeleporterTokenDestination is
      * Tokens and data can be sent to the same blockchain this bridge instance is deployed on,
      * to another destination bridge instance.
      */
-    function _sendAndCall(SendAndCallInput memory input, uint256 amount) internal virtual {
+    function _sendAndCall(
+        SendAndCallInput memory input,
+        uint256 amount
+    ) internal sendNonReentrant {
         require(
             input.recipientContract != address(0),
             "TeleporterTokenDestination: zero recipient contract address"
@@ -322,7 +327,7 @@ abstract contract TeleporterTokenDestination is
         bytes32 sourceBlockchainID_,
         address originSenderAddress,
         bytes memory message
-    ) internal virtual override {
+    ) internal override {
         require(
             sourceBlockchainID_ == sourceBlockchainID,
             "TeleporterTokenDestination: invalid source chain"
