@@ -8,7 +8,11 @@ pragma solidity 0.8.18;
 import {TeleporterTokenSource} from "./TeleporterTokenSource.sol";
 import {INativeTokenBridge} from "./interfaces/INativeTokenBridge.sol";
 import {INativeSendAndCallReceiver} from "./interfaces/INativeSendAndCallReceiver.sol";
-import {SendTokensInput, SendAndCallInput, SingleHopCallMessage} from "./interfaces/ITeleporterTokenBridge.sol";
+import {
+    SendTokensInput,
+    SendAndCallInput,
+    SingleHopCallMessage
+} from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol";
@@ -38,9 +42,11 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * @notice Initializes this source token bridge instance
      * @dev Teleporter fees are paid by a {IWrappedNativeToken} instance.
      */
-    constructor(address teleporterRegistryAddress, address teleporterManager, address feeTokenAddress_)
-        TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress_)
-    {
+    constructor(
+        address teleporterRegistryAddress,
+        address teleporterManager,
+        address feeTokenAddress_
+    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress_) {
         token = IWrappedNativeToken(feeTokenAddress_);
     }
 
@@ -90,16 +96,21 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * If the call fails or doesn't spend all of the tokens, the remaining amount is
      * sent to the fallback recipient.
      */
-    function _handleSendAndCall(SingleHopCallMessage memory message, uint256 amount) internal virtual override {
+    function _handleSendAndCall(
+        SingleHopCallMessage memory message,
+        uint256 amount
+    ) internal virtual override {
         // Withdraw the native token from the wrapped native token contract.
         token.withdraw(amount);
 
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
-        bytes memory payload = abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (message.recipientPayload));
+        bytes memory payload =
+            abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (message.recipientPayload));
 
         // Call the destination contract with the given payload, gas amount, and value.
-        bool success =
-            CallUtils._callWithExactGasAndValue(message.recipientGasLimit, amount, message.recipientContract, payload);
+        bool success = CallUtils._callWithExactGasAndValue(
+            message.recipientGasLimit, amount, message.recipientContract, payload
+        );
 
         // If the call failed, send the funds to the fallback recipient.
         if (success) {

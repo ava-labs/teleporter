@@ -11,7 +11,11 @@ import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {SendTokensInput, SendAndCallInput, SingleHopCallMessage} from "./interfaces/ITeleporterTokenBridge.sol";
+import {
+    SendTokensInput,
+    SendAndCallInput,
+    SingleHopCallMessage
+} from "./interfaces/ITeleporterTokenBridge.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
 
 /**
@@ -39,9 +43,11 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
      *
      * Teleporter fees are paid by the same token that is being bridged.
      */
-    constructor(address teleporterRegistryAddress, address teleporterManager, address tokenAddress)
-        TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, tokenAddress)
-    {
+    constructor(
+        address teleporterRegistryAddress,
+        address teleporterManager,
+        address tokenAddress
+    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, tokenAddress) {
         token = IERC20(tokenAddress);
     }
 
@@ -81,16 +87,23 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
      * If the call fails or doesn't spend all of the tokens, the remaining amount is
      * sent to the fallback recipient.
      */
-    function _handleSendAndCall(SingleHopCallMessage memory message, uint256 amount) internal virtual override {
+    function _handleSendAndCall(
+        SingleHopCallMessage memory message,
+        uint256 amount
+    ) internal virtual override {
         // Approve the destination contract to spend the amount from the collateral.
         SafeERC20.safeIncreaseAllowance(token, message.recipientContract, amount);
 
         // Encode the call to {IERC20SendAndCallReceiver-receiveTokens}
-        bytes memory payload =
-            abi.encodeCall(IERC20SendAndCallReceiver.receiveTokens, (address(token), amount, message.recipientPayload));
+        bytes memory payload = abi.encodeCall(
+            IERC20SendAndCallReceiver.receiveTokens,
+            (address(token), amount, message.recipientPayload)
+        );
 
         // Call the destination contract with the given payload and gas amount.
-        bool success = CallUtils._callWithExactGas(message.recipientGasLimit, message.recipientContract, payload);
+        bool success = CallUtils._callWithExactGas(
+            message.recipientGasLimit, message.recipientContract, payload
+        );
 
         uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
 
