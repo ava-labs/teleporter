@@ -1,6 +1,6 @@
 module github.com/ava-labs/teleporter-token-bridge
 
-go 1.21
+go 1.21.9
 
 require (
 	github.com/ava-labs/avalanchego v1.11.1
