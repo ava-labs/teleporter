@@ -103,6 +103,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal override {
+        emit TokensWithdrawn(recipient, amount);
         _mint(recipient, amount);
     }
 

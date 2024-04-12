@@ -273,6 +273,8 @@ contract NativeTokenDestination is
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal override {
+        emit TokensWithdrawn(recipient, amount);
+
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
         // be minted and sent to the recipient.

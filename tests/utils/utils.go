@@ -17,6 +17,8 @@ import (
 	nativetokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenDestination"
 	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
 	examplewavax "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleWAVAX"
+	mockERC20SACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
+	mockNSACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockNativeSendAndCallReceiver"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
@@ -212,6 +214,44 @@ func DeployExampleWAVAX(
 	return address, token
 }
 
+func DeployMockNativeSendAndCallReceiver(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+) (common.Address, *mockNSACR.MockNativeSendAndCallReceiver) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+
+	// Deploy MockNativeSendAndCallReceiver contract
+	address, tx, contract, err := mockNSACR.DeployMockNativeSendAndCallReceiver(opts, subnet.RPCClient)
+	Expect(err).Should(BeNil())
+	log.Info("Deployed MockNativeSendAndCallReceiver contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
+
+	// Wait for the transaction to be mined
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	return address, contract
+}
+
+func DeployMockERC20SendAndCallReceiver(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+) (common.Address, *mockERC20SACR.MockERC20SendAndCallReceiver) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+
+	// Deploy MockERC20SendAndCallReceiver contract
+	address, tx, contract, err := mockERC20SACR.DeployMockERC20SendAndCallReceiver(opts, subnet.RPCClient)
+	Expect(err).Should(BeNil())
+	log.Info("Deployed MockERC20SendAndCallReceiver contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
+
+	// Wait for the transaction to be mined
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	return address, contract
+}
+
 func SendERC20Source(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
@@ -349,6 +389,148 @@ func SendERC20Destination(
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Destination.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
+	Expect(event.Amount).Should(Equal(bridgedAmount))
+
+	return receipt, event.Amount
+}
+
+func SendAndCallERC20Source(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	erc20Source *erc20source.ERC20Source,
+	erc20SourceAddress common.Address,
+	sourceToken *exampleerc20.ExampleERC20,
+	input erc20source.SendAndCallInput,
+	amount *big.Int,
+	senderKey *ecdsa.PrivateKey,
+) (*types.Receipt, *big.Int) {
+	// Approve the ERC20Source to spend the tokens
+	teleporterUtils.ERC20Approve(
+		ctx,
+		sourceToken,
+		erc20SourceAddress,
+		amount,
+		subnet,
+		senderKey,
+	)
+
+	// Send the tokens and verify expected events
+	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := erc20Source.SendAndCall(
+		optsA,
+		input,
+		amount,
+	)
+	Expect(err).Should(BeNil())
+	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
+
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseTokensAndCallSent)
+	Expect(err).Should(BeNil())
+	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
+	Expect(event.Amount).Should(Equal(bridgedAmount))
+
+	return receipt, event.Amount
+}
+
+func SendAndCallNativeTokenSource(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	nativeTokenSource *nativetokensource.NativeTokenSource,
+	input nativetokensource.SendAndCallInput,
+	amount *big.Int,
+	senderKey *ecdsa.PrivateKey,
+) (*types.Receipt, *big.Int) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	opts.Value = amount
+
+	tx, err := nativeTokenSource.SendAndCall(
+		opts,
+		input,
+	)
+	Expect(err).Should(BeNil())
+	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
+
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseTokensAndCallSent)
+	Expect(err).Should(BeNil())
+	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
+	Expect(event.Amount).Should(Equal(bridgedAmount))
+
+	return receipt, event.Amount
+}
+
+func SendAndCallNativeTokenDestination(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
+	input nativetokendestination.SendAndCallInput,
+	amount *big.Int,
+	senderKey *ecdsa.PrivateKey,
+	tokenMultiplier *big.Int,
+	multiplyOnReceive bool,
+) (*types.Receipt, *big.Int) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	opts.Value = amount
+
+	tx, err := nativeTokenDestination.SendAndCall(
+		opts,
+		input,
+	)
+	Expect(err).Should(BeNil())
+	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
+	var scaledBridgedAmount *big.Int
+	if multiplyOnReceive {
+		scaledBridgedAmount = big.NewInt(0).Div(bridgedAmount, tokenMultiplier)
+	} else {
+		scaledBridgedAmount = teleporterUtils.BigIntMul(bridgedAmount, tokenMultiplier)
+	}
+
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseTokensAndCallSent)
+	Expect(err).Should(BeNil())
+	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
+	Expect(event.Amount).Should(Equal(scaledBridgedAmount))
+
+	return receipt, event.Amount
+}
+
+func SendAndCallERC20Destination(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	erc20Destination *erc20destination.ERC20Destination,
+	erc20DestinationAddress common.Address,
+	input erc20destination.SendAndCallInput,
+	amount *big.Int,
+	senderKey *ecdsa.PrivateKey,
+) (*types.Receipt, *big.Int) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := erc20Destination.Approve(
+		opts,
+		erc20DestinationAddress,
+		amount,
+	)
+	Expect(err).Should(BeNil())
+
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	// Bridge the tokens back to subnet A
+	tx, err = erc20Destination.SendAndCall(
+		opts,
+		input,
+		amount,
+	)
+	Expect(err).Should(BeNil())
+
+	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Destination.ParseTokensAndCallSent)
+	Expect(err).Should(BeNil())
+	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 	Expect(event.Amount).Should(Equal(bridgedAmount))
 
 	return receipt, event.Amount

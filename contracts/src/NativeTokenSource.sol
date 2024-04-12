@@ -82,6 +82,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * and sends them to the recipient.
      */
     function _withdraw(address recipient, uint256 amount) internal override {
+        emit TokensWithdrawn(recipient, amount);
         token.withdraw(amount);
         payable(recipient).transfer(amount);
     }
