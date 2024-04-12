@@ -14,8 +14,8 @@ import {
     SingleHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
-import {GasUtils} from "./utils/GasUtils.sol";
-import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol";
+import {CallUtils} from "./utils/CallUtils.sol";
+import {SafeWrappedNativeTokenDeposit} from "./utils/SafeWrappedNativeTokenDeposit.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -31,8 +31,6 @@ import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
-    using SafeWrappedNativeTokenDeposit for IWrappedNativeToken;
-
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
@@ -45,9 +43,9 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address feeTokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress) {
-        token = IWrappedNativeToken(feeTokenAddress);
+        address feeTokenAddress_
+    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress_) {
+        token = IWrappedNativeToken(feeTokenAddress_);
     }
 
     /**
@@ -62,11 +60,11 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     /**
      * @dev See {INativeTokenBridge-send}
      */
-    function send(SendTokensInput calldata input) external payable nonReentrant {
+    function send(SendTokensInput calldata input) external payable {
         _send(input, msg.value, false);
     }
 
-    function sendAndCall(SendAndCallInput calldata input) external payable nonReentrant {
+    function sendAndCall(SendAndCallInput calldata input) external payable {
         _sendAndCall(input, msg.value, false);
     }
 
@@ -74,8 +72,8 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * @dev See {TeleportTokenSource-_deposit}
      * Deposits the native tokens sent to this contract
      */
-    function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return token.safeDeposit(amount);
+    function _deposit(uint256 amount) internal override returns (uint256) {
+        return SafeWrappedNativeTokenDeposit.safeDeposit(token, amount);
     }
 
     /**
@@ -83,7 +81,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * Withdraws the wrapped tokens for native tokens,
      * and sends them to the recipient.
      */
-    function _withdraw(address recipient, uint256 amount) internal virtual override {
+    function _withdraw(address recipient, uint256 amount) internal override {
         token.withdraw(amount);
         payable(recipient).transfer(amount);
     }
@@ -99,7 +97,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
-    ) internal virtual override {
+    ) internal override {
         // Withdraw the native token from the wrapped native token contract.
         token.withdraw(amount);
 
@@ -108,7 +106,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
             abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (message.recipientPayload));
 
         // Call the destination contract with the given payload, gas amount, and value.
-        bool success = GasUtils._callWithExactGasAndValue(
+        bool success = CallUtils._callWithExactGasAndValue(
             message.recipientGasLimit, amount, message.recipientContract, payload
         );
 

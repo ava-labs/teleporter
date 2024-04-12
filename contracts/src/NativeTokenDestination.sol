@@ -27,8 +27,10 @@ import {
     SingleHopSendMessage,
     SingleHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
-import {SafeWrappedNativeTokenDeposit} from "./SafeWrappedNativeTokenDeposit.sol";
-import {GasUtils} from "./utils/GasUtils.sol";
+import {SafeWrappedNativeTokenDeposit} from "./utils/SafeWrappedNativeTokenDeposit.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
+import {CallUtils} from "./utils/CallUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -45,8 +47,11 @@ import {GasUtils} from "./utils/GasUtils.sol";
 contract NativeTokenDestination is
     TeleporterOwnerUpgradeable,
     INativeTokenDestination,
+    SendReentrancyGuard,
     TeleporterTokenDestination
 {
+    using SafeERC20 for IWrappedNativeToken;
+
     /**
      * @notice The address where the burned transaction fees are credited.
      *
@@ -117,6 +122,11 @@ contract NativeTokenDestination is
      */
     IWrappedNativeToken public immutable token;
 
+    modifier onlyWhenCollateralized() {
+        require(_isCollateralized(), "NativeTokenDestination: contract undercollateralized");
+        _;
+    }
+
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
@@ -168,28 +178,21 @@ contract NativeTokenDestination is
     /**
      * @dev See {INativeTokenBridge-send}.
      */
-    function send(SendTokensInput calldata input) external payable nonReentrant {
-        require(
-            currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
-        );
-
+    function send(SendTokensInput calldata input) external payable onlyWhenCollateralized {
         _send(input, msg.value);
     }
 
     /**
      * @dev See {INativeTokenBridge-sendAndCall}
      */
-    function sendAndCall(SendAndCallInput calldata input) external payable nonReentrant {
-        require(
-            currentReserveImbalance == 0, "NativeTokenDestination: contract undercollateralized"
-        );
+    function sendAndCall(SendAndCallInput calldata input) external payable onlyWhenCollateralized {
         _sendAndCall(input, msg.value);
     }
 
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportBurnedTxFees(uint256 requiredGasLimit) external {
+    function reportBurnedTxFees(uint256 requiredGasLimit) external sendNonReentrant {
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
         require(
             burnAddressBalance > lastestBurnedFeesReported,
@@ -233,7 +236,7 @@ contract NativeTokenDestination is
      * @dev See {INativeTokenDestination-isCollateralized}.
      */
     function isCollateralized() external view returns (bool) {
-        return currentReserveImbalance == 0;
+        return _isCollateralized();
     }
 
     /**
@@ -249,14 +252,14 @@ contract NativeTokenDestination is
     /**
      * @dev See {TeleporterTokenDestination-_deposit}
      */
-    function _deposit(uint256 amount) internal virtual override returns (uint256) {
+    function _deposit(uint256 amount) internal override returns (uint256) {
         return SafeWrappedNativeTokenDeposit.safeDeposit(token, amount);
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
-    function _withdraw(address recipient, uint256 amount) internal virtual override {
+    function _withdraw(address recipient, uint256 amount) internal override {
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
         // be minted and sent to the recipient.
@@ -282,9 +285,9 @@ contract NativeTokenDestination is
     /**
      * @dev See {TeleporterTokenDestination-_burn}
      */
-    function _burn(uint256 amount) internal virtual override {
+    function _burn(uint256 amount) internal override {
         // Burn native token by transferring to BURN_FOR_TRANSFER_ADDRESS
-        token.transfer(BURN_FOR_TRANSFER_ADDRESS, amount);
+        token.safeTransfer(BURN_FOR_TRANSFER_ADDRESS, amount);
     }
 
     /**
@@ -301,12 +304,12 @@ contract NativeTokenDestination is
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
-    ) internal virtual override {
+    ) internal override {
         // If the contract is not yet fully collateralized, the use of send and call is not allowed
         // because it could result in unexpected behavior given that the amount of tokens used to make the
         // call to "receiveTokens" is less than expected. Instead, the amount is handled as a normal bridge
         // event to fallback recipient.
-        if (currentReserveImbalance > 0) {
+        if (!_isCollateralized()) {
             _withdraw(message.fallbackRecipient, amount);
             return;
         }
@@ -319,7 +322,7 @@ contract NativeTokenDestination is
             abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (message.recipientPayload));
 
         // Call the destination contract with the given payload, gas amount, and value.
-        bool success = GasUtils._callWithExactGasAndValue(
+        bool success = CallUtils._callWithExactGasAndValue(
             message.recipientGasLimit, amount, message.recipientContract, payload
         );
 
@@ -330,6 +333,14 @@ contract NativeTokenDestination is
             emit CallFailed(message.recipientContract, amount);
             payable(message.fallbackRecipient).transfer(amount);
         }
+    }
+
+    /**
+     * @dev Returns whether or not the NativeTokenDestination contract has been collateralized
+     * after being initialized with its given initialReserveImbalance.
+     */
+    function _isCollateralized() internal view returns (bool) {
+        return currentReserveImbalance == 0;
     }
 
     /**
