@@ -18,6 +18,7 @@ import {
     MultiHopSendMessage,
     MultiHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
+import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 
@@ -35,7 +36,11 @@ import {IWarpMessenger} from
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwnerUpgradeable {
+abstract contract TeleporterTokenSource is
+    ITeleporterTokenBridge,
+    TeleporterOwnerUpgradeable,
+    SendReentrancyGuard
+{
     /// @notice The blockchain ID of the chain this contract is deployed on.
     bytes32 public immutable blockchainID;
 
@@ -83,7 +88,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         SendTokensInput memory input,
         uint256 amount,
         bool isMultihop
-    ) internal virtual {
+    ) internal sendNonReentrant {
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
         require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
         require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
@@ -120,7 +125,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         SendAndCallInput memory input,
         uint256 amount,
         bool isMultihop
-    ) internal virtual {
+    ) internal sendNonReentrant {
         require(
             input.recipientContract != address(0),
             "TeleporterTokenSource: zero recipient contract address"
@@ -187,7 +192,7 @@ abstract contract TeleporterTokenSource is ITeleporterTokenBridge, TeleporterOwn
         bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message
-    ) internal virtual override {
+    ) internal override {
         BridgeMessage memory bridgeMessage = abi.decode(message, (BridgeMessage));
 
         // Check that bridge instance returning has sufficient amount in balance
