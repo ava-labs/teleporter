@@ -31,7 +31,7 @@ contract MockERC20SendAndCallReceiver is IERC20SendAndCallReceiver {
      */
     function receiveTokens(address token, uint256 amount, bytes calldata payload) external {
         emit TokensReceived(token, amount, payload);
-        
+
         require(payload.length > 0, "MockERC20SendAndCallReceiver: empty payload");
 
         SafeERC20TransferFrom.safeTransferFrom(IERC20(token), amount);
