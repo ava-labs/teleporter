@@ -16,7 +16,9 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  */
 
 /**
- * @notice TODO
+ * @notice This is mock implementation of {receiveTokens} to be used in tests.
+ * This contract DOES NOT provide a mechanism for accessing the tokens transfered to it.
+ * Real implementations must ensure that tokens are properly handled and not incorrectly locked.
  */
 contract MockERC20SendAndCallReceiver is IERC20SendAndCallReceiver {
     using SafeERC20 for IERC20;

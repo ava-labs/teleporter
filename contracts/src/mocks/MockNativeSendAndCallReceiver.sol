@@ -13,7 +13,9 @@ import {INativeSendAndCallReceiver} from "../interfaces/INativeSendAndCallReceiv
  */
 
 /**
- * @notice TODO
+ * @notice This is mock implementation of {receiveTokens} to be used in tests.
+ * This contract DOES NOT provide a mechanism for accessing the tokens transfered to it.
+ * Real implementations must ensure that tokens are properly handled and not incorrectly locked.
  */
 contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
     /**
