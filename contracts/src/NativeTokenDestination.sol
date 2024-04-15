@@ -119,6 +119,10 @@ contract NativeTokenDestination is
      */
     uint256 public lastestBurnedFeesReported;
 
+    /**
+     * @dev When modifier is used, the function can only be called once the contract is fully collelateralized,
+     * account for the initialReserveImbalance.
+     */
     modifier onlyWhenCollateralized() {
         require(_isCollateralized(), "NativeTokenDestination: contract undercollateralized");
         _;
@@ -150,10 +154,18 @@ contract NativeTokenDestination is
         burnedFeesReportingRewardPercentage = settings.burnedFeesReportingRewardPercentage;
     }
 
+    /**
+     * @dev Receives native token with no calldata provided. The tokens are credited to the sender
+     * by minting the amount of the IWrappedTokenNative representation.
+     */
     receive() external payable {
         deposit();
     }
 
+    /**
+     * @dev Fallback function for receiving native tokens. The tokens are credited to the sender
+     * by minting the amount of the IWrappedTokenNative representation.
+     */
     fallback() external payable {
         deposit();
     }
