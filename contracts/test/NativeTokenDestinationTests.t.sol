@@ -8,10 +8,15 @@ pragma solidity 0.8.18;
 import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
-import {NativeTokenDestination, TeleporterMessageInput, TeleporterFeeInfo} from "../src/NativeTokenDestination.sol";
+import {
+    NativeTokenDestination,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "../src/NativeTokenDestination.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
-import {INativeMinter} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 
@@ -188,7 +193,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
         // Create wrapped native tokens and transfer them to burned address.
         mockWrappedToken.deposit{value: _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1}();
-        mockWrappedToken.transfer(app.BURN_FOR_TRANSFER_ADDRESS(), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1);
+        mockWrappedToken.transfer(
+            app.BURN_FOR_TRANSFER_ADDRESS(), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1
+        );
         assertEq(app.totalSupply(), 1);
     }
 
@@ -207,7 +214,10 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: app.feeTokenAddress(), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: app.feeTokenAddress(),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopSendMessage(scaledAmount, input.recipient)
@@ -271,7 +281,9 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         vm.deal(address(app), scaledAmount - 1);
         vm.expectRevert("CallUtils: insufficient value");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenDestination.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message);
+        tokenDestination.receiveTeleporterMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
+        );
     }
 
     function testReportBurnFeesNoNewAmount() public {
@@ -289,7 +301,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         // First difference is 100,000
         uint256 initialBurnedTxFeeAmount = 100_003;
         uint256 expectedReward = 1_000; // 1%, rounded down due to integer division.
-        uint256 expectedReportedAmount = _scaleTokens(initialBurnedTxFeeAmount - expectedReward, false);
+        uint256 expectedReportedAmount =
+            _scaleTokens(initialBurnedTxFeeAmount - expectedReward, false);
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialBurnedTxFeeAmount);
 
         _setUpMockMint(address(app), expectedReward);
@@ -439,7 +452,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (addr, scaledAmount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (addr, scaledAmount))
         );
         vm.deal(addr, scaledAmount);
     }
@@ -451,7 +465,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
         );
         vm.deal(recipient, amount);
     }
@@ -471,7 +486,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), scaledAmount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), scaledAmount))
         );
 
         // Mock the native minter precompile crediting native balance to the contract.
@@ -481,7 +497,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             // Non-zero code length
             vm.etch(recipient, new bytes(1));
 
-            bytes memory expectedCalldata = abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (payload));
+            bytes memory expectedCalldata =
+                abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (payload));
             if (expectSuccess) {
                 vm.mockCall(recipient, scaledAmount, expectedCalldata, new bytes(0));
             } else {
@@ -502,7 +519,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         }
     }
 
-    function _scaleTokens(uint256 amount, bool isReceive) internal view override returns (uint256) {
+    function _getTotalSupply() internal view override returns (uint256) {
+        return app.totalSupply();
+    }
+
+    function _scaleTokens(
+        uint256 amount,
+        bool isReceive
+    ) internal view override returns (uint256) {
         if (app.multiplyOnReceive() == isReceive) {
             return amount * app.tokenMultiplier();
         }

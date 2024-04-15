@@ -179,6 +179,10 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         }
     }
 
+    function _getTotalSupply() internal view override returns (uint256) {
+        return app.totalSupply();
+    }
+
     function _setUpMockMint(address, uint256) internal pure override {
         // Don't need to mock the minting of an ERC20 destination since it is an internal call
         // on the destination contract.
