@@ -32,7 +32,7 @@ A concrete implementation of `TeleporterTokenDestination`, `INativeTokenBridge`,
 
 Since the native minter precompile does not provide an interface for burning the native EVM asset, the "burn" functionality is implemented by locking the native asset in the contract itself in an un-redeemable manner. The contract also provides a `reportBurnedTxFees` interface in order to burn the home chain collateral that should also be made un-redeemable to account for tokens burnt on the destination chain to pay for transaction fees.
 
-To account for the need to bootstrap the chain using a bridged asset as its native token, the `NativeTokenDestination` takes the `intitialReserveImbalance` in its constructor, and does not mint that first amount of tokens that it recevies. To demonstrate this, the intended initialization flow is:
+To account for the need to bootstrap the chain using a bridged asset as its native token, the `NativeTokenDestination` takes the `intitialReserveImbalance` in its constructor, and does not mint that first amount of tokens that it recevies. The following example demonstrates the intended initialization flow:
 
 1. Create a new blockchain with 100 native tokens allocated in its genesis block, and the pre-derived `NativeTokenDestination` contract address (based on the deployer nonce) set with the permission to mint native tokens using the native minter precompile. Note that the deployer account will need to be funded in order to deploy the `NativeTokenDestination` contract, and an account used to relay messages into this chain must also be funded to relay the first messages.
 2. Deploy the `NativeTokenDestination` contract to the pre-derived address set in the blockchain configuration of step 1. The `initialReserveImbalance` should be 100, matching the number of tokens allocated in the genesis block that were not initially backed by collateral on the home chain.
@@ -43,5 +43,5 @@ The `totalSupply` implementation of `NativeTokenDestination` takes into account:
 - the initial reserve imbalance
 - the number of native tokens that it has minted
 - the number of native tokens that have been burned to pay for transaction fees
-- the number of native tokens "burned" to be bridge back to the home chain, which are locked in it in perpetuity 
+- the number of native tokens "burned" to be bridged back to the home chain, which are locked in the `NativeTokenDestination` contract in perpetuity 
 
