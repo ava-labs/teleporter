@@ -15,7 +15,7 @@ An abstract implementation of `ITeleporterTokenBridge` for a bridge contract on 
 A concrete implementation of `TeleporterTokenSource` and `IERC20Bridge` that handles the locking and releasing of an ERC20 asset on the home chain. The optional Teleporter message fees used to incentivize a relayer for messages sent by this contract are all paid in the source ERC20 asset that it facilitates the bridging of.
 
 ### `NativeTokenSource`
-A concrete implementation of `TeleporterTokenSource` and `INativeTokenBridge` that handles the locking and release of the native EVM asset on the home chain. The optional Teleporter message fees used to incentivize a relayer for messages sent by this contract are all paid in a "wrapped native token" asset (i.e. WAVAX). The contract address of the wrapped native token contract to be used must be provided in its constructor.
+A concrete implementation of `TeleporterTokenSource` and `INativeTokenBridge` that handles the locking and release of the native EVM asset on the home chain. The optional Teleporter message fees used to incentivize a relayer for messages sent by this contract are all paid in a "wrapped native token" asset (e.g. WAVAX for the case in which AVAX is the native token). The contract address of the wrapped native token contract to be used must be provided in its constructor.
 
 ### `TeleporterTokenDestination`
 An abstract implementation of `ITeleporterTokenBridge` for a bridge contract on a destination chain that receives bridged assets from a `TeleporterTokenSource` instance. Handles receiving bridge messages from the specified token source contract to process token imports from the home chain (i.e mints), as well as burning tokens and sending messages to route them back to other chains. 
