@@ -43,5 +43,5 @@ The `totalSupply` implementation of `NativeTokenDestination` takes into account:
 - the initial reserve imbalance
 - the number of native tokens that it has minted
 - the number of native tokens that have been burned to pay for transaction fees
-- the number of native tokens "burned" to be bridge back to the home chain, which are locked in it in perpetuity 
+- the number of native tokens "burned" to be bridged back to the home chain, which are locked in the `NativeTokenDestination` contract in perpetuity 
 
