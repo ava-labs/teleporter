@@ -344,7 +344,7 @@ contract NativeTokenDestination is
         }
 
         // Mint the tokens to this contract address.
-        NATIVE_MINTER.mintNativeCoin(address(this), amount);
+        _mintNativeCoin(address(this), amount);
 
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
         bytes memory payload =
