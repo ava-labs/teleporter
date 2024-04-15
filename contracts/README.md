@@ -1,4 +1,3 @@
-
 # Contract Structure
 
 The ERC20 and native token bridges built on top of Teleporter are composed of interfaces and abstract contracts that make them extendable to new implementations in the future.
