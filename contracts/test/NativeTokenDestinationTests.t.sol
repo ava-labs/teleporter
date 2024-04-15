@@ -5,6 +5,7 @@
 
 pragma solidity 0.8.18;
 
+import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
@@ -20,7 +21,7 @@ import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITelepor
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDestinationTest {
-    string public constant DEFAULT_NAME = "Wrapped XYZ";
+    address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
     string public constant DEFAULT_SYMBOL = "XYZ";
     NativeTokenDestination public app;
 
@@ -193,11 +194,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         // Mock tokens being bridged out by crediting them to the native token destination contract
         vm.deal(address(app), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1);
         assertEq(app.totalSupply(), 1);
-    }
-
-    function testZeroSendAmount() public {
-        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
-        _send(_createDefaultSendTokensInput(), 0);
     }
 
     function testTransferToSource() public {
@@ -413,6 +409,24 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         );
     }
 
+    function testFallback() public {
+        (bool success,) = address(app).call{value: 1}("1234567812345678");
+        assertTrue(success);
+        assertEq(app.balanceOf(address(this)), 1);
+    }
+
+    function testDepositWithdrawWrappedNativeToken() public {
+        uint256 depositAmount = 500;
+        uint256 withdrawAmount = 100;
+        vm.deal(TEST_ACCOUNT, depositAmount);
+        vm.startPrank(TEST_ACCOUNT);
+        app.deposit{value: depositAmount}();
+        assertEq(app.balanceOf(TEST_ACCOUNT), depositAmount);
+        app.withdraw(withdrawAmount);
+        assertEq(app.balanceOf(TEST_ACCOUNT), depositAmount - withdrawAmount);
+        assertEq(TEST_ACCOUNT.balance, withdrawAmount);
+    }
+
     function _collateralizeBridge() internal {
         vm.expectEmit(true, true, true, true, address(app));
         emit CollateralAdded({amount: app.currentReserveImbalance(), remaining: 0});
@@ -507,9 +521,16 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         }
     }
 
-    function _setUpExpectedDeposit(uint256 amount) internal override {
+    function _setUpExpectedDeposit(uint256 amount)
+        internal
+        override (NativeTokenBridgeTest, TeleporterTokenBridgeTest)
+    {
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(app), amount);
+    }
+
+    function _setUpExpectedZeroAmountRevert() internal override {
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
     }
 
     function _scaleTokens(

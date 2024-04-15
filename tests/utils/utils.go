@@ -122,10 +122,10 @@ func DeployERC20Destination(
 func DeployNativeTokenDestination(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
+	symbol string,
 	teleporterManager common.Address,
 	sourceBlockchainID ids.ID,
 	tokenSourceAddress common.Address,
-	feeTokenAddress common.Address,
 	initialReserveImbalance *big.Int,
 	decimalsShift uint8,
 	multiplyOnReceive bool,
@@ -148,15 +148,17 @@ func DeployNativeTokenDestination(
 	address, tx, nativeTokenDestination, err := nativetokendestination.DeployNativeTokenDestination(
 		opts,
 		subnet.RPCClient,
-		subnet.TeleporterRegistryAddress,
-		teleporterManager,
-		sourceBlockchainID,
-		tokenSourceAddress,
-		feeTokenAddress,
-		initialReserveImbalance,
-		decimalsShift,
-		multiplyOnReceive,
-		burnedFeesReportingRewardPercentage,
+		nativetokendestination.NativeTokenDestinationSettings{
+			Symbol:                              symbol,
+			TeleporterRegistryAddress:           subnet.TeleporterRegistryAddress,
+			TeleporterManager:                   teleporterManager,
+			SourceBlockchainID:                  sourceBlockchainID,
+			TokenSourceAddress:                  tokenSourceAddress,
+			InitialReserveImbalance:             initialReserveImbalance,
+			DecimalsShift:                       decimalsShift,
+			MultiplyOnReceive:                   multiplyOnReceive,
+			BurnedFeesReportingRewardPercentage: burnedFeesReportingRewardPercentage,
+		},
 	)
 	Expect(err).Should(BeNil())
 

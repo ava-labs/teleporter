@@ -43,28 +43,14 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		wavaxAddressPrimary,
 	)
 
-	// Deploy an example WAVAX on Subnet A
-	wavaxAddressA, _ := utils.DeployExampleWAVAX(
-		ctx,
-		fundedKey,
-		subnetAInfo,
-	)
-
-	// Deploy an example WAVAX on Subnet B
-	wavaxAddressB, _ := utils.DeployExampleWAVAX(
-		ctx,
-		fundedKey,
-		subnetBInfo,
-	)
-
 	// Deploy a NativeTokenDestination to Subnet A
 	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
+		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
-		wavaxAddressA,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
@@ -75,10 +61,10 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	nativeTokenDestinationAddressB, nativeTokenDestinationB := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetBInfo,
+		"SUBB",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
-		wavaxAddressB,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,

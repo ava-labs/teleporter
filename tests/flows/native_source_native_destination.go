@@ -40,17 +40,10 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an example WAVAX on the primary network
-	wavaxAddressA, wavaxA := utils.DeployExampleWAVAX(
+	cChainWAVAXAddress, wavaxA := utils.DeployExampleWAVAX(
 		ctx,
 		fundedKey,
 		cChainInfo,
-	)
-
-	// Deploy an example WAVAX on the subnet
-	wavaxAddressB, _ := utils.DeployExampleWAVAX(
-		ctx,
-		fundedKey,
-		subnetAInfo,
 	)
 
 	// Create a NativeTokenSource on the primary network
@@ -59,17 +52,17 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		fundedKey,
 		cChainInfo,
 		fundedAddress,
-		wavaxAddressA,
+		cChainWAVAXAddress,
 	)
 
 	// Deploy an NativeTokenDestination to Subnet A
 	nativeTokenDestinationAddress, nativeTokenDestination := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
+		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
-		wavaxAddressB,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,

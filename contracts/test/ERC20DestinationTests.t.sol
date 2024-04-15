@@ -92,11 +92,6 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         });
     }
 
-    function testZeroSendAmount() public {
-        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
-        _send(_createDefaultSendTokensInput(), 0);
-    }
-
     function testDecimals() public {
         uint8 res = app.decimals();
         assertEq(MOCK_TOKEN_DECIMALS, res);
@@ -182,6 +177,10 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
             vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(app), address(DEFAULT_FALLBACK_RECIPIENT_ADDRESS), amount);
         }
+    }
+
+    function _setUpExpectedZeroAmountRevert() internal override {
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
     }
 
     function _setUpMockMint(address, uint256) internal pure override {

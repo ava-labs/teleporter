@@ -16,6 +16,11 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
 
     IERC20Bridge public erc20Bridge;
 
+    function testZeroSendAmount() public {
+        _setUpExpectedZeroAmountRevert();
+        _send(_createDefaultSendTokensInput(), 0);
+    }
+
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
         erc20Bridge.send(input, amount);
     }
@@ -42,4 +47,6 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
         vm.expectEmit(true, true, true, true, address(feeToken));
         emit Transfer(address(this), address(tokenBridge), amount);
     }
+
+    function _setUpExpectedZeroAmountRevert() internal virtual;
 }

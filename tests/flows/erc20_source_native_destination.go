@@ -44,21 +44,14 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		sourceTokenAddress,
 	)
 
-	// Deploy an example WAVAX on Subnet A
-	wavaxAddressA, _ := utils.DeployExampleWAVAX(
-		ctx,
-		fundedKey,
-		subnetAInfo,
-	)
-
 	// Deploy a NativeTokenDestination to Subnet A
 	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
+		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20SourceAddress,
-		wavaxAddressA,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,

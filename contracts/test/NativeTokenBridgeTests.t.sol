@@ -15,6 +15,11 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
     event Deposit(address indexed sender, uint256 amount);
     event Withdrawal(address indexed sender, uint256 amount);
 
+    function testZeroSendAmount() public {
+        _setUpExpectedZeroAmountRevert();
+        _send(_createDefaultSendTokensInput(), 0);
+    }
+
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
         nativeTokenBridge.send{value: amount}(input);
     }
@@ -25,4 +30,7 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
     ) internal virtual override {
         nativeTokenBridge.sendAndCall{value: amount}(input);
     }
+
+    function _setUpExpectedDeposit(uint256 amount) internal virtual override;
+    function _setUpExpectedZeroAmountRevert() internal virtual;
 }
