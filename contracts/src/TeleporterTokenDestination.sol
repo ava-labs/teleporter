@@ -67,13 +67,13 @@ abstract contract TeleporterTokenDestination is
     bool public immutable multiplyOnReceive;
 
     /**
-     * @notice Fixed gas cost for performing a multihop transfer on the `sourceBlockchainID`,
+     * @notice Fixed gas cost for performing a multi-hop transfer on the `sourceBlockchainID`,
      * before forwarding to the final destination bridge instance.
      */
     uint256 public constant MULTIHOP_REQUIRED_GAS = 220_000;
 
     /**
-     * @notice The amount gas added to the required gas limit for a multihop call message
+     * @notice The amount gas added to the required gas limit for a multi-hop call message
      * for each byte of the recipient payload.
      */
     uint256 public constant MULTIHOP_CALL_GAS_PER_BYTE = 1_000;
@@ -148,9 +148,9 @@ abstract contract TeleporterTokenDestination is
         );
 
         // If the destination blockchain is the source blockchain,
-        // no multihop is needed. Only the required gas limit for the Teleporter message back to
+        // no multi-hop is needed. Only the required gas limit for the Teleporter message back to
         // `sourceBlockchainID` is needed, which is provided by `input.requiredGasLimit`.
-        // Else, there will be a multihop transfer to the final destination.
+        // Else, there will be a multi-hop transfer to the final destination.
         // The first hop back to `sourceBlockchainID` requires `MULTIHOP_REQUIRED_GAS`,
         // and the second hop to the final destination requires `input.requiredGasLimit`.
         BridgeMessage memory message;

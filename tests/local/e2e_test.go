@@ -85,12 +85,12 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 		func() {
 			flows.NativeSourceNativeDestination(LocalNetworkInstance)
 		})
-	ginkgo.It("Bridge an ERC20 token with ERC20Source multihop",
+	ginkgo.It("Bridge an ERC20 token with ERC20Source multi-hop",
 		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel, multiHopLabel),
 		func() {
 			flows.ERC20SourceERC20DestinationMultihop(LocalNetworkInstance)
 		})
-	ginkgo.It("Bridge an ERC20 token with NativeTokenSource multihop",
+	ginkgo.It("Bridge an ERC20 token with NativeTokenSource multi-hop",
 		ginkgo.Label(nativeTokenSourceLabel, erc20DestinationLabel, multiHopLabel),
 		func() {
 			flows.NativeSourceERC20DestinationMultihop(LocalNetworkInstance)
@@ -100,12 +100,12 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 		func() {
 			flows.ERC20SourceNativeDestination(LocalNetworkInstance)
 		})
-	ginkgo.It("Bridge a Native token with ERC20Source multihop",
+	ginkgo.It("Bridge a Native token with ERC20Source multi-hop",
 		ginkgo.Label(erc20SourceLabel, nativeTokenDestinationLabel, multiHopLabel),
 		func() {
 			flows.ERC20SourceNativeDestinationMultihop(LocalNetworkInstance)
 		})
-	ginkgo.It("Bridge a native token to a native token multihop",
+	ginkgo.It("Bridge a native token to a native token multi-hop",
 		ginkgo.Label(nativeTokenSourceLabel, nativeTokenDestinationLabel, multiHopLabel),
 		func() {
 			flows.NativeSourceNativeDestinationMultihop(LocalNetworkInstance)

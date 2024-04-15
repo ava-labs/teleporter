@@ -10,12 +10,9 @@ import {TeleporterTokenSourceTest} from "./TeleporterTokenSourceTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
 import {ERC20Source} from "../src/ERC20Source.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
 contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
-    using SafeERC20 for IERC20;
-
     ERC20Source public app;
     IERC20 public mockERC20;
 
