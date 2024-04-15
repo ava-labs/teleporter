@@ -36,7 +36,7 @@ To account for the need to bootstrap the chain using a bridged asset as its nati
 
 1. Create a new blockchain with 100 native tokens allocated in its genesis block, and the pre-derived `NativeTokenDestination` contract address (based on the deployer nonce) set with the permission to mint native tokens using the native minter precompile. Note that the deployer account will need to be funded in order to deploy the `NativeTokenDestination` contract, and an account used to relay messages into this chain must also be funded to relay the first messages.
 2. Deploy the `NativeTokenDestination` contract to the pre-derived address set in the blockchain configuration of step 1. The `initialReserveImbalance` should be 100, matching the number of tokens allocated in the genesis block that were not initially backed by collateral on the home chain.
-3. Bridge 100 source tokens from the home chain to the new blockchain. These tokens will not be minted on the destination since they were pre-allocated in the genesis file. Instead, a `CollateralAdded` event will be emitted by the `NativeTokenDestination` contract. 
+3. Bridge at least 100 source tokens from the home chain to the new blockchain. The first 100 tokens bridged, which are possibly moved in multiple independent transfers, will not be minted on the destination since they were pre-allocated in the genesis file. Instead, a `CollateralAdded` event will be emitted by the `NativeTokenDestination` contract.
 4. Now that the `NativeTokenDestination` contract is fully collateralized, tokens can be moved normally in both directions across the bridge contracts. 
 
 The `totalSupply` implementation of `NativeTokenDestination` takes into account:
