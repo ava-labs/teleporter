@@ -70,13 +70,13 @@ abstract contract TeleporterTokenDestination is
      * @notice Fixed gas cost for performing a multi-hop transfer on the `sourceBlockchainID`,
      * before forwarding to the final destination bridge instance.
      */
-    uint256 public constant MULTIHOP_REQUIRED_GAS = 220_000;
+    uint256 public constant MULTI_HOP_REQUIRED_GAS = 220_000;
 
     /**
      * @notice The amount gas added to the required gas limit for a multi-hop call message
-     * for each byte of the recipient payload.
+     * for each 32-byte word of the recipient payload.
      */
-    uint256 public constant MULTIHOP_CALL_GAS_PER_BYTE = 1_000;
+    uint256 public constant MULTI_HOP_CALL_GAS_PER_WORD = 8_500;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
@@ -124,6 +124,18 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
+     * @dev Calculates the number of 32-byte words required to fit a payload of a given length.
+     * The payloads are padded to have a length that is a multiple of 32.
+     */
+    function calculateNumWords(uint256 payloadSize) public pure returns (uint256) {
+        uint256 numWords = payloadSize / 32;
+        if (payloadSize % 32 != 0) {
+            ++numWords;
+        }
+        return numWords;
+    }
+
+    /**
      * @notice Sends tokens to the specified destination token bridge instance.
      *
      * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message.
@@ -151,7 +163,7 @@ abstract contract TeleporterTokenDestination is
         // no multi-hop is needed. Only the required gas limit for the Teleporter message back to
         // `sourceBlockchainID` is needed, which is provided by `input.requiredGasLimit`.
         // Else, there will be a multi-hop transfer to the final destination.
-        // The first hop back to `sourceBlockchainID` requires `MULTIHOP_REQUIRED_GAS`,
+        // The first hop back to `sourceBlockchainID` requires `MULTI_HOP_REQUIRED_GAS`,
         // and the second hop to the final destination requires `input.requiredGasLimit`.
         BridgeMessage memory message;
         uint256 messageRequiredGasLimit = input.requiredGasLimit;
@@ -192,7 +204,7 @@ abstract contract TeleporterTokenDestination is
                     })
                     )
             });
-            messageRequiredGasLimit = MULTIHOP_REQUIRED_GAS;
+            messageRequiredGasLimit = MULTI_HOP_REQUIRED_GAS;
         }
 
         bytes32 messageID = _sendTeleporterMessage(
@@ -292,8 +304,8 @@ abstract contract TeleporterTokenDestination is
                     })
                     )
             });
-            messageRequiredGasLimit =
-                MULTIHOP_REQUIRED_GAS + (MULTIHOP_CALL_GAS_PER_BYTE * input.recipientPayload.length);
+            messageRequiredGasLimit = MULTI_HOP_REQUIRED_GAS
+                + (calculateNumWords(input.recipientPayload.length) * MULTI_HOP_CALL_GAS_PER_WORD);
         }
 
         // Send message to the destination bridge address
