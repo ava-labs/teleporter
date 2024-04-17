@@ -73,7 +73,7 @@ abstract contract TeleporterTokenDestination is
     uint256 public constant MULTI_HOP_REQUIRED_GAS = 220_000;
 
     /**
-     * @notice The amount gas added to the required gas limit for a multi-hop call message
+     * @notice The amount of gas added to the required gas limit for a multi-hop call message
      * for each 32-byte word of the recipient payload.
      */
     uint256 public constant MULTI_HOP_CALL_GAS_PER_WORD = 8_500;
@@ -103,7 +103,7 @@ abstract contract TeleporterTokenDestination is
             tokenSourceAddress_ != address(0),
             "TeleporterTokenDestination: zero token source address"
         );
-        require(decimalsShift <= 18, "NativeTokenDestination: invalid decimalsShift");
+        require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
         sourceBlockchainID = sourceBlockchainID_;
         tokenSourceAddress = tokenSourceAddress_;
         tokenMultiplier = 10 ** decimalsShift;
@@ -150,7 +150,7 @@ abstract contract TeleporterTokenDestination is
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
-        require(input.requiredGasLimit != 0, "TeleporterTokenDestination: zero required gas limit");
+        require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
         amount = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
@@ -353,7 +353,6 @@ abstract contract TeleporterTokenDestination is
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
-            emit TokensWithdrawn(payload.recipient, scaledAmount);
             _withdraw(payload.recipient, scaledAmount);
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
             SingleHopCallMessage memory payload =

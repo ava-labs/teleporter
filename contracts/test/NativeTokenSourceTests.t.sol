@@ -50,7 +50,9 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         new NativeTokenSource(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
     }
 
-    function _checkExpectedWithdrawal(address, uint256 amount) internal override {
+    function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
+        vm.expectEmit(true, true, true, true, address(tokenSource));
+        emit TokensWithdrawn(recipient, amount);
         vm.expectCall(
             address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
         );
