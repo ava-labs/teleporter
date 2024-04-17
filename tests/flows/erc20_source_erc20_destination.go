@@ -80,7 +80,7 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 	}
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 
-	receipt, bridgedAmount := utils.SendERC20Source(
+	receipt, bridgedAmount, _ := utils.SendERC20Source(
 		ctx,
 		cChainInfo,
 		erc20Source,
@@ -160,6 +160,161 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 
 	// Check that the recipient received the tokens
 	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, recipientAddress)
+	Expect(err).Should(BeNil())
+	Expect(balance).Should(Equal(bridgedAmount))
+}
+
+/**
+ * Deploy an ERC20 token source on the primary network
+ * Defers deploying ERC20Destination to Subnet A
+ * Bridges C-Chain example ERC20 tokens to Subnet A
+ * Confirms failure to execute message, since destination hasn't been deployed.
+ * Deploys ERC20Destination to Subnet A
+ * Invokes a retry of message execution
+ * Confirms message execution
+ */
+func ERC20DestinationNotYetDeployed(network interfaces.Network) {
+	cChainInfo := network.GetPrimaryNetworkInfo()
+	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
+	fundedAddress, fundedKey := network.GetFundedAccountInfo()
+
+	ctx := context.Background()
+
+	// Deploy an ExampleERC20 on the primary network as the source token to be bridged
+	sourceTokenAddress, sourceToken := teleporterUtils.DeployExampleERC20(
+		ctx,
+		fundedKey,
+		cChainInfo,
+	)
+
+	// Create an ERC20Source for bridging the source token
+	erc20SourceAddress, erc20Source := utils.DeployERC20Source(
+		ctx,
+		fundedKey,
+		cChainInfo,
+		fundedAddress,
+		sourceTokenAddress,
+	)
+
+	// Token representation on subnet A will have same name, symbol, and decimals
+	tokenName, err := sourceToken.Name(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	tokenSymbol, err := sourceToken.Symbol(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	tokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+
+	// pre-determine the deployment address of the ERC20Destination, but
+	// don't deploy it yet
+	erc20DestinationAddressNonce, err := subnetAInfo.RPCClient.NonceAt(
+		ctx,
+		fundedAddress,
+		nil,
+	)
+	Expect(err).Should(BeNil())
+	erc20DestinationAddressNonce += 1
+	erc20DestinationAddress := crypto.CreateAddress(
+		fundedAddress,
+		erc20DestinationAddressNonce,
+	)
+	erc20Destination, err := erc20destination.NewERC20Destination(
+		erc20DestinationAddress,
+		subnetAInfo.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+
+	// Generate new recipient to receive bridged tokens
+	recipientKey, err := crypto.GenerateKey()
+	Expect(err).Should(BeNil())
+	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
+
+	// Send tokens from C-Chain to recipient on subnet A
+	input := erc20source.SendTokensInput{
+		DestinationBlockchainID:  subnetAInfo.BlockchainID,
+		DestinationBridgeAddress: erc20DestinationAddress,
+		Recipient:                recipientAddress,
+		PrimaryFee:               big.NewInt(1e18),
+		SecondaryFee:             big.NewInt(0),
+		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
+	}
+	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
+
+	receipt, bridgedAmount, msg := utils.SendERC20Source(
+		ctx,
+		cChainInfo,
+		erc20Source,
+		erc20SourceAddress,
+		sourceToken,
+		input,
+		amount,
+		fundedKey,
+	)
+
+	// Relay the message to Subnet A and check for message delivery
+	receipt = network.RelayMessage(
+		ctx,
+		receipt,
+		cChainInfo,
+		subnetAInfo,
+		true,
+	)
+
+	// confirm that the relayer's subnetA transaction emitted the
+	// MessageExecutionFailed event,
+	messageExecutionFailedEventEmitted := false
+	for _, log := range receipt.Logs {
+		subnetAInfo.TeleporterMessenger.ParseMessageExecutionFailed(
+			*log,
+		)
+		if err == nil {
+			messageExecutionFailedEventEmitted = true
+			break
+		}
+	}
+	Expect(messageExecutionFailedEventEmitted).Should(BeTrue())
+
+	// Deploy an ERC20Destination to Subnet A
+	Expect( // just to ensure no more subnetA fundedAddr tx's have occurred
+		subnetAInfo.RPCClient.NonceAt(ctx, fundedAddress, nil),
+	).Should(Equal(erc20DestinationAddressNonce))
+	actualERC20DestDeploymentAddress, _ := utils.DeployERC20Destination(
+		ctx,
+		fundedKey,
+		subnetAInfo,
+		fundedAddress,
+		cChainInfo.BlockchainID,
+		erc20SourceAddress,
+		tokenName,
+		tokenSymbol,
+		tokenDecimals,
+	)
+	Expect(actualERC20DestDeploymentAddress).Should(Equal(erc20DestinationAddress))
+
+	// tell the destination router to retry giving the message to the
+	// now-deployed ERC20Destination contract.
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		fundedKey,
+		subnetAInfo.EVMChainID,
+	)
+	Expect(err).Should(BeNil())
+	tx, err := subnetAInfo.TeleporterMessenger.RetryMessageExecution(
+		opts,
+		cChainInfo.BlockchainID,
+		msg,
+	)
+	Expect(err).Should(BeNil())
+	receipt = teleporterUtils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())
+
+	utils.CheckERC20DestinationWithdrawal(
+		ctx,
+		erc20Destination,
+		receipt,
+		recipientAddress,
+		bridgedAmount,
+	)
+
+	// Check that the recipient received the tokens
+	balance, err := erc20Destination.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(bridgedAmount))
 }

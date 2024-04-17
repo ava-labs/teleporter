@@ -20,6 +20,7 @@ import (
 	mockERC20SACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
 	mockNSACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockNativeSendAndCallReceiver"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -263,7 +264,7 @@ func SendERC20Source(
 	input erc20source.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
-) (*types.Receipt, *big.Int) {
+) (*types.Receipt, *big.Int, teleportermessenger.TeleporterMessage) {
 	// Approve the ERC20Source to spend the tokens
 	teleporterUtils.ERC20Approve(
 		ctx,
@@ -286,12 +287,18 @@ func SendERC20Source(
 	bridgedAmount := new(big.Int).Sub(amount, input.PrimaryFee)
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseTokensSent)
+	tokenSentEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseTokensSent)
 	Expect(err).Should(BeNil())
-	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	Expect(event.Amount).Should(Equal(bridgedAmount))
+	Expect(tokenSentEvent.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
+	Expect(tokenSentEvent.Amount).Should(Equal(bridgedAmount))
 
-	return receipt, event.Amount
+	msgSentEvent, err := teleporterUtils.GetEventFromLogs(
+		receipt.Logs,
+		subnet.TeleporterMessenger.ParseSendCrossChainMessage,
+	)
+	Expect(err).Should(BeNil())
+
+	return receipt, tokenSentEvent.Amount, msgSentEvent.Message
 }
 
 func SendNativeTokenSource(
