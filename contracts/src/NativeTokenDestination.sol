@@ -38,7 +38,7 @@ import {CallUtils} from "./utils/CallUtils.sol";
  */
 
 struct NativeTokenDestinationSettings {
-    string symbol;
+    string nativeAssetSymbol;
     address teleporterRegistryAddress;
     address teleporterManager;
     bytes32 sourceBlockchainID;
@@ -120,8 +120,8 @@ contract NativeTokenDestination is
     uint256 public lastestBurnedFeesReported;
 
     /**
-     * @dev When modifier is used, the function can only be called once the contract is fully collelateralized,
-     * account for the initialReserveImbalance.
+     * @dev When modifier is used, the function can only be called after the contract is fully collelateralized,
+     * accounting for the initialReserveImbalance.
      */
     modifier onlyWhenCollateralized() {
         require(_isCollateralized(), "NativeTokenDestination: contract undercollateralized");
@@ -129,7 +129,7 @@ contract NativeTokenDestination is
     }
 
     constructor(NativeTokenDestinationSettings memory settings)
-        ERC20(string.concat("Wrapped ", settings.symbol), settings.symbol)
+        ERC20(string.concat("Wrapped ", settings.nativeAssetSymbol), settings.nativeAssetSymbol)
         TeleporterTokenDestination(
             settings.teleporterRegistryAddress,
             settings.teleporterManager,
@@ -200,6 +200,9 @@ contract NativeTokenDestination is
         lastestBurnedFeesReported = burnAddressBalance;
 
         if (reward > 0) {
+            // Re-mint the native tokens to this contract, and then deposit them to be the wrapped
+            // native token (ERC20) representation, such that they can be used as a Teleporter
+            // message fee.
             _mintNativeCoin(address(this), reward);
             _deposit(reward);
         }
@@ -273,8 +276,8 @@ contract NativeTokenDestination is
      * @dev See {TeleporterTokenDestination-_deposit}
      *
      * Native tokens to be deposited are sent via the payable {send} and {sendAndCall} functions, and
-     * remained locked in this contract. The full amount is credited as an ERC20 balance to this contract
-     * such that it can be used to pay for message fees if needed.
+     * remained locked in this contract. The internal call to {_mint} represents the full amount as
+     * the wrapped native asset (ERC20) token, such that it can be used to pay for message fess if needed.
      */
     function _deposit(uint256 amount) internal override returns (uint256) {
         _mint(address(this), amount);

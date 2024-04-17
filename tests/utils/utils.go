@@ -149,7 +149,7 @@ func DeployNativeTokenDestination(
 		opts,
 		subnet.RPCClient,
 		nativetokendestination.NativeTokenDestinationSettings{
-			Symbol:                              symbol,
+			NativeAssetSymbol:                   symbol,
 			TeleporterRegistryAddress:           subnet.TeleporterRegistryAddress,
 			TeleporterManager:                   teleporterManager,
 			SourceBlockchainID:                  sourceBlockchainID,

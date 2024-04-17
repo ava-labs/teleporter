@@ -32,7 +32,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         TeleporterTokenDestinationTest.setUp();
 
         app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -55,7 +55,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -102,7 +102,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testZeroInitialReserveImbalance() public {
         vm.expectRevert("NativeTokenDestination: zero initial reserve imbalance");
         new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -117,7 +117,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testInvalidBurnedRewardPercentage() public {
         vm.expectRevert("NativeTokenDestination: invalid percentage");
         new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -132,7 +132,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testZeroSourceBlockchainID() public {
         vm.expectRevert(_formatErrorMessage("zero source blockchain ID"));
         new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: address(this),
             sourceBlockchainID: bytes32(0),
@@ -147,7 +147,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testSendBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -165,7 +165,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testSendAndCallBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -228,7 +228,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testScaleTokensMultiplyOnSend() public {
         uint8 decimalShift = 3;
         app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -245,7 +245,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testScaleTokensMultiplyOnReceive() public {
         uint8 decimalShift = 3;
         app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -343,7 +343,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testReportBurnFeesNoRewardSuccess() public {
         // Create a new destination instance with no rewards for reporting burned fees.
         app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
@@ -379,7 +379,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testReceiveSendAndCallBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            symbol: DEFAULT_SYMBOL,
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
             teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
