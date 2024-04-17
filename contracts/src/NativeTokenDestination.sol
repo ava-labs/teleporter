@@ -238,16 +238,16 @@ contract NativeTokenDestination is
      * @dev See {IWrappedNativeToken-deposit}.
      */
     function deposit() public payable {
-        _mint(msg.sender, msg.value);
         emit Deposit(msg.sender, msg.value);
+        _mint(msg.sender, msg.value);
     }
 
     /**
      * @dev See {IWrappedNativeToken-withdraw}.
      */
     function withdraw(uint256 amount) public {
-        _burn(msg.sender, amount);
         emit Withdrawal(msg.sender, amount);
+        _burn(msg.sender, amount);
         payable(msg.sender).transfer(amount);
     }
 

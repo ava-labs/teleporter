@@ -337,7 +337,6 @@ abstract contract TeleporterTokenDestination is
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
-            emit TokensWithdrawn(payload.recipient, scaledAmount);
             _withdraw(payload.recipient, scaledAmount);
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
             SingleHopCallMessage memory payload =

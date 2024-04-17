@@ -446,18 +446,20 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         assertTrue(app.isCollateralized());
     }
 
-    function _checkExpectedWithdrawal(address addr, uint256 amount) internal override {
+    function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         uint256 scaledAmount = _scaleTokens(amount, true);
+        vm.expectEmit(true, true, true, true, address(tokenDestination));
+        emit TokensWithdrawn(recipient, scaledAmount);
         vm.mockCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (addr, scaledAmount)),
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, scaledAmount)),
             new bytes(0)
         );
         vm.expectCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (addr, scaledAmount))
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, scaledAmount))
         );
-        vm.deal(addr, scaledAmount);
+        vm.deal(recipient, scaledAmount);
     }
 
     function _setUpMockMint(address recipient, uint256 amount) internal override {

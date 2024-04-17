@@ -76,6 +76,7 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
      * @dev See {TeleportTokenSource-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal override {
+        emit TokensWithdrawn(recipient, amount);
         token.safeTransfer(recipient, amount);
     }
 
