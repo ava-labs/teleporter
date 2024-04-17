@@ -275,6 +275,15 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testCalculateNumWords() public {
+        assertEq(tokenDestination.calculateNumWords(0), 0);
+        assertEq(tokenDestination.calculateNumWords(1), 1);
+        assertEq(tokenDestination.calculateNumWords(32), 1);
+        assertEq(tokenDestination.calculateNumWords(33), 2);
+        assertEq(tokenDestination.calculateNumWords(64), 2);
+        assertEq(tokenDestination.calculateNumWords(65), 3);
+    }
+
     function _sendMultiHopSendSuccess(
         uint256 amount,
         uint256 primaryFee,
@@ -344,7 +353,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             destinationBlockchainID: tokenDestination.sourceBlockchainID(),
             destinationAddress: tokenDestination.tokenSourceAddress(),
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
-            requiredGasLimit: tokenDestination.MULTIHOP_REQUIRED_GAS(),
+            requiredGasLimit: tokenDestination.MULTI_HOP_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: _encodeMultiHopSendMessage({
                 amount: bridgeAmount,
@@ -365,8 +374,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             destinationBlockchainID: tokenDestination.sourceBlockchainID(),
             destinationAddress: tokenDestination.tokenSourceAddress(),
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
-            requiredGasLimit: tokenDestination.MULTIHOP_REQUIRED_GAS()
-                + (input.recipientPayload.length * tokenDestination.MULTIHOP_CALL_GAS_PER_BYTE()),
+            requiredGasLimit: tokenDestination.MULTI_HOP_REQUIRED_GAS()
+                + (
+                    tokenDestination.calculateNumWords(input.recipientPayload.length)
+                        * tokenDestination.MULTI_HOP_CALL_GAS_PER_WORD()
+                ),
             allowedRelayerAddresses: new address[](0),
             message: _encodeMultiHopCallMessage({
                 amount: bridgeAmount,
