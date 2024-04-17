@@ -46,7 +46,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         nativeTokenBridge = app;
         tokenBridge = app;
         feeToken = app;
-        assertEq(app.totalSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
+        assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
         _collateralizeBridge();
     }
 
@@ -180,20 +180,26 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         app.sendAndCall{value: 100_000}(_createDefaultSendAndCallInput());
     }
 
-    function testTotalSupply() public {
-        assertEq(app.totalSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
+    function testTotalNativeAssetSupply() public {
+        assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
 
         // Mock tokens being burned as tx fees.
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1);
-        assertEq(app.totalSupply(), 1);
+        assertEq(app.totalNativeAssetSupply(), 1);
 
         // Reset the burned tx fee amount.
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), 0);
-        assertEq(app.totalSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
+        assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
 
         // Mock tokens being bridged out by crediting them to the native token destination contract
-        vm.deal(address(app), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1);
-        assertEq(app.totalSupply(), 1);
+        vm.deal(app.BURNED_FOR_BRIDGE_ADDRESS(), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1);
+        assertEq(app.totalNativeAssetSupply(), 1);
+
+        // Depositing native tokens into the contract to be wrapped native tokens shouldn't affect the supply
+        // of the native asset, but should be reflected in the total supply of the ERC20 representation.
+        app.deposit{value: 2}();
+        assertEq(app.totalNativeAssetSupply(), 1);
+        assertEq(app.totalSupply(), 2);
     }
 
     function testTransferToSource() public {
@@ -536,7 +542,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function _getTotalSupply() internal view override returns (uint256) {
-        return app.totalSupply();
+        return app.totalNativeAssetSupply();
     }
 
     function _scaleTokens(

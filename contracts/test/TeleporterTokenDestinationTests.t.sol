@@ -146,11 +146,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 amount = 200;
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, amount);
+        uint256 initialSupply = _getTotalSupply();
+        uint256 scaledAmount = _scaleTokens(amount, true);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
             TOKEN_SOURCE_ADDRESS,
             _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
         );
+        assertEq(_getTotalSupply(), initialSupply + scaledAmount);
     }
 
     function testReceiveSendAndCallSuccess() public {

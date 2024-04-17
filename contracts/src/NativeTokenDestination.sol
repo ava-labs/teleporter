@@ -75,6 +75,14 @@ contract NativeTokenDestination is
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
 
     /**
+     * @notice The address where native tokens are sent to be burned to bridge to other chains.
+     * This address is distinct from {BURNED_TX_FEES_ADDRESS} so that the amount of burned transaction
+     * fees and burned bridged amounts can be tracked separately.
+     * This address was chosen arbitrarily.
+     */
+    address public constant BURNED_FOR_BRIDGE_ADDRESS = 0x0100000000000000000000000000000000010203;
+
+    /**
      * @notice Address used by the source chain to blackhole funds, effectively burning them.
      *
      * @dev When reporting burned transaction fee amounts, this address is used as the recipient
@@ -155,16 +163,16 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev Receives native token with no calldata provided. The tokens are credited to the sender
-     * by minting the amount of the IWrappedTokenNative representation.
+     * @dev Receives native token with no calldata provided. The tokens are credited to the sender's
+     * wrapped native token balance.
      */
     receive() external payable {
         deposit();
     }
 
     /**
-     * @dev Fallback function for receiving native tokens. The tokens are credited to the sender
-     * by minting the amount of the IWrappedTokenNative representation.
+     * @dev Fallback function for receiving native tokens. The tokens are credited to the sender's
+     * wrapped native token balance.
      */
     fallback() external payable {
         deposit();
@@ -239,6 +247,11 @@ contract NativeTokenDestination is
 
     /**
      * @dev See {IWrappedNativeToken-deposit}.
+     *
+     * Note: {IWrappedNativeToken-deposit} should not be confused with {TeleporterTokenDestination-_deposit}.
+     * {IWrappedNativeToken-deposit} is the public method for converting native tokens into the wrapped native
+     * token (ERC20) representation. {TeleporterTokenDestination-_deposit} is the internal method used when
+     * processing bridge transfers.
      */
     function deposit() public payable {
         emit Deposit(msg.sender, msg.value);
@@ -247,27 +260,29 @@ contract NativeTokenDestination is
 
     /**
      * @dev See {IWrappedNativeToken-withdraw}.
+     *
+     * Note: {IWrappedNativeToken-withdraw} should not be confused with {TeleporterTokenDestination-_withdraw}.
+     * {IWrappedNativeToken-withdraw} is the external method to redeem a wrapped native token (ERC20) balance
+     * for the native token itself. {TeleporterTokenDestination-_withdraw} is the internal method used when
+     * processing bridge transfers.
      */
-    function withdraw(uint256 amount) public {
+    function withdraw(uint256 amount) external {
         emit Withdrawal(msg.sender, amount);
         _burn(msg.sender, amount);
         payable(msg.sender).transfer(amount);
     }
 
     /**
-     * @dev See {INativeTokenDestination-totalSupply}.
-     * This implementation overrides the default ERC20 implementation. It provides the total
-     * supply of the native token, accounting for burned fees and tokens burnt to be transfered
-     * out to other chains. Native tokens transfered out to other chains are left locked in this
-     * contract forever, as the native minter precompile does not offer a "burnNativeCoin" interface.
+     * @dev See {INativeTokenDestination-totalNativeAssetSupply}.
+     *
+     * Note: {INativeTokenDestination-totalNativeAssetSupply} should not be confused with {IERC20-totalSupply}
+     * {INativeTokenDestination-totalNativeAssetSupply} returns the supply of the native asset of the chain,
+     * accounting for the amounts that have been bridged in and out of the chain as well as burnt transaction
+     * fees. {IERC20-totalSupply} returns the supply of the native asset held by this contract that is represented
+     * as an ERC20.
      */
-    function totalSupply()
-        public
-        view
-        override (ERC20, IERC20, INativeTokenDestination)
-        returns (uint256)
-    {
-        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + address(this).balance;
+    function totalNativeAssetSupply() public view returns (uint256) {
+        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURNED_FOR_BRIDGE_ADDRESS.balance;
         uint256 created = totalMinted + initialReserveImbalance;
         return created - burned;
     }
@@ -276,8 +291,9 @@ contract NativeTokenDestination is
      * @dev See {TeleporterTokenDestination-_deposit}
      *
      * Native tokens to be deposited are sent via the payable {send} and {sendAndCall} functions, and
-     * remained locked in this contract. The internal call to {_mint} represents the full amount as
-     * the wrapped native asset (ERC20) token, such that it can be used to pay for message fess if needed.
+     * remained locked in this contract. The internal call to {_mint} here credits the full amount as
+     * the wrapped native asset (ERC20) token by incrementing the ERC20 balance of this contract, such
+     * that it can be used to pay for message fees if needed.
      */
     function _deposit(uint256 amount) internal override returns (uint256) {
         _mint(address(this), amount);
@@ -288,8 +304,6 @@ contract NativeTokenDestination is
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal override {
-        emit TokensWithdrawn(recipient, amount);
-
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
         // be minted and sent to the recipient.
@@ -309,17 +323,24 @@ contract NativeTokenDestination is
         }
 
         // Call {_mintNativeCoin} even if the adjustedAmount is 0 to improve traceability.
+        emit TokensWithdrawn(recipient, adjustedAmount);
         _mintNativeCoin(recipient, adjustedAmount);
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_burn}
      *
-     * The ERC20 representation of the native token is burnt by reducing the balance of this contract.
+     * This is the internal {_burn} method called when bridging tokens to another chain.
+     * The tokens to be burnt are already be held by this contract, and credited to this
+     * contract's balance of the wrapped native token. To burn the tokens, first burn the
+     * wrapped ERC20 representation of the native token (decreasing the totalSupply of the
+     * wrappen native token and reducing this contract's balance of it), and then send the
+     * native token amount to the BURNED_FOR_BRIDGE_ADDRESS.
      *
      */
     function _burn(uint256 amount) internal override {
         _burn(address(this), amount);
+        payable(BURNED_FOR_BRIDGE_ADDRESS).transfer(amount);
     }
 
     /**
