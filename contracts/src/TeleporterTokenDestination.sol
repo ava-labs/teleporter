@@ -304,6 +304,10 @@ abstract contract TeleporterTokenDestination is
                     })
                     )
             });
+
+            // The required gas limit for the first message sent back to the source chain
+            // needs to account for the number of words in the payload, which each use additional
+            // gas to send in a message to the final destination chain.
             messageRequiredGasLimit = MULTI_HOP_REQUIRED_GAS
                 + (calculateNumWords(input.recipientPayload.length) * MULTI_HOP_CALL_GAS_PER_WORD);
         }
