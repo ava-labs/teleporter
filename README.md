@@ -53,8 +53,8 @@ Unit test coverage of the contracts can be viewed using `forge coverage`:
 ```
 $ forge coverage
 [⠢] Compiling...
-[⠊] Compiling 70 files with 0.8.18
-[⠢] Solc 0.8.18 finished in 4.91s
+[⠒] Compiling 70 files with 0.8.18
+[⠆] Solc 0.8.18 finished in 4.98s
 Compiler run successful!
 Analysing contracts...
 Running tests...
@@ -64,14 +64,14 @@ Running tests...
 | src/ERC20Source.sol                         | 100.00% (14/14)   | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (5/5)   |
 | src/NativeTokenDestination.sol              | 100.00% (56/56)   | 100.00% (68/68)   | 100.00% (14/14)  | 100.00% (14/14) |
 | src/NativeTokenSource.sol                   | 100.00% (14/14)   | 100.00% (15/15)   | 100.00% (2/2)    | 100.00% (5/5)   |
-| src/TeleporterTokenDestination.sol          | 100.00% (58/58)   | 100.00% (65/65)   | 88.00% (44/50)   | 100.00% (5/5)   |
+| src/TeleporterTokenDestination.sol          | 100.00% (62/62)   | 100.00% (71/71)   | 88.46% (46/52)   | 100.00% (6/6)   |
 | src/TeleporterTokenSource.sol               | 100.00% (50/50)   | 100.00% (55/55)   | 97.22% (35/36)   | 100.00% (4/4)   |
 | src/mocks/ExampleWAVAX.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (3/3)   |
 | src/mocks/MockERC20SendAndCallReceiver.sol  | 100.00% (3/3)     | 100.00% (3/3)     | 100.00% (2/2)    | 100.00% (1/1)   |
 | src/mocks/MockNativeSendAndCallReceiver.sol | 100.00% (2/2)     | 100.00% (2/2)     | 100.00% (2/2)    | 100.00% (1/1)   |
 | src/utils/CallUtils.sol                     | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)    | 100.00% (2/2)   |
 | src/utils/SafeWrappedNativeTokenDeposit.sol | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (2/2)    | 100.00% (1/1)   |
-| Total                                       | 100.00% (236/236) | 100.00% (270/270) | 94.26% (115/122) | 100.00% (48/48) |
+| Total                                       | 100.00% (240/240) | 100.00% (276/276) | 94.35% (117/124) | 100.00% (49/49) |
 ```
 
 ## E2E tests
