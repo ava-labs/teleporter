@@ -68,14 +68,15 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
     /**
      * @dev See {TeleportTokenSource-_deposit}
      */
-    function _deposit(uint256 amount) internal override returns (uint256) {
+    function _deposit(uint256 amount) internal virtual override returns (uint256) {
         return SafeERC20TransferFrom.safeTransferFrom(token, amount);
     }
 
     /**
      * @dev See {TeleportTokenSource-_withdraw}
      */
-    function _withdraw(address recipient, uint256 amount) internal override {
+    function _withdraw(address recipient, uint256 amount) internal virtual override {
+        emit TokensWithdrawn(recipient, amount);
         token.safeTransfer(recipient, amount);
     }
 
@@ -90,7 +91,7 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
-    ) internal override {
+    ) internal virtual override {
         // Approve the destination contract to spend the amount from the collateral.
         SafeERC20.safeIncreaseAllowance(token, message.recipientContract, amount);
 

@@ -122,10 +122,10 @@ func DeployERC20Destination(
 func DeployNativeTokenDestination(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
+	symbol string,
 	teleporterManager common.Address,
 	sourceBlockchainID ids.ID,
 	tokenSourceAddress common.Address,
-	feeTokenAddress common.Address,
 	initialReserveImbalance *big.Int,
 	decimalsShift uint8,
 	multiplyOnReceive bool,
@@ -148,15 +148,17 @@ func DeployNativeTokenDestination(
 	address, tx, nativeTokenDestination, err := nativetokendestination.DeployNativeTokenDestination(
 		opts,
 		subnet.RPCClient,
-		subnet.TeleporterRegistryAddress,
-		teleporterManager,
-		sourceBlockchainID,
-		tokenSourceAddress,
-		feeTokenAddress,
-		initialReserveImbalance,
-		decimalsShift,
-		multiplyOnReceive,
-		burnedFeesReportingRewardPercentage,
+		nativetokendestination.NativeTokenDestinationSettings{
+			NativeAssetSymbol:                   symbol,
+			TeleporterRegistryAddress:           subnet.TeleporterRegistryAddress,
+			TeleporterManager:                   teleporterManager,
+			SourceBlockchainID:                  sourceBlockchainID,
+			TokenSourceAddress:                  tokenSourceAddress,
+			InitialReserveImbalance:             initialReserveImbalance,
+			DecimalsShift:                       decimalsShift,
+			MultiplyOnReceive:                   multiplyOnReceive,
+			BurnedFeesReportingRewardPercentage: burnedFeesReportingRewardPercentage,
+		},
 	)
 	Expect(err).Should(BeNil())
 
@@ -536,7 +538,7 @@ func SendAndCallERC20Destination(
 	return receipt, event.Amount
 }
 
-// Send a native token from fromBridge to toBridge via multihop through the C-Chain
+// Send a native token from fromBridge to toBridge via multi-hop through the C-Chain
 // Requires that both fromBridge and toBridge are fully collateralized
 // Requires that both fromBridge and toBridge have the same tokenMultiplier and multiplyOnReceive
 // with respect to the original asset on the C-Chain
@@ -566,7 +568,7 @@ func SendNativeMultihopAndVerify(
 	// Find the amount sent by fromBridge. This is before any scaling/unscaling is applied.
 	bridgedAmount = new(big.Int).Sub(bridgedAmount, input.PrimaryFee)
 
-	// Send tokens through a multihop transfer
+	// Send tokens through a multi-hop transfer
 	originReceipt, _ := SendNativeTokenDestination(
 		ctx,
 		fromSubnet,
@@ -579,7 +581,7 @@ func SendNativeMultihopAndVerify(
 	)
 
 	// Relay the first message back to the home-chain, in this case C-Chain,
-	// which then performs the multihop transfer to the destination chain
+	// which then performs the multi-hop transfer to the destination chain
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -591,7 +593,7 @@ func SendNativeMultihopAndVerify(
 	initialBalance, err := toSubnet.RPCClient.BalanceAt(ctx, recipientAddress, nil)
 	Expect(err).Should(BeNil())
 
-	// When we relay the above message to the home-chain, a multihop transfer
+	// When we relay the above message to the home-chain, a multi-hop transfer
 	// is performed to the destination chain. Parse for the send tokens event
 	// and relay to final destination.
 	network.RelayMessage(
@@ -641,7 +643,7 @@ func SendERC20MultihopAndVerify(
 		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
 	}
 
-	// Send tokens through a multihop transfer
+	// Send tokens through a multi-hop transfer
 	originReceipt, bridgedAmount := SendERC20Destination(
 		ctx,
 		fromSubnet,
@@ -653,7 +655,7 @@ func SendERC20MultihopAndVerify(
 	)
 
 	// Relay the first message back to the home-chain, in this case C-Chain,
-	// which then performs the multihop transfer to the destination chain
+	// which then performs the multi-hop transfer to the destination chain
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -662,7 +664,7 @@ func SendERC20MultihopAndVerify(
 		true,
 	)
 
-	// When we relay the above message to the home-chain, a multihop transfer
+	// When we relay the above message to the home-chain, a multi-hop transfer
 	// is performed to the destination chain. Parse for the send tokens event
 	// and relay to final destination.
 	destinationReceipt := network.RelayMessage(

@@ -27,8 +27,7 @@ import {
     SingleHopSendMessage,
     SingleHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
-import {SafeWrappedNativeTokenDeposit} from "./utils/SafeWrappedNativeTokenDeposit.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
 
@@ -36,6 +35,18 @@ import {CallUtils} from "./utils/CallUtils.sol";
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
+
+struct NativeTokenDestinationSettings {
+    string nativeAssetSymbol;
+    address teleporterRegistryAddress;
+    address teleporterManager;
+    bytes32 sourceBlockchainID;
+    address tokenSourceAddress;
+    uint256 initialReserveImbalance;
+    uint8 decimalsShift;
+    bool multiplyOnReceive;
+    uint256 burnedFeesReportingRewardPercentage;
+}
 
 /**
  * @notice Implementation of the {INativeTokenDestination} interface.
@@ -45,13 +56,13 @@ import {CallUtils} from "./utils/CallUtils.sol";
  * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
  */
 contract NativeTokenDestination is
+    ERC20,
     TeleporterOwnerUpgradeable,
     INativeTokenDestination,
     SendReentrancyGuard,
-    TeleporterTokenDestination
+    TeleporterTokenDestination,
+    IWrappedNativeToken
 {
-    using SafeERC20 for IWrappedNativeToken;
-
     /**
      * @notice The address where the burned transaction fees are credited.
      *
@@ -63,17 +74,16 @@ contract NativeTokenDestination is
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
 
     /**
-     * @notice Address used by this contract to blackhole funds, effectively burning them.
+     * @notice The address where native tokens are sent in order to be burned to bridge to other chains.
      *
-     * @dev Native tokens are burned by this contract by sending them to this address when transferring tokens back to
-     * the source chain. Different from BURNED_TX_FEES_ADDRESS so that the total amount burned in transaction fees and
-     * the total amount burned to be sent back to the source chain can be tracked separately.
+     * @dev This address is distinct from {BURNED_TX_FEES_ADDRESS} so that the amount of burned transaction
+     * fees and burned bridged amounts can be tracked separately.
      * This address was chosen arbitrarily.
      */
-    address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000010203;
+    address public constant BURNED_FOR_BRIDGE_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
-     * @notice Address used by the source chain to blackhole funds, effectively burning them.
+     * @notice Address used to blackhole funds on the source chain, effectively burning them.
      *
      * @dev When reporting burned transaction fee amounts, this address is used as the recipient
      * address for the funds to be sent to be burned on the source chain.
@@ -82,7 +92,7 @@ contract NativeTokenDestination is
     address public constant SOURCE_CHAIN_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
-     * @notice Address of the Native Minter precompile contract.
+     * @notice The native minter precompile.
      */
     INativeMinter public constant NATIVE_MINTER =
         INativeMinter(0x0200000000000000000000000000000000000001);
@@ -118,61 +128,54 @@ contract NativeTokenDestination is
     uint256 public lastestBurnedFeesReported;
 
     /**
-     * @notice The wrapped native token contract that represents the native tokens on this chain.
+     * @dev When modifier is used, the function can only be called after the contract is fully collelateralized,
+     * accounting for the initialReserveImbalance.
      */
-    IWrappedNativeToken public immutable token;
-
     modifier onlyWhenCollateralized() {
         require(_isCollateralized(), "NativeTokenDestination: contract undercollateralized");
         _;
     }
 
-    constructor(
-        address teleporterRegistryAddress,
-        address teleporterManager,
-        bytes32 sourceBlockchainID_,
-        address tokenSourceAddress_,
-        address feeTokenAddress_,
-        uint256 initialReserveImbalance_,
-        uint8 decimalsShift,
-        bool multiplyOnReceive_,
-        uint256 burnedFeesReportingRewardPercentage_
-    )
+    constructor(NativeTokenDestinationSettings memory settings)
+        ERC20(string.concat("Wrapped ", settings.nativeAssetSymbol), settings.nativeAssetSymbol)
         TeleporterTokenDestination(
-            teleporterRegistryAddress,
-            teleporterManager,
-            sourceBlockchainID_,
-            tokenSourceAddress_,
-            feeTokenAddress_,
-            decimalsShift,
-            multiplyOnReceive_
+            settings.teleporterRegistryAddress,
+            settings.teleporterManager,
+            settings.sourceBlockchainID,
+            settings.tokenSourceAddress,
+            settings.decimalsShift,
+            settings.multiplyOnReceive
         )
     {
-        token = IWrappedNativeToken(feeTokenAddress);
-
         require(
-            initialReserveImbalance_ != 0, "NativeTokenDestination: zero initial reserve imbalance"
+            settings.initialReserveImbalance != 0,
+            "NativeTokenDestination: zero initial reserve imbalance"
         );
 
-        initialReserveImbalance = initialReserveImbalance_;
-        currentReserveImbalance = initialReserveImbalance_;
+        initialReserveImbalance = settings.initialReserveImbalance;
+        currentReserveImbalance = settings.initialReserveImbalance;
 
         require(
-            burnedFeesReportingRewardPercentage_ < 100, "NativeTokenDestination: invalid percentage"
+            settings.burnedFeesReportingRewardPercentage < 100,
+            "NativeTokenDestination: invalid percentage"
         );
-        burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
+        burnedFeesReportingRewardPercentage = settings.burnedFeesReportingRewardPercentage;
     }
 
     /**
-     * @notice Receives native tokens transferred to this contract without calldata.
-     * @dev This function is called when the token bridge is withdrawing native tokens to
-     * transfer to the recipient. Only the wrapped native token contract is allowed to call
-     * this function to prevent accidental loss of funds from other accounts.
+     * @dev Receives native token with no calldata provided. The tokens are credited to the sender's
+     * wrapped native token balance.
      */
     receive() external payable {
-        require(
-            msg.sender == feeTokenAddress, "NativeTokenDestination: invalid receive payable sender"
-        );
+        deposit();
+    }
+
+    /**
+     * @dev Fallback function for receiving native tokens. The tokens are credited to the sender's
+     * wrapped native token balance.
+     */
+    fallback() external payable {
+        deposit();
     }
 
     /**
@@ -205,7 +208,10 @@ contract NativeTokenDestination is
         lastestBurnedFeesReported = burnAddressBalance;
 
         if (reward > 0) {
-            _mint(address(this), reward);
+            // Re-mint the native tokens to this contract, and then deposit them to be the wrapped
+            // native token (ERC20) representation, such that they can be used as a Teleporter
+            // message fee.
+            _mintNativeCoin(address(this), reward);
             _deposit(reward);
         }
 
@@ -222,7 +228,7 @@ contract NativeTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: reward}),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: reward}),
                 requiredGasLimit: requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -233,6 +239,20 @@ contract NativeTokenDestination is
     }
 
     /**
+     * @dev See {IWrappedNativeToken-withdraw}.
+     *
+     * Note: {IWrappedNativeToken-withdraw} should not be confused with {TeleporterTokenDestination-_withdraw}.
+     * {IWrappedNativeToken-withdraw} is the external method to redeem a wrapped native token (ERC20) balance
+     * for the native token itself. {TeleporterTokenDestination-_withdraw} is the internal method used when
+     * processing bridge transfers.
+     */
+    function withdraw(uint256 amount) external {
+        emit Withdrawal(msg.sender, amount);
+        _burn(msg.sender, amount);
+        payable(msg.sender).transfer(amount);
+    }
+
+    /**
      * @dev See {INativeTokenDestination-isCollateralized}.
      */
     function isCollateralized() external view returns (bool) {
@@ -240,28 +260,50 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {INativeTokenDestination-totalSupply}.
+     * @dev See {IWrappedNativeToken-deposit}.
+     *
+     * Note: {IWrappedNativeToken-deposit} should not be confused with {TeleporterTokenDestination-_deposit}.
+     * {IWrappedNativeToken-deposit} is the public method for converting native tokens into the wrapped native
+     * token (ERC20) representation. {TeleporterTokenDestination-_deposit} is the internal method used when
+     * processing bridge transfers.
      */
-    function totalSupply() external view returns (uint256) {
-        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + token.balanceOf(BURN_FOR_TRANSFER_ADDRESS);
-        uint256 created = totalMinted + initialReserveImbalance;
+    function deposit() public payable {
+        emit Deposit(msg.sender, msg.value);
+        _mint(msg.sender, msg.value);
+    }
 
+    /**
+     * @dev See {INativeTokenDestination-totalNativeAssetSupply}.
+     *
+     * Note: {INativeTokenDestination-totalNativeAssetSupply} should not be confused with {IERC20-totalSupply}
+     * {INativeTokenDestination-totalNativeAssetSupply} returns the supply of the native asset of the chain,
+     * accounting for the amounts that have been bridged in and out of the chain as well as burnt transaction
+     * fees. {IERC20-totalSupply} returns the supply of the native asset held by this contract that is represented
+     * as an ERC20.
+     */
+    function totalNativeAssetSupply() public view returns (uint256) {
+        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURNED_FOR_BRIDGE_ADDRESS.balance;
+        uint256 created = totalMinted + initialReserveImbalance;
         return created - burned;
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_deposit}
+     *
+     * Native tokens to be deposited are sent via the payable {send} and {sendAndCall} functions, and
+     * remained locked in this contract. The internal call to {_mint} here credits the full amount as
+     * the wrapped native asset (ERC20) token by incrementing the ERC20 balance of this contract, such
+     * that it can be used to pay for message fees if needed.
      */
-    function _deposit(uint256 amount) internal override returns (uint256) {
-        return SafeWrappedNativeTokenDeposit.safeDeposit(token, amount);
+    function _deposit(uint256 amount) internal virtual override returns (uint256) {
+        _mint(address(this), amount);
+        return amount;
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
-    function _withdraw(address recipient, uint256 amount) internal override {
-        emit TokensWithdrawn(recipient, amount);
-
+    function _withdraw(address recipient, uint256 amount) internal virtual override {
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
         // be minted and sent to the recipient.
@@ -280,16 +322,25 @@ contract NativeTokenDestination is
             }
         }
 
-        // Call {_mint} even if the adjustedAmount is 0 to improve traceability.
-        _mint(recipient, adjustedAmount);
+        // Call {_mintNativeCoin} even if the adjustedAmount is 0 to improve traceability.
+        emit TokensWithdrawn(recipient, adjustedAmount);
+        _mintNativeCoin(recipient, adjustedAmount);
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_burn}
+     *
+     * This is the internal {_burn} method called when bridging tokens to another chain.
+     * The tokens to be burnt are already be held by this contract, and credited to this
+     * contract's balance of the wrapped native token. To burn the tokens, first burn the
+     * wrapped ERC20 representation of the native token (decreasing the totalSupply of the
+     * wrappen native token and reducing this contract's balance of it), and then send the
+     * native token amount to the BURNED_FOR_BRIDGE_ADDRESS.
+     *
      */
-    function _burn(uint256 amount) internal override {
-        // Burn native token by transferring to BURN_FOR_TRANSFER_ADDRESS
-        token.safeTransfer(BURN_FOR_TRANSFER_ADDRESS, amount);
+    function _burn(uint256 amount) internal virtual override {
+        _burn(address(this), amount);
+        payable(BURNED_FOR_BRIDGE_ADDRESS).transfer(amount);
     }
 
     /**
@@ -306,7 +357,7 @@ contract NativeTokenDestination is
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
-    ) internal override {
+    ) internal virtual override {
         // If the contract is not yet fully collateralized, the use of send and call is not allowed
         // because it could result in unexpected behavior given that the amount of tokens used to make the
         // call to "receiveTokens" is less than expected. Instead, the amount is handled as a normal bridge
@@ -317,7 +368,7 @@ contract NativeTokenDestination is
         }
 
         // Mint the tokens to this contract address.
-        _mint(address(this), amount);
+        _mintNativeCoin(address(this), amount);
 
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
         bytes memory payload =
@@ -348,7 +399,7 @@ contract NativeTokenDestination is
     /**
      * @dev Mints coins to the recipient through the NativeMinter precompile.
      */
-    function _mint(address recipient, uint256 amount) private {
+    function _mintNativeCoin(address recipient, uint256 amount) private {
         totalMinted += amount;
         // Calls NativeMinter precompile through INativeMinter interface.
         NATIVE_MINTER.mintNativeCoin(recipient, amount);

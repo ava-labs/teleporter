@@ -18,7 +18,7 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * @param destinationBridgeAddress address of the destination token bridge instance
  * @param recipient address of the recipient on the destination chain
  * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
- * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed
+ * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
  * @param requiredGasLimit gas limit requirement for sending to a token bridge.
  * This is required because the gas requirement varies based on the token bridge instance
  * specified by `destinationBlockchainID` and `destinationBridgeAddress`.
@@ -44,7 +44,7 @@ struct SendTokensInput {
  *                          which must be less than the requiredGasLimit of the message as a whole.
  * @param fallbackRecipient address where the bridged tokens are sent if the call to the recipient contract fails.
  * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
- * @param secondaryFee amount of tokens to pay for Teleporter fee if a multihop is needed
+ * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
  */
 struct SendAndCallInput {
     bytes32 destinationBlockchainID;

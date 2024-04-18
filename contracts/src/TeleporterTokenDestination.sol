@@ -45,8 +45,6 @@ abstract contract TeleporterTokenDestination is
     bytes32 public immutable sourceBlockchainID;
     /// @notice The address of the source token bridge instance this contract receives tokens from.
     address public immutable tokenSourceAddress;
-    /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
-    address public immutable feeTokenAddress;
 
     /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
@@ -69,16 +67,16 @@ abstract contract TeleporterTokenDestination is
     bool public immutable multiplyOnReceive;
 
     /**
-     * @notice Fixed gas cost for performing a multihop transfer on the `sourceBlockchainID`,
+     * @notice Fixed gas cost for performing a multi-hop transfer on the `sourceBlockchainID`,
      * before forwarding to the final destination bridge instance.
      */
-    uint256 public constant MULTIHOP_REQUIRED_GAS = 220_000;
+    uint256 public constant MULTI_HOP_REQUIRED_GAS = 220_000;
 
     /**
-     * @notice The amount gas added to the required gas limit for a multihop call message
-     * for each byte of the recipient payload.
+     * @notice The amount of gas added to the required gas limit for a multi-hop call message
+     * for each 32-byte word of the recipient payload.
      */
-    uint256 public constant MULTIHOP_CALL_GAS_PER_BYTE = 1_000;
+    uint256 public constant MULTI_HOP_CALL_GAS_PER_WORD = 8_500;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
@@ -89,7 +87,6 @@ abstract contract TeleporterTokenDestination is
         address teleporterManager,
         bytes32 sourceBlockchainID_,
         address tokenSourceAddress_,
-        address feeTokenAddress_,
         uint8 decimalsShift,
         bool multiplyOnReceive_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
@@ -106,13 +103,9 @@ abstract contract TeleporterTokenDestination is
             tokenSourceAddress_ != address(0),
             "TeleporterTokenDestination: zero token source address"
         );
-        require(
-            feeTokenAddress_ != address(0), "TeleporterTokenDestination: zero fee token address"
-        );
-        require(decimalsShift <= 18, "NativeTokenDestination: invalid decimalsShift");
+        require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
         sourceBlockchainID = sourceBlockchainID_;
         tokenSourceAddress = tokenSourceAddress_;
-        feeTokenAddress = feeTokenAddress_;
         tokenMultiplier = 10 ** decimalsShift;
         multiplyOnReceive = multiplyOnReceive_;
     }
@@ -131,6 +124,18 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
+     * @dev Calculates the number of 32-byte words required to fit a payload of a given length.
+     * The payloads are padded to have a length that is a multiple of 32.
+     */
+    function calculateNumWords(uint256 payloadSize) public pure returns (uint256) {
+        uint256 numWords = payloadSize / 32;
+        if (payloadSize % 32 != 0) {
+            ++numWords;
+        }
+        return numWords;
+    }
+
+    /**
      * @notice Sends tokens to the specified destination token bridge instance.
      *
      * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message.
@@ -145,7 +150,7 @@ abstract contract TeleporterTokenDestination is
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
-        require(input.requiredGasLimit != 0, "TeleporterTokenDestination: zero required gas limit");
+        require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
         amount = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
@@ -155,10 +160,10 @@ abstract contract TeleporterTokenDestination is
         );
 
         // If the destination blockchain is the source blockchain,
-        // no multihop is needed. Only the required gas limit for the Teleporter message back to
+        // no multi-hop is needed. Only the required gas limit for the Teleporter message back to
         // `sourceBlockchainID` is needed, which is provided by `input.requiredGasLimit`.
-        // Else, there will be a multihop transfer to the final destination.
-        // The first hop back to `sourceBlockchainID` requires `MULTIHOP_REQUIRED_GAS`,
+        // Else, there will be a multi-hop transfer to the final destination.
+        // The first hop back to `sourceBlockchainID` requires `MULTI_HOP_REQUIRED_GAS`,
         // and the second hop to the final destination requires `input.requiredGasLimit`.
         BridgeMessage memory message;
         uint256 messageRequiredGasLimit = input.requiredGasLimit;
@@ -199,14 +204,14 @@ abstract contract TeleporterTokenDestination is
                     })
                     )
             });
-            messageRequiredGasLimit = MULTIHOP_REQUIRED_GAS;
+            messageRequiredGasLimit = MULTI_HOP_REQUIRED_GAS;
         }
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: input.primaryFee}),
                 requiredGasLimit: messageRequiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -299,8 +304,12 @@ abstract contract TeleporterTokenDestination is
                     })
                     )
             });
-            messageRequiredGasLimit =
-                MULTIHOP_REQUIRED_GAS + (MULTIHOP_CALL_GAS_PER_BYTE * input.recipientPayload.length);
+
+            // The required gas limit for the first message sent back to the source chain
+            // needs to account for the number of words in the payload, which each use additional
+            // gas to send in a message to the final destination chain.
+            messageRequiredGasLimit = MULTI_HOP_REQUIRED_GAS
+                + (calculateNumWords(input.recipientPayload.length) * MULTI_HOP_CALL_GAS_PER_WORD);
         }
 
         // Send message to the destination bridge address
@@ -308,7 +317,7 @@ abstract contract TeleporterTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: input.primaryFee}),
                 requiredGasLimit: messageRequiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -344,7 +353,6 @@ abstract contract TeleporterTokenDestination is
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
-            emit TokensWithdrawn(payload.recipient, scaledAmount);
             _withdraw(payload.recipient, scaledAmount);
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
             SingleHopCallMessage memory payload =

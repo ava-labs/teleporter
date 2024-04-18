@@ -5,6 +5,7 @@
 
 pragma solidity 0.8.18;
 
+import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenSourceTest} from "./TeleporterTokenSourceTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {NativeTokenSource} from "../src/NativeTokenSource.sol";
@@ -49,7 +50,9 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         new NativeTokenSource(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
     }
 
-    function _checkExpectedWithdrawal(address, uint256 amount) internal override {
+    function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
+        vm.expectEmit(true, true, true, true, address(tokenSource));
+        emit TokensWithdrawn(recipient, amount);
         vm.expectCall(
             address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
         );
@@ -89,5 +92,18 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
             vm.expectEmit(true, true, true, true, address(app));
             emit CallFailed(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
         }
+    }
+
+    function _setUpExpectedDeposit(uint256 amount)
+        internal
+        override (NativeTokenBridgeTest, TeleporterTokenBridgeTest)
+    {
+        vm.expectCall(address(feeToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
+        vm.expectEmit(true, true, true, true, address(feeToken));
+        emit Deposit(address(nativeTokenBridge), amount);
+    }
+
+    function _setUpExpectedZeroAmountRevert() internal override {
+        vm.expectRevert("SafeWrappedNativeTokenDeposit: balance not increased");
     }
 }

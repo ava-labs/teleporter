@@ -35,7 +35,8 @@ interface INativeTokenDestination is INativeTokenBridge {
     function isCollateralized() external view returns (bool);
 
     /**
-     * @dev Returns a best-estimate (upper bound) of tokens in circulation on this chain.
+     * @dev Returns a best-estimate (upper bound) of the supply of the native asset
+     * in circulation on this chain.
      */
-    function totalSupply() external view returns (uint256);
+    function totalNativeAssetSupply() external view returns (uint256);
 }

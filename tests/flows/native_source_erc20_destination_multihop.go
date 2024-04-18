@@ -18,8 +18,8 @@ import (
  * Deploy a native token source on the primary network
  * Deploys ERC20Destination to Subnet A and Subnet B
  * Bridges C-Chain native tokens to Subnet A
- * Bridge tokens from Subnet A to Subnet B through multihop
- * Brige back tokens from Subnet B to Subnet A through multihop
+ * Bridge tokens from Subnet A to Subnet B through multi-hop
+ * Brige back tokens from Subnet B to Subnet A through multi-hop
  */
 func NativeSourceERC20DestinationMultihop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
@@ -125,7 +125,7 @@ func NativeSourceERC20DestinationMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(bridgedAmount))
 
-	// Send tokens from subnet A to recipient on subnet B through a multihop
+	// Send tokens from subnet A to recipient on subnet B through a multi-hop
 	utils.SendERC20MultihopAndVerify(
 		ctx,
 		network,

@@ -125,6 +125,8 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(tokenDestination));
+        emit TokensWithdrawn(recipient, amount);
+        vm.expectEmit(true, true, true, true, address(tokenDestination));
         emit Transfer(address(0), recipient, amount);
     }
 
@@ -177,6 +179,10 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
             vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(app), address(DEFAULT_FALLBACK_RECIPIENT_ADDRESS), amount);
         }
+    }
+
+    function _setUpExpectedZeroAmountRevert() internal override {
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
     }
 
     function _getTotalSupply() internal view override returns (uint256) {

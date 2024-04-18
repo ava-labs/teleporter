@@ -8,7 +8,6 @@ pragma solidity 0.8.18;
 import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {INativeTokenBridge} from "../src/interfaces/INativeTokenBridge.sol";
 import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
-import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 
 abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
     INativeTokenBridge public nativeTokenBridge;
@@ -17,7 +16,7 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
     event Withdrawal(address indexed sender, uint256 amount);
 
     function testZeroSendAmount() public {
-        vm.expectRevert("SafeWrappedNativeTokenDeposit: balance not increased");
+        _setUpExpectedZeroAmountRevert();
         _send(_createDefaultSendTokensInput(), 0);
     }
 
@@ -32,9 +31,6 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
         nativeTokenBridge.sendAndCall{value: amount}(input);
     }
 
-    function _setUpExpectedDeposit(uint256 amount) internal virtual override {
-        vm.expectCall(address(feeToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
-        vm.expectEmit(true, true, true, true, address(feeToken));
-        emit Deposit(address(nativeTokenBridge), amount);
-    }
+    function _setUpExpectedDeposit(uint256 amount) internal virtual override;
+    function _setUpExpectedZeroAmountRevert() internal virtual;
 }

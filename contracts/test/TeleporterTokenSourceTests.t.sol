@@ -84,8 +84,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         SendTokensInput memory input = _createDefaultReceiveTokensInput();
         input.primaryFee = feeAmount;
 
-        vm.expectEmit(true, true, true, true, address(tokenSource));
-        emit TokensWithdrawn(DEFAULT_RECIPIENT_ADDRESS, bridgeAmount);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgeAmount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(

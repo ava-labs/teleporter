@@ -31,7 +31,7 @@ import {IWarpMessenger} from
  * @title TeleporterTokenSource
  * @dev Abstract contract for a Teleporter token bridge that sends tokens to {TeleporterTokenDestination} instances.
  *
- * This contract also handles multihop transfers, where tokens sent from a {TeleporterTokenDestination}
+ * This contract also handles multi-hop transfers, where tokens sent from a {TeleporterTokenDestination}
  * instance are forwarded to another {TeleporterTokenDestination} instance.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
@@ -182,7 +182,7 @@ abstract contract TeleporterTokenSource is
      * Verifies the Teleporter token bridge sending back tokens has enough balance,
      * and adjusts the bridge balance accordingly. If the final destination for this token
      * is this contract, the tokens are withdrawn and sent to the recipient. Otherwise,
-     * a multihop is performed, and the tokens are forwarded to the destination token bridge.
+     * a multi-hop is performed, and the tokens are forwarded to the destination token bridge.
      * Requirements:
      *
      * - `sourceBlockchainID` and `originSenderAddress` have enough bridge balance to send back.
@@ -209,7 +209,6 @@ abstract contract TeleporterTokenSource is
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
-            emit TokensWithdrawn(payload.recipient, bridgeMessage.amount);
             _withdraw(payload.recipient, bridgeMessage.amount);
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
@@ -305,8 +304,8 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: zero destination bridge address"
         );
 
-        // If this send is not a multihop, deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit. If it is a multihop, the amount is already
+        // If this send is not a multi-hop, deposit the funds sent from the user to the bridge,
+        // and set to adjusted amount after deposit. If it is a multi-hop, the amount is already
         // deposited.
         if (!isMultihop) {
             amount = _deposit(amount);

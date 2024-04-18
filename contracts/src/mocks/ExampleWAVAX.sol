@@ -23,14 +23,14 @@ contract ExampleWAVAX is IWrappedNativeToken, ERC20 {
         deposit();
     }
 
-    function deposit() public payable {
-        _mint(msg.sender, msg.value);
-        emit Deposit(msg.sender, msg.value);
-    }
-
-    function withdraw(uint256 amount) public {
+    function withdraw(uint256 amount) external {
         _burn(msg.sender, amount);
         emit Withdrawal(msg.sender, amount);
         payable(msg.sender).transfer(amount);
+    }
+
+    function deposit() public payable {
+        _mint(msg.sender, msg.value);
+        emit Deposit(msg.sender, msg.value);
     }
 }

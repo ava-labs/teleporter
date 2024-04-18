@@ -8,7 +8,6 @@ pragma solidity 0.8.18;
 import {TeleporterTokenDestination} from "./TeleporterTokenDestination.sol";
 import {IERC20Bridge} from "./interfaces/IERC20Bridge.sol";
 import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {
@@ -54,7 +53,6 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
             teleporterManager,
             sourceBlockchainID_,
             tokenSourceAddress_,
-            address(this),
             0,
             false
         )
@@ -65,7 +63,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
 
     /**
      * @notice For transfers to an `input.destinationBlockchainID` that is not the `sourceBlockchainID`,
-     * a multihop transfer is performed, where the tokens are sent back to the token source chain
+     * a multi-hop transfer is performed, where the tokens are sent back to the token source chain
      * first to check for bridge balance, and then forwarded to the final destination chain.
      *
      * @dev See {IERC20Bridge-send}
@@ -90,15 +88,22 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
 
     /**
      * @dev See {TeleporterTokenDestination-_deposit}
+     *
+     * Note: The amount returned must be the amount credited as a result of the transfer.
+     * For a standard ERC20 implementation such as this contract, that is equal to the full amount given.
+     * Child contracts with different {_transfer} implementations may need to override this
+     * implemenation to ensure the amount returned is correct.
      */
-    function _deposit(uint256 amount) internal override returns (uint256) {
-        return SafeERC20TransferFrom.safeTransferFrom(this, amount);
+    function _deposit(uint256 amount) internal virtual override returns (uint256) {
+        _spendAllowance(msg.sender, address(this), amount);
+        _transfer(msg.sender, address(this), amount);
+        return amount;
     }
 
     /**
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
-    function _withdraw(address recipient, uint256 amount) internal override {
+    function _withdraw(address recipient, uint256 amount) internal virtual override {
         emit TokensWithdrawn(recipient, amount);
         _mint(recipient, amount);
     }
@@ -108,7 +113,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      *
      * Calls {ERC20-_burn} to burn tokens from this contract.
      */
-    function _burn(uint256 amount) internal override {
+    function _burn(uint256 amount) internal virtual override {
         _burn(address(this), amount);
     }
 
@@ -123,7 +128,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
-    ) internal override {
+    ) internal virtual override {
         // Mint the tokens to this contract address.
         _mint(address(this), amount);
 

@@ -17,8 +17,8 @@ import (
  * Deploys NativeDestination to Subnet A and Subnet B
  * Bridges native tokens from the C-Chain to Subnet A as Subnet A's native token
  * Bridges native tokens from the C-Chain to Subnet B as Subnet B's native token to collateralize the Subnet B bridge
- * Bridge tokens from Subnet A to Subnet B through multihop
- * Bridge back tokens from Subnet B to Subnet A through multihop
+ * Bridge tokens from Subnet A to Subnet B through multi-hop
+ * Bridge back tokens from Subnet B to Subnet A through multi-hop
  */
 func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
@@ -43,28 +43,14 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		wavaxAddressPrimary,
 	)
 
-	// Deploy an example WAVAX on Subnet A
-	wavaxAddressA, _ := utils.DeployExampleWAVAX(
-		ctx,
-		fundedKey,
-		subnetAInfo,
-	)
-
-	// Deploy an example WAVAX on Subnet B
-	wavaxAddressB, _ := utils.DeployExampleWAVAX(
-		ctx,
-		fundedKey,
-		subnetBInfo,
-	)
-
 	// Deploy a NativeTokenDestination to Subnet A
 	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
+		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
-		wavaxAddressA,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
@@ -75,10 +61,10 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	nativeTokenDestinationAddressB, nativeTokenDestinationB := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetBInfo,
+		"SUBB",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
-		wavaxAddressB,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnReceive,
@@ -90,7 +76,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// These are set during the initial bridging, and used in the multihop transfers
+	// These are set during the initial bridging, and used in the multi-hop transfers
 	var receivedAmountA, receivedAmountB *big.Int
 
 	// Send tokens from C-Chain to Subnet A
@@ -167,7 +153,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		teleporterUtils.CheckBalance(ctx, recipientAddress, receivedAmountB, subnetBInfo.RPCClient)
 	}
 
-	// Multihop transfer to Subnet B
+	// Multi-hop transfer to Subnet B
 	// Send half of the received amount to account for gas expenses
 	amountToSendA := new(big.Int).Div(receivedAmountA, big.NewInt(2))
 
@@ -190,7 +176,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	// Again, send half of the received amount to account for gas expenses
 	amountToSendB := new(big.Int).Div(amountToSendA, big.NewInt(2))
 
-	// Multihop transfer back to Subnet A
+	// Multi-hop transfer back to Subnet A
 	utils.SendNativeMultihopAndVerify(
 		ctx,
 		network,
