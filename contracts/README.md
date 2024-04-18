@@ -11,6 +11,10 @@ Interfaces that define the external functions for interacting with bridge contra
 ### `TeleporterTokenSource`
 An abstract implementation of `ITeleporterTokenBridge` for a bridge contract on the home chain with the asset to be bridged. Handles locking tokens to be sent to destination chains, as well as receiving bridge messages to either redeem tokens it holds as collateral (i.e unlock), or route them to another chain (i.e. "multi-hop"). In the case of a multi-hop transfer, the `TeleporterTokenSource` already has the collateral locked from when the tokens were originally bridged to the first destination chain, so it simply updates the accounting of the transferred balances to each respective destination.
 
+It is intended for there to be a single `TeleporterTokenSource` implementation and instance per asset issued on one blockchain to be bridge to other chains. The single source contract instance supports arbitrarily many destinations on other blockchains.
+
+Note that the term "source" in reference to bridge contracts refers to the home chain of a given asset, where the collateral is locked to be bridged. It is unrelated to the source and destination chain of an individual Teleporter message. `TeleporterTokenSource` instances both send and receive Teleporter messages.
+
 ### `ERC20Source`
 A concrete implementation of `TeleporterTokenSource` and `IERC20Bridge` that handles the locking and releasing of an ERC20 asset on the home chain. The optional Teleporter message fees used to incentivize a relayer for messages sent by this contract are all paid in the source ERC20 asset that it facilitates the bridging of.
 
@@ -24,11 +28,15 @@ All messages sent by `TeleporterTokenDestination` instances are sent to the spec
 
 `TeleporterTokenDestination` contracts allow for scaling token amounts, if the representative "wrapped" token is not a 1-to-1 equivalent of the backing asset. This token scaling can be used when the destination chain asset has a higher or lower denomincation than the source asset, such as allowing for a ERC20 source asset with a denomination of 6 to be used as the native EVM asset on a destination chain (with a denomination of 18).
 
+Note that the term "destination" in reference to bridge contracts refers to a non-home chain of a given asset where a representative asset is minted, backed the collateral locked on the home (source) chain. It is unrelated to the destination of an individual Teleporter message. `TeleporterTokenDestination` instances both send and receive Teleporter messages.
+
 ### `ERC20Destination`
 A concrete implementation of `TeleporterTokenDestination`, `IERC20Bridge`, and `IERC20` that handles the minting and burning of a destination chain asset. Note that the `ERC20Destination` contract _is_ the "wrapped" ERC20 implementation itself, which is why it takes the `tokenName`, `tokenSymbol`, and `tokenDecimals` in its constructor. All of the ERC20 interface implementations are inherited from the standard OpenZeppelin ERC20 implementation, and can be overriden in other implementations if desired. The optional Teleporter message fees used to incentivize a relayer for messages sent by this contract are all paid in kind, since the contract is an ERC20 token itself.
 
 ### `NativeTokenDestination`
-A concrete implementation of `TeleporterTokenDestination`, `INativeTokenBridge`, and `IWrappedNativeToken` that handles the minting and burning the native EVM on the destination chain using the native minter precompile. Deployments of this contract must be given the permission mint native coins in the chains configuration. Note that the `NativeTokenDestination` is also an implementation of `IWrappedNativeToken` itself, which is why the `symbol` must be provided in its constructor. The optional Teleporter message fees used to incentivize a relayer for messages sent by this contract are all paid using the wrapped native token that the contract implements.
+A concrete implementation of `TeleporterTokenDestination`, `INativeTokenBridge`, and `IWrappedNativeToken` that handles the minting and burning the native EVM on the destination chain using the native minter precompile. Deployments of this contract must be given the permission mint native coins in the chains configuration. Note that the `NativeTokenDestination` is also an implementation of `IWrappedNativeToken` itself, which is why the `nativeAssetSymbol` must be provided in its constructor. The optional Teleporter message fees used to incentivize a relayer for messages sent by this contract are all paid using the wrapped native token that the contract implements.
+
+The [native minter precompile](https://docs.avax.network/build/subnet/upgrade/customize-a-subnet#minting-native-coins) must be configured to allow the contract address of the `NativeTokenDestination` instance to call `mintNativeCoin`. The correctness of a native token bridge implemented using `NativeTokenDestination` relies on no other accounts being allowed to call `mintNativeCoin`, which could result in the bridge becoming undercollateralized. Example initialization steps for a `NativeTokenDestination` instance are shown below.
 
 Since the native minter precompile does not provide an interface for burning the native EVM asset, the "burn" functionality is implemented by locking the native asset in the contract itself in an un-redeemable manner. The contract also provides a `reportBurnedTxFees` interface in order to burn the home chain collateral that should also be made un-redeemable to account for tokens burnt on the destination chain to pay for transaction fees.
 
@@ -39,9 +47,8 @@ To account for the need to bootstrap the chain using a bridged asset as its nati
 3. Bridge at least 100 source tokens from the home chain to the new blockchain. The first 100 tokens bridged, which are possibly moved in multiple independent transfers, will not be minted on the destination since they were pre-allocated in the genesis file. Instead, a `CollateralAdded` event will be emitted by the `NativeTokenDestination` contract.
 4. Now that the `NativeTokenDestination` contract is fully collateralized, tokens can be moved normally in both directions across the bridge contracts. 
 
-The `totalSupply` implementation of `NativeTokenDestination` takes into account:
+The `totalNativeAssetSupply` implementation of `NativeTokenDestination` takes into account:
 - the initial reserve imbalance
 - the number of native tokens that it has minted
 - the number of native tokens that have been burned to pay for transaction fees
-- the number of native tokens "burned" to be bridged back to the home chain, which are locked in the `NativeTokenDestination` contract in perpetuity 
-
+- the number of native tokens "burned" to be bridged back to the home chain, which are sent to a pre-defined `BURNED_FOR_BRIDGE_ADDRESS`.

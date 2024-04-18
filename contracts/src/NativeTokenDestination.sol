@@ -28,7 +28,6 @@ import {
     SingleHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
 
@@ -239,6 +238,20 @@ contract NativeTokenDestination is
     }
 
     /**
+     * @dev See {IWrappedNativeToken-withdraw}.
+     *
+     * Note: {IWrappedNativeToken-withdraw} should not be confused with {TeleporterTokenDestination-_withdraw}.
+     * {IWrappedNativeToken-withdraw} is the external method to redeem a wrapped native token (ERC20) balance
+     * for the native token itself. {TeleporterTokenDestination-_withdraw} is the internal method used when
+     * processing bridge transfers.
+     */
+    function withdraw(uint256 amount) external {
+        emit Withdrawal(msg.sender, amount);
+        _burn(msg.sender, amount);
+        payable(msg.sender).transfer(amount);
+    }
+
+    /**
      * @dev See {INativeTokenDestination-isCollateralized}.
      */
     function isCollateralized() external view returns (bool) {
@@ -256,20 +269,6 @@ contract NativeTokenDestination is
     function deposit() public payable {
         emit Deposit(msg.sender, msg.value);
         _mint(msg.sender, msg.value);
-    }
-
-    /**
-     * @dev See {IWrappedNativeToken-withdraw}.
-     *
-     * Note: {IWrappedNativeToken-withdraw} should not be confused with {TeleporterTokenDestination-_withdraw}.
-     * {IWrappedNativeToken-withdraw} is the external method to redeem a wrapped native token (ERC20) balance
-     * for the native token itself. {TeleporterTokenDestination-_withdraw} is the internal method used when
-     * processing bridge transfers.
-     */
-    function withdraw(uint256 amount) external {
-        emit Withdrawal(msg.sender, amount);
-        _burn(msg.sender, amount);
-        payable(msg.sender).transfer(amount);
     }
 
     /**
