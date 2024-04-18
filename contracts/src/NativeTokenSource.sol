@@ -72,7 +72,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * @dev See {TeleportTokenSource-_deposit}
      * Deposits the native tokens sent to this contract
      */
-    function _deposit(uint256 amount) internal override returns (uint256) {
+    function _deposit(uint256 amount) internal virtual override returns (uint256) {
         return SafeWrappedNativeTokenDeposit.safeDeposit(token, amount);
     }
 
@@ -81,7 +81,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * Withdraws the wrapped tokens for native tokens,
      * and sends them to the recipient.
      */
-    function _withdraw(address recipient, uint256 amount) internal override {
+    function _withdraw(address recipient, uint256 amount) internal virtual override {
         emit TokensWithdrawn(recipient, amount);
         token.withdraw(amount);
         payable(recipient).transfer(amount);
@@ -98,7 +98,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
-    ) internal override {
+    ) internal virtual override {
         // Withdraw the native token from the wrapped native token contract.
         token.withdraw(amount);
 

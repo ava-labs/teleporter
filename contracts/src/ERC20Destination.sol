@@ -91,9 +91,10 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      *
      * Note: The amount returned must be the amount credited as a result of the transfer.
      * For a standard ERC20 implementation such as this contract, that is equal to the full amount given.
-     * For fee/burn on transfer tokens, that amount could be less.
+     * Child contracts with different {_transfer} implementations may need to override this
+     * implemenation to ensure the amount returned is correct.
      */
-    function _deposit(uint256 amount) internal override returns (uint256) {
+    function _deposit(uint256 amount) internal virtual override returns (uint256) {
         _spendAllowance(msg.sender, address(this), amount);
         _transfer(msg.sender, address(this), amount);
         return amount;
@@ -102,7 +103,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     /**
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
-    function _withdraw(address recipient, uint256 amount) internal override {
+    function _withdraw(address recipient, uint256 amount) internal virtual override {
         emit TokensWithdrawn(recipient, amount);
         _mint(recipient, amount);
     }
@@ -112,7 +113,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      *
      * Calls {ERC20-_burn} to burn tokens from this contract.
      */
-    function _burn(uint256 amount) internal override {
+    function _burn(uint256 amount) internal virtual override {
         _burn(address(this), amount);
     }
 
@@ -127,7 +128,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
-    ) internal override {
+    ) internal virtual override {
         // Mint the tokens to this contract address.
         _mint(address(this), amount);
 

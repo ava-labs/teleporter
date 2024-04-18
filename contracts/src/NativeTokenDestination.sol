@@ -294,7 +294,7 @@ contract NativeTokenDestination is
      * the wrapped native asset (ERC20) token by incrementing the ERC20 balance of this contract, such
      * that it can be used to pay for message fees if needed.
      */
-    function _deposit(uint256 amount) internal override returns (uint256) {
+    function _deposit(uint256 amount) internal virtual override returns (uint256) {
         _mint(address(this), amount);
         return amount;
     }
@@ -302,7 +302,7 @@ contract NativeTokenDestination is
     /**
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
-    function _withdraw(address recipient, uint256 amount) internal override {
+    function _withdraw(address recipient, uint256 amount) internal virtual override {
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
         // be minted and sent to the recipient.
@@ -337,7 +337,7 @@ contract NativeTokenDestination is
      * native token amount to the BURNED_FOR_BRIDGE_ADDRESS.
      *
      */
-    function _burn(uint256 amount) internal override {
+    function _burn(uint256 amount) internal virtual override {
         _burn(address(this), amount);
         payable(BURNED_FOR_BRIDGE_ADDRESS).transfer(amount);
     }
@@ -356,7 +356,7 @@ contract NativeTokenDestination is
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
-    ) internal override {
+    ) internal virtual override {
         // If the contract is not yet fully collateralized, the use of send and call is not allowed
         // because it could result in unexpected behavior given that the amount of tokens used to make the
         // call to "receiveTokens" is less than expected. Instead, the amount is handled as a normal bridge
