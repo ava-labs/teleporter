@@ -74,15 +74,16 @@ contract NativeTokenDestination is
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
 
     /**
-     * @notice The address where native tokens are sent to be burned to bridge to other chains.
-     * This address is distinct from {BURNED_TX_FEES_ADDRESS} so that the amount of burned transaction
+     * @notice The address where native tokens are sent in order to be burned to bridge to other chains.
+     *
+     * @dev This address is distinct from {BURNED_TX_FEES_ADDRESS} so that the amount of burned transaction
      * fees and burned bridged amounts can be tracked separately.
      * This address was chosen arbitrarily.
      */
     address public constant BURNED_FOR_BRIDGE_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
-     * @notice Address used by the source chain to blackhole funds, effectively burning them.
+     * @notice Address used to blackhole funds on the source chain, effectively burning them.
      *
      * @dev When reporting burned transaction fee amounts, this address is used as the recipient
      * address for the funds to be sent to be burned on the source chain.
@@ -91,7 +92,7 @@ contract NativeTokenDestination is
     address public constant SOURCE_CHAIN_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
-     * @notice Address of the Native Minter precompile contract.
+     * @notice The native minter precompile.
      */
     INativeMinter public constant NATIVE_MINTER =
         INativeMinter(0x0200000000000000000000000000000000000001);
