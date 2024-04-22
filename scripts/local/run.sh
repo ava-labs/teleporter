@@ -13,22 +13,20 @@ function printHelp {
     echo ""
     echo "Options:"
     echo "  -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub"
-    echo "  -p, --pause                       Pause the network on stop. Will attempt to restart the paused network on subsequent runs"
     echo "  -h, --help                        Print this help message"
 }
 
 function cleanup {
     echo "Shutting down network before exiting..."
-    ./scripts/local/run_stop.sh $RUN_STOP_FLAG
+    rm -f NETWORK_READY
+    docker compose -f docker/docker-compose-run.yml --project-directory ./ stop
     echo "Network stopped"
 }
 
 LOCAL_RELAYER_IMAGE=
-RUN_STOP_FLAG="-c"
 while [ $# -gt 0 ]; do
     case "$1" in
         -l | --local-relayer-image) LOCAL_RELAYER_IMAGE=$2 && shift;;
-        -p | --pause) RUN_STOP_FLAG= ;;
         -h | --help) printHelp && exit 0 ;;
         *)  echo "Invalid option: $1" && printHelp && exit 1;;
     esac
@@ -47,7 +45,8 @@ setARCH
 
 if [ -z "$LOCAL_RELAYER_IMAGE" ]; then
     echo "Using published awm-relayer image"
-    docker compose -f docker/docker-compose-run.yml --project-directory ./ up --abort-on-container-exit --build &
+    echo "Starting new network instance"
+    docker compose -f docker/docker-compose-run.yml --project-directory ./ up --abort-on-container-exit --build --force-recreate &
     docker_pid=$!
 else
     echo "Using local awm-relayer image: $LOCAL_RELAYER_IMAGE"
@@ -57,7 +56,8 @@ else
     fi
     rm -f docker/docker-compose-run-local.yml
     sed "s/<TAG>/$LOCAL_RELAYER_IMAGE/g" docker/docker-compose-run-local-template.yml > docker/docker-compose-run-local.yml
-    docker compose -f docker/docker-compose-run-local.yml --project-directory ./ up --abort-on-container-exit --build &
+    echo "Starting new network instance"
+    docker compose -f docker/docker-compose-run-local.yml --project-directory ./ up --abort-on-container-exit --build --force-recreate &
     docker_pid=$!
 fi
 

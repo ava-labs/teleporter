@@ -97,23 +97,4 @@ contract ERC20TokenSource is IERC20TokenSource, TokenSource {
         emit UnlockTokens(recipient, amount);
         SafeERC20.safeTransfer(IERC20(erc20ContractAddress), recipient, amount);
     }
-
-    /**
-     * @dev See {TokenSource-_handleBurnTokens}
-     */
-    function _handleBurnTokens(uint256 newBurnTotal) internal override {
-        if (newBurnTotal > destinationBurnedTotal) {
-            uint256 difference = newBurnTotal - destinationBurnedTotal;
-            _burnTokens(difference);
-            destinationBurnedTotal = newBurnTotal;
-        }
-    }
-
-    /**
-     * @dev See {TokenSource-_burnTokens}
-     */
-    function _burnTokens(uint256 amount) private {
-        emit BurnTokens(amount);
-        SafeERC20.safeTransfer(IERC20(erc20ContractAddress), BURN_ADDRESS, amount);
-    }
 }

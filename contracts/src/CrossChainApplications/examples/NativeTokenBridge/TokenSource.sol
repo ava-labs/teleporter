@@ -21,9 +21,6 @@ import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUp
  * This abstract contract represents the shared functionality for source contracts.
  */
 abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable {
-    // Designated Blackhole Address for this contract. Tokens are sent here to be "burned" when
-    // a SourceAction.Burn message is received from the destination chain.
-    address public constant BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
     uint256 public constant MINT_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
     // Used to keep track of tokens burned through transactions on the destination chain. The destination burned amount can
     // be reported to this contract to burn an equivalent number of tokens on this chain.
@@ -74,31 +71,12 @@ abstract contract TokenSource is ITokenSource, TeleporterOwnerUpgradeable {
             originSenderAddress == nativeTokenDestinationAddress, "TokenSource: unauthorized sender"
         );
 
-        // Decode the payload to recover the action and corresponding function parameters
-        (SourceAction action, bytes memory actionData) = abi.decode(message, (SourceAction, bytes));
-
-        // Route to the appropriate function.
-        if (action == SourceAction.Unlock) {
-            (address recipient, uint256 amount) = abi.decode(actionData, (address, uint256));
-            _unlockTokens(recipient, amount);
-        } else if (action == SourceAction.Burn) {
-            uint256 newBurnTotal = abi.decode(actionData, (uint256));
-            _handleBurnTokens(newBurnTotal);
-        } else {
-            revert("TokenSource: invalid action");
-        }
+        (address recipient, uint256 amount) = abi.decode(message, (address, uint256));
+        _unlockTokens(recipient, amount);
     }
 
     /**
      * @dev Unlocks tokens to recipient.
      */
     function _unlockTokens(address recipient, uint256 amount) internal virtual;
-
-    /**
-     * @dev Update destinationBurnedTotal sent from destination chain
-     * If the new burned total is less than the highest known burned total, this transaction is a no-op.
-     * The burned total on the destination will only ever increase, but new totals may be relayed to this
-     * chain out of order.
-     */
-    function _handleBurnTokens(uint256 newBurnTotal) internal virtual;
 }

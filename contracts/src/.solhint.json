@@ -1,7 +1,10 @@
 {
     "extends": "solhint:recommended",
     "rules": {
-        "compiler-version": ["error", "0.8.18"],
+        "compiler-version": [
+            "error",
+            "0.8.18"
+        ],
         "no-unused-vars": "error",
         "func-visibility": [
             "error",
@@ -21,7 +24,7 @@
                 "maxLength": 75
             }
         ],
-        "custom-errors": "off",
+        "gas-custom-errors": "off",
         "ordering": "error",
         "immutable-vars-naming": [
             "warn",
@@ -29,7 +32,10 @@
                 "immutablesAsConstants": false
             }
         ],
-        "func-named-parameters": ["error", 5],
+        "func-named-parameters": [
+            "error",
+            5
+        ],
         "one-contract-per-file": "off"
     }
 }

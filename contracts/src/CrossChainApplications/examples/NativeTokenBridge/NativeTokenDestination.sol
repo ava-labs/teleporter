@@ -11,7 +11,6 @@ import {IWarpMessenger} from
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./INativeTokenDestination.sol";
-import {ITokenSource} from "./ITokenSource.sol";
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
@@ -37,16 +36,28 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      *
      * @dev Defined as BLACKHOLE_ADDRESS at
      * https://github.com/ava-labs/subnet-evm/blob/e23ab058d039ff9c8469c89b139d21d52c4bd283/constants/constants.go
+     * It is a system-reserved address by default in subnet-evm, and transfers cannot be sent here manually.
      */
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
 
     /**
-     * @notice Designated Blackhole Address for this contract.
+     * @notice Address used by this contract to blackhole funds, effectively burning them.
      *
-     * @dev Tokens are sent here to be "burned" before sending an unlock message to the source chain. Different
-     * from the burned tx fee address so they can be tracked separately.
+     * @dev Native tokens are burned by this contract by sending them to this address when transferring tokens back to
+     * the source chain. Different from BURNED_TX_FEES_ADDRESS so that the total amount burned in transaction fees and
+     * the total amount burned to be sent back to the source chain can be tracked separately.
+     * This address was chosen arbitrarily.
      */
     address public constant BURN_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000010203;
+
+    /**
+     * @notice Address used by the source chain to blackhole funds, effectively burning them.
+     *
+     * @dev When reporting burned transaction fee amounts, this address is used as the recipient
+     * address for the funds to be sent to be burned on the source chain.
+     * This address was chosen arbitrarily.
+     */
+    address public constant SOURCE_CHAIN_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
      * @notice Address of the Native Minter precompile contract.
@@ -58,11 +69,6 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      * @notice Estimated gas needed for a transfer call to execute successfully on the source chain.
      */
     uint256 public constant TRANSFER_NATIVE_TOKENS_REQUIRED_GAS = 100_000;
-
-    /**
-     * @notice Estimated gas needed for a burn call to execute successfully on the source chain.
-     */
-    uint256 public constant REPORT_BURNED_TOKENS_REQUIRED_GAS = 100_000;
 
     /**
      * @notice ID of the paired blockchain containing the token source contract.
@@ -92,6 +98,11 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
      * @notice Total number of tokens minted by this contract through the native minter precompile.
      */
     uint256 public totalMinted;
+
+    /**
+     * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the source chain.
+     */
+    uint256 public latestBurnAddressBalance;
 
     /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
@@ -193,9 +204,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 }),
                 requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(
-                    ITokenSource.SourceAction.Unlock, abi.encode(recipient, scaledAmount)
-                    )
+                message: abi.encode(recipient, scaledAmount)
             })
         );
 
@@ -210,7 +219,7 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
     /**
      * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
      */
-    function reportTotalBurnedTxFees(
+    function reportBurnedTxFees(
         TeleporterFeeInfo calldata feeInfo,
         address[] calldata allowedRelayerAddresses
     ) external {
@@ -221,8 +230,17 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
             );
         }
 
-        uint256 amount = BURNED_TX_FEES_ADDRESS.balance;
-        uint256 scaledAmount = _scaleTokens(amount, false);
+        uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
+        require(
+            burnAddressBalance > latestBurnAddressBalance,
+            "NativeTokenDestination: burn address balance not greater than last report"
+        );
+
+        uint256 burnedDifference = burnAddressBalance - latestBurnAddressBalance;
+        latestBurnAddressBalance = burnAddressBalance;
+
+        uint256 scaledAmount = _scaleTokens(burnedDifference, false);
+        require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to burn");
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
@@ -232,13 +250,13 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                     feeTokenAddress: feeInfo.feeTokenAddress,
                     amount: adjustedFeeAmount
                 }),
-                requiredGasLimit: REPORT_BURNED_TOKENS_REQUIRED_GAS,
+                requiredGasLimit: TRANSFER_NATIVE_TOKENS_REQUIRED_GAS,
                 allowedRelayerAddresses: allowedRelayerAddresses,
-                message: abi.encode(ITokenSource.SourceAction.Burn, abi.encode(scaledAmount))
+                message: abi.encode(SOURCE_CHAIN_BURN_ADDRESS, scaledAmount)
             })
         );
 
-        emit ReportTotalBurnedTxFees({teleporterMessageID: messageID, burnAddressBalance: amount});
+        emit ReportBurnedTxFees({teleporterMessageID: messageID, feesBurned: burnedDifference});
     }
 
     /**
@@ -286,12 +304,12 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
         // If the contract has not yet been collateralized, we will deduct as many tokens
         // as needed from the transfer as needed. If there are any excess tokens, they will
         // be minted and sent to the recipient.
-        uint256 adjustedAmount;
+        uint256 adjustedAmount = scaledAmount;
         uint256 reserveImbalance = currentReserveImbalance;
         if (reserveImbalance > 0) {
             if (scaledAmount > reserveImbalance) {
                 emit CollateralAdded({amount: reserveImbalance, remaining: 0});
-                adjustedAmount = scaledAmount - reserveImbalance;
+                adjustedAmount -= reserveImbalance;
                 currentReserveImbalance = 0;
             } else {
                 uint256 updatedReserveImbalance = reserveImbalance - scaledAmount;
@@ -299,8 +317,6 @@ contract NativeTokenDestination is TeleporterOwnerUpgradeable, INativeTokenDesti
                 adjustedAmount = 0;
                 currentReserveImbalance = updatedReserveImbalance;
             }
-        } else {
-            adjustedAmount = scaledAmount;
         }
 
         // Emit an event even if the amount is zero to improve traceability.
