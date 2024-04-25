@@ -11,6 +11,7 @@ import (
 
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func main() {
@@ -45,10 +46,7 @@ func main() {
 			log.Panic("Failed to parse nonce as uint", err)
 		}
 
-		resultAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, nonce)
-		if err != nil {
-			log.Panic("Failed to derive contract address.", err)
-		}
+		resultAddress := crypto.CreateAddress(deployerAddress, nonce)
 		fmt.Println(resultAddress.Hex())
 	default:
 		log.Panic("Invalid command type. Supported options are \"constructKeylessTx\" and \"deriveContractAddress\".")
