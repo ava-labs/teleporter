@@ -54,7 +54,7 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 	tokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// pre-determine the deployment address of the ERC20Destination, but
+	// Pre-determine the deployment address of the ERC20Destination, but
 	// don't deploy it yet. the address is based on 1 + the current nonce,
 	// since the fundedAddress account will perform one more transaction
 	// (relaying the message) prior to actually deploying the
@@ -119,8 +119,8 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 		true,
 	)
 
-	// confirm that the relayer's subnetA transaction emitted the
-	// MessageExecutionFailed event,
+	// Confirm that the relayer's subnetA transaction emitted the
+	// MessageExecutionFailed event
 	_, err = teleporterUtils.GetEventFromLogs(
 		receipt.Logs,
 		subnetAInfo.TeleporterMessenger.ParseMessageExecutionFailed,
@@ -128,7 +128,7 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Deploy an ERC20Destination to Subnet A
-	Expect( // just to ensure no more subnetA fundedAddr tx's have occurred
+	Expect( // Just to ensure no more subnetA fundedAddr tx's have occurred
 		subnetAInfo.RPCClient.NonceAt(ctx, fundedAddress, nil),
 	).Should(Equal(erc20DestinationAddressNonce))
 	actualERC20DestDeploymentAddress, _ := utils.DeployERC20Destination(
@@ -144,7 +144,7 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 	)
 	Expect(actualERC20DestDeploymentAddress).Should(Equal(erc20DestinationAddress))
 
-	// tell the destination router to retry giving the message to the
+	// Tell the destination router to retry giving the message to the
 	// now-deployed ERC20Destination contract.
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey,
