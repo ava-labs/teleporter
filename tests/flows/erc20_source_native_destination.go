@@ -74,7 +74,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	}
 	// Bridge the initial imbalance, which is scaled up on the destination by 1 decimal place
 	// This will mint 9/10 the initial imbalance amount on the destination (after fees)
-	receipt, bridgedAmount, _ := utils.SendERC20Source(
+	receipt, bridgedAmount := utils.SendERC20Source(
 		ctx,
 		cChainInfo,
 		erc20Source,

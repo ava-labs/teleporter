@@ -89,7 +89,7 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 	}
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
 
-	receipt, bridgedAmount, msg := utils.SendERC20Source(
+	receipt, bridgedAmount := utils.SendERC20Source(
 		ctx,
 		cChainInfo,
 		erc20Source,
@@ -99,6 +99,13 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 		amount,
 		fundedKey,
 	)
+
+	msgSentEvent, err := teleporterUtils.GetEventFromLogs(
+		receipt.Logs,
+		cChainInfo.TeleporterMessenger.ParseSendCrossChainMessage,
+	)
+	Expect(err).Should(BeNil())
+	msgSent := msgSentEvent.Message
 
 	// Relay the message to Subnet A and check for message delivery
 	receipt = network.RelayMessage(
@@ -150,7 +157,7 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 	tx, err := subnetAInfo.TeleporterMessenger.RetryMessageExecution(
 		opts,
 		cChainInfo.BlockchainID,
-		msg,
+		msgSent,
 	)
 	Expect(err).Should(BeNil())
 	receipt = teleporterUtils.WaitForTransactionSuccess(ctx, subnetAInfo, tx.Hash())

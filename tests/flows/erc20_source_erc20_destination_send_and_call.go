@@ -153,7 +153,7 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 		}
 
-		receipt, bridgedAmount, _ := utils.SendERC20Source(
+		receipt, bridgedAmount := utils.SendERC20Source(
 			ctx,
 			cChainInfo,
 			erc20Source,
