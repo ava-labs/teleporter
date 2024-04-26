@@ -138,8 +138,8 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 	)
 	Expect(actualERC20DestDeploymentAddress).Should(Equal(erc20DestinationAddress))
 
-	// Tell the destination router to retry giving the message to the
-	// now-deployed ERC20Destination contract.
+	// Retry the message execution on the destination TeleporterMessenger
+	// instance now that the ERC20Destination contract is deployed.
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey,
 		subnetAInfo.EVMChainID,
