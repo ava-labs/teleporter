@@ -118,17 +118,11 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 
 	// confirm that the relayer's subnetA transaction emitted the
 	// MessageExecutionFailed event,
-	messageExecutionFailedEventEmitted := false
-	for _, log := range receipt.Logs {
-		subnetAInfo.TeleporterMessenger.ParseMessageExecutionFailed(
-			*log,
-		)
-		if err == nil {
-			messageExecutionFailedEventEmitted = true
-			break
-		}
-	}
-	Expect(messageExecutionFailedEventEmitted).Should(BeTrue())
+	_, err = teleporterUtils.GetEventFromLogs(
+		receipt.Logs,
+		subnetAInfo.TeleporterMessenger.ParseMessageExecutionFailed,
+	)
+	Expect(err).Should(BeNil())
 
 	// Deploy an ERC20Destination to Subnet A
 	Expect( // just to ensure no more subnetA fundedAddr tx's have occurred
