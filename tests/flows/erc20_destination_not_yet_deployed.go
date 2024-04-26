@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	erc20destination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Destination"
 	erc20source "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Source"
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -70,11 +69,6 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 		fundedAddress,
 		erc20DestinationAddressNonce,
 	)
-	erc20Destination, err := erc20destination.NewERC20Destination(
-		erc20DestinationAddress,
-		subnetAInfo.RPCClient,
-	)
-	Expect(err).Should(BeNil())
 
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
@@ -131,7 +125,7 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 	Expect( // Just to ensure no more subnetA fundedAddr tx's have occurred
 		subnetAInfo.RPCClient.NonceAt(ctx, fundedAddress, nil),
 	).Should(Equal(erc20DestinationAddressNonce))
-	actualERC20DestDeploymentAddress, _ := utils.DeployERC20Destination(
+	actualERC20DestDeploymentAddress, erc20Destination := utils.DeployERC20Destination(
 		ctx,
 		fundedKey,
 		subnetAInfo,
