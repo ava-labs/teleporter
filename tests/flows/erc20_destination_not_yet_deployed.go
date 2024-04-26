@@ -55,7 +55,10 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// pre-determine the deployment address of the ERC20Destination, but
-	// don't deploy it yet
+	// don't deploy it yet. the address is based on 1 + the current nonce,
+	// since the fundedAddress account will perform one more transaction
+	// (relaying the message) prior to actually deploying the
+	// ERC20Destination.
 	erc20DestinationAddressNonce, err := subnetAInfo.RPCClient.NonceAt(
 		ctx,
 		fundedAddress,
