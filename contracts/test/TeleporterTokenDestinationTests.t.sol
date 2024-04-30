@@ -160,7 +160,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 amount = 2;
         bytes memory payload = hex"DEADBEEF";
 
+        bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
+        address originSenderAddress = address(this);
         _setUpExpectedSendAndCall({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
             recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             amount: amount,
             payload: payload,
@@ -169,13 +173,15 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             expectSuccess: true
         });
 
-        bytes memory message = _encodeSingleHopCallMessage(
-            amount,
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            payload,
-            DEFAULT_RECIPIENT_GAS_LIMIT,
-            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        );
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
 
         uint256 initialSupply = _getTotalSupply();
         uint256 scaledAmount = _scaleTokens(amount, true);
@@ -192,7 +198,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 amount = 2;
         bytes memory payload = hex"DEADBEEF";
 
+        bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
+        address originSenderAddress = address(this);
         _setUpExpectedSendAndCall({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
             recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             amount: amount,
             payload: payload,
@@ -201,13 +211,15 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             expectSuccess: false
         });
 
-        bytes memory message = _encodeSingleHopCallMessage(
-            amount,
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            payload,
-            DEFAULT_RECIPIENT_GAS_LIMIT,
-            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        );
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
@@ -218,7 +230,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 amount = 2;
         bytes memory payload = hex"DEADBEEF";
 
+        bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
+        address originSenderAddress = address(this);
         _setUpExpectedSendAndCall({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
             recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             amount: amount,
             payload: payload,
@@ -227,13 +243,15 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             expectSuccess: false
         });
 
-        bytes memory message = _encodeSingleHopCallMessage(
-            amount,
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            payload,
-            DEFAULT_RECIPIENT_GAS_LIMIT,
-            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        );
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
@@ -245,6 +263,8 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bytes memory payload = hex"DEADBEEF";
         uint256 gasLimit = 5_000_000;
         bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            originSenderAddress: address(this),
             amount: amount,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: payload,
@@ -326,18 +346,23 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
         uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
+        address originSenderAddress = address(this);
 
         _checkExpectedTeleporterCallsForSend(
-            _createMultiHopCallTeleporterMessageInput(input, scaledBridgedAmount)
+            _createMultiHopCallTeleporterMessageInput(
+                originSenderAddress, input, scaledBridgedAmount
+            )
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
+        emit TokensAndCallSent(_MOCK_MESSAGE_ID, originSenderAddress, input, scaledBridgedAmount);
         _sendAndCall(input, amount);
     }
 
     function _setUpMockMint(address recipient, uint256 amount) internal virtual;
 
     function _setUpExpectedSendAndCall(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
         address recipient,
         uint256 amount,
         bytes memory payload,
@@ -370,6 +395,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function _createMultiHopCallTeleporterMessageInput(
+        address originSenderAddress,
         SendAndCallInput memory input,
         uint256 bridgeAmount
     ) internal view returns (TeleporterMessageInput memory) {
@@ -384,6 +410,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 ),
             allowedRelayerAddresses: new address[](0),
             message: _encodeMultiHopCallMessage({
+                originSenderAddress: originSenderAddress,
                 amount: bridgeAmount,
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationBridgeAddress: input.destinationBridgeAddress,
@@ -395,6 +422,10 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 secondaryFee: input.secondaryFee
             })
         });
+    }
+
+    function _getDefaultSourceBlockchainID() internal pure override returns (bytes32) {
+        return DEFAULT_DESTINATION_BLOCKCHAIN_ID;
     }
 
     function _createDefaultSendTokensInput()

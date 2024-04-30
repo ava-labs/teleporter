@@ -39,7 +39,7 @@ struct SendTokensInput {
  * @param recipientContract the contract on the destination chain that will be called
  * @param recipientPayload the payload that will be provided to the recipient contract on the destination chain
  * @param requiredGasLimit the required amount of gas needed to deliver the message on its destination chain,
- *                         including token operations and the call the recipient contract.
+ *                         including token operations and the call to the recipient contract.
  * @param recipientGasLimit the amount of gas that will provided to the recipient contract on the destination chain,
  *                          which must be less than the requiredGasLimit of the message as a whole.
  * @param fallbackRecipient address where the bridged tokens are sent if the call to the recipient contract fails.
@@ -85,6 +85,8 @@ struct SingleHopSendMessage {
  * address are defined by the Teleporter message.
  */
 struct SingleHopCallMessage {
+    bytes32 sourceBlockchainID;
+    address originSenderAddress;
     address recipientContract;
     bytes recipientPayload;
     uint256 recipientGasLimit;
@@ -113,6 +115,7 @@ struct MultiHopSendMessage {
  * greater than the recipientGasLimit.
  */
 struct MultiHopCallMessage {
+    address originSenderAddress;
     bytes32 destinationBlockchainID;
     address destinationBridgeAddress;
     address recipientContract;
@@ -140,6 +143,11 @@ interface ITeleporterTokenBridge is ITeleporterReceiver {
     );
 
     /**
+     * @notice Emitted when tokens are routed from a multihop send message to another chain.
+     */
+    event TokensRouted(bytes32 indexed teleporterMessageID, SendTokensInput input, uint256 amount);
+
+    /**
      * @notice Emitted when tokens are sent to another chain with calldata for a contract recipient.
      */
     event TokensAndCallSent(
@@ -147,6 +155,14 @@ interface ITeleporterTokenBridge is ITeleporterReceiver {
         address indexed sender,
         SendAndCallInput input,
         uint256 amount
+    );
+
+    /**
+     * @notice Emitted when tokens are routed from a mulithop send message,
+     * with calldata for a contract recipient, to another chain.
+     */
+    event TokensAndCallRouted(
+        bytes32 indexed teleporterMessageID, SendAndCallInput input, uint256 amount
     );
 
     /**

@@ -118,10 +118,16 @@ abstract contract TeleporterTokenSource is
             })
         );
 
-        emit TokensSent(messageID, msg.sender, input, amount);
+        if (isMultihop) {
+            emit TokensRouted(messageID, input, amount);
+        } else {
+            emit TokensSent(messageID, msg.sender, input, amount);
+        }
     }
 
     function _sendAndCall(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
         SendAndCallInput memory input,
         uint256 amount,
         bool isMultihop
@@ -153,6 +159,8 @@ abstract contract TeleporterTokenSource is
             amount: amount,
             payload: abi.encode(
                 SingleHopCallMessage({
+                    sourceBlockchainID: sourceBlockchainID,
+                    originSenderAddress: originSenderAddress,
                     recipientContract: input.recipientContract,
                     recipientPayload: input.recipientPayload,
                     recipientGasLimit: input.recipientGasLimit,
@@ -173,7 +181,11 @@ abstract contract TeleporterTokenSource is
             })
         );
 
-        emit TokensAndCallSent(messageID, msg.sender, input, amount);
+        if (isMultihop) {
+            emit TokensAndCallRouted(messageID, input, amount);
+        } else {
+            emit TokensAndCallSent(messageID, originSenderAddress, input, amount);
+        }
     }
 
     /**
@@ -236,6 +248,8 @@ abstract contract TeleporterTokenSource is
             MultiHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopCallMessage));
             _sendAndCall(
+                sourceBlockchainID,
+                payload.originSenderAddress,
                 SendAndCallInput({
                     destinationBlockchainID: payload.destinationBlockchainID,
                     destinationBridgeAddress: payload.destinationBridgeAddress,
@@ -305,8 +319,8 @@ abstract contract TeleporterTokenSource is
         );
 
         // If this send is not a multi-hop, deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit. If it is a multi-hop, the amount is already
-        // deposited.
+        // and set to adjusted amount after deposit.
+        // If it is a multi-hop, the amount is already deposited.
         if (!isMultihop) {
             amount = _deposit(amount);
         }

@@ -24,7 +24,9 @@ contract MockERC20SendAndCallReceiverTest is Test {
 
     function testRevert() public {
         vm.expectRevert("MockERC20SendAndCallReceiver: empty payload");
-        erc20SendAndCallReceiver.receiveTokens(address(erc20), 10, new bytes(0));
+        erc20SendAndCallReceiver.receiveTokens(
+            bytes32(0), address(this), address(erc20), 10, new bytes(0)
+        );
     }
 
     function testSuccess() public {
@@ -33,7 +35,9 @@ contract MockERC20SendAndCallReceiverTest is Test {
         erc20.approve(address(erc20SendAndCallReceiver), amount);
         vm.expectEmit(true, true, true, true, address(erc20SendAndCallReceiver));
         emit TokensReceived(address(erc20), amount, payload);
-        erc20SendAndCallReceiver.receiveTokens(address(erc20), amount, payload);
+        erc20SendAndCallReceiver.receiveTokens(
+            bytes32(0), address(this), address(erc20), amount, payload
+        );
         assertEq(erc20.balanceOf(address(erc20SendAndCallReceiver)), amount);
     }
 }
@@ -49,7 +53,7 @@ contract MockNativeSendAndCallReceiverTest is Test {
 
     function testRevert() public {
         vm.expectRevert("MockNativeSendAndCallReceiver: empty payload");
-        nativeSendAndCallReceiver.receiveTokens(new bytes(0));
+        nativeSendAndCallReceiver.receiveTokens(bytes32(0), address(this), new bytes(0));
     }
 
     function testSuccess() public {
@@ -57,7 +61,7 @@ contract MockNativeSendAndCallReceiverTest is Test {
         bytes memory payload = hex"1234567890";
         vm.expectEmit(true, true, true, true, address(nativeSendAndCallReceiver));
         emit TokensReceived(amount, payload);
-        nativeSendAndCallReceiver.receiveTokens{value: 10}(payload);
+        nativeSendAndCallReceiver.receiveTokens{value: 10}(bytes32(0), address(this), payload);
         assertEq(address(nativeSendAndCallReceiver).balance, amount);
     }
 }

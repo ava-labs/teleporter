@@ -31,7 +31,13 @@ contract MockERC20SendAndCallReceiver is IERC20SendAndCallReceiver {
     /**
      * @dev See {IERC20SendAndCallReceiver-receiveTokens}
      */
-    function receiveTokens(address token, uint256 amount, bytes calldata payload) external {
+    function receiveTokens(
+        bytes32,
+        address,
+        address token,
+        uint256 amount,
+        bytes calldata payload
+    ) external {
         emit TokensReceived(token, amount, payload);
 
         require(payload.length > 0, "MockERC20SendAndCallReceiver: empty payload");

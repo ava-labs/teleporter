@@ -26,7 +26,7 @@ contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
     /**
      * @dev See {INativeSendAndCallReceiver-receiveTokens}
      */
-    function receiveTokens(bytes calldata payload) external payable {
+    function receiveTokens(bytes32, address, bytes calldata payload) external payable {
         emit TokensReceived(msg.value, payload);
 
         require(payload.length != 0, "MockNativeSendAndCallReceiver: empty payload");

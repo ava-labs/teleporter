@@ -269,6 +269,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
         bytes memory message = _encodeSingleHopCallMessage(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            address(this),
             amount,
             DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             payload,
@@ -401,11 +403,15 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         emit CollateralAdded({amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE, remaining: 0});
         _setUpMockMint(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, _DEFAULT_INITIAL_RESERVE_IMBALANCE);
 
+        bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
+        address originSenderAddress = address(this);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         app.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            sourceBlockchainID,
             TOKEN_SOURCE_ADDRESS,
             _encodeSingleHopCallMessage(
+                sourceBlockchainID,
+                originSenderAddress,
                 _DEFAULT_INITIAL_RESERVE_IMBALANCE * 2,
                 DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 new bytes(0),
@@ -482,6 +488,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function _setUpExpectedSendAndCall(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
         address recipient,
         uint256 amount,
         bytes memory payload,
@@ -507,8 +515,10 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             // Non-zero code length
             vm.etch(recipient, new bytes(1));
 
-            bytes memory expectedCalldata =
-                abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (payload));
+            bytes memory expectedCalldata = abi.encodeCall(
+                INativeSendAndCallReceiver.receiveTokens,
+                (sourceBlockchainID, originSenderAddress, payload)
+            );
             if (expectSuccess) {
                 vm.mockCall(recipient, scaledAmount, expectedCalldata, new bytes(0));
             } else {
