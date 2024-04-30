@@ -313,15 +313,15 @@ abstract contract TeleporterTokenBridgeTest is Test {
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
-            message: _encodeSingleHopCallMessage(
-                sourceBlockchainID,
-                originSenderAddress,
-                bridgeAmount,
-                input.recipientContract,
-                input.recipientPayload,
-                input.recipientGasLimit,
-                input.fallbackRecipient
-                )
+            message: _encodeSingleHopCallMessage({
+                sourceBlockchainID: sourceBlockchainID,
+                originSenderAddress: originSenderAddress,
+                amount: bridgeAmount,
+                recipientContract: input.recipientContract,
+                recipientPayload: input.recipientPayload,
+                recipientGasLimit: input.recipientGasLimit,
+                fallbackRecipient: input.fallbackRecipient
+            })
         });
     }
 

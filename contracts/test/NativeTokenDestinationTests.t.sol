@@ -268,15 +268,15 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testReceiveSendAndCallFailureInsufficientValue() public {
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
-        bytes memory message = _encodeSingleHopCallMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            address(this),
-            amount,
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            payload,
-            DEFAULT_RECIPIENT_GAS_LIMIT,
-            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        );
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            originSenderAddress: address(this),
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
 
         uint256 scaledAmount = _scaleTokens(amount, true);
         _setUpMockMint(address(app), scaledAmount);
@@ -409,15 +409,15 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         app.receiveTeleporterMessage(
             sourceBlockchainID,
             TOKEN_SOURCE_ADDRESS,
-            _encodeSingleHopCallMessage(
-                sourceBlockchainID,
-                originSenderAddress,
-                _DEFAULT_INITIAL_RESERVE_IMBALANCE * 2,
-                DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-                new bytes(0),
-                DEFAULT_RECIPIENT_GAS_LIMIT,
-                DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-            )
+            _encodeSingleHopCallMessage({
+                sourceBlockchainID: sourceBlockchainID,
+                originSenderAddress: originSenderAddress,
+                amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE * 2,
+                recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+                recipientPayload: new bytes(0),
+                recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            })
         );
     }
 

@@ -15,6 +15,10 @@ contract MockERC20SendAndCallReceiverTest is Test {
     IERC20 public erc20;
     MockERC20SendAndCallReceiver public erc20SendAndCallReceiver;
 
+    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
+        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
+    address internal _originSenderAddress = vm.addr(0x1);
+
     event TokensReceived(
         bytes32 indexed sourceBlockchainID,
         address indexed originSenderAddress,
@@ -22,10 +26,6 @@ contract MockERC20SendAndCallReceiverTest is Test {
         uint256 amount,
         bytes payload
     );
-
-    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
-        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-    address public DEFAULT_ORIGIN_SENDER_ADDRESS = vm.addr(0x1);
 
     function setUp() public virtual {
         erc20 = new ExampleERC20();
@@ -45,18 +45,10 @@ contract MockERC20SendAndCallReceiverTest is Test {
         erc20.approve(address(erc20SendAndCallReceiver), amount);
         vm.expectEmit(true, true, true, true, address(erc20SendAndCallReceiver));
         emit TokensReceived(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            DEFAULT_ORIGIN_SENDER_ADDRESS,
-            address(erc20),
-            amount,
-            payload
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, address(erc20), amount, payload
         );
         erc20SendAndCallReceiver.receiveTokens(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            DEFAULT_ORIGIN_SENDER_ADDRESS,
-            address(erc20),
-            amount,
-            payload
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, address(erc20), amount, payload
         );
         assertEq(erc20.balanceOf(address(erc20SendAndCallReceiver)), amount);
     }
@@ -65,16 +57,16 @@ contract MockERC20SendAndCallReceiverTest is Test {
 contract MockNativeSendAndCallReceiverTest is Test {
     MockNativeSendAndCallReceiver public nativeSendAndCallReceiver;
 
+    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
+        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
+    address internal _originSenderAddress = vm.addr(0x1);
+
     event TokensReceived(
         bytes32 indexed sourceBlockchainID,
         address indexed originSenderAddress,
         uint256 amount,
         bytes payload
     );
-
-    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
-        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-    address public DEFAULT_ORIGIN_SENDER_ADDRESS = vm.addr(0x1);
 
     function setUp() public virtual {
         nativeSendAndCallReceiver = new MockNativeSendAndCallReceiver();
@@ -89,11 +81,9 @@ contract MockNativeSendAndCallReceiverTest is Test {
         uint256 amount = 10;
         bytes memory payload = hex"1234567890";
         vm.expectEmit(true, true, true, true, address(nativeSendAndCallReceiver));
-        emit TokensReceived(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_SENDER_ADDRESS, amount, payload
-        );
+        emit TokensReceived(DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, amount, payload);
         nativeSendAndCallReceiver.receiveTokens{value: 10}(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_SENDER_ADDRESS, payload
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, payload
         );
         assertEq(address(nativeSendAndCallReceiver).balance, amount);
     }

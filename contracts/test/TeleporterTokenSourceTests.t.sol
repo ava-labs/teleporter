@@ -248,15 +248,15 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             expectSuccess: true
         });
 
-        bytes memory message = _encodeSingleHopCallMessage(
-            sourceBlockchainID,
-            originSenderAddress,
-            amount,
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            payload,
-            DEFAULT_RECIPIENT_GAS_LIMIT,
-            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        );
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
@@ -283,15 +283,15 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             expectSuccess: false
         });
 
-        bytes memory message = _encodeSingleHopCallMessage(
-            sourceBlockchainID,
-            originSenderAddress,
-            amount,
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            payload,
-            DEFAULT_RECIPIENT_GAS_LIMIT,
-            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        );
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
