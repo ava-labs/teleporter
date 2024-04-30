@@ -21,13 +21,22 @@ contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
     /**
      * @dev Emitted when receiveTokens is called.
      */
-    event TokensReceived(uint256 amount, bytes payload);
+    event TokensReceived(
+        bytes32 indexed sourceBlockchainID,
+        address indexed originSenderAddress,
+        uint256 amount,
+        bytes payload
+    );
 
     /**
      * @dev See {INativeSendAndCallReceiver-receiveTokens}
      */
-    function receiveTokens(bytes32, address, bytes calldata payload) external payable {
-        emit TokensReceived(msg.value, payload);
+    function receiveTokens(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        bytes calldata payload
+    ) external payable {
+        emit TokensReceived(sourceBlockchainID, originSenderAddress, msg.value, payload);
 
         require(payload.length != 0, "MockNativeSendAndCallReceiver: empty payload");
         // No implementation required to accept native tokens
