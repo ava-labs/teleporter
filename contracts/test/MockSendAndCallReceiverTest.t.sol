@@ -52,6 +52,25 @@ contract MockERC20SendAndCallReceiverTest is Test {
         );
         assertEq(erc20.balanceOf(address(erc20SendAndCallReceiver)), amount);
     }
+
+    function testReceiveSenderCheck() public {
+        uint256 amount = 100;
+        bytes memory payload = hex"9876543210";
+        erc20.approve(address(erc20SendAndCallReceiver), amount);
+
+        erc20SendAndCallReceiver.blockSender(DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress);
+        assertTrue(
+            erc20SendAndCallReceiver.blockedSenders(
+                DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress
+            )
+        );
+
+        vm.expectRevert("MockERC20SendAndCallReceiver: sender blocked");
+        erc20SendAndCallReceiver.receiveTokens(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, address(erc20), amount, payload
+        );
+        assertEq(erc20.balanceOf(address(erc20SendAndCallReceiver)), 0);
+    }
 }
 
 contract MockNativeSendAndCallReceiverTest is Test {
@@ -82,9 +101,27 @@ contract MockNativeSendAndCallReceiverTest is Test {
         bytes memory payload = hex"1234567890";
         vm.expectEmit(true, true, true, true, address(nativeSendAndCallReceiver));
         emit TokensReceived(DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, amount, payload);
-        nativeSendAndCallReceiver.receiveTokens{value: 10}(
+        nativeSendAndCallReceiver.receiveTokens{value: amount}(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, payload
         );
         assertEq(address(nativeSendAndCallReceiver).balance, amount);
+    }
+
+    function testReceiveSenderCheck() public {
+        uint256 amount = 10;
+        bytes memory payload = hex"1234567890";
+
+        nativeSendAndCallReceiver.blockSender(DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress);
+        assertTrue(
+            nativeSendAndCallReceiver.blockedSenders(
+                DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress
+            )
+        );
+
+        vm.expectRevert("MockNativeSendAndCallReceiver: sender blocked");
+        nativeSendAndCallReceiver.receiveTokens{value: amount}(
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, payload
+        );
+        assertEq(address(nativeSendAndCallReceiver).balance, 0);
     }
 }

@@ -23,6 +23,9 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 contract MockERC20SendAndCallReceiver is IERC20SendAndCallReceiver {
     using SafeERC20 for IERC20;
 
+    mapping(bytes32 blockchainID => mapping(address senderAddress => bool blocked)) public
+        blockedSenders;
+
     /**
      * @dev Emitted when receiveTokens is called.
      */
@@ -44,10 +47,26 @@ contract MockERC20SendAndCallReceiver is IERC20SendAndCallReceiver {
         uint256 amount,
         bytes calldata payload
     ) external {
+        require(
+            !blockedSenders[sourceBlockchainID][originSenderAddress],
+            "MockERC20SendAndCallReceiver: sender blocked"
+        );
         emit TokensReceived(sourceBlockchainID, originSenderAddress, token, amount, payload);
 
         require(payload.length > 0, "MockERC20SendAndCallReceiver: empty payload");
 
         SafeERC20TransferFrom.safeTransferFrom(IERC20(token), amount);
+    }
+
+    /**
+     * @notice Block a sender from sending tokens to this contract.
+     * @param blockchainID The blockchain ID of the sender.
+     * @param senderAddress The address of the sender.
+     */
+    function blockSender(bytes32 blockchainID, address senderAddress) external {
+        require(blockchainID != bytes32(0), "MockERC20SendAndCallReceiver: zero blockchain ID");
+        require(senderAddress != address(0), "MockERC20SendAndCallReceiver: zero sender address");
+
+        blockedSenders[blockchainID][senderAddress] = true;
     }
 }
