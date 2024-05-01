@@ -82,7 +82,8 @@ struct SingleHopSendMessage {
 /**
  * @dev Single hop call message payloads include the required information to call
  * the target contract on the destination chain. The destination chain and bridge
- * address are defined by the Teleporter message.
+ * address are defined by the Teleporter message. The message also includes the
+ * blockchain ID and address of the original sender.
  */
 struct SingleHopCallMessage {
     bytes32 sourceBlockchainID;
@@ -112,7 +113,8 @@ struct MultiHopSendMessage {
  * the call message on to its final destination. This includes the secondaryRequiredGasLimit, which is the
  * required gas limit set for the second Teleporter message. The secondaryRequiredGasLimit should be sufficient
  * to cover the destination token operations as well as the call to the recipient contract, and will always be
- * greater than the recipientGasLimit.
+ * greater than the recipientGasLimit. The multi-hop message also includes the address of the original sender,
+ * and the source blockchain ID is passed in from Teleporter.
  */
 struct MultiHopCallMessage {
     address originSenderAddress;
@@ -143,7 +145,7 @@ interface ITeleporterTokenBridge is ITeleporterReceiver {
     );
 
     /**
-     * @notice Emitted when tokens are routed from a multihop send message to another chain.
+     * @notice Emitted when tokens are routed from a multi-hop send message to another chain.
      */
     event TokensRouted(bytes32 indexed teleporterMessageID, SendTokensInput input, uint256 amount);
 
@@ -158,7 +160,7 @@ interface ITeleporterTokenBridge is ITeleporterReceiver {
     );
 
     /**
-     * @notice Emitted when tokens are routed from a mulithop send message,
+     * @notice Emitted when tokens are routed from a mulit-hop send message,
      * with calldata for a contract recipient, to another chain.
      */
     event TokensAndCallRouted(
