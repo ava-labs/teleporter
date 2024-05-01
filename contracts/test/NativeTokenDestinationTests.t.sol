@@ -144,6 +144,21 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         }));
     }
 
+    function testDeployToSameBlockchain() public {
+        vm.expectRevert(_formatErrorMessage("cannot deploy to same blockchain as source"));
+        new NativeTokenDestination(NativeTokenDestinationSettings({
+            nativeAssetSymbol: DEFAULT_SYMBOL,
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: address(this),
+            sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+            initialReserveImbalance: 1_000,
+            decimalsShift: 0,
+            multiplyOnReceive: false,
+            burnedFeesReportingRewardPercentage: 1
+        }));
+    }
+
     function testSendBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = new NativeTokenDestination(NativeTokenDestinationSettings({

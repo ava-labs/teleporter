@@ -64,9 +64,6 @@ contract MockERC20SendAndCallReceiver is IERC20SendAndCallReceiver {
      * @param senderAddress The address of the sender.
      */
     function blockSender(bytes32 blockchainID, address senderAddress) external {
-        require(blockchainID != bytes32(0), "MockERC20SendAndCallReceiver: zero blockchain ID");
-        require(senderAddress != address(0), "MockERC20SendAndCallReceiver: zero sender address");
-
         blockedSenders[blockchainID][senderAddress] = true;
     }
 }
