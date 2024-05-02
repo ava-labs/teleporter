@@ -30,6 +30,7 @@ import {
 import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
+import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -63,6 +64,8 @@ contract NativeTokenDestination is
     TeleporterTokenDestination,
     IWrappedNativeToken
 {
+    using Address for address payable;
+
     /**
      * @notice The address where the burned transaction fees are credited.
      *
@@ -249,7 +252,7 @@ contract NativeTokenDestination is
     function withdraw(uint256 amount) external {
         emit Withdrawal(msg.sender, amount);
         _burn(msg.sender, amount);
-        payable(msg.sender).transfer(amount);
+        payable(msg.sender).sendValue(amount);
     }
 
     /**
@@ -340,7 +343,7 @@ contract NativeTokenDestination is
      */
     function _burn(uint256 amount) internal virtual override {
         _burn(address(this), amount);
-        payable(BURNED_FOR_BRIDGE_ADDRESS).transfer(amount);
+        payable(BURNED_FOR_BRIDGE_ADDRESS).sendValue(amount);
     }
 
     /**
@@ -384,7 +387,7 @@ contract NativeTokenDestination is
             emit CallSucceeded(message.recipientContract, amount);
         } else {
             emit CallFailed(message.recipientContract, amount);
-            payable(message.fallbackRecipient).transfer(amount);
+            payable(message.fallbackRecipient).sendValue(amount);
         }
     }
 

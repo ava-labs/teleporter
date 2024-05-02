@@ -16,6 +16,7 @@ import {
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "./utils/SafeWrappedNativeTokenDeposit.sol";
+import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -31,6 +32,8 @@ import {SafeWrappedNativeTokenDeposit} from "./utils/SafeWrappedNativeTokenDepos
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
+    using Address for address payable;
+
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
@@ -84,7 +87,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     function _withdraw(address recipient, uint256 amount) internal virtual override {
         emit TokensWithdrawn(recipient, amount);
         token.withdraw(amount);
-        payable(recipient).transfer(amount);
+        payable(recipient).sendValue(amount);
     }
 
     /**
@@ -116,7 +119,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
             emit CallSucceeded(message.recipientContract, amount);
         } else {
             emit CallFailed(message.recipientContract, amount);
-            payable(message.fallbackRecipient).transfer(amount);
+            payable(message.fallbackRecipient).sendValue(amount);
         }
     }
 }
