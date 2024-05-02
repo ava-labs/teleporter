@@ -84,11 +84,6 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.secondaryFee = 0;
         uint256 amount = 1;
 
-        // This test case does not apply when the multiplier is 1.
-        if (_scaleTokens(amount, false) != 0) {
-            return;
-        }
-
         _setUpExpectedDeposit(amount);
         vm.expectRevert(_formatErrorMessage("insufficient tokens to transfer"));
         _sendAndCall(input, amount);
@@ -147,13 +142,12 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, amount);
         uint256 initialSupply = _getTotalSupply();
-        uint256 scaledAmount = _scaleTokens(amount, true);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID,
             TOKEN_SOURCE_ADDRESS,
             _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
         );
-        assertEq(_getTotalSupply(), initialSupply + scaledAmount);
+        assertEq(_getTotalSupply(), initialSupply + amount);
     }
 
     function testReceiveSendAndCallSuccess() public {
@@ -184,14 +178,13 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         });
 
         uint256 initialSupply = _getTotalSupply();
-        uint256 scaledAmount = _scaleTokens(amount, true);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
             DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
         );
 
-        assertEq(_getTotalSupply(), initialSupply + scaledAmount);
+        assertEq(_getTotalSupply(), initialSupply + amount);
     }
 
     function testReceiveSendAndCallFailure() public {
@@ -272,8 +265,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         });
 
-        uint256 scaledAmount = _scaleTokens(amount, true);
-        _setUpMockMint(address(tokenDestination), scaledAmount);
+        _setUpMockMint(address(tokenDestination), amount);
         vm.expectRevert("CallUtils: insufficient gas");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage{gas: gasLimit - 1}(
@@ -293,7 +285,8 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
-                secondaryGasLimit: 1_000
+                secondaryGasLimit: 1_000,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
             })
         );
     }
@@ -319,15 +312,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.secondaryFee = secondaryFee;
 
         _setUpExpectedDeposit(amount);
-
-        // Only tokens destinations scale tokens, so isReceive is always false here.
-        uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
-
         _checkExpectedTeleporterCallsForSend(
-            _createMultiHopSendTeleporterMessageInput(input, scaledBridgedAmount)
+            _createMultiHopSendTeleporterMessageInput(input, bridgeAmount)
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledBridgedAmount);
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
         _send(input, amount);
     }
 
@@ -345,16 +334,13 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _setUpExpectedDeposit(amount);
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
-        uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
         address originSenderAddress = address(this);
 
         _checkExpectedTeleporterCallsForSend(
-            _createMultiHopCallTeleporterMessageInput(
-                originSenderAddress, input, scaledBridgedAmount
-            )
+            _createMultiHopCallTeleporterMessageInput(originSenderAddress, input, bridgeAmount)
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensAndCallSent(_MOCK_MESSAGE_ID, originSenderAddress, input, scaledBridgedAmount);
+        emit TokensAndCallSent(_MOCK_MESSAGE_ID, originSenderAddress, input, bridgeAmount);
         _sendAndCall(input, amount);
     }
 
@@ -370,6 +356,12 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bool targetHasCode,
         bool expectSuccess
     ) internal virtual;
+
+    // Destinations don't need to registered supported destinations because they
+    // only send messages to their configured token source.
+    function _setUpRegisteredDestination(bytes32, address) internal virtual override {
+        return;
+    }
 
     function _getTotalSupply() internal view virtual returns (uint256);
 
@@ -389,7 +381,8 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 destinationBridgeAddress: input.destinationBridgeAddress,
                 recipient: input.recipient,
                 secondaryFee: input.secondaryFee,
-                secondaryGasLimit: input.requiredGasLimit
+                secondaryGasLimit: input.requiredGasLimit,
+                fallbackRecipient: input.fallbackRecipient
             })
         });
     }
@@ -440,7 +433,8 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFee: 0,
             secondaryFee: 0,
-            requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
+            requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         });
     }
 

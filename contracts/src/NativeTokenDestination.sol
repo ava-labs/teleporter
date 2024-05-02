@@ -30,6 +30,7 @@ import {
 import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
+import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -98,24 +99,10 @@ contract NativeTokenDestination is
         INativeMinter(0x0200000000000000000000000000000000000001);
 
     /**
-     * @notice Initial reserve imbalance that must be collateralized on the source before minting.
-     *
-     * @dev The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
-     * `initialReserveImbalance` should be constructed to match the initial token supply of this subnet.
-     * This means tokens will not be minted until the source contact is collateralized.
-     */
-    uint256 public immutable initialReserveImbalance;
-
-    /**
      * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering
      * the message created by calling calling reportBurnedTxFees().
      */
     uint256 public immutable burnedFeesReportingRewardPercentage;
-
-    /**
-     * @notice Tokens will not be minted until this value is 0 meaning the source contact is collateralized.
-     */
-    uint256 public currentReserveImbalance;
 
     /**
      * @notice Total number of tokens minted by this contract through the native minter precompile.
@@ -132,7 +119,7 @@ contract NativeTokenDestination is
      * accounting for the initialReserveImbalance.
      */
     modifier onlyWhenCollateralized() {
-        require(_isCollateralized(), "NativeTokenDestination: contract undercollateralized");
+        require(isCollateralized, "NativeTokenDestination: contract undercollateralized");
         _;
     }
 
@@ -143,6 +130,7 @@ contract NativeTokenDestination is
             settings.teleporterManager,
             settings.sourceBlockchainID,
             settings.tokenSourceAddress,
+            settings.initialReserveImbalance,
             settings.decimalsShift,
             settings.multiplyOnReceive
         )
@@ -151,9 +139,6 @@ contract NativeTokenDestination is
             settings.initialReserveImbalance != 0,
             "NativeTokenDestination: zero initial reserve imbalance"
         );
-
-        initialReserveImbalance = settings.initialReserveImbalance;
-        currentReserveImbalance = settings.initialReserveImbalance;
 
         require(
             settings.burnedFeesReportingRewardPercentage < 100,
@@ -215,13 +200,19 @@ contract NativeTokenDestination is
             _deposit(reward);
         }
 
-        uint256 scaledAmount = scaleTokens(burnedTxFees, false);
-        require(scaledAmount > 0, "NativeTokenDestination: zero scaled amount to report burn");
+        // Check that the scaled amount on the source chain will be non-zero.
+        require(
+            TokenScalingUtils.scaleTokens(tokenMultiplier, multiplyOnReceive, burnedTxFees, false)
+                > 0,
+            "NativeTokenDestination: zero scaled amount to report burn"
+        );
 
+        // Include the non-scaling amount in the payload to be sent to the source chain.
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
-            amount: scaledAmount,
-            payload: abi.encode(SingleHopSendMessage({recipient: SOURCE_CHAIN_BURN_ADDRESS}))
+            payload: abi.encode(
+                SingleHopSendMessage({recipient: SOURCE_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
+                )
         });
 
         bytes32 messageID = _sendTeleporterMessage(
@@ -250,13 +241,6 @@ contract NativeTokenDestination is
         emit Withdrawal(msg.sender, amount);
         _burn(msg.sender, amount);
         payable(msg.sender).transfer(amount);
-    }
-
-    /**
-     * @dev See {INativeTokenDestination-isCollateralized}.
-     */
-    function isCollateralized() external view returns (bool) {
-        return _isCollateralized();
     }
 
     /**
@@ -304,27 +288,9 @@ contract NativeTokenDestination is
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
-        // If the contract has not yet been collateralized, we will deduct as many tokens
-        // as needed from the transfer as needed. If there are any excess tokens, they will
-        // be minted and sent to the recipient.
-        uint256 adjustedAmount = amount;
-        uint256 reserveImbalance = currentReserveImbalance;
-        if (reserveImbalance > 0) {
-            if (amount > reserveImbalance) {
-                emit CollateralAdded({amount: reserveImbalance, remaining: 0});
-                adjustedAmount -= reserveImbalance;
-                currentReserveImbalance = 0;
-            } else {
-                uint256 updatedReserveImbalance = reserveImbalance - amount;
-                emit CollateralAdded({amount: amount, remaining: updatedReserveImbalance});
-                adjustedAmount = 0;
-                currentReserveImbalance = updatedReserveImbalance;
-            }
-        }
-
         // Call {_mintNativeCoin} even if the adjustedAmount is 0 to improve traceability.
-        emit TokensWithdrawn(recipient, adjustedAmount);
-        _mintNativeCoin(recipient, adjustedAmount);
+        emit TokensWithdrawn(recipient, amount);
+        _mintNativeCoin(recipient, amount);
     }
 
     /**
@@ -358,15 +324,6 @@ contract NativeTokenDestination is
         SingleHopCallMessage memory message,
         uint256 amount
     ) internal virtual override {
-        // If the contract is not yet fully collateralized, the use of send and call is not allowed
-        // because it could result in unexpected behavior given that the amount of tokens used to make the
-        // call to "receiveTokens" is less than expected. Instead, the amount is handled as a normal bridge
-        // event to fallback recipient.
-        if (!_isCollateralized()) {
-            _withdraw(message.fallbackRecipient, amount);
-            return;
-        }
-
         // Mint the tokens to this contract address.
         _mintNativeCoin(address(this), amount);
 
@@ -388,14 +345,6 @@ contract NativeTokenDestination is
             emit CallFailed(message.recipientContract, amount);
             payable(message.fallbackRecipient).transfer(amount);
         }
-    }
-
-    /**
-     * @dev Returns whether or not the NativeTokenDestination contract has been collateralized
-     * after being initialized with its given initialReserveImbalance.
-     */
-    function _isCollateralized() internal view returns (bool) {
-        return currentReserveImbalance == 0;
     }
 
     /**

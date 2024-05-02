@@ -16,9 +16,11 @@ import {
     SingleHopSendMessage,
     SingleHopCallMessage,
     MultiHopSendMessage,
-    MultiHopCallMessage
+    MultiHopCallMessage,
+    RegisterDestinationMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
+import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 
@@ -67,6 +69,22 @@ abstract contract TeleporterTokenDestination is
     bool public immutable multiplyOnReceive;
 
     /**
+     * @notice Initial reserve imbalance that must be collateralized on the source before minting.
+     *
+     * @dev The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
+     * `initialReserveImbalance` should be constructed to match the initial token supply of this subnet.
+     * This means tokens will not be minted until the source contact is collateralized.
+     */
+    uint256 public immutable initialReserveImbalance;
+
+    /**
+     * @notice Whether or not the contract is known to be fully collateralized. The contract initially
+     * starts undercollateralized, and the initialReserveImbalance must be added to the source contract
+     * prior to it sending messages to mint tokens.
+     */
+    bool public isCollateralized;
+
+    /**
      * @notice Fixed gas cost for performing a multi-hop transfer on the `sourceBlockchainID`,
      * before forwarding to the final destination bridge instance.
      */
@@ -87,6 +105,7 @@ abstract contract TeleporterTokenDestination is
         address teleporterManager,
         bytes32 sourceBlockchainID_,
         address tokenSourceAddress_,
+        uint256 initialReserveImbalance_,
         uint8 decimalsShift,
         bool multiplyOnReceive_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
@@ -106,21 +125,36 @@ abstract contract TeleporterTokenDestination is
         require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
         sourceBlockchainID = sourceBlockchainID_;
         tokenSourceAddress = tokenSourceAddress_;
+        initialReserveImbalance = initialReserveImbalance_;
+        isCollateralized = initialReserveImbalance_ == 0;
         tokenMultiplier = 10 ** decimalsShift;
         multiplyOnReceive = multiplyOnReceive_;
-    }
 
-    /**
-     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
-     * Should be used for all tokens being transferred to/from other subnets.
-     */
-    function scaleTokens(uint256 value, bool isReceive) public view returns (uint256) {
-        // Multiply when multiplyOnReceive and isReceive are both true or both false.
-        if (multiplyOnReceive == isReceive) {
-            return value * tokenMultiplier;
-        }
-        // Otherwise divide.
-        return value / tokenMultiplier;
+        // Send a message to the source token bridge instance to register this destination instance.
+        RegisterDestinationMessage memory registerMessage = RegisterDestinationMessage({
+            initialReserveImbalance: initialReserveImbalance_,
+            tokenMultiplier: tokenMultiplier,
+            // Invert the value of multiplyOnReceive to match the source contract's perspective.
+            multiplyOnReceive: !multiplyOnReceive
+        });
+        BridgeMessage memory message = BridgeMessage({
+            messageType: BridgeMessageType.REGISTER_DESTINATION,
+            payload: abi.encode(registerMessage)
+        });
+        _sendTeleporterMessage(
+            TeleporterMessageInput({
+                destinationBlockchainID: sourceBlockchainID,
+                destinationAddress: tokenSourceAddress,
+                // TODO: No fee is provided by default when registering a destination, since it
+                // is assumed that the deployer will relay the message themselves. However, also
+                // need to consider the fee token address such that an amount could be added via addFeeAmount
+                // in the future if desired.
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: 0}),
+                requiredGasLimit: 0,
+                allowedRelayerAddresses: new address[](0),
+                message: abi.encode(message)
+            })
+        );
     }
 
     /**
@@ -178,8 +212,7 @@ abstract contract TeleporterTokenDestination is
             require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
             message = BridgeMessage({
                 messageType: BridgeMessageType.SINGLE_HOP_SEND,
-                amount: amount,
-                payload: abi.encode(SingleHopSendMessage({recipient: input.recipient}))
+                payload: abi.encode(SingleHopSendMessage({recipient: input.recipient, amount: amount}))
             });
         } else {
             // If the destination blockchain ID is this blockchian, the destination
@@ -193,14 +226,15 @@ abstract contract TeleporterTokenDestination is
             }
             message = BridgeMessage({
                 messageType: BridgeMessageType.MULTI_HOP_SEND,
-                amount: amount,
                 payload: abi.encode(
                     MultiHopSendMessage({
                         destinationBlockchainID: input.destinationBlockchainID,
                         destinationBridgeAddress: input.destinationBridgeAddress,
                         recipient: input.recipient,
+                        amount: amount,
                         secondaryFee: input.secondaryFee,
-                        secondaryGasLimit: input.requiredGasLimit
+                        secondaryGasLimit: input.requiredGasLimit,
+                        fallbackRecipient: input.fallbackRecipient
                     })
                     )
             });
@@ -267,12 +301,12 @@ abstract contract TeleporterTokenDestination is
 
             message = BridgeMessage({
                 messageType: BridgeMessageType.SINGLE_HOP_CALL,
-                amount: amount,
                 payload: abi.encode(
                     SingleHopCallMessage({
                         sourceBlockchainID: blockchainID,
                         originSenderAddress: msg.sender,
                         recipientContract: input.recipientContract,
+                        amount: amount,
                         recipientPayload: input.recipientPayload,
                         recipientGasLimit: input.recipientGasLimit,
                         fallbackRecipient: input.fallbackRecipient
@@ -292,13 +326,13 @@ abstract contract TeleporterTokenDestination is
 
             message = BridgeMessage({
                 messageType: BridgeMessageType.MULTI_HOP_CALL,
-                amount: amount,
                 payload: abi.encode(
                     MultiHopCallMessage({
                         originSenderAddress: msg.sender,
                         destinationBlockchainID: input.destinationBlockchainID,
                         destinationBridgeAddress: input.destinationBridgeAddress,
                         recipientContract: input.recipientContract,
+                        amount: amount,
                         recipientPayload: input.recipientPayload,
                         recipientGasLimit: input.recipientGasLimit,
                         fallbackRecipient: input.fallbackRecipient,
@@ -349,18 +383,23 @@ abstract contract TeleporterTokenDestination is
             "TeleporterTokenDestination: invalid token source address"
         );
         BridgeMessage memory bridgeMessage = abi.decode(message, (BridgeMessage));
-        uint256 scaledAmount = scaleTokens(bridgeMessage.amount, true);
+
+        // If the contract was not previously known to be collateralized, it is now given that
+        // the source has sent a message to mint funds.
+        if (!isCollateralized) {
+            isCollateralized = true;
+        }
 
         // Destination contracts should only ever receive single-hop messages because
         // multi-hop messages are always routed through the source contract.
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
-            _withdraw(payload.recipient, scaledAmount);
+            _withdraw(payload.recipient, payload.amount);
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
             SingleHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
-            _handleSendAndCall(payload, scaledAmount);
+            _handleSendAndCall(payload, payload.amount);
         } else {
             revert("TeleporterTokenDestination: invalid message type");
         }
@@ -391,7 +430,8 @@ abstract contract TeleporterTokenDestination is
     /**
      * @notice Processes a send and call message by calling the recipient contract.
      * @param message The send and call message include recipient calldata
-     * @param amount The amount of tokens to be sent to the recipient
+     * @param amount The amount of tokens to be sent to the recipient. This amount is assumed to be
+     * already scaled to the local denomination of this contract.
      */
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
@@ -429,9 +469,13 @@ abstract contract TeleporterTokenDestination is
         amount -= primaryFee;
         _burn(amount);
 
-        uint256 scaledAmount = scaleTokens(amount, false);
-        require(scaledAmount > 0, "TeleporterTokenDestination: insufficient tokens to transfer");
+        // Ensure that the scaled amount on the source chain is non-zero.
+        require(
+            TokenScalingUtils.scaleTokens(tokenMultiplier, multiplyOnReceive, amount, false) > 0,
+            "TeleporterTokenDestination: insufficient tokens to transfer"
+        );
 
-        return scaledAmount;
+        // Return the non-scaled amount to be sent in the message to the source.
+        return amount;
     }
 }

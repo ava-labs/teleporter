@@ -79,7 +79,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             TOKEN_SOURCE_ADDRESS,
             _encodeSingleHopSendMessage(initialImbalance / 2, DEFAULT_RECIPIENT_ADDRESS)
         );
-        assertEq(app.currentReserveImbalance(), initialImbalance / 2);
         assertFalse(app.isCollateralized());
 
         // Add more than the remaining amount of imbalance.
@@ -95,7 +94,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         );
 
         // It should now be collateralized.
-        assertEq(app.currentReserveImbalance(), 0);
         assertTrue(app.isCollateralized());
     }
 
@@ -218,15 +216,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function testTransferToSource() public {
-        vm.expectEmit(true, true, true, true, address(app));
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = _DEFAULT_TRANSFER_AMOUNT;
-        uint256 scaledAmount = _scaleTokens(amount, false);
+        vm.expectEmit(true, true, true, true, address(app));
         emit TokensSent({
             teleporterMessageID: _MOCK_MESSAGE_ID,
             sender: address(this),
             input: input,
-            amount: scaledAmount
+            amount: amount
         });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
@@ -235,7 +232,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(app), amount: input.primaryFee}),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
-            message: _encodeSingleHopSendMessage(scaledAmount, input.recipient)
+            message: _encodeSingleHopSendMessage(amount, input.recipient)
         });
 
         vm.expectCall(
@@ -244,40 +241,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         );
 
         app.send{value: amount}(input);
-    }
-
-    function testScaleTokensMultiplyOnSend() public {
-        uint8 decimalShift = 3;
-        app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: decimalShift,
-            multiplyOnReceive: false,
-            burnedFeesReportingRewardPercentage: 1
-        }));
-        assertEq(app.scaleTokens(100, false), 100_000);
-        assertEq(app.scaleTokens(100_000, true), 100);
-    }
-
-    function testScaleTokensMultiplyOnReceive() public {
-        uint8 decimalShift = 3;
-        app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: decimalShift,
-            multiplyOnReceive: true,
-            burnedFeesReportingRewardPercentage: 1
-        }));
-        assertEq(app.scaleTokens(100, true), 100_000);
-        assertEq(app.scaleTokens(100_000, false), 100);
     }
 
     function testReceiveSendAndCallFailureInsufficientValue() public {
@@ -293,9 +256,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         });
 
-        uint256 scaledAmount = _scaleTokens(amount, true);
-        _setUpMockMint(address(app), scaledAmount);
-        vm.deal(address(app), scaledAmount - 1);
+        _setUpMockMint(address(app), amount);
+        vm.deal(address(app), amount - 1);
         vm.expectRevert("CallUtils: insufficient value");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenDestination.receiveTeleporterMessage(
@@ -318,8 +280,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         // First difference is 100,000
         uint256 initialBurnedTxFeeAmount = 100_003;
         uint256 expectedReward = 1_000; // 1%, rounded down due to integer division.
-        uint256 expectedReportedAmount =
-            _scaleTokens(initialBurnedTxFeeAmount - expectedReward, false);
+        uint256 expectedReportedAmount = initialBurnedTxFeeAmount - expectedReward;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialBurnedTxFeeAmount);
 
         _setUpMockMint(address(app), expectedReward);
@@ -330,7 +291,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
-                requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
+                requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
             }),
             expectedReportedAmount
         );
@@ -344,7 +306,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         // Mock more transaction fees being burned.
         uint256 additionalBurnTxFeeAmount = 50_007;
         expectedReward = 500; // 1%, rounded down due to integer division.
-        expectedReportedAmount = _scaleTokens(additionalBurnTxFeeAmount - expectedReward, false);
+        expectedReportedAmount = additionalBurnTxFeeAmount - expectedReward;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialBurnedTxFeeAmount + additionalBurnTxFeeAmount);
 
         _setUpMockMint(address(app), expectedReward);
@@ -355,7 +317,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
-                requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
+                requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
             }),
             expectedReportedAmount
         );
@@ -380,7 +343,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         nativeTokenBridge = app;
         tokenBridge = app;
         feeToken = app;
-        _collateralizeBridge();
 
         uint256 burnedTxFeeAmount = 100_000;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
@@ -391,7 +353,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
                 primaryFee: 0,
                 secondaryFee: 0,
-                requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
+                requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
             }),
             burnedTxFeeAmount
         );
@@ -454,39 +417,19 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         assertEq(TEST_ACCOUNT.balance, withdrawAmount);
     }
 
-    function _collateralizeBridge() internal {
-        vm.expectEmit(true, true, true, true, address(app));
-        emit CollateralAdded({amount: app.currentReserveImbalance(), remaining: 0});
-
-        assertFalse(app.isCollateralized());
-
-        _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, 0);
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        app.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            TOKEN_SOURCE_ADDRESS,
-            _encodeSingleHopSendMessage(
-                app.currentReserveImbalance() / app.tokenMultiplier(), DEFAULT_RECIPIENT_ADDRESS
-            )
-        );
-
-        assertTrue(app.isCollateralized());
-    }
-
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
-        uint256 scaledAmount = _scaleTokens(amount, true);
         vm.expectEmit(true, true, true, true, address(tokenDestination));
-        emit TokensWithdrawn(recipient, scaledAmount);
+        emit TokensWithdrawn(recipient, amount);
         vm.mockCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, scaledAmount)),
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount)),
             new bytes(0)
         );
         vm.expectCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, scaledAmount))
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
         );
-        vm.deal(recipient, scaledAmount);
+        vm.deal(recipient, amount);
     }
 
     function _setUpMockMint(address recipient, uint256 amount) internal override {
@@ -512,19 +455,18 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         bool targetHasCode,
         bool expectSuccess
     ) internal override {
-        uint256 scaledAmount = _scaleTokens(amount, true);
         vm.mockCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), scaledAmount)),
+            abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), amount)),
             new bytes(0)
         );
         vm.expectCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), scaledAmount))
+            abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), amount))
         );
 
         // Mock the native minter precompile crediting native balance to the contract.
-        vm.deal(address(app), scaledAmount);
+        vm.deal(address(app), amount);
 
         if (targetHasCode) {
             // Non-zero code length
@@ -535,11 +477,11 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 (sourceBlockchainID, originSenderAddress, payload)
             );
             if (expectSuccess) {
-                vm.mockCall(recipient, scaledAmount, expectedCalldata, new bytes(0));
+                vm.mockCall(recipient, amount, expectedCalldata, new bytes(0));
             } else {
-                vm.mockCallRevert(recipient, scaledAmount, expectedCalldata, new bytes(0));
+                vm.mockCallRevert(recipient, amount, expectedCalldata, new bytes(0));
             }
-            vm.expectCall(recipient, scaledAmount, uint64(gasLimit), expectedCalldata);
+            vm.expectCall(recipient, amount, uint64(gasLimit), expectedCalldata);
         } else {
             // No code at target
             vm.etch(recipient, new bytes(0));
@@ -547,10 +489,10 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
         if (targetHasCode && expectSuccess) {
             vm.expectEmit(true, true, true, true, address(app));
-            emit CallSucceeded(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, scaledAmount);
+            emit CallSucceeded(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
         } else {
             vm.expectEmit(true, true, true, true, address(app));
-            emit CallFailed(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, scaledAmount);
+            emit CallFailed(DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
         }
     }
 
@@ -570,13 +512,17 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         return app.totalNativeAssetSupply();
     }
 
-    function _scaleTokens(
-        uint256 amount,
-        bool isReceive
-    ) internal view override returns (uint256) {
-        if (app.multiplyOnReceive() == isReceive) {
-            return amount * app.tokenMultiplier();
-        }
-        return amount / app.tokenMultiplier();
+    // The native token destination contract is considered collateralized once it has received
+    // a message from its configured source to mint tokens. Until then, the source contract is
+    // still assumed to have insufficient collateral.
+    function _collateralizeBridge() private {
+        uint256 amount = 10e18;
+        _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        app.receiveTeleporterMessage(
+            app.sourceBlockchainID(),
+            app.tokenSourceAddress(),
+            _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
+        );
     }
 }

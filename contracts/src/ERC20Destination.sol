@@ -54,6 +54,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
             sourceBlockchainID_,
             tokenSourceAddress_,
             0,
+            0,
             false
         )
         ERC20(tokenName, tokenSymbol)

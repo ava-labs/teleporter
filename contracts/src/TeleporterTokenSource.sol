@@ -7,6 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
+import {ITeleporterTokenSource} from "./interfaces/ITeleporterTokenSource.sol";
 import {
     ITeleporterTokenBridge,
     SendTokensInput,
@@ -16,9 +17,11 @@ import {
     SingleHopSendMessage,
     SingleHopCallMessage,
     MultiHopSendMessage,
-    MultiHopCallMessage
+    MultiHopCallMessage,
+    RegisterDestinationMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
+import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 
@@ -26,6 +29,13 @@ import {IWarpMessenger} from
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
+
+struct DestinationBridgeSettings {
+    bool registered;
+    uint256 reserveImbalance;
+    uint256 tokenMultiplier;
+    bool multiplyOnReceive;
+}
 
 /**
  * @title TeleporterTokenSource
@@ -37,7 +47,7 @@ import {IWarpMessenger} from
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 abstract contract TeleporterTokenSource is
-    ITeleporterTokenBridge,
+    ITeleporterTokenSource,
     TeleporterOwnerUpgradeable,
     SendReentrancyGuard
 {
@@ -46,6 +56,18 @@ abstract contract TeleporterTokenSource is
 
     /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
     address public immutable feeTokenAddress;
+
+    /**
+     * @notice Tracks the settings for each destination bridge instance. Destination bridge instances
+     * must register with their {TeleporterTokenSource} contracts via Teleporter message to be able to
+     * receive tokens from this contract.
+     */
+    mapping(
+        bytes32 destinationBlockchainID
+            => mapping(
+                address destinationBridgeAddress => DestinationBridgeSettings destinationSettings
+            )
+    ) public registeredDestinations;
 
     /**
      * @notice Tracks the balances of tokens sent to other bridge instances.
@@ -71,11 +93,49 @@ abstract contract TeleporterTokenSource is
         feeTokenAddress = feeTokenAddress_;
     }
 
+    function _registerDestination(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 initialReserveImbalance,
+        uint256 tokenMultiplier,
+        bool multiplyOnReceive
+    ) internal {
+        require(
+            destinationBlockchainID != bytes32(0),
+            "TeleporterTokenSource: zero destination blockchain ID"
+        );
+        require(
+            destinationBlockchainID != blockchainID,
+            "TeleporterTokenSource: cannot register bridge on same chain"
+        );
+        require(
+            destinationBridgeAddress != address(0),
+            "TeleporterTokenSource: zero destination bridge address"
+        );
+        require(
+            tokenMultiplier > 0 && tokenMultiplier < 1e19,
+            "TeleporterTokenSource: invalid token multiplier"
+        );
+        require(
+            !registeredDestinations[destinationBlockchainID][destinationBridgeAddress].registered,
+            "TeleporterTokenSource: destination bridge already registered"
+        );
+
+        registeredDestinations[destinationBlockchainID][destinationBridgeAddress] =
+        DestinationBridgeSettings({
+            registered: true,
+            reserveImbalance: initialReserveImbalance,
+            tokenMultiplier: tokenMultiplier,
+            multiplyOnReceive: multiplyOnReceive
+        });
+    }
+
     /**
      * @notice Sends tokens to the specified destination token bridge instance.
      *
      * @dev Increases the bridge balance sent to each destination token bridge instance,
-     * and uses Teleporter to send a cross chain message.
+     * and uses Teleporter to send a cross chain message. The amount passed is assumed to
+     * be already scaled to the local denomination for this token source.
      * Requirements:
      *
      * - `input.destinationBlockchainID` cannot be the same as the current blockchainID
@@ -92,18 +152,36 @@ abstract contract TeleporterTokenSource is
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
         require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
         require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
-        amount = _prepareSend(
-            input.destinationBlockchainID,
-            input.destinationBridgeAddress,
-            amount,
-            input.primaryFee,
-            isMultihop
-        );
+
+        uint256 adjustedAmount;
+        if (isMultihop) {
+            adjustedAmount = _prepareMultiHopRouting(
+                input.destinationBlockchainID,
+                input.destinationBridgeAddress,
+                amount,
+                input.primaryFee
+            );
+
+            if (adjustedAmount == 0) {
+                // If the adjusted amount is zero for any reason (i.e. unsupported destination,
+                // being scaled down to zero, etc.), send the tokens to the fallback recipient.
+                _withdraw(input.fallbackRecipient, amount);
+                return;
+            }
+        } else {
+            adjustedAmount = _prepareSend(
+                input.destinationBlockchainID,
+                input.destinationBridgeAddress,
+                amount,
+                input.primaryFee
+            );
+        }
 
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
-            amount: amount,
-            payload: abi.encode(SingleHopSendMessage({recipient: input.recipient}))
+            payload: abi.encode(
+                SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
+                )
         });
 
         // Send message to the destination bridge address
@@ -119,9 +197,9 @@ abstract contract TeleporterTokenSource is
         );
 
         if (isMultihop) {
-            emit TokensRouted(messageID, input, amount);
+            emit TokensRouted(messageID, input, adjustedAmount);
         } else {
-            emit TokensSent(messageID, msg.sender, input, amount);
+            emit TokensSent(messageID, msg.sender, input, adjustedAmount);
         }
     }
 
@@ -146,22 +224,39 @@ abstract contract TeleporterTokenSource is
             input.fallbackRecipient != address(0),
             "TeleporterTokenSource: zero fallback recipient address"
         );
-        amount = _prepareSend(
-            input.destinationBlockchainID,
-            input.destinationBridgeAddress,
-            amount,
-            input.primaryFee,
-            isMultihop
-        );
+
+        uint256 adjustedAmount;
+        if (isMultihop) {
+            adjustedAmount = _prepareMultiHopRouting(
+                input.destinationBlockchainID,
+                input.destinationBridgeAddress,
+                amount,
+                input.primaryFee
+            );
+
+            if (adjustedAmount == 0) {
+                // If the adjusted amount is zero for any reason (i.e. unsupported destination,
+                // being scaled down to zero, etc.), send the tokens to the fallback recipient.
+                _withdraw(input.fallbackRecipient, amount);
+                return;
+            }
+        } else {
+            adjustedAmount = _prepareSend(
+                input.destinationBlockchainID,
+                input.destinationBridgeAddress,
+                amount,
+                input.primaryFee
+            );
+        }
 
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_CALL,
-            amount: amount,
             payload: abi.encode(
                 SingleHopCallMessage({
                     sourceBlockchainID: sourceBlockchainID,
                     originSenderAddress: originSenderAddress,
                     recipientContract: input.recipientContract,
+                    amount: adjustedAmount,
                     recipientPayload: input.recipientPayload,
                     recipientGasLimit: input.recipientGasLimit,
                     fallbackRecipient: input.fallbackRecipient
@@ -182,10 +277,51 @@ abstract contract TeleporterTokenSource is
         );
 
         if (isMultihop) {
-            emit TokensAndCallRouted(messageID, input, amount);
+            emit TokensAndCallRouted(messageID, input, adjustedAmount);
         } else {
-            emit TokensAndCallSent(messageID, originSenderAddress, input, amount);
+            emit TokensAndCallSent(messageID, originSenderAddress, input, adjustedAmount);
         }
+    }
+
+    /**
+     * @dev See {INativeTokenSource-addCollateral}
+     */
+    function _addCollateral(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount
+    ) internal sendNonReentrant {
+        DestinationBridgeSettings memory destinationSettings =
+            registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
+        require(destinationSettings.registered, "NativeTokenSource: destination not registered");
+        require(destinationSettings.reserveImbalance > 0, "NativeTokenSource: no reserve imbalance");
+
+        // Deposit the full amount. Note: If the amount is greater than the reserve imbalance,
+        // the destination contract will be over-collateralized.
+        amount = _deposit(amount);
+
+        // Scale the amount based on the token multiplier.
+        uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+            destinationSettings.tokenMultiplier,
+            destinationSettings.multiplyOnReceive,
+            amount,
+            false
+        );
+
+        // Calculate the amount remaining.
+        uint256 remainingAmount;
+        if (scaledAmount > destinationSettings.reserveImbalance) {
+            remainingAmount = 0;
+        } else {
+            remainingAmount = destinationSettings.reserveImbalance - scaledAmount;
+        }
+
+        // Update the reserve imbalance remaining.
+        registeredDestinations[destinationBlockchainID][destinationBridgeAddress].reserveImbalance =
+            remainingAmount;
+        emit CollateralAdded(
+            destinationBlockchainID, destinationBridgeAddress, scaledAmount, remainingAmount
+        );
     }
 
     /**
@@ -206,40 +342,66 @@ abstract contract TeleporterTokenSource is
         bytes memory message
     ) internal override {
         BridgeMessage memory bridgeMessage = abi.decode(message, (BridgeMessage));
-
-        // Check that bridge instance returning has sufficient amount in balance
-        uint256 senderBalance = bridgedBalances[sourceBlockchainID][originSenderAddress];
-        require(
-            senderBalance >= bridgeMessage.amount,
-            "TeleporterTokenSource: insufficient bridge balance"
-        );
-
-        // Decrement the bridge balance by the unwrap amount
-        bridgedBalances[sourceBlockchainID][originSenderAddress] =
-            senderBalance - bridgeMessage.amount;
+        DestinationBridgeSettings memory destinationSettings =
+            registeredDestinations[sourceBlockchainID][originSenderAddress];
 
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
-            _withdraw(payload.recipient, bridgeMessage.amount);
+
+            // Deduct the balance bridged to the given destination bridge address prior to scaling the amount.
+            _deductSenderBalance(sourceBlockchainID, originSenderAddress, payload.amount);
+
+            // Scale the amount based on the token multiplier for the given destination.
+            uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+                destinationSettings.tokenMultiplier,
+                destinationSettings.multiplyOnReceive,
+                payload.amount,
+                true
+            );
+
+            // Send the tokens to the recipient.
+            _withdraw(payload.recipient, scaledAmount);
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
             SingleHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
 
-            // Verify that the payload's source blockchain ID
-            // matches the source blockchain ID passed from Teleporter.
-            // Prevents a destination bridge from accessing tokens attributed
-            // to another destination bridge instance.
+            // Deduct the balance bridged to the given destination bridge address prior to scaling the amount.
+            _deductSenderBalance(sourceBlockchainID, originSenderAddress, payload.amount);
+
+            // Scale the amount based on the token multiplier for the given destination.
+            uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+                destinationSettings.tokenMultiplier,
+                destinationSettings.multiplyOnReceive,
+                payload.amount,
+                true
+            );
+
+            // Verify that the payload's source blockchain ID matches the source blockchain ID passed from Teleporter.
+            // Prevents a destination bridge from accessing tokens attributed to another destination bridge instance.
             require(
                 payload.sourceBlockchainID == sourceBlockchainID,
                 "TeleporterTokenSource: mismatched source blockchain ID"
             );
-            _handleSendAndCall(payload, bridgeMessage.amount);
+
+            _handleSendAndCall(payload, scaledAmount);
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.MULTI_HOP_SEND) {
             MultiHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopSendMessage));
+
+            // Deduct the balance bridged to the given destination bridge address prior to scaling the amount.
+            _deductSenderBalance(sourceBlockchainID, originSenderAddress, payload.amount);
+
+            // Scale the amount based on the token multiplier for the given destination.
+            uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+                destinationSettings.tokenMultiplier,
+                destinationSettings.multiplyOnReceive,
+                payload.amount,
+                true
+            );
+
             _send(
                 SendTokensInput({
                     destinationBlockchainID: payload.destinationBlockchainID,
@@ -247,15 +409,28 @@ abstract contract TeleporterTokenSource is
                     recipient: payload.recipient,
                     primaryFee: payload.secondaryFee,
                     secondaryFee: 0,
-                    requiredGasLimit: payload.secondaryGasLimit
+                    requiredGasLimit: payload.secondaryGasLimit,
+                    fallbackRecipient: payload.fallbackRecipient
                 }),
-                bridgeMessage.amount,
+                scaledAmount,
                 true
             );
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.MULTI_HOP_CALL) {
             MultiHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopCallMessage));
+
+            // Deduct the balance bridged to the given destination bridge address prior to scaling the amount.
+            _deductSenderBalance(sourceBlockchainID, originSenderAddress, payload.amount);
+
+            // Scale the amount based on the token multiplier for the given destination.
+            uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+                destinationSettings.tokenMultiplier,
+                destinationSettings.multiplyOnReceive,
+                payload.amount,
+                true
+            );
+
             _sendAndCall(
                 sourceBlockchainID,
                 payload.originSenderAddress,
@@ -270,10 +445,20 @@ abstract contract TeleporterTokenSource is
                     primaryFee: payload.secondaryFee,
                     secondaryFee: 0
                 }),
-                bridgeMessage.amount,
+                scaledAmount,
                 true
             );
             return;
+        } else if (bridgeMessage.messageType == BridgeMessageType.REGISTER_DESTINATION) {
+            RegisterDestinationMessage memory payload =
+                abi.decode(bridgeMessage.payload, (RegisterDestinationMessage));
+            _registerDestination(
+                sourceBlockchainID,
+                originSenderAddress,
+                payload.initialReserveImbalance,
+                payload.tokenMultiplier,
+                payload.multiplyOnReceive
+            );
         }
     }
 
@@ -295,12 +480,49 @@ abstract contract TeleporterTokenSource is
     /**
      * @notice Processes a send and call message by calling the recipient contract.
      * @param message The send and call message include recipient calldata
-     * @param amount The amount of tokens to be sent to the recipient
+     * @param amount The amount of tokens to be sent to the recipient. This amount is assumed to be
+     * already scaled to the local denomination for this token source.
      */
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
         uint256 amount
     ) internal virtual;
+
+    /**
+     * @notice Prepares a multi-hop send by checking the destination bridge settings
+     * and adjusting the amount to be sent.
+     */
+    function _prepareMultiHopRouting(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount,
+        uint256 fee
+    ) private returns (uint256) {
+        DestinationBridgeSettings memory destinationSettings =
+            registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
+        if (!destinationSettings.registered || destinationSettings.reserveImbalance > 0) {
+            return 0;
+        }
+
+        // Subtract fee amount from amount prior to scaling.
+        amount -= fee;
+
+        // Scale the amount based on the token multiplier for the given destination.
+        uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+            destinationSettings.tokenMultiplier,
+            destinationSettings.multiplyOnReceive,
+            amount,
+            false
+        );
+        if (scaledAmount == 0) {
+            return 0;
+        }
+
+        // Increase the balance of the destination bridge by the scaled amount.
+        bridgedBalances[destinationBlockchainID][destinationBridgeAddress] += scaledAmount;
+
+        return scaledAmount;
+    }
 
     /**
      * @dev Prepares tokens to be sent to another chain by handling the
@@ -311,34 +533,48 @@ abstract contract TeleporterTokenSource is
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         uint256 amount,
-        uint256 fee,
-        bool isMultihop
+        uint256 fee
     ) private returns (uint256) {
+        DestinationBridgeSettings memory destinationSettings =
+            registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
         require(
-            destinationBlockchainID != bytes32(0),
-            "TeleporterTokenSource: zero destination blockchain ID"
+            destinationSettings.registered,
+            "TeleporterTokenSource: destination bridge not registered"
         );
         require(
-            destinationBlockchainID != blockchainID,
-            "TeleporterTokenSource: cannot bridge to same chain"
-        );
-        require(
-            destinationBridgeAddress != address(0),
-            "TeleporterTokenSource: zero destination bridge address"
+            destinationSettings.reserveImbalance == 0,
+            "TeleporterTokenSource: non-zero destination bridge reserve imbalance"
         );
 
-        // If this send is not a multi-hop, deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit.
-        // If it is a multi-hop, the amount is already deposited.
-        if (!isMultihop) {
-            amount = _deposit(amount);
-        }
+        // Lock the amount in this contract to be sent.
+        amount = _deposit(amount);
         require(amount > fee, "TeleporterTokenSource: insufficient amount to cover fees");
 
-        // Subtract fee amount from amount and increase bridge balance
+        // Subtract fee amount from amount prior to scaling.
         amount -= fee;
-        bridgedBalances[destinationBlockchainID][destinationBridgeAddress] += amount;
 
-        return amount;
+        // Scale the amount based on the token multiplier for the given destination.
+        uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+            destinationSettings.tokenMultiplier,
+            destinationSettings.multiplyOnReceive,
+            amount,
+            false
+        );
+        require(scaledAmount > 0, "TeleporterTokenSource: scaled amount is zero");
+
+        // Increase the balance of the destination bridge by the scaled amount.
+        bridgedBalances[destinationBlockchainID][destinationBridgeAddress] += scaledAmount;
+
+        return scaledAmount;
+    }
+
+    function _deductSenderBalance(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount
+    ) private {
+        uint256 senderBalance = bridgedBalances[destinationBlockchainID][destinationBridgeAddress];
+        require(senderBalance >= amount, "TeleporterTokenSource: insufficient sender balance");
+        bridgedBalances[destinationBlockchainID][destinationBridgeAddress] = senderBalance - amount;
     }
 }

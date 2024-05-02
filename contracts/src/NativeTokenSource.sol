@@ -64,8 +64,21 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         _send(input, msg.value, false);
     }
 
+    /**
+     * @dev See {INativeTokenBridge-sendAndCall}
+     */
     function sendAndCall(SendAndCallInput calldata input) external payable {
         _sendAndCall(blockchainID, msg.sender, input, msg.value, false);
+    }
+
+    /**
+     * @dev See {INativeTokenSource-addCollateral}
+     */
+    function addCollateral(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress
+    ) external payable {
+        _addCollateral(destinationBlockchainID, destinationBridgeAddress, msg.value);
     }
 
     /**

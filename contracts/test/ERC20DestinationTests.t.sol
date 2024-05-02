@@ -197,8 +197,4 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         // on the destination contract.
         return;
     }
-
-    function _scaleTokens(uint256 amount, bool) internal pure override returns (uint256) {
-        return amount;
-    }
 }
