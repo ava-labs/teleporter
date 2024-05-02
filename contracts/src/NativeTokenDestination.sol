@@ -278,8 +278,11 @@ contract NativeTokenDestination is
      * Note: {INativeTokenDestination-totalNativeAssetSupply} should not be confused with {IERC20-totalSupply}
      * {INativeTokenDestination-totalNativeAssetSupply} returns the supply of the native asset of the chain,
      * accounting for the amounts that have been bridged in and out of the chain as well as burnt transaction
-     * fees. {IERC20-totalSupply} returns the supply of the native asset held by this contract that is represented
-     * as an ERC20.
+     * fees. The `initialReserveBalance` is included in this supply, so before the token bridge
+     * is collateralized, the `initialReserveBalance` of tokens allocated at genesis are
+     * added to the `totalNativeAssetSupply`.
+     * {IERC20-totalSupply} returns the supply of the native asset held by this contract
+     * that is represented as an ERC20.
      */
     function totalNativeAssetSupply() public view returns (uint256) {
         uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURNED_FOR_BRIDGE_ADDRESS.balance;
