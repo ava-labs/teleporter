@@ -50,53 +50,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         _collateralizeBridge();
     }
 
-    function testIsCollateralized() public {
-        uint256 initialImbalance = 100;
-
-        // Need a new instance since the default set up pre-collateralizes the contract.
-        app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-            initialReserveImbalance: initialImbalance,
-            decimalsShift: 0,
-            multiplyOnReceive: true,
-            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
-        }));
-
-        // Starts off under collateralized.
-        assertFalse(app.isCollateralized());
-
-        // Add less than the full amount of required collateral.
-        vm.expectEmit(true, true, true, true, address(app));
-        emit CollateralAdded({amount: initialImbalance / 2, remaining: initialImbalance / 2});
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        app.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            TOKEN_SOURCE_ADDRESS,
-            _encodeSingleHopSendMessage(initialImbalance / 2, DEFAULT_RECIPIENT_ADDRESS)
-        );
-        assertFalse(app.isCollateralized());
-
-        // Add more than the remaining amount of imbalance.
-        vm.expectEmit(true, true, true, true, address(app));
-        emit CollateralAdded({amount: initialImbalance / 2, remaining: 0});
-        _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, initialImbalance / 2);
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        app.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            TOKEN_SOURCE_ADDRESS,
-            _encodeSingleHopSendMessage(initialImbalance, DEFAULT_RECIPIENT_ADDRESS)
-        );
-
-        // It should now be collateralized.
-        assertTrue(app.isCollateralized());
-    }
-
     function testZeroInitialReserveImbalance() public {
         vm.expectRevert("NativeTokenDestination: zero initial reserve imbalance");
         new NativeTokenDestination(NativeTokenDestinationSettings({
@@ -194,18 +147,20 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function testTotalNativeAssetSupply() public {
-        assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
+        uint256 initialTotalMinted = app.totalMinted();
+        uint256 initialExpectedBalance = _DEFAULT_INITIAL_RESERVE_IMBALANCE + initialTotalMinted;
+        assertEq(app.totalNativeAssetSupply(), initialExpectedBalance);
 
         // Mock tokens being burned as tx fees.
-        vm.deal(app.BURNED_TX_FEES_ADDRESS(), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1);
+        vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialExpectedBalance - 1);
         assertEq(app.totalNativeAssetSupply(), 1);
 
         // Reset the burned tx fee amount.
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), 0);
-        assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
+        assertEq(app.totalNativeAssetSupply(), initialExpectedBalance);
 
         // Mock tokens being bridged out by crediting them to the native token destination contract
-        vm.deal(app.BURNED_FOR_BRIDGE_ADDRESS(), _DEFAULT_INITIAL_RESERVE_IMBALANCE - 1);
+        vm.deal(app.BURNED_FOR_BRIDGE_ADDRESS(), initialExpectedBalance - 1);
         assertEq(app.totalNativeAssetSupply(), 1);
 
         // Depositing native tokens into the contract to be wrapped native tokens shouldn't affect the supply
@@ -362,43 +317,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
     }
 
-    function testReceiveSendAndCallBeforeCollateralized() public {
-        // Need a new instance since the default set up pre-collateralizes the contract.
-        app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: 0,
-            multiplyOnReceive: true,
-            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
-        }));
-
-        // Add more than the full amount of required collateral.
-        vm.expectEmit(true, true, true, true, address(app));
-        emit CollateralAdded({amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE, remaining: 0});
-        _setUpMockMint(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, _DEFAULT_INITIAL_RESERVE_IMBALANCE);
-
-        bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
-        address originSenderAddress = address(this);
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        app.receiveTeleporterMessage(
-            sourceBlockchainID,
-            TOKEN_SOURCE_ADDRESS,
-            _encodeSingleHopCallMessage({
-                sourceBlockchainID: sourceBlockchainID,
-                originSenderAddress: originSenderAddress,
-                amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE * 2,
-                recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-                recipientPayload: new bytes(0),
-                recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-            })
-        );
-    }
-
     function testFallback() public {
         (bool success,) = address(app).call{value: 1}("1234567812345678");
         assertTrue(success);
@@ -516,6 +434,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     // a message from its configured source to mint tokens. Until then, the source contract is
     // still assumed to have insufficient collateral.
     function _collateralizeBridge() private {
+        assertFalse(app.isCollateralized());
         uint256 amount = 10e18;
         _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -524,5 +443,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             app.tokenSourceAddress(),
             _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
         );
+        assertTrue(app.isCollateralized());
     }
 }

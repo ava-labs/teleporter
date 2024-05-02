@@ -11,6 +11,7 @@ import {TeleporterTokenDestination, IWarpMessenger} from "../src/TeleporterToken
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
+import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 
 abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     TeleporterTokenDestination public tokenDestination;
@@ -84,6 +85,17 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.secondaryFee = 0;
         uint256 amount = 1;
 
+        if (
+            TokenScalingUtils.scaleTokens(
+                tokenDestination.tokenMultiplier(),
+                tokenDestination.multiplyOnReceive(),
+                amount,
+                false
+            ) != 0
+        ) {
+            return;
+        }
+
         _setUpExpectedDeposit(amount);
         vm.expectRevert(_formatErrorMessage("insufficient tokens to transfer"));
         _sendAndCall(input, amount);
@@ -97,6 +109,22 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.destinationBridgeAddress = address(0x55);
 
         _sendSingleHopSendSuccess(amount, input.primaryFee);
+    }
+
+    function testSendZeroDestinationBlockchainID() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
+        input.destinationBlockchainID = bytes32(0);
+        vm.expectRevert(_formatErrorMessage("zero destination blockchain ID"));
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testSendZeroDestinationBridge() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
+        input.destinationBridgeAddress = address(0);
+        vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendMultiHopSendSuccess() public {

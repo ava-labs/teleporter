@@ -505,6 +505,7 @@ abstract contract TeleporterTokenSource is
         }
 
         // Subtract fee amount from amount prior to scaling.
+        require(amount > fee, "TeleporterTokenSource: insufficient amount to cover fees");
         amount -= fee;
 
         // Scale the amount based on the token multiplier for the given destination.
@@ -574,7 +575,7 @@ abstract contract TeleporterTokenSource is
         uint256 amount
     ) private {
         uint256 senderBalance = bridgedBalances[destinationBlockchainID][destinationBridgeAddress];
-        require(senderBalance >= amount, "TeleporterTokenSource: insufficient sender balance");
+        require(senderBalance >= amount, "TeleporterTokenSource: insufficient bridge balance");
         bridgedBalances[destinationBlockchainID][destinationBridgeAddress] = senderBalance - amount;
     }
 }

@@ -17,8 +17,10 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
     IERC20Bridge public erc20Bridge;
 
     function testZeroSendAmount() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        _setUpRegisteredDestination(input.destinationBlockchainID, input.destinationBridgeAddress);
         _setUpExpectedZeroAmountRevert();
-        _send(_createDefaultSendTokensInput(), 0);
+        _send(input, 0);
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
