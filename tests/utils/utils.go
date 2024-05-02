@@ -730,14 +730,14 @@ func CheckNativeTokenSourceWithdrawal(
 	Expect(withdrawalEvent.Amount).Should(Equal(expectedAmount))
 }
 
-func CheckNativeTokenDestinationCollateralize(
+func CheckNativeTokenSourceCollateralize(
 	ctx context.Context,
-	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
+	tokenSource *nativetokensource.NativeTokenSource,
 	receipt *types.Receipt,
 	expectedAmount *big.Int,
 	expectedRemaining *big.Int,
 ) {
-	collateralEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseCollateralAdded)
+	collateralEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, tokenSource.ParseCollateralAdded)
 	Expect(err).Should(BeNil())
 	fmt.Println("log ", collateralEvent)
 	teleporterUtils.ExpectBigEqual(collateralEvent.Amount, expectedAmount)

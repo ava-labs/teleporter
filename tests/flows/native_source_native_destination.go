@@ -85,7 +85,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
-		receipt, bridgedAmount := utils.SendNativeTokenSource(
+		receipt, _ := utils.SendNativeTokenSource(
 			ctx,
 			cChainInfo,
 			nativeTokenSource,
@@ -93,9 +93,8 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			valueToSend,
 			fundedKey,
 		)
-		scaledBridgedAmount := teleporterUtils.BigIntMul(bridgedAmount, tokenMultiplier)
 
-		receipt = network.RelayMessage(
+		network.RelayMessage(
 			ctx,
 			receipt,
 			cChainInfo,
@@ -108,13 +107,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			recipientAddress,
 			big.NewInt(0),
 			subnetAInfo.RPCClient,
-		)
-		utils.CheckNativeTokenDestinationCollateralize(
-			ctx,
-			nativeTokenDestination,
-			receipt,
-			scaledBridgedAmount,
-			teleporterUtils.BigIntSub(initialReserveImbalance, scaledBridgedAmount),
 		)
 	}
 
@@ -139,7 +131,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			fundedKey,
 		)
 
-		receipt = network.RelayMessage(
+		network.RelayMessage(
 			ctx,
 			receipt,
 			cChainInfo,
@@ -152,14 +144,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			recipientAddress,
 			valueToReceive,
 			subnetAInfo.RPCClient,
-		)
-
-		utils.CheckNativeTokenDestinationCollateralize(
-			ctx,
-			nativeTokenDestination,
-			receipt,
-			teleporterUtils.BigIntSub(initialReserveImbalance, valueToReceive),
-			big.NewInt(0),
 		)
 	}
 

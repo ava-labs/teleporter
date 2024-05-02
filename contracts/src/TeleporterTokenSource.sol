@@ -9,7 +9,6 @@ import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporter
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {ITeleporterTokenSource} from "./interfaces/ITeleporterTokenSource.sol";
 import {
-    ITeleporterTokenBridge,
     SendTokensInput,
     SendAndCallInput,
     BridgeMessageType,
