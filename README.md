@@ -66,13 +66,13 @@ Running tests...
 | src/NativeTokenDestination.sol              | 100.00% (56/56)   | 100.00% (69/69)   | 100.00% (14/14)  | 100.00% (14/14) |
 | src/NativeTokenSource.sol                   | 100.00% (13/13)   | 100.00% (15/15)   | 100.00% (2/2)    | 100.00% (5/5)   |
 | src/TeleporterTokenDestination.sol          | 100.00% (61/61)   | 100.00% (70/70)   | 88.46% (46/52)   | 100.00% (6/6)   |
-| src/TeleporterTokenSource.sol               | 100.00% (53/53)   | 100.00% (56/56)   | 97.50% (39/40)   | 100.00% (4/4)   |
+| src/TeleporterTokenSource.sol               | 100.00% (54/54)   | 100.00% (57/57)   | 97.62% (41/42)   | 100.00% (4/4)   |
 | src/mocks/ExampleWAVAX.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (3/3)   |
 | src/mocks/MockERC20SendAndCallReceiver.sol  | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (4/4)    | 100.00% (2/2)   |
 | src/mocks/MockNativeSendAndCallReceiver.sol | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (4/4)    | 100.00% (2/2)   |
 | src/utils/CallUtils.sol                     | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)    | 100.00% (2/2)   |
 | src/utils/SafeWrappedNativeTokenDeposit.sol | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (2/2)    | 100.00% (1/1)   |
-| Total                                       | 100.00% (246/246) | 100.00% (282/282) | 94.70% (125/132) | 100.00% (51/51) |
+| Total                                       | 100.00% (247/247) | 100.00% (283/283) | 94.78% (127/134) | 100.00% (51/51) |
 ```
 
 ## E2E tests
