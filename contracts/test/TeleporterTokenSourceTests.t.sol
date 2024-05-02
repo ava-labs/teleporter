@@ -102,6 +102,104 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testReceiveSendAndCallSuccess() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 200_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
+        address originSenderAddress = address(this);
+        bytes memory payload = hex"DEADBEEF";
+        _setUpExpectedSendAndCall({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            amount: amount,
+            payload: payload,
+            gasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            targetHasCode: true,
+            expectSuccess: true
+        });
+
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
+        );
+    }
+
+    function testReceiveSendAndCallFailure() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 2;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
+        address originSenderAddress = address(this);
+        bytes memory payload = hex"DEADBEEF";
+        _setUpExpectedSendAndCall({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            amount: amount,
+            payload: payload,
+            gasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            targetHasCode: true,
+            expectSuccess: false
+        });
+
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: sourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
+        );
+    }
+
+    function testReceiveMismatchedSourceBlockchainID() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 200_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
+        address originSenderAddress = address(this);
+        bytes memory payload = hex"DEADBEEF";
+
+        bytes32 wrongSourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
+        assertNotEq(sourceBlockchainID, wrongSourceBlockchainID);
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: wrongSourceBlockchainID,
+            originSenderAddress: originSenderAddress,
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        vm.expectRevert(_formatErrorMessage("mismatched source blockchain ID"));
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
+        );
+    }
+
     function testMultiHopSendSuccess() public {
         // First send to destination blockchain to increase the bridge balance
         uint256 amount = 200_000;
@@ -226,76 +324,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 secondaryRequiredGasLimit: input.requiredGasLimit,
                 secondaryFee: input.primaryFee
             })
-        );
-    }
-
-    function testReceiveSendAndCallSuccess() public {
-        // First send to destination blockchain to increase the bridge balance
-        uint256 amount = 200_000;
-        _sendSingleHopSendSuccess(amount, 0);
-
-        bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
-        address originSenderAddress = address(this);
-        bytes memory payload = hex"DEADBEEF";
-        _setUpExpectedSendAndCall({
-            sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
-            recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            amount: amount,
-            payload: payload,
-            gasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
-            targetHasCode: true,
-            expectSuccess: true
-        });
-
-        bytes memory message = _encodeSingleHopCallMessage({
-            sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
-            amount: amount,
-            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            recipientPayload: payload,
-            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        });
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
-        );
-    }
-
-    function testReceiveSendAndCallFailure() public {
-        // First send to destination blockchain to increase the bridge balance
-        uint256 amount = 2;
-        _sendSingleHopSendSuccess(amount, 0);
-
-        bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
-        address originSenderAddress = address(this);
-        bytes memory payload = hex"DEADBEEF";
-        _setUpExpectedSendAndCall({
-            sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
-            recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            amount: amount,
-            payload: payload,
-            gasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
-            targetHasCode: true,
-            expectSuccess: false
-        });
-
-        bytes memory message = _encodeSingleHopCallMessage({
-            sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
-            amount: amount,
-            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            recipientPayload: payload,
-            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        });
-
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
         );
     }
 
