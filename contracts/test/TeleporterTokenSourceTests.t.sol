@@ -111,7 +111,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
     function testSendToUnregisteredDestination() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        vm.expectRevert(_formatErrorMessage("destination bridge not registered"));
+        vm.expectRevert(_formatErrorMessage("destination not registered"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
@@ -120,7 +120,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(
             input.destinationBlockchainID, input.destinationBridgeAddress, 1
         );
-        vm.expectRevert(_formatErrorMessage("non-zero destination bridge reserve imbalance"));
+        vm.expectRevert(_formatErrorMessage("non-zero destination reserve imbalance"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
@@ -480,6 +480,46 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 secondaryRequiredGasLimit: input.requiredGasLimit,
                 secondaryFee: input.primaryFee
             })
+        );
+    }
+
+    function testRegisterDestinationZeroBlockchainID() public {
+        vm.expectRevert(_formatErrorMessage("zero destination blockchain ID"));
+        _setUpRegisteredDestination(bytes32(0), DEFAULT_DESTINATION_ADDRESS, 0);
+    }
+
+    function testRegisterDestinationSameChain() public {
+        bytes32 localBlockchainID = tokenSource.blockchainID();
+        vm.expectRevert(_formatErrorMessage("cannot register bridge on same chain"));
+        _setUpRegisteredDestination(localBlockchainID, DEFAULT_DESTINATION_ADDRESS, 0);
+    }
+
+    function testRegisterDestinationZeroAddress() public {
+        vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
+        _setUpRegisteredDestination(DEFAULT_DESTINATION_BLOCKCHAIN_ID, address(0), 0);
+    }
+
+    function testRegisterDestinationZeroTokenMultiplier() public {
+        vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 0, true
+        );
+    }
+
+    function testRegisterDestinationTokenMultiplierToLarge() public {
+        vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 1e18 + 1, true
+        );
+    }
+
+    function testRegisterDestinationAlreadyReigstered() public {
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0
+        );
+        vm.expectRevert(_formatErrorMessage("destination already registered"));
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0
         );
     }
 

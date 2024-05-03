@@ -102,7 +102,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testSendToSameBlockchainDifferentDestination() public {
-        uint256 amount = 200;
+        uint256 amount = 200_000;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         // Set the desintation bridge address to an address different than the token destination contract.
@@ -128,14 +128,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testSendMultiHopSendSuccess() public {
-        uint256 amount = 40;
+        uint256 amount = 400_000;
         uint256 primaryFee = 5;
         uint256 secondaryFee = 2;
         _sendMultiHopSendSuccess(amount, primaryFee, secondaryFee);
     }
 
     function testSendMultiHopCallSuccess() public {
-        uint256 amount = 40;
+        uint256 amount = 400_000;
         uint256 primaryFee = 5;
         uint256 secondaryFee = 1;
         _sendMultiHopCallSuccess(amount, primaryFee, secondaryFee);

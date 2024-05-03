@@ -112,12 +112,12 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: zero destination bridge address"
         );
         require(
-            tokenMultiplier > 0 && tokenMultiplier < 1e19,
+            tokenMultiplier > 0 && tokenMultiplier < 1e18,
             "TeleporterTokenSource: invalid token multiplier"
         );
         require(
             !registeredDestinations[destinationBlockchainID][destinationBridgeAddress].registered,
-            "TeleporterTokenSource: destination bridge already registered"
+            "TeleporterTokenSource: destination already registered"
         );
 
         registeredDestinations[destinationBlockchainID][destinationBridgeAddress] =
@@ -542,13 +542,10 @@ abstract contract TeleporterTokenSource is
     ) private returns (uint256) {
         DestinationBridgeSettings memory destinationSettings =
             registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
-        require(
-            destinationSettings.registered,
-            "TeleporterTokenSource: destination bridge not registered"
-        );
+        require(destinationSettings.registered, "TeleporterTokenSource: destination not registered");
         require(
             destinationSettings.reserveImbalance == 0,
-            "TeleporterTokenSource: non-zero destination bridge reserve imbalance"
+            "TeleporterTokenSource: non-zero destination reserve imbalance"
         );
 
         // Lock the amount in this contract to be sent.
