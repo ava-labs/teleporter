@@ -293,7 +293,7 @@ contract NativeTokenDestination is
      * Note: {INativeTokenDestination-totalNativeAssetSupply} should not be confused with {IERC20-totalSupply}
      * {INativeTokenDestination-totalNativeAssetSupply} returns the supply of the native asset of the chain,
      * accounting for the amounts that have been bridged in and out of the chain as well as burnt transaction
-     * fees. The `initialReserveBalance` is included in this supply since it is in circulation on this 
+     * fees. The `initialReserveBalance` is included in this supply since it is in circulation on this
      * chain even prior to it being backed by collateral on the source chain.
      * {IERC20-totalSupply} returns the supply of the native asset held by this contract
      * that is represented as an ERC20.
