@@ -16,9 +16,17 @@ pragma solidity 0.8.18;
 interface IERC20SendAndCallReceiver {
     /**
      * @notice Called to receive the amount of the given token
+     * @param sourceBlockchainID blockchain ID that the transfer originated from
+     * @param originSenderAddress address of the sender that sent the transfer
      * @param token address of the token to be received
      * @param amount amount of the token to be received
      * @param payload arbitrary data provided by the caller
      */
-    function receiveTokens(address token, uint256 amount, bytes calldata payload) external;
+    function receiveTokens(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        address token,
+        uint256 amount,
+        bytes calldata payload
+    ) external;
 }

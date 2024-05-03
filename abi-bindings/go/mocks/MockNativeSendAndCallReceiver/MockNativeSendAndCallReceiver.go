@@ -31,8 +31,8 @@ var (
 
 // MockNativeSendAndCallReceiverMetaData contains all meta data concerning the MockNativeSendAndCallReceiver contract.
 var MockNativeSendAndCallReceiverMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"payload\",\"type\":\"bytes\"}],\"name\":\"TokensReceived\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"payload\",\"type\":\"bytes\"}],\"name\":\"receiveTokens\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
-	Bin: "0x608060405234801561001057600080fd5b506101be806100206000396000f3fe60806040526004361061001d5760003560e01c80628a403e14610022575b600080fd5b6100356100303660046100e0565b610037565b005b7f7aaf2e01aab6b767f76075e0fefc4618cf6b4a3b7597d1e81b914eb66175655b34838360405161006a93929190610152565b60405180910390a160008190036100dc5760405162461bcd60e51b815260206004820152602c60248201527f4d6f636b4e617469766553656e64416e6443616c6c52656365697665723a206560448201526b1b5c1d1e481c185e5b1bd85960a21b606482015260840160405180910390fd5b5050565b600080602083850312156100f357600080fd5b823567ffffffffffffffff8082111561010b57600080fd5b818501915085601f83011261011f57600080fd5b81358181111561012e57600080fd5b86602082850101111561014057600080fd5b60209290920196919550909350505050565b83815260406020820152816040820152818360608301376000818301606090810191909152601f909201601f191601019291505056fea2646970667358221220e353580d1544dfd9d11c06e3d8e56a158e7fe4d731fc150ee4b99c19ae01be5e64736f6c63430008120033",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"payload\",\"type\":\"bytes\"}],\"name\":\"TokensReceived\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"blockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"}],\"name\":\"blockSender\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"blockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"}],\"name\":\"blockedSenders\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"blocked\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"payload\",\"type\":\"bytes\"}],\"name\":\"receiveTokens\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	Bin: "0x608060405234801561001057600080fd5b5061035c806100206000396000f3fe6080604052600436106100345760003560e01c8063355fb77c14610039578063487bd69e1461004e5780637f450d8d1461009a575b600080fd5b61004c61004736600461023d565b6100e3565b005b34801561005a57600080fd5b506100866100693660046102c4565b600060208181529281526040808220909352908152205460ff1681565b604051901515815260200160405180910390f35b3480156100a657600080fd5b5061004c6100b53660046102c4565b6000918252602082815260408084206001600160a01b0390931684529190529020805460ff19166001179055565b6000848152602081815260408083206001600160a01b038716845290915290205460ff161561016f5760405162461bcd60e51b815260206004820152602d60248201527f4d6f636b4e617469766553656e64416e6443616c6c52656365697665723a207360448201526c195b99195c88189b1bd8dad959609a1b60648201526084015b60405180910390fd5b826001600160a01b0316847f640996264f389b4827dd450bf3c45efe9db2f5ef790ec42abdc8ab81461a7fe03485856040516101ad939291906102f0565b60405180910390a3600081900361021b5760405162461bcd60e51b815260206004820152602c60248201527f4d6f636b4e617469766553656e64416e6443616c6c52656365697665723a206560448201526b1b5c1d1e481c185e5b1bd85960a21b6064820152608401610166565b50505050565b80356001600160a01b038116811461023857600080fd5b919050565b6000806000806060858703121561025357600080fd5b8435935061026360208601610221565b9250604085013567ffffffffffffffff8082111561028057600080fd5b818701915087601f83011261029457600080fd5b8135818111156102a357600080fd5b8860208285010111156102b557600080fd5b95989497505060200194505050565b600080604083850312156102d757600080fd5b823591506102e760208401610221565b90509250929050565b83815260406020820152816040820152818360608301376000818301606090810191909152601f909201601f191601019291505056fea26469706673582212203ceb6324bd75e00fe7fca4017a2fa346467e805eef5bdae3ad4b89cb505d1c6264736f6c63430008120033",
 }
 
 // MockNativeSendAndCallReceiverABI is the input ABI used to generate the binding from.
@@ -202,25 +202,77 @@ func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverTransactorRaw
 	return _MockNativeSendAndCallReceiver.Contract.contract.Transact(opts, method, params...)
 }
 
-// ReceiveTokens is a paid mutator transaction binding the contract method 0x008a403e.
+// BlockedSenders is a free data retrieval call binding the contract method 0x487bd69e.
 //
-// Solidity: function receiveTokens(bytes payload) payable returns()
-func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverTransactor) ReceiveTokens(opts *bind.TransactOpts, payload []byte) (*types.Transaction, error) {
-	return _MockNativeSendAndCallReceiver.contract.Transact(opts, "receiveTokens", payload)
+// Solidity: function blockedSenders(bytes32 blockchainID, address senderAddress) view returns(bool blocked)
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverCaller) BlockedSenders(opts *bind.CallOpts, blockchainID [32]byte, senderAddress common.Address) (bool, error) {
+	var out []interface{}
+	err := _MockNativeSendAndCallReceiver.contract.Call(opts, &out, "blockedSenders", blockchainID, senderAddress)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
-// ReceiveTokens is a paid mutator transaction binding the contract method 0x008a403e.
+// BlockedSenders is a free data retrieval call binding the contract method 0x487bd69e.
 //
-// Solidity: function receiveTokens(bytes payload) payable returns()
-func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverSession) ReceiveTokens(payload []byte) (*types.Transaction, error) {
-	return _MockNativeSendAndCallReceiver.Contract.ReceiveTokens(&_MockNativeSendAndCallReceiver.TransactOpts, payload)
+// Solidity: function blockedSenders(bytes32 blockchainID, address senderAddress) view returns(bool blocked)
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverSession) BlockedSenders(blockchainID [32]byte, senderAddress common.Address) (bool, error) {
+	return _MockNativeSendAndCallReceiver.Contract.BlockedSenders(&_MockNativeSendAndCallReceiver.CallOpts, blockchainID, senderAddress)
 }
 
-// ReceiveTokens is a paid mutator transaction binding the contract method 0x008a403e.
+// BlockedSenders is a free data retrieval call binding the contract method 0x487bd69e.
 //
-// Solidity: function receiveTokens(bytes payload) payable returns()
-func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverTransactorSession) ReceiveTokens(payload []byte) (*types.Transaction, error) {
-	return _MockNativeSendAndCallReceiver.Contract.ReceiveTokens(&_MockNativeSendAndCallReceiver.TransactOpts, payload)
+// Solidity: function blockedSenders(bytes32 blockchainID, address senderAddress) view returns(bool blocked)
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverCallerSession) BlockedSenders(blockchainID [32]byte, senderAddress common.Address) (bool, error) {
+	return _MockNativeSendAndCallReceiver.Contract.BlockedSenders(&_MockNativeSendAndCallReceiver.CallOpts, blockchainID, senderAddress)
+}
+
+// BlockSender is a paid mutator transaction binding the contract method 0x7f450d8d.
+//
+// Solidity: function blockSender(bytes32 blockchainID, address senderAddress) returns()
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverTransactor) BlockSender(opts *bind.TransactOpts, blockchainID [32]byte, senderAddress common.Address) (*types.Transaction, error) {
+	return _MockNativeSendAndCallReceiver.contract.Transact(opts, "blockSender", blockchainID, senderAddress)
+}
+
+// BlockSender is a paid mutator transaction binding the contract method 0x7f450d8d.
+//
+// Solidity: function blockSender(bytes32 blockchainID, address senderAddress) returns()
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverSession) BlockSender(blockchainID [32]byte, senderAddress common.Address) (*types.Transaction, error) {
+	return _MockNativeSendAndCallReceiver.Contract.BlockSender(&_MockNativeSendAndCallReceiver.TransactOpts, blockchainID, senderAddress)
+}
+
+// BlockSender is a paid mutator transaction binding the contract method 0x7f450d8d.
+//
+// Solidity: function blockSender(bytes32 blockchainID, address senderAddress) returns()
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverTransactorSession) BlockSender(blockchainID [32]byte, senderAddress common.Address) (*types.Transaction, error) {
+	return _MockNativeSendAndCallReceiver.Contract.BlockSender(&_MockNativeSendAndCallReceiver.TransactOpts, blockchainID, senderAddress)
+}
+
+// ReceiveTokens is a paid mutator transaction binding the contract method 0x355fb77c.
+//
+// Solidity: function receiveTokens(bytes32 sourceBlockchainID, address originSenderAddress, bytes payload) payable returns()
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverTransactor) ReceiveTokens(opts *bind.TransactOpts, sourceBlockchainID [32]byte, originSenderAddress common.Address, payload []byte) (*types.Transaction, error) {
+	return _MockNativeSendAndCallReceiver.contract.Transact(opts, "receiveTokens", sourceBlockchainID, originSenderAddress, payload)
+}
+
+// ReceiveTokens is a paid mutator transaction binding the contract method 0x355fb77c.
+//
+// Solidity: function receiveTokens(bytes32 sourceBlockchainID, address originSenderAddress, bytes payload) payable returns()
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverSession) ReceiveTokens(sourceBlockchainID [32]byte, originSenderAddress common.Address, payload []byte) (*types.Transaction, error) {
+	return _MockNativeSendAndCallReceiver.Contract.ReceiveTokens(&_MockNativeSendAndCallReceiver.TransactOpts, sourceBlockchainID, originSenderAddress, payload)
+}
+
+// ReceiveTokens is a paid mutator transaction binding the contract method 0x355fb77c.
+//
+// Solidity: function receiveTokens(bytes32 sourceBlockchainID, address originSenderAddress, bytes payload) payable returns()
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverTransactorSession) ReceiveTokens(sourceBlockchainID [32]byte, originSenderAddress common.Address, payload []byte) (*types.Transaction, error) {
+	return _MockNativeSendAndCallReceiver.Contract.ReceiveTokens(&_MockNativeSendAndCallReceiver.TransactOpts, sourceBlockchainID, originSenderAddress, payload)
 }
 
 // MockNativeSendAndCallReceiverTokensReceivedIterator is returned from FilterTokensReceived and is used to iterate over the raw logs and unpacked data for TokensReceived events raised by the MockNativeSendAndCallReceiver contract.
@@ -292,29 +344,49 @@ func (it *MockNativeSendAndCallReceiverTokensReceivedIterator) Close() error {
 
 // MockNativeSendAndCallReceiverTokensReceived represents a TokensReceived event raised by the MockNativeSendAndCallReceiver contract.
 type MockNativeSendAndCallReceiverTokensReceived struct {
-	Amount  *big.Int
-	Payload []byte
-	Raw     types.Log // Blockchain specific contextual infos
+	SourceBlockchainID  [32]byte
+	OriginSenderAddress common.Address
+	Amount              *big.Int
+	Payload             []byte
+	Raw                 types.Log // Blockchain specific contextual infos
 }
 
-// FilterTokensReceived is a free log retrieval operation binding the contract event 0x7aaf2e01aab6b767f76075e0fefc4618cf6b4a3b7597d1e81b914eb66175655b.
+// FilterTokensReceived is a free log retrieval operation binding the contract event 0x640996264f389b4827dd450bf3c45efe9db2f5ef790ec42abdc8ab81461a7fe0.
 //
-// Solidity: event TokensReceived(uint256 amount, bytes payload)
-func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverFilterer) FilterTokensReceived(opts *bind.FilterOpts) (*MockNativeSendAndCallReceiverTokensReceivedIterator, error) {
+// Solidity: event TokensReceived(bytes32 indexed sourceBlockchainID, address indexed originSenderAddress, uint256 amount, bytes payload)
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverFilterer) FilterTokensReceived(opts *bind.FilterOpts, sourceBlockchainID [][32]byte, originSenderAddress []common.Address) (*MockNativeSendAndCallReceiverTokensReceivedIterator, error) {
 
-	logs, sub, err := _MockNativeSendAndCallReceiver.contract.FilterLogs(opts, "TokensReceived")
+	var sourceBlockchainIDRule []interface{}
+	for _, sourceBlockchainIDItem := range sourceBlockchainID {
+		sourceBlockchainIDRule = append(sourceBlockchainIDRule, sourceBlockchainIDItem)
+	}
+	var originSenderAddressRule []interface{}
+	for _, originSenderAddressItem := range originSenderAddress {
+		originSenderAddressRule = append(originSenderAddressRule, originSenderAddressItem)
+	}
+
+	logs, sub, err := _MockNativeSendAndCallReceiver.contract.FilterLogs(opts, "TokensReceived", sourceBlockchainIDRule, originSenderAddressRule)
 	if err != nil {
 		return nil, err
 	}
 	return &MockNativeSendAndCallReceiverTokensReceivedIterator{contract: _MockNativeSendAndCallReceiver.contract, event: "TokensReceived", logs: logs, sub: sub}, nil
 }
 
-// WatchTokensReceived is a free log subscription operation binding the contract event 0x7aaf2e01aab6b767f76075e0fefc4618cf6b4a3b7597d1e81b914eb66175655b.
+// WatchTokensReceived is a free log subscription operation binding the contract event 0x640996264f389b4827dd450bf3c45efe9db2f5ef790ec42abdc8ab81461a7fe0.
 //
-// Solidity: event TokensReceived(uint256 amount, bytes payload)
-func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverFilterer) WatchTokensReceived(opts *bind.WatchOpts, sink chan<- *MockNativeSendAndCallReceiverTokensReceived) (event.Subscription, error) {
+// Solidity: event TokensReceived(bytes32 indexed sourceBlockchainID, address indexed originSenderAddress, uint256 amount, bytes payload)
+func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverFilterer) WatchTokensReceived(opts *bind.WatchOpts, sink chan<- *MockNativeSendAndCallReceiverTokensReceived, sourceBlockchainID [][32]byte, originSenderAddress []common.Address) (event.Subscription, error) {
 
-	logs, sub, err := _MockNativeSendAndCallReceiver.contract.WatchLogs(opts, "TokensReceived")
+	var sourceBlockchainIDRule []interface{}
+	for _, sourceBlockchainIDItem := range sourceBlockchainID {
+		sourceBlockchainIDRule = append(sourceBlockchainIDRule, sourceBlockchainIDItem)
+	}
+	var originSenderAddressRule []interface{}
+	for _, originSenderAddressItem := range originSenderAddress {
+		originSenderAddressRule = append(originSenderAddressRule, originSenderAddressItem)
+	}
+
+	logs, sub, err := _MockNativeSendAndCallReceiver.contract.WatchLogs(opts, "TokensReceived", sourceBlockchainIDRule, originSenderAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -346,9 +418,9 @@ func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverFilterer) Wat
 	}), nil
 }
 
-// ParseTokensReceived is a log parse operation binding the contract event 0x7aaf2e01aab6b767f76075e0fefc4618cf6b4a3b7597d1e81b914eb66175655b.
+// ParseTokensReceived is a log parse operation binding the contract event 0x640996264f389b4827dd450bf3c45efe9db2f5ef790ec42abdc8ab81461a7fe0.
 //
-// Solidity: event TokensReceived(uint256 amount, bytes payload)
+// Solidity: event TokensReceived(bytes32 indexed sourceBlockchainID, address indexed originSenderAddress, uint256 amount, bytes payload)
 func (_MockNativeSendAndCallReceiver *MockNativeSendAndCallReceiverFilterer) ParseTokensReceived(log types.Log) (*MockNativeSendAndCallReceiverTokensReceived, error) {
 	event := new(MockNativeSendAndCallReceiverTokensReceived)
 	if err := _MockNativeSendAndCallReceiver.contract.UnpackLog(event, "TokensReceived", log); err != nil {
