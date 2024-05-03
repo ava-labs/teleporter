@@ -562,7 +562,7 @@ abstract contract TeleporterTokenSource is
             amount,
             false
         );
-        require(scaledAmount > 0, "TeleporterTokenSource: scaled amount is zero");
+        require(scaledAmount > 0, "TeleporterTokenSource: zero scaled amount");
 
         // Increase the balance of the destination bridge by the scaled amount.
         bridgedBalances[destinationBlockchainID][destinationBridgeAddress] += scaledAmount;

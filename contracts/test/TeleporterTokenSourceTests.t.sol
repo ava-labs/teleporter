@@ -16,7 +16,11 @@ import {
     MultiHopSendMessage,
     RegisterDestinationMessage
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
-import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 
 abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
@@ -122,6 +126,17 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
         vm.expectRevert(_formatErrorMessage("non-zero destination reserve imbalance"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testSendZeroScaledAmount() public {
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, true
+        );
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        uint256 amount = 10_000; // Amount is less than the token multiplier, so will be rounded down to zero.
+        _setUpDeposit(amount);
+        vm.expectRevert(_formatErrorMessage("zero scaled amount"));
+        _send(input, amount);
     }
 
     function testNonZeroSecondaryFee() public {
@@ -274,7 +289,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testMultiHopToInvalidDestinationSendsToFallback() public {
+    function testMultiHopInvalidDestinationSendsToFallback() public {
         // First send to destination blockchain to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
@@ -298,7 +313,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testMultiHopDestinationNotYetCollateralized() public {
+    function testMultiHopDestinationNotCollateralized() public {
         // First send to destination blockchain to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
@@ -436,6 +451,93 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testMultiHopCallInvalidDestination() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 200_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not registered.
+        // Instead, the tokens are sent to the fallback recipient.
+        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeMultiHopCallMessage({
+                originSenderAddress: address(this),
+                amount: amount,
+                destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
+                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+                recipientPayload: new bytes(16),
+                recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+                secondaryRequiredGasLimit: 500_000,
+                secondaryFee: 0
+            })
+        );
+    }
+
+    function testMultiHopCallDestinationNotCollateralized() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 200_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        _setUpRegisteredDestination(OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
+
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not yet
+        // fully collateralized. Instead, the tokens are sent to the fallback recipient.
+        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeMultiHopCallMessage({
+                originSenderAddress: address(this),
+                amount: amount,
+                destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
+                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+                recipientPayload: new bytes(16),
+                recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+                secondaryRequiredGasLimit: 500_000,
+                secondaryFee: 0
+            })
+        );
+    }
+
+    function testMultiHopCallAmountScaledToZero() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 1_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        _setUpRegisteredDestination(
+            OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, true
+        );
+
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
+        // amount would be scaled to zero. Instead, the tokens are sent to the fallback recipient.
+        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeMultiHopCallMessage({
+                originSenderAddress: address(this),
+                amount: amount,
+                destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
+                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+                recipientPayload: new bytes(16),
+                recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+                secondaryRequiredGasLimit: 500_000,
+                secondaryFee: 0
+            })
+        );
+    }
+
     function testMultiHopCallSuccess() public {
         // First send to destination blockchain to increase the bridge balance
         uint256 amount = 200_000;
@@ -523,6 +625,58 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testSendScaledAmount() public {
+        uint256 amount = 100;
+        uint256 feeAmount = 1;
+        uint256 bridgeAmount = amount - feeAmount;
+
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFee = feeAmount;
+
+        // Raw amount sent over wire should be multipled by 1e12.
+        uint256 tokenMultiplier = 1e12;
+        _setUpRegisteredDestination(
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, false
+        );
+        _setUpExpectedDeposit(amount);
+        TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
+            destinationBlockchainID: input.destinationBlockchainID,
+            destinationAddress: input.destinationBridgeAddress,
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            requiredGasLimit: input.requiredGasLimit,
+            allowedRelayerAddresses: new address[](0),
+            message: _encodeSingleHopSendMessage(
+                bridgeAmount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS
+                )
+        });
+        _checkExpectedTeleporterCallsForSend(expectedMessage);
+        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount * tokenMultiplier);
+        _send(input, amount);
+
+        // For another destination, the raw amount sent over the wire should be divided by 1e12.
+        amount = 42 * tokenMultiplier;
+        feeAmount = 0;
+        input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
+        input.primaryFee = feeAmount;
+        _setUpRegisteredDestination(
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, true
+        );
+        _setUpExpectedDeposit(amount);
+        expectedMessage = TeleporterMessageInput({
+            destinationBlockchainID: input.destinationBlockchainID,
+            destinationAddress: input.destinationBridgeAddress,
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            requiredGasLimit: input.requiredGasLimit,
+            allowedRelayerAddresses: new address[](0),
+            message: _encodeSingleHopSendMessage(amount / tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
+        });
+        _checkExpectedTeleporterCallsForSend(expectedMessage);
+        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount / tokenMultiplier);
+        _send(input, amount);
+    }
+
     function _setUpExpectedSendAndCall(
         bytes32 sourceBlockchainID,
         address originSenderAddress,
@@ -539,6 +693,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         address destinationBridgeAddress,
         uint256 amount
     ) internal virtual;
+
+    function _setUpDeposit(uint256 amount) internal virtual {}
 
     function _setUpRegisteredDestination(
         bytes32 destinationBlockchainID,
