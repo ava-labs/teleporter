@@ -118,6 +118,14 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         }
     }
 
+    function _addCollateral(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount
+    ) internal override {
+        app.addCollateral(destinationBlockchainID, destinationBridgeAddress, amount);
+    }
+
     function _setUpExpectedZeroAmountRevert() internal override {
         vm.expectRevert("SafeERC20TransferFrom: balance not increased");
     }

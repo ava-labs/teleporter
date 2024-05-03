@@ -25,7 +25,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     string public constant DEFAULT_SYMBOL = "XYZ";
     NativeTokenDestination public app;
 
-    event CollateralAdded(uint256 amount, uint256 remaining);
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     function setUp() public override {
@@ -123,9 +122,17 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             multiplyOnReceive: true,
             burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
         }));
+        tokenDestination = app;
+        nativeTokenBridge = app;
+        tokenBridge = app;
+        feeToken = app;
 
         vm.expectRevert("NativeTokenDestination: contract undercollateralized");
         app.send{value: 100_000}(_createDefaultSendTokensInput());
+
+        // Now mark the contract as collateralized and confirm sending is enabled.
+        _collateralizeBridge();
+        _sendSingleHopSendSuccess(100_000, 0);
     }
 
     function testSendAndCallBeforeCollateralized() public {
@@ -141,9 +148,17 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             multiplyOnReceive: true,
             burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
         }));
+        tokenDestination = app;
+        nativeTokenBridge = app;
+        tokenBridge = app;
+        feeToken = app;
 
         vm.expectRevert("NativeTokenDestination: contract undercollateralized");
         app.sendAndCall{value: 100_000}(_createDefaultSendAndCallInput());
+
+        // Now mark the contract as collateralized and confirm sending is enabled.
+        _collateralizeBridge();
+        _sendSingleHopSendSuccess(100_000, 0);
     }
 
     function testTotalNativeAssetSupply() public {

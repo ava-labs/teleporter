@@ -97,6 +97,11 @@ abstract contract TeleporterTokenDestination is
     uint256 public constant MULTI_HOP_CALL_GAS_PER_WORD = 8_500;
 
     /**
+     * @notice Fixed gas cost for registering the destination contract on the source contract.
+     */
+    uint256 public constant REGISTER_DESTINATION_REQUIRED_GAS = 100_000;
+
+    /**
      * @notice Initializes this destination token bridge instance to receive
      * tokens from the specified source blockchain and token bridge instance.
      */
@@ -150,7 +155,7 @@ abstract contract TeleporterTokenDestination is
                 // need to consider the fee token address such that an amount could be added via addFeeAmount
                 // in the future if desired.
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: 0}),
-                requiredGasLimit: 0,
+                requiredGasLimit: REGISTER_DESTINATION_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
             })

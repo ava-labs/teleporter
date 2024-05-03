@@ -387,7 +387,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
     // Destinations don't need to registered supported destinations because they
     // only send messages to their configured token source.
-    function _setUpRegisteredDestination(bytes32, address) internal virtual override {
+    function _setUpRegisteredDestination(bytes32, address, uint256) internal virtual override {
         return;
     }
 

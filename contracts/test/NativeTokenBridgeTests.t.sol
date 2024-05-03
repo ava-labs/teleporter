@@ -17,7 +17,9 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredDestination(input.destinationBlockchainID, input.destinationBridgeAddress);
+        _setUpRegisteredDestination(
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0
+        );
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
     }

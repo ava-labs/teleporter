@@ -142,7 +142,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function testInsufficientAmountToCoverFees() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = 1;
-        _setUpRegisteredDestination(input.destinationBlockchainID, input.destinationBridgeAddress);
+        _setUpRegisteredDestination(
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0
+        );
         _setUpExpectedDeposit(input.primaryFee);
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
         _send(input, input.primaryFee);
@@ -209,7 +211,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisteredDestination(input.destinationBlockchainID, input.destinationBridgeAddress);
+        _setUpRegisteredDestination(
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0
+        );
         _setUpExpectedDeposit(amount);
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopTeleporterMessageInput(input, bridgeAmount)
@@ -224,7 +228,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisteredDestination(input.destinationBlockchainID, input.destinationBridgeAddress);
+        _setUpRegisteredDestination(
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0
+        );
         _setUpExpectedDeposit(amount);
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopCallTeleporterMessageInput(
@@ -238,7 +244,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     function _setUpRegisteredDestination(
         bytes32 destinationBlockchainID,
-        address destinationBridgeAddress
+        address destinationBridgeAddress,
+        uint256 initialReserveImbalance
     ) internal virtual;
 
     function _setUpExpectedDeposit(uint256 amount) internal virtual;

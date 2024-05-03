@@ -21,6 +21,13 @@ import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
 
+    event CollateralAdded(
+        bytes32 indexed destinationBlockchainID,
+        address indexed destinationBridgeAddress,
+        uint256 amount,
+        uint256 remaining
+    );
+
     function setUp() public virtual {
         vm.mockCall(
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -46,10 +53,74 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testAddCollateralDestinationNotRegistered() public {
+        vm.expectRevert(_formatErrorMessage("destination bridge not registered"));
+        _addCollateral(DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
+    }
+
+    function testAddCollateralAlreadyCollateralized() public {
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0
+        );
+        vm.expectRevert(_formatErrorMessage("no reserve imbalance"));
+        _addCollateral(DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
+    }
+
+    function testAddCollateralPartialAmount() public {
+        uint256 initialReserveImbalance = 100;
+        uint256 collateralAmount = 50;
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, initialReserveImbalance
+        );
+        _setUpExpectedDeposit(collateralAmount);
+        vm.expectEmit(true, true, true, true, address(tokenSource));
+        emit CollateralAdded(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            collateralAmount,
+            initialReserveImbalance - collateralAmount
+        );
+        _addCollateral(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
+        );
+        (, uint256 updateReserveImbalance,,) = tokenSource.registeredDestinations(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
+        );
+        assertEq(updateReserveImbalance, initialReserveImbalance - collateralAmount);
+    }
+
+    function testAddCollateralMoreThanFullAmount() public {
+        uint256 initialReserveImbalance = 100;
+        uint256 collateralAmount = 150;
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, initialReserveImbalance
+        );
+        _setUpExpectedDeposit(collateralAmount);
+        vm.expectEmit(true, true, true, true, address(tokenSource));
+        emit CollateralAdded(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount, 0
+        );
+        _addCollateral(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
+        );
+        (, uint256 updateReserveImbalance,,) = tokenSource.registeredDestinations(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
+        );
+        assertEq(updateReserveImbalance, 0);
+    }
+
     function testSendToUnregisteredDestination() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.destinationBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
         vm.expectRevert(_formatErrorMessage("destination bridge not registered"));
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testSendDestinationNotCollateralized() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        _setUpRegisteredDestination(
+            input.destinationBlockchainID, input.destinationBridgeAddress, 1
+        );
+        vm.expectRevert(_formatErrorMessage("non-zero destination bridge reserve imbalance"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
@@ -203,6 +274,84 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testMultiHopToInvalidDestinationSendsToFallback() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 200_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it
+        // is not registered. Instead, the tokens are sent to the fallback recipient.
+        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeMultiHopSendMessage({
+                amount: amount,
+                destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
+                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                recipient: DEFAULT_RECIPIENT_ADDRESS,
+                secondaryFee: 0,
+                secondaryGasLimit: 500_000,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            })
+        );
+    }
+
+    function testMultiHopDestinationNotYetCollateralized() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 200_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        _setUpRegisteredDestination(OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
+
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not yet
+        // fully collateralized. Instead, the tokens are sent to the fallback recipient.
+        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeMultiHopSendMessage({
+                amount: amount,
+                destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
+                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                recipient: DEFAULT_RECIPIENT_ADDRESS,
+                secondaryFee: 0,
+                secondaryGasLimit: 500_000,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            })
+        );
+    }
+
+    function testMultiHopDestinationAmountScaledToZero() public {
+        // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 1_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        _setUpRegisteredDestination(
+            OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, true
+        );
+
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
+        // amount would be scaled to zero. Instead, the tokens are sent to the fallback recipient.
+        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeMultiHopSendMessage({
+                amount: amount,
+                destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
+                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                recipient: DEFAULT_RECIPIENT_ADDRESS,
+                secondaryFee: 0,
+                secondaryGasLimit: 500_000,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            })
+        );
+    }
+
     function testMultiHopSendSuccess() public {
         // First send to destination blockchain to increase the bridge balance
         uint256 amount = 200_000;
@@ -345,14 +494,33 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         bool expectSuccess
     ) internal virtual;
 
+    function _addCollateral(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount
+    ) internal virtual;
+
     function _setUpRegisteredDestination(
         bytes32 destinationBlockchainID,
-        address destinationBridgeAddress
+        address destinationBridgeAddress,
+        uint256 initialReserveImbalance
     ) internal virtual override {
+        _setUpRegisteredDestination(
+            destinationBlockchainID, destinationBridgeAddress, initialReserveImbalance, 1, false
+        );
+    }
+
+    function _setUpRegisteredDestination(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 initialReserveImbalance,
+        uint256 tokenMultiplier,
+        bool multiplyOnReceive
+    ) internal virtual {
         RegisterDestinationMessage memory payload = RegisterDestinationMessage({
-            initialReserveImbalance: 0,
-            tokenMultiplier: 1,
-            multiplyOnReceive: false
+            initialReserveImbalance: initialReserveImbalance,
+            tokenMultiplier: tokenMultiplier,
+            multiplyOnReceive: multiplyOnReceive
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,

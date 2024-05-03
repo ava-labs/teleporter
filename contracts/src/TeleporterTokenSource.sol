@@ -292,8 +292,13 @@ abstract contract TeleporterTokenSource is
     ) internal sendNonReentrant {
         DestinationBridgeSettings memory destinationSettings =
             registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
-        require(destinationSettings.registered, "NativeTokenSource: destination not registered");
-        require(destinationSettings.reserveImbalance > 0, "NativeTokenSource: no reserve imbalance");
+        require(
+            destinationSettings.registered,
+            "TeleporterTokenSource: destination bridge not registered"
+        );
+        require(
+            destinationSettings.reserveImbalance > 0, "TeleporterTokenSource: no reserve imbalance"
+        );
 
         // Deposit the full amount. Note: If the amount is greater than the reserve imbalance,
         // the destination contract will be over-collateralized.
