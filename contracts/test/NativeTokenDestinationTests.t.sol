@@ -144,6 +144,21 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         }));
     }
 
+    function testDeployToSameBlockchain() public {
+        vm.expectRevert(_formatErrorMessage("cannot deploy to same blockchain as source"));
+        new NativeTokenDestination(NativeTokenDestinationSettings({
+            nativeAssetSymbol: DEFAULT_SYMBOL,
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: address(this),
+            sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+            initialReserveImbalance: 1_000,
+            decimalsShift: 0,
+            multiplyOnReceive: false,
+            burnedFeesReportingRewardPercentage: 1
+        }));
+    }
+
     function testSendBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = new NativeTokenDestination(NativeTokenDestinationSettings({
@@ -268,13 +283,15 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testReceiveSendAndCallFailureInsufficientValue() public {
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
-        bytes memory message = _encodeSingleHopCallMessage(
-            amount,
-            DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-            payload,
-            DEFAULT_RECIPIENT_GAS_LIMIT,
-            DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        );
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            originSenderAddress: address(this),
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
 
         uint256 scaledAmount = _scaleTokens(amount, true);
         _setUpMockMint(address(app), scaledAmount);
@@ -401,17 +418,21 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         emit CollateralAdded({amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE, remaining: 0});
         _setUpMockMint(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, _DEFAULT_INITIAL_RESERVE_IMBALANCE);
 
+        bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
+        address originSenderAddress = address(this);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         app.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            sourceBlockchainID,
             TOKEN_SOURCE_ADDRESS,
-            _encodeSingleHopCallMessage(
-                _DEFAULT_INITIAL_RESERVE_IMBALANCE * 2,
-                DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
-                new bytes(0),
-                DEFAULT_RECIPIENT_GAS_LIMIT,
-                DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-            )
+            _encodeSingleHopCallMessage({
+                sourceBlockchainID: sourceBlockchainID,
+                originSenderAddress: originSenderAddress,
+                amount: _DEFAULT_INITIAL_RESERVE_IMBALANCE * 2,
+                recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+                recipientPayload: new bytes(0),
+                recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            })
         );
     }
 
@@ -482,6 +503,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function _setUpExpectedSendAndCall(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
         address recipient,
         uint256 amount,
         bytes memory payload,
@@ -507,8 +530,10 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             // Non-zero code length
             vm.etch(recipient, new bytes(1));
 
-            bytes memory expectedCalldata =
-                abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (payload));
+            bytes memory expectedCalldata = abi.encodeCall(
+                INativeSendAndCallReceiver.receiveTokens,
+                (sourceBlockchainID, originSenderAddress, payload)
+            );
             if (expectSuccess) {
                 vm.mockCall(recipient, scaledAmount, expectedCalldata, new bytes(0));
             } else {

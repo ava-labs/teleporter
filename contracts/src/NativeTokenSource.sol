@@ -65,7 +65,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     }
 
     function sendAndCall(SendAndCallInput calldata input) external payable {
-        _sendAndCall(input, msg.value, false);
+        _sendAndCall(blockchainID, msg.sender, input, msg.value, false);
     }
 
     /**
@@ -103,8 +103,10 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         token.withdraw(amount);
 
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
-        bytes memory payload =
-            abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (message.recipientPayload));
+        bytes memory payload = abi.encodeCall(
+            INativeSendAndCallReceiver.receiveTokens,
+            (message.sourceBlockchainID, message.originSenderAddress, message.recipientPayload)
+        );
 
         // Call the destination contract with the given payload, gas amount, and value.
         bool success = CallUtils._callWithExactGasAndValue(

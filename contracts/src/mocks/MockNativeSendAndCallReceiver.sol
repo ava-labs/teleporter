@@ -18,18 +18,43 @@ import {INativeSendAndCallReceiver} from "../interfaces/INativeSendAndCallReceiv
  * Real implementations must ensure that tokens are properly handled and not incorrectly locked.
  */
 contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
+    mapping(bytes32 blockchainID => mapping(address senderAddress => bool blocked)) public
+        blockedSenders;
+
     /**
      * @dev Emitted when receiveTokens is called.
      */
-    event TokensReceived(uint256 amount, bytes payload);
+    event TokensReceived(
+        bytes32 indexed sourceBlockchainID,
+        address indexed originSenderAddress,
+        uint256 amount,
+        bytes payload
+    );
 
     /**
      * @dev See {INativeSendAndCallReceiver-receiveTokens}
      */
-    function receiveTokens(bytes calldata payload) external payable {
-        emit TokensReceived(msg.value, payload);
+    function receiveTokens(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        bytes calldata payload
+    ) external payable {
+        require(
+            !blockedSenders[sourceBlockchainID][originSenderAddress],
+            "MockNativeSendAndCallReceiver: sender blocked"
+        );
+        emit TokensReceived(sourceBlockchainID, originSenderAddress, msg.value, payload);
 
         require(payload.length != 0, "MockNativeSendAndCallReceiver: empty payload");
         // No implementation required to accept native tokens
+    }
+
+    /**
+     * @notice Block a sender from sending tokens to this contract.
+     * @param blockchainID The blockchain ID of the sender.
+     * @param senderAddress The address of the sender.
+     */
+    function blockSender(bytes32 blockchainID, address senderAddress) external {
+        blockedSenders[blockchainID][senderAddress] = true;
     }
 }

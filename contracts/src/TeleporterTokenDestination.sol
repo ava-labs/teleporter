@@ -128,11 +128,9 @@ abstract contract TeleporterTokenDestination is
      * The payloads are padded to have a length that is a multiple of 32.
      */
     function calculateNumWords(uint256 payloadSize) public pure returns (uint256) {
-        uint256 numWords = payloadSize / 32;
-        if (payloadSize % 32 != 0) {
-            ++numWords;
-        }
-        return numWords;
+        // Add 31 to effectively round up to the nearest multiple of 32.
+        // Right-shift by 5 bits to divide by 32.
+        return (payloadSize + 31) >> 5;
     }
 
     /**
@@ -270,6 +268,8 @@ abstract contract TeleporterTokenDestination is
                 amount: amount,
                 payload: abi.encode(
                     SingleHopCallMessage({
+                        sourceBlockchainID: blockchainID,
+                        originSenderAddress: msg.sender,
                         recipientContract: input.recipientContract,
                         recipientPayload: input.recipientPayload,
                         recipientGasLimit: input.recipientGasLimit,
@@ -293,6 +293,7 @@ abstract contract TeleporterTokenDestination is
                 amount: amount,
                 payload: abi.encode(
                     MultiHopCallMessage({
+                        originSenderAddress: msg.sender,
                         destinationBlockchainID: input.destinationBlockchainID,
                         destinationBridgeAddress: input.destinationBridgeAddress,
                         recipientContract: input.recipientContract,

@@ -388,8 +388,10 @@ contract NativeTokenDestination is
         _mintNativeCoin(address(this), amount);
 
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
-        bytes memory payload =
-            abi.encodeCall(INativeSendAndCallReceiver.receiveTokens, (message.recipientPayload));
+        bytes memory payload = abi.encodeCall(
+            INativeSendAndCallReceiver.receiveTokens,
+            (message.sourceBlockchainID, message.originSenderAddress, message.recipientPayload)
+        );
 
         // Call the destination contract with the given payload, gas amount, and value.
         bool success = CallUtils._callWithExactGasAndValue(
