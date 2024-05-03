@@ -36,6 +36,21 @@ import {CallUtils} from "./utils/CallUtils.sol";
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
+/**
+ * @notice Settings for constructing a {NativeTokenDestination} contract.
+ * @param nativeAssetSymbol The symbol of the native asset
+ * @param teleporterRegistryAddress The address of the teleporter registry
+ * @param teleporterManager The address of the teleporter manager
+ * @param sourceBlockchainID The blockchain ID of the associated source token bridge
+ * @param tokenSourceAddress The address of the source token bridge contract
+ * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting
+ * @param decimalsShift The number of decimal places to shift the token amount by
+ * @param multiplyOnReceive Whether to multiply the token amount on receive.
+ * If true, the token amount is multiplied by 10^decimalsShift.
+ * If false, the token amount is divided by 10^decimalsShift.
+ * @param burnedFeesReportingRewardPercentage The percentage of burned transaction fees
+ * that will be rewarded to sender of the report.
+ */
 struct NativeTokenDestinationSettings {
     string nativeAssetSymbol;
     address teleporterRegistryAddress;
