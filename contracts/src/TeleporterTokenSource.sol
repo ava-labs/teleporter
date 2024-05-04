@@ -21,6 +21,8 @@ import {
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
+import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -92,7 +94,7 @@ abstract contract TeleporterTokenSource is
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
         require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
         require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
-        amount = _prepareSend(
+        (amount, input.primaryFee) = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
@@ -146,7 +148,7 @@ abstract contract TeleporterTokenSource is
             input.fallbackRecipient != address(0),
             "TeleporterTokenSource: zero fallback recipient address"
         );
-        amount = _prepareSend(
+        (amount, input.primaryFee) = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
@@ -313,7 +315,7 @@ abstract contract TeleporterTokenSource is
         uint256 amount,
         uint256 fee,
         bool isMultihop
-    ) private returns (uint256) {
+    ) private returns (uint256, uint256) {
         require(
             destinationBlockchainID != bytes32(0),
             "TeleporterTokenSource: zero destination blockchain ID"
@@ -332,13 +334,17 @@ abstract contract TeleporterTokenSource is
         // If it is a multi-hop, the amount is already deposited.
         if (!isMultihop) {
             amount = _deposit(amount);
-        }
-        require(amount > fee, "TeleporterTokenSource: insufficient amount to cover fees");
+            fee = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), fee);
 
-        // Subtract fee amount from amount and increase bridge balance
-        amount -= fee;
+            require(amount > 0, "TeleporterTokenSource: zero amount to send");
+        } else {
+            require(amount > fee, "TeleporterTokenSource: insufficient amount to cover fees");
+
+            // Subtract fee amount from amount and increase bridge balance
+            amount -= fee;
+        }
         bridgedBalances[destinationBlockchainID][destinationBridgeAddress] += amount;
 
-        return amount;
+        return (amount, fee);
     }
 }

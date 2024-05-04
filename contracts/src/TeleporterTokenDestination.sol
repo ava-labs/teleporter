@@ -21,6 +21,8 @@ import {
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
+import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -40,6 +42,9 @@ abstract contract TeleporterTokenDestination is
 {
     /// @notice The blockchain ID of the chain this contract is deployed on.
     bytes32 public immutable blockchainID;
+
+    /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
+    address public immutable feeTokenAddress;
 
     /// @notice The blockchain ID of the source chain this contract receives tokens from.
     bytes32 public immutable sourceBlockchainID;
@@ -87,6 +92,7 @@ abstract contract TeleporterTokenDestination is
         address teleporterManager,
         bytes32 sourceBlockchainID_,
         address tokenSourceAddress_,
+        address feeTokenAddress_,
         uint8 decimalsShift,
         bool multiplyOnReceive_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
@@ -103,9 +109,13 @@ abstract contract TeleporterTokenDestination is
             tokenSourceAddress_ != address(0),
             "TeleporterTokenDestination: zero token source address"
         );
+        require(
+            feeTokenAddress_ != address(0), "TeleporterTokenDestination: zero fee token address"
+        );
         require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
         sourceBlockchainID = sourceBlockchainID_;
         tokenSourceAddress = tokenSourceAddress_;
+        feeTokenAddress = feeTokenAddress_;
         tokenMultiplier = 10 ** decimalsShift;
         multiplyOnReceive = multiplyOnReceive_;
     }
@@ -149,7 +159,8 @@ abstract contract TeleporterTokenDestination is
     function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
         require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
-        amount = _prepareSend(
+        uint256 primaryFee;
+        (amount, primaryFee) = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
@@ -209,7 +220,7 @@ abstract contract TeleporterTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: input.primaryFee}),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: primaryFee}),
                 requiredGasLimit: messageRequiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -228,7 +239,7 @@ abstract contract TeleporterTokenDestination is
      * to another destination bridge instance.
      */
     function _sendAndCall(
-        SendAndCallInput memory input,
+        SendAndCallInput calldata input,
         uint256 amount
     ) internal sendNonReentrant {
         require(
@@ -245,7 +256,8 @@ abstract contract TeleporterTokenDestination is
             input.fallbackRecipient != address(0),
             "TeleporterTokenDestination: zero fallback recipient address"
         );
-        amount = _prepareSend(
+        uint256 primaryFee;
+        (amount, primaryFee) = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
@@ -318,7 +330,7 @@ abstract contract TeleporterTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: input.primaryFee}),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: primaryFee}),
                 requiredGasLimit: messageRequiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -406,7 +418,7 @@ abstract contract TeleporterTokenDestination is
         uint256 amount,
         uint256 primaryFee,
         uint256 secondaryFee
-    ) private returns (uint256) {
+    ) private returns (uint256, uint256) {
         require(
             destinationBlockchainID != bytes32(0),
             "TeleporterTokenDestination: zero destination blockchain ID"
@@ -420,16 +432,15 @@ abstract contract TeleporterTokenDestination is
         // and set to adjusted amount after deposit
         amount = _deposit(amount);
         require(
-            amount > primaryFee + secondaryFee,
-            "TeleporterTokenDestination: insufficient amount to cover fees"
+            amount > secondaryFee, "TeleporterTokenDestination: insufficient amount to cover fees"
         );
+        primaryFee = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), primaryFee);
 
-        amount -= primaryFee;
         _burn(amount);
 
         uint256 scaledAmount = scaleTokens(amount, false);
         require(scaledAmount > 0, "TeleporterTokenDestination: insufficient tokens to transfer");
 
-        return scaledAmount;
+        return (scaledAmount, primaryFee);
     }
 }
