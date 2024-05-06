@@ -34,8 +34,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
-    // TODO: rename to wrappedToken
-    IWrappedNativeToken public immutable token;
+    IWrappedNativeToken public immutable wrappedToken;
 
     /**
      * @notice Initializes this source token bridge instance
@@ -46,7 +45,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         address teleporterManager,
         address wrappedTokenAddress
     ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress) {
-        token = IWrappedNativeToken(wrappedTokenAddress);
+        wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
 
     /**
@@ -74,7 +73,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * Deposits the native tokens sent to this contract
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return SafeWrappedNativeTokenDeposit.safeDeposit(token, amount);
+        return SafeWrappedNativeTokenDeposit.safeDeposit(wrappedToken, amount);
     }
 
     /**
@@ -84,7 +83,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
         emit TokensWithdrawn(recipient, amount);
-        token.withdraw(amount);
+        wrappedToken.withdraw(amount);
         payable(recipient).transfer(amount);
     }
 
@@ -101,7 +100,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         uint256 amount
     ) internal virtual override {
         // Withdraw the native token from the wrapped native token contract.
-        token.withdraw(amount);
+        wrappedToken.withdraw(amount);
 
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
         bytes memory payload = abi.encodeCall(

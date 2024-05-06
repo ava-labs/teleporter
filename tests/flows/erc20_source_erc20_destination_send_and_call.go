@@ -101,6 +101,7 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGasLimit),
 			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGasLimit),
 			FallbackRecipient:        fallbackAddress,
+			FeeTokenAddress:          sourceTokenAddress,
 			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
 		}
@@ -148,6 +149,7 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
 			DestinationBridgeAddress: erc20DestinationAddress,
 			Recipient:                recipientAddress,
+			FeeTokenAddress:          sourceTokenAddress,
 			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
 			RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
@@ -206,6 +208,7 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGasLimit),
 			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGasLimit),
 			FallbackRecipient:        fallbackAddress,
+			FeeTokenAddress:          erc20DestinationAddress,
 			PrimaryFee:               big.NewInt(0),
 			SecondaryFee:             big.NewInt(0),
 		}

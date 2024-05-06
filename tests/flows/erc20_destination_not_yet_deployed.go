@@ -80,6 +80,7 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress,
 		Recipient:                recipientAddress,
+		FeeTokenAddress:          sourceTokenAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,

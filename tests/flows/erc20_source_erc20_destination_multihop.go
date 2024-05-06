@@ -87,6 +87,7 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress_A,
 		Recipient:                recipientAddress,
+		FeeTokenAddress:          sourceTokenAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
