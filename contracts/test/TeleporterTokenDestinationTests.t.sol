@@ -39,7 +39,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     function testInvalidSendingBackToSourceBlockchain() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(this);
-        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
@@ -47,7 +47,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     function testInvalidSendAndCallingBackToSourceBlockchain() public {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.destinationBridgeAddress = address(this);
-        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
         _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
     }
@@ -55,7 +55,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     function testNonZeroSecondaryFeeToSourceBlockchain() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.secondaryFee = 1;
-        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
@@ -64,7 +64,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         input.destinationBridgeAddress = address(tokenDestination);
-        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
@@ -73,7 +73,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         input.destinationBridgeAddress = address(tokenDestination);
-        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
         _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
     }
@@ -89,7 +89,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             return;
         }
 
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(amount, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("insufficient tokens to transfer"));
         _sendAndCall(input, amount);
     }
@@ -108,7 +108,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = 1;
         input.secondaryFee = 2;
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(amount, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
         _send(input, amount);
     }
@@ -327,7 +327,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.primaryFee = primaryFee;
         input.secondaryFee = secondaryFee;
 
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(amount, input.primaryFee);
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
         uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
@@ -351,7 +351,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.primaryFee = primaryFee;
         input.secondaryFee = secondaryFee;
 
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(amount, input.primaryFee);
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
         uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);

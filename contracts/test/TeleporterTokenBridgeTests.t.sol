@@ -219,19 +219,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        // Transfer the fee to the bridge if it is greater than 0
-        if (feeAmount > 0) {
-            IERC20(input.feeTokenAddress).safeIncreaseAllowance(
-                address(tokenBridge), input.primaryFee
-            );
-            vm.expectCall(
-                address(input.feeTokenAddress),
-                abi.encodeCall(
-                    IERC20.transferFrom, (address(this), address(tokenBridge), input.primaryFee)
-                )
-            );
-        }
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(amount, feeAmount);
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
         uint256 scaledBridgedAmount = _scaleTokens(amount, false);
@@ -247,19 +235,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function _sendSingleHopCallSuccess(uint256 amount, uint256 feeAmount) internal {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = feeAmount;
-        // Transfer the fee to the bridge if it is greater than 0
-        if (feeAmount > 0) {
-            IERC20(input.feeTokenAddress).safeIncreaseAllowance(
-                address(tokenBridge), input.primaryFee
-            );
-            vm.expectCall(
-                address(input.feeTokenAddress),
-                abi.encodeCall(
-                    IERC20.transferFrom, (address(this), address(tokenBridge), input.primaryFee)
-                )
-            );
-        }
-        _setUpExpectedDeposit(amount);
+
+        _setUpExpectedDeposit(amount, feeAmount);
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
         uint256 scaledBridgedAmount = _scaleTokens(amount, false);
@@ -273,7 +250,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         _sendAndCall(input, amount);
     }
 
-    function _setUpExpectedDeposit(uint256 amount) internal virtual;
+    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual;
 
     function _setUpExpectedZeroAmountRevert() internal virtual;
 
