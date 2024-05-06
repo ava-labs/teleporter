@@ -19,8 +19,12 @@ import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDestinationTest {
+    using SafeERC20 for IERC20;
+
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
     string public constant DEFAULT_SYMBOL = "XYZ";
     NativeTokenDestination public app;
@@ -557,7 +561,18 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         }
     }
 
-    function _setUpExpectedDeposit(uint256 amount, uint256) internal override {
+    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal override {
+        app.deposit{value: feeAmount}();
+        // Transfer the fee to the bridge if it is greater than 0
+        if (feeAmount > 0) {
+            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            vm.expectCall(
+                address(bridgedToken),
+                abi.encodeCall(
+                    IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                )
+            );
+        }
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(app), amount);
     }
