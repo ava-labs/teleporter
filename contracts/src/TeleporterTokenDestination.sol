@@ -43,9 +43,6 @@ abstract contract TeleporterTokenDestination is
     /// @notice The blockchain ID of the chain this contract is deployed on.
     bytes32 public immutable blockchainID;
 
-    /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
-    address public immutable feeTokenAddress;
-
     /// @notice The blockchain ID of the source chain this contract receives tokens from.
     bytes32 public immutable sourceBlockchainID;
     /// @notice The address of the source token bridge instance this contract receives tokens from.
@@ -92,7 +89,6 @@ abstract contract TeleporterTokenDestination is
         address teleporterManager,
         bytes32 sourceBlockchainID_,
         address tokenSourceAddress_,
-        address feeTokenAddress_,
         uint8 decimalsShift,
         bool multiplyOnReceive_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
@@ -112,10 +108,6 @@ abstract contract TeleporterTokenDestination is
         require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
         sourceBlockchainID = sourceBlockchainID_;
         tokenSourceAddress = tokenSourceAddress_;
-        if (feeTokenAddress_ != address(0)) {
-            feeTokenAddress_ = address(this);
-        }
-        feeTokenAddress = feeTokenAddress_;
         tokenMultiplier = 10 ** decimalsShift;
         multiplyOnReceive = multiplyOnReceive_;
     }
@@ -164,6 +156,7 @@ abstract contract TeleporterTokenDestination is
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
+            input.feeTokenAddress,
             input.primaryFee,
             input.secondaryFee
         );
@@ -220,7 +213,7 @@ abstract contract TeleporterTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: primaryFee}),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.feeTokenAddress, amount: primaryFee}),
                 requiredGasLimit: messageRequiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -261,6 +254,7 @@ abstract contract TeleporterTokenDestination is
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
+            input.feeTokenAddress,
             input.primaryFee,
             input.secondaryFee
         );
@@ -330,7 +324,7 @@ abstract contract TeleporterTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: primaryFee}),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.feeTokenAddress, amount: primaryFee}),
                 requiredGasLimit: messageRequiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -416,6 +410,7 @@ abstract contract TeleporterTokenDestination is
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         uint256 amount,
+        address feeTokenAddress,
         uint256 primaryFee,
         uint256 secondaryFee
     ) private returns (uint256, uint256) {
