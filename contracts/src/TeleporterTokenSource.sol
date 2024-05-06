@@ -350,7 +350,10 @@ abstract contract TeleporterTokenSource is
         // If it is a multi-hop, the amount is already deposited.
         if (!isMultihop) {
             amount = _deposit(amount);
-            feeAmount = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+            if (feeAmount > 0) {
+                feeAmount =
+                    SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+            }
 
             require(amount > 0, "TeleporterTokenSource: zero amount to send");
         } else {

@@ -50,7 +50,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
     }
 
     function testZeroFeeTokenAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero fee token address"));
+        vm.expectRevert(_formatErrorMessage("zero token address"));
         new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),

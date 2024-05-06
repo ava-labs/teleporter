@@ -159,14 +159,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
         _sendAndCall(input, 0);
     }
 
-    function testInsufficientAmountToCoverFees() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.primaryFee = 1;
-        _setUpExpectedDeposit(input.primaryFee);
-        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
-        _send(input, input.primaryFee);
-    }
-
     function testSendWithFees() public {
         uint256 amount = 200_000;
         uint256 primaryFee = 100;
@@ -224,14 +216,25 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function _sendAndCall(SendAndCallInput memory input, uint256 amount) internal virtual;
 
     function _sendSingleHopSendSuccess(uint256 amount, uint256 feeAmount) internal {
-        uint256 bridgeAmount = amount - feeAmount;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
+        // Transfer the fee to the bridge if it is greater than 0
+        if (feeAmount > 0) {
+            IERC20(input.feeTokenAddress).safeIncreaseAllowance(
+                address(tokenBridge), input.primaryFee
+            );
+            vm.expectCall(
+                address(input.feeTokenAddress),
+                abi.encodeCall(
+                    IERC20.transferFrom, (address(this), address(tokenBridge), input.primaryFee)
+                )
+            );
+        }
         _setUpExpectedDeposit(amount);
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
-        uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
+        uint256 scaledBridgedAmount = _scaleTokens(amount, false);
 
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopTeleporterMessageInput(input, scaledBridgedAmount)
@@ -242,14 +245,24 @@ abstract contract TeleporterTokenBridgeTest is Test {
     }
 
     function _sendSingleHopCallSuccess(uint256 amount, uint256 feeAmount) internal {
-        uint256 bridgeAmount = amount - feeAmount;
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = feeAmount;
+        // Transfer the fee to the bridge if it is greater than 0
+        if (feeAmount > 0) {
+            IERC20(input.feeTokenAddress).safeIncreaseAllowance(
+                address(tokenBridge), input.primaryFee
+            );
+            vm.expectCall(
+                address(input.feeTokenAddress),
+                abi.encodeCall(
+                    IERC20.transferFrom, (address(this), address(tokenBridge), input.primaryFee)
+                )
+            );
+        }
+        _setUpExpectedDeposit(amount);
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
-        uint256 scaledBridgedAmount = _scaleTokens(bridgeAmount, false);
-
-        _setUpExpectedDeposit(amount);
+        uint256 scaledBridgedAmount = _scaleTokens(amount, false);
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopCallTeleporterMessageInput(
                 _getDefaultSourceBlockchainID(), address(this), input, scaledBridgedAmount
@@ -262,7 +275,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     function _setUpExpectedDeposit(uint256 amount) internal virtual;
 
-    // function _setUpExpectedDeposit(uint256 amount) internal virtual override;
     function _setUpExpectedZeroAmountRevert() internal virtual;
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal virtual;
@@ -298,12 +310,12 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function _createSingleHopTeleporterMessageInput(
         SendTokensInput memory input,
         uint256 bridgeAmount
-    ) internal view returns (TeleporterMessageInput memory) {
+    ) internal pure returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(bridgedToken),
+                feeTokenAddress: address(input.feeTokenAddress),
                 amount: input.primaryFee
             }),
             requiredGasLimit: input.requiredGasLimit,

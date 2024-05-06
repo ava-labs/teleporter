@@ -104,6 +104,15 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, input.primaryFee);
     }
 
+    function testSendMultiHopInsufficientAmountToCoverFees() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        uint256 amount = 1;
+        input.secondaryFee = 2;
+        _setUpExpectedDeposit(amount);
+        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        _send(input, amount);
+    }
+
     function testSendMultiHopSendSuccess() public {
         uint256 amount = 40;
         uint256 primaryFee = 5;
