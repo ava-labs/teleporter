@@ -46,8 +46,13 @@ abstract contract TeleporterTokenSource is
     /// @notice The blockchain ID of the chain this contract is deployed on.
     bytes32 public immutable blockchainID;
 
-    /// @notice The ERC20 token this contract uses to pay for Teleporter fees.
-    address public immutable feeTokenAddress;
+    /**
+     * @notice The token address this source contract bridges to destination instances.
+     * For multi-hop transfers, this `tokenAddress` is always used to pay for Teleporter fees.
+     * If the token is an ERC20 token, the contract address is directly passed in.
+     * If the token is a native asset, the contract address is the wrapped token contract.
+     */
+    address public immutable tokenAddress;
 
     /**
      * @notice Tracks the balances of tokens sent to other bridge instances.
@@ -66,11 +71,11 @@ abstract contract TeleporterTokenSource is
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address feeTokenAddress_
+        address tokenAddress_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
-        require(feeTokenAddress_ != address(0), "TeleporterTokenSource: zero fee token address");
-        feeTokenAddress = feeTokenAddress_;
+        require(tokenAddress_ != address(0), "TeleporterTokenSource: zero token address");
+        tokenAddress = tokenAddress_;
     }
 
     /**
@@ -98,6 +103,7 @@ abstract contract TeleporterTokenSource is
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
+            input.feeTokenAddress,
             input.primaryFee,
             isMultihop
         );
@@ -113,7 +119,10 @@ abstract contract TeleporterTokenSource is
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.feeTokenAddress,
+                    amount: input.primaryFee
+                }),
                 requiredGasLimit: input.requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -152,6 +161,7 @@ abstract contract TeleporterTokenSource is
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
             amount,
+            input.feeTokenAddress,
             input.primaryFee,
             isMultihop
         );
@@ -176,7 +186,10 @@ abstract contract TeleporterTokenSource is
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeTokenAddress, amount: input.primaryFee}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.feeTokenAddress,
+                    amount: input.primaryFee
+                }),
                 requiredGasLimit: input.requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -247,6 +260,7 @@ abstract contract TeleporterTokenSource is
                     destinationBlockchainID: payload.destinationBlockchainID,
                     destinationBridgeAddress: payload.destinationBridgeAddress,
                     recipient: payload.recipient,
+                    feeTokenAddress: tokenAddress,
                     primaryFee: payload.secondaryFee,
                     secondaryFee: 0,
                     requiredGasLimit: payload.secondaryGasLimit
@@ -269,6 +283,7 @@ abstract contract TeleporterTokenSource is
                     requiredGasLimit: payload.secondaryRequiredGasLimit,
                     recipientGasLimit: payload.recipientGasLimit,
                     fallbackRecipient: payload.fallbackRecipient,
+                    feeTokenAddress: tokenAddress,
                     primaryFee: payload.secondaryFee,
                     secondaryFee: 0
                 }),
@@ -313,7 +328,8 @@ abstract contract TeleporterTokenSource is
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         uint256 amount,
-        uint256 fee,
+        address feeTokenAddress,
+        uint256 feeAmount,
         bool isMultihop
     ) private returns (uint256, uint256) {
         require(
@@ -334,17 +350,18 @@ abstract contract TeleporterTokenSource is
         // If it is a multi-hop, the amount is already deposited.
         if (!isMultihop) {
             amount = _deposit(amount);
-            fee = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), fee);
+            feeAmount = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
 
             require(amount > 0, "TeleporterTokenSource: zero amount to send");
         } else {
-            require(amount > fee, "TeleporterTokenSource: insufficient amount to cover fees");
-
-            // Subtract fee amount from amount and increase bridge balance
-            amount -= fee;
+            // Requiring the amount to cover fees for multi-hop sends,
+            // because the fee is taken from the amount that has already been deposited.
+            // This check also makes sure amount bridged is greater than zero.
+            require(amount > feeAmount, "TeleporterTokenSource: insufficient amount to cover fees");
+            amount -= feeAmount;
         }
         bridgedBalances[destinationBlockchainID][destinationBridgeAddress] += amount;
 
-        return (amount, fee);
+        return (amount, feeAmount);
     }
 }

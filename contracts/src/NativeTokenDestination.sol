@@ -42,6 +42,7 @@ struct NativeTokenDestinationSettings {
     address teleporterManager;
     bytes32 sourceBlockchainID;
     address tokenSourceAddress;
+    address feeTokenAddress;
     uint256 initialReserveImbalance;
     uint8 decimalsShift;
     bool multiplyOnReceive;
@@ -143,6 +144,7 @@ contract NativeTokenDestination is
             settings.teleporterManager,
             settings.sourceBlockchainID,
             settings.tokenSourceAddress,
+            settings.feeTokenAddress,
             settings.decimalsShift,
             settings.multiplyOnReceive
         )

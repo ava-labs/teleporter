@@ -34,6 +34,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
+    // TODO: rename to wrappedToken
     IWrappedNativeToken public immutable token;
 
     /**
@@ -43,9 +44,9 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address feeTokenAddress_
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, feeTokenAddress_) {
-        token = IWrappedNativeToken(feeTokenAddress_);
+        address wrappedTokenAddress
+    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress) {
+        token = IWrappedNativeToken(wrappedTokenAddress);
     }
 
     /**
@@ -54,7 +55,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * transfer to the recipient. The caller must be the wrapped native token contract.
      */
     receive() external payable {
-        require(msg.sender == feeTokenAddress, "NativeTokenSource: invalid receive payable sender");
+        require(msg.sender == tokenAddress, "NativeTokenSource: invalid receive payable sender");
     }
 
     /**

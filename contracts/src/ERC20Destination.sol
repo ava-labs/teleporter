@@ -44,6 +44,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         address teleporterManager,
         bytes32 sourceBlockchainID_,
         address tokenSourceAddress_,
+        address feeTokenAddress_,
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals
@@ -53,6 +54,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
             teleporterManager,
             sourceBlockchainID_,
             tokenSourceAddress_,
+            feeTokenAddress_,
             0,
             false
         )

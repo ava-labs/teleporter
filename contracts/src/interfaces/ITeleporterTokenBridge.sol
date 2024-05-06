@@ -27,6 +27,7 @@ struct SendTokensInput {
     bytes32 destinationBlockchainID;
     address destinationBridgeAddress;
     address recipient;
+    address feeTokenAddress;
     uint256 primaryFee;
     uint256 secondaryFee;
     uint256 requiredGasLimit;
@@ -54,6 +55,7 @@ struct SendAndCallInput {
     uint256 requiredGasLimit;
     uint256 recipientGasLimit;
     address fallbackRecipient;
+    address feeTokenAddress;
     uint256 primaryFee;
     uint256 secondaryFee;
 }

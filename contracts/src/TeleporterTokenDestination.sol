@@ -109,12 +109,12 @@ abstract contract TeleporterTokenDestination is
             tokenSourceAddress_ != address(0),
             "TeleporterTokenDestination: zero token source address"
         );
-        require(
-            feeTokenAddress_ != address(0), "TeleporterTokenDestination: zero fee token address"
-        );
         require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
         sourceBlockchainID = sourceBlockchainID_;
         tokenSourceAddress = tokenSourceAddress_;
+        if (feeTokenAddress_ != address(0)) {
+            feeTokenAddress_ = address(this);
+        }
         feeTokenAddress = feeTokenAddress_;
         tokenMultiplier = 10 ** decimalsShift;
         multiplyOnReceive = multiplyOnReceive_;
@@ -431,13 +431,23 @@ abstract contract TeleporterTokenDestination is
         // Deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit
         amount = _deposit(amount);
+
+        // The bridged amount must cover the secondary fee, because the secondary fee
+        // is directly subtracted from the bridged amount on the intermediate chain
+        // performing the multi-hop, before forwarding to the final destination chain.
         require(
             amount > secondaryFee, "TeleporterTokenDestination: insufficient amount to cover fees"
         );
+
+        // Transfer the primary fee to pay for Teleporter fees on the first hop.
+        // The user can specify the destination bridge contract as `feeTokenAddress`,
+        // in which case the fee will be paid on top of the bridged amount.
         primaryFee = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), primaryFee);
 
+        // Burn the amount of tokens that will be bridged.
         _burn(amount);
 
+        // Scale the amount of tokens to match the source bridge instance.
         uint256 scaledAmount = scaleTokens(amount, false);
         require(scaledAmount > 0, "TeleporterTokenDestination: insufficient tokens to transfer");
 
