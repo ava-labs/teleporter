@@ -29,7 +29,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         tokenSource = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        feeToken = mockWrappedToken;
+        bridgedToken = mockWrappedToken;
     }
 
     /**
@@ -102,8 +102,8 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         internal
         override (NativeTokenBridgeTest, TeleporterTokenBridgeTest)
     {
-        vm.expectCall(address(feeToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
-        vm.expectEmit(true, true, true, true, address(feeToken));
+        vm.expectCall(address(bridgedToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
+        vm.expectEmit(true, true, true, true, address(bridgedToken));
         emit Deposit(address(nativeTokenBridge), amount);
     }
 

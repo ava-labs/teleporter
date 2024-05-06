@@ -37,7 +37,7 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         erc20Bridge = app;
         tokenDestination = app;
         tokenBridge = app;
-        feeToken = IERC20(app);
+        bridgedToken = IERC20(app);
 
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(this), 10e18);

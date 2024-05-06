@@ -45,7 +45,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        feeToken = app;
+        bridgedToken = app;
         assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
         _collateralizeBridge();
     }
@@ -328,6 +328,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                feeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
@@ -353,6 +354,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                feeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
@@ -379,7 +381,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        feeToken = app;
+        bridgedToken = app;
         _collateralizeBridge();
 
         uint256 burnedTxFeeAmount = 100_000;
@@ -389,6 +391,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                feeTokenAddress: address(bridgedToken),
                 primaryFee: 0,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT

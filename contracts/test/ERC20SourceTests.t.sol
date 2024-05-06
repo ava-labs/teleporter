@@ -29,7 +29,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         tokenSource = app;
         tokenBridge = app;
 
-        feeToken = mockERC20;
+        bridgedToken = mockERC20;
     }
 
     /**

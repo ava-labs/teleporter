@@ -380,7 +380,10 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         return TeleporterMessageInput({
             destinationBlockchainID: tokenDestination.sourceBlockchainID(),
             destinationAddress: tokenDestination.tokenSourceAddress(),
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(bridgedToken),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: tokenDestination.MULTI_HOP_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: _encodeMultiHopSendMessage({
@@ -402,7 +405,10 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         return TeleporterMessageInput({
             destinationBlockchainID: tokenDestination.sourceBlockchainID(),
             destinationAddress: tokenDestination.tokenSourceAddress(),
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(bridgedToken),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: tokenDestination.MULTI_HOP_REQUIRED_GAS()
                 + (
                     tokenDestination.calculateNumWords(input.recipientPayload.length)
@@ -430,7 +436,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
     function _createDefaultSendTokensInput()
         internal
-        pure
+        view
         override
         returns (SendTokensInput memory)
     {
@@ -438,6 +444,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             destinationBridgeAddress: TOKEN_SOURCE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
+            feeTokenAddress: address(bridgedToken),
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT
@@ -446,7 +453,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
     function _createDefaultSendAndCallInput()
         internal
-        pure
+        view
         override
         returns (SendAndCallInput memory)
     {
@@ -458,6 +465,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+            feeTokenAddress: address(bridgedToken),
             primaryFee: 0,
             secondaryFee: 0
         });
