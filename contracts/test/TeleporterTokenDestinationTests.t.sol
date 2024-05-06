@@ -321,7 +321,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 primaryFee,
         uint256 secondaryFee
     ) internal {
-        uint256 bridgeAmount = amount - primaryFee;
+        uint256 bridgeAmount = amount;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
         input.primaryFee = primaryFee;
@@ -345,7 +345,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 primaryFee,
         uint256 secondaryFee
     ) internal {
-        uint256 bridgeAmount = amount - primaryFee;
+        uint256 bridgeAmount = amount;
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
         input.primaryFee = primaryFee;
