@@ -262,6 +262,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     function _setUpExpectedDeposit(uint256 amount) internal virtual;
 
+    // function _setUpExpectedDeposit(uint256 amount) internal virtual override;
+    function _setUpExpectedZeroAmountRevert() internal virtual;
+
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal virtual;
 
     function _checkExpectedTeleporterCallsForSend(

@@ -557,10 +557,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         }
     }
 
-    function _setUpExpectedDeposit(uint256 amount)
-        internal
-        override (NativeTokenBridgeTest, TeleporterTokenBridgeTest)
-    {
+    function _setUpExpectedDeposit(uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(app), amount);
     }

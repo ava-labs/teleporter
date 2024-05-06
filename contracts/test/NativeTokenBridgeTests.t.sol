@@ -30,7 +30,4 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
     ) internal virtual override {
         nativeTokenBridge.sendAndCall{value: amount}(input);
     }
-
-    function _setUpExpectedDeposit(uint256 amount) internal virtual override;
-    function _setUpExpectedZeroAmountRevert() internal virtual;
 }

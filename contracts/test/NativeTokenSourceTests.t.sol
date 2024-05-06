@@ -98,10 +98,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         }
     }
 
-    function _setUpExpectedDeposit(uint256 amount)
-        internal
-        override (NativeTokenBridgeTest, TeleporterTokenBridgeTest)
-    {
+    function _setUpExpectedDeposit(uint256 amount) internal override {
         vm.expectCall(address(bridgedToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
         vm.expectEmit(true, true, true, true, address(bridgedToken));
         emit Deposit(address(nativeTokenBridge), amount);

@@ -47,6 +47,4 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
         vm.expectEmit(true, true, true, true, address(bridgedToken));
         emit Transfer(address(this), address(tokenBridge), amount);
     }
-
-    function _setUpExpectedZeroAmountRevert() internal virtual;
 }
