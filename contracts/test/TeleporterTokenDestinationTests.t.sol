@@ -439,10 +439,6 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         });
     }
 
-    function _getDefaultSourceBlockchainID() internal pure override returns (bytes32) {
-        return DEFAULT_DESTINATION_BLOCKCHAIN_ID;
-    }
-
     function _createDefaultSendTokensInput()
         internal
         view
@@ -478,6 +474,10 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             primaryFee: 0,
             secondaryFee: 0
         });
+    }
+
+    function _getDefaultSourceBlockchainID() internal pure override returns (bytes32) {
+        return DEFAULT_DESTINATION_BLOCKCHAIN_ID;
     }
 
     function _formatErrorMessage(string memory message)

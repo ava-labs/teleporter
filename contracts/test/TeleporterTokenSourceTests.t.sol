@@ -340,22 +340,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         bool expectSuccess
     ) internal virtual;
 
-    function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
-        return SendTokensInput({
-            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: address(tokenSource),
-            recipient: DEFAULT_RECIPIENT_ADDRESS,
-            feeTokenAddress: address(bridgedToken),
-            primaryFee: 0,
-            secondaryFee: 0,
-            requiredGasLimit: 0
-        });
-    }
-
-    function _getDefaultSourceBlockchainID() internal pure override returns (bytes32) {
-        return DEFAULT_SOURCE_BLOCKCHAIN_ID;
-    }
-
     function _createDefaultSendTokensInput()
         internal
         view
@@ -391,6 +375,22 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             primaryFee: 0,
             secondaryFee: 0
         });
+    }
+
+    function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
+        return SendTokensInput({
+            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: address(tokenSource),
+            recipient: DEFAULT_RECIPIENT_ADDRESS,
+            feeTokenAddress: address(bridgedToken),
+            primaryFee: 0,
+            secondaryFee: 0,
+            requiredGasLimit: 0
+        });
+    }
+
+    function _getDefaultSourceBlockchainID() internal pure override returns (bytes32) {
+        return DEFAULT_SOURCE_BLOCKCHAIN_ID;
     }
 
     function _formatErrorMessage(string memory message)

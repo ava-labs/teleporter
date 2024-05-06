@@ -284,6 +284,18 @@ abstract contract TeleporterTokenBridgeTest is Test {
         return amount;
     }
 
+    function _createDefaultSendTokensInput()
+        internal
+        view
+        virtual
+        returns (SendTokensInput memory);
+
+    function _createDefaultSendAndCallInput()
+        internal
+        view
+        virtual
+        returns (SendAndCallInput memory);
+
     function _createSingleHopTeleporterMessageInput(
         SendTokensInput memory input,
         uint256 bridgeAmount
@@ -329,18 +341,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
     }
 
     function _getDefaultSourceBlockchainID() internal pure virtual returns (bytes32);
-
-    function _createDefaultSendTokensInput()
-        internal
-        view
-        virtual
-        returns (SendTokensInput memory);
-
-    function _createDefaultSendAndCallInput()
-        internal
-        view
-        virtual
-        returns (SendAndCallInput memory);
 
     function _formatErrorMessage(string memory message)
         internal

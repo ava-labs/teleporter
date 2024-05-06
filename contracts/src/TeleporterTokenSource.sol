@@ -99,14 +99,14 @@ abstract contract TeleporterTokenSource is
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
         require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
         require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
-        (amount, input.primaryFee) = _prepareSend(
-            input.destinationBlockchainID,
-            input.destinationBridgeAddress,
-            amount,
-            input.feeTokenAddress,
-            input.primaryFee,
-            isMultihop
-        );
+        (amount, input.primaryFee) = _prepareSend({
+            destinationBlockchainID: input.destinationBlockchainID,
+            destinationBridgeAddress: input.destinationBridgeAddress,
+            amount: amount,
+            feeTokenAddress: input.feeTokenAddress,
+            feeAmount: input.primaryFee,
+            isMultihop: isMultihop
+        });
 
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
@@ -157,14 +157,14 @@ abstract contract TeleporterTokenSource is
             input.fallbackRecipient != address(0),
             "TeleporterTokenSource: zero fallback recipient address"
         );
-        (amount, input.primaryFee) = _prepareSend(
-            input.destinationBlockchainID,
-            input.destinationBridgeAddress,
-            amount,
-            input.feeTokenAddress,
-            input.primaryFee,
-            isMultihop
-        );
+        (amount, input.primaryFee) = _prepareSend({
+            destinationBlockchainID: input.destinationBlockchainID,
+            destinationBridgeAddress: input.destinationBridgeAddress,
+            amount: amount,
+            feeTokenAddress: input.feeTokenAddress,
+            feeAmount: input.primaryFee,
+            isMultihop: isMultihop
+        });
 
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_CALL,

@@ -152,14 +152,14 @@ abstract contract TeleporterTokenDestination is
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
         require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
         uint256 primaryFee;
-        (amount, primaryFee) = _prepareSend(
-            input.destinationBlockchainID,
-            input.destinationBridgeAddress,
-            amount,
-            input.feeTokenAddress,
-            input.primaryFee,
-            input.secondaryFee
-        );
+        (amount, primaryFee) = _prepareSend({
+            destinationBlockchainID: input.destinationBlockchainID,
+            destinationBridgeAddress: input.destinationBridgeAddress,
+            amount: amount,
+            feeTokenAddress: input.feeTokenAddress,
+            primaryFee: input.primaryFee,
+            secondaryFee: input.secondaryFee
+        });
 
         // If the destination blockchain is the source blockchain,
         // no multi-hop is needed. Only the required gas limit for the Teleporter message back to
@@ -250,14 +250,14 @@ abstract contract TeleporterTokenDestination is
             "TeleporterTokenDestination: zero fallback recipient address"
         );
         uint256 primaryFee;
-        (amount, primaryFee) = _prepareSend(
-            input.destinationBlockchainID,
-            input.destinationBridgeAddress,
-            amount,
-            input.feeTokenAddress,
-            input.primaryFee,
-            input.secondaryFee
-        );
+        (amount, primaryFee) = _prepareSend({
+            destinationBlockchainID: input.destinationBlockchainID,
+            destinationBridgeAddress: input.destinationBridgeAddress,
+            amount: amount,
+            feeTokenAddress: input.feeTokenAddress,
+            primaryFee: input.primaryFee,
+            secondaryFee: input.secondaryFee
+        });
 
         BridgeMessage memory message;
         uint256 messageRequiredGasLimit = input.requiredGasLimit;
