@@ -125,7 +125,7 @@ func RegisterNativeTokenDestinationOnERC20Source(
 
 	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseDestinationRegistered)
 	Expect(err).Should(BeNil())
-	Expect(registerEvent.DestinationBlockchainID).Should(Equal(destinationSubnet.BlockchainID))
+	Expect(registerEvent.DestinationBlockchainID[:]).Should(Equal(destinationSubnet.BlockchainID[:]))
 	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
 	teleporterUtils.ExpectBigEqual(registerEvent.InitialReserveImbalance, expectedInitialReserveBalance)
 	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
@@ -282,7 +282,7 @@ func RegisterNativeTokenDestinationOnNativeTokenSource(
 
 	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseDestinationRegistered)
 	Expect(err).Should(BeNil())
-	Expect(registerEvent.DestinationBlockchainID).Should(Equal(destinationSubnet.BlockchainID))
+	Expect(registerEvent.DestinationBlockchainID[:]).Should(Equal(destinationSubnet.BlockchainID[:]))
 	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
 	teleporterUtils.ExpectBigEqual(registerEvent.InitialReserveImbalance, expectedInitialReserveBalance)
 	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
