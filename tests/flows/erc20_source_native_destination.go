@@ -45,7 +45,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddressA, nativeTokenDestinationA, deployReceipt_A := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
 		"SUBA",
@@ -56,6 +56,19 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		decimalsShift,
 		multiplyOnReceive,
 		burnedFeesReportingRewardPercentage,
+	)
+
+	utils.RegisterNativeTokenDestinationOnERC20Source(
+		ctx,
+		network,
+		cChainInfo,
+		erc20Source,
+		subnetAInfo,
+		nativeTokenDestinationAddressA,
+		initialReserveImbalance,
+		utils.GetTokenMultiplier(decimalsShift),
+		!multiplyOnReceive,
+		deployReceipt_A,
 	)
 
 	// Generate new recipient to receive bridged tokens

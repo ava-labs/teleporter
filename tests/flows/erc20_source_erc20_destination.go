@@ -52,7 +52,7 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Deploy an ERC20Destination to Subnet A
-	erc20DestinationAddress, erc20Destination := utils.DeployERC20Destination(
+	erc20DestinationAddress, erc20Destination, deployReceipt := utils.DeployERC20Destination(
 		ctx,
 		fundedKey,
 		subnetAInfo,
@@ -62,6 +62,16 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
+	)
+
+	utils.RegisterERC20DestinationOnERC20Source(
+		ctx,
+		network,
+		cChainInfo,
+		erc20Source,
+		subnetAInfo,
+		erc20DestinationAddress,
+		deployReceipt,
 	)
 
 	// Generate new recipient to receive bridged tokens

@@ -56,7 +56,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Deploy an NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddress, nativeTokenDestination := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddress, nativeTokenDestination, deployReceipt := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
 		"SUBA",
@@ -67,6 +67,20 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		decimalsShift,
 		multiplyOnReceive,
 		burnedFeesReportingRewardPercentage,
+	)
+
+	// Register the NativeTokenDestination on the NativeTokenSource
+	utils.RegisterNativeTokenDestinationOnNativeTokenSource(
+		ctx,
+		network,
+		cChainInfo,
+		nativeTokenSource,
+		subnetAInfo,
+		nativeTokenDestinationAddress,
+		initialReserveImbalance,
+		utils.GetTokenMultiplier(decimalsShift),
+		!multiplyOnReceive,
+		deployReceipt,
 	)
 
 	// Generate new recipient to receive bridged tokens

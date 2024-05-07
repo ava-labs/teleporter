@@ -44,7 +44,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddressA, nativeTokenDestinationA, deployReceipt_A := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
 		"SUBA",
@@ -58,7 +58,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenDestination to Subnet B
-	nativeTokenDestinationAddressB, nativeTokenDestinationB := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddressB, nativeTokenDestinationB, deployReceipt_B := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetBInfo,
 		"SUBB",
@@ -69,6 +69,33 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		decimalsShift,
 		multiplyOnReceive,
 		burnedFeesReportingRewardPercentage,
+	)
+
+	// Register both NativeTokenDestinations on the NativeTokenSource
+	utils.RegisterNativeTokenDestinationOnNativeTokenSource(
+		ctx,
+		network,
+		cChainInfo,
+		nativeTokenSource,
+		subnetAInfo,
+		nativeTokenDestinationAddressA,
+		initialReserveImbalance,
+		utils.GetTokenMultiplier(decimalsShift),
+		!multiplyOnReceive,
+		deployReceipt_A,
+	)
+
+	utils.RegisterNativeTokenDestinationOnNativeTokenSource(
+		ctx,
+		network,
+		cChainInfo,
+		nativeTokenSource,
+		subnetBInfo,
+		nativeTokenDestinationAddressB,
+		initialReserveImbalance,
+		utils.GetTokenMultiplier(decimalsShift),
+		!multiplyOnReceive,
+		deployReceipt_B,
 	)
 
 	// Generate new recipient to receive bridged tokens

@@ -125,7 +125,7 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 	Expect( // Just to ensure no more subnetA fundedAddr tx's have occurred
 		subnetAInfo.RPCClient.NonceAt(ctx, fundedAddress, nil),
 	).Should(Equal(erc20DestinationAddressNonce))
-	actualERC20DestDeploymentAddress, erc20Destination := utils.DeployERC20Destination(
+	actualERC20DestDeploymentAddress, erc20Destination, deployReceipt := utils.DeployERC20Destination(
 		ctx,
 		fundedKey,
 		subnetAInfo,
@@ -137,6 +137,16 @@ func ERC20DestinationNotYetDeployed(network interfaces.Network) {
 		tokenDecimals,
 	)
 	Expect(actualERC20DestDeploymentAddress).Should(Equal(erc20DestinationAddress))
+
+	utils.RegisterERC20DestinationOnERC20Source(
+		ctx,
+		network,
+		cChainInfo,
+		erc20Source,
+		subnetAInfo,
+		erc20DestinationAddress,
+		deployReceipt,
+	)
 
 	// Retry the message execution on the destination TeleporterMessenger
 	// instance now that the ERC20Destination contract is deployed.

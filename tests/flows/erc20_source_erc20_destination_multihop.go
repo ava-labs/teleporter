@@ -52,7 +52,7 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Deploy an ERC20Destination for Subnet A
-	erc20DestinationAddress_A, erc20Destination_A := utils.DeployERC20Destination(
+	erc20DestinationAddress_A, erc20Destination_A, deployReceipt_A := utils.DeployERC20Destination(
 		ctx,
 		fundedKey,
 		subnetAInfo,
@@ -65,7 +65,7 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 	)
 
 	// Deploy an ERC20Destination for Subnet B
-	erc20DestinationAddress_B, erc20Destination_B := utils.DeployERC20Destination(
+	erc20DestinationAddress_B, erc20Destination_B, deployReceipt_B := utils.DeployERC20Destination(
 		ctx,
 		fundedKey,
 		subnetBInfo,
@@ -75,6 +75,27 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
+	)
+
+	// Register both ERC20Destinations on the ERC20Source
+	utils.RegisterERC20DestinationOnERC20Source(
+		ctx,
+		network,
+		cChainInfo,
+		erc20Source,
+		subnetAInfo,
+		erc20DestinationAddress_A,
+		deployReceipt_A,
+	)
+
+	utils.RegisterERC20DestinationOnERC20Source(
+		ctx,
+		network,
+		cChainInfo,
+		erc20Source,
+		subnetBInfo,
+		erc20DestinationAddress_B,
+		deployReceipt_B,
 	)
 
 	// Generate new recipient to receive bridged tokens

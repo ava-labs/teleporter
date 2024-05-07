@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"math"
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -85,6 +86,52 @@ func DeployERC20Source(
 	return address, erc20Source
 }
 
+func RegisterERC20DestinationOnERC20Source(
+	ctx context.Context,
+	network interfaces.Network,
+	sourceSubnet interfaces.SubnetTestInfo,
+	erc20Source *erc20source.ERC20Source,
+	destinationSubnet interfaces.SubnetTestInfo,
+	erc20DestinationAddress common.Address,
+	deployReceipt *types.Receipt,
+) {
+	RegisterNativeTokenDestinationOnERC20Source(
+		ctx,
+		network,
+		sourceSubnet,
+		erc20Source,
+		destinationSubnet,
+		erc20DestinationAddress,
+		big.NewInt(0),
+		big.NewInt(1),
+		true,
+		deployReceipt,
+	)
+}
+
+func RegisterNativeTokenDestinationOnERC20Source(
+	ctx context.Context,
+	network interfaces.Network,
+	sourceSubnet interfaces.SubnetTestInfo,
+	erc20Source *erc20source.ERC20Source,
+	destinationSubnet interfaces.SubnetTestInfo,
+	destinationBridgeAddress common.Address,
+	expectedInitialReserveBalance *big.Int,
+	expectedTokenMultiplier *big.Int,
+	expectedMultiplyOnReceive bool,
+	deployReceipt *types.Receipt,
+) {
+	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
+
+	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseDestinationRegistered)
+	Expect(err).Should(BeNil())
+	Expect(registerEvent.DestinationBlockchainID).Should(Equal(destinationSubnet.BlockchainID))
+	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
+	teleporterUtils.ExpectBigEqual(registerEvent.InitialReserveImbalance, expectedInitialReserveBalance)
+	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
+	Expect(registerEvent.MultiplyOnReceive).Should(Equal(expectedMultiplyOnReceive))
+}
+
 func DeployERC20Destination(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
@@ -95,7 +142,7 @@ func DeployERC20Destination(
 	tokenName string,
 	tokenSymbol string,
 	tokenDecimals uint8,
-) (common.Address, *erc20destination.ERC20Destination) {
+) (common.Address, *erc20destination.ERC20Destination, *types.Receipt) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
 		subnet.EVMChainID,
@@ -114,9 +161,9 @@ func DeployERC20Destination(
 	)
 	Expect(err).Should(BeNil())
 
-	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, erc20Destination
+	return address, erc20Destination, receipt
 }
 
 func DeployNativeTokenDestination(
@@ -130,7 +177,7 @@ func DeployNativeTokenDestination(
 	decimalsShift uint8,
 	multiplyOnReceive bool,
 	burnedFeesReportingRewardPercentage *big.Int,
-) (common.Address, *nativetokendestination.NativeTokenDestination) {
+) (common.Address, *nativetokendestination.NativeTokenDestination, *types.Receipt) {
 	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract.
 	// The resulting contract address has been added to the genesis file as an admin for the Native Minter precompile.
 	Expect(nativeTokenDestinationDeployerKeyIndex).Should(BeNumerically("<", len(nativeTokenDestinationDeployerKeys)))
@@ -162,13 +209,13 @@ func DeployNativeTokenDestination(
 	)
 	Expect(err).Should(BeNil())
 
-	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 	fmt.Println("Deployed NativeTokenDestination contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
 
 	// Increment to the next deployer key so that the next contract deployment succeeds
 	nativeTokenDestinationDeployerKeyIndex++
 
-	return address, nativeTokenDestination
+	return address, nativeTokenDestination, receipt
 }
 
 func DeployNativeTokenSource(
@@ -195,6 +242,51 @@ func DeployNativeTokenSource(
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	return address, nativeTokenSource
+}
+
+func RegisterERC20DestinationOnNativeTokenSource(
+	ctx context.Context,
+	network interfaces.Network,
+	sourceSubnet interfaces.SubnetTestInfo,
+	nativeTokenSource *nativetokensource.NativeTokenSource,
+	destinationSubnet interfaces.SubnetTestInfo,
+	destinationBridgeAddress common.Address,
+	deployReceipt *types.Receipt) {
+	RegisterNativeTokenDestinationOnNativeTokenSource(
+		ctx,
+		network,
+		sourceSubnet,
+		nativeTokenSource,
+		destinationSubnet,
+		destinationBridgeAddress,
+		big.NewInt(0),
+		big.NewInt(1),
+		true,
+		deployReceipt,
+	)
+}
+
+func RegisterNativeTokenDestinationOnNativeTokenSource(
+	ctx context.Context,
+	network interfaces.Network,
+	sourceSubnet interfaces.SubnetTestInfo,
+	nativeTokenSource *nativetokensource.NativeTokenSource,
+	destinationSubnet interfaces.SubnetTestInfo,
+	destinationBridgeAddress common.Address,
+	expectedInitialReserveBalance *big.Int,
+	expectedTokenMultiplier *big.Int,
+	expectedMultiplyOnReceive bool,
+	deployReceipt *types.Receipt,
+) {
+	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
+
+	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseDestinationRegistered)
+	Expect(err).Should(BeNil())
+	Expect(registerEvent.DestinationBlockchainID).Should(Equal(destinationSubnet.BlockchainID))
+	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
+	teleporterUtils.ExpectBigEqual(registerEvent.InitialReserveImbalance, expectedInitialReserveBalance)
+	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
+	Expect(registerEvent.MultiplyOnReceive).Should(Equal(expectedMultiplyOnReceive))
 }
 
 func DeployExampleWAVAX(
@@ -742,4 +834,10 @@ func CheckNativeTokenSourceCollateralize(
 	fmt.Println("log ", collateralEvent)
 	teleporterUtils.ExpectBigEqual(collateralEvent.Amount, expectedAmount)
 	teleporterUtils.ExpectBigEqual(collateralEvent.Remaining, expectedRemaining)
+}
+
+func GetTokenMultiplier(
+	decimalsShift uint8,
+) *big.Int {
+	return big.NewInt(int64(math.Pow10(int(decimalsShift))))
 }
