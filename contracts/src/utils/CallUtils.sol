@@ -48,7 +48,7 @@ library CallUtils {
                 call(
                     gasAmount, // gas provided to the call
                     target, // call target
-                    value, // zero value
+                    value, // value transferred
                     add(data, 0x20), // input data - 0x20 needs to be added to an array because the first 32-byte slot contains the array length (0x20 in hex is 32 in decimal).
                     mload(data), // input data size - mload returns mem[p..(p+32)], which is the first 32-byte slot of the array. In this case, the array length.
                     0, // output
