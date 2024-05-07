@@ -131,6 +131,8 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
     }
 
     function _setUpExpectedSendAndCall(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
         address recipient,
         uint256 amount,
         bytes memory payload,
@@ -150,7 +152,8 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
             vm.etch(recipient, new bytes(1));
 
             bytes memory expectedCalldata = abi.encodeCall(
-                IERC20SendAndCallReceiver.receiveTokens, (address(app), amount, payload)
+                IERC20SendAndCallReceiver.receiveTokens,
+                (sourceBlockchainID, originSenderAddress, address(app), amount, payload)
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, expectedCalldata, new bytes(0));

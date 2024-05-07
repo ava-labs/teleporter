@@ -62,7 +62,7 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
      * @dev See {IERC20Bridge-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
-        _sendAndCall(input, amount, false);
+        _sendAndCall(blockchainID, msg.sender, input, amount, false);
     }
 
     /**
@@ -98,7 +98,13 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
         // Encode the call to {IERC20SendAndCallReceiver-receiveTokens}
         bytes memory payload = abi.encodeCall(
             IERC20SendAndCallReceiver.receiveTokens,
-            (address(token), amount, message.recipientPayload)
+            (
+                message.sourceBlockchainID,
+                message.originSenderAddress,
+                address(token),
+                amount,
+                message.recipientPayload
+            )
         );
 
         // Call the destination contract with the given payload and gas amount.

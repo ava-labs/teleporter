@@ -138,7 +138,13 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         // Encode the call to {IERC20SendAndCallReceiver-receiveTokens}
         bytes memory payload = abi.encodeCall(
             IERC20SendAndCallReceiver.receiveTokens,
-            (address(this), amount, message.recipientPayload)
+            (
+                message.sourceBlockchainID,
+                message.originSenderAddress,
+                address(this),
+                amount,
+                message.recipientPayload
+            )
         );
 
         // Call the destination contract with the given payload and gas amount.
