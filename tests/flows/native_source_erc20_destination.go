@@ -86,6 +86,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		ctx,
 		cChainInfo,
 		nativeTokenSource,
+		nativeTokenSourceAddress,
 		wavax,
 		input,
 		amount,

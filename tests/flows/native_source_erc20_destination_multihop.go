@@ -9,6 +9,7 @@ import (
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	. "github.com/onsi/gomega"
@@ -87,7 +88,7 @@ func NativeSourceERC20DestinationMultihop(network interfaces.Network) {
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress_A,
 		Recipient:                recipientAddress,
-		FeeTokenAddress:          wavaxAddress,
+		FeeTokenAddress:          common.Address{},
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
@@ -99,6 +100,7 @@ func NativeSourceERC20DestinationMultihop(network interfaces.Network) {
 		ctx,
 		cChainInfo,
 		nativeTokenSource,
+		nativeTokenSourceAddress,
 		wavax,
 		input,
 		amount,

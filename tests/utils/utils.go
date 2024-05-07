@@ -297,6 +297,7 @@ func SendNativeTokenSource(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
 	nativeTokenSource *nativetokensource.NativeTokenSource,
+	nativeTokenSourceAddress common.Address,
 	wrappedToken *examplewavax.ExampleWAVAX,
 	input nativetokensource.SendTokensInput,
 	amount *big.Int,
@@ -314,6 +315,16 @@ func SendNativeTokenSource(
 	Expect(err).Should(BeNil())
 	Expect(depositEvent.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	teleporterUtils.ExpectBigEqual(depositEvent.Amount, input.PrimaryFee)
+
+	opts, err = bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err = wrappedToken.Approve(opts, nativeTokenSourceAddress, input.PrimaryFee)
+	Expect(err).Should(BeNil())
+
+	approveReceipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	approvalEvent, err := teleporterUtils.GetEventFromLogs(approveReceipt.Logs, wrappedToken.ParseApproval)
+	Expect(err).Should(BeNil())
+	Expect(approvalEvent.Spender).Should(Equal(nativeTokenSourceAddress))
 
 	opts, err = bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -645,6 +656,7 @@ func SendERC20MultihopAndVerify(
 		DestinationBlockchainID:  toSubnet.BlockchainID,
 		DestinationBridgeAddress: toBridgeAddress,
 		Recipient:                recipientAddress,
+		FeeTokenAddress:          common.Address{},
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
