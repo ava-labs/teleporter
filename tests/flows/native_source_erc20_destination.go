@@ -75,7 +75,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		DestinationBridgeAddress: erc20DestinationAddress,
 		Recipient:                recipientAddress,
 		FeeTokenAddress:          wavaxAddress,
-		PrimaryFee:               big.NewInt(0),
+		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}

@@ -176,7 +176,7 @@ func DeployNativeTokenSource(
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
-	feeTokenAddress common.Address,
+	tokenAddress common.Address,
 ) (common.Address, *nativetokensource.NativeTokenSource) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
@@ -188,7 +188,7 @@ func DeployNativeTokenSource(
 		subnet.RPCClient,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
-		feeTokenAddress,
+		tokenAddress,
 	)
 	Expect(err).Should(BeNil())
 

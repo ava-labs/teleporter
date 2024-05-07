@@ -55,7 +55,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		cChainWAVAXAddress,
 	)
 
-	// Deploy an NativeTokenDestination to Subnet A
+	// Deploy a NativeTokenDestination to Subnet A
 	nativeTokenDestinationAddress, nativeTokenDestination := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
@@ -80,7 +80,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
 			DestinationBridgeAddress: nativeTokenDestinationAddress,
 			Recipient:                recipientAddress,
-			PrimaryFee:               big.NewInt(0),
+			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
@@ -94,6 +94,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			valueToSend,
 			fundedKey,
 		)
+		// scaledBridgedAmount := nativeTokenDestination.ScaleTokens(&bind.CallOpts{}, bridgedAmount, true)
 		scaledBridgedAmount := teleporterUtils.BigIntMul(bridgedAmount, tokenMultiplier)
 
 		receipt = network.RelayMessage(
@@ -125,7 +126,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
 			DestinationBridgeAddress: nativeTokenDestinationAddress,
 			Recipient:                recipientAddress,
-			PrimaryFee:               big.NewInt(1),
+			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
