@@ -127,6 +127,14 @@ abstract contract TeleporterTokenSource is
             tokenMultiplier: tokenMultiplier,
             multiplyOnReceive: multiplyOnReceive
         });
+
+        emit DestinationRegistered(
+            destinationBlockchainID,
+            destinationBridgeAddress,
+            initialReserveImbalance,
+            tokenMultiplier,
+            multiplyOnReceive
+        );
     }
 
     /**

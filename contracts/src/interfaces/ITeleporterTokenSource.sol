@@ -30,6 +30,17 @@ interface ITeleporterTokenSource is ITeleporterTokenBridge {
     );
 
     /**
+     * @notice Emitted when a destination is registered with the token bridge.
+     */
+    event DestinationRegistered(
+        bytes32 indexed destinationBlockchainID,
+        address indexed destinationBridgeAddress,
+        uint256 initialReserveImbalance,
+        uint256 tokenMultiplier,
+        bool multiplyOnReceive
+    );
+
+    /**
      * @notice Emitted when tokens are routed from a multi-hop send message to another chain.
      */
     event TokensRouted(bytes32 indexed teleporterMessageID, SendTokensInput input, uint256 amount);

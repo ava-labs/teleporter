@@ -93,7 +93,7 @@ struct RegisterDestinationMessage {
 }
 
 /**
- * @dev Single hop send message payloads only include the recipient address.
+ * @dev Single hop send message payloads include the recipient address and bridged amount .
  * The destination chain and bridge address are defined by the Teleporter message.
  */
 struct SingleHopSendMessage {
@@ -160,17 +160,6 @@ struct MultiHopCallMessage {
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 interface ITeleporterTokenBridge is ITeleporterReceiver {
-    /**
-     * @notice Emitted when a destination is registered with the token bridge.
-     */
-    event DestinationRegistered(
-        bytes32 indexed destinationBlockchainID,
-        address indexed destinationBridgeAddress,
-        uint256 initialReserveImbalance,
-        uint256 tokenMultiplier,
-        bool multiplyOnReceive
-    );
-
     /**
      * @notice Emitted when tokens are sent to another chain.
      */
