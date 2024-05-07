@@ -28,7 +28,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an example WAVAX on the primary network
-	wavaxAddressPrimary, _ := utils.DeployExampleWAVAX(
+	wavaxAddress, wavax := utils.DeployExampleWAVAX(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -40,7 +40,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		fundedKey,
 		cChainInfo,
 		fundedAddress,
-		wavaxAddressPrimary,
+		wavaxAddress,
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
@@ -95,6 +95,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 			ctx,
 			cChainInfo,
 			nativeTokenSource,
+			wavax,
 			inputA,
 			initialReserveImbalance,
 			fundedKey,
@@ -132,6 +133,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 			ctx,
 			cChainInfo,
 			nativeTokenSource,
+			wavax,
 			inputB,
 			initialReserveImbalance,
 			fundedKey,

@@ -255,6 +255,11 @@ abstract contract TeleporterTokenSource is
         } else if (bridgeMessage.messageType == BridgeMessageType.MULTI_HOP_SEND) {
             MultiHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopSendMessage));
+
+            // For a multi-hop send, the fee token address has to be `tokenAddress`,
+            // because the fee is taken from the amount that has already been deposited.
+            // For ERC20 tokens, the token address of the contract is directly passed.abi
+            // For native assets, the contract address is the wrapped token contract.
             _send(
                 SendTokensInput({
                     destinationBlockchainID: payload.destinationBlockchainID,
@@ -272,6 +277,11 @@ abstract contract TeleporterTokenSource is
         } else if (bridgeMessage.messageType == BridgeMessageType.MULTI_HOP_CALL) {
             MultiHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopCallMessage));
+
+            // For a multi-hop send, the fee token address has to be `tokenAddress`,
+            // because the fee is taken from the amount that has already been deposited.
+            // For ERC20 tokens, the token address of the contract is directly passed.abi
+            // For native assets, the contract address is the wrapped token contract.
             _sendAndCall(
                 sourceBlockchainID,
                 payload.originSenderAddress,

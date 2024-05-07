@@ -40,7 +40,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an example WAVAX on the primary network
-	cChainWAVAXAddress, wavaxA := utils.DeployExampleWAVAX(
+	cChainWAVAXAddress, wavax := utils.DeployExampleWAVAX(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -89,6 +89,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			ctx,
 			cChainInfo,
 			nativeTokenSource,
+			wavax,
 			input,
 			valueToSend,
 			fundedKey,
@@ -124,7 +125,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
 			DestinationBridgeAddress: nativeTokenDestinationAddress,
 			Recipient:                recipientAddress,
-			PrimaryFee:               big.NewInt(0),
+			PrimaryFee:               big.NewInt(1),
 			SecondaryFee:             big.NewInt(0),
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
@@ -134,6 +135,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			ctx,
 			cChainInfo,
 			nativeTokenSource,
+			wavax,
 			input,
 			new(big.Int).Div(initialReserveImbalance, tokenMultiplier),
 			fundedKey,
@@ -197,7 +199,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		utils.CheckNativeTokenSourceWithdrawal(
 			ctx,
 			nativeTokenSourceAddress,
-			wavaxA,
+			wavax,
 			receipt,
 			bridgedAmount,
 		)

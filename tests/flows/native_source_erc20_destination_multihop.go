@@ -99,6 +99,7 @@ func NativeSourceERC20DestinationMultihop(network interfaces.Network) {
 		ctx,
 		cChainInfo,
 		nativeTokenSource,
+		wavax,
 		input,
 		amount,
 		fundedKey,
