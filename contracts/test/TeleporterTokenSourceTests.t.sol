@@ -104,6 +104,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         emit CollateralAdded(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount, 0
         );
+
         _addCollateral(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
         );
@@ -111,6 +112,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
         );
         assertEq(updateReserveImbalance, 0);
+        assertTrue(address(this).balance > 0);
     }
 
     function testSendToUnregisteredDestination() public {

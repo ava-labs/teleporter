@@ -29,6 +29,15 @@ import {IWarpMessenger} from
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
+/**
+ * @notice Each destination bridge instance registers with the source token bridge contract,
+ * and provides settings for bridging to the destination bridge.
+ * @param registered whether the destination bridge is registered
+ * @param reserveImbalance the amount of tokens that must be first added as collateral,
+ * through `addCollateral` calls, before tokens can be bridged to the destination token bridge.
+ * @param tokenMultiplier the scaling factor for the amount of tokens to be bridged to the destination.
+ * @param multiplyOnReceive whether the scaling factor is multiplied or divided when receiving tokens from the destination.
+ */
 struct DestinationBridgeSettings {
     bool registered;
     uint256 reserveImbalance;
@@ -310,20 +319,20 @@ abstract contract TeleporterTokenSource is
 
         // Deposit the full amount. Note: If the amount is greater than the reserve imbalance,
         // the destination contract will be over-collateralized.
+        // TODO: if we have extra, can we either send it to the destination bridge or withdraw extra amount back to sender?
         amount = _deposit(amount);
 
         // Scale the amount based on the token multiplier.
-        uint256 scaledAmount = TokenScalingUtils.scaleTokens(
-            destinationSettings.tokenMultiplier,
-            destinationSettings.multiplyOnReceive,
-            amount,
-            false
+        uint256 scaledAmount = TokenScalingUtils.applyTokenScale(
+            destinationSettings.tokenMultiplier, destinationSettings.multiplyOnReceive, amount
         );
 
         // Calculate the amount remaining.
         uint256 remainingAmount;
+        uint256 excessAmount;
         if (scaledAmount > destinationSettings.reserveImbalance) {
             remainingAmount = 0;
+            excessAmount = scaledAmount - destinationSettings.reserveImbalance;
         } else {
             remainingAmount = destinationSettings.reserveImbalance - scaledAmount;
         }
@@ -331,9 +340,23 @@ abstract contract TeleporterTokenSource is
         // Update the reserve imbalance remaining.
         registeredDestinations[destinationBlockchainID][destinationBridgeAddress].reserveImbalance =
             remainingAmount;
+        // TODO: think the amount added and remaining amount should be pre-scale amounts,
+        // easier to understand for the user.
         emit CollateralAdded(
             destinationBlockchainID, destinationBridgeAddress, scaledAmount, remainingAmount
         );
+
+        // If there is excess amount, send it back to the sender.
+        if (excessAmount > 0) {
+            _withdraw(
+                msg.sender,
+                TokenScalingUtils.removeTokenScale(
+                    destinationSettings.tokenMultiplier,
+                    destinationSettings.multiplyOnReceive,
+                    excessAmount
+                )
+            );
+        }
     }
 
     /**
@@ -357,6 +380,11 @@ abstract contract TeleporterTokenSource is
         DestinationBridgeSettings memory destinationSettings =
             registeredDestinations[sourceBlockchainID][originSenderAddress];
 
+        // TODO: do we need to check whether we received from a bridge that is registered?
+        // For receiving single transfers, this check is mostly handled by bridgeBalances,
+        // except if sent back 0 amount, which will still call _withdraw.
+        // For multi-hop transfers, bridgeBalances still checks and allows 0 amount to
+        // send a multi-hop. Then in prepareMultiHopRouting, it has the handling of 0 amount.
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
@@ -365,11 +393,10 @@ abstract contract TeleporterTokenSource is
             _deductSenderBalance(sourceBlockchainID, originSenderAddress, payload.amount);
 
             // Scale the amount based on the token multiplier for the given destination.
-            uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+            uint256 scaledAmount = TokenScalingUtils.removeTokenScale(
                 destinationSettings.tokenMultiplier,
                 destinationSettings.multiplyOnReceive,
-                payload.amount,
-                true
+                payload.amount
             );
 
             // Send the tokens to the recipient.
@@ -383,11 +410,10 @@ abstract contract TeleporterTokenSource is
             _deductSenderBalance(sourceBlockchainID, originSenderAddress, payload.amount);
 
             // Scale the amount based on the token multiplier for the given destination.
-            uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+            uint256 scaledAmount = TokenScalingUtils.removeTokenScale(
                 destinationSettings.tokenMultiplier,
                 destinationSettings.multiplyOnReceive,
-                payload.amount,
-                true
+                payload.amount
             );
 
             // Verify that the payload's source blockchain ID matches the source blockchain ID passed from Teleporter.
@@ -407,11 +433,10 @@ abstract contract TeleporterTokenSource is
             _deductSenderBalance(sourceBlockchainID, originSenderAddress, payload.amount);
 
             // Scale the amount based on the token multiplier for the given destination.
-            uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+            uint256 scaledAmount = TokenScalingUtils.removeTokenScale(
                 destinationSettings.tokenMultiplier,
                 destinationSettings.multiplyOnReceive,
-                payload.amount,
-                true
+                payload.amount
             );
 
             _send(
@@ -436,11 +461,10 @@ abstract contract TeleporterTokenSource is
             _deductSenderBalance(sourceBlockchainID, originSenderAddress, payload.amount);
 
             // Scale the amount based on the token multiplier for the given destination.
-            uint256 scaledAmount = TokenScalingUtils.scaleTokens(
+            uint256 scaledAmount = TokenScalingUtils.removeTokenScale(
                 destinationSettings.tokenMultiplier,
                 destinationSettings.multiplyOnReceive,
-                payload.amount,
-                true
+                payload.amount
             );
 
             _sendAndCall(
@@ -521,11 +545,8 @@ abstract contract TeleporterTokenSource is
         amount -= fee;
 
         // Scale the amount based on the token multiplier for the given destination.
-        uint256 scaledAmount = TokenScalingUtils.scaleTokens(
-            destinationSettings.tokenMultiplier,
-            destinationSettings.multiplyOnReceive,
-            amount,
-            false
+        uint256 scaledAmount = TokenScalingUtils.applyTokenScale(
+            destinationSettings.tokenMultiplier, destinationSettings.multiplyOnReceive, amount
         );
         if (scaledAmount == 0) {
             return 0;
@@ -564,11 +585,8 @@ abstract contract TeleporterTokenSource is
         amount -= fee;
 
         // Scale the amount based on the token multiplier for the given destination.
-        uint256 scaledAmount = TokenScalingUtils.scaleTokens(
-            destinationSettings.tokenMultiplier,
-            destinationSettings.multiplyOnReceive,
-            amount,
-            false
+        uint256 scaledAmount = TokenScalingUtils.applyTokenScale(
+            destinationSettings.tokenMultiplier, destinationSettings.multiplyOnReceive, amount
         );
         require(scaledAmount > 0, "TeleporterTokenSource: zero scaled amount");
 

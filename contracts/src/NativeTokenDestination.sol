@@ -202,8 +202,7 @@ contract NativeTokenDestination is
 
         // Check that the scaled amount on the source chain will be non-zero.
         require(
-            TokenScalingUtils.scaleTokens(tokenMultiplier, multiplyOnReceive, burnedTxFees, false)
-                > 0,
+            TokenScalingUtils.applyTokenScale(tokenMultiplier, multiplyOnReceive, burnedTxFees) > 0,
             "NativeTokenDestination: zero scaled amount to report burn"
         );
 

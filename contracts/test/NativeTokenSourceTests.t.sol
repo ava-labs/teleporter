@@ -17,6 +17,10 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
     NativeTokenSource public app;
     IWrappedNativeToken public mockWrappedToken;
 
+    receive() external payable {
+        require(msg.sender == address(app), "NativeTokenSourceTest: invalid receive payable sender");
+    }
+
     function setUp() public override {
         TeleporterTokenSourceTest.setUp();
 

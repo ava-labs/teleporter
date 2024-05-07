@@ -150,10 +150,12 @@ abstract contract TeleporterTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                // TODO: No fee is provided by default when registering a destination, since it
+                // No fee is provided by default when registering a destination, since it
                 // is assumed that the deployer will relay the message themselves. However, also
                 // need to consider the fee token address such that an amount could be added via addFeeAmount
                 // in the future if desired.
+                // TODO: Should this Teleporter message allow specifying a different fee asset
+                // than the bridged token?
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: 0}),
                 requiredGasLimit: REGISTER_DESTINATION_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
@@ -474,7 +476,7 @@ abstract contract TeleporterTokenDestination is
 
         // Ensure that the scaled amount on the source chain is non-zero.
         require(
-            TokenScalingUtils.scaleTokens(tokenMultiplier, multiplyOnReceive, amount, false) > 0,
+            TokenScalingUtils.applyTokenScale(tokenMultiplier, multiplyOnReceive, amount) > 0,
             "TeleporterTokenDestination: insufficient tokens to transfer"
         );
 
