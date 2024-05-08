@@ -101,6 +101,18 @@ abstract contract TeleporterTokenSource is
         feeTokenAddress = feeTokenAddress_;
     }
 
+    /**
+     * @dev See {ITeleporterTokenSource-IsReadyForSend}
+     */
+    function IsReadyForSend(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress
+    ) external view override returns (bool) {
+        DestinationBridgeSettings memory destinationSettings =
+            registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
+        return destinationSettings.registered && destinationSettings.reserveImbalance == 0;
+    }
+
     function _registerDestination(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,

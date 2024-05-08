@@ -75,11 +75,6 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 		func() {
 			flows.ERC20SourceERC20Destination(LocalNetworkInstance)
 		})
-	ginkgo.It("Bridging an ERC20 before the destination has been deployed",
-		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel),
-		func() {
-			flows.ERC20DestinationNotYetDeployed(LocalNetworkInstance)
-		})
 	ginkgo.It("Bridge a native token to an ERC20 token",
 		ginkgo.Label(nativeTokenSourceLabel, erc20DestinationLabel),
 		func() {

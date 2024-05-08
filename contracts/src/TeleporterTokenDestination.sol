@@ -88,7 +88,7 @@ abstract contract TeleporterTokenDestination is
      * @notice Fixed gas cost for performing a multi-hop transfer on the `sourceBlockchainID`,
      * before forwarding to the final destination bridge instance.
      */
-    uint256 public constant MULTI_HOP_REQUIRED_GAS = 220_000;
+    uint256 public constant MULTI_HOP_REQUIRED_GAS = 300_000;
 
     /**
      * @notice The amount of gas added to the required gas limit for a multi-hop call message

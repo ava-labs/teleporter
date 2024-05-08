@@ -863,6 +863,9 @@ func SendERC20MultihopAndVerify(
 		true,
 	)
 
+	initialBalance, err := toBridge.BalanceOf(&bind.CallOpts{}, recipientAddress)
+	Expect(err).Should(BeNil())
+
 	// When we relay the above message to the home-chain, a multi-hop transfer
 	// is performed to the destination chain. Parse for the send tokens event
 	// and relay to final destination.
@@ -884,7 +887,7 @@ func SendERC20MultihopAndVerify(
 
 	balance, err := toBridge.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	teleporterUtils.ExpectBigEqual(bridgedAmount, balance)
+	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, bridgedAmount))
 }
 
 func CheckERC20SourceWithdrawal(

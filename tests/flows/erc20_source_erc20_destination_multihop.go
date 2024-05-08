@@ -147,6 +147,7 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(bridgedAmount))
 
+	bridgedAmount = big.NewInt(0).Div(bridgedAmount, big.NewInt(2))
 	// Multi-hop transfer to Subnet B
 	utils.SendERC20MultihopAndVerify(
 		ctx,
