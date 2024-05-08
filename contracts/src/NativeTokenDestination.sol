@@ -31,12 +31,28 @@ import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
 import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
+import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
+/**
+ * @notice Settings for constructing a {NativeTokenDestination} contract.
+ * @param nativeAssetSymbol The symbol of the native asset
+ * @param teleporterRegistryAddress The address of the teleporter registry
+ * @param teleporterManager The address of the teleporter manager
+ * @param sourceBlockchainID The blockchain ID of the associated source token bridge
+ * @param tokenSourceAddress The address of the source token bridge contract
+ * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting
+ * @param decimalsShift The number of decimal places to shift the token amount by
+ * @param multiplyOnReceive Whether to multiply the token amount on receive.
+ * If true, the token amount is multiplied by 10^decimalsShift.
+ * If false, the token amount is divided by 10^decimalsShift.
+ * @param burnedFeesReportingRewardPercentage The percentage of burned transaction fees
+ * that will be rewarded to sender of the report.
+ */
 struct NativeTokenDestinationSettings {
     string nativeAssetSymbol;
     address teleporterRegistryAddress;
@@ -64,6 +80,8 @@ contract NativeTokenDestination is
     TeleporterTokenDestination,
     IWrappedNativeToken
 {
+    using Address for address payable;
+
     /**
      * @notice The address where the burned transaction fees are credited.
      *
@@ -261,8 +279,10 @@ contract NativeTokenDestination is
      * Note: {INativeTokenDestination-totalNativeAssetSupply} should not be confused with {IERC20-totalSupply}
      * {INativeTokenDestination-totalNativeAssetSupply} returns the supply of the native asset of the chain,
      * accounting for the amounts that have been bridged in and out of the chain as well as burnt transaction
-     * fees. {IERC20-totalSupply} returns the supply of the native asset held by this contract that is represented
-     * as an ERC20.
+     * fees. The `initialReserveBalance` is included in this supply since it is in circulation on this
+     * chain even prior to it being backed by collateral on the source chain.
+     * {IERC20-totalSupply} returns the supply of the native asset held by this contract
+     * that is represented as an ERC20.
      */
     function totalNativeAssetSupply() public view returns (uint256) {
         uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURNED_FOR_BRIDGE_ADDRESS.balance;
@@ -305,7 +325,7 @@ contract NativeTokenDestination is
      */
     function _burn(uint256 amount) internal virtual override {
         _burn(address(this), amount);
-        payable(BURNED_FOR_BRIDGE_ADDRESS).transfer(amount);
+        payable(BURNED_FOR_BRIDGE_ADDRESS).sendValue(amount);
     }
 
     /**
@@ -342,7 +362,7 @@ contract NativeTokenDestination is
             emit CallSucceeded(message.recipientContract, amount);
         } else {
             emit CallFailed(message.recipientContract, amount);
-            payable(message.fallbackRecipient).transfer(amount);
+            payable(message.fallbackRecipient).sendValue(amount);
         }
     }
 

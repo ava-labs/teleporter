@@ -24,7 +24,8 @@ interface INativeTokenDestination is INativeTokenBridge {
 
     /**
      * @dev Returns a best-estimate (upper bound) of the supply of the native asset
-     * in circulation on this chain.
+     * in circulation on this chain. Does not account for other native asset burn mechanisms,
+     * which can result in the value returned being greater than true circulating supply.
      */
     function totalNativeAssetSupply() external view returns (uint256);
 }

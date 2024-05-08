@@ -7,12 +7,15 @@ pragma solidity 0.8.18;
 
 import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 contract ExampleWAVAX is IWrappedNativeToken, ERC20 {
+    using Address for address payable;
+
     constructor() ERC20("Wrapped AVAX", "WAVAX") {}
 
     receive() external payable {
@@ -26,7 +29,7 @@ contract ExampleWAVAX is IWrappedNativeToken, ERC20 {
     function withdraw(uint256 amount) external {
         _burn(msg.sender, amount);
         emit Withdrawal(msg.sender, amount);
-        payable(msg.sender).transfer(amount);
+        payable(msg.sender).sendValue(amount);
     }
 
     function deposit() public payable {
