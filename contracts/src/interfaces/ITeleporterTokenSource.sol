@@ -52,15 +52,4 @@ interface ITeleporterTokenSource is ITeleporterTokenBridge {
     event TokensAndCallRouted(
         bytes32 indexed teleporterMessageID, SendAndCallInput input, uint256 amount
     );
-
-    /**
-     * @notice Returns whether a destination bridge instance is ready to send tokens to.
-     * This is based on whether the destination bridge has registered and is collateralized.
-     * @param destinationBlockchainID blockchainID of the destination bridge
-     * @param destinationBridgeAddress address of the destination bridge instance
-     */
-    function isReadyForSend(
-        bytes32 destinationBlockchainID,
-        address destinationBridgeAddress
-    ) external view returns (bool);
 }
