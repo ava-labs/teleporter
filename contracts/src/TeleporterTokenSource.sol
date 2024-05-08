@@ -339,6 +339,7 @@ abstract contract TeleporterTokenSource is
         if (amount >= destinationSettings.collateralNeeded) {
             remainingCollateralNeeded = 0;
             excessAmount = amount - destinationSettings.collateralNeeded;
+            amount = destinationSettings.collateralNeeded;
         } else {
             remainingCollateralNeeded = destinationSettings.collateralNeeded - amount;
         }

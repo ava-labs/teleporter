@@ -102,8 +102,14 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpExpectedDeposit(collateralAmount);
         vm.expectEmit(true, true, true, true, address(tokenSource));
         emit CollateralAdded(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount, 0
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            initialReserveImbalance,
+            0
         );
+
+        uint256 excessAmount = collateralAmount - initialReserveImbalance;
+        _checkExpectedWithdrawal(address(this), excessAmount);
 
         _addCollateral(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount

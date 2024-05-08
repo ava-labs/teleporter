@@ -398,6 +398,15 @@ func AddCollateralToERC20Source(
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(destinationBlockchainID[:]))
 	Expect(event.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
+
+	destinationSettings, err := erc20Source.RegisteredDestinations(
+		&bind.CallOpts{},
+		destinationBlockchainID,
+		destinationBridgeAddress)
+	Expect(err).Should(BeNil())
+	if collateralAmount.Cmp(destinationSettings.CollateralNeeded) > 0 {
+		collateralAmount.Sub(collateralAmount, destinationSettings.CollateralNeeded)
+	}
 	teleporterUtils.ExpectBigEqual(event.Amount, collateralAmount)
 	teleporterUtils.ExpectBigEqual(event.Remaining, big.NewInt(0))
 }
@@ -428,6 +437,14 @@ func AddCollateralToNativeTokenSource(
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(destinationBlockchainID[:]))
 	Expect(event.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
+	destinationSettings, err := nativeTokenSource.RegisteredDestinations(
+		&bind.CallOpts{},
+		destinationBlockchainID,
+		destinationBridgeAddress)
+	Expect(err).Should(BeNil())
+	if collateralAmount.Cmp(destinationSettings.CollateralNeeded) > 0 {
+		collateralAmount.Sub(collateralAmount, destinationSettings.CollateralNeeded)
+	}
 	teleporterUtils.ExpectBigEqual(event.Amount, collateralAmount)
 	teleporterUtils.ExpectBigEqual(event.Remaining, big.NewInt(0))
 }
