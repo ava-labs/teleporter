@@ -290,6 +290,8 @@ func RegisterNativeTokenDestinationOnERC20Source(
 	expectedMultiplyOnSend bool,
 	deployReceipt *types.Receipt,
 ) *big.Int {
+	// Relay the destination contract's deployment receipt to the source subnet
+	// to send a Teleporter message to the source contract to register the destination
 	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
 
 	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseDestinationRegistered)
@@ -297,6 +299,8 @@ func RegisterNativeTokenDestinationOnERC20Source(
 	Expect(registerEvent.DestinationBlockchainID[:]).Should(Equal(destinationSubnet.BlockchainID[:]))
 	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
 
+	// Based on the initial reserve balance of the destination bridge,
+	// calculate the collateral amount of source tokens needed to collateralize the destination.
 	collateralNeeded := calculateCollateralNeeded(
 		expectedInitialReserveBalance,
 		expectedTokenMultiplier,
@@ -343,12 +347,18 @@ func RegisterNativeTokenDestinationOnNativeTokenSource(
 	expectedMultiplyOnSend bool,
 	deployReceipt *types.Receipt,
 ) *big.Int {
+	// Relay the destination contract's deployment receipt to the source subnet
+	// to send a Teleporter message to the source contract to register the destination
+
 	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
 
 	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseDestinationRegistered)
 	Expect(err).Should(BeNil())
 	Expect(registerEvent.DestinationBlockchainID[:]).Should(Equal(destinationSubnet.BlockchainID[:]))
 	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
+
+	// Based on the initial reserve balance of the destination bridge,
+	// calculate the collateral amount of source tokens needed to collateralize the destination.
 
 	collateralNeeded := calculateCollateralNeeded(
 		expectedInitialReserveBalance,
@@ -362,6 +372,9 @@ func RegisterNativeTokenDestinationOnNativeTokenSource(
 	return collateralNeeded
 }
 
+// AddCollateralToERC20Source adds collateral to the ERC20Source contract
+// and verifies the collateral was added successfully. Any excess amount
+// is returned to the caller.
 func AddCollateralToERC20Source(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
@@ -411,6 +424,9 @@ func AddCollateralToERC20Source(
 	teleporterUtils.ExpectBigEqual(event.Remaining, big.NewInt(0))
 }
 
+// AddCollateralToNativeTokenSource adds collateral to the NativeTokenSource contract
+// and verifies the collateral was added successfully. Any excess amount
+// is returned to the caller.
 func AddCollateralToNativeTokenSource(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
@@ -951,20 +967,6 @@ func CheckNativeTokenSourceWithdrawal(
 	Expect(err).Should(BeNil())
 	Expect(withdrawalEvent.Sender).Should(Equal(nativeTokenSourceAddress))
 	teleporterUtils.ExpectBigEqual(withdrawalEvent.Amount, expectedAmount)
-}
-
-func CheckNativeTokenSourceCollateralize(
-	ctx context.Context,
-	tokenSource *nativetokensource.NativeTokenSource,
-	receipt *types.Receipt,
-	expectedAmount *big.Int,
-	expectedRemaining *big.Int,
-) {
-	collateralEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, tokenSource.ParseCollateralAdded)
-	Expect(err).Should(BeNil())
-	fmt.Println("log ", collateralEvent)
-	teleporterUtils.ExpectBigEqual(collateralEvent.Amount, expectedAmount)
-	teleporterUtils.ExpectBigEqual(collateralEvent.Remaining, expectedRemaining)
 }
 
 func GetTokenMultiplier(

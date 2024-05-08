@@ -12,20 +12,24 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+// ApplyTokenScaling applies token scaling to the given amount of tokens.
+// Token scaling is applied when sending tokens from the source to the destination bridge,
 func ApplyTokenScaling(
 	tokenMultiplier *big.Int,
-	multiplyOnReceive bool,
+	multiplyOnDestination bool,
 	amount *big.Int,
 ) *big.Int {
-	return scaleTokens(tokenMultiplier, multiplyOnReceive, amount, true)
+	return scaleTokens(tokenMultiplier, multiplyOnDestination, amount, true)
 }
 
+// RemoveTokenScaling removes token scaling from the given amount of tokens.
+// Token scaling is removed when sending tokens from the destination bridge back to the source.
 func RemoveTokenScaling(
 	tokenMultiplier *big.Int,
-	multiplyOnReceive bool,
+	multiplyOnDestination bool,
 	amount *big.Int,
 ) *big.Int {
-	return scaleTokens(tokenMultiplier, multiplyOnReceive, amount, false)
+	return scaleTokens(tokenMultiplier, multiplyOnDestination, amount, false)
 }
 
 func scaleTokens(
@@ -42,6 +46,8 @@ func scaleTokens(
 	return big.NewInt(0).Div(amount, tokenMultiplier)
 }
 
+// GetScaledAmountFromERC20Source returns the scaled amount of tokens that will be sent to the destination bridge
+// for corresponding amount of source tokens.
 func GetScaledAmountFromERC20Source(
 	erc20Source *erc20source.ERC20Source,
 	destinationBlockchainID ids.ID,
@@ -62,6 +68,8 @@ func GetScaledAmountFromERC20Source(
 	)
 }
 
+// GetScaledAmountFromNativeTokenSource returns the scaled amount of tokens that will be sent to the destination bridge
+// for corresponding amount of source tokens.
 func GetScaledAmountFromNativeTokenSource(
 	nativeTokenSource *nativetokensource.NativeTokenSource,
 	destinationBlockchainID ids.ID,
