@@ -133,12 +133,11 @@ abstract contract TeleporterTokenSource is
             tokenMultiplier, multiplyOnSend, initialReserveImbalance
         );
 
-        // If the destination is multiplyOnSend, we need to round up the collateral needed.
-        // Otherwise, the collaterNeeded amount already covers the reserve imbalance.
-        if (multiplyOnSend) {
-            if (initialReserveImbalance % tokenMultiplier != 0) {
-                collateralNeeded += 1;
-            }
+        // Round up the collateral needed by 1 in the case that `multiplyOnSend` is true and 
+        // `initialReserveImbalance` is not divisible by the `tokenMultiplier` to 
+        // ensure that the full amount is account for.
+        if (multiplyOnSend && initialReserveImbalance % tokenMultiplier != 0) {
+            collateralNeeded += 1;
         }
 
         registeredDestinations[destinationBlockchainID][destinationBridgeAddress] =
