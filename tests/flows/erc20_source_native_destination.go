@@ -57,7 +57,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		burnedFeesReportingRewardPercentage,
 	)
 
-	utils.RegisterNativeTokenDestinationOnERC20Source(
+	collateralAmount := utils.RegisterNativeTokenDestinationOnERC20Source(
 		ctx,
 		network,
 		cChainInfo,
@@ -78,7 +78,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		sourceToken,
 		subnetAInfo.BlockchainID,
 		nativeTokenDestinationAddressA,
-		initialReserveImbalance,
+		collateralAmount,
 		fundedKey,
 	)
 

@@ -72,7 +72,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Register both NativeTokenDestinations on the NativeTokenSource
-	utils.RegisterNativeTokenDestinationOnNativeTokenSource(
+	collateralAmountA := utils.RegisterNativeTokenDestinationOnNativeTokenSource(
 		ctx,
 		network,
 		cChainInfo,
@@ -85,7 +85,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		deployReceipt_A,
 	)
 
-	utils.RegisterNativeTokenDestinationOnNativeTokenSource(
+	collateralAmountB := utils.RegisterNativeTokenDestinationOnNativeTokenSource(
 		ctx,
 		network,
 		cChainInfo,
@@ -106,7 +106,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		subnetAInfo.BlockchainID,
 		nativeTokenDestinationAddressA,
-		initialReserveImbalance,
+		collateralAmountA,
 		fundedKey,
 	)
 
@@ -117,7 +117,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		subnetBInfo.BlockchainID,
 		nativeTokenDestinationAddressB,
-		initialReserveImbalance,
+		collateralAmountB,
 		fundedKey,
 	)
 

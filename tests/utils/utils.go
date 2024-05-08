@@ -263,8 +263,8 @@ func RegisterERC20DestinationOnERC20Source(
 	destinationSubnet interfaces.SubnetTestInfo,
 	erc20DestinationAddress common.Address,
 	deployReceipt *types.Receipt,
-) {
-	RegisterNativeTokenDestinationOnERC20Source(
+) *big.Int {
+	return RegisterNativeTokenDestinationOnERC20Source(
 		ctx,
 		network,
 		sourceSubnet,
@@ -289,16 +289,24 @@ func RegisterNativeTokenDestinationOnERC20Source(
 	expectedTokenMultiplier *big.Int,
 	expectedMultiplyOnReceive bool,
 	deployReceipt *types.Receipt,
-) {
+) *big.Int {
 	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
 
 	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseDestinationRegistered)
 	Expect(err).Should(BeNil())
 	Expect(registerEvent.DestinationBlockchainID[:]).Should(Equal(destinationSubnet.BlockchainID[:]))
 	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
-	teleporterUtils.ExpectBigEqual(registerEvent.InitialReserveImbalance, expectedInitialReserveBalance)
+
+	collateralNeeded := calculateCollateralNeeded(
+		expectedInitialReserveBalance,
+		expectedTokenMultiplier,
+		expectedMultiplyOnReceive,
+	)
+	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
 	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
-	Expect(registerEvent.MultiplyOnReceive).Should(Equal(expectedMultiplyOnReceive))
+	Expect(registerEvent.MultiplyOnSend).Should(Equal(expectedMultiplyOnReceive))
+
+	return collateralNeeded
 }
 
 func RegisterERC20DestinationOnNativeTokenSource(
@@ -308,8 +316,8 @@ func RegisterERC20DestinationOnNativeTokenSource(
 	nativeTokenSource *nativetokensource.NativeTokenSource,
 	destinationSubnet interfaces.SubnetTestInfo,
 	destinationBridgeAddress common.Address,
-	deployReceipt *types.Receipt) {
-	RegisterNativeTokenDestinationOnNativeTokenSource(
+	deployReceipt *types.Receipt) *big.Int {
+	return RegisterNativeTokenDestinationOnNativeTokenSource(
 		ctx,
 		network,
 		sourceSubnet,
@@ -334,16 +342,24 @@ func RegisterNativeTokenDestinationOnNativeTokenSource(
 	expectedTokenMultiplier *big.Int,
 	expectedMultiplyOnReceive bool,
 	deployReceipt *types.Receipt,
-) {
+) *big.Int {
 	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
 
 	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseDestinationRegistered)
 	Expect(err).Should(BeNil())
 	Expect(registerEvent.DestinationBlockchainID[:]).Should(Equal(destinationSubnet.BlockchainID[:]))
 	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
-	teleporterUtils.ExpectBigEqual(registerEvent.InitialReserveImbalance, expectedInitialReserveBalance)
+
+	collateralNeeded := calculateCollateralNeeded(
+		expectedInitialReserveBalance,
+		expectedTokenMultiplier,
+		expectedMultiplyOnReceive,
+	)
+	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
 	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
-	Expect(registerEvent.MultiplyOnReceive).Should(Equal(expectedMultiplyOnReceive))
+	Expect(registerEvent.MultiplyOnSend).Should(Equal(expectedMultiplyOnReceive))
+
+	return collateralNeeded
 }
 
 func AddCollateralToERC20Source(
@@ -382,13 +398,7 @@ func AddCollateralToERC20Source(
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(destinationBlockchainID[:]))
 	Expect(event.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
-	scaledAmount := GetScaledAmountFromERC20Source(
-		erc20Source,
-		destinationBlockchainID,
-		destinationBridgeAddress,
-		collateralAmount,
-	)
-	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
+	teleporterUtils.ExpectBigEqual(event.Amount, collateralAmount)
 	teleporterUtils.ExpectBigEqual(event.Remaining, big.NewInt(0))
 }
 
@@ -418,13 +428,7 @@ func AddCollateralToNativeTokenSource(
 	Expect(err).Should(BeNil())
 	Expect(event.DestinationBlockchainID[:]).Should(Equal(destinationBlockchainID[:]))
 	Expect(event.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
-	scaledAmount := GetScaledAmountFromNativeTokenSource(
-		nativeTokenSource,
-		destinationBlockchainID,
-		destinationBridgeAddress,
-		collateralAmount,
-	)
-	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
+	teleporterUtils.ExpectBigEqual(event.Amount, collateralAmount)
 	teleporterUtils.ExpectBigEqual(event.Remaining, big.NewInt(0))
 }
 
@@ -624,7 +628,7 @@ func SendAndCallERC20Source(
 
 	scaledAmount := ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnReceive,
+		destinationSettings.MultiplyOnSend,
 		bridgedAmount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
@@ -665,7 +669,7 @@ func SendAndCallNativeTokenSource(
 
 	scaledAmount := ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnReceive,
+		destinationSettings.MultiplyOnSend,
 		bridgedAmount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)

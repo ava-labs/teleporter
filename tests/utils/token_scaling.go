@@ -17,7 +17,7 @@ func ApplyTokenScaling(
 	multiplyOnReceive bool,
 	amount *big.Int,
 ) *big.Int {
-	return scaleTokens(tokenMultiplier, multiplyOnReceive, amount, false)
+	return scaleTokens(tokenMultiplier, multiplyOnReceive, amount, true)
 }
 
 func RemoveTokenScaling(
@@ -25,7 +25,7 @@ func RemoveTokenScaling(
 	multiplyOnReceive bool,
 	amount *big.Int,
 ) *big.Int {
-	return scaleTokens(tokenMultiplier, multiplyOnReceive, amount, true)
+	return scaleTokens(tokenMultiplier, multiplyOnReceive, amount, false)
 }
 
 func scaleTokens(
@@ -57,7 +57,7 @@ func GetScaledAmountFromERC20Source(
 
 	return ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnReceive,
+		destinationSettings.MultiplyOnSend,
 		amount,
 	)
 }
@@ -77,7 +77,21 @@ func GetScaledAmountFromNativeTokenSource(
 
 	return ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnReceive,
+		destinationSettings.MultiplyOnSend,
 		amount,
 	)
+}
+
+func calculateCollateralNeeded(
+	initialReserveImbalance *big.Int,
+	tokenMultiplier *big.Int,
+	multiplyOnSend bool,
+) *big.Int {
+	collateralNeeded := RemoveTokenScaling(tokenMultiplier, multiplyOnSend, initialReserveImbalance)
+
+	remainder := big.NewInt(0).Mod(collateralNeeded, tokenMultiplier)
+	if multiplyOnSend && (remainder.Cmp(big.NewInt(0)) != 0) {
+		collateralNeeded.Add(collateralNeeded, big.NewInt(1))
+	}
+	return collateralNeeded
 }

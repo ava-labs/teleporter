@@ -72,7 +72,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Register both NativeTokenDestinations on the ERC20Source
-	utils.RegisterNativeTokenDestinationOnERC20Source(
+	collateralAmountA := utils.RegisterNativeTokenDestinationOnERC20Source(
 		ctx,
 		network,
 		cChainInfo,
@@ -85,7 +85,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		deployReceipt_A,
 	)
 
-	utils.RegisterNativeTokenDestinationOnERC20Source(
+	collateralAmountB := utils.RegisterNativeTokenDestinationOnERC20Source(
 		ctx,
 		network,
 		cChainInfo,
@@ -107,7 +107,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		sourceToken,
 		subnetAInfo.BlockchainID,
 		nativeTokenDestinationAddressA,
-		initialReserveImbalance,
+		collateralAmountA,
 		fundedKey,
 	)
 
@@ -119,7 +119,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		sourceToken,
 		subnetBInfo.BlockchainID,
 		nativeTokenDestinationAddressB,
-		initialReserveImbalance,
+		collateralAmountB,
 		fundedKey,
 	)
 

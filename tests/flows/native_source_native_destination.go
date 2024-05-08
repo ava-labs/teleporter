@@ -66,7 +66,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Register the NativeTokenDestination on the NativeTokenSource
-	utils.RegisterNativeTokenDestinationOnNativeTokenSource(
+	collateralAmount := utils.RegisterNativeTokenDestinationOnNativeTokenSource(
 		ctx,
 		network,
 		cChainInfo,
@@ -86,7 +86,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		subnetAInfo.BlockchainID,
 		nativeTokenDestinationAddress,
-		initialReserveImbalance,
+		collateralAmount,
 		fundedKey,
 	)
 
