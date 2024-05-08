@@ -99,7 +99,7 @@ abstract contract TeleporterTokenDestination is
     /**
      * @notice Fixed gas cost for registering the destination contract on the source contract.
      */
-    uint256 public constant REGISTER_DESTINATION_REQUIRED_GAS = 100_000;
+    uint256 public constant REGISTER_DESTINATION_REQUIRED_GAS = 150_000;
 
     /**
      * @notice Initializes this destination token bridge instance to receive

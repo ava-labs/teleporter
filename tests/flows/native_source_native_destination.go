@@ -113,7 +113,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			cChainInfo,
 			nativeTokenSource,
 			input,
-			utils.RemoveTokenScaling(tokenMultiplier, !multiplyOnReceive, amount),
+			utils.RemoveTokenScaling(tokenMultiplier, multiplyOnReceive, amount),
 			fundedKey,
 		)
 
@@ -164,7 +164,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		)
 
 		// Check that the recipient received the tokens
-		sourceAmount := utils.RemoveTokenScaling(tokenMultiplier, !multiplyOnReceive, bridgedAmount)
+		sourceAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnReceive, bridgedAmount)
 		utils.CheckNativeTokenSourceWithdrawal(
 			ctx,
 			nativeTokenSourceAddress,

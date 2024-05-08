@@ -150,7 +150,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Check that the recipient received the tokens
-	scaledAmount := utils.RemoveTokenScaling(tokenMultiplier, !multiplyOnReceive, bridgedAmount)
+	scaledAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnReceive, bridgedAmount)
 	utils.CheckERC20SourceWithdrawal(
 		ctx,
 		erc20SourceAddress,
