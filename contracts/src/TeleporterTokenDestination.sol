@@ -139,8 +139,7 @@ abstract contract TeleporterTokenDestination is
         RegisterDestinationMessage memory registerMessage = RegisterDestinationMessage({
             initialReserveImbalance: initialReserveImbalance_,
             tokenMultiplier: tokenMultiplier,
-            // Invert the value of multiplyOnReceive to match the source contract's perspective.
-            multiplyOnSend: !multiplyOnReceive
+            multiplyOnSend: multiplyOnReceive
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,
