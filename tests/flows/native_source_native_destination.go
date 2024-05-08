@@ -2,7 +2,6 @@ package flows
 
 import (
 	"context"
-	"math"
 	"math/big"
 
 	nativetokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenDestination"
@@ -16,11 +15,8 @@ import (
 
 var (
 	decimalsShift           = uint8(1)
-	tokenMultiplier         = big.NewInt(int64(math.Pow10(int(decimalsShift))))
-	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e15), big.NewInt(1e9))
-	valueToReceive          = new(big.Int).Div(initialReserveImbalance, big.NewInt(4))
-	valueToSend             = new(big.Int).Div(valueToReceive, tokenMultiplier)
-	valueToReturn           = new(big.Int).Div(valueToReceive, big.NewInt(4))
+	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
+	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
 	multiplyOnReceive       = true
 
 	burnedFeesReportingRewardPercentage = big.NewInt(1)
@@ -99,43 +95,8 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-Chain to recipient on subnet A that don't fully collateralize bridge
-	{
-		input := nativetokensource.SendTokensInput{
-			DestinationBlockchainID:  subnetAInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenDestinationAddress,
-			Recipient:                recipientAddress,
-			PrimaryFee:               big.NewInt(0),
-			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
-		}
-
-		receipt, _ := utils.SendNativeTokenSource(
-			ctx,
-			cChainInfo,
-			nativeTokenSource,
-			input,
-			valueToSend,
-			fundedKey,
-		)
-
-		network.RelayMessage(
-			ctx,
-			receipt,
-			cChainInfo,
-			subnetAInfo,
-			true,
-		)
-
-		teleporterUtils.CheckBalance(
-			ctx,
-			recipientAddress,
-			big.NewInt(0),
-			subnetAInfo.RPCClient,
-		)
-	}
-
 	// Send tokens from C-Chain to recipient on subnet A that fully collateralize bridge with leftover tokens.
+	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 	{
 		input := nativetokensource.SendTokensInput{
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
@@ -152,7 +113,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			cChainInfo,
 			nativeTokenSource,
 			input,
-			new(big.Int).Div(initialReserveImbalance, tokenMultiplier),
+			utils.RemoveTokenScaling(tokenMultiplier, !multiplyOnReceive, amount),
 			fundedKey,
 		)
 
@@ -167,7 +128,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		teleporterUtils.CheckBalance(
 			ctx,
 			recipientAddress,
-			valueToReceive,
+			amount,
 			subnetAInfo.RPCClient,
 		)
 	}
@@ -183,12 +144,14 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 		}
 
+		// Send half of the tokens back to C-Chain
+		amount := big.NewInt(0).Div(amount, big.NewInt(2))
 		receipt, bridgedAmount := utils.SendNativeTokenDestination(
 			ctx,
 			subnetAInfo,
 			nativeTokenDestination,
 			input_A,
-			valueToReturn,
+			amount,
 			recipientKey,
 			tokenMultiplier,
 			multiplyOnReceive,
@@ -203,14 +166,15 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		)
 
 		// Check that the recipient received the tokens
+		sourceAmount := utils.RemoveTokenScaling(tokenMultiplier, !multiplyOnReceive, bridgedAmount)
 		utils.CheckNativeTokenSourceWithdrawal(
 			ctx,
 			nativeTokenSourceAddress,
 			wavaxA,
 			receipt,
-			bridgedAmount,
+			sourceAmount,
 		)
 
-		teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, cChainInfo.RPCClient)
+		teleporterUtils.CheckBalance(ctx, recipientAddress, sourceAmount, cChainInfo.RPCClient)
 	}
 }

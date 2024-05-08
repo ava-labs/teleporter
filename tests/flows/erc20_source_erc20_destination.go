@@ -74,18 +74,6 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 		deployReceipt,
 	)
 
-	// utils.AddCollateralToERC20Source(
-	// 	ctx,
-	// 	cChainInfo,
-	// 	erc20Source,
-	// 	erc20SourceAddress,
-	// 	sourceToken,
-	// 	subnetAInfo.BlockchainID,
-	// 	erc20DestinationAddress,
-	// 	big.NewInt(0),
-	// 	fundedKey,
-	// )
-
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
