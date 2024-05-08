@@ -273,7 +273,7 @@ func RegisterERC20DestinationOnERC20Source(
 		erc20DestinationAddress,
 		big.NewInt(0),
 		big.NewInt(1),
-		true,
+		false,
 		deployReceipt,
 	)
 }
@@ -326,7 +326,7 @@ func RegisterERC20DestinationOnNativeTokenSource(
 		destinationBridgeAddress,
 		big.NewInt(0),
 		big.NewInt(1),
-		true,
+		false,
 		deployReceipt,
 	)
 }
