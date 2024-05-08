@@ -133,8 +133,8 @@ abstract contract TeleporterTokenSource is
             tokenMultiplier, multiplyOnSend, initialReserveImbalance
         );
 
-        // Round up the collateral needed by 1 in the case that `multiplyOnSend` is true and 
-        // `initialReserveImbalance` is not divisible by the `tokenMultiplier` to 
+        // Round up the collateral needed by 1 in the case that `multiplyOnSend` is true and
+        // `initialReserveImbalance` is not divisible by the `tokenMultiplier` to
         // ensure that the full amount is account for.
         if (multiplyOnSend && initialReserveImbalance % tokenMultiplier != 0) {
             collateralNeeded += 1;
