@@ -287,7 +287,7 @@ func RegisterNativeTokenDestinationOnERC20Source(
 	destinationBridgeAddress common.Address,
 	expectedInitialReserveBalance *big.Int,
 	expectedTokenMultiplier *big.Int,
-	expectedMultiplyOnReceive bool,
+	expectedMultiplyOnSend bool,
 	deployReceipt *types.Receipt,
 ) *big.Int {
 	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
@@ -300,11 +300,11 @@ func RegisterNativeTokenDestinationOnERC20Source(
 	collateralNeeded := calculateCollateralNeeded(
 		expectedInitialReserveBalance,
 		expectedTokenMultiplier,
-		expectedMultiplyOnReceive,
+		expectedMultiplyOnSend,
 	)
 	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
 	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
-	Expect(registerEvent.MultiplyOnSend).Should(Equal(expectedMultiplyOnReceive))
+	Expect(registerEvent.MultiplyOnSend).Should(Equal(expectedMultiplyOnSend))
 
 	return collateralNeeded
 }
@@ -340,7 +340,7 @@ func RegisterNativeTokenDestinationOnNativeTokenSource(
 	destinationBridgeAddress common.Address,
 	expectedInitialReserveBalance *big.Int,
 	expectedTokenMultiplier *big.Int,
-	expectedMultiplyOnReceive bool,
+	expectedMultiplyOnSend bool,
 	deployReceipt *types.Receipt,
 ) *big.Int {
 	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
@@ -353,11 +353,11 @@ func RegisterNativeTokenDestinationOnNativeTokenSource(
 	collateralNeeded := calculateCollateralNeeded(
 		expectedInitialReserveBalance,
 		expectedTokenMultiplier,
-		expectedMultiplyOnReceive,
+		expectedMultiplyOnSend,
 	)
 	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
 	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
-	Expect(registerEvent.MultiplyOnSend).Should(Equal(expectedMultiplyOnReceive))
+	Expect(registerEvent.MultiplyOnSend).Should(Equal(expectedMultiplyOnSend))
 
 	return collateralNeeded
 }

@@ -66,7 +66,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		!multiplyOnReceive,
+		multiplyOnReceive,
 		deployReceipt_A,
 	)
 

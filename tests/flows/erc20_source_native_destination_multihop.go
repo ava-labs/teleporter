@@ -81,7 +81,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		!multiplyOnReceive,
+		multiplyOnReceive,
 		deployReceipt_A,
 	)
 
@@ -94,7 +94,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenDestinationAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		!multiplyOnReceive,
+		multiplyOnReceive,
 		deployReceipt_B,
 	)
 

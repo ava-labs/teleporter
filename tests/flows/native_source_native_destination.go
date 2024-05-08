@@ -75,7 +75,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		nativeTokenDestinationAddress,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		!multiplyOnReceive,
+		multiplyOnReceive,
 		deployReceipt,
 	)
 
