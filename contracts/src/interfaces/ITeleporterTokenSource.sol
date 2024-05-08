@@ -35,7 +35,7 @@ interface ITeleporterTokenSource is ITeleporterTokenBridge {
     event DestinationRegistered(
         bytes32 indexed destinationBlockchainID,
         address indexed destinationBridgeAddress,
-        uint256 initialReserveImbalance,
+        uint256 initialCollateralNeeded,
         uint256 tokenMultiplier,
         bool multiplyOnReceive
     );
@@ -59,7 +59,7 @@ interface ITeleporterTokenSource is ITeleporterTokenBridge {
      * @param destinationBlockchainID blockchainID of the destination bridge
      * @param destinationBridgeAddress address of the destination bridge instance
      */
-    function IsReadyForSend(
+    function isReadyForSend(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress
     ) external view returns (bool);

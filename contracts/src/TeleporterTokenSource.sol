@@ -33,14 +33,14 @@ import {IWarpMessenger} from
  * @notice Each destination bridge instance registers with the source token bridge contract,
  * and provides settings for bridging to the destination bridge.
  * @param registered whether the destination bridge is registered
- * @param reserveImbalance the amount of tokens that must be first added as collateral,
+ * @param collateralNeeded the amount of tokens that must be first added as collateral,
  * through `addCollateral` calls, before tokens can be bridged to the destination token bridge.
  * @param tokenMultiplier the scaling factor for the amount of tokens to be bridged to the destination.
  * @param multiplyOnReceive whether the scaling factor is multiplied or divided when receiving tokens from the destination.
  */
 struct DestinationBridgeSettings {
     bool registered;
-    uint256 reserveImbalance;
+    uint256 collateralNeeded;
     uint256 tokenMultiplier;
     bool multiplyOnReceive;
 }
@@ -104,13 +104,13 @@ abstract contract TeleporterTokenSource is
     /**
      * @dev See {ITeleporterTokenSource-IsReadyForSend}
      */
-    function IsReadyForSend(
+    function isReadyForSend(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress
     ) external view override returns (bool) {
         DestinationBridgeSettings memory destinationSettings =
             registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
-        return destinationSettings.registered && destinationSettings.reserveImbalance == 0;
+        return destinationSettings.registered && destinationSettings.collateralNeeded == 0;
     }
 
     function _registerDestination(
@@ -141,10 +141,22 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: destination already registered"
         );
 
+        uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(
+            tokenMultiplier, multiplyOnReceive, initialReserveImbalance
+        );
+
+        // If the destination is multiplyOnReceive, we need to round up the collateral needed.
+        // Otherwise the collaterNeeded amount already covers the reserve imbalance.
+        if (!multiplyOnReceive) {
+            if (initialReserveImbalance % tokenMultiplier != 0) {
+                collateralNeeded += 1;
+            }
+        }
+
         registeredDestinations[destinationBlockchainID][destinationBridgeAddress] =
         DestinationBridgeSettings({
             registered: true,
-            reserveImbalance: initialReserveImbalance,
+            collateralNeeded: collateralNeeded,
             tokenMultiplier: tokenMultiplier,
             multiplyOnReceive: multiplyOnReceive
         });
@@ -152,7 +164,7 @@ abstract contract TeleporterTokenSource is
         emit DestinationRegistered(
             destinationBlockchainID,
             destinationBridgeAddress,
-            initialReserveImbalance,
+            collateralNeeded,
             tokenMultiplier,
             multiplyOnReceive
         );
@@ -326,48 +338,33 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: destination bridge not registered"
         );
         require(
-            destinationSettings.reserveImbalance > 0, "TeleporterTokenSource: no reserve imbalance"
+            destinationSettings.collateralNeeded > 0,
+            "TeleporterTokenSource: zero collateral needed"
         );
 
-        // Deposit the full amount. Note: If the amount is greater than the reserve imbalance,
-        // the destination contract will be over-collateralized.
-        // TODO: if we have extra, can we either send it to the destination bridge or withdraw extra amount back to sender?
+        // Deposit the full amount, and withdraw back to the sender if there is excess.
         amount = _deposit(amount);
-
-        // Scale the amount based on the token multiplier.
-        uint256 scaledAmount = TokenScalingUtils.applyTokenScale(
-            destinationSettings.tokenMultiplier, destinationSettings.multiplyOnReceive, amount
-        );
 
         // Calculate the amount remaining.
         uint256 remainingAmount;
         uint256 excessAmount;
-        if (scaledAmount > destinationSettings.reserveImbalance) {
+        if (amount >= destinationSettings.collateralNeeded) {
             remainingAmount = 0;
-            excessAmount = scaledAmount - destinationSettings.reserveImbalance;
+            excessAmount = amount - destinationSettings.collateralNeeded;
         } else {
-            remainingAmount = destinationSettings.reserveImbalance - scaledAmount;
+            remainingAmount = destinationSettings.collateralNeeded - amount;
         }
 
         // Update the reserve imbalance remaining.
-        registeredDestinations[destinationBlockchainID][destinationBridgeAddress].reserveImbalance =
+        registeredDestinations[destinationBlockchainID][destinationBridgeAddress].collateralNeeded =
             remainingAmount;
-        // TODO: think the amount added and remaining amount should be pre-scale amounts,
-        // easier to understand for the user.
         emit CollateralAdded(
-            destinationBlockchainID, destinationBridgeAddress, scaledAmount, remainingAmount
+            destinationBlockchainID, destinationBridgeAddress, amount, remainingAmount
         );
 
         // If there is excess amount, send it back to the sender.
         if (excessAmount > 0) {
-            _withdraw(
-                msg.sender,
-                TokenScalingUtils.removeTokenScale(
-                    destinationSettings.tokenMultiplier,
-                    destinationSettings.multiplyOnReceive,
-                    excessAmount
-                )
-            );
+            _withdraw(msg.sender, excessAmount);
         }
     }
 
@@ -548,7 +545,7 @@ abstract contract TeleporterTokenSource is
     ) private returns (uint256) {
         DestinationBridgeSettings memory destinationSettings =
             registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
-        if (!destinationSettings.registered || destinationSettings.reserveImbalance > 0) {
+        if (!destinationSettings.registered || destinationSettings.collateralNeeded > 0) {
             return 0;
         }
 
@@ -585,7 +582,7 @@ abstract contract TeleporterTokenSource is
             registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
         require(destinationSettings.registered, "TeleporterTokenSource: destination not registered");
         require(
-            destinationSettings.reserveImbalance == 0,
+            destinationSettings.collateralNeeded == 0,
             "TeleporterTokenSource: non-zero destination reserve imbalance"
         );
 
