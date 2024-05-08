@@ -102,7 +102,7 @@ abstract contract TeleporterTokenSource is
     }
 
     /**
-     * @dev See {ITeleporterTokenSource-IsReadyForSend}
+     * @dev See {ITeleporterTokenSource-isReadyForSend}
      */
     function isReadyForSend(
         bytes32 destinationBlockchainID,
@@ -346,20 +346,20 @@ abstract contract TeleporterTokenSource is
         amount = _deposit(amount);
 
         // Calculate the amount remaining.
-        uint256 remainingAmount;
+        uint256 remainingCollateralNeeded;
         uint256 excessAmount;
         if (amount >= destinationSettings.collateralNeeded) {
-            remainingAmount = 0;
+            remainingCollateralNeeded = 0;
             excessAmount = amount - destinationSettings.collateralNeeded;
         } else {
-            remainingAmount = destinationSettings.collateralNeeded - amount;
+            remainingCollateralNeeded = destinationSettings.collateralNeeded - amount;
         }
 
         // Update the reserve imbalance remaining.
         registeredDestinations[destinationBlockchainID][destinationBridgeAddress].collateralNeeded =
-            remainingAmount;
+            remainingCollateralNeeded;
         emit CollateralAdded(
-            destinationBlockchainID, destinationBridgeAddress, amount, remainingAmount
+            destinationBlockchainID, destinationBridgeAddress, amount, remainingCollateralNeeded
         );
 
         // If there is excess amount, send it back to the sender.

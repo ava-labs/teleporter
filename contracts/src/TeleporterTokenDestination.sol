@@ -69,11 +69,9 @@ abstract contract TeleporterTokenDestination is
     bool public immutable multiplyOnReceive;
 
     /**
-     * @notice Initial reserve imbalance that must be collateralized on the source before minting.
-     *
-     * @dev The first `initialReserveImbalance` tokens sent to this subnet will not be minted.
-     * `initialReserveImbalance` should be constructed to match the initial token supply of this subnet.
-     * This means tokens will not be minted until the source contact is collateralized.
+     * @notice Initial reserve imbalance that the token for this destination bridge
+     * starts with. The source bridge contract must collateralize a corresonding amount
+     * of source tokens before tokens can be minted on this contract.
      */
     uint256 public immutable initialReserveImbalance;
 

@@ -257,7 +257,7 @@ contract NativeTokenDestination is
     function withdraw(uint256 amount) external {
         emit Withdrawal(msg.sender, amount);
         _burn(msg.sender, amount);
-        payable(msg.sender).transfer(amount);
+        payable(msg.sender).sendValue(amount);
     }
 
     /**
