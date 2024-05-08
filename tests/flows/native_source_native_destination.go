@@ -83,6 +83,17 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		deployReceipt,
 	)
 
+	utils.AddCollateralToNativeTokenSource(
+		ctx,
+		cChainInfo,
+		nativeTokenSource,
+		nativeTokenSourceAddress,
+		subnetAInfo.BlockchainID,
+		nativeTokenDestinationAddress,
+		initialReserveImbalance,
+		fundedKey,
+	)
+
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())

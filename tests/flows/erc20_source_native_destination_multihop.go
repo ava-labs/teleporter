@@ -98,6 +98,31 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		deployReceipt_B,
 	)
 
+	// Add collateral for both NativeTokenDestinations
+	utils.AddCollateralToERC20Source(
+		ctx,
+		cChainInfo,
+		erc20Source,
+		erc20SourceAddress,
+		sourceToken,
+		subnetAInfo.BlockchainID,
+		nativeTokenDestinationAddressA,
+		initialReserveImbalance,
+		fundedKey,
+	)
+
+	utils.AddCollateralToERC20Source(
+		ctx,
+		cChainInfo,
+		erc20Source,
+		erc20SourceAddress,
+		sourceToken,
+		subnetBInfo.BlockchainID,
+		nativeTokenDestinationAddressB,
+		initialReserveImbalance,
+		fundedKey,
+	)
+
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())

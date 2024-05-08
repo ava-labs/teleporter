@@ -98,6 +98,29 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		deployReceipt_B,
 	)
 
+	// Add collateral for both NativeTokenDestinations
+	utils.AddCollateralToNativeTokenSource(
+		ctx,
+		cChainInfo,
+		nativeTokenSource,
+		nativeTokenSourceAddress,
+		subnetAInfo.BlockchainID,
+		nativeTokenDestinationAddressA,
+		initialReserveImbalance,
+		fundedKey,
+	)
+
+	utils.AddCollateralToNativeTokenSource(
+		ctx,
+		cChainInfo,
+		nativeTokenSource,
+		nativeTokenSourceAddress,
+		subnetBInfo.BlockchainID,
+		nativeTokenDestinationAddressB,
+		initialReserveImbalance,
+		fundedKey,
+	)
+
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())

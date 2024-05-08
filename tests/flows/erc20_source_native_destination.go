@@ -71,6 +71,18 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		deployReceipt_A,
 	)
 
+	utils.AddCollateralToERC20Source(
+		ctx,
+		cChainInfo,
+		erc20Source,
+		erc20SourceAddress,
+		sourceToken,
+		subnetAInfo.BlockchainID,
+		nativeTokenDestinationAddressA,
+		initialReserveImbalance,
+		fundedKey,
+	)
+
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
