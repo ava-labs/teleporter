@@ -70,7 +70,7 @@ var _ = ginkgo.AfterSuite(func() {
 })
 
 var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
-	ginkgo.FIt("Bridge an ERC20 token between two Subnets",
+	ginkgo.It("Bridge an ERC20 token between two Subnets",
 		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel),
 		func() {
 			flows.ERC20SourceERC20Destination(LocalNetworkInstance)
