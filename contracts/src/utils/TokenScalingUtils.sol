@@ -10,7 +10,7 @@ library TokenScalingUtils {
         bool multiplyOnReceive,
         uint256 amount
     ) internal pure returns (uint256) {
-        return _scaleTokens(tokenMultiplier, multiplyOnReceive, amount, false);
+        return _scaleTokens(tokenMultiplier, multiplyOnReceive, amount, true);
     }
 
     function removeTokenScale(
@@ -18,7 +18,7 @@ library TokenScalingUtils {
         bool multiplyOnReceive,
         uint256 amount
     ) internal pure returns (uint256) {
-        return _scaleTokens(tokenMultiplier, multiplyOnReceive, amount, true);
+        return _scaleTokens(tokenMultiplier, multiplyOnReceive, amount, false);
     }
 
     /**

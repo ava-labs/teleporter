@@ -140,7 +140,7 @@ abstract contract TeleporterTokenDestination is
             initialReserveImbalance: initialReserveImbalance_,
             tokenMultiplier: tokenMultiplier,
             // Invert the value of multiplyOnReceive to match the source contract's perspective.
-            multiplyOnReceive: !multiplyOnReceive
+            multiplyOnSend: !multiplyOnReceive
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,
@@ -476,7 +476,7 @@ abstract contract TeleporterTokenDestination is
 
         // Ensure that the scaled amount on the source chain is non-zero.
         require(
-            TokenScalingUtils.applyTokenScale(tokenMultiplier, multiplyOnReceive, amount) > 0,
+            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnReceive, amount) > 0,
             "TeleporterTokenDestination: insufficient tokens to transfer"
         );
 

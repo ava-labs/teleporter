@@ -36,13 +36,13 @@ import {IWarpMessenger} from
  * @param collateralNeeded the amount of tokens that must be first added as collateral,
  * through `addCollateral` calls, before tokens can be bridged to the destination token bridge.
  * @param tokenMultiplier the scaling factor for the amount of tokens to be bridged to the destination.
- * @param multiplyOnReceive whether the scaling factor is multiplied or divided when receiving tokens from the destination.
+ * @param multiplyOnSend whether the scaling factor is multiplied or divided when sending to or receiving tokens from the destination.
  */
 struct DestinationBridgeSettings {
     bool registered;
     uint256 collateralNeeded;
     uint256 tokenMultiplier;
-    bool multiplyOnReceive;
+    bool multiplyOnSend;
 }
 
 /**
@@ -118,7 +118,7 @@ abstract contract TeleporterTokenSource is
         address destinationBridgeAddress,
         uint256 initialReserveImbalance,
         uint256 tokenMultiplier,
-        bool multiplyOnReceive
+        bool multiplyOnSend
     ) internal {
         require(
             destinationBlockchainID != bytes32(0),
@@ -142,12 +142,12 @@ abstract contract TeleporterTokenSource is
         );
 
         uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(
-            tokenMultiplier, multiplyOnReceive, initialReserveImbalance
+            tokenMultiplier, multiplyOnSend, initialReserveImbalance
         );
 
-        // If the destination is multiplyOnReceive, we need to round up the collateral needed.
-        // Otherwise the collaterNeeded amount already covers the reserve imbalance.
-        if (!multiplyOnReceive) {
+        // If the destination is multiplyOnSend, we need to round up the collateral needed.
+        // Otherwise, the collaterNeeded amount already covers the reserve imbalance.
+        if (multiplyOnSend) {
             if (initialReserveImbalance % tokenMultiplier != 0) {
                 collateralNeeded += 1;
             }
@@ -158,7 +158,7 @@ abstract contract TeleporterTokenSource is
             registered: true,
             collateralNeeded: collateralNeeded,
             tokenMultiplier: tokenMultiplier,
-            multiplyOnReceive: multiplyOnReceive
+            multiplyOnSend: multiplyOnSend
         });
 
         emit DestinationRegistered(
@@ -166,7 +166,7 @@ abstract contract TeleporterTokenSource is
             destinationBridgeAddress,
             collateralNeeded,
             tokenMultiplier,
-            multiplyOnReceive
+            multiplyOnSend
         );
     }
 
@@ -404,7 +404,7 @@ abstract contract TeleporterTokenSource is
             // Scale the amount based on the token multiplier for the given destination.
             uint256 scaledAmount = TokenScalingUtils.removeTokenScale(
                 destinationSettings.tokenMultiplier,
-                destinationSettings.multiplyOnReceive,
+                destinationSettings.multiplyOnSend,
                 payload.amount
             );
 
@@ -421,7 +421,7 @@ abstract contract TeleporterTokenSource is
             // Scale the amount based on the token multiplier for the given destination.
             uint256 scaledAmount = TokenScalingUtils.removeTokenScale(
                 destinationSettings.tokenMultiplier,
-                destinationSettings.multiplyOnReceive,
+                destinationSettings.multiplyOnSend,
                 payload.amount
             );
 
@@ -444,7 +444,7 @@ abstract contract TeleporterTokenSource is
             // Scale the amount based on the token multiplier for the given destination.
             uint256 scaledAmount = TokenScalingUtils.removeTokenScale(
                 destinationSettings.tokenMultiplier,
-                destinationSettings.multiplyOnReceive,
+                destinationSettings.multiplyOnSend,
                 payload.amount
             );
 
@@ -472,7 +472,7 @@ abstract contract TeleporterTokenSource is
             // Scale the amount based on the token multiplier for the given destination.
             uint256 scaledAmount = TokenScalingUtils.removeTokenScale(
                 destinationSettings.tokenMultiplier,
-                destinationSettings.multiplyOnReceive,
+                destinationSettings.multiplyOnSend,
                 payload.amount
             );
 
@@ -502,7 +502,7 @@ abstract contract TeleporterTokenSource is
                 originSenderAddress,
                 payload.initialReserveImbalance,
                 payload.tokenMultiplier,
-                payload.multiplyOnReceive
+                payload.multiplyOnSend
             );
         }
     }
@@ -555,7 +555,7 @@ abstract contract TeleporterTokenSource is
 
         // Scale the amount based on the token multiplier for the given destination.
         uint256 scaledAmount = TokenScalingUtils.applyTokenScale(
-            destinationSettings.tokenMultiplier, destinationSettings.multiplyOnReceive, amount
+            destinationSettings.tokenMultiplier, destinationSettings.multiplyOnSend, amount
         );
         if (scaledAmount == 0) {
             return 0;
@@ -595,7 +595,7 @@ abstract contract TeleporterTokenSource is
 
         // Scale the amount based on the token multiplier for the given destination.
         uint256 scaledAmount = TokenScalingUtils.applyTokenScale(
-            destinationSettings.tokenMultiplier, destinationSettings.multiplyOnReceive, amount
+            destinationSettings.tokenMultiplier, destinationSettings.multiplyOnSend, amount
         );
         require(scaledAmount > 0, "TeleporterTokenSource: zero scaled amount");
 

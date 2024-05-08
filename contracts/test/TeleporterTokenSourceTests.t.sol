@@ -132,7 +132,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
     function testSendZeroScaledAmount() public {
         _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, true
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, false
         );
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = 10_000; // Amount is less than the token multiplier, so will be rounded down to zero.
@@ -347,7 +347,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, 0);
 
         _setUpRegisteredDestination(
-            OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, true
+            OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, false
         );
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
@@ -515,7 +515,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, 0);
 
         _setUpRegisteredDestination(
-            OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, true
+            OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, false
         );
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
@@ -606,14 +606,14 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     function testRegisterDestinationZeroTokenMultiplier() public {
         vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
         _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 0, true
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 0, false
         );
     }
 
     function testRegisterDestinationTokenMultiplierToLarge() public {
         vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
         _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 1e18 + 1, true
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 1e18 + 1, false
         );
     }
 
@@ -638,7 +638,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         // Raw amount sent over wire should be multipled by 1e12.
         uint256 tokenMultiplier = 1e12;
         _setUpRegisteredDestination(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, false
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, true
         );
         _setUpExpectedDeposit(amount);
         TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
@@ -662,7 +662,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
         input.primaryFee = feeAmount;
         _setUpRegisteredDestination(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, true
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, false
         );
         _setUpExpectedDeposit(amount);
         expectedMessage = TeleporterMessageInput({
@@ -704,7 +704,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         uint256 initialReserveImbalance
     ) internal virtual override {
         _setUpRegisteredDestination(
-            destinationBlockchainID, destinationBridgeAddress, initialReserveImbalance, 1, false
+            destinationBlockchainID, destinationBridgeAddress, initialReserveImbalance, 1, true
         );
     }
 
@@ -713,12 +713,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         address destinationBridgeAddress,
         uint256 initialReserveImbalance,
         uint256 tokenMultiplier,
-        bool multiplyOnReceive
+        bool multiplyOnSend
     ) internal virtual {
         RegisterDestinationMessage memory payload = RegisterDestinationMessage({
             initialReserveImbalance: initialReserveImbalance,
             tokenMultiplier: tokenMultiplier,
-            multiplyOnReceive: multiplyOnReceive
+            multiplyOnSend: multiplyOnSend
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,
