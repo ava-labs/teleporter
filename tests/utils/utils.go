@@ -520,8 +520,6 @@ func SendNativeTokenDestination(
 	input nativetokendestination.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
-	tokenMultiplier *big.Int,
-	multiplyOnReceive bool,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -759,8 +757,6 @@ func SendNativeMultihopAndVerify(
 	toBridgeAddress common.Address,
 	cChainInfo interfaces.SubnetTestInfo,
 	bridgedAmount *big.Int,
-	tokenMultiplier *big.Int,
-	multiplyOnReceive bool,
 ) {
 	input := nativetokendestination.SendTokensInput{
 		DestinationBlockchainID:  toSubnet.BlockchainID,
@@ -774,15 +770,13 @@ func SendNativeMultihopAndVerify(
 	bridgedAmount = teleporterUtils.BigIntSub(bridgedAmount, input.PrimaryFee)
 
 	// Send tokens through a multi-hop transfer
-	originReceipt, _ := SendNativeTokenDestination(
+	originReceipt, bridgedAmount := SendNativeTokenDestination(
 		ctx,
 		fromSubnet,
 		fromBridge,
 		input,
 		bridgedAmount,
 		sendingKey,
-		tokenMultiplier,
-		multiplyOnReceive,
 	)
 
 	// Relay the first message back to the home-chain, in this case C-Chain,

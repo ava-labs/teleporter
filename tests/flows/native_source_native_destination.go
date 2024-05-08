@@ -153,8 +153,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			input_A,
 			amount,
 			recipientKey,
-			tokenMultiplier,
-			multiplyOnReceive,
 		)
 
 		receipt = network.RelayMessage(
