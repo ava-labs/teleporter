@@ -7,18 +7,18 @@ pragma solidity 0.8.18;
 library TokenScalingUtils {
     function applyTokenScale(
         uint256 tokenMultiplier,
-        bool multiplyOnReceive,
+        bool multiplyOnDestination,
         uint256 amount
     ) internal pure returns (uint256) {
-        return _scaleTokens(tokenMultiplier, multiplyOnReceive, amount, true);
+        return _scaleTokens(tokenMultiplier, multiplyOnDestination, amount, true);
     }
 
     function removeTokenScale(
         uint256 tokenMultiplier,
-        bool multiplyOnReceive,
+        bool multiplyOnDestination,
         uint256 amount
     ) internal pure returns (uint256) {
-        return _scaleTokens(tokenMultiplier, multiplyOnReceive, amount, false);
+        return _scaleTokens(tokenMultiplier, multiplyOnDestination, amount, false);
     }
 
     /**
@@ -27,12 +27,12 @@ library TokenScalingUtils {
      */
     function _scaleTokens(
         uint256 tokenMultiplier,
-        bool multiplyOnReceive,
+        bool multiplyOnDestination,
         uint256 amount,
-        bool isReceive
+        bool isSendToDestination
     ) private pure returns (uint256) {
-        // Multiply when multiplyOnReceive and isReceive are both true or both false.
-        if (multiplyOnReceive == isReceive) {
+        // Multiply when multiplyOnDestination and isReceive are both true or both false.
+        if (multiplyOnDestination == isSendToDestination) {
             return amount * tokenMultiplier;
         }
         // Otherwise divide.
