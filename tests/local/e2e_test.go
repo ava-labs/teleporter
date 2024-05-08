@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/format"
 )
 
 const (
@@ -33,6 +34,7 @@ func TestE2E(t *testing.T) {
 	if os.Getenv("RUN_E2E") == "" {
 		t.Skip("Environment variable RUN_E2E not set; skipping E2E tests")
 	}
+	format.MaxLength = 10000
 
 	RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "Teleporter e2e test")

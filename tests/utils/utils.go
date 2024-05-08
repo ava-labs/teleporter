@@ -682,6 +682,13 @@ func SendERC20MultihopAndVerify(
 		cChainInfo,
 		true,
 	)
+	_, err := teleporterUtils.GetEventFromLogs(
+		intermediateReceipt.Logs,
+		cChainInfo.TeleporterMessenger.ParseMessageExecuted,
+	)
+	if err != nil {
+		teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo, intermediateReceipt.TxHash)
+	}
 
 	// When we relay the above message to the home-chain, a multi-hop transfer
 	// is performed to the destination chain. Parse for the send tokens event
@@ -693,6 +700,10 @@ func SendERC20MultihopAndVerify(
 		toSubnet,
 		true,
 	)
+	_, err = teleporterUtils.GetEventFromLogs(destinationReceipt.Logs, toSubnet.TeleporterMessenger.ParseMessageExecuted)
+	if err != nil {
+		teleporterUtils.TraceTransactionAndExit(ctx, toSubnet, destinationReceipt.TxHash)
+	}
 
 	CheckERC20DestinationWithdrawal(
 		ctx,
