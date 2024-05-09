@@ -17,10 +17,6 @@ import {
     SendAndCallInput,
     BridgeMessageType,
     BridgeMessage,
-    SingleHopSendMessage,
-    SingleHopCallMessage,
-    MultiHopSendMessage,
-    MultiHopCallMessage,
     RegisterDestinationMessage
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
