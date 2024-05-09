@@ -477,7 +477,7 @@ abstract contract TeleporterTokenDestination is
             "TeleporterTokenDestination: insufficient tokens to transfer"
         );
 
-        // Return the non-scaled amount to be sent in the message to the source.
+        // Returned the amount this contract's local denomination.
         return amount;
     }
 }

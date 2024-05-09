@@ -36,7 +36,7 @@ import {IWarpMessenger} from
  * @param collateralNeeded the amount of tokens that must be first added as collateral,
  * through `addCollateral` calls, before tokens can be bridged to the destination token bridge.
  * @param tokenMultiplier the scaling factor for the amount of tokens to be bridged to the destination.
- * @param multiplyOnSend whether the scaling factor is multiplied or divided when sending to or receiving tokens from the destination.
+ * @param multiplyOnSend whether the scaling factor is multiplied or divided when sending to the destination.
  */
 struct DestinationBridgeSettings {
     bool registered;
@@ -129,6 +129,7 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: destination already registered"
         );
 
+        // Calculate the collateral needed in source token denomination.
         uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(
             tokenMultiplier, multiplyOnSend, initialReserveImbalance
         );
