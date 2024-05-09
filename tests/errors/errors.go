@@ -2,5 +2,5 @@ package errors
 
 var (
 	ErrDestinationNotRegistered = "destination not registered"
-	ErrNonZeroCollateralNeeded  = "non-zero collateral needed"
+	ErrNonZeroCollateralNeeded  = "collateral needed for destination"
 )
