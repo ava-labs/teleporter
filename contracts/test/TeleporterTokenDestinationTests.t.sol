@@ -12,6 +12,18 @@ import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
+import {
+    SendTokensInput,
+    SendAndCallInput,
+    BridgeMessageType,
+    BridgeMessage,
+    SingleHopSendMessage,
+    SingleHopCallMessage,
+    MultiHopSendMessage,
+    MultiHopCallMessage,
+    RegisterDestinationMessage
+} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
 abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     TeleporterTokenDestination public tokenDestination;
@@ -325,6 +337,64 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         assertEq(tokenDestination.calculateNumWords(65), 3);
     }
 
+    function testRegisterWithSourceSuccess() public {
+        // Create a new instance that has not yet received any messages.
+        tokenDestination = _createNewDestinationInstance();
+        tokenBridge = tokenDestination;
+        feeToken = IERC20(address(tokenDestination));
+
+        uint256 feeAmount = 13;
+        TeleporterFeeInfo memory feeInfo =
+            TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: feeAmount});
+        BridgeMessage memory expectedBridgeMessage = BridgeMessage({
+            messageType: BridgeMessageType.REGISTER_DESTINATION,
+            payload: abi.encode(
+                RegisterDestinationMessage({
+                    initialReserveImbalance: tokenDestination.initialReserveImbalance(),
+                    tokenMultiplier: tokenDestination.tokenMultiplier(),
+                    multiplyOnSend: tokenDestination.multiplyOnReceive()
+                })
+                )
+        });
+        TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
+            destinationBlockchainID: tokenDestination.sourceBlockchainID(),
+            destinationAddress: tokenDestination.tokenSourceAddress(),
+            feeInfo: feeInfo,
+            requiredGasLimit: tokenDestination.REGISTER_DESTINATION_REQUIRED_GAS(),
+            allowedRelayerAddresses: new address[](0),
+            message: abi.encode(expectedBridgeMessage)
+        });
+        vm.mockCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput)),
+            abi.encode(_MOCK_MESSAGE_ID)
+        );
+        vm.expectCall(
+            MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            abi.encodeCall(ITeleporterMessenger.sendCrossChainMessage, (expectedMessageInput))
+        );
+
+        tokenDestination.registerWithSource(feeInfo);
+    }
+
+    function testRegisterWithSourceAlreadyRegistered() public {
+        // Mock receiving a message from the source so that the destination knows
+        // that it is registered already.
+        uint256 amount = 1;
+        _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenDestination.receiveTeleporterMessage(
+            tokenDestination.sourceBlockchainID(),
+            tokenDestination.tokenSourceAddress(),
+            _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
+        );
+
+        vm.expectRevert(_formatErrorMessage("already registered"));
+        tokenDestination.registerWithSource(
+            TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0})
+        );
+    }
+
     function _sendMultiHopSendSuccess(
         uint256 amount,
         uint256 primaryFee,
@@ -387,6 +457,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     function _setUpRegisteredDestination(bytes32, address, uint256) internal virtual override {
         return;
     }
+
+    function _createNewDestinationInstance()
+        internal
+        virtual
+        returns (TeleporterTokenDestination);
 
     function _getTotalSupply() internal view virtual returns (uint256);
 

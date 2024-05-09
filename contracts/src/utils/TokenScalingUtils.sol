@@ -22,7 +22,7 @@ library TokenScalingUtils {
     }
 
     /**
-     * @dev Scales `value` based on `tokenMultiplier` and the direction of the transfer.
+     * @dev Scales {value} based on {tokenMultiplier} and the direction of the transfer.
      * Should be used for all tokens being transferred to/from other subnets.
      */
     function _scaleTokens(

@@ -126,7 +126,7 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
         uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
 
         // Reset the destination contract allowance to 0.
-        // Use of `safeApprove` is okay to reset the allowance to 0.
+        // Use of {safeApprove} is okay to reset the allowance to 0.
         SafeERC20.safeApprove(token, message.recipientContract, 0);
 
         if (success) {

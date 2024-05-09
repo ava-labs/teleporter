@@ -21,7 +21,7 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
  * @param requiredGasLimit gas limit requirement for sending to a token bridge.
  * This is required because the gas requirement varies based on the token bridge instance
- * specified by `destinationBlockchainID` and `destinationBridgeAddress`.
+ * specified by {destinationBlockchainID} and {destinationBridgeAddress}.
  * @param fallbackRecipient in the case of a multi-hop transfer, the address where the tokens
  * are sent on the source chain if the transfer is unable to be routed to its final destination.
  * For EOA recipients, the fallbackRecipient should generally be the same as the recipient.
