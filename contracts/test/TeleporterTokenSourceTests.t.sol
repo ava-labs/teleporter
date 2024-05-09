@@ -623,6 +623,16 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testRegisterDestinationRoundUpCollateralNeeded() public {
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 11, 10, true
+        );
+        (, uint256 collateralNeeded,,) = tokenSource.registeredDestinations(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
+        );
+        assertEq(collateralNeeded, 2);
+    }
+
     function testRegisterDestinationAlreadyReigstered() public {
         _setUpRegisteredDestination(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0
