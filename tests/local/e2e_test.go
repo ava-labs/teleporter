@@ -116,7 +116,7 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 		func() {
 			flows.ERC20SourceERC20DestinationSendAndCall(LocalNetworkInstance)
 		})
-	ginkgo.FIt("Registration and collateral checks",
+	ginkgo.It("Registration and collateral checks",
 		ginkgo.Label(erc20SourceLabel, nativeTokenDestinationLabel, registrationLabel),
 		func() {
 			flows.RegistrationAndCollateralCheck(LocalNetworkInstance)

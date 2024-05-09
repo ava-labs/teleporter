@@ -76,14 +76,6 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	}
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
-	teleporterUtils.ERC20Approve(
-		ctx,
-		sourceToken,
-		erc20SourceAddress,
-		amount,
-		cChainInfo,
-		fundedKey,
-	)
 
 	initialBalance, err := sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
 	Expect(err).Should(BeNil())
@@ -145,7 +137,21 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		fundedKey,
 	)
 
+	// Check the balance of the ERC20Source to ensure it was increased by the collateral amount.
+	// Also set the new initial balance before sending tokens
+	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	Expect(err).Should(BeNil())
+	teleporterUtils.ExpectBigEqual(balance, initialBalance.Add(initialBalance, collateralNeeded))
+
 	// Send the tokens and expect success now that collateral is added
+	teleporterUtils.ERC20Approve(
+		ctx,
+		sourceToken,
+		erc20SourceAddress,
+		amount,
+		cChainInfo,
+		fundedKey,
+	)
 	tx, err := erc20Source.Send(
 		optsA,
 		input,
