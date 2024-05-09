@@ -132,7 +132,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(
             input.destinationBlockchainID, input.destinationBridgeAddress, 1
         );
-        vm.expectRevert(_formatErrorMessage("non-zero collateral needed for destination"));
+        vm.expectRevert(_formatErrorMessage("collateral needed for destination"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
@@ -162,7 +162,71 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testReceiveFromNonRegisteredDestination() public {
+        vm.expectRevert(_formatErrorMessage("destination bridge not registered"));
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeSingleHopSendMessage(1, DEFAULT_RECIPIENT_ADDRESS)
+        );
+    }
+
+    function testReceiveFromNonCollateralizedDestination() public {
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100
+        );
+        vm.expectRevert(_formatErrorMessage("destination bridge not collateralized"));
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeSingleHopSendMessage(1, DEFAULT_RECIPIENT_ADDRESS)
+        );
+    }
+
+    function testReceiveZeroSourceTokenAmount() public {
+        // Set up a registered destination that will scale down the received amount
+        // to zero source tokens.
+        uint256 tokenMultiplier = 100_000;
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, tokenMultiplier, true
+        );
+
+        // Send over source token to the destination
+        // and check for expected calls for scaled amount of tokens sent.
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        uint256 amount = 1;
+        _setUpExpectedDeposit(amount);
+
+        uint256 scaledAmount = tokenMultiplier * amount;
+        _checkExpectedTeleporterCallsForSend(
+            _createSingleHopTeleporterMessageInput(input, scaledAmount)
+        );
+        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledAmount);
+        _send(input, amount);
+
+        // Receive an amount from destination less than `scaledAmount`
+        // which will be scaled down to zero source tokens.
+        vm.expectRevert(_formatErrorMessage("zero token amount"));
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeSingleHopSendMessage(scaledAmount - 1, DEFAULT_RECIPIENT_ADDRESS)
+        );
+    }
+
     function testReceiveInsufficientBridgeBalance() public {
+        uint256 collateralAmount = 100;
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
+        );
+        _setUpExpectedDeposit(collateralAmount);
+        _addCollateral(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
+        );
         vm.expectRevert(_formatErrorMessage("insufficient bridge balance"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
@@ -174,28 +238,30 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
     function testReceiveWithdrawSuccess() public {
         uint256 amount = 200;
-        _sendSingleHopSendSuccess(amount, 0);
-
         uint256 feeAmount = 10;
-        uint256 bridgeAmount = amount - feeAmount;
-        SendTokensInput memory input = _createDefaultReceiveTokensInput();
-        input.primaryFee = feeAmount;
+        _sendSingleHopSendSuccess(amount, feeAmount);
 
-        _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, bridgeAmount);
+        uint256 bridgedAmount = amount - feeAmount;
+
+        // Withdraw an amount less than total bridged amount
+        uint256 remainingAmount = feeAmount;
+        uint256 withdrawAmount = bridgedAmount - remainingAmount;
+
+        _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, withdrawAmount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
-            _encodeSingleHopSendMessage(bridgeAmount, DEFAULT_RECIPIENT_ADDRESS)
+            _encodeSingleHopSendMessage(withdrawAmount, DEFAULT_RECIPIENT_ADDRESS)
         );
 
-        // Make sure the bridge balance is correct. Only the fee amount remains locked in the source
+        // Make sure the bridge balance is correct. Only the remaining amount remains locked in the source
         // contract. The rest is withdrawn.
         assertEq(
             tokenSource.bridgedBalances(
                 DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
             ),
-            feeAmount
+            remainingAmount
         );
     }
 
@@ -712,6 +778,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         uint256 amount
     ) internal virtual;
 
+    /**
+     * @notice Set up necessary calls to deposit funds and call `send` or `sendAndCall`
+     * on the source bridge contract.
+     * Different from `_setUpExpectedDeposit` since the send that follows isn't
+     * expected to succeed. So `setUpDeposit` does not check for expected emit events.
+     */
     function _setUpDeposit(uint256 amount) internal virtual {}
 
     function _setUpRegisteredDestination(
