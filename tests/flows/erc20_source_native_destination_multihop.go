@@ -44,7 +44,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddressA, nativeTokenDestinationA, deployReceipt_A := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
 		"SUBA",
@@ -58,7 +58,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenDestination to Subnet B
-	nativeTokenDestinationAddressB, nativeTokenDestinationB, deployReceipt_B := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddressB, nativeTokenDestinationB := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetBInfo,
 		"SUBB",
@@ -72,30 +72,28 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Register both NativeTokenDestinations on the ERC20Source
-	collateralAmountA := utils.RegisterNativeTokenDestinationOnERC20Source(
+	collateralAmountA := utils.RegisterTokenDestinationOnSource(
 		ctx,
 		network,
 		cChainInfo,
-		erc20Source,
+		erc20SourceAddress,
 		subnetAInfo,
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnReceive,
-		deployReceipt_A,
 	)
 
-	collateralAmountB := utils.RegisterNativeTokenDestinationOnERC20Source(
+	collateralAmountB := utils.RegisterTokenDestinationOnSource(
 		ctx,
 		network,
 		cChainInfo,
-		erc20Source,
+		erc20SourceAddress,
 		subnetBInfo,
 		nativeTokenDestinationAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnReceive,
-		deployReceipt_B,
 	)
 
 	// Add collateral for both NativeTokenDestinations

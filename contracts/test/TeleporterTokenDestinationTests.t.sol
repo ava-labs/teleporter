@@ -78,6 +78,10 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
+    function testSendingToOtherInstanceOnSameChain() public {
+        _sendMultiHopSendSuccess(tokenDestination.blockchainID(), 100_000, 999, 555);
+    }
+
     function testSendAndCallingToSameInstance() public {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
@@ -85,6 +89,10 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
         _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testSendAndCallingToOtherInstanceOnSameChain() public {
+        _sendMultiHopCallSuccess(tokenDestination.blockchainID(), 100_000, 999, 555);
     }
 
     function testSendZeroAmountAfterScaling() public {
@@ -136,14 +144,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 amount = 400_000;
         uint256 primaryFee = 5;
         uint256 secondaryFee = 2;
-        _sendMultiHopSendSuccess(amount, primaryFee, secondaryFee);
+        _sendMultiHopSendSuccess(OTHER_BLOCKCHAIN_ID, amount, primaryFee, secondaryFee);
     }
 
     function testSendMultiHopCallSuccess() public {
         uint256 amount = 400_000;
         uint256 primaryFee = 5;
         uint256 secondaryFee = 1;
-        _sendMultiHopCallSuccess(amount, primaryFee, secondaryFee);
+        _sendMultiHopCallSuccess(OTHER_BLOCKCHAIN_ID, amount, primaryFee, secondaryFee);
     }
 
     function testReceiveInvalidSourceChain() public {
@@ -392,13 +400,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function _sendMultiHopSendSuccess(
+        bytes32 destinationBlockchainID,
         uint256 amount,
         uint256 primaryFee,
         uint256 secondaryFee
     ) internal {
         uint256 bridgeAmount = amount - primaryFee;
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
+        input.destinationBlockchainID = destinationBlockchainID;
         input.primaryFee = primaryFee;
         input.secondaryFee = secondaryFee;
 
@@ -412,13 +421,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function _sendMultiHopCallSuccess(
+        bytes32 destinationBlockchainID,
         uint256 amount,
         uint256 primaryFee,
         uint256 secondaryFee
     ) internal {
         uint256 bridgeAmount = amount - primaryFee;
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
-        input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
+        input.destinationBlockchainID = destinationBlockchainID;
         input.primaryFee = primaryFee;
         input.secondaryFee = secondaryFee;
 

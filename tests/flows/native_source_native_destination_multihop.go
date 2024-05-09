@@ -44,7 +44,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddressA, nativeTokenDestinationA, deployReceipt_A := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
 		"SUBA",
@@ -58,7 +58,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenDestination to Subnet B
-	nativeTokenDestinationAddressB, nativeTokenDestinationB, deployReceipt_B := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddressB, nativeTokenDestinationB := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetBInfo,
 		"SUBB",
@@ -72,30 +72,28 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Register both NativeTokenDestinations on the NativeTokenSource
-	collateralAmountA := utils.RegisterNativeTokenDestinationOnNativeTokenSource(
+	collateralAmountA := utils.RegisterTokenDestinationOnSource(
 		ctx,
 		network,
 		cChainInfo,
-		nativeTokenSource,
+		nativeTokenSourceAddress,
 		subnetAInfo,
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnReceive,
-		deployReceipt_A,
 	)
 
-	collateralAmountB := utils.RegisterNativeTokenDestinationOnNativeTokenSource(
+	collateralAmountB := utils.RegisterTokenDestinationOnSource(
 		ctx,
 		network,
 		cChainInfo,
-		nativeTokenSource,
+		nativeTokenSourceAddress,
 		subnetBInfo,
 		nativeTokenDestinationAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnReceive,
-		deployReceipt_B,
 	)
 
 	// Add collateral for both NativeTokenDestinations

@@ -44,7 +44,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddressA, nativeTokenDestinationA, deployReceipt_A := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
 		"SUBA",
@@ -57,17 +57,16 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		burnedFeesReportingRewardPercentage,
 	)
 
-	collateralAmount := utils.RegisterNativeTokenDestinationOnERC20Source(
+	collateralAmount := utils.RegisterTokenDestinationOnSource(
 		ctx,
 		network,
 		cChainInfo,
-		erc20Source,
+		erc20SourceAddress,
 		subnetAInfo,
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnReceive,
-		deployReceipt_A,
 	)
 
 	utils.AddCollateralToERC20Source(

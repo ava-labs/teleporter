@@ -224,7 +224,7 @@ contract NativeTokenDestination is
             "NativeTokenDestination: zero scaled amount to report burn"
         );
 
-        // Include the non-scaling amount in the payload to be sent to the source chain.
+        // Returned the burned transaction fees denominated by destination bridge's token scale.
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
@@ -307,7 +307,8 @@ contract NativeTokenDestination is
      * @dev See {TeleporterTokenDestination-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
-        // Call {_mintNativeCoin} even if the adjustedAmount is 0 to improve traceability.
+        // `amount` isn't expected to be zero, since the source bridge contract
+        // checks whether the scaled amount is non-zero before sending the message.
         emit TokensWithdrawn(recipient, amount);
         _mintNativeCoin(recipient, amount);
     }

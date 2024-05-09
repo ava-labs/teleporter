@@ -399,10 +399,8 @@ abstract contract TeleporterTokenDestination is
 
         // If the contract was not previously known to be registered or collateralized, it is now given that
         // the source has sent a message to mint funds.
-        if (!isRegistered) {
+        if (!isRegistered || !isCollateralized) {
             isRegistered = true;
-        }
-        if (!isCollateralized) {
             isCollateralized = true;
         }
 
@@ -491,7 +489,7 @@ abstract contract TeleporterTokenDestination is
             "TeleporterTokenDestination: insufficient tokens to transfer"
         );
 
-        // Return the non-scaled amount to be sent in the message to the source.
+        // Returned the amount this contract's local denomination.
         return amount;
     }
 }
