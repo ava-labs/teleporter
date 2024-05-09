@@ -187,6 +187,10 @@ abstract contract TeleporterTokenDestination is
     function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
         require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
+        require(
+            input.fallbackRecipient != address(0),
+            "TeleporterTokenDestination: zero fallback recipient address"
+        );
         amount = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
