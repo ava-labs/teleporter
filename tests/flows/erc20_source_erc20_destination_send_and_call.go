@@ -209,7 +209,7 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGasLimit),
 			FallbackRecipient:        fallbackAddress,
 			FeeTokenAddress:          erc20DestinationAddress,
-			PrimaryFee:               big.NewInt(0),
+			PrimaryFee:               big.NewInt(1e10),
 			SecondaryFee:             big.NewInt(0),
 		}
 
@@ -219,7 +219,7 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			erc20Destination,
 			erc20DestinationAddress,
 			inputB,
-			bridgedAmount,
+			teleporterUtils.BigIntSub(bridgedAmount, inputB.PrimaryFee),
 			recipientKey,
 		)
 

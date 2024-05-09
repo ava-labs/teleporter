@@ -128,7 +128,7 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 		DestinationBridgeAddress: erc20SourceAddress,
 		Recipient:                recipientAddress,
 		FeeTokenAddress:          erc20DestinationAddress,
-		PrimaryFee:               big.NewInt(0),
+		PrimaryFee:               big.NewInt(1e10),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
 	}
@@ -139,7 +139,7 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 		erc20Destination,
 		erc20DestinationAddress,
 		inputB,
-		bridgedAmount,
+		teleporterUtils.BigIntSub(bridgedAmount, inputB.PrimaryFee),
 		recipientKey,
 	)
 

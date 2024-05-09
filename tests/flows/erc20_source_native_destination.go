@@ -60,6 +60,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
+	recipientKey.ECDH()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
@@ -107,7 +108,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		DestinationBridgeAddress: erc20SourceAddress,
 		Recipient:                recipientAddress,
 		FeeTokenAddress:          nativeTokenDestinationAddressA,
-		PrimaryFee:               big.NewInt(0),
+		PrimaryFee:               big.NewInt(1e10),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
 	}
@@ -117,8 +118,9 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		ctx,
 		subnetAInfo,
 		nativeTokenDestinationA,
+		nativeTokenDestinationAddressA,
 		input_A,
-		amountToSend,
+		teleporterUtils.BigIntSub(amountToSend, input_A.PrimaryFee),
 		recipientKey,
 		tokenMultiplier,
 		multiplyOnReceive,
