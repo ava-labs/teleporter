@@ -132,7 +132,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(
             input.destinationBlockchainID, input.destinationBridgeAddress, 1
         );
-        vm.expectRevert(_formatErrorMessage("non-zero destination reserve imbalance"));
+        vm.expectRevert(_formatErrorMessage("non-zero collateral needed for destination"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 

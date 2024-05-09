@@ -343,7 +343,7 @@ abstract contract TeleporterTokenSource is
             remainingCollateralNeeded = destinationSettings.collateralNeeded - amount;
         }
 
-        // Update the reserve imbalance remaining.
+        // Update the remaining collateral needed.
         registeredDestinations[destinationBlockchainID][destinationBridgeAddress].collateralNeeded =
             remainingCollateralNeeded;
         emit CollateralAdded(
@@ -571,7 +571,7 @@ abstract contract TeleporterTokenSource is
         require(destinationSettings.registered, "TeleporterTokenSource: destination not registered");
         require(
             destinationSettings.collateralNeeded == 0,
-            "TeleporterTokenSource: non-zero destination reserve imbalance"
+            "TeleporterTokenSource: non-zero collateral needed for destination"
         );
 
         // Lock the amount in this contract to be sent.
