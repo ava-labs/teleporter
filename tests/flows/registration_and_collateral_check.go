@@ -6,6 +6,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	erc20source "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Source"
+	"github.com/ava-labs/teleporter-token-bridge/tests/errors"
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
@@ -84,15 +85,24 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		fundedKey,
 	)
 
+	initialBalance, err := sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	Expect(err).Should(BeNil())
+
 	// Send the tokens and expect for failure since destination bridge is not registered.
 	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, cChainInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := erc20Source.Send(
+	_, err = erc20Source.Send(
 		optsA,
 		input,
 		amount,
 	)
 	Expect(err).Should(Not(BeNil()))
+	Expect(err.Error()).Should(ContainSubstring(errors.ErrDestinationNotRegistered))
+
+	// Check the balance of the ERC20Source to ensure it was not changed
+	balance, err := sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	Expect(err).Should(BeNil())
+	teleporterUtils.ExpectBigEqual(balance, initialBalance)
 
 	// Register the NativeTokenDestination to the ERC20Source
 	collateralNeeded := utils.RegisterNativeTokenDestinationOnERC20Source(
@@ -109,12 +119,18 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	)
 
 	// Try sending again and expect failure since destination is not collateralized
-	tx, err = erc20Source.Send(
+	_, err = erc20Source.Send(
 		optsA,
 		input,
 		amount,
 	)
 	Expect(err).Should(Not(BeNil()))
+	Expect(err.Error()).Should(ContainSubstring(errors.ErrNonZeroCollateralNeeded))
+
+	// Check the balance of the ERC20Source to ensure it was not changed
+	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	Expect(err).Should(BeNil())
+	teleporterUtils.ExpectBigEqual(balance, initialBalance)
 
 	// Add collateral to the ERC20Source
 	utils.AddCollateralToERC20Source(
@@ -130,7 +146,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	)
 
 	// Send the tokens and expect success now that collateral is added
-	tx, err = erc20Source.Send(
+	tx, err := erc20Source.Send(
 		optsA,
 		input,
 		amount,
@@ -151,4 +167,21 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		bridgedAmount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
+
+	// Check the balance of the ERC20Source increased by the bridged amount
+	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	Expect(err).Should(BeNil())
+	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, bridgedAmount))
+
+	// Relay the message to subnet A and check for a native token mint withdrawal
+	network.RelayMessage(
+		ctx,
+		receipt,
+		cChainInfo,
+		subnetAInfo,
+		true,
+	)
+
+	// Verify the recipient received the tokens
+	teleporterUtils.CheckBalance(ctx, recipientAddress, scaledAmount, subnetAInfo.RPCClient)
 }
