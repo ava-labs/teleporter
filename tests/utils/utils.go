@@ -57,6 +57,9 @@ var nativeTokenDestinationDeployerKeys = []string{
 	// Deployer address:			   0x741D536f5B07bcD43727CD8435389CA36aE5A4Ae
 	// NativeTokenDestination address: 0x4f3663be6d22B0F19F8617f1A9E9485aB0144Bff
 	"8a92f3f468ce5b0d99f9aaa55695f93e03dbbb6d5e3faba80f92a7876be740d6",
+	// Deployer address:			   0xd466f12795BA59d0fef389c21fA63c287956fb18
+	// NativeTokenDestination address: 0x463a6bE7a5098A5f06435c6c468adD338F15B93A
+	"ebb7f0cf71e0b6fd880326e5f5061b8456b0aef81901566cbe578b5024852ec9",
 }
 var nativeTokenDestinationDeployerKeyIndex = 0
 
