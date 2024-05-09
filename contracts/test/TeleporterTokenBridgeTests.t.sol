@@ -96,13 +96,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
         _send(input, 0);
     }
 
-    function testSendZeroFallbackRecipient() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.fallbackRecipient = address(0);
-        vm.expectRevert(_formatErrorMessage("zero fallback recipient address"));
-        _send(input, 0);
-    }
-
     function testSendAndCallZeroRecipientContract() public {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.recipientContract = address(0);

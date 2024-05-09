@@ -198,10 +198,7 @@ abstract contract TeleporterTokenDestination is
     function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
         require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
-        require(
-            input.fallbackRecipient != address(0),
-            "TeleporterTokenDestination: zero fallback recipient address"
-        );
+
         amount = _prepareSend(
             input.destinationBlockchainID,
             input.destinationBridgeAddress,
@@ -232,6 +229,11 @@ abstract contract TeleporterTokenDestination is
                 payload: abi.encode(SingleHopSendMessage({recipient: input.recipient, amount: amount}))
             });
         } else {
+            require(
+                input.fallbackRecipient != address(0),
+                "TeleporterTokenDestination: zero fallback recipient address"
+            );
+
             // If the destination blockchain ID is this blockchian, the destination
             // bridge address must be a differet contract. This is a multi-hop case to
             // a different bridge contract on this chain.

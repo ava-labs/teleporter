@@ -290,12 +290,18 @@ func RegisterTokenDestinationOnSource(
 	expectedMultiplyOnSend bool,
 ) *big.Int {
 	// Call the destination to send a register message to the source
-	tokenDestination, err := teleportertokendestination.NewTeleporterTokenDestination(destinationBridgeAddress, destinationSubnet.RPCClient)
+	tokenDestination, err := teleportertokendestination.NewTeleporterTokenDestination(
+		destinationBridgeAddress,
+		destinationSubnet.RPCClient,
+	)
 	Expect(err).Should(BeNil())
 	_, fundedKey := network.GetFundedAccountInfo()
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, destinationSubnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	sendRegisterTx, err := tokenDestination.RegisterWithSource(opts, teleportertokendestination.TeleporterFeeInfo{FeeTokenAddress: common.Address{}, Amount: big.NewInt(0)})
+	sendRegisterTx, err := tokenDestination.RegisterWithSource(
+		opts,
+		teleportertokendestination.TeleporterFeeInfo{FeeTokenAddress: common.Address{}, Amount: big.NewInt(0)},
+	)
 	Expect(err).Should(BeNil())
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, destinationSubnet, sendRegisterTx.Hash())
 
@@ -322,7 +328,6 @@ func RegisterTokenDestinationOnSource(
 	Expect(registerEvent.MultiplyOnSend).Should(Equal(expectedMultiplyOnSend))
 
 	return collateralNeeded
-
 }
 
 // AddCollateralToERC20Source adds collateral to the ERC20Source contract

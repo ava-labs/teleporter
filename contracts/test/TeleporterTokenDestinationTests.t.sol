@@ -124,6 +124,16 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, input.primaryFee);
     }
 
+    function testSendMultihopZeroFallbackRecipient() public {
+        uint256 amount = 200_000;
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
+        input.fallbackRecipient = address(0);
+        _setUpExpectedDeposit(amount);
+        vm.expectRevert(_formatErrorMessage("zero fallback recipient address"));
+        _send(input, amount);
+    }
+
     function testSendZeroDestinationBlockchainID() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
