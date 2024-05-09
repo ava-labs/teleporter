@@ -54,8 +54,8 @@ Unit test coverage of the contracts can be viewed using `forge coverage`:
 ```
 $ forge coverage
 [⠢] Compiling...
-[⠆] Compiling 75 files with 0.8.18
-[⠔] Solc 0.8.18 finished in 5.21s
+[⠔] Compiling 75 files with 0.8.18
+[⠑] Solc 0.8.18 finished in 5.33s
 Compiler run successful!
 Analysing contracts...
 Running tests...
@@ -65,7 +65,7 @@ Running tests...
 | src/ERC20Source.sol                         | 100.00% (16/16)   | 100.00% (19/19)   | 100.00% (4/4)    | 100.00% (6/6)   |
 | src/NativeTokenDestination.sol              | 100.00% (39/39)   | 100.00% (48/48)   | 100.00% (8/8)    | 100.00% (12/12) |
 | src/NativeTokenSource.sol                   | 100.00% (14/14)   | 100.00% (16/16)   | 100.00% (2/2)    | 100.00% (6/6)   |
-| src/TeleporterTokenDestination.sol          | 100.00% (60/60)   | 100.00% (68/68)   | 94.23% (49/52)   | 100.00% (6/6)   |
+| src/TeleporterTokenDestination.sol          | 100.00% (61/61)   | 100.00% (69/69)   | 94.44% (51/54)   | 100.00% (6/6)   |
 | src/TeleporterTokenSource.sol               | 100.00% (121/121) | 100.00% (130/130) | 100.00% (82/82)  | 100.00% (9/9)   |
 | src/mocks/ExampleWAVAX.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (3/3)   |
 | src/mocks/MockERC20SendAndCallReceiver.sol  | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (4/4)    | 100.00% (2/2)   |
@@ -73,7 +73,7 @@ Running tests...
 | src/utils/CallUtils.sol                     | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)    | 100.00% (2/2)   |
 | src/utils/SafeWrappedNativeTokenDeposit.sol | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (2/2)    | 100.00% (1/1)   |
 | src/utils/TokenScalingUtils.sol             | 100.00% (5/5)     | 100.00% (9/9)     | 100.00% (2/2)    | 100.00% (3/3)   |
-| Total                                       | 100.00% (303/303) | 100.00% (344/344) | 98.24% (167/170) | 100.00% (59/59) |
+| Total                                       | 100.00% (304/304) | 100.00% (345/345) | 98.26% (169/172) | 100.00% (59/59) |
 ```
 
 ## E2E tests
