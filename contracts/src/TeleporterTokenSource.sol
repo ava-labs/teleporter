@@ -66,7 +66,7 @@ abstract contract TeleporterTokenSource is
 
     /**
      * @notice The token address this source contract bridges to destination instances.
-     * For multi-hop transfers, this `tokenAddress` is always used to pay for Teleporter fees.
+     * For multi-hop transfers, this {tokenAddress} is always used to pay for Teleporter fees.
      * If the token is an ERC20 token, the contract address is directly passed in.
      * If the token is a native asset, the contract address is the wrapped token contract.
      */
@@ -444,9 +444,9 @@ abstract contract TeleporterTokenSource is
                 payload.secondaryFee
             );
 
-            // For a multi-hop send, the fee token address has to be `tokenAddress`,
+            // For a multi-hop send, the fee token address has to be {tokenAddress},
             // because the fee is taken from the amount that has already been deposited.
-            // For ERC20 tokens, the token address of the contract is directly passed.abi
+            // For ERC20 tokens, the token address of the contract is directly passed.
             // For native assets, the contract address is the wrapped token contract.
             _send(
                 SendTokensInput({
@@ -478,9 +478,9 @@ abstract contract TeleporterTokenSource is
                 payload.secondaryFee
             );
 
-            // For a multi-hop send, the fee token address has to be `tokenAddress`,
+            // For a multi-hop send, the fee token address has to be {tokenAddress},
             // because the fee is taken from the amount that has already been deposited.
-            // For ERC20 tokens, the token address of the contract is directly passed.abi
+            // For ERC20 tokens, the token address of the contract is directly passed.
             // For native assets, the contract address is the wrapped token contract.
             _sendAndCall(
                 sourceBlockchainID,
