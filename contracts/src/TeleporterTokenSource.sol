@@ -436,6 +436,14 @@ abstract contract TeleporterTokenSource is
             uint256 sourceAmount =
                 _processReceivedTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
 
+            DestinationBridgeSettings memory originSettings =
+                registeredDestinations[sourceBlockchainID][originSenderAddress];
+            uint256 fee = TokenScalingUtils.removeTokenScale(
+                originSettings.tokenMultiplier,
+                originSettings.multiplyOnDestination,
+                payload.secondaryFee
+            );
+
             // For a multi-hop send, the fee token address has to be `tokenAddress`,
             // because the fee is taken from the amount that has already been deposited.
             // For ERC20 tokens, the token address of the contract is directly passed.abi
@@ -446,7 +454,7 @@ abstract contract TeleporterTokenSource is
                     destinationBridgeAddress: payload.destinationBridgeAddress,
                     recipient: payload.recipient,
                     feeTokenAddress: tokenAddress,
-                    primaryFee: payload.secondaryFee,
+                    primaryFee: fee,
                     secondaryFee: 0,
                     requiredGasLimit: payload.secondaryGasLimit,
                     fallbackRecipient: payload.fallbackRecipient
@@ -461,6 +469,14 @@ abstract contract TeleporterTokenSource is
 
             uint256 sourceAmount =
                 _processReceivedTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
+
+            DestinationBridgeSettings memory originSettings =
+                registeredDestinations[sourceBlockchainID][originSenderAddress];
+            uint256 fee = TokenScalingUtils.removeTokenScale(
+                originSettings.tokenMultiplier,
+                originSettings.multiplyOnDestination,
+                payload.secondaryFee
+            );
 
             // For a multi-hop send, the fee token address has to be `tokenAddress`,
             // because the fee is taken from the amount that has already been deposited.
@@ -478,7 +494,7 @@ abstract contract TeleporterTokenSource is
                     recipientGasLimit: payload.recipientGasLimit,
                     fallbackRecipient: payload.fallbackRecipient,
                     feeTokenAddress: tokenAddress,
-                    primaryFee: payload.secondaryFee,
+                    primaryFee: fee,
                     secondaryFee: 0
                 }),
                 sourceAmount,
