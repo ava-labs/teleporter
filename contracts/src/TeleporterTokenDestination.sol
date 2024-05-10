@@ -503,7 +503,7 @@ abstract contract TeleporterTokenDestination is
             "TeleporterTokenDestination: insufficient tokens to transfer"
         );
 
-        // Returned the amount this contract's local denomination.
+        // Returned the amount in this contract's local denomination.
         return amount;
     }
 }
