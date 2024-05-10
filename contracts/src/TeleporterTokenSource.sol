@@ -136,7 +136,7 @@ abstract contract TeleporterTokenSource is
 
         // Round up the collateral needed by 1 in the case that {multiplyOnDestination} is true and
         // {initialReserveImbalance} is not divisible by the {tokenMultiplier} to
-        // ensure that the full amount is account for.
+        // ensure that the full amount is accounted for.
         if (multiplyOnDestination && initialReserveImbalance % tokenMultiplier != 0) {
             collateralNeeded += 1;
         }
