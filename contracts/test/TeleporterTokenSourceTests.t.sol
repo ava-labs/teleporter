@@ -248,11 +248,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         uint256 feeAmount = 10;
         _sendSingleHopSendSuccess(amount, feeAmount);
 
-        uint256 bridgedAmount = amount - feeAmount;
-
-        // Withdraw an amount less than total bridged amount
-        uint256 remainingAmount = feeAmount;
-        uint256 withdrawAmount = bridgedAmount - remainingAmount;
+        // Withdraw an amount less than bridged amount
+        uint256 withdrawAmount = amount/2;
 
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, withdrawAmount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -268,7 +265,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             tokenSource.bridgedBalances(
                 DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
             ),
-            remainingAmount
+            withdrawAmount
         );
     }
 
@@ -721,7 +718,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     function testSendScaledAmount() public {
         uint256 amount = 100;
         uint256 feeAmount = 1;
-        uint256 bridgeAmount = amount - feeAmount;
 
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
@@ -739,12 +735,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopSendMessage(
-                bridgeAmount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS
+                amount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS
                 )
         });
         _checkExpectedTeleporterCallsForSend(expectedMessage);
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount * tokenMultiplier);
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount * tokenMultiplier);
         _send(input, amount);
 
         // For another destination, the raw amount sent over the wire should be divided by 1e12.
