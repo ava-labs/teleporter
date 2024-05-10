@@ -457,7 +457,6 @@ func SendERC20Source(
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	teleporterUtils.ExpectBigEqual(event.Amount, amount)
 
 	// Compute the scaled amount
 	scaledAmount := GetScaledAmountFromERC20Source(
@@ -504,7 +503,6 @@ func SendNativeTokenSource(
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	teleporterUtils.ExpectBigEqual(event.Amount, amount)
 
 	// Compute the scaled amount
 	scaledAmount := GetScaledAmountFromNativeTokenSource(
@@ -617,13 +615,11 @@ func SendNativeTokenDestination(
 	)
 	Expect(err).Should(BeNil())
 
-	bridgedAmount := new(big.Int).Sub(amount, input.PrimaryFee)
-
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	teleporterUtils.ExpectBigEqual(event.Amount, bridgedAmount)
+	teleporterUtils.ExpectBigEqual(event.Amount, amount)
 
 	return receipt, event.Amount
 }
@@ -699,18 +695,12 @@ func SendAndCallERC20Source(
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseTokensAndCallSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
-	teleporterUtils.ExpectBigEqual(event.Amount, amount)
 
 	// Computer the scaled amount
-	destinationSettings, err := erc20Source.RegisteredDestinations(
-		&bind.CallOpts{},
+	scaledAmount := GetScaledAmountFromERC20Source(
+		erc20Source,
 		input.DestinationBlockchainID,
-		input.DestinationBridgeAddress)
-	Expect(err).Should(BeNil())
-
-	scaledAmount := ApplyTokenScaling(
-		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnDestination,
+		input.DestinationBridgeAddress,
 		amount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
@@ -740,7 +730,6 @@ func SendAndCallNativeTokenSource(
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseTokensAndCallSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
-	teleporterUtils.ExpectBigEqual(event.Amount, amount)
 
 	// Computer the scaled amount
 	destinationSettings, err := nativeTokenSource.RegisteredDestinations(
