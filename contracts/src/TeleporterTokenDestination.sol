@@ -233,7 +233,7 @@ abstract contract TeleporterTokenDestination is
                 payload: abi.encode(SingleHopSendMessage({recipient: input.recipient, amount: amount}))
             });
         } else {
-            // Multi-hop transfers require a fallback recipient in case the message sent to intermediate source
+            // Multi-hop transfers require a fallback recipient in case the message sent to the intermediate source
             // chain fails to route the tokens to the final destination.
             require(
                 input.fallbackRecipient != address(0),
