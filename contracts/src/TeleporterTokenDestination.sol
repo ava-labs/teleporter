@@ -221,7 +221,7 @@ abstract contract TeleporterTokenDestination is
                 payload: abi.encode(SingleHopSendMessage({recipient: input.recipient, amount: amount}))
             });
         } else {
-            // If the destination blockchain ID is this blockchian, the destination
+            // If the destination blockchain ID is this blockchain, the destination
             // bridge address must be a differet contract. This is a multi-hop case to
             // a different bridge contract on this chain.
             if (input.destinationBlockchainID == blockchainID) {
