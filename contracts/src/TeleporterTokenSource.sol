@@ -342,7 +342,7 @@ abstract contract TeleporterTokenSource is
         amount = _deposit(amount);
 
         // Calculate the remaining collateral needed, any excess amount, and adjust
-        // `amount` to represent the amount of tokens added as collateral.
+        // {amount} to represent the amount of tokens added as collateral.
         uint256 remainingCollateralNeeded;
         uint256 excessAmount;
         if (amount >= destinationSettings.collateralNeeded) {
