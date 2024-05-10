@@ -77,6 +77,24 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 		tokenDecimals,
 	)
 
+	// Register both ERC20Destinations on the ERC20Source
+	utils.RegisterERC20DestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		erc20SourceAddress,
+		subnetAInfo,
+		erc20DestinationAddress_A,
+	)
+	utils.RegisterERC20DestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		erc20SourceAddress,
+		subnetBInfo,
+		erc20DestinationAddress_B,
+	)
+
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
@@ -89,7 +107,7 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
 	}
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 
@@ -126,6 +144,7 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(bridgedAmount))
 
+	bridgedAmount = big.NewInt(0).Div(bridgedAmount, big.NewInt(2))
 	// Multi-hop transfer to Subnet B
 	utils.SendERC20MultihopAndVerify(
 		ctx,

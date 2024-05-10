@@ -53,7 +53,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnReceive,
+		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -67,8 +67,56 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnReceive,
+		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
+	)
+
+	// Register both NativeTokenDestinations on the NativeTokenSource
+	collateralAmountA := utils.RegisterTokenDestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		nativeTokenSourceAddress,
+		subnetAInfo,
+		nativeTokenDestinationAddressA,
+		initialReserveImbalance,
+		utils.GetTokenMultiplier(decimalsShift),
+		multiplyOnDestination,
+	)
+
+	collateralAmountB := utils.RegisterTokenDestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		nativeTokenSourceAddress,
+		subnetBInfo,
+		nativeTokenDestinationAddressB,
+		initialReserveImbalance,
+		utils.GetTokenMultiplier(decimalsShift),
+		multiplyOnDestination,
+	)
+
+	// Add collateral for both NativeTokenDestinations
+	utils.AddCollateralToNativeTokenSource(
+		ctx,
+		cChainInfo,
+		nativeTokenSource,
+		nativeTokenSourceAddress,
+		subnetAInfo.BlockchainID,
+		nativeTokenDestinationAddressA,
+		collateralAmountA,
+		fundedKey,
+	)
+
+	utils.AddCollateralToNativeTokenSource(
+		ctx,
+		cChainInfo,
+		nativeTokenSource,
+		nativeTokenSourceAddress,
+		subnetBInfo.BlockchainID,
+		nativeTokenDestinationAddressB,
+		collateralAmountB,
+		fundedKey,
 	)
 
 	// Generate new recipient to receive bridged tokens
@@ -76,86 +124,72 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// These are set during the initial bridging, and used in the multi-hop transfers
-	var receivedAmountA, receivedAmountB *big.Int
+	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
 
 	// Send tokens from C-Chain to Subnet A
-	{
-		inputA := nativetokensource.SendTokensInput{
-			DestinationBlockchainID:  subnetAInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenDestinationAddressA,
-			Recipient:                recipientAddress,
-			PrimaryFee:               big.NewInt(1e18),
-			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
-		}
-		// Bridge the initial imbalance, which is scaled up on the destination by 1 decimal place
-		// This will mint 9/10 the initial imbalance amount on the destination (after fees)
-		receipt, bridgedAmountA := utils.SendNativeTokenSource(
-			ctx,
-			cChainInfo,
-			nativeTokenSource,
-			inputA,
-			initialReserveImbalance,
-			fundedKey,
-		)
-
-		// Amount received by the destination is bridgedAmount * 10 - initialReserveImbalance
-		receivedAmountA = new(big.Int).Sub(new(big.Int).Mul(bridgedAmountA, big.NewInt(10)), initialReserveImbalance)
-
-		// Relay the message to subnet A and check for a native token mint withdrawal
-		network.RelayMessage(
-			ctx,
-			receipt,
-			cChainInfo,
-			subnetAInfo,
-			true,
-		)
-
-		// Verify the recipient received the tokens
-		teleporterUtils.CheckBalance(ctx, recipientAddress, receivedAmountA, subnetAInfo.RPCClient)
+	inputA := nativetokensource.SendTokensInput{
+		DestinationBlockchainID:  subnetAInfo.BlockchainID,
+		DestinationBridgeAddress: nativeTokenDestinationAddressA,
+		Recipient:                recipientAddress,
+		PrimaryFee:               big.NewInt(1e18),
+		SecondaryFee:             big.NewInt(0),
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
+
+	receipt, bridgedAmountA := utils.SendNativeTokenSource(
+		ctx,
+		cChainInfo,
+		nativeTokenSource,
+		inputA,
+		amount,
+		fundedKey,
+	)
+
+	// Relay the message to subnet A and check for a native token mint withdrawal
+	network.RelayMessage(
+		ctx,
+		receipt,
+		cChainInfo,
+		subnetAInfo,
+		true,
+	)
+
+	// Verify the recipient received the tokens
+	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmountA, subnetAInfo.RPCClient)
 
 	// Send tokens from C-Chain to Subnet B
-	{
-		inputB := nativetokensource.SendTokensInput{
-			DestinationBlockchainID:  subnetBInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenDestinationAddressB,
-			Recipient:                recipientAddress,
-			PrimaryFee:               big.NewInt(1e18),
-			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
-		}
-		// Bridge the initial imbalance, which is scaled up on the destination by 1 decimal place
-		// This will mint 9/10 the initial imbalance amount on the destination (after fees)
-		receipt, bridgedAmountB := utils.SendNativeTokenSource(
-			ctx,
-			cChainInfo,
-			nativeTokenSource,
-			inputB,
-			initialReserveImbalance,
-			fundedKey,
-		)
-
-		// Amount received by the destination is bridgedAmount * 10 - initialReserveImbalance
-		receivedAmountB = new(big.Int).Sub(new(big.Int).Mul(bridgedAmountB, big.NewInt(10)), initialReserveImbalance)
-
-		// Relay the message to subnet B and check for a native token mint withdrawal
-		network.RelayMessage(
-			ctx,
-			receipt,
-			cChainInfo,
-			subnetBInfo,
-			true,
-		)
-
-		// Verify the recipient received the tokens
-		teleporterUtils.CheckBalance(ctx, recipientAddress, receivedAmountB, subnetBInfo.RPCClient)
+	inputB := nativetokensource.SendTokensInput{
+		DestinationBlockchainID:  subnetBInfo.BlockchainID,
+		DestinationBridgeAddress: nativeTokenDestinationAddressB,
+		Recipient:                recipientAddress,
+		PrimaryFee:               big.NewInt(1e18),
+		SecondaryFee:             big.NewInt(0),
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
+	receipt, bridgedAmountB := utils.SendNativeTokenSource(
+		ctx,
+		cChainInfo,
+		nativeTokenSource,
+		inputB,
+		amount,
+		fundedKey,
+	)
+
+	// Relay the message to subnet B and check for a native token mint withdrawal
+	network.RelayMessage(
+		ctx,
+		receipt,
+		cChainInfo,
+		subnetBInfo,
+		true,
+	)
+
+	// Verify the recipient received the tokens
+	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmountB, subnetBInfo.RPCClient)
 
 	// Multi-hop transfer to Subnet B
 	// Send half of the received amount to account for gas expenses
-	amountToSendA := new(big.Int).Div(receivedAmountA, big.NewInt(2))
+	amountToSendA := new(big.Int).Div(bridgedAmountA, big.NewInt(2))
 
 	utils.SendNativeMultihopAndVerify(
 		ctx,
@@ -169,8 +203,6 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenDestinationAddressB,
 		cChainInfo,
 		amountToSendA,
-		tokenMultiplier,
-		multiplyOnReceive,
 	)
 
 	// Again, send half of the received amount to account for gas expenses
@@ -189,7 +221,5 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenDestinationAddressA,
 		cChainInfo,
 		amountToSendB,
-		tokenMultiplier,
-		multiplyOnReceive,
 	)
 }

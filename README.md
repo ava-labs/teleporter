@@ -6,7 +6,7 @@ Please note that `teleporter-token-bridge` is still under active development and
 
 ## Overview
 
-Teleporter token bridge is an application that allows users to transfer tokens between subnets. The bridge is a set of smart contracts that are deployed on both the source and destination subnets, and leverages [Teleporter](https://github.com/ava-labs/teleporter) for cross-chain communication. The token bridges are designed to be permissionless: as long as there is a compatible token bridge instance on a destination chain, users can transfer tokens from a home chain to that destination chain. The token bridge source on the home chain keeps track of token balances bridged to each destination token bridge instance, and handles returning the original tokens back to the user when bridged back to the home chain.
+Teleporter token bridge is an application that allows users to transfer tokens between Subnets. The bridge is a set of smart contracts that are deployed on both the source and destination Subnets, and leverages [Teleporter](https://github.com/ava-labs/teleporter) for cross-chain communication. The token bridges are designed to be permissionless: anyone can register compatible destination instances to allow for bridging tokens from the source chain to that new destination. The token bridge source on the home chain keeps track of token balances bridged to each destination instance, and handles returning the original tokens back to the user when bridged back to the home chain. Destination instances are registered with the source contract instance via Teleporter message upon creation.
 
 The token bridge contracts take in either an ERC20 or native token to be bridged from a source chain, which can be referred to as the "home chain", and transfers the token to a destination chain to be represented as a new token. The new token representation on the destination chain can also either be an ERC20 or native token, allowing users to have any combination of ERC20 and native tokens between source and destination chains:
 
@@ -54,25 +54,26 @@ Unit test coverage of the contracts can be viewed using `forge coverage`:
 ```
 $ forge coverage
 [⠢] Compiling...
-[⠒] Compiling 70 files with 0.8.18
-[⠆] Solc 0.8.18 finished in 4.98s
+[⠆] Compiling 75 files with 0.8.18
+[⠔] Solc 0.8.18 finished in 5.26s
 Compiler run successful!
 Analysing contracts...
 Running tests...
 | File                                        | % Lines           | % Statements      | % Branches       | % Funcs         |
 |---------------------------------------------|-------------------|-------------------|------------------|-----------------|
 | src/ERC20Destination.sol                    | 100.00% (20/20)   | 100.00% (22/22)   | 100.00% (4/4)    | 100.00% (7/7)   |
-| src/ERC20Source.sol                         | 100.00% (15/15)   | 100.00% (18/18)   | 100.00% (4/4)    | 100.00% (5/5)   |
-| src/NativeTokenDestination.sol              | 100.00% (56/56)   | 100.00% (69/69)   | 100.00% (14/14)  | 100.00% (14/14) |
-| src/NativeTokenSource.sol                   | 100.00% (13/13)   | 100.00% (15/15)   | 100.00% (2/2)    | 100.00% (5/5)   |
-| src/TeleporterTokenDestination.sol          | 100.00% (61/61)   | 100.00% (70/70)   | 88.46% (46/52)   | 100.00% (6/6)   |
-| src/TeleporterTokenSource.sol               | 100.00% (54/54)   | 100.00% (57/57)   | 97.62% (41/42)   | 100.00% (4/4)   |
+| src/ERC20Source.sol                         | 100.00% (16/16)   | 100.00% (19/19)   | 100.00% (4/4)    | 100.00% (6/6)   |
+| src/NativeTokenDestination.sol              | 100.00% (39/39)   | 100.00% (48/48)   | 100.00% (8/8)    | 100.00% (12/12) |
+| src/NativeTokenSource.sol                   | 100.00% (14/14)   | 100.00% (16/16)   | 100.00% (2/2)    | 100.00% (6/6)   |
+| src/TeleporterTokenDestination.sol          | 100.00% (62/62)   | 100.00% (70/70)   | 94.64% (53/56)   | 100.00% (6/6)   |
+| src/TeleporterTokenSource.sol               | 100.00% (122/122) | 100.00% (131/131) | 100.00% (84/84)  | 100.00% (9/9)   |
 | src/mocks/ExampleWAVAX.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (3/3)   |
 | src/mocks/MockERC20SendAndCallReceiver.sol  | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (4/4)    | 100.00% (2/2)   |
 | src/mocks/MockNativeSendAndCallReceiver.sol | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (4/4)    | 100.00% (2/2)   |
 | src/utils/CallUtils.sol                     | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)    | 100.00% (2/2)   |
 | src/utils/SafeWrappedNativeTokenDeposit.sol | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (2/2)    | 100.00% (1/1)   |
-| Total                                       | 100.00% (247/247) | 100.00% (283/283) | 94.78% (127/134) | 100.00% (51/51) |
+| src/utils/TokenScalingUtils.sol             | 100.00% (5/5)     | 100.00% (9/9)     | 100.00% (2/2)    | 100.00% (3/3)   |
+| Total                                       | 100.00% (306/306) | 100.00% (347/347) | 98.30% (173/176) | 100.00% (59/59) |
 ```
 
 ## E2E tests

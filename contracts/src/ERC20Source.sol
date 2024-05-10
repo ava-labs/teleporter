@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TeleporterTokenSource} from "./TeleporterTokenSource.sol";
-import {IERC20Bridge} from "./interfaces/IERC20Bridge.sol";
+import {IERC20Source} from "./interfaces/IERC20Source.sol";
 import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
@@ -25,13 +25,13 @@ import {CallUtils} from "./utils/CallUtils.sol";
 
 /**
  * @title ERC20Source
- * @notice This contract is an {IERC20Bridge} that sends ERC20 tokens to another chain's
+ * @notice This contract is an {IERC20Source} that sends ERC20 tokens to another chain's
  * {ITeleporterTokenBridge} instance, and gets represented by the tokens of that destination
  * token bridge instance.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
+contract ERC20Source is IERC20Source, TeleporterTokenSource {
     using SafeERC20 for IERC20;
 
     /// @notice The ERC20 token this source contract bridges to destination instances.
@@ -63,6 +63,17 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
         _sendAndCall(blockchainID, msg.sender, input, amount, false);
+    }
+
+    /**
+     * @dev See {INativeTokenSource-addCollateral}
+     */
+    function addCollateral(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount
+    ) external {
+        _addCollateral(destinationBlockchainID, destinationBridgeAddress, amount);
     }
 
     /**
@@ -115,7 +126,7 @@ contract ERC20Source is IERC20Bridge, TeleporterTokenSource {
         uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
 
         // Reset the destination contract allowance to 0.
-        // Use of `safeApprove` is okay to reset the allowance to 0.
+        // Use of {safeApprove} is okay to reset the allowance to 0.
         SafeERC20.safeApprove(token, message.recipientContract, 0);
 
         if (success) {

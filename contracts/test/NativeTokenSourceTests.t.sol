@@ -17,6 +17,10 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
     NativeTokenSource public app;
     IWrappedNativeToken public mockWrappedToken;
 
+    receive() external payable {
+        require(msg.sender == address(app), "NativeTokenSourceTest: invalid receive payable sender");
+    }
+
     function setUp() public override {
         TeleporterTokenSourceTest.setUp();
 
@@ -109,5 +113,13 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
 
     function _setUpExpectedZeroAmountRevert() internal override {
         vm.expectRevert("SafeWrappedNativeTokenDeposit: balance not increased");
+    }
+
+    function _addCollateral(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount
+    ) internal override {
+        app.addCollateral{value: amount}(destinationBlockchainID, destinationBridgeAddress);
     }
 }

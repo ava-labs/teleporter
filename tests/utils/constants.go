@@ -3,6 +3,6 @@ package utils
 import "math/big"
 
 var (
-	DefaultERC20RequiredGasLimit       = big.NewInt(70_000)
-	DefaultNativeTokenRequiredGasLimit = big.NewInt(90_000)
+	DefaultERC20RequiredGas       = big.NewInt(85_000)
+	DefaultNativeTokenRequiredGas = big.NewInt(120_000)
 )

@@ -64,6 +64,15 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		tokenDecimals,
 	)
 
+	utils.RegisterERC20DestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		nativeTokenSourceAddress,
+		subnetAInfo,
+		erc20DestinationAddress,
+	)
+
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
@@ -76,7 +85,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
 	}
 
 	// Send the tokens and verify expected events
@@ -126,7 +135,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 
 	// Send tokens on Subnet A back for native tokens on C-Chain

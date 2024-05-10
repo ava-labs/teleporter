@@ -18,8 +18,7 @@ import (
  * Deploy a ERC20 token source on the primary network
  * Deploys NativeDestination to Subnet A and Subnet B
  * Bridges C-Chain example ERC20 tokens to Subnet A as Subnet A's native token
- * Bridge tokens from Subnet A to Subnet B through multi-hop
- * Bridge back tokens from Subnet B to Subnet A through multi-hop
+ * Bridge back tokens from Subnet A to C-Chain
  */
 func ERC20SourceNativeDestination(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
@@ -54,8 +53,32 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		erc20SourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnReceive,
+		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
+	)
+
+	collateralAmount := utils.RegisterTokenDestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		erc20SourceAddress,
+		subnetAInfo,
+		nativeTokenDestinationAddressA,
+		initialReserveImbalance,
+		utils.GetTokenMultiplier(decimalsShift),
+		multiplyOnDestination,
+	)
+
+	utils.AddCollateralToERC20Source(
+		ctx,
+		cChainInfo,
+		erc20Source,
+		erc20SourceAddress,
+		sourceToken,
+		subnetAInfo.BlockchainID,
+		nativeTokenDestinationAddressA,
+		collateralAmount,
+		fundedKey,
 	)
 
 	// Generate new recipient to receive bridged tokens
@@ -70,10 +93,10 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
-	// Bridge the initial imbalance, which is scaled up on the destination by 1 decimal place
-	// This will mint 9/10 the initial imbalance amount on the destination (after fees)
+
+	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
 	receipt, bridgedAmount := utils.SendERC20Source(
 		ctx,
 		cChainInfo,
@@ -81,12 +104,9 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		erc20SourceAddress,
 		sourceToken,
 		input,
-		initialReserveImbalance,
+		amount,
 		fundedKey,
 	)
-
-	// Amount received by the destination is bridgedAmount * 10 - initialReserveImbalance
-	receivedAmount := new(big.Int).Sub(new(big.Int).Mul(bridgedAmount, big.NewInt(10)), initialReserveImbalance)
 
 	// Relay the message to subnet A and check for a native token mint withdrawal
 	network.RelayMessage(
@@ -98,7 +118,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, receivedAmount, subnetAInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, subnetAInfo.RPCClient)
 
 	// Send back to the source chain and check that ERC20Source received the tokens
 	input_A := nativetokendestination.SendTokensInput{
@@ -107,19 +127,17 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 	// Send half of the received amount to account for gas expenses
-	amountToSend := new(big.Int).Div(receivedAmount, big.NewInt(2))
+	amountToSendA := new(big.Int).Div(bridgedAmount, big.NewInt(2))
 	receipt, bridgedAmount = utils.SendNativeTokenDestination(
 		ctx,
 		subnetAInfo,
 		nativeTokenDestinationA,
 		input_A,
-		amountToSend,
+		amountToSendA,
 		recipientKey,
-		tokenMultiplier,
-		multiplyOnReceive,
 	)
 
 	receipt = network.RelayMessage(
@@ -131,17 +149,18 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Check that the recipient received the tokens
+	scaledAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnDestination, bridgedAmount)
 	utils.CheckERC20SourceWithdrawal(
 		ctx,
 		erc20SourceAddress,
 		sourceToken,
 		receipt,
 		recipientAddress,
-		bridgedAmount,
+		scaledAmount,
 	)
 
 	// Check that the recipient received the tokens
 	balance, err := sourceToken.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
+	Expect(balance).Should(Equal(scaledAmount))
 }
