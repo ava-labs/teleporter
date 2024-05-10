@@ -760,6 +760,7 @@ func SendNativeMultihopAndVerify(
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         DefaultNativeTokenRequiredGasLimit,
+		FallbackRecipient:        recipientAddress,
 	}
 	// Find the amount sent by fromBridge. This is before any scaling/unscaling is applied.
 	bridgedAmount = teleporterUtils.BigIntSub(bridgedAmount, input.PrimaryFee)
@@ -835,6 +836,7 @@ func SendERC20MultihopAndVerify(
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
+		FallbackRecipient:        recipientAddress,
 	}
 
 	// Send tokens through a multi-hop transfer

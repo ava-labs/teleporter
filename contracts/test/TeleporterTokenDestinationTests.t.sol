@@ -69,10 +69,19 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
+    function testNonZeroFallbackRecipientForSingleHop() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
+        input.fallbackRecipient = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;
+        vm.expectRevert(_formatErrorMessage("non-zero fallback recipient"));
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
     function testSendingToSameInstance() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         input.destinationBridgeAddress = address(tokenDestination);
+        input.fallbackRecipient = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;
         _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
@@ -420,6 +429,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.destinationBlockchainID = destinationBlockchainID;
         input.primaryFee = primaryFee;
         input.secondaryFee = secondaryFee;
+        input.fallbackRecipient = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;
 
         _setUpExpectedDeposit(amount);
         _checkExpectedTeleporterCallsForSend(
@@ -550,7 +560,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            fallbackRecipient: address(0)
         });
     }
 

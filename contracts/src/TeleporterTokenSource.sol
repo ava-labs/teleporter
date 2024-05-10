@@ -197,6 +197,12 @@ abstract contract TeleporterTokenSource is
                 return;
             }
         } else {
+            // Require that the fallback recipient is the zero address for single-hop transfers because
+            // the value is not used in this case.
+            require(
+                input.fallbackRecipient == address(0),
+                "TeleporterTokenSource: non-zero fallback recipient"
+            );
             adjustedAmount = _prepareSend(
                 input.destinationBlockchainID,
                 input.destinationBridgeAddress,

@@ -58,11 +58,11 @@ abstract contract TeleporterTokenDestination is
     uint256 public immutable tokenMultiplier;
 
     /**
-     * @notice If multiplyOnReceive is true, the raw token amount value will be multiplied by {tokenMultiplier} when tokens
+     * @notice If {multiplyOnReceive} is true, the source token amount value will be multiplied by {tokenMultiplier} when tokens
      * are transferred from the source chain into this destination chain, and divided by {tokenMultiplier} when
      * tokens are transferred from this destination chain back to the source chain. This is intended
      * when the "decimals" value on the source chain is less than the native EVM denomination of 18.
-     * If multiplyOnReceive is false, the raw token amount value will be divided by {tokenMultiplier} when tokens
+     * If {multiplyOnReceive} is false, the source token amount value will be divided by {tokenMultiplier} when tokens
      * are transferred from the source chain into this destination chain, and multiplied by {tokenMultiplier} when
      * tokens are transferred from this destination chain back to the source chain.
      */
@@ -218,17 +218,23 @@ abstract contract TeleporterTokenDestination is
         if (input.destinationBlockchainID == sourceBlockchainID) {
             // If the destination blockchain is the source bridge instance's blockchain,
             // the destination bridge address must match the token source address,
-            // and no secondary fee is needed.
+            // and no secondary fee or fallback is needed.
             require(
                 input.destinationBridgeAddress == tokenSourceAddress,
                 "TeleporterTokenDestination: invalid destination bridge address"
             );
             require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
+            require(
+                input.fallbackRecipient == address(0),
+                "TeleporterTokenDestination: non-zero fallback recipient"
+            );
             message = BridgeMessage({
                 messageType: BridgeMessageType.SINGLE_HOP_SEND,
                 payload: abi.encode(SingleHopSendMessage({recipient: input.recipient, amount: amount}))
             });
         } else {
+            // Multi-hop transfers require a fallback recipient in case the message sent to intermediate source
+            // chain fails to route the tokens to the final destination.
             require(
                 input.fallbackRecipient != address(0),
                 "TeleporterTokenDestination: zero fallback recipient address"
