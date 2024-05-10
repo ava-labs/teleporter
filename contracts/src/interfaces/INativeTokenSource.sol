@@ -21,7 +21,7 @@ import {ITeleporterTokenSource} from "./ITeleporterTokenSource.sol";
  */
 interface INativeTokenSource is INativeTokenBridge, ITeleporterTokenSource {
     /**
-     * @notice Adds collateral to the bridge contract for the specified destination. If more value is provided 
+     * @notice Adds collateral to the bridge contract for the specified destination. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.
      * @param destinationBlockchainID the destination blockchain ID of the bridge to add collateral for.
      * @param destinationBridgeAddress the address on the bridge to add collateral for on the remote chain.
