@@ -8,6 +8,7 @@ pragma solidity 0.8.18;
 import {ERC20BridgeTest} from "./ERC20BridgeTests.t.sol";
 import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
+import {TeleporterTokenDestination} from "../src/TeleporterTokenDestination.sol";
 import {ERC20Destination} from "../src/ERC20Destination.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
@@ -24,15 +25,7 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
     function setUp() public virtual override {
         TeleporterTokenDestinationTest.setUp();
 
-        app = new ERC20Destination({
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: address(this),
-            sourceBlockchainID_: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress_: TOKEN_SOURCE_ADDRESS,
-            tokenName: MOCK_TOKEN_NAME,
-            tokenSymbol: MOCK_TOKEN_SYMBOL,
-            tokenDecimals: MOCK_TOKEN_DECIMALS
-        });
+        app = ERC20Destination(address(_createNewDestinationInstance()));
 
         erc20Bridge = app;
         tokenDestination = app;
@@ -117,6 +110,22 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
             teleporterManager: address(this),
             sourceBlockchainID_: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             tokenSourceAddress_: address(0),
+            tokenName: MOCK_TOKEN_NAME,
+            tokenSymbol: MOCK_TOKEN_SYMBOL,
+            tokenDecimals: MOCK_TOKEN_DECIMALS
+        });
+    }
+
+    function _createNewDestinationInstance()
+        internal
+        override
+        returns (TeleporterTokenDestination)
+    {
+        return new ERC20Destination({
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: address(this),
+            sourceBlockchainID_: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            tokenSourceAddress_: TOKEN_SOURCE_ADDRESS,
             tokenName: MOCK_TOKEN_NAME,
             tokenSymbol: MOCK_TOKEN_SYMBOL,
             tokenDecimals: MOCK_TOKEN_DECIMALS

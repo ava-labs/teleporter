@@ -6,6 +6,7 @@
 pragma solidity 0.8.18;
 
 import {INativeTokenBridge} from "./INativeTokenBridge.sol";
+import {ITeleporterTokenDestination} from "./ITeleporterTokenDestination.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -16,7 +17,7 @@ import {INativeTokenBridge} from "./INativeTokenBridge.sol";
  * @dev Interface that describes functionalities for a contract that can mint native tokens when
  * paired with a {ITeleporterTokenSource} contract that will lock tokens on another chain.
  */
-interface INativeTokenDestination is INativeTokenBridge {
+interface INativeTokenDestination is ITeleporterTokenDestination, INativeTokenBridge {
     /**
      * @dev Emitted when reporting burned tx fees to source chain.
      */

@@ -147,6 +147,13 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _send(input, amount);
     }
 
+    function testNonZeroFallbackRecipientForSingleHop() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.fallbackRecipient = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;
+        vm.expectRevert(_formatErrorMessage("non-zero fallback recipient"));
+        _send(input, 100_000);
+    }
+
     function testNonZeroSecondaryFee() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.secondaryFee = 1;
@@ -847,7 +854,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            fallbackRecipient: address(0)
         });
     }
 

@@ -34,7 +34,7 @@ import {IWarpMessenger} from
  * and provides settings for bridging to the destination bridge.
  * @param registered whether the destination bridge is registered
  * @param collateralNeeded the amount of tokens that must be first added as collateral,
- * through `addCollateral` calls, before tokens can be bridged to the destination token bridge.
+ * through {addCollateral} calls, before tokens can be bridged to the destination token bridge.
  * @param tokenMultiplier the scaling factor for the amount of tokens to be bridged to the destination.
  * @param multiplyOnSend whether the scaling factor is multiplied or divided when sending to the destination.
  */
@@ -134,8 +134,8 @@ abstract contract TeleporterTokenSource is
             tokenMultiplier, multiplyOnSend, initialReserveImbalance
         );
 
-        // Round up the collateral needed by 1 in the case that `multiplyOnSend` is true and
-        // `initialReserveImbalance` is not divisible by the `tokenMultiplier` to
+        // Round up the collateral needed by 1 in the case that {multiplyOnSend} is true and
+        // {initialReserveImbalance} is not divisible by the {tokenMultiplier} to
         // ensure that the full amount is account for.
         if (multiplyOnSend && initialReserveImbalance % tokenMultiplier != 0) {
             collateralNeeded += 1;
@@ -166,11 +166,11 @@ abstract contract TeleporterTokenSource is
      * be already scaled to the local denomination for this token source.
      * Requirements:
      *
-     * - `input.destinationBlockchainID` cannot be the same as the current blockchainID
-     * - `input.destinationBridgeAddress` cannot be the zero address
-     * - `input.recipient` cannot be the zero address
-     * - `amount` must be greater than 0
-     * - `amount` must be greater than `input.primaryFee`
+     * - {input.destinationBlockchainID} cannot be the same as the current blockchainID
+     * - {input.destinationBridgeAddress} cannot be the zero address
+     * - {input.recipient} cannot be the zero address
+     * - {amount} must be greater than 0
+     * - {amount} must be greater than {input.primaryFee}
      */
     function _send(
         SendTokensInput memory input,
@@ -197,6 +197,12 @@ abstract contract TeleporterTokenSource is
                 return;
             }
         } else {
+            // Require that the fallback recipient is the zero address for single-hop transfers because
+            // the value is not used in this case.
+            require(
+                input.fallbackRecipient == address(0),
+                "TeleporterTokenSource: non-zero fallback recipient"
+            );
             adjustedAmount = _prepareSend(
                 input.destinationBlockchainID,
                 input.destinationBridgeAddress,
@@ -366,8 +372,8 @@ abstract contract TeleporterTokenSource is
      * a multi-hop is performed, and the tokens are forwarded to the destination token bridge.
      * Requirements:
      *
-     * - `sourceBlockchainID` and `originSenderAddress` have enough bridge balance to send back.
-     * - `input.destinationBridgeAddress` is this contract is this chain is the final destination.
+     * - {sourceBlockchainID} and {originSenderAddress} have enough bridge balance to send back.
+     * - {input.destinationBridgeAddress} is this contract is this chain is the final destination.
      */
     function _receiveTeleporterMessage(
         bytes32 sourceBlockchainID,

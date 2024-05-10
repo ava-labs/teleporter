@@ -47,7 +47,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddressA, _, deployReceipt_A := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddressA, _ := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
 		"SUBA",
@@ -97,17 +97,16 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	teleporterUtils.ExpectBigEqual(balance, initialBalance)
 
 	// Register the NativeTokenDestination to the ERC20Source
-	collateralNeeded := utils.RegisterNativeTokenDestinationOnERC20Source(
+	collateralNeeded := utils.RegisterTokenDestinationOnSource(
 		ctx,
 		network,
 		cChainInfo,
-		erc20Source,
+		erc20SourceAddress,
 		subnetAInfo,
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnReceive,
-		deployReceipt_A,
 	)
 
 	// Try sending again and expect failure since destination is not collateralized

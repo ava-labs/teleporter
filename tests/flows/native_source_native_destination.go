@@ -52,7 +52,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Deploy an NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddress, nativeTokenDestination, deployReceipt := utils.DeployNativeTokenDestination(
+	nativeTokenDestinationAddress, nativeTokenDestination := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
 		"SUBA",
@@ -66,17 +66,16 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Register the NativeTokenDestination on the NativeTokenSource
-	collateralAmount := utils.RegisterNativeTokenDestinationOnNativeTokenSource(
+	collateralAmount := utils.RegisterTokenDestinationOnSource(
 		ctx,
 		network,
 		cChainInfo,
-		nativeTokenSource,
+		nativeTokenSourceAddress,
 		subnetAInfo,
 		nativeTokenDestinationAddress,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnReceive,
-		deployReceipt,
 	)
 
 	utils.AddCollateralToNativeTokenSource(

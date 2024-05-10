@@ -6,7 +6,6 @@ package utils
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
 	"math"
 	"math/big"
 
@@ -17,6 +16,8 @@ import (
 	erc20source "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Source"
 	nativetokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenDestination"
 	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
+	teleportertokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenDestination"
+	teleportertokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenSource"
 	examplewavax "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleWAVAX"
 	mockERC20SACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
 	mockNSACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockNativeSendAndCallReceiver"
@@ -99,7 +100,7 @@ func DeployERC20Destination(
 	tokenName string,
 	tokenSymbol string,
 	tokenDecimals uint8,
-) (common.Address, *erc20destination.ERC20Destination, *types.Receipt) {
+) (common.Address, *erc20destination.ERC20Destination) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
 		subnet.EVMChainID,
@@ -118,9 +119,9 @@ func DeployERC20Destination(
 	)
 	Expect(err).Should(BeNil())
 
-	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, erc20Destination, receipt
+	return address, erc20Destination
 }
 
 func DeployNativeTokenDestination(
@@ -134,14 +135,13 @@ func DeployNativeTokenDestination(
 	decimalsShift uint8,
 	multiplyOnReceive bool,
 	burnedFeesReportingRewardPercentage *big.Int,
-) (common.Address, *nativetokendestination.NativeTokenDestination, *types.Receipt) {
+) (common.Address, *nativetokendestination.NativeTokenDestination) {
 	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract.
 	// The resulting contract address has been added to the genesis file as an admin for the Native Minter precompile.
 	Expect(nativeTokenDestinationDeployerKeyIndex).Should(BeNumerically("<", len(nativeTokenDestinationDeployerKeys)))
 	deployerKeyStr := nativeTokenDestinationDeployerKeys[nativeTokenDestinationDeployerKeyIndex]
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
 	Expect(err).Should(BeNil())
-	fmt.Println("Deployer Address: ", crypto.PubkeyToAddress(deployerPK.PublicKey))
 
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		deployerPK,
@@ -166,13 +166,12 @@ func DeployNativeTokenDestination(
 	)
 	Expect(err).Should(BeNil())
 
-	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	fmt.Println("Deployed NativeTokenDestination contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	// Increment to the next deployer key so that the next contract deployment succeeds
 	nativeTokenDestinationDeployerKeyIndex++
 
-	return address, nativeTokenDestination, receipt
+	return address, nativeTokenDestination
 }
 
 func DeployNativeTokenSource(
@@ -258,111 +257,67 @@ func DeployMockERC20SendAndCallReceiver(
 	return address, contract
 }
 
-func RegisterERC20DestinationOnERC20Source(
+func RegisterERC20DestinationOnSource(
 	ctx context.Context,
 	network interfaces.Network,
 	sourceSubnet interfaces.SubnetTestInfo,
-	erc20Source *erc20source.ERC20Source,
+	sourceBridgeAddress common.Address,
 	destinationSubnet interfaces.SubnetTestInfo,
-	erc20DestinationAddress common.Address,
-	deployReceipt *types.Receipt,
+	destinationBridgeAddress common.Address,
 ) *big.Int {
-	return RegisterNativeTokenDestinationOnERC20Source(
+	return RegisterTokenDestinationOnSource(
 		ctx,
 		network,
 		sourceSubnet,
-		erc20Source,
-		destinationSubnet,
-		erc20DestinationAddress,
-		big.NewInt(0),
-		big.NewInt(1),
-		false,
-		deployReceipt,
-	)
-}
-
-func RegisterNativeTokenDestinationOnERC20Source(
-	ctx context.Context,
-	network interfaces.Network,
-	sourceSubnet interfaces.SubnetTestInfo,
-	erc20Source *erc20source.ERC20Source,
-	destinationSubnet interfaces.SubnetTestInfo,
-	destinationBridgeAddress common.Address,
-	expectedInitialReserveBalance *big.Int,
-	expectedTokenMultiplier *big.Int,
-	expectedMultiplyOnSend bool,
-	deployReceipt *types.Receipt,
-) *big.Int {
-	// Relay the destination contract's deployment receipt to the source subnet
-	// to send a Teleporter message to the source contract to register the destination
-	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
-
-	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseDestinationRegistered)
-	Expect(err).Should(BeNil())
-	Expect(registerEvent.DestinationBlockchainID[:]).Should(Equal(destinationSubnet.BlockchainID[:]))
-	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
-
-	// Based on the initial reserve balance of the destination bridge,
-	// calculate the collateral amount of source tokens needed to collateralize the destination.
-	collateralNeeded := calculateCollateralNeeded(
-		expectedInitialReserveBalance,
-		expectedTokenMultiplier,
-		expectedMultiplyOnSend,
-	)
-	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
-	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
-	Expect(registerEvent.MultiplyOnSend).Should(Equal(expectedMultiplyOnSend))
-
-	return collateralNeeded
-}
-
-func RegisterERC20DestinationOnNativeTokenSource(
-	ctx context.Context,
-	network interfaces.Network,
-	sourceSubnet interfaces.SubnetTestInfo,
-	nativeTokenSource *nativetokensource.NativeTokenSource,
-	destinationSubnet interfaces.SubnetTestInfo,
-	destinationBridgeAddress common.Address,
-	deployReceipt *types.Receipt) *big.Int {
-	return RegisterNativeTokenDestinationOnNativeTokenSource(
-		ctx,
-		network,
-		sourceSubnet,
-		nativeTokenSource,
+		sourceBridgeAddress,
 		destinationSubnet,
 		destinationBridgeAddress,
 		big.NewInt(0),
 		big.NewInt(1),
 		false,
-		deployReceipt,
 	)
 }
 
-func RegisterNativeTokenDestinationOnNativeTokenSource(
+func RegisterTokenDestinationOnSource(
 	ctx context.Context,
 	network interfaces.Network,
 	sourceSubnet interfaces.SubnetTestInfo,
-	nativeTokenSource *nativetokensource.NativeTokenSource,
+	sourceBridgeAddress common.Address,
 	destinationSubnet interfaces.SubnetTestInfo,
 	destinationBridgeAddress common.Address,
 	expectedInitialReserveBalance *big.Int,
 	expectedTokenMultiplier *big.Int,
 	expectedMultiplyOnSend bool,
-	deployReceipt *types.Receipt,
 ) *big.Int {
-	// Relay the destination contract's deployment receipt to the source subnet
-	// to send a Teleporter message to the source contract to register the destination
+	// Call the destination to send a register message to the source
+	tokenDestination, err := teleportertokendestination.NewTeleporterTokenDestination(
+		destinationBridgeAddress,
+		destinationSubnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	_, fundedKey := network.GetFundedAccountInfo()
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, destinationSubnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	sendRegisterTx, err := tokenDestination.RegisterWithSource(
+		opts,
+		teleportertokendestination.TeleporterFeeInfo{FeeTokenAddress: common.Address{}, Amount: big.NewInt(0)},
+	)
+	Expect(err).Should(BeNil())
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, destinationSubnet, sendRegisterTx.Hash())
 
-	receipt := network.RelayMessage(ctx, deployReceipt, destinationSubnet, sourceSubnet, true)
+	// Relay the register message to the source
+	receipt = network.RelayMessage(ctx, receipt, destinationSubnet, sourceSubnet, true)
 
-	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseDestinationRegistered)
+	// Check that the destination registered event was emitted
+	tokenSource, err := teleportertokensource.NewTeleporterTokenSource(sourceBridgeAddress, sourceSubnet.RPCClient)
+	Expect(err).Should(BeNil())
+	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, tokenSource.ParseDestinationRegistered)
 	Expect(err).Should(BeNil())
 	Expect(registerEvent.DestinationBlockchainID[:]).Should(Equal(destinationSubnet.BlockchainID[:]))
 	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
 
 	// Based on the initial reserve balance of the destination bridge,
 	// calculate the collateral amount of source tokens needed to collateralize the destination.
-
 	collateralNeeded := calculateCollateralNeeded(
 		expectedInitialReserveBalance,
 		expectedTokenMultiplier,
@@ -805,6 +760,7 @@ func SendNativeMultihopAndVerify(
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         DefaultNativeTokenRequiredGasLimit,
+		FallbackRecipient:        recipientAddress,
 	}
 	// Find the amount sent by fromBridge. This is before any scaling/unscaling is applied.
 	bridgedAmount = teleporterUtils.BigIntSub(bridgedAmount, input.PrimaryFee)
@@ -880,6 +836,7 @@ func SendERC20MultihopAndVerify(
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
+		FallbackRecipient:        recipientAddress,
 	}
 
 	// Send tokens through a multi-hop transfer

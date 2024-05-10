@@ -9,6 +9,7 @@ import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
+import {TeleporterTokenDestination} from "../src/TeleporterTokenDestination.sol";
 import {
     NativeTokenDestinationSettings,
     NativeTokenDestination,
@@ -348,6 +349,24 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         app.withdraw(withdrawAmount);
         assertEq(app.balanceOf(TEST_ACCOUNT), depositAmount - withdrawAmount);
         assertEq(TEST_ACCOUNT.balance, withdrawAmount);
+    }
+
+    function _createNewDestinationInstance()
+        internal
+        override
+        returns (TeleporterTokenDestination)
+    {
+        return new NativeTokenDestination(NativeTokenDestinationSettings({
+            nativeAssetSymbol: DEFAULT_SYMBOL,
+            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
+            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
+            multiplyOnReceive: true,
+            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
+        }));
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
