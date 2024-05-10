@@ -21,6 +21,7 @@ import {
 interface ITeleporterTokenSource is ITeleporterTokenBridge {
     /**
      * @dev Emitted when tokens are added as collateral for a destination bridge.
+     * The event emits a {remaining} value of 0 when the destination bridge is fully collateralized.
      */
     event CollateralAdded(
         bytes32 indexed destinationBlockchainID,

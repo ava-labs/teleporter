@@ -87,6 +87,8 @@ abstract contract TeleporterTokenSource is
             => mapping(address destinationBridgeAddress => uint256 balance)
     ) public bridgedBalances;
 
+    uint256 public constant MAX_TOKEN_MULTIPLIER = 1e18;
+
     /**
      * @notice Initializes this source token bridge instance to send
      * tokens to the specified destination chain and token bridge instance.
@@ -121,7 +123,7 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: zero destination bridge address"
         );
         require(
-            tokenMultiplier > 0 && tokenMultiplier < 1e18,
+            tokenMultiplier > 0 && tokenMultiplier < MAX_TOKEN_MULTIPLIER,
             "TeleporterTokenSource: invalid token multiplier"
         );
         require(
@@ -339,7 +341,8 @@ abstract contract TeleporterTokenSource is
         // Deposit the full amount, and withdraw back to the sender if there is excess.
         amount = _deposit(amount);
 
-        // Calculate the amount remaining.
+        // Calculate the remaining collateral needed, any excess amount, and adjust
+        // `amount` to represent the amount of tokens added as collateral.
         uint256 remainingCollateralNeeded;
         uint256 excessAmount;
         if (amount >= destinationSettings.collateralNeeded) {
