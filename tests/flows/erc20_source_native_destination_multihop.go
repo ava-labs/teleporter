@@ -53,7 +53,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		erc20SourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnReceive,
+		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -67,7 +67,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		erc20SourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnReceive,
+		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -81,7 +81,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		multiplyOnReceive,
+		multiplyOnDestination,
 	)
 
 	collateralAmountB := utils.RegisterTokenDestinationOnSource(
@@ -93,7 +93,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		nativeTokenDestinationAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		multiplyOnReceive,
+		multiplyOnDestination,
 	)
 
 	// Add collateral for both NativeTokenDestinations

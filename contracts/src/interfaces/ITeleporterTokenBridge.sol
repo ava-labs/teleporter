@@ -85,13 +85,13 @@ struct BridgeMessage {
  * to register a new destination chain and bridge contract.
  * @param initialReserveImbalance the initial reserve imbalance of the destination bridge contract to calculate associated collateral needed on source bridge contract.
  * @param tokenMultiplier the token multiplier to scale the amount of tokens sent to the destination.
- * @param multiplyOnSend tells whether the source bridge contract should multiply or divide
+ * @param multiplyOnDestination tells whether the source bridge contract should multiply or divide
  * the amount of tokens before sending to the destination.
  */
 struct RegisterDestinationMessage {
     uint256 initialReserveImbalance;
     uint256 tokenMultiplier;
-    bool multiplyOnSend;
+    bool multiplyOnDestination;
 }
 
 /**

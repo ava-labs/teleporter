@@ -133,7 +133,7 @@ func DeployNativeTokenDestination(
 	tokenSourceAddress common.Address,
 	initialReserveImbalance *big.Int,
 	decimalsShift uint8,
-	multiplyOnReceive bool,
+	multiplyOnDestination bool,
 	burnedFeesReportingRewardPercentage *big.Int,
 ) (common.Address, *nativetokendestination.NativeTokenDestination) {
 	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract.
@@ -160,7 +160,7 @@ func DeployNativeTokenDestination(
 			TokenSourceAddress:                  tokenSourceAddress,
 			InitialReserveImbalance:             initialReserveImbalance,
 			DecimalsShift:                       decimalsShift,
-			MultiplyOnReceive:                   multiplyOnReceive,
+			MultiplyOnDestination:               multiplyOnDestination,
 			BurnedFeesReportingRewardPercentage: burnedFeesReportingRewardPercentage,
 		},
 	)
@@ -287,7 +287,7 @@ func RegisterTokenDestinationOnSource(
 	destinationBridgeAddress common.Address,
 	expectedInitialReserveBalance *big.Int,
 	expectedTokenMultiplier *big.Int,
-	expectedMultiplyOnSend bool,
+	expectedMultiplyOnDestination bool,
 ) *big.Int {
 	// Call the destination to send a register message to the source
 	tokenDestination, err := teleportertokendestination.NewTeleporterTokenDestination(
@@ -321,11 +321,11 @@ func RegisterTokenDestinationOnSource(
 	collateralNeeded := calculateCollateralNeeded(
 		expectedInitialReserveBalance,
 		expectedTokenMultiplier,
-		expectedMultiplyOnSend,
+		expectedMultiplyOnDestination,
 	)
 	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
 	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
-	Expect(registerEvent.MultiplyOnSend).Should(Equal(expectedMultiplyOnSend))
+	Expect(registerEvent.MultiplyOnDestination).Should(Equal(expectedMultiplyOnDestination))
 
 	return collateralNeeded
 }
@@ -619,7 +619,7 @@ func SendAndCallERC20Source(
 
 	scaledAmount := ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnSend,
+		destinationSettings.MultiplyOnDestination,
 		bridgedAmount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
@@ -660,7 +660,7 @@ func SendAndCallNativeTokenSource(
 
 	scaledAmount := ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnSend,
+		destinationSettings.MultiplyOnDestination,
 		bridgedAmount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
@@ -676,7 +676,7 @@ func SendAndCallNativeTokenDestination(
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 	tokenMultiplier *big.Int,
-	multiplyOnReceive bool,
+	multiplyOnDestination bool,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -738,7 +738,7 @@ func SendAndCallERC20Destination(
 
 // Send a native token from fromBridge to toBridge via multi-hop through the C-Chain
 // Requires that both fromBridge and toBridge are fully collateralized
-// Requires that both fromBridge and toBridge have the same tokenMultiplier and multiplyOnReceive
+// Requires that both fromBridge and toBridge have the same tokenMultiplier and multiplyOnDestination
 // with respect to the original asset on the C-Chain
 func SendNativeMultihopAndVerify(
 	ctx context.Context,

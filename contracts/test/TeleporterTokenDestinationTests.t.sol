@@ -112,7 +112,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         if (
             TokenScalingUtils.applyTokenScale(
-                tokenDestination.tokenMultiplier(), tokenDestination.multiplyOnReceive(), amount
+                tokenDestination.tokenMultiplier(), tokenDestination.multiplyOnDestination(), amount
             ) != 0
         ) {
             return;
@@ -375,7 +375,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 RegisterDestinationMessage({
                     initialReserveImbalance: tokenDestination.initialReserveImbalance(),
                     tokenMultiplier: tokenDestination.tokenMultiplier(),
-                    multiplyOnSend: tokenDestination.multiplyOnReceive()
+                    multiplyOnDestination: tokenDestination.multiplyOnDestination()
                 })
                 )
         });

@@ -58,15 +58,15 @@ abstract contract TeleporterTokenDestination is
     uint256 public immutable tokenMultiplier;
 
     /**
-     * @notice If {multiplyOnReceive} is true, the source token amount value will be multiplied by {tokenMultiplier} when tokens
+     * @notice If {multiplyOnDestination} is true, the source token amount value will be multiplied by {tokenMultiplier} when tokens
      * are transferred from the source chain into this destination chain, and divided by {tokenMultiplier} when
      * tokens are transferred from this destination chain back to the source chain. This is intended
      * when the "decimals" value on the source chain is less than the native EVM denomination of 18.
-     * If {multiplyOnReceive} is false, the source token amount value will be divided by {tokenMultiplier} when tokens
+     * If {multiplyOnDestination} is false, the source token amount value will be divided by {tokenMultiplier} when tokens
      * are transferred from the source chain into this destination chain, and multiplied by {tokenMultiplier} when
      * tokens are transferred from this destination chain back to the source chain.
      */
-    bool public immutable multiplyOnReceive;
+    bool public immutable multiplyOnDestination;
 
     /**
      * @notice Initial reserve imbalance that the token for this destination bridge
@@ -118,7 +118,7 @@ abstract contract TeleporterTokenDestination is
         address tokenSourceAddress_,
         uint256 initialReserveImbalance_,
         uint8 decimalsShift,
-        bool multiplyOnReceive_
+        bool multiplyOnDestination_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
@@ -139,7 +139,7 @@ abstract contract TeleporterTokenDestination is
         initialReserveImbalance = initialReserveImbalance_;
         isCollateralized = initialReserveImbalance_ == 0;
         tokenMultiplier = 10 ** decimalsShift;
-        multiplyOnReceive = multiplyOnReceive_;
+        multiplyOnDestination = multiplyOnDestination_;
     }
 
     /**
@@ -154,7 +154,7 @@ abstract contract TeleporterTokenDestination is
         RegisterDestinationMessage memory registerMessage = RegisterDestinationMessage({
             initialReserveImbalance: initialReserveImbalance,
             tokenMultiplier: tokenMultiplier,
-            multiplyOnSend: multiplyOnReceive
+            multiplyOnDestination: multiplyOnDestination
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,
@@ -466,7 +466,8 @@ abstract contract TeleporterTokenDestination is
 
     /**
      * @dev Prepares tokens to be sent to another chain by handling the
-     * deposit, burning, and scaling of the token amount.
+     * deposit, burning, and checking that the corresonding amount of
+     * source tokens is greater than zero.
      */
     function _prepareSend(
         bytes32 destinationBlockchainID,
@@ -495,9 +496,10 @@ abstract contract TeleporterTokenDestination is
         amount -= primaryFee;
         _burn(amount);
 
-        // Ensure that the scaled amount on the source chain is non-zero.
+        // Remove this destination contract's token scale, and ensure
+        // that the corresponding amount of source tokens is greater than zero.
         require(
-            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnReceive, amount) > 0,
+            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnDestination, amount) > 0,
             "TeleporterTokenDestination: insufficient tokens to transfer"
         );
 

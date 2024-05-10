@@ -39,7 +39,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnReceive: true,
+            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
         }));
         tokenDestination = app;
@@ -60,7 +60,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
             initialReserveImbalance: 0,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnReceive: true,
+            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
         }));
     }
@@ -75,7 +75,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnReceive: true,
+            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage: 100
         }));
     }
@@ -90,7 +90,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
             initialReserveImbalance: 1_000,
             decimalsShift: 0,
-            multiplyOnReceive: false,
+            multiplyOnDestination: false,
             burnedFeesReportingRewardPercentage: 1
         }));
     }
@@ -105,7 +105,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
             initialReserveImbalance: 1_000,
             decimalsShift: 0,
-            multiplyOnReceive: false,
+            multiplyOnDestination: false,
             burnedFeesReportingRewardPercentage: 1
         }));
     }
@@ -120,7 +120,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: 0,
-            multiplyOnReceive: true,
+            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
         }));
         tokenDestination = app;
@@ -146,7 +146,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: 0,
-            multiplyOnReceive: true,
+            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
         }));
         tokenDestination = app;
@@ -307,7 +307,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: 0,
-            multiplyOnReceive: false,
+            multiplyOnDestination: false,
             burnedFeesReportingRewardPercentage: 0
         }));
         tokenDestination = app;
@@ -364,7 +364,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnReceive: true,
+            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
         }));
     }

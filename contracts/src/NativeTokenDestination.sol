@@ -47,9 +47,7 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
  * @param tokenSourceAddress The address of the source token bridge contract
  * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting
  * @param decimalsShift The number of decimal places to shift the token amount by
- * @param multiplyOnReceive Whether to multiply the token amount on receive.
- * If true, the token amount is multiplied by 10^decimalsShift.
- * If false, the token amount is divided by 10^decimalsShift.
+ * @param multiplyOnDestination See {TeleporterTokenDestination-multiplyOnDestination}
  * @param burnedFeesReportingRewardPercentage The percentage of burned transaction fees
  * that will be rewarded to sender of the report.
  */
@@ -61,7 +59,7 @@ struct NativeTokenDestinationSettings {
     address tokenSourceAddress;
     uint256 initialReserveImbalance;
     uint8 decimalsShift;
-    bool multiplyOnReceive;
+    bool multiplyOnDestination;
     uint256 burnedFeesReportingRewardPercentage;
 }
 
@@ -150,7 +148,7 @@ contract NativeTokenDestination is
             settings.tokenSourceAddress,
             settings.initialReserveImbalance,
             settings.decimalsShift,
-            settings.multiplyOnReceive
+            settings.multiplyOnDestination
         )
     {
         require(
@@ -220,7 +218,8 @@ contract NativeTokenDestination is
 
         // Check that the scaled amount on the source chain will be non-zero.
         require(
-            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnReceive, burnedTxFees) > 0,
+            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnDestination, burnedTxFees)
+                > 0,
             "NativeTokenDestination: zero scaled amount to report burn"
         );
 

@@ -808,12 +808,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         address destinationBridgeAddress,
         uint256 initialReserveImbalance,
         uint256 tokenMultiplier,
-        bool multiplyOnSend
+        bool multiplyOnDestination
     ) internal virtual {
         RegisterDestinationMessage memory payload = RegisterDestinationMessage({
             initialReserveImbalance: initialReserveImbalance,
             tokenMultiplier: tokenMultiplier,
-            multiplyOnSend: multiplyOnSend
+            multiplyOnDestination: multiplyOnDestination
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,

@@ -12,47 +12,48 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// ApplyTokenScaling applies token scaling to the given amount of tokens.
+// ApplyTokenScaling applies token scaling to the given amount of source tokens.
 // Token scaling is applied when sending tokens from the source to the destination bridge,
 func ApplyTokenScaling(
 	tokenMultiplier *big.Int,
 	multiplyOnDestination bool,
-	amount *big.Int,
+	sourceTokenAmount *big.Int,
 ) *big.Int {
-	return scaleTokens(tokenMultiplier, multiplyOnDestination, amount, true)
+	return scaleTokens(tokenMultiplier, multiplyOnDestination, sourceTokenAmount, true)
 }
 
-// RemoveTokenScaling removes token scaling from the given amount of tokens.
+// RemoveTokenScaling removes token scaling from the given amount of destination tokens.
 // Token scaling is removed when sending tokens from the destination bridge back to the source.
 func RemoveTokenScaling(
 	tokenMultiplier *big.Int,
 	multiplyOnDestination bool,
-	amount *big.Int,
+	destinationTokenAmount *big.Int,
 ) *big.Int {
-	return scaleTokens(tokenMultiplier, multiplyOnDestination, amount, false)
+	return scaleTokens(tokenMultiplier, multiplyOnDestination, destinationTokenAmount, false)
 }
 
 func scaleTokens(
 	tokenMultiplier *big.Int,
-	multiplyOnReceive bool,
+	multiplyOnDestination bool,
 	amount *big.Int,
-	isReceive bool,
+	isSendToDestination bool,
 ) *big.Int {
-	// Multiply when multiplyOnReceive and isReceive are both true or both false.
-	if multiplyOnReceive == isReceive {
+	// Multiply when multiplyOnDestination and isSendToDestination are
+	// both true or both false.
+	if multiplyOnDestination == isSendToDestination {
 		return big.NewInt(0).Mul(amount, tokenMultiplier)
 	}
 
 	return big.NewInt(0).Div(amount, tokenMultiplier)
 }
 
-// GetScaledAmountFromERC20Source returns the scaled amount of tokens that will be sent to the destination bridge
-// for corresponding amount of source tokens.
+// GetScaledAmountFromERC20Source returns the scaled amount of destination tokens that
+// will be sent to the destination bridge for an amount of source tokens.
 func GetScaledAmountFromERC20Source(
 	erc20Source *erc20source.ERC20Source,
 	destinationBlockchainID ids.ID,
 	destinationBridgeAddress common.Address,
-	amount *big.Int,
+	sourceTokenAmount *big.Int,
 ) *big.Int {
 	destinationSettings, err := erc20Source.RegisteredDestinations(
 		&bind.CallOpts{},
@@ -63,8 +64,8 @@ func GetScaledAmountFromERC20Source(
 
 	return ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnSend,
-		amount,
+		destinationSettings.MultiplyOnDestination,
+		sourceTokenAmount,
 	)
 }
 
@@ -85,7 +86,7 @@ func GetScaledAmountFromNativeTokenSource(
 
 	return ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnSend,
+		destinationSettings.MultiplyOnDestination,
 		amount,
 	)
 }
@@ -93,12 +94,12 @@ func GetScaledAmountFromNativeTokenSource(
 func calculateCollateralNeeded(
 	initialReserveImbalance *big.Int,
 	tokenMultiplier *big.Int,
-	multiplyOnSend bool,
+	multiplyOnDestination bool,
 ) *big.Int {
-	collateralNeeded := RemoveTokenScaling(tokenMultiplier, multiplyOnSend, initialReserveImbalance)
+	collateralNeeded := RemoveTokenScaling(tokenMultiplier, multiplyOnDestination, initialReserveImbalance)
 
 	remainder := big.NewInt(0).Mod(collateralNeeded, tokenMultiplier)
-	if multiplyOnSend && (remainder.Cmp(big.NewInt(0)) != 0) {
+	if multiplyOnDestination && (remainder.Cmp(big.NewInt(0)) != 0) {
 		collateralNeeded.Add(collateralNeeded, big.NewInt(1))
 	}
 	return collateralNeeded

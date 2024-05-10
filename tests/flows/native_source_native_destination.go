@@ -17,7 +17,7 @@ var (
 	decimalsShift           = uint8(1)
 	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
 	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
-	multiplyOnReceive       = true
+	multiplyOnDestination   = true
 
 	burnedFeesReportingRewardPercentage = big.NewInt(1)
 )
@@ -61,7 +61,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnReceive,
+		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -75,7 +75,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		nativeTokenDestinationAddress,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		multiplyOnReceive,
+		multiplyOnDestination,
 	)
 
 	utils.AddCollateralToNativeTokenSource(
@@ -112,7 +112,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			cChainInfo,
 			nativeTokenSource,
 			input,
-			utils.RemoveTokenScaling(tokenMultiplier, multiplyOnReceive, amount),
+			utils.RemoveTokenScaling(tokenMultiplier, multiplyOnDestination, amount),
 			fundedKey,
 		)
 
@@ -163,7 +163,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		)
 
 		// Check that the recipient received the tokens
-		sourceAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnReceive, bridgedAmount)
+		sourceAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnDestination, bridgedAmount)
 		utils.CheckNativeTokenSourceWithdrawal(
 			ctx,
 			nativeTokenSourceAddress,
