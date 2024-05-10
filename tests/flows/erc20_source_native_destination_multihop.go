@@ -136,7 +136,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 
 	receipt, bridgedAmountA := utils.SendERC20Source(
@@ -169,7 +169,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 
 	receipt, bridgedAmountB := utils.SendERC20Source(

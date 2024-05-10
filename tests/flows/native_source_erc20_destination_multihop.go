@@ -108,7 +108,7 @@ func NativeSourceERC20DestinationMultihop(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
 	}
 
 	// Send the tokens and verify expected events

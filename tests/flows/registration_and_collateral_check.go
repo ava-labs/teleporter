@@ -72,7 +72,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		Recipient:                recipientAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
