@@ -841,7 +841,7 @@ func SendNativeMultihopAndVerify(
 		FeeTokenAddress:          fromBridgeAddress,
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         DefaultNativeTokenRequiredGas,
 		FallbackRecipient:        recipientAddress,
 	}
 
@@ -921,7 +921,7 @@ func SendERC20MultihopAndVerify(
 		FeeTokenAddress:          common.Address{},
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
+		RequiredGasLimit:         DefaultERC20RequiredGas,
 		FallbackRecipient:        recipientAddress,
 	}
 

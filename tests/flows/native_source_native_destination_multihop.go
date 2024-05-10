@@ -134,7 +134,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		FeeTokenAddress:          wavaxAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 
 	receipt, bridgedAmountA := utils.SendNativeTokenSource(
@@ -168,7 +168,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 		FeeTokenAddress:          wavaxAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 	receipt, bridgedAmountB := utils.SendNativeTokenSource(
 		ctx,

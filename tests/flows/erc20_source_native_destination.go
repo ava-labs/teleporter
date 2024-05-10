@@ -95,7 +95,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		FeeTokenAddress:          sourceTokenAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
@@ -130,7 +130,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		FeeTokenAddress:          nativeTokenDestinationAddressA,
 		PrimaryFee:               big.NewInt(1e10),
 		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 	// Send half of the received amount to account for gas expenses
 	amountToSendA := new(big.Int).Div(bridgedAmount, big.NewInt(2))

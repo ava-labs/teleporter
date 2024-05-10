@@ -107,8 +107,8 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			DestinationBridgeAddress: erc20DestinationAddress,
 			RecipientContract:        destMockERC20SACRAddress,
 			RecipientPayload:         []byte{1},
-			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGasLimit),
-			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGasLimit),
+			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
+			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
 			FallbackRecipient:        fallbackAddress,
 			FeeTokenAddress:          sourceTokenAddress,
 			PrimaryFee:               big.NewInt(1e18),
@@ -161,7 +161,7 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			FeeTokenAddress:          sourceTokenAddress,
 			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultERC20RequiredGasLimit,
+			RequiredGasLimit:         utils.DefaultERC20RequiredGas,
 		}
 
 		receipt, bridgedAmount := utils.SendERC20Source(
@@ -214,8 +214,8 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 			DestinationBridgeAddress: erc20SourceAddress,
 			RecipientContract:        sourceMockERC20SACRAddress,
 			RecipientPayload:         []byte{1},
-			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGasLimit),
-			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGasLimit),
+			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
+			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
 			FallbackRecipient:        fallbackAddress,
 			FeeTokenAddress:          erc20DestinationAddress,
 			PrimaryFee:               big.NewInt(1e10),

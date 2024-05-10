@@ -104,7 +104,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			FeeTokenAddress:          cChainWAVAXAddress,
 			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 		}
 
 		// Send initialReserveImbalance tokens to fully collateralize bridge and mint the remainder.
@@ -144,7 +144,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			FeeTokenAddress:          nativeTokenDestinationAddress,
 			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGasLimit,
+			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 		}
 
 		// Send half of the tokens back to C-Chain
