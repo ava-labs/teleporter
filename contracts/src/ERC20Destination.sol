@@ -54,6 +54,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
             sourceBlockchainID_,
             tokenSourceAddress_,
             0,
+            0,
             false
         )
         ERC20(tokenName, tokenSymbol)
@@ -62,7 +63,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     }
 
     /**
-     * @notice For transfers to an `input.destinationBlockchainID` that is not the `sourceBlockchainID`,
+     * @notice For transfers to an {input.destinationBlockchainID} that is not the {sourceBlockchainID},
      * a multi-hop transfer is performed, where the tokens are sent back to the token source chain
      * first to check for bridge balance, and then forwarded to the final destination chain.
      *

@@ -16,8 +16,12 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
     event Withdrawal(address indexed sender, uint256 amount);
 
     function testZeroSendAmount() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        _setUpRegisteredDestination(
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0
+        );
         _setUpExpectedZeroAmountRevert();
-        _send(_createDefaultSendTokensInput(), 0);
+        _send(input, 0);
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {

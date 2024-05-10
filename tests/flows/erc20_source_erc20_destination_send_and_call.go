@@ -77,6 +77,15 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 		tokenDecimals,
 	)
 
+	utils.RegisterERC20DestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		erc20SourceAddress,
+		subnetAInfo,
+		erc20DestinationAddress,
+	)
+
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())

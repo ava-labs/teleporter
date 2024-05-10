@@ -11,8 +11,11 @@ import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallRece
 import {ERC20Source} from "../src/ERC20Source.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
 contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
+    using SafeERC20 for IERC20;
+
     ERC20Source public app;
     IERC20 public mockERC20;
 
@@ -116,6 +119,19 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
             vm.expectEmit(true, true, true, true, address(mockERC20));
             emit Transfer(address(app), address(DEFAULT_FALLBACK_RECIPIENT_ADDRESS), amount);
         }
+    }
+
+    function _addCollateral(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount
+    ) internal override {
+        app.addCollateral(destinationBlockchainID, destinationBridgeAddress, amount);
+    }
+
+    function _setUpDeposit(uint256 amount) internal virtual override {
+        // Increase the allowance of the bridge to transfer the funds from the user
+        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
     }
 
     function _setUpExpectedZeroAmountRevert() internal override {

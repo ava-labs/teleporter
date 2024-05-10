@@ -64,6 +64,15 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		tokenDecimals,
 	)
 
+	utils.RegisterERC20DestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		nativeTokenSourceAddress,
+		subnetAInfo,
+		erc20DestinationAddress,
+	)
+
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())

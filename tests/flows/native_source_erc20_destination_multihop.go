@@ -77,6 +77,25 @@ func NativeSourceERC20DestinationMultihop(network interfaces.Network) {
 		tokenDecimals,
 	)
 
+	// Register both ERC20Destinations on the native token source
+	utils.RegisterERC20DestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		nativeTokenSourceAddress,
+		subnetAInfo,
+		erc20DestinationAddress_A,
+	)
+
+	utils.RegisterERC20DestinationOnSource(
+		ctx,
+		network,
+		cChainInfo,
+		nativeTokenSourceAddress,
+		subnetBInfo,
+		erc20DestinationAddress_B,
+	)
+
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())

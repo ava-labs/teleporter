@@ -6,7 +6,7 @@ package utils
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
+	"math"
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -16,6 +16,8 @@ import (
 	erc20source "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Source"
 	nativetokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenDestination"
 	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
+	teleportertokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenDestination"
+	teleportertokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenSource"
 	examplewavax "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleWAVAX"
 	mockERC20SACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
 	mockNSACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockNativeSendAndCallReceiver"
@@ -56,6 +58,9 @@ var nativeTokenDestinationDeployerKeys = []string{
 	// Deployer address:			   0x741D536f5B07bcD43727CD8435389CA36aE5A4Ae
 	// NativeTokenDestination address: 0x4f3663be6d22B0F19F8617f1A9E9485aB0144Bff
 	"8a92f3f468ce5b0d99f9aaa55695f93e03dbbb6d5e3faba80f92a7876be740d6",
+	// Deployer address:			   0xd466f12795BA59d0fef389c21fA63c287956fb18
+	// NativeTokenDestination address: 0x463a6bE7a5098A5f06435c6c468adD338F15B93A
+	"ebb7f0cf71e0b6fd880326e5f5061b8456b0aef81901566cbe578b5024852ec9",
 }
 var nativeTokenDestinationDeployerKeyIndex = 0
 
@@ -128,7 +133,7 @@ func DeployNativeTokenDestination(
 	tokenSourceAddress common.Address,
 	initialReserveImbalance *big.Int,
 	decimalsShift uint8,
-	multiplyOnReceive bool,
+	multiplyOnDestination bool,
 	burnedFeesReportingRewardPercentage *big.Int,
 ) (common.Address, *nativetokendestination.NativeTokenDestination) {
 	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract.
@@ -137,7 +142,6 @@ func DeployNativeTokenDestination(
 	deployerKeyStr := nativeTokenDestinationDeployerKeys[nativeTokenDestinationDeployerKeyIndex]
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
 	Expect(err).Should(BeNil())
-	fmt.Println("Deployer Address: ", crypto.PubkeyToAddress(deployerPK.PublicKey))
 
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		deployerPK,
@@ -156,14 +160,13 @@ func DeployNativeTokenDestination(
 			TokenSourceAddress:                  tokenSourceAddress,
 			InitialReserveImbalance:             initialReserveImbalance,
 			DecimalsShift:                       decimalsShift,
-			MultiplyOnReceive:                   multiplyOnReceive,
+			MultiplyOnDestination:               multiplyOnDestination,
 			BurnedFeesReportingRewardPercentage: burnedFeesReportingRewardPercentage,
 		},
 	)
 	Expect(err).Should(BeNil())
 
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	fmt.Println("Deployed NativeTokenDestination contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
 
 	// Increment to the next deployer key so that the next contract deployment succeeds
 	nativeTokenDestinationDeployerKeyIndex++
@@ -254,6 +257,172 @@ func DeployMockERC20SendAndCallReceiver(
 	return address, contract
 }
 
+func RegisterERC20DestinationOnSource(
+	ctx context.Context,
+	network interfaces.Network,
+	sourceSubnet interfaces.SubnetTestInfo,
+	sourceBridgeAddress common.Address,
+	destinationSubnet interfaces.SubnetTestInfo,
+	destinationBridgeAddress common.Address,
+) *big.Int {
+	return RegisterTokenDestinationOnSource(
+		ctx,
+		network,
+		sourceSubnet,
+		sourceBridgeAddress,
+		destinationSubnet,
+		destinationBridgeAddress,
+		big.NewInt(0),
+		big.NewInt(1),
+		false,
+	)
+}
+
+func RegisterTokenDestinationOnSource(
+	ctx context.Context,
+	network interfaces.Network,
+	sourceSubnet interfaces.SubnetTestInfo,
+	sourceBridgeAddress common.Address,
+	destinationSubnet interfaces.SubnetTestInfo,
+	destinationBridgeAddress common.Address,
+	expectedInitialReserveBalance *big.Int,
+	expectedTokenMultiplier *big.Int,
+	expectedMultiplyOnDestination bool,
+) *big.Int {
+	// Call the destination to send a register message to the source
+	tokenDestination, err := teleportertokendestination.NewTeleporterTokenDestination(
+		destinationBridgeAddress,
+		destinationSubnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	_, fundedKey := network.GetFundedAccountInfo()
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, destinationSubnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	sendRegisterTx, err := tokenDestination.RegisterWithSource(
+		opts,
+		teleportertokendestination.TeleporterFeeInfo{FeeTokenAddress: common.Address{}, Amount: big.NewInt(0)},
+	)
+	Expect(err).Should(BeNil())
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, destinationSubnet, sendRegisterTx.Hash())
+
+	// Relay the register message to the source
+	receipt = network.RelayMessage(ctx, receipt, destinationSubnet, sourceSubnet, true)
+
+	// Check that the destination registered event was emitted
+	tokenSource, err := teleportertokensource.NewTeleporterTokenSource(sourceBridgeAddress, sourceSubnet.RPCClient)
+	Expect(err).Should(BeNil())
+	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, tokenSource.ParseDestinationRegistered)
+	Expect(err).Should(BeNil())
+	Expect(registerEvent.DestinationBlockchainID[:]).Should(Equal(destinationSubnet.BlockchainID[:]))
+	Expect(registerEvent.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
+
+	// Based on the initial reserve balance of the destination bridge,
+	// calculate the collateral amount of source tokens needed to collateralize the destination.
+	collateralNeeded := calculateCollateralNeeded(
+		expectedInitialReserveBalance,
+		expectedTokenMultiplier,
+		expectedMultiplyOnDestination,
+	)
+	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
+	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
+	Expect(registerEvent.MultiplyOnDestination).Should(Equal(expectedMultiplyOnDestination))
+
+	return collateralNeeded
+}
+
+// AddCollateralToERC20Source adds collateral to the ERC20Source contract
+// and verifies the collateral was added successfully. Any excess amount
+// is returned to the caller.
+func AddCollateralToERC20Source(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	erc20Source *erc20source.ERC20Source,
+	erc20SourceAddress common.Address,
+	exampleERC20 *exampleerc20.ExampleERC20,
+	destinationBlockchainID ids.ID,
+	destinationBridgeAddress common.Address,
+	collateralAmount *big.Int,
+	senderKey *ecdsa.PrivateKey,
+) {
+	// Approve the ERC20Source to spend the collateral
+	teleporterUtils.ERC20Approve(
+		ctx,
+		exampleERC20,
+		erc20SourceAddress,
+		collateralAmount,
+		subnet,
+		senderKey,
+	)
+
+	// Add collateral to the ERC20Source
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := erc20Source.AddCollateral(
+		opts,
+		destinationBlockchainID,
+		destinationBridgeAddress,
+		collateralAmount,
+	)
+	Expect(err).Should(BeNil())
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseCollateralAdded)
+	Expect(err).Should(BeNil())
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(destinationBlockchainID[:]))
+	Expect(event.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
+
+	destinationSettings, err := erc20Source.RegisteredDestinations(
+		&bind.CallOpts{},
+		destinationBlockchainID,
+		destinationBridgeAddress)
+	Expect(err).Should(BeNil())
+	if collateralAmount.Cmp(destinationSettings.CollateralNeeded) > 0 {
+		collateralAmount.Sub(collateralAmount, destinationSettings.CollateralNeeded)
+	}
+	teleporterUtils.ExpectBigEqual(event.Amount, collateralAmount)
+	teleporterUtils.ExpectBigEqual(event.Remaining, big.NewInt(0))
+}
+
+// AddCollateralToNativeTokenSource adds collateral to the NativeTokenSource contract
+// and verifies the collateral was added successfully. Any excess amount
+// is returned to the caller.
+func AddCollateralToNativeTokenSource(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	nativeTokenSource *nativetokensource.NativeTokenSource,
+	nativeTokenSourceAddress common.Address,
+	destinationBlockchainID ids.ID,
+	destinationBridgeAddress common.Address,
+	collateralAmount *big.Int,
+	senderKey *ecdsa.PrivateKey,
+) {
+	// Add collateral to the ERC20Source
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	opts.Value = collateralAmount
+
+	tx, err := nativeTokenSource.AddCollateral(
+		opts,
+		destinationBlockchainID,
+		destinationBridgeAddress,
+	)
+	Expect(err).Should(BeNil())
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSource.ParseCollateralAdded)
+	Expect(err).Should(BeNil())
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(destinationBlockchainID[:]))
+	Expect(event.DestinationBridgeAddress).Should(Equal(destinationBridgeAddress))
+	destinationSettings, err := nativeTokenSource.RegisteredDestinations(
+		&bind.CallOpts{},
+		destinationBlockchainID,
+		destinationBridgeAddress)
+	Expect(err).Should(BeNil())
+	if collateralAmount.Cmp(destinationSettings.CollateralNeeded) > 0 {
+		collateralAmount.Sub(collateralAmount, destinationSettings.CollateralNeeded)
+	}
+	teleporterUtils.ExpectBigEqual(event.Amount, collateralAmount)
+	teleporterUtils.ExpectBigEqual(event.Remaining, big.NewInt(0))
+}
+
 func SendERC20Source(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
@@ -289,6 +458,15 @@ func SendERC20Source(
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	teleporterUtils.ExpectBigEqual(event.Amount, amount)
+
+	// Compute the scaled amount
+	scaledAmount := GetScaledAmountFromERC20Source(
+		erc20Source,
+		input.DestinationBlockchainID,
+		input.DestinationBridgeAddress,
+		amount,
+	)
+	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
 
 	return receipt, event.Amount
 }
@@ -327,6 +505,15 @@ func SendNativeTokenSource(
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	teleporterUtils.ExpectBigEqual(event.Amount, amount)
+
+	// Compute the scaled amount
+	scaledAmount := GetScaledAmountFromNativeTokenSource(
+		nativeTokenSource,
+		input.DestinationBlockchainID,
+		input.DestinationBridgeAddress,
+		amount,
+	)
+	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
 
 	return receipt, event.Amount
 }
@@ -410,8 +597,6 @@ func SendNativeTokenDestination(
 	input nativetokendestination.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
-	tokenMultiplier *big.Int,
-	multiplyOnReceive bool,
 ) (*types.Receipt, *big.Int) {
 	DepositAndApproveNativeForFees(
 		ctx,
@@ -432,18 +617,13 @@ func SendNativeTokenDestination(
 	)
 	Expect(err).Should(BeNil())
 
-	var scaledBridgedAmount *big.Int
-	if multiplyOnReceive {
-		scaledBridgedAmount = new(big.Int).Div(amount, tokenMultiplier)
-	} else {
-		scaledBridgedAmount = teleporterUtils.BigIntMul(amount, tokenMultiplier)
-	}
+	bridgedAmount := new(big.Int).Sub(amount, input.PrimaryFee)
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	teleporterUtils.ExpectBigEqual(event.Amount, scaledBridgedAmount)
+	teleporterUtils.ExpectBigEqual(event.Amount, bridgedAmount)
 
 	return receipt, event.Amount
 }
@@ -521,6 +701,20 @@ func SendAndCallERC20Source(
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 	teleporterUtils.ExpectBigEqual(event.Amount, amount)
 
+	// Computer the scaled amount
+	destinationSettings, err := erc20Source.RegisteredDestinations(
+		&bind.CallOpts{},
+		input.DestinationBlockchainID,
+		input.DestinationBridgeAddress)
+	Expect(err).Should(BeNil())
+
+	scaledAmount := ApplyTokenScaling(
+		destinationSettings.TokenMultiplier,
+		destinationSettings.MultiplyOnDestination,
+		amount,
+	)
+	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
+
 	return receipt, event.Amount
 }
 
@@ -548,6 +742,20 @@ func SendAndCallNativeTokenSource(
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 	teleporterUtils.ExpectBigEqual(event.Amount, amount)
 
+	// Computer the scaled amount
+	destinationSettings, err := nativeTokenSource.RegisteredDestinations(
+		&bind.CallOpts{},
+		input.DestinationBlockchainID,
+		input.DestinationBridgeAddress)
+	Expect(err).Should(BeNil())
+
+	scaledAmount := ApplyTokenScaling(
+		destinationSettings.TokenMultiplier,
+		destinationSettings.MultiplyOnDestination,
+		amount,
+	)
+	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
+
 	return receipt, event.Amount
 }
 
@@ -559,7 +767,7 @@ func SendAndCallNativeTokenDestination(
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 	tokenMultiplier *big.Int,
-	multiplyOnReceive bool,
+	multiplyOnDestination bool,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
@@ -570,18 +778,14 @@ func SendAndCallNativeTokenDestination(
 		input,
 	)
 	Expect(err).Should(BeNil())
-	var scaledBridgedAmount *big.Int
-	if multiplyOnReceive {
-		scaledBridgedAmount = big.NewInt(0).Div(amount, tokenMultiplier)
-	} else {
-		scaledBridgedAmount = teleporterUtils.BigIntMul(amount, tokenMultiplier)
-	}
+
+	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseTokensAndCallSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
-	teleporterUtils.ExpectBigEqual(event.Amount, scaledBridgedAmount)
+	teleporterUtils.ExpectBigEqual(event.Amount, bridgedAmount)
 
 	return receipt, event.Amount
 }
@@ -625,7 +829,7 @@ func SendAndCallERC20Destination(
 
 // Send a native token from fromBridge to toBridge via multi-hop through the C-Chain
 // Requires that both fromBridge and toBridge are fully collateralized
-// Requires that both fromBridge and toBridge have the same tokenMultiplier and multiplyOnReceive
+// Requires that both fromBridge and toBridge have the same tokenMultiplier and multiplyOnDestination
 // with respect to the original asset on the C-Chain
 func SendNativeMultihopAndVerify(
 	ctx context.Context,
@@ -640,8 +844,6 @@ func SendNativeMultihopAndVerify(
 	toBridgeAddress common.Address,
 	cChainInfo interfaces.SubnetTestInfo,
 	bridgedAmount *big.Int,
-	tokenMultiplier *big.Int,
-	multiplyOnReceive bool,
 ) {
 	input := nativetokendestination.SendTokensInput{
 		DestinationBlockchainID:  toSubnet.BlockchainID,
@@ -651,10 +853,14 @@ func SendNativeMultihopAndVerify(
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         DefaultNativeTokenRequiredGasLimit,
+		FallbackRecipient:        recipientAddress,
 	}
 
+	// Find the amount sent by fromBridge. This is before any scaling/unscaling is applied.
+	bridgedAmount = teleporterUtils.BigIntSub(bridgedAmount, input.PrimaryFee)
+
 	// Send tokens through a multi-hop transfer
-	originReceipt, _ := SendNativeTokenDestination(
+	originReceipt, bridgedAmount := SendNativeTokenDestination(
 		ctx,
 		fromSubnet,
 		fromBridge,
@@ -662,8 +868,6 @@ func SendNativeMultihopAndVerify(
 		input,
 		bridgedAmount,
 		sendingKey,
-		tokenMultiplier,
-		multiplyOnReceive,
 	)
 
 	// Relay the first message back to the home-chain, in this case C-Chain,
@@ -693,7 +897,7 @@ func SendNativeMultihopAndVerify(
 	teleporterUtils.CheckBalance(
 		ctx,
 		recipientAddress,
-		new(big.Int).Add(initialBalance, bridgedAmount),
+		big.NewInt(0).Add(initialBalance, bridgedAmount),
 		toSubnet.RPCClient,
 	)
 }
@@ -729,6 +933,7 @@ func SendERC20MultihopAndVerify(
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         DefaultERC20RequiredGasLimit,
+		FallbackRecipient:        recipientAddress,
 	}
 
 	// Send tokens through a multi-hop transfer
@@ -759,6 +964,9 @@ func SendERC20MultihopAndVerify(
 		teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo, intermediateReceipt.TxHash)
 	}
 
+	initialBalance, err := toBridge.BalanceOf(&bind.CallOpts{}, recipientAddress)
+	Expect(err).Should(BeNil())
+
 	// When we relay the above message to the home-chain, a multi-hop transfer
 	// is performed to the destination chain. Parse for the send tokens event
 	// and relay to final destination.
@@ -784,7 +992,7 @@ func SendERC20MultihopAndVerify(
 
 	balance, err := toBridge.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	teleporterUtils.ExpectBigEqual(balance, bridgedAmount)
+	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, bridgedAmount))
 }
 
 func CheckERC20SourceWithdrawal(
@@ -829,16 +1037,8 @@ func CheckNativeTokenSourceWithdrawal(
 	teleporterUtils.ExpectBigEqual(withdrawalEvent.Amount, expectedAmount)
 }
 
-func CheckNativeTokenDestinationCollateralize(
-	ctx context.Context,
-	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
-	receipt *types.Receipt,
-	expectedAmount *big.Int,
-	expectedRemaining *big.Int,
-) {
-	collateralEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenDestination.ParseCollateralAdded)
-	Expect(err).Should(BeNil())
-	fmt.Println("log ", collateralEvent)
-	teleporterUtils.ExpectBigEqual(collateralEvent.Amount, expectedAmount)
-	teleporterUtils.ExpectBigEqual(collateralEvent.Remaining, expectedRemaining)
+func GetTokenMultiplier(
+	decimalsShift uint8,
+) *big.Int {
+	return big.NewInt(int64(math.Pow10(int(decimalsShift))))
 }

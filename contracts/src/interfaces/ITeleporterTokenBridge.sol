@@ -21,7 +21,11 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
  * @param requiredGasLimit gas limit requirement for sending to a token bridge.
  * This is required because the gas requirement varies based on the token bridge instance
- * specified by `destinationBlockchainID` and `destinationBridgeAddress`.
+ * specified by {destinationBlockchainID} and {destinationBridgeAddress}.
+ * @param fallbackRecipient in the case of a multi-hop transfer, the address where the tokens
+ * are sent on the source chain if the transfer is unable to be routed to its final destination.
+ * For EOA recipients, the fallbackRecipient should generally be the same as the recipient.
+ * Not used for single-hop transfers.
  */
 struct SendTokensInput {
     bytes32 destinationBlockchainID;
@@ -31,6 +35,7 @@ struct SendTokensInput {
     uint256 primaryFee;
     uint256 secondaryFee;
     uint256 requiredGasLimit;
+    address fallbackRecipient;
 }
 
 /**
@@ -61,24 +66,43 @@ struct SendAndCallInput {
 }
 
 enum BridgeMessageType {
+    REGISTER_DESTINATION,
     SINGLE_HOP_SEND,
     SINGLE_HOP_CALL,
     MULTI_HOP_SEND,
     MULTI_HOP_CALL
 }
 
+/**
+ * @dev The BridgeMessage struct is used to wrap messages between two bridge contracts
+ * with their message type so that the receiving bridge contract can decode the payload.
+ */
 struct BridgeMessage {
     BridgeMessageType messageType;
-    uint256 amount;
     bytes payload;
 }
 
 /**
- * @dev Single hop send message payloads only include the recipient address.
+ * @dev Register destination message payloads are sent to the source bridge contract
+ * to register a new destination chain and bridge contract.
+ * @param initialReserveImbalance the initial reserve imbalance of the destination bridge contract to calculate associated collateral needed on source bridge contract.
+ * @param tokenMultiplier the token multiplier to scale the amount of tokens sent to the destination.
+ * @param multiplyOnDestination tells whether the source bridge contract should multiply or divide
+ * the amount of tokens before sending to the destination.
+ */
+struct RegisterDestinationMessage {
+    uint256 initialReserveImbalance;
+    uint256 tokenMultiplier;
+    bool multiplyOnDestination;
+}
+
+/**
+ * @dev Single hop send message payloads include the recipient address and bridged amount .
  * The destination chain and bridge address are defined by the Teleporter message.
  */
 struct SingleHopSendMessage {
     address recipient;
+    uint256 amount;
 }
 
 /**
@@ -91,6 +115,7 @@ struct SingleHopCallMessage {
     bytes32 sourceBlockchainID;
     address originSenderAddress;
     address recipientContract;
+    uint256 amount;
     bytes recipientPayload;
     uint256 recipientGasLimit;
     address fallbackRecipient;
@@ -105,8 +130,10 @@ struct MultiHopSendMessage {
     bytes32 destinationBlockchainID;
     address destinationBridgeAddress;
     address recipient;
+    uint256 amount;
     uint256 secondaryFee;
     uint256 secondaryGasLimit;
+    address fallbackRecipient;
 }
 
 /**
@@ -123,6 +150,7 @@ struct MultiHopCallMessage {
     bytes32 destinationBlockchainID;
     address destinationBridgeAddress;
     address recipientContract;
+    uint256 amount;
     bytes recipientPayload;
     uint256 recipientGasLimit;
     address fallbackRecipient;
@@ -147,11 +175,6 @@ interface ITeleporterTokenBridge is ITeleporterReceiver {
     );
 
     /**
-     * @notice Emitted when tokens are routed from a multi-hop send message to another chain.
-     */
-    event TokensRouted(bytes32 indexed teleporterMessageID, SendTokensInput input, uint256 amount);
-
-    /**
      * @notice Emitted when tokens are sent to another chain with calldata for a contract recipient.
      */
     event TokensAndCallSent(
@@ -159,14 +182,6 @@ interface ITeleporterTokenBridge is ITeleporterReceiver {
         address indexed sender,
         SendAndCallInput input,
         uint256 amount
-    );
-
-    /**
-     * @notice Emitted when tokens are routed from a mulit-hop send message,
-     * with calldata for a contract recipient, to another chain.
-     */
-    event TokensAndCallRouted(
-        bytes32 indexed teleporterMessageID, SendAndCallInput input, uint256 amount
     );
 
     /**
