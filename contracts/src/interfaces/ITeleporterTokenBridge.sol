@@ -17,7 +17,8 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * @param destinationBlockchainID blockchainID of the destination
  * @param destinationBridgeAddress address of the destination token bridge instance
  * @param recipient address of the recipient on the destination chain
- * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
+ * @param feeTokenAddress address of the ERC20 contract to pay for Teleporter fee
+ * @param primaryFee amount of tokens to pay for Teleporter fee
  * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
  * @param requiredGasLimit gas limit requirement for sending to a token bridge.
  * This is required because the gas requirement varies based on the token bridge instance
