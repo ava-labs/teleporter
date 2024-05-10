@@ -1,13 +1,13 @@
 module github.com/ava-labs/teleporter-token-bridge
 
-go 1.21.9
+go 1.21.10
 
 require (
 	github.com/ava-labs/avalanchego v1.11.1
 	github.com/ava-labs/subnet-evm v0.6.1
 	github.com/ava-labs/teleporter v1.0.0
 	github.com/ethereum/go-ethereum v1.12.0
-	github.com/onsi/ginkgo/v2 v2.17.2
+	github.com/onsi/ginkgo/v2 v2.17.3
 	github.com/onsi/gomega v1.33.1
 )
 
