@@ -211,7 +211,6 @@ abstract contract TeleporterTokenDestination is
             secondaryFee: input.secondaryFee
         });
 
-
         // If the destination blockchain is the source blockchain,
         // no multi-hop is needed. Only the required gas limit for the Teleporter message back to
         // {sourceBlockchainID} is needed, which is provided by {input.requiredGasLimit}.
