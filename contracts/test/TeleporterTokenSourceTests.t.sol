@@ -154,6 +154,13 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _send(input, 100_000);
     }
 
+    function testNonZeroFallbackRecipientForSingleHopCall() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
+        vm.expectRevert(_formatErrorMessage("non-zero multi-hop fallback"));
+        _sendAndCall(input, 100_000);
+    }
+
     function testNonZeroSecondaryFee() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.secondaryFee = 1;
