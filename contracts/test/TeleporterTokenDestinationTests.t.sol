@@ -142,7 +142,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 amount = 1;
 
         if (
-            TokenScalingUtils.applyTokenScale(
+            TokenScalingUtils.removeTokenScale(
                 tokenDestination.tokenMultiplier(), tokenDestination.multiplyOnDestination(), amount
             ) != 0
         ) {
