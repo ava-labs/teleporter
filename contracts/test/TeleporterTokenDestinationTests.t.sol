@@ -69,12 +69,28 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
-    function testNonZeroFallbackRecipientForSingleHop() public {
+    function testNonZeroSecondaryFeeToSourceBlockchainCall() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.secondaryFee = 1;
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
+        vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
+        _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testNonZeroMultiHopFallbackForSingleHop() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
         input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
         vm.expectRevert(_formatErrorMessage("non-zero multi-hop fallback"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testNonZeroMultiHopFallbackForSingleHopCall() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
+        input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
+        vm.expectRevert(_formatErrorMessage("non-zero multi-hop fallback"));
+        _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendingToSameInstance() public {
@@ -151,6 +167,16 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _setUpExpectedDeposit(amount, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("zero multi-hop fallback"));
         _send(input, amount);
+    }
+
+    function testSendAndCallMultiHopZeroMultiHopFallback() public {
+        uint256 amount = 200_000;
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
+        input.multiHopFallback = address(0);
+        _setUpExpectedDeposit(amount, input.primaryFee);
+        vm.expectRevert(_formatErrorMessage("zero multi-hop fallback"));
+        _sendAndCall(input, amount);
     }
 
     function testSendMultiHopSendSuccess() public {

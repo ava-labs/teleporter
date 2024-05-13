@@ -268,6 +268,7 @@ abstract contract TeleporterTokenSource is
             input.fallbackRecipient != address(0),
             "TeleporterTokenSource: zero fallback recipient address"
         );
+        require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
 
         uint256 adjustedAmount;
         uint256 feeAmount = input.primaryFee;
