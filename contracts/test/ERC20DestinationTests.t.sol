@@ -126,15 +126,11 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
         input.primaryFeeTokenAddress = address(separateFeeAsset);
         input.primaryFee = feeAmount;
 
-        if (feeAmount > 0) {
-            IERC20(separateFeeAsset).safeIncreaseAllowance(address(tokenBridge), feeAmount);
-            vm.expectCall(
-                address(separateFeeAsset),
-                abi.encodeCall(
-                    IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
-                )
-            );
-        }
+        IERC20(separateFeeAsset).safeIncreaseAllowance(address(tokenBridge), feeAmount);
+        vm.expectCall(
+            address(separateFeeAsset),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
+        );
         // Increase the allowance of the bridge to transfer the funds from the user
         bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
 
