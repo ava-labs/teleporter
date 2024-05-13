@@ -413,7 +413,6 @@ abstract contract TeleporterTokenSource is
                 _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
 
             // Verify that the payload's source blockchain ID matches the source blockchain ID passed from Teleporter.
-            // Prevents a destination bridge from accessing tokens attributed to another destination bridge instance.
             require(
                 payload.sourceBlockchainID == sourceBlockchainID,
                 "TeleporterTokenSource: mismatched source blockchain ID"
