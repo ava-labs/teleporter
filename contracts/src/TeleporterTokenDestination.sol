@@ -206,7 +206,7 @@ abstract contract TeleporterTokenDestination is
             destinationBlockchainID: input.destinationBlockchainID,
             destinationBridgeAddress: input.destinationBridgeAddress,
             amount: amount,
-            feeTokenAddress: input.feeTokenAddress,
+            primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             primaryFee: input.primaryFee,
             secondaryFee: input.secondaryFee
         });
@@ -274,7 +274,10 @@ abstract contract TeleporterTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.feeTokenAddress, amount: primaryFee}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: primaryFee
+                }),
                 requiredGasLimit: messageRequiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -315,7 +318,7 @@ abstract contract TeleporterTokenDestination is
             destinationBlockchainID: input.destinationBlockchainID,
             destinationBridgeAddress: input.destinationBridgeAddress,
             amount: amount,
-            feeTokenAddress: input.feeTokenAddress,
+            primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             primaryFee: input.primaryFee,
             secondaryFee: input.secondaryFee
         });
@@ -395,7 +398,10 @@ abstract contract TeleporterTokenDestination is
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.feeTokenAddress, amount: primaryFee}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: primaryFee
+                }),
                 requiredGasLimit: messageRequiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -489,7 +495,7 @@ abstract contract TeleporterTokenDestination is
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         uint256 amount,
-        address feeTokenAddress,
+        address primaryFeeTokenAddress,
         uint256 primaryFee,
         uint256 secondaryFee
     ) private returns (uint256, uint256) {
@@ -514,12 +520,17 @@ abstract contract TeleporterTokenDestination is
         );
 
         // Transfer the primary fee to pay for Teleporter fees on the first hop.
-        // The user can specify this contract as `feeTokenAddress`,
+        // The user can specify this contract as {primaryFeeTokenAddress},
         // in which case the fee will be paid on top of the bridged amount.
-        // TODO: should we check if `feeTokenAddress` is `bridgeTokenAddress`? If so,
-        // we could use internal transfer, or just deposit the fee in above `_deposit` call.
         if (primaryFee > 0) {
-            primaryFee = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), primaryFee);
+            // If the {primaryFeeTokenAddress} is this contract, then just deposit the tokens directly.
+            if (primaryFeeTokenAddress == address(this)) {
+                _deposit(primaryFee);
+            } else {
+                primaryFee = SafeERC20TransferFrom.safeTransferFrom(
+                    IERC20(primaryFeeTokenAddress), primaryFee
+                );
+            }
         }
 
         // Burn the amount of tokens that will be bridged.

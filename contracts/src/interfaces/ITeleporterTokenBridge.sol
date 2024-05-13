@@ -17,7 +17,7 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * @param destinationBlockchainID blockchainID of the destination
  * @param destinationBridgeAddress address of the destination token bridge instance
  * @param recipient address of the recipient on the destination chain
- * @param feeTokenAddress address of the ERC20 contract to optionally pay a Teleporter message fee
+ * @param primaryFeeTokenAddress address of the ERC20 contract to optionally pay a Teleporter message fee
  * @param primaryFee amount of tokens to pay as the optional Teleporter message fee
  * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
  * @param requiredGasLimit gas limit requirement for sending to a token bridge.
@@ -30,7 +30,7 @@ struct SendTokensInput {
     bytes32 destinationBlockchainID;
     address destinationBridgeAddress;
     address recipient;
-    address feeTokenAddress;
+    address primaryFeeTokenAddress;
     uint256 primaryFee;
     uint256 secondaryFee;
     uint256 requiredGasLimit;
@@ -50,6 +50,7 @@ struct SendTokensInput {
  * @param multiHopFallback in the case of a multi-hop transfer, the address where the tokens
  * are sent on the source chain if the transfer is unable to be routed to its final destination.
  * @param fallbackRecipient address where the bridged tokens are sent if the call to the recipient contract fails.
+ * @param primaryFeeTokenAddress address of the ERC20 contract to optionally pay a Teleporter message fee
  * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
  * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
  */
@@ -62,7 +63,7 @@ struct SendAndCallInput {
     uint256 recipientGasLimit;
     address multiHopFallback;
     address fallbackRecipient;
-    address feeTokenAddress;
+    address primaryFeeTokenAddress;
     uint256 primaryFee;
     uint256 secondaryFee;
 }
