@@ -21,6 +21,7 @@ import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITelepor
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDestinationTest {
     using SafeERC20 for IERC20;
@@ -163,6 +164,28 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         // Now mark the contract as collateralized and confirm sending is enabled.
         _collateralizeBridge();
         _sendSingleHopSendSuccess(100_000, 0);
+    }
+
+    function testSendWithSeparateFeeAsset() public {
+        uint256 amount = 200_000;
+        uint256 feeAmount = 100;
+        ExampleERC20 separateFeeAsset = new ExampleERC20();
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFeeTokenAddress = address(separateFeeAsset);
+        input.primaryFee = feeAmount;
+
+        IERC20(separateFeeAsset).safeIncreaseAllowance(address(app), feeAmount);
+        vm.expectCall(
+            address(separateFeeAsset),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
+        );
+
+        vm.expectEmit(true, true, true, true, address(app));
+        emit Transfer(address(0), address(app), amount);
+        _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
+        vm.expectEmit(true, true, true, true, address(app));
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount);
+        _send(input, amount);
     }
 
     function testTotalNativeAssetSupply() public {

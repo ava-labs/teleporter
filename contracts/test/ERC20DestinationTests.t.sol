@@ -12,6 +12,8 @@ import {TeleporterTokenDestination} from "../src/TeleporterTokenDestination.sol"
 import {ERC20Destination} from "../src/ERC20Destination.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
+import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 
 contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest {
     using SafeERC20 for IERC20;
@@ -114,6 +116,34 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
             tokenSymbol: MOCK_TOKEN_SYMBOL,
             tokenDecimals: MOCK_TOKEN_DECIMALS
         });
+    }
+
+    function testSendWithSeparateFeeAsset() public {
+        uint256 amount = 200_000;
+        uint256 feeAmount = 100;
+        ExampleERC20 separateFeeAsset = new ExampleERC20();
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFeeTokenAddress = address(separateFeeAsset);
+        input.primaryFee = feeAmount;
+
+        if (feeAmount > 0) {
+            IERC20(separateFeeAsset).safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            vm.expectCall(
+                address(separateFeeAsset),
+                abi.encodeCall(
+                    IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                )
+            );
+        }
+        // Increase the allowance of the bridge to transfer the funds from the user
+        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
+
+        vm.expectEmit(true, true, true, true, address(bridgedToken));
+        emit Transfer(address(this), address(tokenBridge), amount);
+        _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
+        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount);
+        _send(input, amount);
     }
 
     function _createNewDestinationInstance()

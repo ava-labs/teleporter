@@ -524,6 +524,7 @@ abstract contract TeleporterTokenDestination is
                     IERC20(primaryFeeTokenAddress), primaryFee
                 );
             }
+            // _deposit(primaryFee);
         }
 
         // Burn the amount of tokens that will be bridged.
