@@ -23,10 +23,8 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * @param requiredGasLimit gas limit requirement for sending to a token bridge.
  * This is required because the gas requirement varies based on the token bridge instance
  * specified by {destinationBlockchainID} and {destinationBridgeAddress}.
- * @param fallbackRecipient in the case of a multi-hop transfer, the address where the tokens
+ * @param multiHopFallback in the case of a multi-hop transfer, the address where the tokens
  * are sent on the source chain if the transfer is unable to be routed to its final destination.
- * For EOA recipients, the fallbackRecipient should generally be the same as the recipient.
- * Not used for single-hop transfers.
  */
 struct SendTokensInput {
     bytes32 destinationBlockchainID;
@@ -36,7 +34,7 @@ struct SendTokensInput {
     uint256 primaryFee;
     uint256 secondaryFee;
     uint256 requiredGasLimit;
-    address fallbackRecipient;
+    address multiHopFallback;
 }
 
 /**
@@ -46,10 +44,12 @@ struct SendTokensInput {
  * @param recipientContract the contract on the destination chain that will be called
  * @param recipientPayload the payload that will be provided to the recipient contract on the destination chain
  * @param requiredGasLimit the required amount of gas needed to deliver the message on its destination chain,
- *                         including token operations and the call to the recipient contract.
+ * including token operations and the call to the recipient contract.
  * @param recipientGasLimit the amount of gas that will provided to the recipient contract on the destination chain,
- *                          which must be less than the requiredGasLimit of the message as a whole.
- * @param fallbackRecipient address where the bridged tokens are sent if the call to the recipient contract fails.
+ * which must be less than the requiredGasLimit of the message as a whole.
+ * @param multiHopFallback in the case of a multi-hop transfer, the address where the tokens
+ * are sent on the source chain if the transfer is unable to be routed to its final destination.
+ * @param fallbackRecipient address on the {destinationBlockchainID} where the bridged tokens are sent if the call to the recipient contract fails.
  * @param primaryFeeTokenAddress address of the ERC20 contract to optionally pay a Teleporter message fee
  * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
  * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
@@ -61,6 +61,7 @@ struct SendAndCallInput {
     bytes recipientPayload;
     uint256 requiredGasLimit;
     uint256 recipientGasLimit;
+    address multiHopFallback;
     address fallbackRecipient;
     address primaryFeeTokenAddress;
     uint256 primaryFee;
@@ -135,7 +136,7 @@ struct MultiHopSendMessage {
     uint256 amount;
     uint256 secondaryFee;
     uint256 secondaryGasLimit;
-    address fallbackRecipient;
+    address multiHopFallback;
 }
 
 /**
@@ -157,6 +158,7 @@ struct MultiHopCallMessage {
     uint256 recipientGasLimit;
     address fallbackRecipient;
     uint256 secondaryRequiredGasLimit;
+    address multiHopFallback;
     uint256 secondaryFee;
 }
 
