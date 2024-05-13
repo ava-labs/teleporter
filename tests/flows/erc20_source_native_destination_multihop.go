@@ -20,7 +20,7 @@ import (
  * Bridge tokens from Subnet A to Subnet B through multi-hop
  * Bridge back tokens from Subnet B to Subnet A through multi-hop
  */
-func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
+func ERC20SourceNativeDestinationMultiHop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -134,6 +134,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: nativeTokenDestinationAddressA,
 		Recipient:                recipientAddress,
+		PrimaryFeeTokenAddress:   sourceTokenAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
@@ -167,6 +168,7 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 		DestinationBlockchainID:  subnetBInfo.BlockchainID,
 		DestinationBridgeAddress: nativeTokenDestinationAddressB,
 		Recipient:                recipientAddress,
+		PrimaryFeeTokenAddress:   sourceTokenAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
@@ -199,13 +201,14 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 	// Send half of the received amount to account for gas expenses
 	amountToSend := new(big.Int).Div(bridgedAmountA, big.NewInt(2))
 
-	utils.SendNativeMultihopAndVerify(
+	utils.SendNativeMultiHopAndVerify(
 		ctx,
 		network,
 		fundedKey,
 		recipientAddress,
 		subnetAInfo,
 		nativeTokenDestinationA,
+		nativeTokenDestinationAddressA,
 		subnetBInfo,
 		nativeTokenDestinationB,
 		nativeTokenDestinationAddressB,
@@ -214,13 +217,14 @@ func ERC20SourceNativeDestinationMultihop(network interfaces.Network) {
 	)
 
 	// Multi-hop transfer back to Subnet A
-	utils.SendNativeMultihopAndVerify(
+	utils.SendNativeMultiHopAndVerify(
 		ctx,
 		network,
 		fundedKey,
 		recipientAddress,
 		subnetBInfo,
 		nativeTokenDestinationB,
+		nativeTokenDestinationAddressB,
 		subnetAInfo,
 		nativeTokenDestinationA,
 		nativeTokenDestinationAddressA,

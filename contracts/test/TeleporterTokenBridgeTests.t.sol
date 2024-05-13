@@ -43,6 +43,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
         0xa83114A443dA1CecEFC50368531cACE9F37fCCcb;
     uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 200_000;
     uint256 public constant DEFAULT_RECIPIENT_GAS_LIMIT = 100_000;
+    address public constant DEFAULT_MULTIHOP_FALLBACK_ADDRESS =
+        0x043448b3FE2F24522D9CeB32AD8623c0b6b53E26;
     address public constant DEFAULT_FALLBACK_RECIPIENT_ADDRESS =
         0xe69Ea1BAF997002602c0A3D451b2b5c9B7F8E6A1;
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
@@ -63,7 +65,12 @@ abstract contract TeleporterTokenBridgeTest is Test {
     uint256 internal constant _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE = 1;
 
     ITeleporterTokenBridge public tokenBridge;
-    IERC20 public feeToken;
+
+    /**
+     * @notice The token that is bridged by the token bridge.
+     * For native assets, the wrapped token contract is used.
+     */
+    IERC20 public bridgedToken;
 
     event TokensSent(
         bytes32 indexed teleporterMessageID,
@@ -91,7 +98,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function testSendZeroRecipient() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.recipient = address(0);
-        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
+        bridgedToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("zero recipient address"));
         _send(input, 0);
     }
@@ -106,7 +113,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function testSendZeroRequiredGasLimit() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.requiredGasLimit = 0;
-        feeToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
+        bridgedToken.approve(address(tokenBridge), _DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("zero required gas limit"));
         _send(input, 0);
     }
@@ -137,17 +144,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
         input.fallbackRecipient = address(0);
         vm.expectRevert(_formatErrorMessage("zero fallback recipient address"));
         _sendAndCall(input, 0);
-    }
-
-    function testInsufficientAmountToCoverFees() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.primaryFee = 1;
-        _setUpRegisteredDestination(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 0
-        );
-        _setUpExpectedDeposit(input.primaryFee);
-        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
-        _send(input, input.primaryFee);
     }
 
     function testSendWithFees() public {
@@ -207,38 +203,34 @@ abstract contract TeleporterTokenBridgeTest is Test {
     function _sendAndCall(SendAndCallInput memory input, uint256 amount) internal virtual;
 
     function _sendSingleHopSendSuccess(uint256 amount, uint256 feeAmount) internal {
-        uint256 bridgeAmount = amount - feeAmount;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
         _setUpRegisteredDestination(
             input.destinationBlockchainID, input.destinationBridgeAddress, 0
         );
-        _setUpExpectedDeposit(amount);
-        _checkExpectedTeleporterCallsForSend(
-            _createSingleHopTeleporterMessageInput(input, bridgeAmount)
-        );
+        _setUpExpectedDeposit(amount, input.primaryFee);
+        _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount);
         _send(input, amount);
     }
 
     function _sendSingleHopCallSuccess(uint256 amount, uint256 feeAmount) internal {
-        uint256 bridgeAmount = amount - feeAmount;
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = feeAmount;
 
         _setUpRegisteredDestination(
             input.destinationBlockchainID, input.destinationBridgeAddress, 0
         );
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(amount, input.primaryFee);
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopCallTeleporterMessageInput(
-                _getDefaultSourceBlockchainID(), address(this), input, bridgeAmount
+                _getDefaultSourceBlockchainID(), address(this), input, amount
             )
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
+        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, amount);
         _sendAndCall(input, amount);
     }
 
@@ -248,7 +240,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
         uint256 initialReserveImbalance
     ) internal virtual;
 
-    function _setUpExpectedDeposit(uint256 amount) internal virtual;
+    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual;
+
+    function _setUpExpectedZeroAmountRevert() internal virtual;
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal virtual;
 
@@ -275,14 +269,34 @@ abstract contract TeleporterTokenBridgeTest is Test {
         );
     }
 
+    // This function is overridden by TeleporterTokenDestinationTests
+    function _scaleTokens(uint256 amount, bool) internal virtual returns (uint256) {
+        return amount;
+    }
+
+    function _createDefaultSendTokensInput()
+        internal
+        view
+        virtual
+        returns (SendTokensInput memory);
+
+    function _createDefaultSendAndCallInput()
+        internal
+        view
+        virtual
+        returns (SendAndCallInput memory);
+
     function _createSingleHopTeleporterMessageInput(
         SendTokensInput memory input,
         uint256 bridgeAmount
-    ) internal view returns (TeleporterMessageInput memory) {
+    ) internal pure returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(input.primaryFeeTokenAddress),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopSendMessage(bridgeAmount, input.recipient)
@@ -294,11 +308,14 @@ abstract contract TeleporterTokenBridgeTest is Test {
         address originSenderAddress,
         SendAndCallInput memory input,
         uint256 bridgeAmount
-    ) internal view returns (TeleporterMessageInput memory) {
+    ) internal pure returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(input.primaryFeeTokenAddress),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopCallMessage({
@@ -314,18 +331,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
     }
 
     function _getDefaultSourceBlockchainID() internal pure virtual returns (bytes32);
-
-    function _createDefaultSendTokensInput()
-        internal
-        pure
-        virtual
-        returns (SendTokensInput memory);
-
-    function _createDefaultSendAndCallInput()
-        internal
-        pure
-        virtual
-        returns (SendAndCallInput memory);
 
     function _formatErrorMessage(string memory message)
         internal
@@ -379,7 +384,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         address recipient,
         uint256 secondaryFee,
         uint256 secondaryGasLimit,
-        address fallbackRecipient
+        address multiHopFallback
     ) internal pure returns (bytes memory) {
         return abi.encode(
             BridgeMessage({
@@ -392,7 +397,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
                         amount: amount,
                         secondaryFee: secondaryFee,
                         secondaryGasLimit: secondaryGasLimit,
-                        fallbackRecipient: fallbackRecipient
+                        multiHopFallback: multiHopFallback
                     })
                     )
             })
@@ -408,6 +413,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         bytes memory recipientPayload,
         uint256 recipientGasLimit,
         address fallbackRecipient,
+        address multiHopFallback,
         uint256 secondaryRequiredGasLimit,
         uint256 secondaryFee
     ) internal pure returns (bytes memory) {
@@ -424,6 +430,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
                         recipientPayload: recipientPayload,
                         recipientGasLimit: recipientGasLimit,
                         fallbackRecipient: fallbackRecipient,
+                        multiHopFallback: multiHopFallback,
                         secondaryRequiredGasLimit: secondaryRequiredGasLimit,
                         secondaryFee: secondaryFee
                     })

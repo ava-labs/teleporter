@@ -36,7 +36,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an example WAVAX on the primary network
-	cChainWAVAXAddress, wavaxA := utils.DeployExampleWAVAX(
+	cChainWAVAXAddress, wavax := utils.DeployExampleWAVAX(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -51,7 +51,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		cChainWAVAXAddress,
 	)
 
-	// Deploy an NativeTokenDestination to Subnet A
+	// Deploy a NativeTokenDestination to Subnet A
 	nativeTokenDestinationAddress, nativeTokenDestination := utils.DeployNativeTokenDestination(
 		ctx,
 		subnetAInfo,
@@ -101,7 +101,8 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
 			DestinationBridgeAddress: nativeTokenDestinationAddress,
 			Recipient:                recipientAddress,
-			PrimaryFee:               big.NewInt(0),
+			PrimaryFeeTokenAddress:   cChainWAVAXAddress,
+			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 		}
@@ -111,6 +112,8 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			ctx,
 			cChainInfo,
 			nativeTokenSource,
+			nativeTokenSourceAddress,
+			wavax,
 			input,
 			utils.RemoveTokenScaling(tokenMultiplier, multiplyOnDestination, amount),
 			fundedKey,
@@ -138,7 +141,8 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			DestinationBlockchainID:  cChainInfo.BlockchainID,
 			DestinationBridgeAddress: nativeTokenSourceAddress,
 			Recipient:                recipientAddress,
-			PrimaryFee:               big.NewInt(0),
+			PrimaryFeeTokenAddress:   nativeTokenDestinationAddress,
+			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 		}
@@ -149,6 +153,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			ctx,
 			subnetAInfo,
 			nativeTokenDestination,
+			nativeTokenDestinationAddress,
 			input_A,
 			amount,
 			recipientKey,
@@ -167,7 +172,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		utils.CheckNativeTokenSourceWithdrawal(
 			ctx,
 			nativeTokenSourceAddress,
-			wavaxA,
+			wavax,
 			receipt,
 			sourceAmount,
 		)

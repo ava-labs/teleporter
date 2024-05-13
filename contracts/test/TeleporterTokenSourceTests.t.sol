@@ -76,7 +76,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, initialReserveImbalance
         );
-        _setUpExpectedDeposit(collateralAmount);
+        _setUpExpectedDeposit(collateralAmount, 0);
         vm.expectEmit(true, true, true, true, address(tokenSource));
         emit CollateralAdded(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -99,7 +99,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, initialReserveImbalance
         );
-        _setUpExpectedDeposit(collateralAmount);
+        _setUpExpectedDeposit(collateralAmount, 0);
         vm.expectEmit(true, true, true, true, address(tokenSource));
         emit CollateralAdded(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -149,9 +149,16 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
     function testNonZeroFallbackRecipientForSingleHop() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.fallbackRecipient = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;
-        vm.expectRevert(_formatErrorMessage("non-zero fallback recipient"));
+        input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
+        vm.expectRevert(_formatErrorMessage("non-zero multi-hop fallback"));
         _send(input, 100_000);
+    }
+
+    function testNonZeroFallbackRecipientForSingleHopCall() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
+        vm.expectRevert(_formatErrorMessage("non-zero multi-hop fallback"));
+        _sendAndCall(input, 100_000);
     }
 
     function testNonZeroSecondaryFee() public {
@@ -159,6 +166,13 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         input.secondaryFee = 1;
         vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
         _send(input, 0);
+    }
+
+    function testNonZeroSecondaryFeeCall() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.secondaryFee = 1;
+        vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
+        _sendAndCall(input, 0);
     }
 
     function testReceiveInvalidMessage() public {
@@ -204,7 +218,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         // and check for expected calls for scaled amount of tokens sent.
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = 1;
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(amount, input.primaryFee);
 
         uint256 scaledAmount = tokenMultiplier * amount;
         _checkExpectedTeleporterCallsForSend(
@@ -230,7 +244,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
         );
-        _setUpExpectedDeposit(collateralAmount);
+        _setUpExpectedDeposit(collateralAmount, 0);
         _addCollateral(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
         );
@@ -248,11 +262,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         uint256 feeAmount = 10;
         _sendSingleHopSendSuccess(amount, feeAmount);
 
-        uint256 bridgedAmount = amount - feeAmount;
-
-        // Withdraw an amount less than total bridged amount
-        uint256 remainingAmount = feeAmount;
-        uint256 withdrawAmount = bridgedAmount - remainingAmount;
+        // Withdraw an amount less than bridged amount
+        uint256 withdrawAmount = amount / 2;
 
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, withdrawAmount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -268,7 +279,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             tokenSource.bridgedBalances(
                 DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
             ),
-            remainingAmount
+            withdrawAmount
         );
     }
 
@@ -376,8 +387,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, 0);
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it
-        // is not registered. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // is not registered. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -389,7 +400,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
     }
@@ -402,8 +413,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not yet
-        // fully collateralized. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // fully collateralized. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -415,7 +426,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
     }
@@ -430,8 +441,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
-        // amount would be scaled to zero. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // amount would be scaled to zero. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -443,7 +454,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
     }
@@ -459,10 +470,11 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
+            primaryFeeTokenAddress: address(bridgedToken),
             primaryFee: feeAmount,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
         });
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopTeleporterMessageInput(input, bridgeAmount)
@@ -482,7 +494,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: input.recipient,
                 secondaryFee: input.primaryFee,
                 secondaryGasLimit: input.requiredGasLimit,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
     }
@@ -504,7 +516,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             amount: amount,
             secondaryFee: amount,
             secondaryGasLimit: 50_000,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
         });
 
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
@@ -519,7 +531,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: message.recipient,
                 secondaryFee: message.secondaryFee,
                 secondaryGasLimit: message.secondaryGasLimit,
-                fallbackRecipient: message.fallbackRecipient
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
 
@@ -538,8 +550,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, 0);
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not registered.
-        // Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -553,6 +565,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
                 fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
                 secondaryRequiredGasLimit: 500_000,
                 secondaryFee: 0
             })
@@ -567,8 +580,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not yet
-        // fully collateralized. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // fully collateralized. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -582,6 +595,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
                 fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
                 secondaryRequiredGasLimit: 500_000,
                 secondaryFee: 0
             })
@@ -598,8 +612,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
-        // amount would be scaled to zero. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // amount would be scaled to zero. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -613,6 +627,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
                 fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
                 secondaryRequiredGasLimit: 500_000,
                 secondaryFee: 0
             })
@@ -635,6 +650,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+            primaryFeeTokenAddress: address(bridgedToken),
+            multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
             primaryFee: feeAmount,
             secondaryFee: 0
         });
@@ -660,6 +677,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipientPayload: input.recipientPayload,
                 recipientGasLimit: input.recipientGasLimit,
                 fallbackRecipient: input.fallbackRecipient,
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
                 secondaryRequiredGasLimit: input.requiredGasLimit,
                 secondaryFee: input.primaryFee
             })
@@ -719,7 +737,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     function testSendScaledAmount() public {
         uint256 amount = 100;
         uint256 feeAmount = 1;
-        uint256 bridgeAmount = amount - feeAmount;
 
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
@@ -729,20 +746,21 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(
             input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, true
         );
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(amount, input.primaryFee);
         TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(bridgedToken),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
-            message: _encodeSingleHopSendMessage(
-                bridgeAmount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS
-                )
+            message: _encodeSingleHopSendMessage(amount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
         });
         _checkExpectedTeleporterCallsForSend(expectedMessage);
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount * tokenMultiplier);
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount * tokenMultiplier);
         _send(input, amount);
 
         // For another destination, the raw amount sent over the wire should be divided by 1e12.
@@ -753,11 +771,14 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(
             input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, false
         );
-        _setUpExpectedDeposit(amount);
+        _setUpExpectedDeposit(amount, input.primaryFee);
         expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(feeToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(bridgedToken),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopSendMessage(amount / tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
@@ -825,25 +846,9 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
-        return SendTokensInput({
-            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: address(tokenSource),
-            recipient: DEFAULT_RECIPIENT_ADDRESS,
-            primaryFee: 0,
-            secondaryFee: 0,
-            requiredGasLimit: 0,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
-        });
-    }
-
-    function _getDefaultSourceBlockchainID() internal pure override returns (bytes32) {
-        return DEFAULT_SOURCE_BLOCKCHAIN_ID;
-    }
-
     function _createDefaultSendTokensInput()
         internal
-        pure
+        view
         override
         returns (SendTokensInput memory)
     {
@@ -851,16 +856,17 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
+            primaryFeeTokenAddress: address(bridgedToken),
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-            fallbackRecipient: address(0)
+            multiHopFallback: address(0)
         });
     }
 
     function _createDefaultSendAndCallInput()
         internal
-        pure
+        view
         override
         returns (SendAndCallInput memory)
     {
@@ -872,9 +878,28 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+            multiHopFallback: address(0),
+            primaryFeeTokenAddress: address(bridgedToken),
             primaryFee: 0,
             secondaryFee: 0
         });
+    }
+
+    function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
+        return SendTokensInput({
+            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: address(tokenSource),
+            recipient: DEFAULT_RECIPIENT_ADDRESS,
+            primaryFeeTokenAddress: address(bridgedToken),
+            primaryFee: 0,
+            secondaryFee: 0,
+            requiredGasLimit: 0,
+            multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
+        });
+    }
+
+    function _getDefaultSourceBlockchainID() internal pure override returns (bytes32) {
+        return DEFAULT_SOURCE_BLOCKCHAIN_ID;
     }
 
     function _formatErrorMessage(string memory message)

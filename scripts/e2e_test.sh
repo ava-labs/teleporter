@@ -46,7 +46,7 @@ go install -v github.com/onsi/ginkgo/v2/ginkgo
 ginkgo build ./tests/local/
 
 # Run the tests
-echo "Running e2e tests $RUN_E2E"
+echo "Running e2e tests"
 RUN_E2E=true ./tests/local/local.test \
   --ginkgo.vv \
   --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \

@@ -5,7 +5,6 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
@@ -20,8 +19,13 @@ import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
 contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDestinationTest {
+    using SafeERC20 for IERC20;
+
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
     string public constant DEFAULT_SYMBOL = "XYZ";
     NativeTokenDestination public app;
@@ -45,7 +49,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        feeToken = app;
+        bridgedToken = app;
         assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
         _collateralizeBridge();
     }
@@ -126,7 +130,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        feeToken = app;
+        bridgedToken = app;
 
         vm.expectRevert("NativeTokenDestination: contract undercollateralized");
         app.send{value: 100_000}(_createDefaultSendTokensInput());
@@ -152,7 +156,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        feeToken = app;
+        bridgedToken = app;
 
         vm.expectRevert("NativeTokenDestination: contract undercollateralized");
         app.sendAndCall{value: 100_000}(_createDefaultSendAndCallInput());
@@ -160,6 +164,28 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         // Now mark the contract as collateralized and confirm sending is enabled.
         _collateralizeBridge();
         _sendSingleHopSendSuccess(100_000, 0);
+    }
+
+    function testSendWithSeparateFeeAsset() public {
+        uint256 amount = 200_000;
+        uint256 feeAmount = 100;
+        ExampleERC20 separateFeeAsset = new ExampleERC20();
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFeeTokenAddress = address(separateFeeAsset);
+        input.primaryFee = feeAmount;
+
+        IERC20(separateFeeAsset).safeIncreaseAllowance(address(app), feeAmount);
+        vm.expectCall(
+            address(separateFeeAsset),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
+        );
+
+        vm.expectEmit(true, true, true, true, address(app));
+        emit Transfer(address(0), address(app), amount);
+        _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
+        vm.expectEmit(true, true, true, true, address(app));
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount);
+        _send(input, amount);
     }
 
     function testTotalNativeAssetSupply() public {
@@ -260,10 +286,11 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: address(0)
             }),
             expectedReportedAmount
         );
@@ -286,10 +313,11 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: address(0)
             }),
             expectedReportedAmount
         );
@@ -313,7 +341,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        feeToken = app;
+        bridgedToken = app;
 
         uint256 burnedTxFeeAmount = 100_000;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
@@ -322,10 +350,11 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: 0,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: address(0)
             }),
             burnedTxFeeAmount
         );
@@ -448,16 +477,26 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         }
     }
 
-    function _setUpExpectedDeposit(uint256 amount)
-        internal
-        override (NativeTokenBridgeTest, TeleporterTokenBridgeTest)
-    {
+    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal override {
+        app.deposit{value: feeAmount}();
+        // Transfer the fee to the bridge if it is greater than 0
+        if (feeAmount > 0) {
+            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            if (address(bridgedToken) != address(app)) {
+                vm.expectCall(
+                    address(bridgedToken),
+                    abi.encodeCall(
+                        IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                    )
+                );
+            }
+        }
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(app), amount);
     }
 
     function _setUpExpectedZeroAmountRevert() internal override {
-        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        vm.expectRevert(_formatErrorMessage("insufficient tokens to transfer"));
     }
 
     function _getTotalSupply() internal view override returns (uint256) {

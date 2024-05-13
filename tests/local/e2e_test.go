@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/format"
 )
 
 const (
@@ -34,6 +35,7 @@ func TestE2E(t *testing.T) {
 	if os.Getenv("RUN_E2E") == "" {
 		t.Skip("Environment variable RUN_E2E not set; skipping E2E tests")
 	}
+	format.MaxLength = 10000
 
 	RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "Teleporter e2e test")
@@ -89,12 +91,12 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 	ginkgo.It("Bridge an ERC20 token with ERC20Source multi-hop",
 		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel, multiHopLabel),
 		func() {
-			flows.ERC20SourceERC20DestinationMultihop(LocalNetworkInstance)
+			flows.ERC20SourceERC20DestinationMultiHop(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge an ERC20 token with NativeTokenSource multi-hop",
 		ginkgo.Label(nativeTokenSourceLabel, erc20DestinationLabel, multiHopLabel),
 		func() {
-			flows.NativeSourceERC20DestinationMultihop(LocalNetworkInstance)
+			flows.NativeSourceERC20DestinationMultiHop(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge an ERC20 token to a native token",
 		ginkgo.Label(erc20SourceLabel, nativeTokenDestinationLabel),
@@ -104,12 +106,12 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 	ginkgo.It("Bridge a Native token with ERC20Source multi-hop",
 		ginkgo.Label(erc20SourceLabel, nativeTokenDestinationLabel, multiHopLabel),
 		func() {
-			flows.ERC20SourceNativeDestinationMultihop(LocalNetworkInstance)
+			flows.ERC20SourceNativeDestinationMultiHop(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge a native token to a native token multi-hop",
 		ginkgo.Label(nativeTokenSourceLabel, nativeTokenDestinationLabel, multiHopLabel),
 		func() {
-			flows.NativeSourceNativeDestinationMultihop(LocalNetworkInstance)
+			flows.NativeSourceNativeDestinationMultiHop(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge an ERC20 token with ERC20TokenSource Send and Call",
 		ginkgo.Label(erc20SourceLabel, erc20DestinationLabel, sendAndCallLabel),

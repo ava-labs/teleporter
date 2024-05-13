@@ -83,6 +83,7 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress,
 		Recipient:                recipientAddress,
+		PrimaryFeeTokenAddress:   sourceTokenAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
@@ -135,7 +136,8 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 		DestinationBlockchainID:  cChainInfo.BlockchainID,
 		DestinationBridgeAddress: erc20SourceAddress,
 		Recipient:                recipientAddress,
-		PrimaryFee:               big.NewInt(0),
+		PrimaryFeeTokenAddress:   erc20DestinationAddress,
+		PrimaryFee:               big.NewInt(1e10),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
 	}
@@ -146,7 +148,7 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 		erc20Destination,
 		erc20DestinationAddress,
 		inputB,
-		bridgedAmount,
+		teleporterUtils.BigIntSub(bridgedAmount, inputB.PrimaryFee),
 		recipientKey,
 	)
 

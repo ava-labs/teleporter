@@ -70,6 +70,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: nativeTokenDestinationAddressA,
 		Recipient:                recipientAddress,
+		PrimaryFeeTokenAddress:   sourceTokenAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
@@ -147,7 +148,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		ctx,
 		sourceToken,
 		erc20SourceAddress,
-		amount,
+		big.NewInt(0).Add(amount, input.PrimaryFee),
 		cChainInfo,
 		fundedKey,
 	)
@@ -157,7 +158,6 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		amount,
 	)
 	Expect(err).Should(BeNil())
-	bridgedAmount := new(big.Int).Sub(amount, input.PrimaryFee)
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseTokensSent)
@@ -169,14 +169,14 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		erc20Source,
 		input.DestinationBlockchainID,
 		input.DestinationBridgeAddress,
-		bridgedAmount,
+		amount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
 
 	// Check the balance of the ERC20Source increased by the bridged amount
 	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
 	Expect(err).Should(BeNil())
-	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, bridgedAmount))
+	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, amount))
 
 	// Relay the message to subnet A and check for a native token mint withdrawal
 	network.RelayMessage(

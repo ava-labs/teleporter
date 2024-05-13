@@ -83,7 +83,8 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress,
 		Recipient:                recipientAddress,
-		PrimaryFee:               big.NewInt(0),
+		PrimaryFeeTokenAddress:   wavaxAddress,
+		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
 	}
@@ -94,6 +95,8 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		ctx,
 		cChainInfo,
 		nativeTokenSource,
+		nativeTokenSourceAddress,
+		wavax,
 		input,
 		amount,
 		fundedKey,
@@ -133,7 +136,8 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		DestinationBlockchainID:  cChainInfo.BlockchainID,
 		DestinationBridgeAddress: nativeTokenSourceAddress,
 		Recipient:                recipientAddress,
-		PrimaryFee:               big.NewInt(0),
+		PrimaryFeeTokenAddress:   erc20DestinationAddress,
+		PrimaryFee:               big.NewInt(1e10),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
@@ -145,7 +149,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		erc20Destination,
 		erc20DestinationAddress,
 		input_A,
-		bridgedAmount,
+		teleporterUtils.BigIntSub(bridgedAmount, input_A.PrimaryFee),
 		recipientKey,
 	)
 

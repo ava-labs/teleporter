@@ -5,15 +5,18 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenSourceTest} from "./TeleporterTokenSourceTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {NativeTokenSource} from "../src/NativeTokenSource.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
 contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTest {
+    using SafeERC20 for IERC20;
+
     NativeTokenSource public app;
     IWrappedNativeToken public mockWrappedToken;
 
@@ -33,7 +36,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         tokenSource = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        feeToken = mockWrappedToken;
+        bridgedToken = mockWrappedToken;
     }
 
     /**
@@ -50,7 +53,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
     }
 
     function testZeroFeeTokenAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero fee token address"));
+        vm.expectRevert(_formatErrorMessage("zero token address"));
         new NativeTokenSource(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
     }
 
@@ -102,12 +105,21 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         }
     }
 
-    function _setUpExpectedDeposit(uint256 amount)
-        internal
-        override (NativeTokenBridgeTest, TeleporterTokenBridgeTest)
-    {
-        vm.expectCall(address(feeToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
-        vm.expectEmit(true, true, true, true, address(feeToken));
+    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal override {
+        mockWrappedToken.deposit{value: feeAmount}();
+        // Transfer the fee to the bridge if it is greater than 0
+        if (feeAmount > 0) {
+            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            vm.expectCall(
+                address(bridgedToken),
+                abi.encodeCall(
+                    IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                )
+            );
+        }
+
+        vm.expectCall(address(bridgedToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
+        vm.expectEmit(true, true, true, true, address(bridgedToken));
         emit Deposit(address(nativeTokenBridge), amount);
     }
 

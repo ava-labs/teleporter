@@ -32,7 +32,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         tokenSource = app;
         tokenBridge = app;
 
-        feeToken = mockERC20;
+        bridgedToken = mockERC20;
     }
 
     /**
@@ -53,7 +53,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
     }
 
     function testZeroFeeTokenAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero fee token address"));
+        vm.expectRevert(_formatErrorMessage("zero token address"));
         new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
@@ -131,7 +131,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
 
     function _setUpDeposit(uint256 amount) internal virtual override {
         // Increase the allowance of the bridge to transfer the funds from the user
-        feeToken.safeIncreaseAllowance(address(tokenBridge), amount);
+        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
     }
 
     function _setUpExpectedZeroAmountRevert() internal override {
