@@ -218,8 +218,7 @@ abstract contract TeleporterTokenSource is
                 destinationBridgeAddress: input.destinationBridgeAddress,
                 amount: amount,
                 feeTokenAddress: input.feeTokenAddress,
-                feeAmount: input.primaryFee,
-                isMultihop: isMultihop
+                feeAmount: input.primaryFee
             });
         }
 
@@ -293,8 +292,7 @@ abstract contract TeleporterTokenSource is
                 destinationBridgeAddress: input.destinationBridgeAddress,
                 amount: amount,
                 feeTokenAddress: input.feeTokenAddress,
-                feeAmount: input.primaryFee,
-                isMultihop: isMultihop
+                feeAmount: input.primaryFee
             });
         }
 
@@ -537,16 +535,6 @@ abstract contract TeleporterTokenSource is
         DestinationBridgeSettings memory destinationSettings =
             registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
 
-        // Require that the destination bridge is registered and has no collateral needed.
-        require(
-            destinationSettings.registered,
-            "TeleporterTokenSource: destination bridge not registered"
-        );
-        require(
-            destinationSettings.collateralNeeded == 0,
-            "TeleporterTokenSource: destination bridge not collateralized"
-        );
-
         return _processReceivedTransfer(
             destinationSettings, destinationBlockchainID, destinationBridgeAddress, amount
         );
@@ -571,24 +559,14 @@ abstract contract TeleporterTokenSource is
         DestinationBridgeSettings memory destinationSettings =
             registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
 
-        // Require that the destination bridge is registered and has no collateral needed.
-        require(
-            destinationSettings.registered,
-            "TeleporterTokenSource: destination bridge not registered"
-        );
-        require(
-            destinationSettings.collateralNeeded == 0,
-            "TeleporterTokenSource: destination bridge not collateralized"
+        uint256 transferAmount = _processReceivedTransfer(
+            destinationSettings, destinationBlockchainID, destinationBridgeAddress, amount
         );
 
         uint256 fee = TokenScalingUtils.removeTokenScale(
             destinationSettings.tokenMultiplier,
             destinationSettings.multiplyOnDestination,
             secondaryFee
-        );
-
-        uint256 transferAmount = _processReceivedTransfer(
-            destinationSettings, destinationBlockchainID, destinationBridgeAddress, amount
         );
 
         return (transferAmount, fee);
@@ -611,6 +589,16 @@ abstract contract TeleporterTokenSource is
         address destinationBridgeAddress,
         uint256 amount
     ) private returns (uint256) {
+        // Require that the destination bridge is registered and has no collateral needed.
+        require(
+            destinationSettings.registered,
+            "TeleporterTokenSource: destination bridge not registered"
+        );
+        require(
+            destinationSettings.collateralNeeded == 0,
+            "TeleporterTokenSource: destination bridge not collateralized"
+        );
+
         // Deduct the balance bridged to the given destination bridge address prior to scaling the amount.
         _deductSenderBalance(destinationBlockchainID, destinationBridgeAddress, amount);
 
@@ -671,8 +659,7 @@ abstract contract TeleporterTokenSource is
         address destinationBridgeAddress,
         uint256 amount,
         address feeTokenAddress,
-        uint256 feeAmount,
-        bool isMultihop
+        uint256 feeAmount
     ) private returns (uint256, uint256) {
         DestinationBridgeSettings memory destinationSettings =
             registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
@@ -682,24 +669,14 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: collateral needed for destination"
         );
 
-        // If this send is not a multi-hop, deposit the funds sent from the user to the bridge,
+        // Deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit.
-        // If it is a multi-hop, the amount is already deposited.
-        if (!isMultihop) {
-            amount = _deposit(amount);
-            if (feeAmount > 0) {
-                feeAmount =
-                    SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
-            }
-
-            require(amount > 0, "TeleporterTokenSource: zero amount to send");
-        } else {
-            // Requiring the amount to cover fees for multi-hop sends,
-            // because the fee is taken from the amount that has already been deposited.
-            // This check also makes sure amount bridged is greater than zero.
-            require(amount > feeAmount, "TeleporterTokenSource: insufficient amount to cover fees");
-            amount -= feeAmount;
+        amount = _deposit(amount);
+        if (feeAmount > 0) {
+            feeAmount = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
         }
+
+        require(amount > 0, "TeleporterTokenSource: zero amount to send");
 
         // Scale the amount based on the token multiplier for the given destination.
         uint256 scaledAmount = TokenScalingUtils.applyTokenScale(

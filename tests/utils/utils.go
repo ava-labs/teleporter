@@ -480,7 +480,7 @@ func SendNativeTokenSource(
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
-	DepositAndApproveWavaxForFees(
+	DepositAndApproveWrappedTokenForFees(
 		ctx,
 		subnet,
 		wrappedToken,
@@ -516,77 +516,6 @@ func SendNativeTokenSource(
 	return receipt, event.Amount
 }
 
-func DepositAndApproveWavaxForFees(
-	ctx context.Context,
-	subnet interfaces.SubnetTestInfo,
-	wrappedToken *examplewavax.ExampleWAVAX,
-	amount *big.Int,
-	spender common.Address,
-	senderKey *ecdsa.PrivateKey,
-) {
-	if amount.Cmp(big.NewInt(0)) == 0 {
-		return
-	}
-
-	// Deposit the native tokens for paying the fee
-	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	opts.Value = amount
-	tx, err := wrappedToken.Deposit(opts)
-	Expect(err).Should(BeNil())
-
-	depositReceipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	depositEvent, err := teleporterUtils.GetEventFromLogs(depositReceipt.Logs, wrappedToken.ParseDeposit)
-	Expect(err).Should(BeNil())
-	Expect(depositEvent.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	teleporterUtils.ExpectBigEqual(depositEvent.Amount, amount)
-
-	opts, err = bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	tx, err = wrappedToken.Approve(opts, spender, amount)
-	Expect(err).Should(BeNil())
-
-	approveReceipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	approvalEvent, err := teleporterUtils.GetEventFromLogs(approveReceipt.Logs, wrappedToken.ParseApproval)
-	Expect(err).Should(BeNil())
-	Expect(approvalEvent.Spender).Should(Equal(spender))
-}
-
-func DepositAndApproveNativeForFees(
-	ctx context.Context,
-	subnet interfaces.SubnetTestInfo,
-	nativeTokenDestination *nativetokendestination.NativeTokenDestination,
-	amount *big.Int,
-	spender common.Address,
-	senderKey *ecdsa.PrivateKey,
-) {
-	if amount.Cmp(big.NewInt(0)) == 0 {
-		return
-	}
-
-	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	opts.Value = amount
-	tx, err := nativeTokenDestination.Deposit(opts)
-	Expect(err).Should(BeNil())
-
-	depositReceipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	depositEvent, err := teleporterUtils.GetEventFromLogs(depositReceipt.Logs, nativeTokenDestination.ParseDeposit)
-	Expect(err).Should(BeNil())
-	Expect(depositEvent.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
-	teleporterUtils.ExpectBigEqual(depositEvent.Amount, amount)
-
-	opts, err = bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	tx, err = nativeTokenDestination.Approve(opts, spender, amount)
-	Expect(err).Should(BeNil())
-
-	approveReceipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	approvalEvent, err := teleporterUtils.GetEventFromLogs(approveReceipt.Logs, nativeTokenDestination.ParseApproval)
-	Expect(err).Should(BeNil())
-	Expect(approvalEvent.Spender).Should(Equal(spender))
-}
-
 func SendNativeTokenDestination(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
@@ -596,7 +525,7 @@ func SendNativeTokenDestination(
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
-	DepositAndApproveNativeForFees(
+	DepositAndApproveWrappedTokenForFees(
 		ctx,
 		subnet,
 		nativeTokenDestination,
@@ -1030,4 +959,38 @@ func GetTokenMultiplier(
 	decimalsShift uint8,
 ) *big.Int {
 	return big.NewInt(int64(math.Pow10(int(decimalsShift))))
+}
+
+type WrappedToken interface {
+	Deposit(opts *bind.TransactOpts) (*types.Transaction, error)
+	Approve(opts *bind.TransactOpts, spender common.Address, amount *big.Int) (*types.Transaction, error)
+}
+
+func DepositAndApproveWrappedTokenForFees(
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	wrappedToken WrappedToken,
+	amount *big.Int,
+	spender common.Address,
+	senderKey *ecdsa.PrivateKey,
+) {
+	if amount.Cmp(big.NewInt(0)) == 0 {
+		return
+	}
+
+	// Deposit the native tokens for paying the fee
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	opts.Value = amount
+	tx, err := wrappedToken.Deposit(opts)
+	Expect(err).Should(BeNil())
+
+	_ = teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	opts, err = bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err = wrappedToken.Approve(opts, spender, amount)
+	Expect(err).Should(BeNil())
+
+	_ = teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 }
