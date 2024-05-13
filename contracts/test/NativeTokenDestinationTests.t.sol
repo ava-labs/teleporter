@@ -473,7 +473,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function _setUpExpectedZeroAmountRevert() internal override {
-        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        vm.expectRevert(_formatErrorMessage("insufficient tokens to transfer"));
     }
 
     function _getTotalSupply() internal view override returns (uint256) {

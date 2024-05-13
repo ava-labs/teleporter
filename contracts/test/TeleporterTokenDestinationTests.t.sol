@@ -155,7 +155,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 amount = 1;
         input.secondaryFee = 2;
         _setUpExpectedDeposit(amount, input.primaryFee);
-        vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
+        vm.expectRevert(_formatErrorMessage("insufficient tokens to transfer"));
         _send(input, amount);
     }
 
