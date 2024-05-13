@@ -106,7 +106,7 @@ func NativeSourceERC20DestinationMultiHop(network interfaces.Network) {
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20DestinationAddress_A,
 		Recipient:                recipientAddress,
-		FeeTokenAddress:          wavaxAddress,
+		PrimaryFeeTokenAddress:   wavaxAddress,
 		PrimaryFee:               big.NewInt(1e10),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
