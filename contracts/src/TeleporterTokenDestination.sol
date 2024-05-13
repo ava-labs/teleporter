@@ -504,7 +504,7 @@ abstract contract TeleporterTokenDestination is
         );
 
         // Transfer the primary fee to pay for Teleporter fees on the first hop.
-        // The user can specify the destination bridge contract as `feeTokenAddress`,
+        // The user can specify this contract as `feeTokenAddress`,
         // in which case the fee will be paid on top of the bridged amount.
         // TODO: should we check if `feeTokenAddress` is `bridgeTokenAddress`? If so,
         // we could use internal transfer, or just deposit the fee in above `_deposit` call.
