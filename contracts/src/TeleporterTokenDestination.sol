@@ -506,10 +506,14 @@ abstract contract TeleporterTokenDestination is
         // Transfer the primary fee to pay for Teleporter fees on the first hop.
         // The user can specify this contract as `feeTokenAddress`,
         // in which case the fee will be paid on top of the bridged amount.
-        // TODO: should we check if `feeTokenAddress` is `bridgeTokenAddress`? If so,
-        // we could use internal transfer, or just deposit the fee in above `_deposit` call.
         if (primaryFee > 0) {
-            primaryFee = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), primaryFee);
+            // If the {feeTokenAddress} is this contract, then just deposit the tokens directly.
+            if (feeTokenAddress == address(this)) {
+                _deposit(primaryFee);
+            } else {
+                primaryFee =
+                    SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), primaryFee);
+            }
         }
 
         // Burn the amount of tokens that will be bridged.
