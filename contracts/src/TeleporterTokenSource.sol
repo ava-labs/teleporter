@@ -684,7 +684,6 @@ abstract contract TeleporterTokenSource is
         // Deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit.
         amount = _deposit(amount);
-        require(amount > 0, "TeleporterTokenSource: zero amount to send");
 
         if (feeAmount > 0) {
             feeAmount =
