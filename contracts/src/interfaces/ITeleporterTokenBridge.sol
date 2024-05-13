@@ -49,7 +49,7 @@ struct SendTokensInput {
  * which must be less than the requiredGasLimit of the message as a whole.
  * @param multiHopFallback in the case of a multi-hop transfer, the address where the tokens
  * are sent on the source chain if the transfer is unable to be routed to its final destination.
- * @param fallbackRecipient address where the bridged tokens are sent if the call to the recipient contract fails.
+ * @param fallbackRecipient address on the {destinationBlockchainID} where the bridged tokens are sent if the call to the recipient contract fails.
  * @param primaryFeeTokenAddress address of the ERC20 contract to optionally pay a Teleporter message fee
  * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
  * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
