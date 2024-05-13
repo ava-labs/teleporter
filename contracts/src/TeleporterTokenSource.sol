@@ -402,7 +402,7 @@ abstract contract TeleporterTokenSource is
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
 
             uint256 sourceAmount =
-                _processReceivedTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
+                _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
 
             // Send the tokens to the recipient.
             _withdraw(payload.recipient, sourceAmount);
@@ -412,7 +412,7 @@ abstract contract TeleporterTokenSource is
                 abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
 
             uint256 sourceAmount =
-                _processReceivedTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
+                _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
 
             // Verify that the payload's source blockchain ID matches the source blockchain ID passed from Teleporter.
             // Prevents a destination bridge from accessing tokens attributed to another destination bridge instance.
@@ -427,15 +427,8 @@ abstract contract TeleporterTokenSource is
             MultiHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopSendMessage));
 
-            uint256 sourceAmount =
-                _processReceivedTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
-
-            DestinationBridgeSettings memory originSettings =
-                registeredDestinations[sourceBlockchainID][originSenderAddress];
-            uint256 fee = TokenScalingUtils.removeTokenScale(
-                originSettings.tokenMultiplier,
-                originSettings.multiplyOnDestination,
-                payload.secondaryFee
+            (uint256 sourceAmount, uint256 fee) = _processMultihopTransfer(
+                sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
             );
 
             // For a multi-hop send, the fee token address has to be {tokenAddress},
@@ -461,15 +454,8 @@ abstract contract TeleporterTokenSource is
             MultiHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopCallMessage));
 
-            uint256 sourceAmount =
-                _processReceivedTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
-
-            DestinationBridgeSettings memory originSettings =
-                registeredDestinations[sourceBlockchainID][originSenderAddress];
-            uint256 fee = TokenScalingUtils.removeTokenScale(
-                originSettings.tokenMultiplier,
-                originSettings.multiplyOnDestination,
-                payload.secondaryFee
+            (uint256 sourceAmount, uint256 fee) = _processMultihopTransfer(
+                sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
             );
 
             // For a multi-hop send, the fee token address has to be {tokenAddress},
@@ -535,18 +521,15 @@ abstract contract TeleporterTokenSource is
     ) internal virtual;
 
     /**
-     * @notice Processes a received transfer from a destination bridge instance.
+     * @notice Processes a received single hop transfer from a destination bridge instance.
      * Validates that the message is sent from a registered destination bridge instance,
      * and is already collateralized.
-     * Deducts the balance bridged to the given destination.
-     * Removes the token scaling of the destination, checks the associated source token
-     * amount is greater than zero, and returns the source token amount.
      * @param destinationBlockchainID The blockchain ID of the destination bridge instance.
      * @param destinationBridgeAddress The address of the destination bridge instance.
      * @param amount The amount of tokens sent back from destination, denominated by the
      * destination's token scale amount.
      */
-    function _processReceivedTransfer(
+    function _processSingleHopTransfer(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         uint256 amount
@@ -564,6 +547,70 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: destination bridge not collateralized"
         );
 
+        return _processReceivedTransfer(
+            destinationSettings, destinationBlockchainID, destinationBridgeAddress, amount
+        );
+    }
+
+    /**
+     * @notice Processes a received multihop transfer from a destination bridge instance.
+     * Validates that the message is sent from a registered destination bridge instance,
+     * and is already collateralized.
+     * @param destinationBlockchainID The blockchain ID of the destination bridge instance.
+     * @param destinationBridgeAddress The address of the destination bridge instance.
+     * @param amount The amount of tokens sent back from destination, denominated by the
+     * destination's token scale amount.
+     * @param secondaryFee The Teleporter fee for the second hop of the mutihop transfer
+     */
+    function _processMultihopTransfer(
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount,
+        uint256 secondaryFee
+    ) private returns (uint256, uint256) {
+        DestinationBridgeSettings memory destinationSettings =
+            registeredDestinations[destinationBlockchainID][destinationBridgeAddress];
+
+        // Require that the destination bridge is registered and has no collateral needed.
+        require(
+            destinationSettings.registered,
+            "TeleporterTokenSource: destination bridge not registered"
+        );
+        require(
+            destinationSettings.collateralNeeded == 0,
+            "TeleporterTokenSource: destination bridge not collateralized"
+        );
+
+        uint256 fee = TokenScalingUtils.removeTokenScale(
+            destinationSettings.tokenMultiplier,
+            destinationSettings.multiplyOnDestination,
+            secondaryFee
+        );
+
+        uint256 transferAmount = _processReceivedTransfer(
+            destinationSettings, destinationBlockchainID, destinationBridgeAddress, amount
+        );
+
+        return (transferAmount, fee);
+    }
+
+    /**
+     * @notice Processes a received transfer from a destination bridge instance.
+     * Deducts the balance bridged to the given destination.
+     * Removes the token scaling of the destination, checks the associated source token
+     * amount is greater than zero, and returns the source token amount.
+     * @param destinationSettings The bridge settings for the destination bridge we received the transfer from.
+     * @param destinationBlockchainID The blockchain ID of the destination bridge instance.
+     * @param destinationBridgeAddress The address of the destination bridge instance.
+     * @param amount The amount of tokens sent back from destination, denominated by the
+     * destination's token scale amount.
+     */
+    function _processReceivedTransfer(
+        DestinationBridgeSettings memory destinationSettings,
+        bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
+        uint256 amount
+    ) private returns (uint256) {
         // Deduct the balance bridged to the given destination bridge address prior to scaling the amount.
         _deductSenderBalance(destinationBlockchainID, destinationBridgeAddress, amount);
 
