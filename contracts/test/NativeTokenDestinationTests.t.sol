@@ -267,7 +267,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: address(0)
             }),
             expectedReportedAmount
         );
@@ -294,7 +294,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: address(0)
             }),
             expectedReportedAmount
         );
@@ -331,7 +331,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 primaryFee: 0,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: address(0)
             }),
             burnedTxFeeAmount
         );

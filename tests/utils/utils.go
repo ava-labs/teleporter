@@ -771,7 +771,7 @@ func SendNativeMultiHopAndVerify(
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         DefaultNativeTokenRequiredGas,
-		FallbackRecipient:        recipientAddress,
+		MultiHopFallback:         recipientAddress,
 	}
 
 	// Find the amount sent by fromBridge. This is before any scaling/unscaling is applied.
@@ -851,7 +851,7 @@ func SendERC20MultiHopAndVerify(
 		PrimaryFee:               big.NewInt(0),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         DefaultERC20RequiredGas,
-		FallbackRecipient:        recipientAddress,
+		MultiHopFallback:         recipientAddress,
 	}
 
 	// Send tokens through a multi-hop transfer

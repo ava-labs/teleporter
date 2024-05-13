@@ -43,6 +43,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
         0xa83114A443dA1CecEFC50368531cACE9F37fCCcb;
     uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 200_000;
     uint256 public constant DEFAULT_RECIPIENT_GAS_LIMIT = 100_000;
+    address public constant DEFAULT_MULTIHOP_FALLBACK_ADDRESS =
+        0x043448b3FE2F24522D9CeB32AD8623c0b6b53E26;
     address public constant DEFAULT_FALLBACK_RECIPIENT_ADDRESS =
         0xe69Ea1BAF997002602c0A3D451b2b5c9B7F8E6A1;
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
@@ -208,9 +210,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             input.destinationBlockchainID, input.destinationBridgeAddress, 0
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
-        _checkExpectedTeleporterCallsForSend(
-            _createSingleHopTeleporterMessageInput(input, amount)
-        );
+        _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount);
         _send(input, amount);
@@ -384,7 +384,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         address recipient,
         uint256 secondaryFee,
         uint256 secondaryGasLimit,
-        address fallbackRecipient
+        address multiHopFallback
     ) internal pure returns (bytes memory) {
         return abi.encode(
             BridgeMessage({
@@ -397,7 +397,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
                         amount: amount,
                         secondaryFee: secondaryFee,
                         secondaryGasLimit: secondaryGasLimit,
-                        fallbackRecipient: fallbackRecipient
+                        multiHopFallback: multiHopFallback
                     })
                     )
             })
@@ -413,6 +413,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         bytes memory recipientPayload,
         uint256 recipientGasLimit,
         address fallbackRecipient,
+        address multiHopFallback,
         uint256 secondaryRequiredGasLimit,
         uint256 secondaryFee
     ) internal pure returns (bytes memory) {
@@ -429,6 +430,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
                         recipientPayload: recipientPayload,
                         recipientGasLimit: recipientGasLimit,
                         fallbackRecipient: fallbackRecipient,
+                        multiHopFallback: multiHopFallback,
                         secondaryRequiredGasLimit: secondaryRequiredGasLimit,
                         secondaryFee: secondaryFee
                     })

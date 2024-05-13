@@ -229,19 +229,19 @@ abstract contract TeleporterTokenDestination is
             );
             require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
             require(
-                input.fallbackRecipient == address(0),
-                "TeleporterTokenDestination: non-zero fallback recipient"
+                input.multiHopFallback == address(0),
+                "TeleporterTokenDestination: non-zero multi-hop fallback"
             );
             message = BridgeMessage({
                 messageType: BridgeMessageType.SINGLE_HOP_SEND,
                 payload: abi.encode(SingleHopSendMessage({recipient: input.recipient, amount: amount}))
             });
         } else {
-            // Multi-hop transfers require a fallback recipient in case the message sent to the intermediate source
+            // Require a multi-hop fallback in case the message sent to the intermediate source
             // chain fails to route the tokens to the final destination.
             require(
-                input.fallbackRecipient != address(0),
-                "TeleporterTokenDestination: zero fallback recipient address"
+                input.multiHopFallback != address(0),
+                "TeleporterTokenDestination: zero multi-hop fallback"
             );
 
             // If the destination blockchain ID is this blockchian, the destination
@@ -263,7 +263,7 @@ abstract contract TeleporterTokenDestination is
                         amount: amount,
                         secondaryFee: input.secondaryFee,
                         secondaryGasLimit: input.requiredGasLimit,
-                        fallbackRecipient: input.fallbackRecipient
+                        multiHopFallback: input.multiHopFallback
                     })
                     )
             });
@@ -332,6 +332,11 @@ abstract contract TeleporterTokenDestination is
                 input.destinationBridgeAddress == tokenSourceAddress,
                 "TeleporterTokenDestination: invalid destination bridge address"
             );
+            require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
+            require(
+                input.multiHopFallback == address(0),
+                "TeleporterTokenDestination: non-zero multi-hop fallback"
+            );
 
             message = BridgeMessage({
                 messageType: BridgeMessageType.SINGLE_HOP_CALL,
@@ -348,6 +353,10 @@ abstract contract TeleporterTokenDestination is
                     )
             });
         } else {
+            require(
+                input.multiHopFallback != address(0),
+                "TeleporterTokenDestination: zero multi-hop fallback"
+            );
             // If the destination blockchain ID is this blockchian, the destination
             // bridge address must be a different contract. This is a multi-hop case to
             // a different bridge contract on this chain.
@@ -370,6 +379,7 @@ abstract contract TeleporterTokenDestination is
                         recipientPayload: input.recipientPayload,
                         recipientGasLimit: input.recipientGasLimit,
                         fallbackRecipient: input.fallbackRecipient,
+                        multiHopFallback: input.multiHopFallback,
                         secondaryRequiredGasLimit: input.requiredGasLimit,
                         secondaryFee: input.secondaryFee
                     })
