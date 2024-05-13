@@ -502,13 +502,6 @@ abstract contract TeleporterTokenDestination is
         // and set to adjusted amount after deposit
         amount = _deposit(amount);
 
-        // The bridged amount must cover the secondary fee, because the secondary fee
-        // is directly subtracted from the bridged amount on the intermediate chain
-        // performing the multi-hop, before forwarding to the final destination chain.
-        require(
-            amount > secondaryFee, "TeleporterTokenDestination: insufficient amount to cover fees"
-        );
-
         // Transfer the primary fee to pay for Teleporter fees on the first hop.
         // The user can specify this contract as {primaryFeeTokenAddress},
         // in which case the fee will be paid on top of the bridged amount.
@@ -526,10 +519,14 @@ abstract contract TeleporterTokenDestination is
         // Burn the amount of tokens that will be bridged.
         _burn(amount);
 
-        // Remove this destination contract's token scale, and ensure
-        // that the corresponding amount of source tokens is greater than zero.
+        // The bridged amount must cover the secondary fee, because the secondary fee
+        // is directly subtracted from the bridged amount on the intermediate chain
+        // performing the multi-hop, before forwarding to the final destination chain.
         require(
-            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnDestination, amount) > 0,
+            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnDestination, amount)
+                > TokenScalingUtils.removeTokenScale(
+                    tokenMultiplier, multiplyOnDestination, secondaryFee
+                ),
             "TeleporterTokenDestination: insufficient tokens to transfer"
         );
 

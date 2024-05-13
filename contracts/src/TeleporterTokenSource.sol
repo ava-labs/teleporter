@@ -677,12 +677,12 @@ abstract contract TeleporterTokenSource is
         // Deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit.
         amount = _deposit(amount);
+        require(amount > 0, "TeleporterTokenSource: zero amount to send");
+
         if (feeAmount > 0) {
             feeAmount =
                 SafeERC20TransferFrom.safeTransferFrom(IERC20(primaryFeeTokenAddress), feeAmount);
         }
-
-        require(amount > 0, "TeleporterTokenSource: zero amount to send");
 
         // Scale the amount based on the token multiplier for the given destination.
         uint256 scaledAmount = TokenScalingUtils.applyTokenScale(
