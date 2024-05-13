@@ -69,12 +69,12 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
-    function testSendAndCallNonZeroFallbackRecipient() public {
-        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+    function testNonZeroFallbackRecipientForSingleHop() public {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
         _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
-        input.fallbackRecipient = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;
-        vm.expectRevert(_formatErrorMessage("non-zero fallback recipient"));
-        _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
+        input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
+        vm.expectRevert(_formatErrorMessage("non-zero multi-hop fallback"));
+        _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendingToSameInstance() public {
@@ -95,6 +95,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         input.destinationBridgeAddress = address(tokenDestination);
+        input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
         _setUpExpectedDeposit(_DEFAULT_TRANSFER_AMOUNT, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
         _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
@@ -444,6 +445,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         input.destinationBlockchainID = destinationBlockchainID;
         input.primaryFee = primaryFee;
         input.secondaryFee = secondaryFee;
+        input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
 
         _setUpExpectedDeposit(amount, input.primaryFee);
 

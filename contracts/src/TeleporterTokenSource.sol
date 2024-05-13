@@ -210,7 +210,7 @@ abstract contract TeleporterTokenSource is
             // Require that a single hop transfer does not have a multi-hop fallback recipient.
             require(
                 input.multiHopFallback == address(0),
-                "TeleporterTokenSource: non-zero intermediate fallback recipient"
+                "TeleporterTokenSource: non-zero multi-hop fallback"
             );
             (adjustedAmount, feeAmount) = _prepareSend({
                 destinationBlockchainID: input.destinationBlockchainID,
@@ -289,7 +289,7 @@ abstract contract TeleporterTokenSource is
             // Require that a single hop transfer does not have a multi-hop fallback recipient.
             require(
                 input.multiHopFallback == address(0),
-                "TeleporterTokenSource: non-zero intermediate fallback recipient"
+                "TeleporterTokenSource: non-zero multi-hop fallback"
             );
 
             (adjustedAmount, feeAmount) = _prepareSend({

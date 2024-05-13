@@ -150,7 +150,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     function testNonZeroFallbackRecipientForSingleHop() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
-        vm.expectRevert(_formatErrorMessage("non-zero fallback recipient"));
+        vm.expectRevert(_formatErrorMessage("non-zero multi-hop fallback"));
         _send(input, 100_000);
     }
 
@@ -373,8 +373,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, 0);
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it
-        // is not registered. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // is not registered. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -399,8 +399,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not yet
-        // fully collateralized. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // fully collateralized. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -427,8 +427,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
-        // amount would be scaled to zero. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // amount would be scaled to zero. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -536,8 +536,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, 0);
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not registered.
-        // Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -566,8 +566,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not yet
-        // fully collateralized. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // fully collateralized. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -598,8 +598,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
 
         // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
-        // amount would be scaled to zero. Instead, the tokens are sent to the fallback recipient.
-        _checkExpectedWithdrawal(DEFAULT_FALLBACK_RECIPIENT_ADDRESS, amount);
+        // amount would be scaled to zero. Instead, the tokens are sent to the multi-hop fallback.
+        _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
