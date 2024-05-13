@@ -20,7 +20,7 @@ import (
  * Bridge tokens from Subnet A to Subnet B through multi-hop
  * Bridge back tokens from Subnet B to Subnet A through multi-hop
  */
-func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
+func ERC20SourceERC20DestinationMultiHop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -147,7 +147,7 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 
 	bridgedAmount = big.NewInt(0).Div(bridgedAmount, big.NewInt(2))
 	// Multi-hop transfer to Subnet B
-	utils.SendERC20MultihopAndVerify(
+	utils.SendERC20MultiHopAndVerify(
 		ctx,
 		network,
 		fundedKey,
@@ -164,7 +164,7 @@ func ERC20SourceERC20DestinationMultihop(network interfaces.Network) {
 	)
 
 	// Multi-hop transfer back to Subnet A
-	utils.SendERC20MultihopAndVerify(
+	utils.SendERC20MultiHopAndVerify(
 		ctx,
 		network,
 		fundedKey,

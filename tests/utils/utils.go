@@ -749,7 +749,7 @@ func SendAndCallERC20Destination(
 // Requires that both fromBridge and toBridge are fully collateralized
 // Requires that both fromBridge and toBridge have the same tokenMultiplier and multiplyOnDestination
 // with respect to the original asset on the C-Chain
-func SendNativeMultihopAndVerify(
+func SendNativeMultiHopAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
 	sendingKey *ecdsa.PrivateKey,
@@ -820,7 +820,7 @@ func SendNativeMultihopAndVerify(
 	)
 }
 
-func SendERC20MultihopAndVerify(
+func SendERC20MultiHopAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
 	fundedKey *ecdsa.PrivateKey,

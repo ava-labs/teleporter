@@ -184,7 +184,7 @@ abstract contract TeleporterTokenSource is
     function _send(
         SendTokensInput memory input,
         uint256 amount,
-        bool isMultihop
+        bool isMultiHop
     ) internal sendNonReentrant {
         require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
         require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
@@ -192,7 +192,7 @@ abstract contract TeleporterTokenSource is
 
         uint256 adjustedAmount;
         uint256 feeAmount = input.primaryFee;
-        if (isMultihop) {
+        if (isMultiHop) {
             adjustedAmount = _prepareMultiHopRouting(
                 input.destinationBlockchainID,
                 input.destinationBridgeAddress,
@@ -241,7 +241,7 @@ abstract contract TeleporterTokenSource is
             })
         );
 
-        if (isMultihop) {
+        if (isMultiHop) {
             emit TokensRouted(messageID, input, adjustedAmount);
         } else {
             emit TokensSent(messageID, msg.sender, input, adjustedAmount);
@@ -253,7 +253,7 @@ abstract contract TeleporterTokenSource is
         address originSenderAddress,
         SendAndCallInput memory input,
         uint256 amount,
-        bool isMultihop
+        bool isMultiHop
     ) internal sendNonReentrant {
         require(
             input.recipientContract != address(0),
@@ -272,7 +272,7 @@ abstract contract TeleporterTokenSource is
 
         uint256 adjustedAmount;
         uint256 feeAmount = input.primaryFee;
-        if (isMultihop) {
+        if (isMultiHop) {
             adjustedAmount = _prepareMultiHopRouting(
                 input.destinationBlockchainID,
                 input.destinationBridgeAddress,
@@ -323,7 +323,7 @@ abstract contract TeleporterTokenSource is
             })
         );
 
-        if (isMultihop) {
+        if (isMultiHop) {
             emit TokensAndCallRouted(messageID, input, adjustedAmount);
         } else {
             emit TokensAndCallSent(messageID, originSenderAddress, input, adjustedAmount);
@@ -424,7 +424,7 @@ abstract contract TeleporterTokenSource is
             MultiHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopSendMessage));
 
-            (uint256 sourceAmount, uint256 fee) = _processMultihopTransfer(
+            (uint256 sourceAmount, uint256 fee) = _processMultiHopTransfer(
                 sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
             );
 
@@ -451,7 +451,7 @@ abstract contract TeleporterTokenSource is
             MultiHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopCallMessage));
 
-            (uint256 sourceAmount, uint256 fee) = _processMultihopTransfer(
+            (uint256 sourceAmount, uint256 fee) = _processMultiHopTransfer(
                 sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
             );
 
@@ -540,7 +540,7 @@ abstract contract TeleporterTokenSource is
     }
 
     /**
-     * @notice Processes a received multihop transfer from a destination bridge instance.
+     * @notice Processes a received multi-hop transfer from a destination bridge instance.
      * Validates that the message is sent from a registered destination bridge instance,
      * and is already collateralized.
      * @param destinationBlockchainID The blockchain ID of the destination bridge instance.
@@ -549,7 +549,7 @@ abstract contract TeleporterTokenSource is
      * destination's token scale amount.
      * @param secondaryFee The Teleporter fee for the second hop of the mutihop transfer
      */
-    function _processMultihopTransfer(
+    function _processMultiHopTransfer(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         uint256 amount,

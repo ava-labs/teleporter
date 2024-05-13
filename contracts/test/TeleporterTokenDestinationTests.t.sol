@@ -142,7 +142,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _send(input, amount);
     }
 
-    function testSendMultihopZeroFallbackRecipient() public {
+    function testSendMultiHopZeroFallbackRecipient() public {
         uint256 amount = 200_000;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;

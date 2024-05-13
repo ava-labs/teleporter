@@ -20,7 +20,7 @@ import (
  * Bridge tokens from Subnet A to Subnet B through multi-hop
  * Bridge back tokens from Subnet B to Subnet A through multi-hop
  */
-func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
+func NativeSourceNativeDestinationMultiHop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -197,7 +197,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	// Send half of the received amount to account for gas expenses
 	amountToSendA := new(big.Int).Div(bridgedAmountA, big.NewInt(2))
 
-	utils.SendNativeMultihopAndVerify(
+	utils.SendNativeMultiHopAndVerify(
 		ctx,
 		network,
 		fundedKey,
@@ -216,7 +216,7 @@ func NativeSourceNativeDestinationMultihop(network interfaces.Network) {
 	amountToSendB := new(big.Int).Div(amountToSendA, big.NewInt(2))
 
 	// Multi-hop transfer back to Subnet A
-	utils.SendNativeMultihopAndVerify(
+	utils.SendNativeMultiHopAndVerify(
 		ctx,
 		network,
 		fundedKey,
