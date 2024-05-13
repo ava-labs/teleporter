@@ -202,16 +202,15 @@ abstract contract TeleporterTokenSource is
 
             if (adjustedAmount == 0) {
                 // If the adjusted amount is zero for any reason (i.e. unsupported destination,
-                // being scaled down to zero, etc.), send the tokens to the fallback recipient.
-                _withdraw(input.fallbackRecipient, amount);
+                // being scaled down to zero, etc.), send the tokens to the multi-hop fallback.
+                _withdraw(input.multiHopFallback, amount);
                 return;
             }
         } else {
-            // Require that the fallback recipient is the zero address for single-hop transfers because
-            // the value is not used in this case.
+            // Require that a single hop transfer does not have a multi-hop fallback recipient.
             require(
-                input.fallbackRecipient == address(0),
-                "TeleporterTokenSource: non-zero fallback recipient"
+                input.multiHopFallback == address(0),
+                "TeleporterTokenSource: non-zero intermediate fallback recipient"
             );
             (adjustedAmount, feeAmount) = _prepareSend({
                 destinationBlockchainID: input.destinationBlockchainID,
@@ -282,11 +281,17 @@ abstract contract TeleporterTokenSource is
 
             if (adjustedAmount == 0) {
                 // If the adjusted amount is zero for any reason (i.e. unsupported destination,
-                // being scaled down to zero, etc.), send the tokens to the fallback recipient.
-                _withdraw(input.fallbackRecipient, amount);
+                // being scaled down to zero, etc.), send the tokens to the multi-hop fallback recipient.
+                _withdraw(input.multiHopFallback, amount);
                 return;
             }
         } else {
+            // Require that a single hop transfer does not have a multi-hop fallback recipient.
+            require(
+                input.multiHopFallback == address(0),
+                "TeleporterTokenSource: non-zero intermediate fallback recipient"
+            );
+
             (adjustedAmount, feeAmount) = _prepareSend({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationBridgeAddress: input.destinationBridgeAddress,
@@ -441,7 +446,7 @@ abstract contract TeleporterTokenSource is
                     primaryFee: fee,
                     secondaryFee: 0,
                     requiredGasLimit: payload.secondaryGasLimit,
-                    fallbackRecipient: payload.fallbackRecipient
+                    multiHopFallback: payload.multiHopFallback
                 }),
                 sourceAmount,
                 true
@@ -469,6 +474,7 @@ abstract contract TeleporterTokenSource is
                     recipientPayload: payload.recipientPayload,
                     requiredGasLimit: payload.secondaryRequiredGasLimit,
                     recipientGasLimit: payload.recipientGasLimit,
+                    multiHopFallback: payload.multiHopFallback,
                     fallbackRecipient: payload.fallbackRecipient,
                     feeTokenAddress: tokenAddress,
                     primaryFee: fee,

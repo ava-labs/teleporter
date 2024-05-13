@@ -149,7 +149,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
     function testNonZeroFallbackRecipientForSingleHop() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.fallbackRecipient = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;
+        input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
         vm.expectRevert(_formatErrorMessage("non-zero fallback recipient"));
         _send(input, 100_000);
     }
@@ -386,7 +386,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
     }
@@ -412,7 +412,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
     }
@@ -440,7 +440,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
     }
@@ -460,7 +460,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             primaryFee: feeAmount,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
         });
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopTeleporterMessageInput(input, bridgeAmount)
@@ -480,7 +480,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: input.recipient,
                 secondaryFee: input.primaryFee,
                 secondaryGasLimit: input.requiredGasLimit,
-                fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
     }
@@ -502,7 +502,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             amount: amount,
             secondaryFee: amount,
             secondaryGasLimit: 50_000,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
         });
 
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
@@ -517,7 +517,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipient: message.recipient,
                 secondaryFee: message.secondaryFee,
                 secondaryGasLimit: message.secondaryGasLimit,
-                fallbackRecipient: message.fallbackRecipient
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
             })
         );
 
@@ -551,6 +551,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
                 fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
                 secondaryRequiredGasLimit: 500_000,
                 secondaryFee: 0
             })
@@ -580,6 +581,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
                 fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
                 secondaryRequiredGasLimit: 500_000,
                 secondaryFee: 0
             })
@@ -611,6 +613,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
                 fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
                 secondaryRequiredGasLimit: 500_000,
                 secondaryFee: 0
             })
@@ -634,6 +637,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
             feeTokenAddress: address(bridgedToken),
+            multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
             primaryFee: feeAmount,
             secondaryFee: 0
         });
@@ -659,6 +663,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
                 recipientPayload: input.recipientPayload,
                 recipientGasLimit: input.recipientGasLimit,
                 fallbackRecipient: input.fallbackRecipient,
+                multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
                 secondaryRequiredGasLimit: input.requiredGasLimit,
                 secondaryFee: input.primaryFee
             })
@@ -841,7 +846,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
-            fallbackRecipient: address(0)
+            multiHopFallback: address(0)
         });
     }
 
@@ -859,6 +864,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
+            multiHopFallback: address(0),
             feeTokenAddress: address(bridgedToken),
             primaryFee: 0,
             secondaryFee: 0
@@ -874,7 +880,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: 0,
-            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+            multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
         });
     }
 
