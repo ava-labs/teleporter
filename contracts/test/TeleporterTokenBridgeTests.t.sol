@@ -294,7 +294,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(input.feeTokenAddress),
+                feeTokenAddress: address(input.primaryFeeTokenAddress),
                 amount: input.primaryFee
             }),
             requiredGasLimit: input.requiredGasLimit,
@@ -313,7 +313,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(input.feeTokenAddress),
+                feeTokenAddress: address(input.primaryFeeTokenAddress),
                 amount: input.primaryFee
             }),
             requiredGasLimit: input.requiredGasLimit,

@@ -217,7 +217,7 @@ abstract contract TeleporterTokenSource is
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationBridgeAddress: input.destinationBridgeAddress,
                 amount: amount,
-                feeTokenAddress: input.feeTokenAddress,
+                primaryFeeTokenAddress: input.primaryFeeTokenAddress,
                 feeAmount: input.primaryFee
             });
         }
@@ -234,7 +234,10 @@ abstract contract TeleporterTokenSource is
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.feeTokenAddress, amount: feeAmount}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: feeAmount
+                }),
                 requiredGasLimit: input.requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -291,7 +294,7 @@ abstract contract TeleporterTokenSource is
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationBridgeAddress: input.destinationBridgeAddress,
                 amount: amount,
-                feeTokenAddress: input.feeTokenAddress,
+                primaryFeeTokenAddress: input.primaryFeeTokenAddress,
                 feeAmount: input.primaryFee
             });
         }
@@ -316,7 +319,10 @@ abstract contract TeleporterTokenSource is
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.feeTokenAddress, amount: feeAmount}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: feeAmount
+                }),
                 requiredGasLimit: input.requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -437,7 +443,7 @@ abstract contract TeleporterTokenSource is
                     destinationBlockchainID: payload.destinationBlockchainID,
                     destinationBridgeAddress: payload.destinationBridgeAddress,
                     recipient: payload.recipient,
-                    feeTokenAddress: tokenAddress,
+                    primaryFeeTokenAddress: tokenAddress,
                     primaryFee: fee,
                     secondaryFee: 0,
                     requiredGasLimit: payload.secondaryGasLimit,
@@ -470,7 +476,7 @@ abstract contract TeleporterTokenSource is
                     requiredGasLimit: payload.secondaryRequiredGasLimit,
                     recipientGasLimit: payload.recipientGasLimit,
                     fallbackRecipient: payload.fallbackRecipient,
-                    feeTokenAddress: tokenAddress,
+                    primaryFeeTokenAddress: tokenAddress,
                     primaryFee: fee,
                     secondaryFee: 0
                 }),
@@ -657,7 +663,7 @@ abstract contract TeleporterTokenSource is
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
         uint256 amount,
-        address feeTokenAddress,
+        address primaryFeeTokenAddress,
         uint256 feeAmount
     ) private returns (uint256, uint256) {
         DestinationBridgeSettings memory destinationSettings =
@@ -672,7 +678,8 @@ abstract contract TeleporterTokenSource is
         // and set to adjusted amount after deposit.
         amount = _deposit(amount);
         if (feeAmount > 0) {
-            feeAmount = SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+            feeAmount =
+                SafeERC20TransferFrom.safeTransferFrom(IERC20(primaryFeeTokenAddress), feeAmount);
         }
 
         require(amount > 0, "TeleporterTokenSource: zero amount to send");

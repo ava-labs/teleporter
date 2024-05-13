@@ -40,12 +40,14 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
-            vm.expectCall(
-                address(bridgedToken),
-                abi.encodeCall(
-                    IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
-                )
-            );
+                if (address(bridgedToken) != address(tokenBridge)) {
+                vm.expectCall(
+                    address(bridgedToken),
+                    abi.encodeCall(
+                        IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                    )
+                );
+            }
         }
         // Increase the allowance of the bridge to transfer the funds from the user
         bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);

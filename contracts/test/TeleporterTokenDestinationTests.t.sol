@@ -552,7 +552,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
             destinationBridgeAddress: TOKEN_SOURCE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
-            feeTokenAddress: address(bridgedToken),
+            primaryFeeTokenAddress: address(bridgedToken),
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -574,7 +574,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
-            feeTokenAddress: address(bridgedToken),
+            primaryFeeTokenAddress: address(bridgedToken),
             primaryFee: 0,
             secondaryFee: 0
         });

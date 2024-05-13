@@ -263,7 +263,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
-                feeTokenAddress: address(bridgedToken),
+                primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -290,7 +290,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
-                feeTokenAddress: address(bridgedToken),
+                primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -327,7 +327,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
                 recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
-                feeTokenAddress: address(bridgedToken),
+                primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: 0,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -459,12 +459,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
-            vm.expectCall(
-                address(bridgedToken),
-                abi.encodeCall(
-                    IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
-                )
-            );
+            if (address(bridgedToken) != address(app)) {
+                vm.expectCall(
+                    address(bridgedToken),
+                    abi.encodeCall(
+                        IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                    )
+                );
+            }
         }
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(app), amount);
