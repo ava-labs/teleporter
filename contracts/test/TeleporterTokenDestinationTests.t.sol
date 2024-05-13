@@ -135,7 +135,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _sendMultiHopCallSuccess(tokenDestination.blockchainID(), 100_000, 999, 555);
     }
 
-    function testSendZeroAmountAfterScaling() public {
+    function testSendZeroAmountAfterRemoveScaling() public {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = 0;
         input.secondaryFee = 0;
