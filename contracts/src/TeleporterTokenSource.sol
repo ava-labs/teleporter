@@ -66,7 +66,7 @@ abstract contract TeleporterTokenSource is
 
     /**
      * @notice The token address this source contract bridges to destination instances.
-     * For multi-hop transfers, this {tokenAddress} is always used to pay for Teleporter fees.
+     * For multi-hop transfers, this {tokenAddress} is always used to pay for the secondary message fees.
      * If the token is an ERC20 token, the contract address is directly passed in.
      * If the token is a native asset, the contract address is the wrapped token contract.
      */
