@@ -249,7 +249,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, feeAmount);
 
         // Withdraw an amount less than bridged amount
-        uint256 withdrawAmount = amount/2;
+        uint256 withdrawAmount = amount / 2;
 
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, withdrawAmount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -731,12 +731,13 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(bridgedToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(bridgedToken),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
-            message: _encodeSingleHopSendMessage(
-                amount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS
-                )
+            message: _encodeSingleHopSendMessage(amount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
         });
         _checkExpectedTeleporterCallsForSend(expectedMessage);
         vm.expectEmit(true, true, true, true, address(tokenBridge));
@@ -755,7 +756,10 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(bridgedToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(bridgedToken),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopSendMessage(amount / tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)

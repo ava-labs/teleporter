@@ -191,7 +191,7 @@ abstract contract TeleporterTokenSource is
         require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
 
         uint256 adjustedAmount;
-        uint256 feeAmount;
+        uint256 feeAmount = input.primaryFee;
         if (isMultihop) {
             adjustedAmount = _prepareMultiHopRouting(
                 input.destinationBlockchainID,
@@ -235,10 +235,7 @@ abstract contract TeleporterTokenSource is
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: input.feeTokenAddress,
-                    amount: input.primaryFee
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.feeTokenAddress, amount: feeAmount}),
                 requiredGasLimit: input.requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -275,7 +272,7 @@ abstract contract TeleporterTokenSource is
         );
 
         uint256 adjustedAmount;
-        uint256 feeAmount;
+        uint256 feeAmount = input.primaryFee;
         if (isMultihop) {
             adjustedAmount = _prepareMultiHopRouting(
                 input.destinationBlockchainID,
@@ -321,10 +318,7 @@ abstract contract TeleporterTokenSource is
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationAddress: input.destinationBridgeAddress,
-                feeInfo: TeleporterFeeInfo({
-                    feeTokenAddress: input.feeTokenAddress,
-                    amount: input.primaryFee
-                }),
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.feeTokenAddress, amount: feeAmount}),
                 requiredGasLimit: input.requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)

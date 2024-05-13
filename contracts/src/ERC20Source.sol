@@ -48,7 +48,6 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
         address teleporterManager,
         address tokenAddress
     ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, tokenAddress) {
-        require(tokenAddress != address(0), "ERC20Source: token address is zero");
         token = IERC20(tokenAddress);
     }
 
