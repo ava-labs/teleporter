@@ -17,7 +17,6 @@ import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "./utils/SafeWrappedNativeTokenDeposit.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
-import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -58,7 +57,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * transfer to the recipient. The caller must be the wrapped native token contract.
      */
     receive() external payable {
-        require(_msgSender() == tokenAddress, "NativeTokenSource: invalid receive payable sender");
+        require(msg.sender == tokenAddress, "NativeTokenSource: invalid receive payable sender");
     }
 
     /**

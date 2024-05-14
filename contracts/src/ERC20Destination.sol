@@ -16,7 +16,6 @@ import {
     SingleHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
-import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
