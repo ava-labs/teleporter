@@ -117,8 +117,8 @@ contract NativeTokenDestination is
 
     /**
      * @notice Initializes this destination token bridge instance to receive
-     * tokens from the specified source chain and token bridge instance, and represent them
-     * with a native token on this chain.
+     * tokens from the specified source chain and token bridge instance, and represents the
+     * received tokens with native tokens on this chain.
      * @param settings the settings for constructing this destination token bridge instance.
      * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
      * @param decimalsShift The number of decimal places to shift the token amount by.
