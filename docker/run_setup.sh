@@ -39,19 +39,20 @@ sed "s/\"<EVM_CHAIN_ID>\"/68430/g" ./docker/genesisTemplate.json > subnetGenesis
 sed "s/\"<EVM_CHAIN_ID>\"/68431/g" ./docker/genesisTemplate.json > subnetGenesis_B.json
 sed "s/\"<EVM_CHAIN_ID>\"/68432/g" ./docker/genesisTemplate.json > subnetGenesis_C.json
 
-# Deploy three test subnets to the local network.
+# Deploy three test subnets to the local network. Note that the embedded Teleporter and Relayer support is disabled
+# because this script handles a custom deployment of each.
 echo "Creating new subnet A..."
-avalanche subnet create subneta --force --genesis ./subnetGenesis_A.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check
+avalanche subnet create subneta --force --genesis ./subnetGenesis_A.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check --teleporter=false --relayer=false
 avalanche subnet configure subneta --node-config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
 avalanche subnet deploy subneta --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 
 echo "Creating new subnet B..."
-avalanche subnet create --force --genesis ./subnetGenesis_B.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check subnetb
+avalanche subnet create --force --genesis ./subnetGenesis_B.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check subnetb --teleporter=false --relayer=false
 avalanche subnet configure subnetb --node-config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
 avalanche subnet deploy subnetb --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 
 echo "Creating new subnet C..."
-avalanche subnet create --force --genesis ./subnetGenesis_C.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check subnetc
+avalanche subnet create --force --genesis ./subnetGenesis_C.json --config ./docker/defaultNodeConfig.json --evm --vm-version $SUBNET_EVM_VERSION --log-level info --skip-update-check subnetc --teleporter=false --relayer=false
 avalanche subnet configure subnetc --node-config ./docker/defaultNodeConfig.json --chain-config ./docker/defaultChainConfig.json --skip-update-check
 avalanche subnet deploy subnetc --local --avalanchego-version $AVALANCHEGO_VERSION --config ./docker/defaultNodeConfig.json --log-level info --skip-update-check
 

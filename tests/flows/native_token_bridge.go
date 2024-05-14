@@ -11,7 +11,6 @@ import (
 	nativetokensource "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/NativeTokenBridge/NativeTokenSource"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -53,8 +52,7 @@ func NativeTokenBridge(network interfaces.LocalNetwork) {
 	// Info we need to calculate for the test
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
 	Expect(err).Should(BeNil())
-	bridgeContractAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, 0)
-	Expect(err).Should(BeNil())
+	bridgeContractAddress := crypto.CreateAddress(deployerAddress, 0)
 	log.Info("Native Token Bridge Contract Address: " + bridgeContractAddress.Hex())
 
 	{

@@ -6,7 +6,6 @@ package utils
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io/fs"
 	"log"
 	"math/big"
@@ -15,7 +14,6 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/pkg/errors"
 )
 
@@ -46,20 +44,6 @@ type byteCodeObj struct {
 
 type byteCodeFile struct {
 	ByteCode byteCodeObj `json:"bytecode"`
-}
-
-func DeriveEVMContractAddress(sender common.Address, nonce uint64) (common.Address, error) {
-	type AddressNonce struct {
-		Address common.Address
-		Nonce   uint64
-	}
-	addressNonce := AddressNonce{sender, nonce}
-	rlpEncoded, err := rlp.EncodeToBytes(addressNonce)
-	if err != nil {
-		return common.Address{}, errors.Wrap(err, "Failed to RLP encode address and nonce value.")
-	}
-	hash := crypto.Keccak256Hash(rlpEncoded)
-	return common.HexToAddress(fmt.Sprintf("0x%x", hash.Bytes()[12:])), nil
 }
 
 func ExtractByteCode(byteCodeFileName string) ([]byte, error) {
@@ -143,13 +127,7 @@ func ConstructKeylessTransaction(
 	senderAddressString := senderAddress.Hex() // "0x" prepended by Hex() already.
 
 	// Derive the resulting contract address given that it will be deployed from the sender address using the nonce of 0.
-	contractAddress, err := DeriveEVMContractAddress(senderAddress, 0)
-	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(
-			err,
-			"Failed to derive contract address",
-		)
-	}
+	contractAddress := crypto.CreateAddress(senderAddress, 0)
 	contractAddressString := contractAddress.Hex() // "0x" prepended by Hex() already.
 
 	log.Println("Raw Teleporter Contract Creation Transaction:")
