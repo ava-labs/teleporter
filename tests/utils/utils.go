@@ -109,12 +109,14 @@ func DeployERC20Destination(
 	address, tx, erc20Destination, err := erc20destination.DeployERC20Destination(
 		opts,
 		subnet.RPCClient,
-		subnet.TeleporterRegistryAddress,
-		teleporterManager,
-		sourceBlockchainID,
-		tokenSourceAddress,
+		erc20destination.TeleporterTokenDestinationSettings{
+			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
+			TeleporterManager:         teleporterManager,
+			SourceBlockchainID:        sourceBlockchainID,
+			TokenSourceAddress:        tokenSourceAddress,
+			AssetSymbol:               tokenSymbol,
+		},
 		tokenName,
-		tokenSymbol,
 		tokenDecimals,
 	)
 	Expect(err).Should(BeNil())
@@ -152,17 +154,17 @@ func DeployNativeTokenDestination(
 	address, tx, nativeTokenDestination, err := nativetokendestination.DeployNativeTokenDestination(
 		opts,
 		subnet.RPCClient,
-		nativetokendestination.NativeTokenDestinationSettings{
-			NativeAssetSymbol:                   symbol,
-			TeleporterRegistryAddress:           subnet.TeleporterRegistryAddress,
-			TeleporterManager:                   teleporterManager,
-			SourceBlockchainID:                  sourceBlockchainID,
-			TokenSourceAddress:                  tokenSourceAddress,
-			InitialReserveImbalance:             initialReserveImbalance,
-			DecimalsShift:                       decimalsShift,
-			MultiplyOnDestination:               multiplyOnDestination,
-			BurnedFeesReportingRewardPercentage: burnedFeesReportingRewardPercentage,
+		nativetokendestination.TeleporterTokenDestinationSettings{
+			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
+			TeleporterManager:         teleporterManager,
+			SourceBlockchainID:        sourceBlockchainID,
+			TokenSourceAddress:        tokenSourceAddress,
+			AssetSymbol:               symbol,
 		},
+		initialReserveImbalance,
+		decimalsShift,
+		multiplyOnDestination,
+		burnedFeesReportingRewardPercentage,
 	)
 	Expect(err).Should(BeNil())
 
