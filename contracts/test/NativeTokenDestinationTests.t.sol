@@ -10,11 +10,11 @@ import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {TeleporterTokenDestination} from "../src/TeleporterTokenDestination.sol";
 import {
-    NativeTokenDestinationSettings,
     NativeTokenDestination,
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "../src/NativeTokenDestination.sol";
+import {TeleporterTokenDestinationSettings} from "../src/interfaces/ITeleporterTokenDestination.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
@@ -35,17 +35,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function setUp() public override {
         TeleporterTokenDestinationTest.setUp();
 
-        app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnDestination: true,
-            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
-        }));
+        app = NativeTokenDestination(payable(address(_createNewDestinationInstance())));
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
@@ -56,77 +46,75 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
     function testZeroInitialReserveImbalance() public {
         vm.expectRevert("NativeTokenDestination: zero initial reserve imbalance");
-        new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+        new NativeTokenDestination({
+            settings: TeleporterTokenDestinationSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                assetSymbol: DEFAULT_SYMBOL
+            }),
             initialReserveImbalance: 0,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnDestination: true,
-            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
-        }));
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
+            );
     }
 
     function testInvalidBurnedRewardPercentage() public {
         vm.expectRevert("NativeTokenDestination: invalid percentage");
-        new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+        new NativeTokenDestination({
+            settings: TeleporterTokenDestinationSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                assetSymbol: DEFAULT_SYMBOL
+            }),
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnDestination: true,
-            burnedFeesReportingRewardPercentage: 100
-        }));
+            burnedFeesReportingRewardPercentage_: 100}
+            );
     }
 
     function testZeroSourceBlockchainID() public {
         vm.expectRevert(_formatErrorMessage("zero source blockchain ID"));
-        new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: address(this),
-            sourceBlockchainID: bytes32(0),
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-            initialReserveImbalance: 1_000,
-            decimalsShift: 0,
-            multiplyOnDestination: false,
-            burnedFeesReportingRewardPercentage: 1
-        }));
+        new NativeTokenDestination({
+            settings: TeleporterTokenDestinationSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                sourceBlockchainID: bytes32(0),
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                assetSymbol: DEFAULT_SYMBOL
+            }),
+            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
+            multiplyOnDestination: true,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
+            );
     }
 
     function testDeployToSameBlockchain() public {
         vm.expectRevert(_formatErrorMessage("cannot deploy to same blockchain as source"));
-        new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: address(this),
-            sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-            initialReserveImbalance: 1_000,
-            decimalsShift: 0,
-            multiplyOnDestination: false,
-            burnedFeesReportingRewardPercentage: 1
-        }));
+        new NativeTokenDestination({
+            settings: TeleporterTokenDestinationSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                assetSymbol: DEFAULT_SYMBOL
+            }),
+            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
+            multiplyOnDestination: true,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
+            );
     }
 
     function testSendBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
-        app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: 0,
-            multiplyOnDestination: true,
-            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
-        }));
+        app = NativeTokenDestination(payable(address(_createNewDestinationInstance())));
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
@@ -142,17 +130,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
     function testSendAndCallBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
-        app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: 0,
-            multiplyOnDestination: true,
-            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
-        }));
+        app = NativeTokenDestination(payable(address(_createNewDestinationInstance())));
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
@@ -327,17 +305,19 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
     function testReportBurnFeesNoRewardSuccess() public {
         // Create a new destination instance with no rewards for reporting burned fees.
-        app = new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+        app = new NativeTokenDestination({
+            settings: TeleporterTokenDestinationSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                assetSymbol: DEFAULT_SYMBOL
+            }),
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: 0,
-            multiplyOnDestination: false,
-            burnedFeesReportingRewardPercentage: 0
-        }));
+            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
+            multiplyOnDestination: true,
+            burnedFeesReportingRewardPercentage_: 0}
+            );
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
@@ -385,17 +365,19 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         override
         returns (TeleporterTokenDestination)
     {
-        return new NativeTokenDestination(NativeTokenDestinationSettings({
-            nativeAssetSymbol: DEFAULT_SYMBOL,
-            teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            teleporterManager: MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+        return new NativeTokenDestination({
+            settings: TeleporterTokenDestinationSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                assetSymbol: DEFAULT_SYMBOL
+            }),
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnDestination: true,
-            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
-        }));
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
+            );
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {

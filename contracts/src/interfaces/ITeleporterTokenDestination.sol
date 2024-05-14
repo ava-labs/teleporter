@@ -14,6 +14,24 @@ import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
  */
 
 /**
+ * @notice Settings for constructing a {ITeleporterTokenDestination} contract.
+ * @param teleporterRegistryAddress the current blockchain id's Teleporter registry
+ * address. https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades.
+ * @param teleporterManager address that manages this contract's integration with the
+ * Teleporter registry and Teleporter versions.
+ * @param sourceBlockchainID The blockchain ID of the associated source token bridge
+ * @param tokenSourceAddress The address of the source token bridge contract.
+ * @param assetSymbol The symbol for the token of this destination bridge contract.
+ */
+struct TeleporterTokenDestinationSettings {
+    address teleporterRegistryAddress;
+    address teleporterManager;
+    bytes32 sourceBlockchainID;
+    address tokenSourceAddress;
+    string assetSymbol;
+}
+
+/**
  * @dev Interface for a destination bridge contract that mints a representation token on its chain, and allows
  * for burning that token to redeem the backing asset on the source chain, or briding to other destinations.
  */
