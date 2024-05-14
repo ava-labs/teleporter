@@ -16,6 +16,7 @@ import {
     SingleHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
+import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -96,8 +97,8 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * implemenation to ensure the amount returned is correct.
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        _spendAllowance(msg.sender, address(this), amount);
-        _transfer(msg.sender, address(this), amount);
+        _spendAllowance(_msgSender(), address(this), amount);
+        _transfer(_msgSender(), address(this), amount);
         return amount;
     }
 

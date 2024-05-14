@@ -25,6 +25,7 @@ import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -284,7 +285,7 @@ abstract contract TeleporterTokenDestination is
             })
         );
 
-        emit TokensSent(messageID, msg.sender, input, amount);
+        emit TokensSent(messageID, _msgSender(), input, amount);
     }
 
     /**
@@ -343,7 +344,7 @@ abstract contract TeleporterTokenDestination is
                 payload: abi.encode(
                     SingleHopCallMessage({
                         sourceBlockchainID: blockchainID,
-                        originSenderAddress: msg.sender,
+                        originSenderAddress: _msgSender(),
                         recipientContract: input.recipientContract,
                         amount: amount,
                         recipientPayload: input.recipientPayload,
@@ -371,7 +372,7 @@ abstract contract TeleporterTokenDestination is
                 messageType: BridgeMessageType.MULTI_HOP_CALL,
                 payload: abi.encode(
                     MultiHopCallMessage({
-                        originSenderAddress: msg.sender,
+                        originSenderAddress: _msgSender(),
                         destinationBlockchainID: input.destinationBlockchainID,
                         destinationBridgeAddress: input.destinationBridgeAddress,
                         recipientContract: input.recipientContract,
@@ -408,7 +409,7 @@ abstract contract TeleporterTokenDestination is
             })
         );
 
-        emit TokensAndCallSent(messageID, msg.sender, input, amount);
+        emit TokensAndCallSent(messageID, _msgSender(), input, amount);
     }
 
     /**

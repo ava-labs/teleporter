@@ -25,6 +25,7 @@ import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -246,7 +247,7 @@ abstract contract TeleporterTokenSource is
         if (isMultiHop) {
             emit TokensRouted(messageID, input, adjustedAmount);
         } else {
-            emit TokensSent(messageID, msg.sender, input, adjustedAmount);
+            emit TokensSent(messageID, _msgSender(), input, adjustedAmount);
         }
     }
 
@@ -385,7 +386,7 @@ abstract contract TeleporterTokenSource is
 
         // If there is excess amount, send it back to the sender.
         if (excessAmount > 0) {
-            _withdraw(msg.sender, excessAmount);
+            _withdraw(_msgSender(), excessAmount);
         }
     }
 
