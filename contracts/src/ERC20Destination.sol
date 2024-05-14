@@ -58,7 +58,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
             0,
             false
         )
-        ERC20(tokenName, settings.assetSymbol)
+        ERC20(tokenName, settings.tokenSymbol)
     {
         _decimals = tokenDecimals;
     }

@@ -133,7 +133,7 @@ contract NativeTokenDestination is
         bool multiplyOnDestination,
         uint256 burnedFeesReportingRewardPercentage_
     )
-        ERC20(string.concat("Wrapped ", settings.assetSymbol), settings.assetSymbol)
+        ERC20(string.concat("Wrapped ", settings.tokenSymbol), settings.tokenSymbol)
         TeleporterTokenDestination(
             settings.teleporterRegistryAddress,
             settings.teleporterManager,
