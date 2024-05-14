@@ -40,7 +40,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * @notice Initializes this destination token bridge instance to receive
      * tokens from the specified source chain and token bridge instance, and represents the
      * received tokens with ERC20 tokens on this chain.
-     * @param settings the settings for constructing this destination token bridge instance.
+     * @param settings for constructing this destination token bridge instance.
      * @param tokenName the name of the ERC20 token.
      * @param tokenDecimals the number of decimals for the ERC20 token.
      */
