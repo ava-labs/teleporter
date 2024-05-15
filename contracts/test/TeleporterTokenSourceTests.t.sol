@@ -289,8 +289,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _sendSingleHopSendSuccess(amount, 0);
 
         bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
-       originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originSenderInfo memory originInfo;
+        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
         originInfo.senderAddress = address(this);
         bytes memory payload = hex"DEADBEEF";
         _setUpExpectedSendAndCall({
@@ -316,7 +316,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, originInfo.bridgeAddress, message
         );
     }
 
@@ -327,7 +327,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
         originInfo.senderAddress = address(this);
         bytes memory payload = hex"DEADBEEF";
         _setUpExpectedSendAndCall({
@@ -353,7 +353,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, originInfo.bridgeAddress, message
         );
     }
 
@@ -368,7 +368,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         bytes32 wrongSourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
         assertNotEq(sourceBlockchainID, wrongSourceBlockchainID);
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
         originInfo.senderAddress = address(this);
 
         bytes memory message = _encodeSingleHopCallMessage({
@@ -561,7 +561,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
         originInfo.senderAddress = address(this);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -594,7 +594,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
         originInfo.senderAddress = address(this);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -629,7 +629,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
         originInfo.senderAddress = address(this);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -658,7 +658,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         uint256 feeAmount = 1;
         uint256 bridgeAmount = amount - feeAmount;
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
         originInfo.senderAddress = address(this);
         SendAndCallInput memory input = SendAndCallInput({
             destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,

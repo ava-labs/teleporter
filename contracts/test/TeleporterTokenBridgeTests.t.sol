@@ -226,7 +226,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = address(tokenBridge);
         originInfo.senderAddress = address(this);
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopCallTeleporterMessageInput(
@@ -234,7 +234,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             )
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), address(this), input, amount);
+        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(tokenBridge), address(this), input, amount);
         _sendAndCall(input, amount);
     }
 

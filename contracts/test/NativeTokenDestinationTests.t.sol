@@ -244,7 +244,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = address(app);
         originInfo.senderAddress = address(this);
         bytes memory message = _encodeSingleHopCallMessage({
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,

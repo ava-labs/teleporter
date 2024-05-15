@@ -250,7 +250,6 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
         originInfo.senderAddress = address(this);
         _setUpExpectedSendAndCall({
             sourceBlockchainID: sourceBlockchainID,
@@ -289,7 +288,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = address(tokenBridge);
         originInfo.senderAddress = address(this);
         _setUpExpectedSendAndCall({
             sourceBlockchainID: sourceBlockchainID,
@@ -323,7 +322,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = address(tokenBridge);
         originInfo.senderAddress = address(this);
         _setUpExpectedSendAndCall({
             sourceBlockchainID: sourceBlockchainID,
@@ -356,7 +355,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bytes memory payload = hex"DEADBEEF";
         uint256 gasLimit = 5_000_000;
         originSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = address(tokenBridge);
         originInfo.senderAddress = address(this);
 
         bytes memory message = _encodeSingleHopCallMessage({
@@ -502,7 +501,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         // Only tokens destinations scale tokens, so isReceive is always false here.
         originSenderInfo memory originInfo;
         originInfo.senderAddress = address(this);
-        originInfo.bridgeAddress = address(this);
+        originInfo.bridgeAddress = address(tokenBridge);
 
         _checkExpectedTeleporterCallsForSend(
             _createMultiHopCallTeleporterMessageInput(originInfo, input, bridgeAmount)
