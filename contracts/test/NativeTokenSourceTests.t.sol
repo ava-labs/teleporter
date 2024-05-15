@@ -69,8 +69,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
 
     function _setUpExpectedSendAndCall(
         bytes32 sourceBlockchainID,
-        address originBridgeAddress,
-        address originSenderAddress,
+        originSenderInfo memory originInfo,
         address recipient,
         uint256 amount,
         bytes memory payload,
@@ -84,7 +83,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
 
             bytes memory expectedCalldata = abi.encodeCall(
                 INativeSendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originBridgeAddress, originSenderAddress, payload)
+                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, payload)
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, amount, expectedCalldata, new bytes(0));

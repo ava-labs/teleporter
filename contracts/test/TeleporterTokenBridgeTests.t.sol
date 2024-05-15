@@ -225,9 +225,12 @@ abstract contract TeleporterTokenBridgeTest is Test {
             input.destinationBlockchainID, input.destinationBridgeAddress, 0
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
+        originSenderInfo memory originInfo;
+        originInfo.bridgeAddress = address(this);
+        originInfo.senderAddress = address(this);
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopCallTeleporterMessageInput(
-                _getDefaultSourceBlockchainID(), address(this), address(this), input, amount
+                _getDefaultSourceBlockchainID(), originInfo, input, amount
             )
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
@@ -306,8 +309,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     function _createSingleHopCallTeleporterMessageInput(
         bytes32 sourceBlockchainID,
-        address originBridgeAddress,
-        address originSenderAddress,
+        originSenderInfo memory originInfo,
         SendAndCallInput memory input,
         uint256 bridgeAmount
     ) internal pure returns (TeleporterMessageInput memory) {
@@ -322,8 +324,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopCallMessage({
                 sourceBlockchainID: sourceBlockchainID,
-                originBridgeAddress: originBridgeAddress,
-                originSenderAddress: originSenderAddress,
+                originInfo: originInfo,
                 amount: bridgeAmount,
                 recipientContract: input.recipientContract,
                 recipientPayload: input.recipientPayload,
@@ -355,8 +356,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     function _encodeSingleHopCallMessage(
         bytes32 sourceBlockchainID,
-        address originBridgeAddress,
-        address originSenderAddress,
+        originSenderInfo memory originInfo,
         uint256 amount,
         address recipientContract,
         bytes memory recipientPayload,
@@ -369,8 +369,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
                 payload: abi.encode(
                     SingleHopCallMessage({
                         sourceBlockchainID: sourceBlockchainID,
-                        originBridgeAddress: originBridgeAddress,
-                        originSenderAddress: originSenderAddress,
+                        originBridgeAddress: originInfo.bridgeAddress,
+                        originSenderAddress: originInfo.senderAddress,
                         recipientContract: recipientContract,
                         amount: amount,
                         recipientPayload: recipientPayload,
@@ -409,9 +409,13 @@ abstract contract TeleporterTokenBridgeTest is Test {
         );
     }
 
+    struct originSenderInfo {
+        address bridgeAddress;
+        address senderAddress;
+    }
+
     function _encodeMultiHopCallMessage(
-        address originBridgeAddress,
-        address originSenderAddress,
+        originSenderInfo memory originInfo,
         uint256 amount,
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
@@ -428,8 +432,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
                 messageType: BridgeMessageType.MULTI_HOP_CALL,
                 payload: abi.encode(
                     MultiHopCallMessage({
-                        originBridgeAddress: originBridgeAddress,
-                        originSenderAddress: originSenderAddress,
+                        originBridgeAddress: originInfo.bridgeAddress,
+                        originSenderAddress: originInfo.senderAddress,
                         destinationBlockchainID: destinationBlockchainID,
                         destinationBridgeAddress: destinationBridgeAddress,
                         recipientContract: recipientContract,
