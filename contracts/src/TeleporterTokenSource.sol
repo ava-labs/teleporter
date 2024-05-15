@@ -342,7 +342,9 @@ abstract contract TeleporterTokenSource is
         if (isMultiHop) {
             emit TokensAndCallRouted(messageID, input, adjustedAmount);
         } else {
-            emit TokensAndCallSent(messageID, originBridgeAddress_, originSenderAddress, input, adjustedAmount);
+            emit TokensAndCallSent(
+                messageID, originBridgeAddress_, originSenderAddress, input, adjustedAmount
+            );
         }
     }
 
@@ -479,11 +481,11 @@ abstract contract TeleporterTokenSource is
             // because the fee is taken from the amount that has already been deposited.
             // For ERC20 tokens, the token address of the contract is directly passed.
             // For native assets, the contract address is the wrapped token contract.
-            _sendAndCall(
-                sourceBlockchainID,
-                payload.originBridgeAddress,
-                payload.originSenderAddress,
-                SendAndCallInput({
+            _sendAndCall({
+                sourceBlockchainID: sourceBlockchainID,
+                originBridgeAddress: payload.originBridgeAddress,
+                originSenderAddress: payload.originSenderAddress,
+                input: SendAndCallInput({
                     destinationBlockchainID: payload.destinationBlockchainID,
                     destinationBridgeAddress: payload.destinationBridgeAddress,
                     recipientContract: payload.recipientContract,
@@ -496,9 +498,9 @@ abstract contract TeleporterTokenSource is
                     primaryFee: fee,
                     secondaryFee: 0
                 }),
-                sourceAmount,
-                true
-            );
+                amount: sourceAmount,
+                isMultiHop: true
+            });
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.REGISTER_DESTINATION) {
             RegisterDestinationMessage memory payload =

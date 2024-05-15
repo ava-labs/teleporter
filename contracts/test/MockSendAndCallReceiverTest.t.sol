@@ -36,9 +36,14 @@ contract MockERC20SendAndCallReceiverTest is Test {
 
     function testRevert() public {
         vm.expectRevert("MockERC20SendAndCallReceiver: empty payload");
-        erc20SendAndCallReceiver.receiveTokens(
-            bytes32(0), address(this), address(this), address(erc20), 10, new bytes(0)
-        );
+        erc20SendAndCallReceiver.receiveTokens({
+            sourceBlockchainID: bytes32(0),
+            originBridgeAddress: address(this),
+            originSenderAddress: address(this),
+            token: address(erc20),
+            amount: 10, 
+            payload: new bytes(0)
+        });
     }
 
     function testSuccess() public {
@@ -46,12 +51,22 @@ contract MockERC20SendAndCallReceiverTest is Test {
         bytes memory payload = hex"9876543210";
         erc20.approve(address(erc20SendAndCallReceiver), amount);
         vm.expectEmit(true, true, true, true, address(erc20SendAndCallReceiver));
-        emit TokensReceived(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, address(erc20), amount, payload
-        );
-        erc20SendAndCallReceiver.receiveTokens(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, address(erc20), amount, payload
-        );
+        emit TokensReceived({
+            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            originBridgeAddress: _originBridgeAddress,
+            originSenderAddress: _originSenderAddress,
+            token: address(erc20),
+            amount: amount,
+            payload: payload
+        });
+        erc20SendAndCallReceiver.receiveTokens({
+            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID, 
+            originBridgeAddress: _originBridgeAddress,
+            originSenderAddress: _originSenderAddress,
+            token:  address(erc20), 
+            amount:  amount,
+            payload: payload
+        });
         assertEq(erc20.balanceOf(address(erc20SendAndCallReceiver)), amount);
     }
 
@@ -68,9 +83,14 @@ contract MockERC20SendAndCallReceiverTest is Test {
         );
 
         vm.expectRevert("MockERC20SendAndCallReceiver: sender blocked");
-        erc20SendAndCallReceiver.receiveTokens(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, address(erc20), amount, payload
-        );
+        erc20SendAndCallReceiver.receiveTokens({
+            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            originBridgeAddress: _originBridgeAddress, 
+            originSenderAddress: _originSenderAddress, 
+            token: address(erc20), 
+            amount: amount, 
+            payload: payload
+        });
         assertEq(erc20.balanceOf(address(erc20SendAndCallReceiver)), 0);
     }
 }

@@ -249,7 +249,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bytes memory payload = hex"DEADBEEF";
 
         bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
-        originSenderInfo memory originInfo;
+        OriginSenderInfo memory originInfo;
         originInfo.senderAddress = address(this);
         _setUpExpectedSendAndCall({
             sourceBlockchainID: sourceBlockchainID,
@@ -287,7 +287,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bytes memory payload = hex"DEADBEEF";
 
         bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
-        originSenderInfo memory originInfo;
+        OriginSenderInfo memory originInfo;
         originInfo.bridgeAddress = address(tokenBridge);
         originInfo.senderAddress = address(this);
         _setUpExpectedSendAndCall({
@@ -321,7 +321,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bytes memory payload = hex"DEADBEEF";
 
         bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
-        originSenderInfo memory originInfo;
+        OriginSenderInfo memory originInfo;
         originInfo.bridgeAddress = address(tokenBridge);
         originInfo.senderAddress = address(this);
         _setUpExpectedSendAndCall({
@@ -354,7 +354,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
         uint256 gasLimit = 5_000_000;
-        originSenderInfo memory originInfo;
+        OriginSenderInfo memory originInfo;
         originInfo.bridgeAddress = address(tokenBridge);
         originInfo.senderAddress = address(this);
 
@@ -499,7 +499,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _setUpExpectedDeposit(amount, input.primaryFee);
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
-        originSenderInfo memory originInfo;
+        OriginSenderInfo memory originInfo;
         originInfo.senderAddress = address(this);
         originInfo.bridgeAddress = address(tokenBridge);
 
@@ -515,7 +515,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
     function _setUpExpectedSendAndCall(
         bytes32 sourceBlockchainID,
-        originSenderInfo memory originInfo,
+        OriginSenderInfo memory originInfo,
         address recipient,
         uint256 amount,
         bytes memory payload,
@@ -563,7 +563,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function _createMultiHopCallTeleporterMessageInput(
-        originSenderInfo memory originInfo,
+        OriginSenderInfo memory originInfo,
         SendAndCallInput memory input,
         uint256 bridgeAmount
     ) internal view returns (TeleporterMessageInput memory) {

@@ -243,7 +243,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function testReceiveSendAndCallFailureInsufficientValue() public {
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
-        originSenderInfo memory originInfo;
+        OriginSenderInfo memory originInfo;
         originInfo.bridgeAddress = address(app);
         originInfo.senderAddress = address(this);
         bytes memory message = _encodeSingleHopCallMessage({
@@ -431,7 +431,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
     function _setUpExpectedSendAndCall(
         bytes32 sourceBlockchainID,
-        originSenderInfo memory originInfo,
+        OriginSenderInfo memory originInfo,
         address recipient,
         uint256 amount,
         bytes memory payload,

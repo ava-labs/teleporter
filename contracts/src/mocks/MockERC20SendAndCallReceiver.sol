@@ -53,7 +53,14 @@ contract MockERC20SendAndCallReceiver is IERC20SendAndCallReceiver {
             !blockedSenders[sourceBlockchainID][originSenderAddress],
             "MockERC20SendAndCallReceiver: sender blocked"
         );
-        emit TokensReceived(sourceBlockchainID, originBridgeAddress, originSenderAddress, token, amount, payload);
+        emit TokensReceived({
+            sourceBlockchainID: sourceBlockchainID, 
+            originBridgeAddress: originBridgeAddress, 
+            originSenderAddress: originSenderAddress,
+            token: token, 
+            amount: amount, 
+            payload: payload
+        });
 
         require(payload.length > 0, "MockERC20SendAndCallReceiver: empty payload");
 

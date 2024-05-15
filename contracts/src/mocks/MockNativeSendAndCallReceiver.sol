@@ -45,7 +45,9 @@ contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
             !blockedSenders[sourceBlockchainID][originSenderAddress],
             "MockNativeSendAndCallReceiver: sender blocked"
         );
-        emit TokensReceived(sourceBlockchainID, originBridgeAddress, originSenderAddress, msg.value, payload);
+        emit TokensReceived(
+            sourceBlockchainID, originBridgeAddress, originSenderAddress, msg.value, payload
+        );
 
         require(payload.length != 0, "MockNativeSendAndCallReceiver: empty payload");
         // No implementation required to accept native tokens

@@ -73,7 +73,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
 
     function _setUpExpectedSendAndCall(
         bytes32 sourceBlockchainID,
-        originSenderInfo memory originInfo,
+        OriginSenderInfo memory originInfo,
         address recipient,
         uint256 amount,
         bytes memory payload,

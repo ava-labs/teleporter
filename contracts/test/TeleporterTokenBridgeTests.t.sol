@@ -29,6 +29,12 @@ import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC
 abstract contract TeleporterTokenBridgeTest is Test {
     using SafeERC20 for IERC20;
 
+    // convenience struct to reduce stack usage
+    struct OriginSenderInfo {
+        address bridgeAddress;
+        address senderAddress;
+    }
+
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     bytes32 public constant DEFAULT_DESTINATION_BLOCKCHAIN_ID =
@@ -225,7 +231,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             input.destinationBlockchainID, input.destinationBridgeAddress, 0
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
-        originSenderInfo memory originInfo;
+        OriginSenderInfo memory originInfo;
         originInfo.bridgeAddress = address(tokenBridge);
         originInfo.senderAddress = address(this);
         _checkExpectedTeleporterCallsForSend(
@@ -309,7 +315,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     function _createSingleHopCallTeleporterMessageInput(
         bytes32 sourceBlockchainID,
-        originSenderInfo memory originInfo,
+        OriginSenderInfo memory originInfo,
         SendAndCallInput memory input,
         uint256 bridgeAmount
     ) internal pure returns (TeleporterMessageInput memory) {
@@ -356,7 +362,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
 
     function _encodeSingleHopCallMessage(
         bytes32 sourceBlockchainID,
-        originSenderInfo memory originInfo,
+        OriginSenderInfo memory originInfo,
         uint256 amount,
         address recipientContract,
         bytes memory recipientPayload,
@@ -409,13 +415,8 @@ abstract contract TeleporterTokenBridgeTest is Test {
         );
     }
 
-    struct originSenderInfo {
-        address bridgeAddress;
-        address senderAddress;
-    }
-
     function _encodeMultiHopCallMessage(
-        originSenderInfo memory originInfo,
+        OriginSenderInfo memory originInfo,
         uint256 amount,
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
