@@ -62,7 +62,7 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
      * @dev See {IERC20Bridge-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
-        _sendAndCall(blockchainID, msg.sender, input, amount, false);
+        _sendAndCall(blockchainID,address(this), msg.sender, input, amount, false);
     }
 
     /**
@@ -111,6 +111,7 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
             IERC20SendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
+                message.originBridgeAddress,
                 message.originSenderAddress,
                 address(token),
                 amount,

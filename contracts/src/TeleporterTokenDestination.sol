@@ -343,6 +343,7 @@ abstract contract TeleporterTokenDestination is
                 payload: abi.encode(
                     SingleHopCallMessage({
                         sourceBlockchainID: blockchainID,
+                        originBridgeAddress: address(this),
                         originSenderAddress: msg.sender,
                         recipientContract: input.recipientContract,
                         amount: amount,
@@ -371,6 +372,7 @@ abstract contract TeleporterTokenDestination is
                 messageType: BridgeMessageType.MULTI_HOP_CALL,
                 payload: abi.encode(
                     MultiHopCallMessage({
+                        originBridgeAddress: address(this),
                         originSenderAddress: msg.sender,
                         destinationBlockchainID: input.destinationBlockchainID,
                         destinationBridgeAddress: input.destinationBridgeAddress,
@@ -408,7 +410,7 @@ abstract contract TeleporterTokenDestination is
             })
         );
 
-        emit TokensAndCallSent(messageID, msg.sender, input, amount);
+        emit TokensAndCallSent(messageID, address(this), msg.sender, input, amount);
     }
 
     /**

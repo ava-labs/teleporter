@@ -17,6 +17,7 @@ interface IERC20SendAndCallReceiver {
     /**
      * @notice Called to receive the amount of the given token
      * @param sourceBlockchainID blockchain ID that the transfer originated from
+     * @param originBridgeAddress address of the bridge that initiated the Teleporter message
      * @param originSenderAddress address of the sender that sent the transfer
      * @param token address of the token to be received
      * @param amount amount of the token to be received
@@ -24,6 +25,7 @@ interface IERC20SendAndCallReceiver {
      */
     function receiveTokens(
         bytes32 sourceBlockchainID,
+        address originBridgeAddress,
         address originSenderAddress,
         address token,
         uint256 amount,

@@ -252,6 +252,7 @@ abstract contract TeleporterTokenSource is
 
     function _sendAndCall(
         bytes32 sourceBlockchainID,
+        address originBridgeAddress,
         address originSenderAddress,
         SendAndCallInput memory input,
         uint256 amount,
@@ -275,6 +276,7 @@ abstract contract TeleporterTokenSource is
 
         uint256 adjustedAmount;
         uint256 feeAmount = input.primaryFee;
+        address originBridgeAddress_ = address(this);
         if (isMultiHop) {
             adjustedAmount = _prepareMultiHopRouting(
                 input.destinationBlockchainID,
@@ -289,6 +291,7 @@ abstract contract TeleporterTokenSource is
                 _withdraw(input.multiHopFallback, amount);
                 return;
             }
+            originBridgeAddress_ = originBridgeAddress;
         } else {
             // Require that a single hop transfer does not have a multi-hop fallback recipient.
             require(
@@ -310,6 +313,7 @@ abstract contract TeleporterTokenSource is
             payload: abi.encode(
                 SingleHopCallMessage({
                     sourceBlockchainID: sourceBlockchainID,
+                    originBridgeAddress: originBridgeAddress_,
                     originSenderAddress: originSenderAddress,
                     recipientContract: input.recipientContract,
                     amount: adjustedAmount,
@@ -338,7 +342,7 @@ abstract contract TeleporterTokenSource is
         if (isMultiHop) {
             emit TokensAndCallRouted(messageID, input, adjustedAmount);
         } else {
-            emit TokensAndCallSent(messageID, originSenderAddress, input, adjustedAmount);
+            emit TokensAndCallSent(messageID, originBridgeAddress_, originSenderAddress, input, adjustedAmount);
         }
     }
 
@@ -429,6 +433,10 @@ abstract contract TeleporterTokenSource is
                 payload.sourceBlockchainID == sourceBlockchainID,
                 "TeleporterTokenSource: mismatched source blockchain ID"
             );
+            require(
+                payload.originBridgeAddress == originSenderAddress,
+                "TeleporterTokenSource: mismatched origin sender address"
+            );
 
             _handleSendAndCall(payload, sourceAmount);
             return;
@@ -473,6 +481,7 @@ abstract contract TeleporterTokenSource is
             // For native assets, the contract address is the wrapped token contract.
             _sendAndCall(
                 sourceBlockchainID,
+                payload.originBridgeAddress,
                 payload.originSenderAddress,
                 SendAndCallInput({
                     destinationBlockchainID: payload.destinationBlockchainID,

@@ -349,7 +349,7 @@ contract NativeTokenDestination is
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
         bytes memory payload = abi.encodeCall(
             INativeSendAndCallReceiver.receiveTokens,
-            (message.sourceBlockchainID, message.originSenderAddress, message.recipientPayload)
+            (message.sourceBlockchainID, message.originBridgeAddress, message.originSenderAddress, message.recipientPayload)
         );
 
         // Call the destination contract with the given payload, gas amount, and value.

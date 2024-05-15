@@ -116,6 +116,7 @@ struct SingleHopSendMessage {
  */
 struct SingleHopCallMessage {
     bytes32 sourceBlockchainID;
+    address originBridgeAddress;
     address originSenderAddress;
     address recipientContract;
     uint256 amount;
@@ -149,6 +150,7 @@ struct MultiHopSendMessage {
  * The source blockchain ID of the sender is known from the Teleporter message.
  */
 struct MultiHopCallMessage {
+    address originBridgeAddress;
     address originSenderAddress;
     bytes32 destinationBlockchainID;
     address destinationBridgeAddress;
@@ -183,6 +185,7 @@ interface ITeleporterTokenBridge is ITeleporterReceiver {
      */
     event TokensAndCallSent(
         bytes32 indexed teleporterMessageID,
+        address indexed bridgeAddress,
         address indexed sender,
         SendAndCallInput input,
         uint256 amount

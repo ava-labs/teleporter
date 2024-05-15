@@ -18,9 +18,11 @@ contract MockERC20SendAndCallReceiverTest is Test {
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     address internal _originSenderAddress = vm.addr(0x1);
+    address internal _originBridgeAddress = vm.addr(0x2);
 
     event TokensReceived(
         bytes32 indexed sourceBlockchainID,
+        address indexed originBridgeAddress,
         address indexed originSenderAddress,
         address token,
         uint256 amount,
@@ -35,7 +37,7 @@ contract MockERC20SendAndCallReceiverTest is Test {
     function testRevert() public {
         vm.expectRevert("MockERC20SendAndCallReceiver: empty payload");
         erc20SendAndCallReceiver.receiveTokens(
-            bytes32(0), address(this), address(erc20), 10, new bytes(0)
+            bytes32(0), address(this), address(this), address(erc20), 10, new bytes(0)
         );
     }
 
@@ -45,10 +47,10 @@ contract MockERC20SendAndCallReceiverTest is Test {
         erc20.approve(address(erc20SendAndCallReceiver), amount);
         vm.expectEmit(true, true, true, true, address(erc20SendAndCallReceiver));
         emit TokensReceived(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, address(erc20), amount, payload
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, address(erc20), amount, payload
         );
         erc20SendAndCallReceiver.receiveTokens(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, address(erc20), amount, payload
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, address(erc20), amount, payload
         );
         assertEq(erc20.balanceOf(address(erc20SendAndCallReceiver)), amount);
     }
@@ -67,7 +69,7 @@ contract MockERC20SendAndCallReceiverTest is Test {
 
         vm.expectRevert("MockERC20SendAndCallReceiver: sender blocked");
         erc20SendAndCallReceiver.receiveTokens(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, address(erc20), amount, payload
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, address(erc20), amount, payload
         );
         assertEq(erc20.balanceOf(address(erc20SendAndCallReceiver)), 0);
     }
@@ -79,9 +81,11 @@ contract MockNativeSendAndCallReceiverTest is Test {
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     address internal _originSenderAddress = vm.addr(0x1);
+    address internal _originBridgeAddress = vm.addr(0x2);
 
     event TokensReceived(
         bytes32 indexed sourceBlockchainID,
+        address indexed originBridgeAddress,
         address indexed originSenderAddress,
         uint256 amount,
         bytes payload
@@ -93,16 +97,16 @@ contract MockNativeSendAndCallReceiverTest is Test {
 
     function testRevert() public {
         vm.expectRevert("MockNativeSendAndCallReceiver: empty payload");
-        nativeSendAndCallReceiver.receiveTokens(bytes32(0), address(this), new bytes(0));
+        nativeSendAndCallReceiver.receiveTokens(bytes32(0), address(this), address(this), new bytes(0));
     }
 
     function testSuccess() public {
         uint256 amount = 10;
         bytes memory payload = hex"1234567890";
         vm.expectEmit(true, true, true, true, address(nativeSendAndCallReceiver));
-        emit TokensReceived(DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, amount, payload);
+        emit TokensReceived(DEFAULT_SOURCE_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, amount, payload);
         nativeSendAndCallReceiver.receiveTokens{value: amount}(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, payload
+            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, payload
         );
         assertEq(address(nativeSendAndCallReceiver).balance, amount);
     }
@@ -120,7 +124,7 @@ contract MockNativeSendAndCallReceiverTest is Test {
 
         vm.expectRevert("MockNativeSendAndCallReceiver: sender blocked");
         nativeSendAndCallReceiver.receiveTokens{value: amount}(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, _originSenderAddress, payload
+            DEFAULT_SOURCE_BLOCKCHAIN_ID,_originBridgeAddress,  _originSenderAddress, payload
         );
         assertEq(address(nativeSendAndCallReceiver).balance, 0);
     }

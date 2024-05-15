@@ -245,6 +245,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         bytes memory payload = hex"DEADBEEF";
         bytes memory message = _encodeSingleHopCallMessage({
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            originBridgeAddress: address(this),
             originSenderAddress: address(this),
             amount: amount,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
@@ -428,6 +429,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
     function _setUpExpectedSendAndCall(
         bytes32 sourceBlockchainID,
+        address originBridgeAddress,
         address originSenderAddress,
         address recipient,
         uint256 amount,
@@ -455,7 +457,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
             bytes memory expectedCalldata = abi.encodeCall(
                 INativeSendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originSenderAddress, payload)
+                (sourceBlockchainID, originBridgeAddress, originSenderAddress, payload)
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, amount, expectedCalldata, new bytes(0));
