@@ -384,7 +384,39 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectRevert(_formatErrorMessage("mismatched source blockchain ID"));
         tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, message
+            sourceBlockchainID, DEFAULT_DESTINATION_ADDRESS, message
+        );
+    }
+
+    function testReceiveWrongOriginBridgeAddress() public {
+         // First send to destination blockchain to increase the bridge balance
+        uint256 amount = 200_000;
+        _sendSingleHopSendSuccess(amount, 0);
+
+        address originBridgeAddress = DEFAULT_DESTINATION_ADDRESS;
+        bytes memory payload = hex"DEADBEEF";
+
+        address wrongAddress = address(0x1);
+        assertNotEq(originBridgeAddress, wrongAddress);
+
+        originSenderInfo memory originInfo;
+        originInfo.bridgeAddress = wrongAddress;
+        originInfo.senderAddress = address(this);
+
+        bytes memory message = _encodeSingleHopCallMessage({
+            sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            originInfo: originInfo,
+            amount: amount,
+            recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
+            recipientPayload: payload,
+            recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
+            fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
+        });
+
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        vm.expectRevert(_formatErrorMessage("mismatched origin sender address"));
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, originBridgeAddress, message
         );
     }
 
