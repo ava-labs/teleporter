@@ -68,7 +68,7 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
             originSenderAddress: msg.sender, 
             input: input, 
             amount: amount, 
-            isMultihop: false
+            isMultiHop: false
         });
     }
 
