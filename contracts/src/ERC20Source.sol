@@ -41,7 +41,7 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
      * @notice Initializes this source token bridge instance to send ERC20
      * tokens to other destination token bridges.
      * @param teleporterRegistryAddress The current blockchain id's Teleporter registry
-     * address. https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
+     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param tokenAddress The ERC20 token contract address to bridge to the destination chain
