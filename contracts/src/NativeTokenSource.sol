@@ -43,7 +43,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * @notice Initializes this source token bridge instance to send
      * native tokens to other destination token bridges.
      * @param teleporterRegistryAddress The current blockchain id's Teleporter registry
-     * address. https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
+     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param wrappedTokenAddress The wrapped token contract address of the native asset
