@@ -96,8 +96,8 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * implemenation to ensure the amount returned is correct.
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        _spendAllowance(msg.sender, address(this), amount);
-        _transfer(msg.sender, address(this), amount);
+        _spendAllowance(_msgSender(), address(this), amount);
+        _transfer(_msgSender(), address(this), amount);
         return amount;
     }
 

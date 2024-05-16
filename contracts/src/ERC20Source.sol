@@ -65,7 +65,7 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
         _sendAndCall({
             sourceBlockchainID: blockchainID,
             originBridgeAddress: address(this),
-            originSenderAddress: msg.sender,
+            originSenderAddress: _msgSender(),
             input: input,
             amount: amount,
             isMultiHop: false

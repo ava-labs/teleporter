@@ -57,6 +57,8 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * transfer to the recipient. The caller must be the wrapped native token contract.
      */
     receive() external payable {
+        // The caller here is expected to be {tokenAddress} directly, and not through a meta-transaction,
+        // so we check for `msg.sender` instead of `_msgSender()`.
         require(msg.sender == tokenAddress, "NativeTokenSource: invalid receive payable sender");
     }
 
@@ -74,7 +76,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         _sendAndCall({
             sourceBlockchainID: blockchainID,
             originBridgeAddress: address(this),
-            originSenderAddress: msg.sender,
+            originSenderAddress: _msgSender(),
             input: input,
             amount: msg.value,
             isMultiHop: false
