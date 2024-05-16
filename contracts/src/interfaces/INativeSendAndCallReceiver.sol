@@ -20,7 +20,8 @@ interface INativeSendAndCallReceiver {
      * become improperly made inaccessible.
      * @param sourceBlockchainID blockchain ID that the transfer originated from
      * @param originBridgeAddress address of the bridge that initiated the Teleporter message
-     * @param originSenderAddress address of the sender that sent the transfer
+     * @param originSenderAddress address of the sender that sent the transfer. This value
+     * should only be trusted if {originBridgeAddress} is verified and known.
      * @param payload arbitrary data provided by the caller
      */
     function receiveTokens(
