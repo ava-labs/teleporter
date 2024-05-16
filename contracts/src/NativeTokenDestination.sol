@@ -254,9 +254,9 @@ contract NativeTokenDestination is
      * processing bridge transfers.
      */
     function withdraw(uint256 amount) external {
-        emit Withdrawal(msg.sender, amount);
-        _burn(msg.sender, amount);
-        payable(msg.sender).sendValue(amount);
+        emit Withdrawal(_msgSender(), amount);
+        _burn(_msgSender(), amount);
+        payable(_msgSender()).sendValue(amount);
     }
 
     /**
@@ -268,8 +268,8 @@ contract NativeTokenDestination is
      * processing bridge transfers.
      */
     function deposit() public payable {
-        emit Deposit(msg.sender, msg.value);
-        _mint(msg.sender, msg.value);
+        emit Deposit(_msgSender(), msg.value);
+        _mint(_msgSender(), msg.value);
     }
 
     /**
