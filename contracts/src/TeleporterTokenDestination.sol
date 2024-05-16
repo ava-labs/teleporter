@@ -544,8 +544,9 @@ abstract contract TeleporterTokenDestination is
      */
     function _handleFees(address feeTokenAddress, uint256 feeAmount) private returns (uint256) {
         if (feeAmount > 0) {
+            // If the {feeTokenAddress} is this contract, then just deposit the tokens directly.
             if (feeTokenAddress == address(this)) {
-                _deposit(feeAmount);
+                feeAmount = _deposit(feeAmount);
             } else {
                 feeAmount =
                     SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
