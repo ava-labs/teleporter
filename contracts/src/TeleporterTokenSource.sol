@@ -276,7 +276,6 @@ abstract contract TeleporterTokenSource is
 
         uint256 adjustedAmount;
         uint256 feeAmount = input.primaryFee;
-        address originBridgeAddress_ = address(this);
         if (isMultiHop) {
             adjustedAmount = _prepareMultiHopRouting(
                 input.destinationBlockchainID,
@@ -291,7 +290,6 @@ abstract contract TeleporterTokenSource is
                 _withdraw(input.multiHopFallback, amount);
                 return;
             }
-            originBridgeAddress_ = originBridgeAddress;
         } else {
             // Require that a single hop transfer does not have a multi-hop fallback recipient.
             require(
@@ -313,7 +311,7 @@ abstract contract TeleporterTokenSource is
             payload: abi.encode(
                 SingleHopCallMessage({
                     sourceBlockchainID: sourceBlockchainID,
-                    originBridgeAddress: originBridgeAddress_,
+                    originBridgeAddress: originBridgeAddress,
                     originSenderAddress: originSenderAddress,
                     recipientContract: input.recipientContract,
                     amount: adjustedAmount,
