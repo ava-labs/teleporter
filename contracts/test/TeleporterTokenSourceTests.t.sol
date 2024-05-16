@@ -592,14 +592,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         // Instead, the tokens are sent to the multi-hop fallback.
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
-        originInfo.senderAddress = address(this);
+        address originSenderAddress = address(this);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
             _encodeMultiHopCallMessage({
-                originInfo: originInfo,
+                originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
                 destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
@@ -625,14 +623,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         // fully collateralized. Instead, the tokens are sent to the multi-hop fallback.
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
-        originInfo.senderAddress = address(this);
+        address originSenderAddress = address(this);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
             _encodeMultiHopCallMessage({
-                originInfo: originInfo,
+                originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
                 destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
@@ -660,14 +656,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         // amount would be scaled to zero. Instead, the tokens are sent to the multi-hop fallback.
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
-        originInfo.senderAddress = address(this);
+        address originSenderAddress = address(this);
         tokenSource.receiveTeleporterMessage(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
             _encodeMultiHopCallMessage({
-                originInfo: originInfo,
+                originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
                 destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
@@ -719,7 +713,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             DEFAULT_DESTINATION_BLOCKCHAIN_ID,
             DEFAULT_DESTINATION_ADDRESS,
             _encodeMultiHopCallMessage({
-                originInfo: originInfo,
+                originSenderAddress: originInfo.senderAddress,
                 amount: amount,
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationBridgeAddress: input.destinationBridgeAddress,

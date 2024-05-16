@@ -87,7 +87,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
     event TokensRouted(bytes32 indexed teleporterMessageID, SendTokensInput input, uint256 amount);
     event TokensAndCallSent(
         bytes32 indexed teleporterMessageID,
-        address indexed bridgeAddress,
         address indexed sender,
         SendAndCallInput input,
         uint256 amount
@@ -240,7 +239,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
             )
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(tokenBridge), address(this), input, amount);
+        emit TokensAndCallSent(_MOCK_MESSAGE_ID, address(this), input, amount);
         _sendAndCall(input, amount);
     }
 
@@ -416,7 +415,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     }
 
     function _encodeMultiHopCallMessage(
-        OriginSenderInfo memory originInfo,
+        address originSenderAddress,
         uint256 amount,
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
@@ -433,8 +432,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
                 messageType: BridgeMessageType.MULTI_HOP_CALL,
                 payload: abi.encode(
                     MultiHopCallMessage({
-                        originBridgeAddress: originInfo.bridgeAddress,
-                        originSenderAddress: originInfo.senderAddress,
+                        originSenderAddress: originSenderAddress,
                         destinationBlockchainID: destinationBlockchainID,
                         destinationBridgeAddress: destinationBridgeAddress,
                         recipientContract: recipientContract,

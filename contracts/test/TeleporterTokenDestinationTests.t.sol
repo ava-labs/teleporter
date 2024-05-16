@@ -499,15 +499,13 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _setUpExpectedDeposit(amount, input.primaryFee);
 
         // Only tokens destinations scale tokens, so isReceive is always false here.
-        OriginSenderInfo memory originInfo;
-        originInfo.senderAddress = address(this);
-        originInfo.bridgeAddress = address(tokenBridge);
+        address originSenderAddress = address(this);
 
         _checkExpectedTeleporterCallsForSend(
-            _createMultiHopCallTeleporterMessageInput(originInfo, input, bridgeAmount)
+            _createMultiHopCallTeleporterMessageInput(originSenderAddress, input, bridgeAmount)
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensAndCallSent(_MOCK_MESSAGE_ID, originInfo.bridgeAddress, originInfo.senderAddress, input, bridgeAmount);
+        emit TokensAndCallSent(_MOCK_MESSAGE_ID, originSenderAddress, input, bridgeAmount);
         _sendAndCall(input, amount);
     }
 
@@ -563,7 +561,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function _createMultiHopCallTeleporterMessageInput(
-        OriginSenderInfo memory originInfo,
+        address originSenderAddress,
         SendAndCallInput memory input,
         uint256 bridgeAmount
     ) internal view returns (TeleporterMessageInput memory) {
@@ -581,7 +579,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 ),
             allowedRelayerAddresses: new address[](0),
             message: _encodeMultiHopCallMessage({
-                originInfo: originInfo,
+                originSenderAddress: originSenderAddress,
                 amount: bridgeAmount,
                 destinationBlockchainID: input.destinationBlockchainID,
                 destinationBridgeAddress: input.destinationBridgeAddress,

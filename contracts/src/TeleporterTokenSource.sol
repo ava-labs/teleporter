@@ -342,9 +342,7 @@ abstract contract TeleporterTokenSource is
         if (isMultiHop) {
             emit TokensAndCallRouted(messageID, input, adjustedAmount);
         } else {
-            emit TokensAndCallSent(
-                messageID, originBridgeAddress_, originSenderAddress, input, adjustedAmount
-            );
+            emit TokensAndCallSent(messageID, originSenderAddress, input, adjustedAmount);
         }
     }
 
@@ -483,7 +481,7 @@ abstract contract TeleporterTokenSource is
             // For native assets, the contract address is the wrapped token contract.
             _sendAndCall({
                 sourceBlockchainID: sourceBlockchainID,
-                originBridgeAddress: payload.originBridgeAddress,
+                originBridgeAddress: originSenderAddress,
                 originSenderAddress: payload.originSenderAddress,
                 input: SendAndCallInput({
                     destinationBlockchainID: payload.destinationBlockchainID,

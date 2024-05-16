@@ -372,7 +372,6 @@ abstract contract TeleporterTokenDestination is
                 messageType: BridgeMessageType.MULTI_HOP_CALL,
                 payload: abi.encode(
                     MultiHopCallMessage({
-                        originBridgeAddress: address(this),
                         originSenderAddress: msg.sender,
                         destinationBlockchainID: input.destinationBlockchainID,
                         destinationBridgeAddress: input.destinationBridgeAddress,
@@ -410,7 +409,7 @@ abstract contract TeleporterTokenDestination is
             })
         );
 
-        emit TokensAndCallSent(messageID, address(this), msg.sender, input, amount);
+        emit TokensAndCallSent(messageID, msg.sender, input, amount);
     }
 
     /**
@@ -447,6 +446,10 @@ abstract contract TeleporterTokenDestination is
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
             _withdraw(payload.recipient, payload.amount);
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
+            // Decode the call message payload.
+            // Since the message may be part of a multi-hop message, we cannot
+            // authenticate the sender information in the payload against the Teleporter
+            // arguments since they may originate from different blockchains.
             SingleHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
             _handleSendAndCall(payload, payload.amount);
