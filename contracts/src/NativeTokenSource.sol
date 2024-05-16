@@ -41,7 +41,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
 
     /**
      * @notice Initializes this source token bridge instance to send
-     * native tokens to the specified destination chain and token bridge instance.
+     * native tokens to other destination token bridges.
      *
      * Fees are paid by a {IWrappedNativeToken} instance.
      * @param teleporterRegistryAddress the current blockchain id's Teleporter registry

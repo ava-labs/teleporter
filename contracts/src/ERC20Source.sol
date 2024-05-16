@@ -39,7 +39,7 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
 
     /**
      * @notice Initializes this source token bridge instance to send ERC20
-     * tokens to the specified destination chain and token bridge instance.
+     * tokens to other destination token bridges.
      *
      * Fees are paid by the same token that is being bridged.
      * @param teleporterRegistryAddress the current blockchain id's Teleporter registry
