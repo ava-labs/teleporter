@@ -47,19 +47,9 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
     constructor(
         TeleporterTokenDestinationSettings memory settings,
         string memory tokenName,
+        string memory tokenSymbol,
         uint8 tokenDecimals
-    )
-        TeleporterTokenDestination(
-            settings.teleporterRegistryAddress,
-            settings.teleporterManager,
-            settings.sourceBlockchainID,
-            settings.tokenSourceAddress,
-            0,
-            0,
-            false
-        )
-        ERC20(tokenName, settings.tokenSymbol)
-    {
+    ) TeleporterTokenDestination(settings, 0, 0, false) ERC20(tokenName, tokenSymbol) {
         _decimals = tokenDecimals;
     }
 

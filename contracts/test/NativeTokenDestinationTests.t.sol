@@ -51,14 +51,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: DEFAULT_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: 0,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
-            );
+        );
     }
 
     function testInvalidBurnedRewardPercentage() public {
@@ -68,14 +68,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: DEFAULT_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: 100}
-            );
+        );
     }
 
     function testZeroSourceBlockchainID() public {
@@ -85,14 +85,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: bytes32(0),
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: DEFAULT_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
-            );
+        );
     }
 
     function testDeployToSameBlockchain() public {
@@ -102,14 +102,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: DEFAULT_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
-            );
+        );
     }
 
     function testSendBeforeCollateralized() public {
@@ -310,14 +310,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: DEFAULT_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: 0}
-            );
+        );
         tokenDestination = app;
         nativeTokenBridge = app;
         tokenBridge = app;
@@ -370,14 +370,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: DEFAULT_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
             decimalsShift: _DEFAULT_DECIMALS_SHIFT,
             multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
-            );
+        );
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {

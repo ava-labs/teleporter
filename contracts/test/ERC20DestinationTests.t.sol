@@ -56,10 +56,10 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: address(0),
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: MOCK_TOKEN_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
             MOCK_TOKEN_NAME,
+            MOCK_TOKEN_SYMBOL,
             MOCK_TOKEN_DECIMALS
         );
     }
@@ -71,10 +71,10 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(0),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: MOCK_TOKEN_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
             MOCK_TOKEN_NAME,
+            MOCK_TOKEN_SYMBOL,
             MOCK_TOKEN_DECIMALS
         );
     }
@@ -86,10 +86,10 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: bytes32(0),
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: MOCK_TOKEN_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
             MOCK_TOKEN_NAME,
+            MOCK_TOKEN_SYMBOL,
             MOCK_TOKEN_DECIMALS
         );
     }
@@ -106,10 +106,10 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: MOCK_TOKEN_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
             MOCK_TOKEN_NAME,
+            MOCK_TOKEN_SYMBOL,
             MOCK_TOKEN_DECIMALS
         );
     }
@@ -121,10 +121,10 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: address(0),
-                tokenSymbol: MOCK_TOKEN_SYMBOL
+                tokenSourceAddress: address(0)
             }),
             MOCK_TOKEN_NAME,
+            MOCK_TOKEN_SYMBOL,
             MOCK_TOKEN_DECIMALS
         );
     }
@@ -163,10 +163,10 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSymbol: MOCK_TOKEN_SYMBOL
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
             }),
             MOCK_TOKEN_NAME,
+            MOCK_TOKEN_SYMBOL,
             MOCK_TOKEN_DECIMALS
         );
     }

@@ -21,14 +21,12 @@ import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
  * Teleporter registry and Teleporter versions.
  * @param sourceBlockchainID The blockchain ID of the associated source token bridge
  * @param tokenSourceAddress The address of the source token bridge contract.
- * @param tokenSymbol The symbol for the token of this destination bridge contract.
  */
 struct TeleporterTokenDestinationSettings {
     address teleporterRegistryAddress;
     address teleporterManager;
     bytes32 sourceBlockchainID;
     address tokenSourceAddress;
-    string tokenSymbol;
 }
 
 /**

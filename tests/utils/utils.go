@@ -114,9 +114,9 @@ func DeployERC20Destination(
 			TeleporterManager:         teleporterManager,
 			SourceBlockchainID:        sourceBlockchainID,
 			TokenSourceAddress:        tokenSourceAddress,
-			TokenSymbol:               tokenSymbol,
 		},
 		tokenName,
+		tokenSymbol,
 		tokenDecimals,
 	)
 	Expect(err).Should(BeNil())
@@ -159,8 +159,8 @@ func DeployNativeTokenDestination(
 			TeleporterManager:         teleporterManager,
 			SourceBlockchainID:        sourceBlockchainID,
 			TokenSourceAddress:        tokenSourceAddress,
-			TokenSymbol:               symbol,
 		},
+		symbol,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnDestination,

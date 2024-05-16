@@ -120,6 +120,7 @@ contract NativeTokenDestination is
      * tokens from the specified source chain and token bridge instance, and represents the
      * received tokens with native tokens on this chain.
      * @param settings for constructing this destination token bridge instance.
+     * @param nativeAssetSymbol The symbol of the native asset.
      * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
      * @param decimalsShift The number of decimal places to shift the token amount by.
      * @param multiplyOnDestination See {TeleporterTokenDestination-multiplyOnDestination}.
@@ -128,17 +129,15 @@ contract NativeTokenDestination is
      */
     constructor(
         TeleporterTokenDestinationSettings memory settings,
+        string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
         uint8 decimalsShift,
         bool multiplyOnDestination,
         uint256 burnedFeesReportingRewardPercentage_
     )
-        ERC20(string.concat("Wrapped ", settings.tokenSymbol), settings.tokenSymbol)
+        ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
         TeleporterTokenDestination(
-            settings.teleporterRegistryAddress,
-            settings.teleporterManager,
-            settings.sourceBlockchainID,
-            settings.tokenSourceAddress,
+            settings,
             initialReserveImbalance,
             decimalsShift,
             multiplyOnDestination

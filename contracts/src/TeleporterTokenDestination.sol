@@ -18,7 +18,10 @@ import {
     MultiHopCallMessage,
     RegisterDestinationMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
-import {ITeleporterTokenDestination} from "./interfaces/ITeleporterTokenDestination.sol";
+import {
+    ITeleporterTokenDestination,
+    TeleporterTokenDestinationSettings
+} from "./interfaces/ITeleporterTokenDestination.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
 import {IWarpMessenger} from
@@ -114,30 +117,27 @@ abstract contract TeleporterTokenDestination is
      * tokens from the specified source blockchain and token bridge instance.
      */
     constructor(
-        address teleporterRegistryAddress,
-        address teleporterManager,
-        bytes32 sourceBlockchainID_,
-        address tokenSourceAddress_,
+        TeleporterTokenDestinationSettings memory settings,
         uint256 initialReserveImbalance_,
         uint8 decimalsShift,
         bool multiplyOnDestination_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
+    ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
-            sourceBlockchainID_ != bytes32(0),
+            settings.sourceBlockchainID != bytes32(0),
             "TeleporterTokenDestination: zero source blockchain ID"
         );
         require(
-            sourceBlockchainID_ != blockchainID,
+            settings.sourceBlockchainID != blockchainID,
             "TeleporterTokenDestination: cannot deploy to same blockchain as source"
         );
         require(
-            tokenSourceAddress_ != address(0),
+            settings.tokenSourceAddress != address(0),
             "TeleporterTokenDestination: zero token source address"
         );
         require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
-        sourceBlockchainID = sourceBlockchainID_;
-        tokenSourceAddress = tokenSourceAddress_;
+        sourceBlockchainID = settings.sourceBlockchainID;
+        tokenSourceAddress = settings.tokenSourceAddress;
         initialReserveImbalance = initialReserveImbalance_;
         isCollateralized = initialReserveImbalance_ == 0;
         tokenMultiplier = 10 ** decimalsShift;
