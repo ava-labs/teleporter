@@ -162,6 +162,8 @@ abstract contract TeleporterTokenDestination is
             messageType: BridgeMessageType.REGISTER_DESTINATION,
             payload: abi.encode(registerMessage)
         });
+
+        _handleFees(feeInfo.feeTokenAddress, feeInfo.amount);
         _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
@@ -512,19 +514,10 @@ abstract contract TeleporterTokenDestination is
         // and set to adjusted amount after deposit
         amount = _deposit(amount);
 
-        // Transfer the primary fee to pay for Teleporter fees on the first hop.
+        // Transfer the primary fee to pay for fees on the first hop.
         // The user can specify this contract as {primaryFeeTokenAddress},
         // in which case the fee will be paid on top of the bridged amount.
-        if (primaryFee > 0) {
-            // If the {primaryFeeTokenAddress} is this contract, then just deposit the tokens directly.
-            if (primaryFeeTokenAddress == address(this)) {
-                _deposit(primaryFee);
-            } else {
-                primaryFee = SafeERC20TransferFrom.safeTransferFrom(
-                    IERC20(primaryFeeTokenAddress), primaryFee
-                );
-            }
-        }
+        primaryFee = _handleFees(primaryFeeTokenAddress, primaryFee);
 
         // Burn the amount of tokens that will be bridged.
         _burn(amount);
@@ -542,5 +535,22 @@ abstract contract TeleporterTokenDestination is
 
         // Return the amount in this contract's local denomination and the primary fee.
         return (amount, primaryFee);
+    }
+
+    /**
+     * @notice Handles fees sent to this contract
+     * @param feeTokenAddress The address of the fee token
+     * @param feeAmount The amount of the fee
+     */
+    function _handleFees(address feeTokenAddress, uint256 feeAmount) private returns (uint256) {
+        if (feeAmount > 0) {
+            if (feeTokenAddress == address(this)) {
+                _deposit(feeAmount);
+            } else {
+                feeAmount =
+                    SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+            }
+        }
+        return feeAmount;
     }
 }
