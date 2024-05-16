@@ -18,9 +18,9 @@ interface INativeSendAndCallReceiver {
      * @notice Called to receive the amount of the native token. Implementations
      * must properly handle the msg.value of the call in order to ensure it doesn't
      * become improperly made inaccessible.
-     * @param sourceBlockchainID blockchain ID that the transfer originated from
-     * @param originSenderAddress address of the sender that sent the transfer
-     * @param payload arbitrary data provided by the caller
+     * @param sourceBlockchainID Blockchain ID that the transfer originated from
+     * @param originSenderAddress Address of the sender that sent the transfer
+     * @param payload Arbitrary data provided by the caller
      */
     function receiveTokens(
         bytes32 sourceBlockchainID,

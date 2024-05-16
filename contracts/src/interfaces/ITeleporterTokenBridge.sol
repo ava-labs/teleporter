@@ -14,16 +14,16 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 
 /**
  * @notice Parameters for delivery of tokens to another chain and destination recipient.
- * @param destinationBlockchainID blockchainID of the destination
- * @param destinationBridgeAddress address of the destination token bridge instance
- * @param recipient address of the recipient on the destination chain
- * @param primaryFeeTokenAddress address of the ERC20 contract to optionally pay a Teleporter message fee
- * @param primaryFee amount of tokens to pay as the optional Teleporter message fee
- * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
- * @param requiredGasLimit gas limit requirement for sending to a token bridge.
+ * @param destinationBlockchainID BlockchainID of the destination
+ * @param destinationBridgeAddress Address of the destination token bridge instance
+ * @param recipient Address of the recipient on the destination chain
+ * @param primaryFeeTokenAddress Address of the ERC20 contract to optionally pay a Teleporter message fee
+ * @param primaryFee Amount of tokens to pay as the optional Teleporter message fee
+ * @param secondaryFee Amount of tokens to pay for Teleporter fee if a multi-hop is needed
+ * @param requiredGasLimit Gas limit requirement for sending to a token bridge.
  * This is required because the gas requirement varies based on the token bridge instance
  * specified by {destinationBlockchainID} and {destinationBridgeAddress}.
- * @param multiHopFallback in the case of a multi-hop transfer, the address where the tokens
+ * @param multiHopFallback In the case of a multi-hop transfer, the address where the tokens
  * are sent on the source chain if the transfer is unable to be routed to its final destination.
  */
 struct SendTokensInput {
@@ -39,20 +39,20 @@ struct SendTokensInput {
 
 /**
  * @notice Parameters for briding tokens to another chain and calling a contract on that chain
- * @param destinationBlockchainID blockchainID of the destination
- * @param destinationBridgeAddress address of the destination token bridge instance
- * @param recipientContract the contract on the destination chain that will be called
- * @param recipientPayload the payload that will be provided to the recipient contract on the destination chain
- * @param requiredGasLimit the required amount of gas needed to deliver the message on its destination chain,
+ * @param destinationBlockchainID BlockchainID of the destination
+ * @param destinationBridgeAddress Address of the destination token bridge instance
+ * @param recipientContract The contract on the destination chain that will be called
+ * @param recipientPayload The payload that will be provided to the recipient contract on the destination chain
+ * @param requiredGasLimit The required amount of gas needed to deliver the message on its destination chain,
  * including token operations and the call to the recipient contract.
- * @param recipientGasLimit the amount of gas that will provided to the recipient contract on the destination chain,
+ * @param recipientGasLimit The amount of gas that will provided to the recipient contract on the destination chain,
  * which must be less than the requiredGasLimit of the message as a whole.
- * @param multiHopFallback in the case of a multi-hop transfer, the address where the tokens
+ * @param multiHopFallback In the case of a multi-hop transfer, the address where the tokens
  * are sent on the source chain if the transfer is unable to be routed to its final destination.
- * @param fallbackRecipient address on the {destinationBlockchainID} where the bridged tokens are sent if the call to the recipient contract fails.
- * @param primaryFeeTokenAddress address of the ERC20 contract to optionally pay a Teleporter message fee
- * @param primaryFee amount of tokens to pay for Teleporter fee on the source chain
- * @param secondaryFee amount of tokens to pay for Teleporter fee if a multi-hop is needed
+ * @param fallbackRecipient Address on the {destinationBlockchainID} where the bridged tokens are sent to if the call to the recipient contract fails.
+ * @param primaryFeeTokenAddress Address of the ERC20 contract to optionally pay a Teleporter message fee
+ * @param primaryFee Amount of tokens to pay for Teleporter fee on the chain that iniiated the transfer
+ * @param secondaryFee Amount of tokens to pay for Teleporter fee if a multi-hop is needed
  */
 struct SendAndCallInput {
     bytes32 destinationBlockchainID;
@@ -88,9 +88,9 @@ struct BridgeMessage {
 /**
  * @dev Register destination message payloads are sent to the source bridge contract
  * to register a new destination chain and bridge contract.
- * @param initialReserveImbalance the initial reserve imbalance of the destination bridge contract to calculate associated collateral needed on source bridge contract.
- * @param tokenMultiplier the token multiplier to scale the amount of tokens sent to the destination.
- * @param multiplyOnDestination tells whether the source bridge contract should multiply or divide
+ * @param initialReserveImbalance The initial reserve imbalance of the destination bridge contract to calculate associated collateral needed on source bridge contract.
+ * @param tokenMultiplier The token multiplier to scale the amount of tokens sent to the destination.
+ * @param multiplyOnDestination Whether the source bridge contract should multiply or divide
  * the amount of tokens before sending to the destination.
  */
 struct RegisterDestinationMessage {

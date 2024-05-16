@@ -456,7 +456,7 @@ abstract contract TeleporterTokenDestination is
     /**
      * @notice Deposits tokens from the sender to this contract,
      * and returns the adjusted amount of tokens deposited.
-     * @param amount is initial amount sent to this contract.
+     * @param amount The initial amount sent to this contract.
      * @return The actual amount deposited to this contract.
      */
     function _deposit(uint256 amount) internal virtual returns (uint256);
