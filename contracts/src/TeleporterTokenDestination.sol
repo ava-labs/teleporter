@@ -448,7 +448,7 @@ abstract contract TeleporterTokenDestination is
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
             // The {sourceBlockchainID}, and {originSenderAddress} specified in the message
             // payload will not match the sender of this Teleporter message in the case of a
-            // multi-hop message. Since Teleporter message are only received from the specified
+            // multi-hop message. Since Teleporter messages are only received from the specified
             // source contract, no additional authentication is needed on the payload values.
             SingleHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopCallMessage));

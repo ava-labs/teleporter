@@ -426,8 +426,8 @@ abstract contract TeleporterTokenSource is
             uint256 sourceAmount =
                 _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
 
-            // Verify that the payload's source blockchain ID  and origin bridge address matches the source blockchain ID
-            // and origin origin sender address passed from Teleporter.
+            // Verify that the payload's source blockchain ID and origin bridge address matches the source blockchain ID
+            // and origin sender address passed from Teleporter.
             require(
                 payload.sourceBlockchainID == sourceBlockchainID,
                 "TeleporterTokenSource: mismatched source blockchain ID"
