@@ -246,7 +246,7 @@ abstract contract TeleporterTokenSource is
         if (isMultiHop) {
             emit TokensRouted(messageID, input, adjustedAmount);
         } else {
-            emit TokensSent(messageID, msg.sender, input, adjustedAmount);
+            emit TokensSent(messageID, _msgSender(), input, adjustedAmount);
         }
     }
 
@@ -385,7 +385,7 @@ abstract contract TeleporterTokenSource is
 
         // If there is excess amount, send it back to the sender.
         if (excessAmount > 0) {
-            _withdraw(msg.sender, excessAmount);
+            _withdraw(_msgSender(), excessAmount);
         }
     }
 
