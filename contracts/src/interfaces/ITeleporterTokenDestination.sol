@@ -15,7 +15,7 @@ import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 
 /**
  * @notice Settings for constructing a {ITeleporterTokenDestination} contract.
- * @param teleporterRegistryAddress The current blockchain id's Teleporter registry
+ * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
  * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades.
  * @param teleporterManager Address that manages this contract's integration with the
  * Teleporter registry and Teleporter versions.
