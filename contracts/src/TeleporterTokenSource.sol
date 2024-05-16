@@ -87,7 +87,7 @@ abstract contract TeleporterTokenSource is
     /**
      * @notice Tracks the balances of tokens sent to other bridge instances.
      * Balances are represented in the destination token's denomination,
-     * and bridges are not allowed to unwrap more than previously been sent to them.
+     * and bridges are not allowed to unwrap more than has been sent to them.
      * @dev (destinationBlockchainID, destinationBridgeAddress) -> balance
      */
     mapping(
