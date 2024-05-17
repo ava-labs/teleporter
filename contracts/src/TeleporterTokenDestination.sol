@@ -342,6 +342,7 @@ abstract contract TeleporterTokenDestination is
                 payload: abi.encode(
                     SingleHopCallMessage({
                         sourceBlockchainID: blockchainID,
+                        originBridgeAddress: address(this),
                         originSenderAddress: _msgSender(),
                         recipientContract: input.recipientContract,
                         amount: amount,
@@ -444,6 +445,10 @@ abstract contract TeleporterTokenDestination is
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
             _withdraw(payload.recipient, payload.amount);
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
+            // The {sourceBlockchainID}, and {originSenderAddress} specified in the message
+            // payload will not match the sender of this Teleporter message in the case of a
+            // multi-hop message. Since Teleporter messages are only received from the specified
+            // source contract, no additional authentication is needed on the payload values.
             SingleHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
             _handleSendAndCall(payload, payload.amount);
