@@ -20,8 +20,12 @@ import {
     RegisterDestinationMessage
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
+    using SafeERC20 for IERC20;
+
     TeleporterTokenDestination public tokenDestination;
 
     function setUp() public virtual {
@@ -400,9 +404,18 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         tokenBridge = tokenDestination;
         bridgedToken = IERC20(address(tokenDestination));
 
+        // Deploy a separate fee asset for registering with source.
+        ExampleERC20 separateFeeAsset = new ExampleERC20();
         uint256 feeAmount = 13;
         TeleporterFeeInfo memory feeInfo =
-            TeleporterFeeInfo({feeTokenAddress: address(bridgedToken), amount: feeAmount});
+            TeleporterFeeInfo({feeTokenAddress: address(separateFeeAsset), amount: feeAmount});
+
+        IERC20(separateFeeAsset).safeIncreaseAllowance(address(tokenBridge), feeAmount);
+        vm.expectCall(
+            address(separateFeeAsset),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
+        );
+
         BridgeMessage memory expectedBridgeMessage = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,
             payload: abi.encode(
