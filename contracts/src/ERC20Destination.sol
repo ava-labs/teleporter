@@ -141,6 +141,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
             IERC20SendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
+                message.originBridgeAddress,
                 message.originSenderAddress,
                 address(this),
                 amount,
