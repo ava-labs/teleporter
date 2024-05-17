@@ -180,45 +180,21 @@ abstract contract TeleporterTokenSource is
      * - {input.recipient} cannot be the zero address
      * - {amount} must be greater than 0
      */
-    function _send(
-        SendTokensInput memory input,
-        uint256 amount,
-        bool isMultiHop
-    ) internal sendNonReentrant {
-        require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
-        require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
-        require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
+    function _send(SendTokensInput memory input, uint256 amount) internal sendNonReentrant {
+        _validateSendTokensInput(input);
+        // Require that a single hop transfer does not have a multi-hop fallback recipient.
+        require(
+            input.multiHopFallback == address(0),
+            "TeleporterTokenSource: non-zero multi-hop fallback"
+        );
 
-        uint256 adjustedAmount;
-        uint256 feeAmount = input.primaryFee;
-        if (isMultiHop) {
-            adjustedAmount = _prepareMultiHopRouting(
-                input.destinationBlockchainID,
-                input.destinationBridgeAddress,
-                amount,
-                input.primaryFee
-            );
-
-            if (adjustedAmount == 0) {
-                // If the adjusted amount is zero for any reason (i.e. unsupported destination,
-                // being scaled down to zero, etc.), send the tokens to the multi-hop fallback.
-                _withdraw(input.multiHopFallback, amount);
-                return;
-            }
-        } else {
-            // Require that a single hop transfer does not have a multi-hop fallback recipient.
-            require(
-                input.multiHopFallback == address(0),
-                "TeleporterTokenSource: non-zero multi-hop fallback"
-            );
-            (adjustedAmount, feeAmount) = _prepareSend({
-                destinationBlockchainID: input.destinationBlockchainID,
-                destinationBridgeAddress: input.destinationBridgeAddress,
-                amount: amount,
-                primaryFeeTokenAddress: input.primaryFeeTokenAddress,
-                feeAmount: input.primaryFee
-            });
-        }
+        (uint256 adjustedAmount, uint256 feeAmount) = _prepareSend({
+            destinationBlockchainID: input.destinationBlockchainID,
+            destinationBridgeAddress: input.destinationBridgeAddress,
+            amount: amount,
+            primaryFeeTokenAddress: input.primaryFeeTokenAddress,
+            feeAmount: input.primaryFee
+        });
 
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
@@ -242,67 +218,85 @@ abstract contract TeleporterTokenSource is
             })
         );
 
-        if (isMultiHop) {
-            emit TokensRouted(messageID, input, adjustedAmount);
-        } else {
-            emit TokensSent(messageID, _msgSender(), input, adjustedAmount);
+        emit TokensSent(messageID, _msgSender(), input, adjustedAmount);
+    }
+
+    /**
+     * @notice Routes tokens from a multi-hop message to the specified destination token bridge instance.
+     *
+     * @dev Increases the bridge balance sent to each destination token bridge instance,
+     * and uses Teleporter to send a cross chain message. The amount passed is assumed to
+     * be already scaled to the local denomination for this token source.
+     * Requirements:
+     *
+     * - {input.destinationBlockchainID} cannot be the same as the current blockchainID
+     * - {input.destinationBridgeAddress} cannot be the zero address
+     * - {input.recipient} cannot be the zero address
+     * - {amount} must be greater than 0
+     */
+    function _routeMultiHop(
+        SendTokensInput memory input,
+        uint256 amount
+    ) internal sendNonReentrant {
+        _validateSendTokensInput(input);
+
+        uint256 adjustedAmount = _prepareMultiHopRouting(
+            input.destinationBlockchainID, input.destinationBridgeAddress, amount, input.primaryFee
+        );
+
+        if (adjustedAmount == 0) {
+            // If the adjusted amount is zero for any reason (i.e. unsupported destination,
+            // being scaled down to zero, etc.), send the tokens to the multi-hop fallback.
+            _withdraw(input.multiHopFallback, amount);
+            return;
         }
+
+        BridgeMessage memory message = BridgeMessage({
+            messageType: BridgeMessageType.SINGLE_HOP_SEND,
+            payload: abi.encode(
+                SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
+                )
+        });
+
+        // Send message to the destination bridge address
+        bytes32 messageID = _sendTeleporterMessage(
+            TeleporterMessageInput({
+                destinationBlockchainID: input.destinationBlockchainID,
+                destinationAddress: input.destinationBridgeAddress,
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: input.primaryFee
+                }),
+                requiredGasLimit: input.requiredGasLimit,
+                allowedRelayerAddresses: new address[](0),
+                message: abi.encode(message)
+            })
+        );
+
+        emit TokensRouted(messageID, input, adjustedAmount);
     }
 
     function _sendAndCall(
         bytes32 sourceBlockchainID,
         address originSenderAddress,
         SendAndCallInput memory input,
-        uint256 amount,
-        bool isMultiHop
+        uint256 amount
     ) internal sendNonReentrant {
-        require(
-            input.recipientContract != address(0),
-            "TeleporterTokenSource: zero recipient contract address"
-        );
-        require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
-        require(input.recipientGasLimit > 0, "TeleporterTokenSource: zero recipient gas limit");
-        require(
-            input.recipientGasLimit < input.requiredGasLimit,
-            "TeleporterTokenSource: invalid recipient gas limit"
-        );
-        require(
-            input.fallbackRecipient != address(0),
-            "TeleporterTokenSource: zero fallback recipient address"
-        );
-        require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
+        _validateSendAndCallInput(input);
 
-        uint256 adjustedAmount;
-        uint256 feeAmount = input.primaryFee;
-        if (isMultiHop) {
-            adjustedAmount = _prepareMultiHopRouting(
-                input.destinationBlockchainID,
-                input.destinationBridgeAddress,
-                amount,
-                input.primaryFee
-            );
+        // Require that a single hop transfer does not have a multi-hop fallback recipient.
+        require(
+            input.multiHopFallback == address(0),
+            "TeleporterTokenSource: non-zero multi-hop fallback"
+        );
 
-            if (adjustedAmount == 0) {
-                // If the adjusted amount is zero for any reason (i.e. unsupported destination,
-                // being scaled down to zero, etc.), send the tokens to the multi-hop fallback recipient.
-                _withdraw(input.multiHopFallback, amount);
-                return;
-            }
-        } else {
-            // Require that a single hop transfer does not have a multi-hop fallback recipient.
-            require(
-                input.multiHopFallback == address(0),
-                "TeleporterTokenSource: non-zero multi-hop fallback"
-            );
-
-            (adjustedAmount, feeAmount) = _prepareSend({
-                destinationBlockchainID: input.destinationBlockchainID,
-                destinationBridgeAddress: input.destinationBridgeAddress,
-                amount: amount,
-                primaryFeeTokenAddress: input.primaryFeeTokenAddress,
-                feeAmount: input.primaryFee
-            });
-        }
+        (uint256 adjustedAmount, uint256 feeAmount) = _prepareSend({
+            destinationBlockchainID: input.destinationBlockchainID,
+            destinationBridgeAddress: input.destinationBridgeAddress,
+            amount: amount,
+            primaryFeeTokenAddress: input.primaryFeeTokenAddress,
+            feeAmount: input.primaryFee
+        });
 
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_CALL,
@@ -334,11 +328,58 @@ abstract contract TeleporterTokenSource is
             })
         );
 
-        if (isMultiHop) {
-            emit TokensAndCallRouted(messageID, input, adjustedAmount);
-        } else {
-            emit TokensAndCallSent(messageID, originSenderAddress, input, adjustedAmount);
+        emit TokensAndCallSent(messageID, originSenderAddress, input, adjustedAmount);
+    }
+
+    function _routeMultiHopSendAndCall(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        SendAndCallInput memory input,
+        uint256 amount
+    ) internal sendNonReentrant {
+        _validateSendAndCallInput(input);
+        uint256 adjustedAmount = _prepareMultiHopRouting(
+            input.destinationBlockchainID, input.destinationBridgeAddress, amount, input.primaryFee
+        );
+
+        if (adjustedAmount == 0) {
+            // If the adjusted amount is zero for any reason (i.e. unsupported destination,
+            // being scaled down to zero, etc.), send the tokens to the multi-hop fallback recipient.
+            _withdraw(input.multiHopFallback, amount);
+            return;
         }
+
+        BridgeMessage memory message = BridgeMessage({
+            messageType: BridgeMessageType.SINGLE_HOP_CALL,
+            payload: abi.encode(
+                SingleHopCallMessage({
+                    sourceBlockchainID: sourceBlockchainID,
+                    originSenderAddress: originSenderAddress,
+                    recipientContract: input.recipientContract,
+                    amount: adjustedAmount,
+                    recipientPayload: input.recipientPayload,
+                    recipientGasLimit: input.recipientGasLimit,
+                    fallbackRecipient: input.fallbackRecipient
+                })
+                )
+        });
+
+        // Send message to the destination bridge address
+        bytes32 messageID = _sendTeleporterMessage(
+            TeleporterMessageInput({
+                destinationBlockchainID: input.destinationBlockchainID,
+                destinationAddress: input.destinationBridgeAddress,
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: input.primaryFee
+                }),
+                requiredGasLimit: input.requiredGasLimit,
+                allowedRelayerAddresses: new address[](0),
+                message: abi.encode(message)
+            })
+        );
+
+        emit TokensAndCallRouted(messageID, input, adjustedAmount);
     }
 
     /**
@@ -443,7 +484,7 @@ abstract contract TeleporterTokenSource is
             // because the fee is taken from the amount that has already been deposited.
             // For ERC20 tokens, the token address of the contract is directly passed.
             // For native assets, the contract address is the wrapped token contract.
-            _send(
+            _routeMultiHop(
                 SendTokensInput({
                     destinationBlockchainID: payload.destinationBlockchainID,
                     destinationBridgeAddress: payload.destinationBridgeAddress,
@@ -454,8 +495,7 @@ abstract contract TeleporterTokenSource is
                     requiredGasLimit: payload.secondaryGasLimit,
                     multiHopFallback: payload.multiHopFallback
                 }),
-                sourceAmount,
-                true
+                sourceAmount
             );
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.MULTI_HOP_CALL) {
@@ -470,7 +510,7 @@ abstract contract TeleporterTokenSource is
             // because the fee is taken from the amount that has already been deposited.
             // For ERC20 tokens, the token address of the contract is directly passed.
             // For native assets, the contract address is the wrapped token contract.
-            _sendAndCall(
+            _routeMultiHopSendAndCall(
                 sourceBlockchainID,
                 payload.originSenderAddress,
                 SendAndCallInput({
@@ -486,8 +526,7 @@ abstract contract TeleporterTokenSource is
                     primaryFee: fee,
                     secondaryFee: 0
                 }),
-                sourceAmount,
-                true
+                sourceAmount
             );
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.REGISTER_DESTINATION) {
@@ -709,5 +748,29 @@ abstract contract TeleporterTokenSource is
         uint256 senderBalance = bridgedBalances[destinationBlockchainID][destinationBridgeAddress];
         require(senderBalance >= amount, "TeleporterTokenSource: insufficient bridge balance");
         bridgedBalances[destinationBlockchainID][destinationBridgeAddress] = senderBalance - amount;
+    }
+
+    function _validateSendAndCallInput(SendAndCallInput memory input) private pure {
+        require(
+            input.recipientContract != address(0),
+            "TeleporterTokenSource: zero recipient contract address"
+        );
+        require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
+        require(input.recipientGasLimit > 0, "TeleporterTokenSource: zero recipient gas limit");
+        require(
+            input.recipientGasLimit < input.requiredGasLimit,
+            "TeleporterTokenSource: invalid recipient gas limit"
+        );
+        require(
+            input.fallbackRecipient != address(0),
+            "TeleporterTokenSource: zero fallback recipient address"
+        );
+        require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
+    }
+
+    function _validateSendTokensInput(SendTokensInput memory input) private pure {
+        require(input.recipient != address(0), "TeleporterTokenSource: zero recipient address");
+        require(input.requiredGasLimit > 0, "TeleporterTokenSource: zero required gas limit");
+        require(input.secondaryFee == 0, "TeleporterTokenSource: non-zero secondary fee");
     }
 }

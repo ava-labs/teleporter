@@ -50,7 +50,7 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
 cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts
-forge build --force --extra-output-files abi bin
+forge build --skip test --force --extra-output-files abi bin
 
 contract_names=($CONTRACT_LIST)
 
