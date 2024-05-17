@@ -42,6 +42,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * received tokens with ERC20 tokens on this chain.
      * @param settings Constructor settings for this destination token bridge instance.
      * @param tokenName The name of the ERC20 token.
+     * @param tokenSymbol The symbol of the ERC20 token.
      * @param tokenDecimals The number of decimals for the ERC20 token.
      */
     constructor(
