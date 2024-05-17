@@ -197,7 +197,6 @@ abstract contract TeleporterTokenDestination is
      * - {input.destinationBridgeAddress} cannot be the zero address
      * - {input.recipient} cannot be the zero address
      * - {amount} must be greater than 0
-     * - {amount} must be greater than {input.primaryFee}
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
         require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");

@@ -180,7 +180,6 @@ abstract contract TeleporterTokenSource is
      * - {input.destinationBridgeAddress} cannot be the zero address
      * - {input.recipient} cannot be the zero address
      * - {amount} must be greater than 0
-     * - {amount} must be greater than {input.primaryFee}
      */
     function _send(
         SendTokensInput memory input,
