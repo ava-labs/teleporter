@@ -253,10 +253,11 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bytes memory payload = hex"DEADBEEF";
 
         bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
-        address originSenderAddress = address(this);
+        OriginSenderInfo memory originInfo;
+        originInfo.senderAddress = address(this);
         _setUpExpectedSendAndCall({
             sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
+            originInfo: originInfo,
             recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             amount: amount,
             payload: payload,
@@ -267,7 +268,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         bytes memory message = _encodeSingleHopCallMessage({
             sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
+            originInfo: originInfo,
             amount: amount,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: payload,
@@ -290,10 +291,12 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bytes memory payload = hex"DEADBEEF";
 
         bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
-        address originSenderAddress = address(this);
+        OriginSenderInfo memory originInfo;
+        originInfo.bridgeAddress = address(tokenBridge);
+        originInfo.senderAddress = address(this);
         _setUpExpectedSendAndCall({
             sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
+            originInfo: originInfo,
             recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             amount: amount,
             payload: payload,
@@ -304,7 +307,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         bytes memory message = _encodeSingleHopCallMessage({
             sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
+            originInfo: originInfo,
             amount: amount,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: payload,
@@ -322,10 +325,12 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         bytes memory payload = hex"DEADBEEF";
 
         bytes32 sourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
-        address originSenderAddress = address(this);
+        OriginSenderInfo memory originInfo;
+        originInfo.bridgeAddress = address(tokenBridge);
+        originInfo.senderAddress = address(this);
         _setUpExpectedSendAndCall({
             sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
+            originInfo: originInfo,
             recipient: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             amount: amount,
             payload: payload,
@@ -336,7 +341,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         bytes memory message = _encodeSingleHopCallMessage({
             sourceBlockchainID: sourceBlockchainID,
-            originSenderAddress: originSenderAddress,
+            originInfo: originInfo,
             amount: amount,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: payload,
@@ -353,9 +358,13 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
         uint256 gasLimit = 5_000_000;
+        OriginSenderInfo memory originInfo;
+        originInfo.bridgeAddress = address(tokenBridge);
+        originInfo.senderAddress = address(this);
+
         bytes memory message = _encodeSingleHopCallMessage({
             sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            originSenderAddress: address(this),
+            originInfo: originInfo,
             amount: amount,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: payload,
@@ -517,7 +526,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
     function _setUpExpectedSendAndCall(
         bytes32 sourceBlockchainID,
-        address originSenderAddress,
+        OriginSenderInfo memory originInfo,
         address recipient,
         uint256 amount,
         bytes memory payload,

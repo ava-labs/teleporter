@@ -116,6 +116,7 @@ struct SingleHopSendMessage {
  */
 struct SingleHopCallMessage {
     bytes32 sourceBlockchainID;
+    address originBridgeAddress;
     address originSenderAddress;
     address recipientContract;
     uint256 amount;
