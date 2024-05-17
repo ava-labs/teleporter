@@ -197,8 +197,7 @@ abstract contract TeleporterTokenDestination is
      * - {amount} must be greater than 0
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
-        require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
-        require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
+        _validateSendTokensInput(input);
 
         if (input.destinationBlockchainID == sourceBlockchainID) {
             _processSend(input, amount);
@@ -222,9 +221,9 @@ abstract contract TeleporterTokenDestination is
         _validateSendAndCallInput(input);
 
         if (input.destinationBlockchainID == sourceBlockchainID) {
-            _processSendAndCall(input, amount);
+            return _processSendAndCall(input, amount);
         } else {
-            _processSendAndCallMultiHop(input, amount);
+            return _processSendAndCallMultiHop(input, amount);
         }
     }
 
@@ -309,22 +308,11 @@ abstract contract TeleporterTokenDestination is
      * source tokens is greater than zero.
      */
     function _prepareSend(
-        bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
         uint256 amount,
         address primaryFeeTokenAddress,
         uint256 primaryFee,
         uint256 secondaryFee
     ) private returns (uint256, uint256) {
-        require(
-            destinationBlockchainID != bytes32(0),
-            "TeleporterTokenDestination: zero destination blockchain ID"
-        );
-        require(
-            destinationBridgeAddress != address(0),
-            "TeleporterTokenDestination: zero destination bridge address"
-        );
-
         // Deposit the funds sent from the user to the bridge,
         // and set to adjusted amount after deposit
         amount = _deposit(amount);
@@ -386,8 +374,6 @@ abstract contract TeleporterTokenDestination is
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
-            destinationBlockchainID: input.destinationBlockchainID,
-            destinationBridgeAddress: input.destinationBridgeAddress,
             amount: amount,
             primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             primaryFee: input.primaryFee,
@@ -444,8 +430,6 @@ abstract contract TeleporterTokenDestination is
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
-            destinationBlockchainID: input.destinationBlockchainID,
-            destinationBridgeAddress: input.destinationBridgeAddress,
             amount: amount,
             primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             primaryFee: input.primaryFee,
@@ -501,8 +485,6 @@ abstract contract TeleporterTokenDestination is
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
-            destinationBlockchainID: input.destinationBlockchainID,
-            destinationBridgeAddress: input.destinationBridgeAddress,
             amount: amount,
             primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             primaryFee: input.primaryFee,
@@ -563,8 +545,6 @@ abstract contract TeleporterTokenDestination is
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
-            destinationBlockchainID: input.destinationBlockchainID,
-            destinationBridgeAddress: input.destinationBridgeAddress,
             amount: amount,
             primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             primaryFee: input.primaryFee,
@@ -614,7 +594,28 @@ abstract contract TeleporterTokenDestination is
         emit TokensAndCallSent(messageID, _msgSender(), input, amount);
     }
 
+    function _validateSendTokensInput(SendTokensInput calldata input) private pure {
+        require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
+        require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
+        require(
+            input.destinationBlockchainID != bytes32(0),
+            "TeleporterTokenDestination: zero destination blockchain ID"
+        );
+        require(
+            input.destinationBridgeAddress != address(0),
+            "TeleporterTokenDestination: zero destination bridge address"
+        );
+    }
+
     function _validateSendAndCallInput(SendAndCallInput calldata input) private pure {
+        require(
+            input.destinationBlockchainID != bytes32(0),
+            "TeleporterTokenDestination: zero destination blockchain ID"
+        );
+        require(
+            input.destinationBridgeAddress != address(0),
+            "TeleporterTokenDestination: zero destination bridge address"
+        );
         require(
             input.recipientContract != address(0),
             "TeleporterTokenDestination: zero recipient contract address"

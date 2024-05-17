@@ -165,7 +165,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testSendMultiHopInsufficientAmountToCoverFees() public {
-        SendTokensInput memory input = _createDefaultSendTokensInput();
+        SendTokensInput memory input = _createDefaultSendMultiHopInput();
         uint256 amount = 1;
         input.secondaryFee = 2;
         _setUpExpectedDeposit(amount, input.primaryFee);
@@ -175,8 +175,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
     function testSendMultiHopZeroMultiHopFallback() public {
         uint256 amount = 200_000;
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
+        SendTokensInput memory input = _createDefaultSendMultiHopInput();
         input.multiHopFallback = address(0);
         _setUpExpectedDeposit(amount, input.primaryFee);
         vm.expectRevert(_formatErrorMessage("zero multi-hop fallback"));
@@ -601,6 +600,17 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             multiHopFallback: address(0)
         });
+    }
+
+    function _createDefaultSendMultiHopInput()
+        internal
+        view
+        returns (SendTokensInput memory)
+    {
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
+        input.multiHopFallback = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;
+        return input;
     }
 
     function _createDefaultSendAndCallInput()
