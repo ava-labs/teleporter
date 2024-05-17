@@ -163,12 +163,12 @@ abstract contract TeleporterTokenDestination is
             payload: abi.encode(registerMessage)
         });
 
-        _handleFees(feeInfo.feeTokenAddress, feeInfo.amount);
+        uint256 feeAmount = _handleFees(feeInfo.feeTokenAddress, feeInfo.amount);
         _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: feeInfo,
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeInfo.feeTokenAddress, amount: feeAmount}),
                 requiredGasLimit: REGISTER_DESTINATION_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
