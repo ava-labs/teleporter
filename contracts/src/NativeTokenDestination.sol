@@ -119,7 +119,7 @@ contract NativeTokenDestination is
      * @notice Initializes this destination token bridge instance to receive
      * tokens from the specified source chain and token bridge instance, and represents the
      * received tokens with native tokens on this chain.
-     * @param settings Construction settings for this destination token bridge instance.
+     * @param settings Constructor settings for this destination token bridge instance.
      * @param nativeAssetSymbol The symbol of the native asset.
      * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
      * @param decimalsShift The number of decimal places to shift the token amount by.
@@ -339,7 +339,12 @@ contract NativeTokenDestination is
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
         bytes memory payload = abi.encodeCall(
             INativeSendAndCallReceiver.receiveTokens,
-            (message.sourceBlockchainID, message.originSenderAddress, message.recipientPayload)
+            (
+                message.sourceBlockchainID,
+                message.originBridgeAddress,
+                message.originSenderAddress,
+                message.recipientPayload
+            )
         );
 
         // Call the destination contract with the given payload, gas amount, and value.
