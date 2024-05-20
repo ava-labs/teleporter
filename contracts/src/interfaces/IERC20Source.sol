@@ -23,9 +23,9 @@ interface IERC20Source is IERC20Bridge, ITeleporterTokenSource {
     /**
      * @notice Adds collateral to the bridge contract for the specified destination. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.
-     * @param destinationBlockchainID the destination blockchain ID of the bridge to add collateral for.
-     * @param destinationBridgeAddress the address on the bridge to add collateral for on the remote chain.
-     * @param amount amount of tokens to add as collateral.
+     * @param destinationBlockchainID The destination blockchain ID of the bridge to add collateral for.
+     * @param destinationBridgeAddress The address of the bridge to add collateral for on the {destinationBlockchainID}.
+     * @param amount Amount of tokens to add as collateral.
      */
     function addCollateral(
         bytes32 destinationBlockchainID,

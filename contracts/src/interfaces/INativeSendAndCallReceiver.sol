@@ -18,11 +18,11 @@ interface INativeSendAndCallReceiver {
      * @notice Called to receive the amount of the native token. Implementations
      * must properly handle the msg.value of the call in order to ensure it doesn't
      * become improperly made inaccessible.
-     * @param sourceBlockchainID blockchain ID that the transfer originated from
-     * @param originBridgeAddress address of the bridge that initiated the Teleporter message
-     * @param originSenderAddress address of the sender that sent the transfer. This value
+     * @param sourceBlockchainID Blockchain ID that the transfer originated from
+     * @param originBridgeAddress Address of the bridge that initiated the Teleporter message
+     * @param originSenderAddress Address of the sender that sent the transfer. This value
      * should only be trusted if {originBridgeAddress} is verified and known.
-     * @param payload arbitrary data provided by the caller
+     * @param payload Arbitrary data provided by the caller
      */
     function receiveTokens(
         bytes32 sourceBlockchainID,

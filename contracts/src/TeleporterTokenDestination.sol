@@ -18,7 +18,10 @@ import {
     MultiHopCallMessage,
     RegisterDestinationMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
-import {ITeleporterTokenDestination} from "./interfaces/ITeleporterTokenDestination.sol";
+import {
+    ITeleporterTokenDestination,
+    TeleporterTokenDestinationSettings
+} from "./interfaces/ITeleporterTokenDestination.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
 import {IWarpMessenger} from
@@ -114,30 +117,27 @@ abstract contract TeleporterTokenDestination is
      * tokens from the specified source blockchain and token bridge instance.
      */
     constructor(
-        address teleporterRegistryAddress,
-        address teleporterManager,
-        bytes32 sourceBlockchainID_,
-        address tokenSourceAddress_,
+        TeleporterTokenDestinationSettings memory settings,
         uint256 initialReserveImbalance_,
         uint8 decimalsShift,
         bool multiplyOnDestination_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
+    ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
-            sourceBlockchainID_ != bytes32(0),
+            settings.sourceBlockchainID != bytes32(0),
             "TeleporterTokenDestination: zero source blockchain ID"
         );
         require(
-            sourceBlockchainID_ != blockchainID,
+            settings.sourceBlockchainID != blockchainID,
             "TeleporterTokenDestination: cannot deploy to same blockchain as source"
         );
         require(
-            tokenSourceAddress_ != address(0),
+            settings.tokenSourceAddress != address(0),
             "TeleporterTokenDestination: zero token source address"
         );
         require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
-        sourceBlockchainID = sourceBlockchainID_;
-        tokenSourceAddress = tokenSourceAddress_;
+        sourceBlockchainID = settings.sourceBlockchainID;
+        tokenSourceAddress = settings.tokenSourceAddress;
         initialReserveImbalance = initialReserveImbalance_;
         isCollateralized = initialReserveImbalance_ == 0;
         tokenMultiplier = 10 ** decimalsShift;
@@ -162,11 +162,13 @@ abstract contract TeleporterTokenDestination is
             messageType: BridgeMessageType.REGISTER_DESTINATION,
             payload: abi.encode(registerMessage)
         });
+
+        uint256 feeAmount = _handleFees(feeInfo.feeTokenAddress, feeInfo.amount);
         _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: sourceBlockchainID,
                 destinationAddress: tokenSourceAddress,
-                feeInfo: feeInfo,
+                feeInfo: TeleporterFeeInfo({feeTokenAddress: feeInfo.feeTokenAddress, amount: feeAmount}),
                 requiredGasLimit: REGISTER_DESTINATION_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -276,7 +278,7 @@ abstract contract TeleporterTokenDestination is
     /**
      * @notice Deposits tokens from the sender to this contract,
      * and returns the adjusted amount of tokens deposited.
-     * @param amount is initial amount sent to this contract.
+     * @param amount The initial amount sent to this contract.
      * @return The actual amount deposited to this contract.
      */
     function _deposit(uint256 amount) internal virtual returns (uint256);
@@ -321,19 +323,10 @@ abstract contract TeleporterTokenDestination is
         // and set to adjusted amount after deposit
         amount = _deposit(amount);
 
-        // Transfer the primary fee to pay for Teleporter fees on the first hop.
+        // Transfer the primary fee to pay for fees on the first hop.
         // The user can specify this contract as {primaryFeeTokenAddress},
         // in which case the fee will be paid on top of the bridged amount.
-        if (primaryFee > 0) {
-            // If the {primaryFeeTokenAddress} is this contract, then just deposit the tokens directly.
-            if (primaryFeeTokenAddress == address(this)) {
-                _deposit(primaryFee);
-            } else {
-                primaryFee = SafeERC20TransferFrom.safeTransferFrom(
-                    IERC20(primaryFeeTokenAddress), primaryFee
-                );
-            }
-        }
+        primaryFee = _handleFees(primaryFeeTokenAddress, primaryFee);
 
         // Burn the amount of tokens that will be bridged.
         _burn(amount);
@@ -597,6 +590,22 @@ abstract contract TeleporterTokenDestination is
         );
 
         emit TokensAndCallSent(messageID, _msgSender(), input, amount);
+    }
+
+    /**
+     * @notice Handles fees sent to this contract
+     * @param feeTokenAddress The address of the fee token
+     * @param feeAmount The amount of the fee
+     */
+    function _handleFees(address feeTokenAddress, uint256 feeAmount) private returns (uint256) {
+        if (feeAmount == 0) {
+            return 0;
+        }
+        // If the {feeTokenAddress} is this contract, then just deposit the tokens directly.
+        if (feeTokenAddress == address(this)) {
+            return _deposit(feeAmount);
+        }
+        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
     }
 
     function _validateSendTokensInput(SendTokensInput calldata input) private pure {

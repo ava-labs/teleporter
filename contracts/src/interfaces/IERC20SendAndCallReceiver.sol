@@ -16,13 +16,13 @@ pragma solidity 0.8.18;
 interface IERC20SendAndCallReceiver {
     /**
      * @notice Called to receive the amount of the given token
-     * @param sourceBlockchainID blockchain ID that the transfer originated from
-     * @param originBridgeAddress address of the bridge that initiated the Teleporter message
-     * @param originSenderAddress address of the sender that sent the transfer. This value
+     * @param sourceBlockchainID Blockchain ID that the transfer originated from
+     * @param originBridgeAddress Address of the bridge that initiated the Teleporter message
+     * @param originSenderAddress Address of the sender that sent the transfer. This value
      * should only be trusted if {originBridgeAddress} is verified and known.
-     * @param token address of the token to be received
-     * @param amount amount of the token to be received
-     * @param payload arbitrary data provided by the caller
+     * @param token Address of the token to be received
+     * @param amount Amount of the token to be received
+     * @param payload Arbitrary data provided by the caller
      */
     function receiveTokens(
         bytes32 sourceBlockchainID,

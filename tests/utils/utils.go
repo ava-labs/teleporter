@@ -109,10 +109,12 @@ func DeployERC20Destination(
 	address, tx, erc20Destination, err := erc20destination.DeployERC20Destination(
 		opts,
 		subnet.RPCClient,
-		subnet.TeleporterRegistryAddress,
-		teleporterManager,
-		sourceBlockchainID,
-		tokenSourceAddress,
+		erc20destination.TeleporterTokenDestinationSettings{
+			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
+			TeleporterManager:         teleporterManager,
+			SourceBlockchainID:        sourceBlockchainID,
+			TokenSourceAddress:        tokenSourceAddress,
+		},
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
@@ -152,17 +154,17 @@ func DeployNativeTokenDestination(
 	address, tx, nativeTokenDestination, err := nativetokendestination.DeployNativeTokenDestination(
 		opts,
 		subnet.RPCClient,
-		nativetokendestination.NativeTokenDestinationSettings{
-			NativeAssetSymbol:                   symbol,
-			TeleporterRegistryAddress:           subnet.TeleporterRegistryAddress,
-			TeleporterManager:                   teleporterManager,
-			SourceBlockchainID:                  sourceBlockchainID,
-			TokenSourceAddress:                  tokenSourceAddress,
-			InitialReserveImbalance:             initialReserveImbalance,
-			DecimalsShift:                       decimalsShift,
-			MultiplyOnDestination:               multiplyOnDestination,
-			BurnedFeesReportingRewardPercentage: burnedFeesReportingRewardPercentage,
+		nativetokendestination.TeleporterTokenDestinationSettings{
+			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
+			TeleporterManager:         teleporterManager,
+			SourceBlockchainID:        sourceBlockchainID,
+			TokenSourceAddress:        tokenSourceAddress,
 		},
+		symbol,
+		initialReserveImbalance,
+		decimalsShift,
+		multiplyOnDestination,
+		burnedFeesReportingRewardPercentage,
 	)
 	Expect(err).Should(BeNil())
 
@@ -296,11 +298,34 @@ func RegisterTokenDestinationOnSource(
 	)
 	Expect(err).Should(BeNil())
 	_, fundedKey := network.GetFundedAccountInfo()
+
+	// Deploy a new ERC20 token for testing registering with fees
+	feeTokenAddress, feeToken := teleporterUtils.DeployExampleERC20(
+		ctx,
+		fundedKey,
+		destinationSubnet,
+	)
+
+	// Approve the ERC20Source to spend the tokens
+	feeAmount := big.NewInt(1e18)
+	teleporterUtils.ERC20Approve(
+		ctx,
+		feeToken,
+		destinationBridgeAddress,
+		feeAmount,
+		destinationSubnet,
+		fundedKey,
+	)
+
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, destinationSubnet.EVMChainID)
 	Expect(err).Should(BeNil())
+
 	sendRegisterTx, err := tokenDestination.RegisterWithSource(
 		opts,
-		teleportertokendestination.TeleporterFeeInfo{FeeTokenAddress: common.Address{}, Amount: big.NewInt(0)},
+		teleportertokendestination.TeleporterFeeInfo{
+			FeeTokenAddress: feeTokenAddress,
+			Amount:          feeAmount,
+		},
 	)
 	Expect(err).Should(BeNil())
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, destinationSubnet, sendRegisterTx.Hash())

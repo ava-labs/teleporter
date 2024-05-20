@@ -22,15 +22,15 @@ import {
 interface IERC20Bridge is ITeleporterTokenBridge {
     /**
      * @notice Sends ERC20 tokens transferred to this contract to the destination token bridge instance.
-     * @param input specifies information for delivery of the tokens
-     * @param amount amount of tokens to send
+     * @param input Specifies information for delivery of the tokens
+     * @param amount Amount of tokens to send
      */
     function send(SendTokensInput calldata input, uint256 amount) external;
 
     /**
      * @notice Sends ERC20 tokens transferred to this contract to the destination token bridge instance.
-     * @param input specifies information for delivery of the tokens
-     * @param amount amount of tokens to send
+     * @param input Specifies information for delivery of the tokens
+     * @param amount Amount of tokens to send
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external;
 }
