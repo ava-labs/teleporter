@@ -6,6 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TeleporterTokenDestination} from "./TeleporterTokenDestination.sol";
+import {TeleporterTokenDestinationSettings} from "./interfaces/ITeleporterTokenDestination.sol";
 import {IERC20Bridge} from "./interfaces/IERC20Bridge.sol";
 import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
@@ -37,28 +38,19 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
 
     /**
      * @notice Initializes this destination token bridge instance to receive
-     * tokens from the specified source chain and token bridge instance.
+     * tokens from the specified source chain and token bridge instance, and represents the
+     * received tokens with ERC20 tokens on this chain.
+     * @param settings Constructor settings for this destination token bridge instance.
+     * @param tokenName The name of the ERC20 token.
+     * @param tokenSymbol The symbol of the ERC20 token.
+     * @param tokenDecimals The number of decimals for the ERC20 token.
      */
     constructor(
-        address teleporterRegistryAddress,
-        address teleporterManager,
-        bytes32 sourceBlockchainID_,
-        address tokenSourceAddress_,
+        TeleporterTokenDestinationSettings memory settings,
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals
-    )
-        TeleporterTokenDestination(
-            teleporterRegistryAddress,
-            teleporterManager,
-            sourceBlockchainID_,
-            tokenSourceAddress_,
-            0,
-            0,
-            false
-        )
-        ERC20(tokenName, tokenSymbol)
-    {
+    ) TeleporterTokenDestination(settings, 0, 0, false) ERC20(tokenName, tokenSymbol) {
         _decimals = tokenDecimals;
     }
 

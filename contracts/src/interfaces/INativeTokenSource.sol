@@ -23,8 +23,8 @@ interface INativeTokenSource is INativeTokenBridge, ITeleporterTokenSource {
     /**
      * @notice Adds collateral to the bridge contract for the specified destination. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.
-     * @param destinationBlockchainID the destination blockchain ID of the bridge to add collateral for.
-     * @param destinationBridgeAddress the address on the bridge to add collateral for on the remote chain.
+     * @param destinationBlockchainID The destination blockchain ID of the bridge to add collateral for.
+     * @param destinationBridgeAddress the address of the bridge to add collateral for on the {destinationBlockchainID}.
      */
     function addCollateral(
         bytes32 destinationBlockchainID,

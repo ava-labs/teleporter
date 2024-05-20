@@ -40,8 +40,14 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     IWrappedNativeToken public immutable wrappedToken;
 
     /**
-     * @notice Initializes this source token bridge instance
-     * @dev Teleporter fees are paid by a {IWrappedNativeToken} instance.
+     * @notice Initializes this source token bridge instance to send
+     * native tokens to other destination token bridges.
+     * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
+     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
+     * @param teleporterManager Address that manages this contract's integration with the
+     * Teleporter registry and Teleporter versions.
+     * @param wrappedTokenAddress The wrapped token contract address of the native asset
+     * to be bridged to destination bridges.
      */
     constructor(
         address teleporterRegistryAddress,

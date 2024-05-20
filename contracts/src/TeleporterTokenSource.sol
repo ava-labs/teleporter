@@ -34,11 +34,11 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 /**
  * @notice Each destination bridge instance registers with the source token bridge contract,
  * and provides settings for bridging to the destination bridge.
- * @param registered whether the destination bridge is registered
- * @param collateralNeeded the amount of tokens that must be first added as collateral,
+ * @param registered Whether the destination bridge is registered
+ * @param collateralNeeded The amount of tokens that must be first added as collateral,
  * through {addCollateral} calls, before tokens can be bridged to the destination token bridge.
- * @param tokenMultiplier the scaling factor for the amount of tokens to be bridged to the destination.
- * @param multiplyOnDestination whether the scaling factor is multiplied or divided when sending to the destination.
+ * @param tokenMultiplier The scaling factor for the amount of tokens to be bridged to the destination.
+ * @param multiplyOnDestination Whether the scaling factor is multiplied or divided when sending to the destination.
  */
 struct DestinationBridgeSettings {
     bool registered;
@@ -515,7 +515,7 @@ abstract contract TeleporterTokenSource is
     /**
      * @notice Deposits tokens from the sender to this contract,
      * and returns the adjusted amount of tokens deposited.
-     * @param amount is initial amount sent to this contract.
+     * @param amount The initial amount sent to this contract.
      * @return The actual amount deposited to this contract.
      */
     function _deposit(uint256 amount) internal virtual returns (uint256);

@@ -13,6 +13,7 @@ import {
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {INativeTokenDestination} from "./interfaces/INativeTokenDestination.sol";
+import {TeleporterTokenDestinationSettings} from "./interfaces/ITeleporterTokenDestination.sol";
 import {INativeSendAndCallReceiver} from "./interfaces/INativeSendAndCallReceiver.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 // We need IAllowList as an indirect dependency in order to compile.
@@ -37,31 +38,6 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
-
-/**
- * @notice Settings for constructing a {NativeTokenDestination} contract.
- * @param nativeAssetSymbol The symbol of the native asset
- * @param teleporterRegistryAddress The address of the teleporter registry
- * @param teleporterManager The address of the teleporter manager
- * @param sourceBlockchainID The blockchain ID of the associated source token bridge
- * @param tokenSourceAddress The address of the source token bridge contract
- * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting
- * @param decimalsShift The number of decimal places to shift the token amount by
- * @param multiplyOnDestination See {TeleporterTokenDestination-multiplyOnDestination}
- * @param burnedFeesReportingRewardPercentage The percentage of burned transaction fees
- * that will be rewarded to sender of the report.
- */
-struct NativeTokenDestinationSettings {
-    string nativeAssetSymbol;
-    address teleporterRegistryAddress;
-    address teleporterManager;
-    bytes32 sourceBlockchainID;
-    address tokenSourceAddress;
-    uint256 initialReserveImbalance;
-    uint8 decimalsShift;
-    bool multiplyOnDestination;
-    uint256 burnedFeesReportingRewardPercentage;
-}
 
 /**
  * @notice Implementation of the {INativeTokenDestination} interface.
@@ -139,28 +115,42 @@ contract NativeTokenDestination is
         _;
     }
 
-    constructor(NativeTokenDestinationSettings memory settings)
-        ERC20(string.concat("Wrapped ", settings.nativeAssetSymbol), settings.nativeAssetSymbol)
+    /**
+     * @notice Initializes this destination token bridge instance to receive
+     * tokens from the specified source chain and token bridge instance, and represents the
+     * received tokens with native tokens on this chain.
+     * @param settings Constructor settings for this destination token bridge instance.
+     * @param nativeAssetSymbol The symbol of the native asset.
+     * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
+     * @param decimalsShift The number of decimal places to shift the token amount by.
+     * @param multiplyOnDestination See {TeleporterTokenDestination-multiplyOnDestination}.
+     * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
+     * that will be rewarded to sender of the report.
+     */
+    constructor(
+        TeleporterTokenDestinationSettings memory settings,
+        string memory nativeAssetSymbol,
+        uint256 initialReserveImbalance,
+        uint8 decimalsShift,
+        bool multiplyOnDestination,
+        uint256 burnedFeesReportingRewardPercentage_
+    )
+        ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
         TeleporterTokenDestination(
-            settings.teleporterRegistryAddress,
-            settings.teleporterManager,
-            settings.sourceBlockchainID,
-            settings.tokenSourceAddress,
-            settings.initialReserveImbalance,
-            settings.decimalsShift,
-            settings.multiplyOnDestination
+            settings,
+            initialReserveImbalance,
+            decimalsShift,
+            multiplyOnDestination
         )
     {
         require(
-            settings.initialReserveImbalance != 0,
-            "NativeTokenDestination: zero initial reserve imbalance"
+            initialReserveImbalance != 0, "NativeTokenDestination: zero initial reserve imbalance"
         );
 
         require(
-            settings.burnedFeesReportingRewardPercentage < 100,
-            "NativeTokenDestination: invalid percentage"
+            burnedFeesReportingRewardPercentage_ < 100, "NativeTokenDestination: invalid percentage"
         );
-        burnedFeesReportingRewardPercentage = settings.burnedFeesReportingRewardPercentage;
+        burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
     }
 
     /**

@@ -22,15 +22,15 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 interface IWrappedNativeToken is IERC20 {
     /**
      * @notice Emitted when native tokens are deposited.
-     * @param sender address that deposited the native tokens
-     * @param amount amount of native tokens deposited
+     * @param sender Address that deposited the native tokens
+     * @param amount Amount of native tokens deposited
      */
     event Deposit(address indexed sender, uint256 amount);
 
     /**
      * @notice Emitted when wrapped tokens are withdrawn for native tokens.
-     * @param sender address that withdrew the native tokens.
-     * @param amount amount of native tokens withdrawn
+     * @param sender Address that withdrew the native tokens.
+     * @param amount Amount of native tokens withdrawn
      */
     event Withdrawal(address indexed sender, uint256 amount);
 
@@ -41,7 +41,7 @@ interface IWrappedNativeToken is IERC20 {
 
     /**
      * @notice Withdraws native tokens for wrapped tokens.
-     * @param amount amount of native tokens to withdraw
+     * @param amount Amount of native tokens to withdraw
      */
     function withdraw(uint256 amount) external;
 }
