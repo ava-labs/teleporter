@@ -356,17 +356,8 @@ abstract contract TeleporterTokenDestination is
      * - {amount} must be greater than 0
      */
     function _processSend(SendTokensInput calldata input, uint256 amount) private {
-        // If the destination blockchain is the source bridge instance's blockchain,
-        // the destination bridge address must match the token source address,
-        // and no secondary fee or fallback is needed.
-        require(
-            input.destinationBridgeAddress == tokenSourceAddress,
-            "TeleporterTokenDestination: invalid destination bridge address"
-        );
-        require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
-        require(
-            input.multiHopFallback == address(0),
-            "TeleporterTokenDestination: non-zero multi-hop fallback"
+        _validateSingleHopInput(
+            input.destinationBridgeAddress, input.secondaryFee, input.multiHopFallback
         );
 
         uint256 primaryFee;
@@ -409,21 +400,9 @@ abstract contract TeleporterTokenDestination is
      * - {amount} must be greater than 0
      */
     function _processSendMultiHop(SendTokensInput calldata input, uint256 amount) private {
-        // Require a multi-hop fallback in case the message sent to the intermediate source
-        // chain fails to route the tokens to the final destination.
-        require(
-            input.multiHopFallback != address(0),
-            "TeleporterTokenDestination: zero multi-hop fallback"
+        _validateMultiHopInput(
+            input.destinationBridgeAddress, input.destinationBlockchainID, input.multiHopFallback
         );
-        // If the destination blockchain ID is this blockchain, the destination
-        // bridge address must be a differet contract. This is a multi-hop case to
-        // a different bridge contract on this chain.
-        if (input.destinationBlockchainID == blockchainID) {
-            require(
-                input.destinationBridgeAddress != address(this),
-                "TeleporterTokenDestination: invalid destination bridge address"
-            );
-        }
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
@@ -470,16 +449,6 @@ abstract contract TeleporterTokenDestination is
      * calling the {receiveTokens} method of the respective recipient.
      */
     function _processSendAndCall(SendAndCallInput calldata input, uint256 amount) private {
-        require(
-            input.destinationBridgeAddress == tokenSourceAddress,
-            "TeleporterTokenDestination: invalid destination bridge address"
-        );
-        require(input.secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
-        require(
-            input.multiHopFallback == address(0),
-            "TeleporterTokenDestination: non-zero multi-hop fallback"
-        );
-
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
             amount: amount,
@@ -527,19 +496,9 @@ abstract contract TeleporterTokenDestination is
      * calling the {receiveTokens} method of the respective recipient.
      */
     function _processSendAndCallMultiHop(SendAndCallInput calldata input, uint256 amount) private {
-        require(
-            input.multiHopFallback != address(0),
-            "TeleporterTokenDestination: zero multi-hop fallback"
+        _validateMultiHopInput(
+            input.destinationBridgeAddress, input.destinationBlockchainID, input.multiHopFallback
         );
-        // If the destination blockchain ID is this blockchain, the destination
-        // bridge address must be a different contract. This is a multi-hop case to
-        // a different bridge contract on this chain.
-        if (input.destinationBlockchainID == blockchainID) {
-            require(
-                input.destinationBridgeAddress != address(this),
-                "TeleporterTokenDestination: invalid destination bridge address"
-            );
-        }
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
@@ -606,6 +565,41 @@ abstract contract TeleporterTokenDestination is
             return _deposit(feeAmount);
         }
         return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+    }
+
+    function _validateSingleHopInput(
+        address destinationBridgeAddress,
+        uint256 secondaryFee,
+        address multiHopFallback
+    ) private view {
+        require(
+            destinationBridgeAddress == tokenSourceAddress,
+            "TeleporterTokenDestination: invalid destination bridge address"
+        );
+        require(secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
+        require(
+            multiHopFallback == address(0),
+            "TeleporterTokenDestination: non-zero multi-hop fallback"
+        );
+    }
+
+    function _validateMultiHopInput(
+        address destinationBridgeAddress,
+        bytes32 destinationBlockchainID,
+        address multiHopFallback
+    ) private view {
+        // If the destination blockchain ID is this blockchain, the destination
+        // bridge address must be a different contract. This is a multi-hop case to
+        // a different bridge contract on this chain.
+        if (destinationBlockchainID == blockchainID) {
+            require(
+                destinationBridgeAddress != address(this),
+                "TeleporterTokenDestination: invalid destination bridge address"
+            );
+        }
+        require(
+            multiHopFallback != address(0), "TeleporterTokenDestination: zero multi-hop fallback"
+        );
     }
 
     function _validateSendTokensInput(SendTokensInput calldata input) private pure {
