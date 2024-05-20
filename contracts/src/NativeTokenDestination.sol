@@ -122,8 +122,6 @@ contract NativeTokenDestination is
      * @param settings Constructor settings for this destination token bridge instance.
      * @param nativeAssetSymbol The symbol of the native asset.
      * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
-     * @param decimalsShift The number of decimal places to shift the token amount by.
-     * @param multiplyOnDestination See {TeleporterTokenDestination-multiplyOnDestination}.
      * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
      * that will be rewarded to sender of the report.
      */
@@ -131,17 +129,10 @@ contract NativeTokenDestination is
         TeleporterTokenDestinationSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
-        uint8 decimalsShift,
-        bool multiplyOnDestination,
         uint256 burnedFeesReportingRewardPercentage_
     )
         ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
-        TeleporterTokenDestination(
-            settings,
-            initialReserveImbalance,
-            decimalsShift,
-            multiplyOnDestination
-        )
+        TeleporterTokenDestination(settings, initialReserveImbalance)
     {
         require(
             initialReserveImbalance != 0, "NativeTokenDestination: zero initial reserve imbalance"

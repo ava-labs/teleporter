@@ -5,6 +5,8 @@
 pragma solidity 0.8.18;
 
 library TokenScalingUtils {
+    uint256 public constant MAX_TOKEN_DECIMALS = 18;
+
     /**
      * @notice Scales the {amount} of source tokens to the destination bridge's token scale.
      * @param tokenMultiplier The token multiplier of the destination bridge.
@@ -32,6 +34,19 @@ library TokenScalingUtils {
         uint256 destinationTokenAmount
     ) internal pure returns (uint256) {
         return _scaleTokens(tokenMultiplier, multiplyOnDestination, destinationTokenAmount, false);
+    }
+
+    function deriveFactors(
+        uint8 sourceTokenDecimals,
+        uint8 destinationTokenDecimals
+    ) internal pure returns (uint256 tokenMultiplier, bool multiplyOnDestination) {
+        multiplyOnDestination = destinationTokenDecimals > sourceTokenDecimals; // TODO: should this be >= ?
+        tokenMultiplier = 10
+            ** (
+                multiplyOnDestination
+                    ? destinationTokenDecimals - sourceTokenDecimals
+                    : sourceTokenDecimals - destinationTokenDecimals
+            );
     }
 
     /**

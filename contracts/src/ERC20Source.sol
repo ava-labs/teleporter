@@ -49,8 +49,11 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address tokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, tokenAddress) {
+        address tokenAddress,
+        uint8 tokenDecimals
+    )
+        TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, tokenAddress, tokenDecimals)
+    {
         token = IERC20(tokenAddress);
     }
 

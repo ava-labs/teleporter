@@ -38,7 +38,8 @@ interface ITeleporterTokenSource is ITeleporterTokenBridge {
         address indexed destinationBridgeAddress,
         uint256 initialCollateralNeeded,
         uint256 tokenMultiplier,
-        bool multiplyOnDestination
+        bool multiplyOnDestination,
+        uint8 tokenDecimals
     );
 
     /**

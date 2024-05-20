@@ -50,7 +50,7 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals
-    ) TeleporterTokenDestination(settings, 0, 0, false) ERC20(tokenName, tokenSymbol) {
+    ) TeleporterTokenDestination(settings, 0) ERC20(tokenName, tokenSymbol) {
         _decimals = tokenDecimals;
     }
 

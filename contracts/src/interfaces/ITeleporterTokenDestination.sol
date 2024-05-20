@@ -27,6 +27,8 @@ struct TeleporterTokenDestinationSettings {
     address teleporterManager;
     bytes32 sourceBlockchainID;
     address tokenSourceAddress;
+    uint8 tokenSourceDecimals;
+    uint8 tokenDecimals;
 }
 
 /**
