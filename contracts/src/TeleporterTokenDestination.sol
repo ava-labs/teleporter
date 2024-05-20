@@ -449,6 +449,10 @@ abstract contract TeleporterTokenDestination is
      * calling the {receiveTokens} method of the respective recipient.
      */
     function _processSendAndCall(SendAndCallInput calldata input, uint256 amount) private {
+        _validateSingleHopInput(
+            input.destinationBridgeAddress, input.secondaryFee, input.multiHopFallback
+        );
+
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
             amount: amount,
