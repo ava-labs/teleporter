@@ -401,7 +401,7 @@ abstract contract TeleporterTokenDestination is
      */
     function _processSendMultiHop(SendTokensInput calldata input, uint256 amount) private {
         _validateMultiHopInput(
-            input.destinationBridgeAddress, input.destinationBlockchainID, input.multiHopFallback
+            input.destinationBlockchainID, input.destinationBridgeAddress, input.multiHopFallback
         );
 
         uint256 primaryFee;
@@ -501,7 +501,7 @@ abstract contract TeleporterTokenDestination is
      */
     function _processSendAndCallMultiHop(SendAndCallInput calldata input, uint256 amount) private {
         _validateMultiHopInput(
-            input.destinationBridgeAddress, input.destinationBlockchainID, input.multiHopFallback
+            input.destinationBlockchainID, input.destinationBridgeAddress, input.multiHopFallback
         );
 
         uint256 primaryFee;
@@ -588,8 +588,8 @@ abstract contract TeleporterTokenDestination is
     }
 
     function _validateMultiHopInput(
-        address destinationBridgeAddress,
         bytes32 destinationBlockchainID,
+        address destinationBridgeAddress,
         address multiHopFallback
     ) private view {
         // If the destination blockchain ID is this blockchain, the destination
