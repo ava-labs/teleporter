@@ -298,11 +298,34 @@ func RegisterTokenDestinationOnSource(
 	)
 	Expect(err).Should(BeNil())
 	_, fundedKey := network.GetFundedAccountInfo()
+
+	// Deploy a new ERC20 token for testing registering with fees
+	feeTokenAddress, feeToken := teleporterUtils.DeployExampleERC20(
+		ctx,
+		fundedKey,
+		destinationSubnet,
+	)
+
+	// Approve the ERC20Source to spend the tokens
+	feeAmount := big.NewInt(1e18)
+	teleporterUtils.ERC20Approve(
+		ctx,
+		feeToken,
+		destinationBridgeAddress,
+		feeAmount,
+		destinationSubnet,
+		fundedKey,
+	)
+
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, destinationSubnet.EVMChainID)
 	Expect(err).Should(BeNil())
+
 	sendRegisterTx, err := tokenDestination.RegisterWithSource(
 		opts,
-		teleportertokendestination.TeleporterFeeInfo{FeeTokenAddress: common.Address{}, Amount: big.NewInt(0)},
+		teleportertokendestination.TeleporterFeeInfo{
+			FeeTokenAddress: feeTokenAddress,
+			Amount:          feeAmount,
+		},
 	)
 	Expect(err).Should(BeNil())
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, destinationSubnet, sendRegisterTx.Hash())
