@@ -27,7 +27,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
     function setUp() public override {
         TeleporterTokenSourceTest.setUp();
 
-        mockWrappedToken = new WrappedNativeToken("TOK");
+        mockWrappedToken = new WrappedNativeToken("AVAX");
         app = new NativeTokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
