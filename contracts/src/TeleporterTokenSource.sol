@@ -98,8 +98,6 @@ abstract contract TeleporterTokenSource is
             => mapping(address destinationBridgeAddress => uint256 balance)
     ) public bridgedBalances;
 
-    uint256 public constant MAX_TOKEN_MULTIPLIER = 1e18;
-
     /**
      * @notice Initializes this source token bridge instance to send
      * tokens to the specified destination chain and token bridge instance.
@@ -149,11 +147,6 @@ abstract contract TeleporterTokenSource is
 
         (uint256 tokenMultiplier, bool multiplyOnDestination) =
             TokenScalingUtils.deriveFactors(tokenDecimals, destinationTokenDecimals);
-
-        require(
-            tokenMultiplier > 0 && tokenMultiplier < MAX_TOKEN_MULTIPLIER,
-            "TeleporterTokenSource: invalid token multiplier"
-        );
 
         // Calculate the collateral needed in source token denomination.
         uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(
