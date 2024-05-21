@@ -225,7 +225,7 @@ abstract contract TeleporterTokenSource is
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
-            )
+                )
         });
 
         // Send message to the destination bridge address
@@ -319,7 +319,7 @@ abstract contract TeleporterTokenSource is
                     recipientGasLimit: input.recipientGasLimit,
                     fallbackRecipient: input.fallbackRecipient
                 })
-            )
+                )
         });
 
         // Send message to the destination bridge address
