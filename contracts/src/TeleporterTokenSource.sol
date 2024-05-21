@@ -46,7 +46,6 @@ struct DestinationBridgeSettings {
     uint256 collateralNeeded;
     uint256 tokenMultiplier;
     bool multiplyOnDestination;
-    uint8 tokenDecimals;
 }
 
 /**
@@ -173,8 +172,7 @@ abstract contract TeleporterTokenSource is
             registered: true,
             collateralNeeded: collateralNeeded,
             tokenMultiplier: tokenMultiplier,
-            multiplyOnDestination: multiplyOnDestination,
-            tokenDecimals: destinationTokenDecimals
+            multiplyOnDestination: multiplyOnDestination
         });
 
         emit DestinationRegistered({
