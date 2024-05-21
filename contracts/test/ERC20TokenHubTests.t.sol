@@ -5,31 +5,31 @@
 
 pragma solidity 0.8.18;
 
-import {ERC20BridgeTest} from "./ERC20BridgeTests.t.sol";
-import {TeleporterTokenSourceTest} from "./TeleporterTokenSourceTests.t.sol";
+import {ERC20TokenBridgeTest} from "./ERC20TokenBridgeTests.t.sol";
+import {TokenHubTest} from "./TokenHubTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
-import {ERC20Source} from "../src/ERC20Source.sol";
+import {ERC20TokenHub} from "../src/TokenHub/ERC20TokenHub.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
+contract ERC20TokenHubTest is ERC20TokenBridgeTest, TokenHubTest {
     using SafeERC20 for IERC20;
 
-    ERC20Source public app;
+    ERC20TokenHub public app;
     IERC20 public mockERC20;
 
     function setUp() public override {
-        TeleporterTokenSourceTest.setUp();
+        TokenHubTest.setUp();
 
         mockERC20 = new ExampleERC20();
-        app = new ERC20Source(
+        app = new ERC20TokenHub(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             address(mockERC20)
         );
         erc20Bridge = app;
-        tokenSource = app;
+        tokenHub = app;
         tokenBridge = app;
 
         bridgedToken = mockERC20;
@@ -40,12 +40,12 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
      */
     function testZeroTeleporterRegistryAddress() public {
         vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new ERC20Source(address(0), address(this), address(mockERC20));
+        new ERC20TokenHub(address(0), address(this), address(mockERC20));
     }
 
     function testZeroTeleporterManagerAddress() public {
         vm.expectRevert("Ownable: new owner is the zero address");
-        new ERC20Source(
+        new ERC20TokenHub(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
             address(mockERC20)
@@ -54,7 +54,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
 
     function testZeroFeeTokenAddress() public {
         vm.expectRevert(_formatErrorMessage("zero token address"));
-        new ERC20Source(
+        new ERC20TokenHub(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
             address(0)
@@ -62,7 +62,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
-        vm.expectEmit(true, true, true, true, address(tokenSource));
+        vm.expectEmit(true, true, true, true, address(tokenHub));
         emit TokensWithdrawn(recipient, amount);
         vm.expectCall(
             address(mockERC20), abi.encodeCall(IERC20.transfer, (address(recipient), amount))
@@ -90,7 +90,14 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
 
             bytes memory expectedCalldata = abi.encodeCall(
                 IERC20SendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, address(mockERC20), amount, payload)
+                (
+                    sourceBlockchainID,
+                    originInfo.bridgeAddress,
+                    originInfo.senderAddress,
+                    address(mockERC20),
+                    amount,
+                    payload
+                )
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, expectedCalldata, new bytes(0));
@@ -122,11 +129,11 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
     }
 
     function _addCollateral(
-        bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
+        bytes32 spokeBlockchainID,
+        address spokeBridgeAddress,
         uint256 amount
     ) internal override {
-        app.addCollateral(destinationBlockchainID, destinationBridgeAddress, amount);
+        app.addCollateral(spokeBlockchainID, spokeBridgeAddress, amount);
     }
 
     function _setUpDeposit(uint256 amount) internal virtual override {

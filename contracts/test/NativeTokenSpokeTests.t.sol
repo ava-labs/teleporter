@@ -5,16 +5,16 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenDestinationTest} from "./TeleporterTokenDestinationTests.t.sol";
+import {TokenSpokeTest} from "./TokenSpokeTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
-import {TeleporterTokenDestination} from "../src/TeleporterTokenDestination.sol";
+import {TokenSpoke} from "../src/TokenSpoke/TokenSpoke.sol";
 import {
-    NativeTokenDestination,
+    NativeTokenSpoke,
     TeleporterMessageInput,
     TeleporterFeeInfo
-} from "../src/NativeTokenDestination.sol";
-import {TeleporterTokenDestinationSettings} from "../src/interfaces/ITeleporterTokenDestination.sol";
+} from "../src/TokenSpoke/NativeTokenSpoke.sol";
+import {TokenSpokeSettings} from "../src/TokenSpoke/interfaces/ITokenSpoke.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
@@ -23,20 +23,20 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
-contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDestinationTest {
+contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
     using SafeERC20 for IERC20;
 
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
     string public constant DEFAULT_SYMBOL = "XYZ";
-    NativeTokenDestination public app;
+    NativeTokenSpoke public app;
 
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     function setUp() public override {
-        TeleporterTokenDestinationTest.setUp();
+        TokenSpokeTest.setUp();
 
-        app = NativeTokenDestination(payable(address(_createNewDestinationInstance())));
-        tokenDestination = app;
+        app = NativeTokenSpoke(payable(address(_createNewSpokeInstance())));
+        tokenSpoke = app;
         nativeTokenBridge = app;
         tokenBridge = app;
         bridgedToken = app;
@@ -45,13 +45,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function testZeroInitialReserveImbalance() public {
-        vm.expectRevert("NativeTokenDestination: zero initial reserve imbalance");
-        new NativeTokenDestination({
-            settings: TeleporterTokenDestinationSettings({
+        vm.expectRevert("NativeTokenSpoke: zero initial reserve imbalance");
+        new NativeTokenSpoke({
+            settings: TokenSpokeSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: 0,
@@ -62,13 +62,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function testInvalidBurnedRewardPercentage() public {
-        vm.expectRevert("NativeTokenDestination: invalid percentage");
-        new NativeTokenDestination({
-            settings: TeleporterTokenDestinationSettings({
+        vm.expectRevert("NativeTokenSpoke: invalid percentage");
+        new NativeTokenSpoke({
+            settings: TokenSpokeSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -78,14 +78,14 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         );
     }
 
-    function testZeroSourceBlockchainID() public {
-        vm.expectRevert(_formatErrorMessage("zero source blockchain ID"));
-        new NativeTokenDestination({
-            settings: TeleporterTokenDestinationSettings({
+    function testZeroTokenHubBlockchainID() public {
+        vm.expectRevert(_formatErrorMessage("zero token hub blockchain ID"));
+        new NativeTokenSpoke({
+            settings: TokenSpokeSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                sourceBlockchainID: bytes32(0),
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenHubBlockchainID: bytes32(0),
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -96,13 +96,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function testDeployToSameBlockchain() public {
-        vm.expectRevert(_formatErrorMessage("cannot deploy to same blockchain as source"));
-        new NativeTokenDestination({
-            settings: TeleporterTokenDestinationSettings({
+        vm.expectRevert(_formatErrorMessage("cannot deploy to same blockchain as token hub"));
+        new NativeTokenSpoke({
+            settings: TokenSpokeSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenHubBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -114,13 +114,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
     function testSendBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
-        app = NativeTokenDestination(payable(address(_createNewDestinationInstance())));
-        tokenDestination = app;
+        app = NativeTokenSpoke(payable(address(_createNewSpokeInstance())));
+        tokenSpoke = app;
         nativeTokenBridge = app;
         tokenBridge = app;
         bridgedToken = app;
 
-        vm.expectRevert("NativeTokenDestination: contract undercollateralized");
+        vm.expectRevert("NativeTokenSpoke: contract undercollateralized");
         app.send{value: 100_000}(_createDefaultSendTokensInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
@@ -130,13 +130,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
 
     function testSendAndCallBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
-        app = NativeTokenDestination(payable(address(_createNewDestinationInstance())));
-        tokenDestination = app;
+        app = NativeTokenSpoke(payable(address(_createNewSpokeInstance())));
+        tokenSpoke = app;
         nativeTokenBridge = app;
         tokenBridge = app;
         bridgedToken = app;
 
-        vm.expectRevert("NativeTokenDestination: contract undercollateralized");
+        vm.expectRevert("NativeTokenSpoke: contract undercollateralized");
         app.sendAndCall{value: 100_000}(_createDefaultSendAndCallInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
@@ -179,7 +179,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), 0);
         assertEq(app.totalNativeAssetSupply(), initialExpectedBalance);
 
-        // Mock tokens being bridged out by crediting them to the native token destination contract
+        // Mock tokens being bridged out by crediting them to the native token spoke contract
         vm.deal(app.BURNED_FOR_BRIDGE_ADDRESS(), initialExpectedBalance - 1);
         assertEq(app.totalNativeAssetSupply(), 1);
 
@@ -225,7 +225,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         originInfo.bridgeAddress = address(app);
         originInfo.senderAddress = address(this);
         bytes memory message = _encodeSingleHopCallMessage({
-            sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+            sourceBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
             originInfo: originInfo,
             amount: amount,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
@@ -238,19 +238,19 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         vm.deal(address(app), amount - 1);
         vm.expectRevert("CallUtils: insufficient value");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenDestination.receiveTeleporterMessage(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID, TOKEN_SOURCE_ADDRESS, message
+        tokenSpoke.receiveTeleporterMessage(
+            DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID, DEFAULT_TOKEN_HUB_ADDRESS, message
         );
     }
 
     function testReportBurnFeesNoNewAmount() public {
-        vm.expectRevert("NativeTokenDestination: burn address balance not greater than last report");
+        vm.expectRevert("NativeTokenSpoke: burn address balance not greater than last report");
         app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
     }
 
     function testReportBurnFeesScaledToZero() public {
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), 1);
-        vm.expectRevert("NativeTokenDestination: zero scaled amount to report burn");
+        vm.expectRevert("NativeTokenSpoke: zero scaled amount to report burn");
         app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
     }
 
@@ -264,8 +264,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         _setUpMockMint(address(app), expectedReward);
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
-                destinationBlockchainID: app.sourceBlockchainID(),
-                destinationBridgeAddress: app.tokenSourceAddress(),
+                destinationBlockchainID: app.tokenHubBlockchainID(),
+                destinationBridgeAddress: app.tokenHubAddress(),
                 recipient: app.HUB_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
@@ -279,7 +279,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
 
         // Calling it again should revert since no additional amount as been burned.
-        vm.expectRevert("NativeTokenDestination: burn address balance not greater than last report");
+        vm.expectRevert("NativeTokenSpoke: burn address balance not greater than last report");
         app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
 
         // Mock more transaction fees being burned.
@@ -291,8 +291,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         _setUpMockMint(address(app), expectedReward);
         expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
-                destinationBlockchainID: app.sourceBlockchainID(),
-                destinationBridgeAddress: app.tokenSourceAddress(),
+                destinationBlockchainID: app.tokenHubBlockchainID(),
+                destinationBridgeAddress: app.tokenHubAddress(),
                 recipient: app.HUB_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
@@ -307,13 +307,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function testReportBurnFeesNoRewardSuccess() public {
-        // Create a new destination instance with no rewards for reporting burned fees.
-        app = new NativeTokenDestination({
-            settings: TeleporterTokenDestinationSettings({
+        // Create a new spoke instance with no rewards for reporting burned fees.
+        app = new NativeTokenSpoke({
+            settings: TokenSpokeSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -321,7 +321,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             multiplyOnSpoke: true,
             burnedFeesReportingRewardPercentage_: 0}
         );
-        tokenDestination = app;
+        tokenSpoke = app;
         nativeTokenBridge = app;
         tokenBridge = app;
         bridgedToken = app;
@@ -330,8 +330,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
-                destinationBlockchainID: app.sourceBlockchainID(),
-                destinationBridgeAddress: app.tokenSourceAddress(),
+                destinationBlockchainID: app.tokenHubBlockchainID(),
+                destinationBridgeAddress: app.tokenHubAddress(),
                 recipient: app.HUB_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: 0,
@@ -363,17 +363,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         assertEq(TEST_ACCOUNT.balance, withdrawAmount);
     }
 
-    function _createNewDestinationInstance()
-        internal
-        override
-        returns (TeleporterTokenDestination)
-    {
-        return new NativeTokenDestination({
-            settings: TeleporterTokenDestinationSettings({
+    function _createNewSpokeInstance() internal override returns (TokenSpoke) {
+        return new NativeTokenSpoke({
+            settings: TokenSpokeSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -384,7 +380,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
-        vm.expectEmit(true, true, true, true, address(tokenDestination));
+        vm.expectEmit(true, true, true, true, address(tokenSpoke));
         emit TokensWithdrawn(recipient, amount);
         vm.mockCall(
             NATIVE_MINTER_PRECOMPILE_ADDRESS,
@@ -488,7 +484,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         return app.totalNativeAssetSupply();
     }
 
-    // The native token destination contract is considered collateralized once it has received
+    // The native token spoke contract is considered collateralized once it has received
     // a message from its configured source to mint tokens. Until then, the source contract is
     // still assumed to have insufficient collateral.
     function _collateralizeBridge() private {
@@ -497,8 +493,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         app.receiveTeleporterMessage(
-            app.sourceBlockchainID(),
-            app.tokenSourceAddress(),
+            app.tokenHubBlockchainID(),
+            app.tokenHubAddress(),
             _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
         );
         assertTrue(app.isCollateralized());

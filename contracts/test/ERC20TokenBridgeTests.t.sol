@@ -5,22 +5,20 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
+import {TokenBridgeTest} from "./TokenBridgeTests.t.sol";
 import {IERC20TokenBridge} from "../src/interfaces/IERC20TokenBridge.sol";
 import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
+abstract contract ERC20TokenBridgeTest is TokenBridgeTest {
     using SafeERC20 for IERC20;
 
     IERC20TokenBridge public erc20Bridge;
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredDestination(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 0
-        );
+        _setUpRegisterSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
     }

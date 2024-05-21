@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
-import {TeleporterTokenSource, IWarpMessenger} from "../src/TeleporterTokenSource.sol";
+import {TokenBridgeTest} from "./TokenBridgeTests.t.sol";
+import {TokenHub, IWarpMessenger} from "../src/TokenHub/TokenHub.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {
     SendTokensInput,
@@ -22,12 +22,12 @@ import {
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
 
-abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
-    TeleporterTokenSource public tokenSource;
+abstract contract TokenHubTest is TokenBridgeTest {
+    TokenHub public tokenHub;
 
     event CollateralAdded(
-        bytes32 indexed destinationBlockchainID,
-        address indexed destinationBridgeAddress,
+        bytes32 indexed spokeBlockchainID,
+        address indexed spokeBridgeAddress,
         uint256 amount,
         uint256 remaining
     );
@@ -41,7 +41,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
-            abi.encode(DEFAULT_SOURCE_BLOCKCHAIN_ID)
+            abi.encode(DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID)
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
@@ -57,38 +57,36 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testAddCollateralDestinationNotRegistered() public {
-        vm.expectRevert(_formatErrorMessage("destination bridge not registered"));
-        _addCollateral(DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
+    function testAddCollateralSpokeNotRegistered() public {
+        vm.expectRevert(_formatErrorMessage("spoke not registered"));
+        _addCollateral(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 100);
     }
 
     function testAddCollateralAlreadyCollateralized() public {
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0
-        );
+        _setUpRegisterSpoke(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0);
         vm.expectRevert(_formatErrorMessage("zero collateral needed"));
-        _addCollateral(DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
+        _addCollateral(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 100);
     }
 
     function testAddCollateralPartialAmount() public {
         uint256 initialReserveImbalance = 100;
         uint256 collateralAmount = 50;
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, initialReserveImbalance
+        _setUpRegisterSpoke(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, initialReserveImbalance
         );
         _setUpExpectedDeposit(collateralAmount, 0);
-        vm.expectEmit(true, true, true, true, address(tokenSource));
+        vm.expectEmit(true, true, true, true, address(tokenHub));
         emit CollateralAdded(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             collateralAmount,
             initialReserveImbalance - collateralAmount
         );
         _addCollateral(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, collateralAmount
         );
-        (, uint256 updateReserveImbalance,,) = tokenSource.registeredDestinations(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
+        (, uint256 updateReserveImbalance,,) = tokenHub.registeredSpokes(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS
         );
         assertEq(updateReserveImbalance, initialReserveImbalance - collateralAmount);
     }
@@ -96,14 +94,14 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     function testAddCollateralMoreThanFullAmount() public {
         uint256 initialReserveImbalance = 100;
         uint256 collateralAmount = 150;
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, initialReserveImbalance
+        _setUpRegisterSpoke(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, initialReserveImbalance
         );
         _setUpExpectedDeposit(collateralAmount, 0);
-        vm.expectEmit(true, true, true, true, address(tokenSource));
+        vm.expectEmit(true, true, true, true, address(tokenHub));
         emit CollateralAdded(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             initialReserveImbalance,
             0
         );
@@ -112,33 +110,31 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _checkExpectedWithdrawal(address(this), excessAmount);
 
         _addCollateral(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, collateralAmount
         );
-        (, uint256 updateReserveImbalance,,) = tokenSource.registeredDestinations(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
+        (, uint256 updateReserveImbalance,,) = tokenHub.registeredSpokes(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS
         );
         assertEq(updateReserveImbalance, 0);
         assertTrue(address(this).balance > 0);
     }
 
-    function testSendToUnregisteredDestination() public {
+    function testSendToUnregisteredSpoke() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        vm.expectRevert(_formatErrorMessage("destination not registered"));
+        vm.expectRevert(_formatErrorMessage("spoke not registered"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendDestinationNotCollateralized() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredDestination(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 1
-        );
-        vm.expectRevert(_formatErrorMessage("collateral needed for destination"));
+        _setUpRegisterSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 1);
+        vm.expectRevert(_formatErrorMessage("collateral needed for spoke"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendZeroScaledAmount() public {
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, false
+        _setUpRegisterSpoke(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0, 100_000, false
         );
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = 10_000; // Amount is less than the token multiplier, so will be rounded down to zero.
@@ -178,43 +174,41 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     function testReceiveInvalidMessage() public {
         vm.expectRevert();
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, bytes("test")
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, bytes("test")
         );
     }
 
-    function testReceiveFromNonRegisteredDestination() public {
-        vm.expectRevert(_formatErrorMessage("destination bridge not registered"));
+    function testReceiveFromNonRegisteredSpoke() public {
+        vm.expectRevert(_formatErrorMessage("spoke not registered"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeSingleHopSendMessage(1, DEFAULT_RECIPIENT_ADDRESS)
         );
     }
 
-    function testReceiveFromNonCollateralizedDestination() public {
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100
-        );
-        vm.expectRevert(_formatErrorMessage("destination bridge not collateralized"));
+    function testReceiveFromNonCollateralizedSpoke() public {
+        _setUpRegisterSpoke(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 100);
+        vm.expectRevert(_formatErrorMessage("spoke not collateralized"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeSingleHopSendMessage(1, DEFAULT_RECIPIENT_ADDRESS)
         );
     }
 
     function testReceiveZeroSourceTokenAmount() public {
-        // Set up a registered destination that will scale down the received amount
-        // to zero source tokens.
+        // Set up a registered spoke that will scale down the received amount
+        // to zero hub tokens.
         uint256 tokenMultiplier = 100_000;
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, tokenMultiplier, true
+        _setUpRegisterSpoke(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0, tokenMultiplier, true
         );
 
-        // Send over source token to the destination
+        // Send over hub token to the spoke
         // and check for expected calls for scaled amount of tokens sent.
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = 1;
@@ -228,31 +222,31 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledAmount);
         _send(input, amount);
 
-        // Receive an amount from destination less than `scaledAmount`
-        // which will be scaled down to zero source tokens.
+        // Receive an amount from spoke less than `scaledAmount`
+        // which will be scaled down to zero hub tokens.
         vm.expectRevert(_formatErrorMessage("zero token amount"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeSingleHopSendMessage(scaledAmount - 1, DEFAULT_RECIPIENT_ADDRESS)
         );
     }
 
     function testReceiveInsufficientBridgeBalance() public {
         uint256 collateralAmount = 100;
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
+        _setUpRegisterSpoke(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, collateralAmount
         );
         _setUpExpectedDeposit(collateralAmount, 0);
         _addCollateral(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, collateralAmount
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, collateralAmount
         );
         vm.expectRevert(_formatErrorMessage("insufficient bridge balance"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeSingleHopSendMessage(1, DEFAULT_RECIPIENT_ADDRESS)
         );
     }
@@ -267,30 +261,28 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, withdrawAmount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeSingleHopSendMessage(withdrawAmount, DEFAULT_RECIPIENT_ADDRESS)
         );
 
-        // Make sure the bridge balance is correct. Only the remaining amount remains locked in the source
+        // Make sure the bridge balance is correct. Only the remaining amount remains locked in the hub
         // contract. The rest is withdrawn.
         assertEq(
-            tokenSource.bridgedBalances(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
-            ),
+            tokenHub.bridgedBalances(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS),
             withdrawAmount
         );
     }
 
     function testReceiveSendAndCallSuccess() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to ç to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
+        bytes32 sourceBlockchainID = DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID;
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
+        originInfo.bridgeAddress = DEFAULT_TOKEN_SPOKE_ADDRESS;
         originInfo.senderAddress = address(this);
         bytes memory payload = hex"DEADBEEF";
         _setUpExpectedSendAndCall({
@@ -315,19 +307,19 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, originInfo.bridgeAddress, message
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, originInfo.bridgeAddress, message
         );
     }
 
     function testReceiveSendAndCallFailure() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 2;
         _sendSingleHopSendSuccess(amount, 0);
 
-        bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
+        bytes32 sourceBlockchainID = DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID;
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
+        originInfo.bridgeAddress = DEFAULT_TOKEN_SPOKE_ADDRESS;
         originInfo.senderAddress = address(this);
         bytes memory payload = hex"DEADBEEF";
         _setUpExpectedSendAndCall({
@@ -352,23 +344,23 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, originInfo.bridgeAddress, message
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, originInfo.bridgeAddress, message
         );
     }
 
     function testReceiveMismatchedSourceBlockchainID() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        bytes32 sourceBlockchainID = DEFAULT_DESTINATION_BLOCKCHAIN_ID;
+        bytes32 sourceBlockchainID = DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID;
         bytes memory payload = hex"DEADBEEF";
 
-        bytes32 wrongSourceBlockchainID = DEFAULT_SOURCE_BLOCKCHAIN_ID;
+        bytes32 wrongSourceBlockchainID = DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID;
         assertNotEq(sourceBlockchainID, wrongSourceBlockchainID);
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
+        originInfo.bridgeAddress = DEFAULT_TOKEN_SPOKE_ADDRESS;
         originInfo.senderAddress = address(this);
 
         bytes memory message = _encodeSingleHopCallMessage({
@@ -383,17 +375,15 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectRevert(_formatErrorMessage("mismatched source blockchain ID"));
-        tokenSource.receiveTeleporterMessage(
-            sourceBlockchainID, DEFAULT_DESTINATION_ADDRESS, message
-        );
+        tokenHub.receiveTeleporterMessage(sourceBlockchainID, DEFAULT_TOKEN_SPOKE_ADDRESS, message);
     }
 
     function testReceiveWrongOriginBridgeAddress() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        address originBridgeAddress = DEFAULT_DESTINATION_ADDRESS;
+        address originBridgeAddress = DEFAULT_TOKEN_SPOKE_ADDRESS;
         bytes memory payload = hex"DEADBEEF";
 
         address wrongAddress = address(0x1);
@@ -404,7 +394,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         originInfo.senderAddress = address(this);
 
         bytes memory message = _encodeSingleHopCallMessage({
-            sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            sourceBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
             originInfo: originInfo,
             amount: amount,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
@@ -415,27 +405,27 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectRevert(_formatErrorMessage("mismatched origin sender address"));
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, originBridgeAddress, message
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, originBridgeAddress, message
         );
     }
 
     function testMultiHopInvalidDestinationSendsToFallback() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID spoke since it
         // is not registered. Instead, the tokens are sent to the multi-hop fallback.
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
@@ -445,23 +435,23 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testMultiHopDestinationNotCollateralized() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        _setUpRegisteredDestination(OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
+        _setUpRegisterSpoke(OTHER_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 100);
 
-        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not yet
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID spoke since it is not yet
         // fully collateralized. Instead, the tokens are sent to the multi-hop fallback.
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
@@ -471,25 +461,23 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testMultiHopDestinationAmountScaledToZero() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 1_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        _setUpRegisteredDestination(
-            OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, false
-        );
+        _setUpRegisterSpoke(OTHER_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0, 100_000, false);
 
-        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID spoke since the token
         // amount would be scaled to zero. Instead, the tokens are sent to the multi-hop fallback.
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
@@ -499,15 +487,15 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testMultiHopSendSuccess() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
         uint256 feeAmount = 1;
         uint256 bridgeAmount = amount - feeAmount;
         SendTokensInput memory input = SendTokensInput({
-            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+            destinationBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFeeTokenAddress: address(bridgedToken),
             primaryFee: feeAmount,
@@ -519,13 +507,13 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             _createSingleHopTeleporterMessageInput(input, bridgeAmount)
         );
 
-        vm.expectEmit(true, true, true, true, address(tokenSource));
+        vm.expectEmit(true, true, true, true, address(tokenHub));
         emit TokensRouted(_MOCK_MESSAGE_ID, input, bridgeAmount);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: input.destinationBlockchainID,
@@ -539,18 +527,17 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testMultiHopSendInsufficientFees() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 2;
         _sendSingleHopSendSuccess(amount, 0);
-        uint256 balanceBefore = tokenSource.bridgedBalances(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
-        );
+        uint256 balanceBefore =
+            tokenHub.bridgedBalances(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS);
         assertEq(balanceBefore, amount);
 
         // Fail due to insufficient amount to cover fees
         MultiHopSendMessage memory message = MultiHopSendMessage({
-            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+            destinationBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             amount: amount,
             secondaryFee: amount,
@@ -560,9 +547,9 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         vm.expectRevert(_formatErrorMessage("insufficient amount to cover fees"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: message.destinationBlockchainID,
@@ -576,31 +563,29 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         // Make sure the bridge balance is still the same
         assertEq(
-            tokenSource.bridgedBalances(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
-            ),
+            tokenHub.bridgedBalances(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS),
             balanceBefore
         );
     }
 
     function testMultiHopCallInvalidDestination() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not registered.
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID spoke since it is not registered.
         // Instead, the tokens are sent to the multi-hop fallback.
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         address originSenderAddress = address(this);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeMultiHopCallMessage({
                 originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
                 recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
@@ -613,25 +598,25 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testMultiHopCallDestinationNotCollateralized() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        _setUpRegisteredDestination(OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 100);
+        _setUpRegisterSpoke(OTHER_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 100);
 
-        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since it is not yet
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID spoke since it is not yet
         // fully collateralized. Instead, the tokens are sent to the multi-hop fallback.
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         address originSenderAddress = address(this);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeMultiHopCallMessage({
                 originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
                 recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
@@ -644,27 +629,25 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testMultiHopCallAmountScaledToZero() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 1_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        _setUpRegisteredDestination(
-            OTHER_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 100_000, false
-        );
+        _setUpRegisterSpoke(OTHER_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0, 100_000, false);
 
-        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID destination since the token
+        // The multi-hop will not be routed to the OTHER_BLOCKCHAIN_ID spoke since the token
         // amount would be scaled to zero. Instead, the tokens are sent to the multi-hop fallback.
         _checkExpectedWithdrawal(DEFAULT_MULTIHOP_FALLBACK_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         address originSenderAddress = address(this);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeMultiHopCallMessage({
                 originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+                destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
                 recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
@@ -677,18 +660,18 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testMultiHopCallSuccess() public {
-        // First send to destination blockchain to increase the bridge balance
+        // First send to spoke instance to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
         uint256 feeAmount = 1;
         uint256 bridgeAmount = amount - feeAmount;
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_DESTINATION_ADDRESS;
+        originInfo.bridgeAddress = DEFAULT_TOKEN_SPOKE_ADDRESS;
         originInfo.senderAddress = address(this);
         SendAndCallInput memory input = SendAndCallInput({
-            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+            destinationBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: hex"65465465",
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -701,17 +684,17 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         });
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopCallTeleporterMessageInput(
-                DEFAULT_DESTINATION_BLOCKCHAIN_ID, originInfo, input, bridgeAmount
+                DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, originInfo, input, bridgeAmount
             )
         );
 
-        vm.expectEmit(true, true, true, true, address(tokenSource));
+        vm.expectEmit(true, true, true, true, address(tokenHub));
         emit TokensAndCallRouted(_MOCK_MESSAGE_ID, input, bridgeAmount);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
+        tokenHub.receiveTeleporterMessage(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_SPOKE_ADDRESS,
             _encodeMultiHopCallMessage({
                 originSenderAddress: originInfo.senderAddress,
                 amount: amount,
@@ -728,54 +711,50 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testRegisterDestinationZeroBlockchainID() public {
-        vm.expectRevert(_formatErrorMessage("zero destination blockchain ID"));
-        _setUpRegisteredDestination(bytes32(0), DEFAULT_DESTINATION_ADDRESS, 0);
+    function testRegisterSpokeZeroBlockchainID() public {
+        vm.expectRevert(_formatErrorMessage("zero spoke blockchain ID"));
+        _setUpRegisterSpoke(bytes32(0), DEFAULT_TOKEN_SPOKE_ADDRESS, 0);
     }
 
-    function testRegisterDestinationSameChain() public {
-        bytes32 localBlockchainID = tokenSource.blockchainID();
-        vm.expectRevert(_formatErrorMessage("cannot register bridge on same chain"));
-        _setUpRegisteredDestination(localBlockchainID, DEFAULT_DESTINATION_ADDRESS, 0);
+    function testRegisterSpokeSameChain() public {
+        bytes32 localBlockchainID = tokenHub.blockchainID();
+        vm.expectRevert(_formatErrorMessage("cannot register spoke on same chain"));
+        _setUpRegisterSpoke(localBlockchainID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0);
     }
 
-    function testRegisterDestinationZeroAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
-        _setUpRegisteredDestination(DEFAULT_DESTINATION_BLOCKCHAIN_ID, address(0), 0);
+    function testRegisterSpokeZeroAddress() public {
+        vm.expectRevert(_formatErrorMessage("zero spoke bridge address"));
+        _setUpRegisterSpoke(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, address(0), 0);
     }
 
-    function testRegisterDestinationZeroTokenMultiplier() public {
+    function testRegisterSpokeZeroTokenMultiplier() public {
         vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 0, false
+        _setUpRegisterSpoke(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0, 0, false
         );
     }
 
-    function testRegisterDestinationTokenMultiplierToLarge() public {
+    function testRegisterSpokeTokenMultiplierToLarge() public {
         vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 1e18 + 1, false
+        _setUpRegisterSpoke(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0, 1e18 + 1, false
         );
     }
 
-    function testRegisterDestinationRoundUpCollateralNeeded() public {
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 11, 10, true
+    function testRegisterSpokeRoundUpCollateralNeeded() public {
+        _setUpRegisterSpoke(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 11, 10, true
         );
-        (, uint256 collateralNeeded,,) = tokenSource.registeredDestinations(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
+        (, uint256 collateralNeeded,,) = tokenHub.registeredSpokes(
+            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS
         );
         assertEq(collateralNeeded, 2);
     }
 
-    function testRegisterDestinationAlreadyReigstered() public {
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0
-        );
-        vm.expectRevert(_formatErrorMessage("destination already registered"));
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0
-        );
+    function testRegisterSpokeAlreadyReigstered() public {
+        _setUpRegisterSpoke(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0);
+        vm.expectRevert(_formatErrorMessage("spoke already registered"));
+        _setUpRegisterSpoke(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0);
     }
 
     function testSendScaledAmount() public {
@@ -787,7 +766,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
         // Raw amount sent over wire should be multipled by 1e12.
         uint256 tokenMultiplier = 1e12;
-        _setUpRegisteredDestination(
+        _setUpRegisterSpoke(
             input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, true
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
@@ -807,12 +786,12 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount * tokenMultiplier);
         _send(input, amount);
 
-        // For another destination, the raw amount sent over the wire should be divided by 1e12.
+        // For another spoke, the raw amount sent over the wire should be divided by 1e12.
         amount = 42 * tokenMultiplier;
         feeAmount = 0;
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
         input.primaryFee = feeAmount;
-        _setUpRegisteredDestination(
+        _setUpRegisterSpoke(
             input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, false
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
@@ -845,32 +824,30 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     ) internal virtual;
 
     function _addCollateral(
-        bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
+        bytes32 spokeBlockchainID,
+        address spokeBridgeAddress,
         uint256 amount
     ) internal virtual;
 
     /**
      * @notice Set up necessary calls to deposit funds and call `send` or `sendAndCall`
-     * on the source bridge contract.
+     * on the token hub contract.
      * Different from `_setUpExpectedDeposit` since the send that follows isn't
      * expected to succeed. So `setUpDeposit` does not check for expected emit events.
      */
     function _setUpDeposit(uint256 amount) internal virtual {}
 
-    function _setUpRegisteredDestination(
-        bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
+    function _setUpRegisterSpoke(
+        bytes32 spokeBlockchainID,
+        address spokeBridgeAddress,
         uint256 initialReserveImbalance
     ) internal virtual override {
-        _setUpRegisteredDestination(
-            destinationBlockchainID, destinationBridgeAddress, initialReserveImbalance, 1, true
-        );
+        _setUpRegisterSpoke(spokeBlockchainID, spokeBridgeAddress, initialReserveImbalance, 1, true);
     }
 
-    function _setUpRegisteredDestination(
-        bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
+    function _setUpRegisterSpoke(
+        bytes32 spokeBlockchainID,
+        address spokeBridgeAddress,
         uint256 initialReserveImbalance,
         uint256 tokenMultiplier,
         bool multiplyOnSpoke
@@ -885,8 +862,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             payload: abi.encode(payload)
         });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            destinationBlockchainID, destinationBridgeAddress, abi.encode(message)
+        tokenHub.receiveTeleporterMessage(
+            spokeBlockchainID, spokeBridgeAddress, abi.encode(message)
         );
     }
 
@@ -897,8 +874,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         returns (SendTokensInput memory)
     {
         return SendTokensInput({
-            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+            destinationBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFeeTokenAddress: address(bridgedToken),
             primaryFee: 0,
@@ -915,8 +892,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         returns (SendAndCallInput memory)
     {
         return SendAndCallInput({
-            destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_DESTINATION_ADDRESS,
+            destinationBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
+            destinationBridgeAddress: DEFAULT_TOKEN_SPOKE_ADDRESS,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: new bytes(16),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -931,8 +908,8 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
 
     function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
         return SendTokensInput({
-            destinationBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: address(tokenSource),
+            destinationBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
+            destinationBridgeAddress: address(tokenHub),
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFeeTokenAddress: address(bridgedToken),
             primaryFee: 0,
@@ -943,7 +920,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function _getDefaultSourceBlockchainID() internal pure override returns (bytes32) {
-        return DEFAULT_SOURCE_BLOCKCHAIN_ID;
+        return DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID;
     }
 
     function _formatErrorMessage(string memory message)
@@ -952,6 +929,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         override
         returns (bytes memory)
     {
-        return bytes(string.concat("TeleporterTokenSource: ", message));
+        return bytes(string.concat("TokenHub: ", message));
     }
 }

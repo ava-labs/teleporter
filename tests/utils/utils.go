@@ -109,7 +109,7 @@ func DeployERC20Destination(
 	address, tx, erc20Destination, err := erc20destination.DeployERC20Destination(
 		opts,
 		subnet.RPCClient,
-		erc20destination.TeleporterTokenDestinationSettings{
+		erc20destination.TokenSpokeSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
 			SourceBlockchainID:        sourceBlockchainID,
@@ -154,7 +154,7 @@ func DeployNativeTokenDestination(
 	address, tx, nativeTokenDestination, err := nativetokendestination.DeployNativeTokenDestination(
 		opts,
 		subnet.RPCClient,
-		nativetokendestination.TeleporterTokenDestinationSettings{
+		nativetokendestination.TokenSpokeSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
 			SourceBlockchainID:        sourceBlockchainID,

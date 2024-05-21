@@ -26,7 +26,7 @@ import {
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract TeleporterTokenBridgeTest is Test {
+abstract contract TokenBridgeTest is Test {
     using SafeERC20 for IERC20;
 
     // convenience struct to reduce stack usage
@@ -35,14 +35,14 @@ abstract contract TeleporterTokenBridgeTest is Test {
         address senderAddress;
     }
 
-    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
+    bytes32 public constant DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
-    bytes32 public constant DEFAULT_DESTINATION_BLOCKCHAIN_ID =
+    bytes32 public constant DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant OTHER_BLOCKCHAIN_ID =
         bytes32(hex"9876987698769876987698769876987698769876987698769876987698769876");
-    address public constant DEFAULT_DESTINATION_ADDRESS = 0xd878229c9c3575F224784DE610911B5607a3ad15;
-    address public constant TOKEN_SOURCE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    address public constant DEFAULT_TOKEN_SPOKE_ADDRESS = 0xd878229c9c3575F224784DE610911B5607a3ad15;
+    address public constant DEFAULT_TOKEN_HUB_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_SENDER_ADDRESS = 0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5;
     address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
     address public constant DEFAULT_RECIPIENT_CONTRACT_ADDRESS =
@@ -212,9 +212,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisteredDestination(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 0
-        );
+        _setUpRegisterSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedDeposit(amount, input.primaryFee);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(tokenBridge));
@@ -226,9 +224,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisteredDestination(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 0
-        );
+        _setUpRegisterSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedDeposit(amount, input.primaryFee);
         OriginSenderInfo memory originInfo;
         originInfo.bridgeAddress = address(tokenBridge);
@@ -243,9 +239,9 @@ abstract contract TeleporterTokenBridgeTest is Test {
         _sendAndCall(input, amount);
     }
 
-    function _setUpRegisteredDestination(
-        bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
+    function _setUpRegisterSpoke(
+        bytes32 spokeBlockchainID,
+        address spokeBridgeAddress,
         uint256 initialReserveImbalance
     ) internal virtual;
 

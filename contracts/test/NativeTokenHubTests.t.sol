@@ -5,19 +5,19 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenSourceTest} from "./TeleporterTokenSourceTests.t.sol";
+import {TokenHubTest} from "./TokenHubTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
-import {NativeTokenSource} from "../src/NativeTokenSource.sol";
+import {NativeTokenHub} from "../src/TokenHub/NativeTokenHub.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTest {
+contract NativeTokenHubTest is NativeTokenBridgeTest, TokenHubTest {
     using SafeERC20 for IERC20;
 
-    NativeTokenSource public app;
+    NativeTokenHub public app;
     IWrappedNativeToken public mockWrappedToken;
 
     receive() external payable {
@@ -25,15 +25,15 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
     }
 
     function setUp() public override {
-        TeleporterTokenSourceTest.setUp();
+        TokenHubTest.setUp();
 
         mockWrappedToken = new WrappedNativeToken("AVAX");
-        app = new NativeTokenSource(
+        app = new NativeTokenHub(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             address(mockWrappedToken)
         );
-        tokenSource = app;
+        tokenHub = app;
         nativeTokenBridge = app;
         tokenBridge = app;
         bridgedToken = mockWrappedToken;
@@ -44,21 +44,21 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
      */
     function testZeroTeleporterRegistryAddress() public {
         vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new NativeTokenSource(address(0), address(this), address(mockWrappedToken));
+        new NativeTokenHub(address(0), address(this), address(mockWrappedToken));
     }
 
     function testZeroTeleporterManagerAddress() public {
         vm.expectRevert("Ownable: new owner is the zero address");
-        new NativeTokenSource(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(0), address(mockWrappedToken));
+        new NativeTokenHub(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(0), address(mockWrappedToken));
     }
 
     function testZeroFeeTokenAddress() public {
         vm.expectRevert(_formatErrorMessage("zero token address"));
-        new NativeTokenSource(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
+        new NativeTokenHub(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
-        vm.expectEmit(true, true, true, true, address(tokenSource));
+        vm.expectEmit(true, true, true, true, address(tokenHub));
         emit TokensWithdrawn(recipient, amount);
         vm.expectCall(
             address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
@@ -128,10 +128,10 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
     }
 
     function _addCollateral(
-        bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
+        bytes32 spokeBlockchainID,
+        address spokeBridgeAddress,
         uint256 amount
     ) internal override {
-        app.addCollateral{value: amount}(destinationBlockchainID, destinationBridgeAddress);
+        app.addCollateral{value: amount}(spokeBlockchainID, spokeBridgeAddress);
     }
 }
