@@ -16,7 +16,7 @@ source $TELEPORTER_PATH/scripts/utils.sh
 setARCH
 
 # Contract names to generate Go bindings for
-DEFAULT_CONTRACT_LIST="TokenHub TokenSpoke ERC20TokenHub ERC20TokenSpoke NativeTokenHub NativeTokenSpoke ExampleWAVAX MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver"
+DEFAULT_CONTRACT_LIST="TokenHub TokenSpoke ERC20TokenHub ERC20TokenSpoke NativeTokenHub NativeTokenSpoke WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver"
 
 CONTRACT_LIST=
 HELP=

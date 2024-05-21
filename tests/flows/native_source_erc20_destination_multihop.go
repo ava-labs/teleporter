@@ -29,10 +29,11 @@ func NativeSourceERC20DestinationMultiHop(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy a native token source on the primary network
-	wavaxAddress, wavax := utils.DeployExampleWAVAX(
+	wavaxAddress, wavax := utils.DeployWrappedNativeToken(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		"AVAX",
 	)
 
 	nativeTokenSourceAddress, nativeTokenSource := utils.DeployNativeTokenSource(
