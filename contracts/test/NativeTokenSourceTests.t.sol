@@ -10,7 +10,7 @@ import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {NativeTokenSource} from "../src/NativeTokenSource.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
-import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
+import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
@@ -27,7 +27,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
     function setUp() public override {
         TeleporterTokenSourceTest.setUp();
 
-        mockWrappedToken = new ExampleWAVAX();
+        mockWrappedToken = new WrappedNativeToken("TOK");
         app = new NativeTokenSource(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
