@@ -14,7 +14,7 @@ import {ERC20Destination} from "../src/ERC20Destination.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
-import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
 
 contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest {
     using SafeERC20 for IERC20;
@@ -201,7 +201,14 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
 
             bytes memory expectedCalldata = abi.encodeCall(
                 IERC20SendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, address(app), amount, payload)
+                (
+                    sourceBlockchainID,
+                    originInfo.bridgeAddress,
+                    originInfo.senderAddress,
+                    address(app),
+                    amount,
+                    payload
+                )
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, expectedCalldata, new bytes(0));

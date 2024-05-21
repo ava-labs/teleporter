@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {IERC20Bridge} from "./IERC20Bridge.sol";
+import {IERC20TokenBridge} from "../../interfaces/IERC20TokenBridge.sol";
 import {ITokenHub} from "./ITokenHub.sol";
 
 /**
@@ -19,7 +19,7 @@ import {ITokenHub} from "./ITokenHub.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-interface IERC20TokenHub is IERC20Bridge, ITokenHub {
+interface IERC20TokenHub is IERC20TokenBridge, ITokenHub {
     /**
      * @notice Adds collateral to the hub bridge contract for the specified spoke instance. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.

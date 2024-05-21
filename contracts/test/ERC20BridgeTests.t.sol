@@ -6,15 +6,15 @@
 pragma solidity 0.8.18;
 
 import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
-import {IERC20Bridge} from "../src/interfaces/IERC20Bridge.sol";
-import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {IERC20TokenBridge} from "../src/interfaces/IERC20TokenBridge.sol";
+import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
     using SafeERC20 for IERC20;
 
-    IERC20Bridge public erc20Bridge;
+    IERC20TokenBridge public erc20Bridge;
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
@@ -40,7 +40,7 @@ abstract contract ERC20BridgeTest is TeleporterTokenBridgeTest {
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
-                if (address(bridgedToken) != address(tokenBridge)) {
+            if (address(bridgedToken) != address(tokenBridge)) {
                 vm.expectCall(
                     address(bridgedToken),
                     abi.encodeCall(

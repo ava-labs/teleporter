@@ -9,7 +9,7 @@ import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporter
 import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {TeleporterTokenDestination, IWarpMessenger} from "../src/TeleporterTokenDestination.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
-import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenBridge.sol";
 import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 import {
@@ -18,7 +18,7 @@ import {
     BridgeMessageType,
     BridgeMessage,
     RegisterSpokeMessage
-} from "../src/interfaces/ITeleporterTokenBridge.sol";
+} from "../src/interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
@@ -428,7 +428,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             destinationBlockchainID: tokenDestination.sourceBlockchainID(),
             destinationAddress: tokenDestination.tokenSourceAddress(),
             feeInfo: feeInfo,
-            requiredGasLimit: tokenDestination.REGISTER_DESTINATION_REQUIRED_GAS(),
+            requiredGasLimit: tokenDestination.REGISTER_SPOKE_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: abi.encode(expectedBridgeMessage)
         });

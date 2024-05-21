@@ -5,9 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {
-    ITeleporterTokenBridge, SendTokensInput, SendAndCallInput
-} from "./ITeleporterTokenBridge.sol";
+import {ITokenBridge, SendTokensInput, SendAndCallInput} from "./ITokenBridge.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -19,7 +17,7 @@ import {
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-interface IERC20Bridge is ITeleporterTokenBridge {
+interface IERC20TokenBridge is ITokenBridge {
     /**
      * @notice Sends ERC20 tokens transferred to this contract to the spoke contract instance.
      * @param input Specifies information for delivery of the tokens

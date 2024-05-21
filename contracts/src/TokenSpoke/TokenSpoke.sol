@@ -5,8 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
+import {ITokenSpoke, TokenSpokeSettings} from "./interfaces/ITokenSpoke.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
@@ -17,17 +16,15 @@ import {
     MultiHopSendMessage,
     MultiHopCallMessage,
     RegisterSpokeMessage
-} from "./interfaces/ITeleporterTokenBridge.sol";
-import {
-    ITeleporterTokenDestination,
-    TeleporterTokenDestinationSettings
-} from "./interfaces/ITeleporterTokenDestination.sol";
-import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
-import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
+} from "../interfaces/ITokenBridge.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
+import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -35,27 +32,25 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  */
 
 /**
- * @title TeleporterTokenDestination
- * @dev Abstract contract for a Teleporter token bridge that receives tokens from a {TeleporterTokenSource} in exchange for the tokens of this token bridge instance.
+ * @title TokenSpoke
+ * @dev Abstract contract for a token bridge spoke that receives tokens from its specified token hub instance, and
+ * allows for burning that token to redeem the backing asset on the hub chain, or bridging to other spokes.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-abstract contract TeleporterTokenDestination is
-    ITeleporterTokenDestination,
-    TeleporterOwnerUpgradeable,
-    SendReentrancyGuard
-{
+abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendReentrancyGuard {
     /// @notice The blockchain ID of the chain this contract is deployed on.
     bytes32 public immutable blockchainID;
 
-    /// @notice The blockchain ID of the source chain this contract receives tokens from.
-    bytes32 public immutable sourceBlockchainID;
-    /// @notice The address of the source token bridge instance this contract receives tokens from.
-    address public immutable tokenSourceAddress;
+    /// @notice The blockchain ID of the hub instance this contract receives tokens from.
+    bytes32 public immutable tokenHubBlockchainID;
+
+    /// @notice The address of the hub instance this contract receives tokens from on the {tokenHubBlockchainID}.
+    address public immutable tokenHubAddress;
 
     /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
-     * the source chain.
+     * its token hub instance.
      *
      * @dev This can be used to normalize the number of decimals places between the tokens on
      * the two subnets. Is calculated as 10^d, where d is decimalsShift specified in the constructor.
@@ -63,41 +58,37 @@ abstract contract TeleporterTokenDestination is
     uint256 public immutable tokenMultiplier;
 
     /**
-     * @notice If {multiplyOnSpoke} is true, the source token amount value will be multiplied by {tokenMultiplier} when tokens
-     * are transferred from the source chain into this destination chain, and divided by {tokenMultiplier} when
-     * tokens are transferred from this destination chain back to the source chain. This is intended
-     * when the "decimals" value on the source chain is less than the native EVM denomination of 18.
-     * If {multiplyOnSpoke} is false, the source token amount value will be divided by {tokenMultiplier} when tokens
-     * are transferred from the source chain into this destination chain, and multiplied by {tokenMultiplier} when
-     * tokens are transferred from this destination chain back to the source chain.
+     * @notice If {multiplyOnSpoke} is true, the hub token amount will be multiplied by {tokenMultiplier} when tokens
+     * are transferred from the hub into this spoke, and divided by {tokenMultiplier} when tokens are transferred from
+     * this spoke back to its hub.
+     * If {multiplyOnSpoke} is false, the hub token amount value will be divided by {tokenMultiplier} when tokens
+     * are transferred from the hub into this spoke, and multiplied by {tokenMultiplier} when tokens are transferred
+     * from this spoke back to its hub.
      */
     bool public immutable multiplyOnSpoke;
 
     /**
-     * @notice Initial reserve imbalance that the token for this destination bridge
-     * starts with. The source bridge contract must collateralize a corresonding amount
-     * of source tokens before tokens can be minted on this contract.
+     * @notice Initial reserve imbalance that the token for this spoke instance starts with. The hub contract must
+     * collateralize a corresonding amount of hub tokens before tokens can be minted on this contract.
      */
     uint256 public immutable initialReserveImbalance;
 
     /**
-     * @notice Whether or not the contract is known to be fully collateralized. The contract initially
-     * starts undercollateralized, and the initialReserveImbalance must be added to the source contract
-     * prior to it sending messages to mint tokens.
+     * @notice Whether or not the contract is known to be fully collateralized.
      */
     bool public isCollateralized;
 
     /**
-     * @notice Whether or not the contract is known to be registered with its specified source contract.
-     * This is set to true when the first message is received from the source contract. Note that {isRegistered}
-     * will still be false after the destination contract is registered on the source contract until the first
+     * @notice Whether or not the contract is known to be registered with its specified hub contract.
+     * This is set to true when the first message is received from the hub contract. Note that {isRegistered}
+     * will still be false after the spoke contract is registered on the hub contract until the first
      * message is received back from that contract.
      */
     bool public isRegistered;
 
     /**
-     * @notice Fixed gas cost for performing a multi-hop transfer on the {sourceBlockchainID},
-     * before forwarding to the final destination bridge instance.
+     * @notice Fixed gas cost for performing a multi-hop transfer on the token hub contract,
+     * before forwarding to the destination token spoke instance.
      */
     uint256 public constant MULTI_HOP_REQUIRED_GAS = 240_000;
 
@@ -108,36 +99,39 @@ abstract contract TeleporterTokenDestination is
     uint256 public constant MULTI_HOP_CALL_GAS_PER_WORD = 8_500;
 
     /**
-     * @notice Fixed gas cost for registering the destination contract on the source contract.
+     * @notice Fixed gas cost for registering the spoke contract on the hub contract.
      */
-    uint256 public constant REGISTER_DESTINATION_REQUIRED_GAS = 150_000;
+    uint256 public constant REGISTER_SPOKE_REQUIRED_GAS = 150_000;
 
     /**
-     * @notice Initializes this destination token bridge instance to receive
-     * tokens from the specified source blockchain and token bridge instance.
+     * @notice Initializes this token spoke instance.
+     * @param settings The settings for the token spoke instance.*
+     * @param initialReserveImbalance_ The initial reserve imbalance that must be collateralized before minting.
+     * @param decimalsShift The number of decimal places to shift the token amount by.
+     * @param multiplyOnSpoke_ If true, the hub token amount will be multiplied by {tokenMultiplier} when tokens
+     * are transferred from the hub into this spoke, and divided by {tokenMultiplier} when tokens are transferred
+     * from this spoke back to its hub. If false, the hub token amount value will be divided by {tokenMultiplier}
+     * when tokens are transferred from the hub into this spoke, and multiplied by {tokenMultiplier} when tokens
+     * are transferred from this spoke back to its hub.
      */
     constructor(
-        TeleporterTokenDestinationSettings memory settings,
+        TokenSpokeSettings memory settings,
         uint256 initialReserveImbalance_,
         uint8 decimalsShift,
         bool multiplyOnSpoke_
     ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
-            settings.sourceBlockchainID != bytes32(0),
-            "TeleporterTokenDestination: zero source blockchain ID"
+            settings.tokenHubBlockchainID != bytes32(0), "TokenSpoke: zero token hub blockchain ID"
         );
         require(
-            settings.sourceBlockchainID != blockchainID,
-            "TeleporterTokenDestination: cannot deploy to same blockchain as source"
+            settings.tokenHubBlockchainID != blockchainID,
+            "TokenSpoke: cannot deploy to same blockchain as token hub"
         );
-        require(
-            settings.tokenSourceAddress != address(0),
-            "TeleporterTokenDestination: zero token source address"
-        );
-        require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
-        sourceBlockchainID = settings.sourceBlockchainID;
-        tokenSourceAddress = settings.tokenSourceAddress;
+        require(settings.tokenHubAddress != address(0), "TokenSpoke: zero token hub address");
+        require(decimalsShift <= 18, "TokenSpoke: invalid decimalsShift");
+        tokenHubBlockchainID = settings.tokenHubBlockchainID;
+        tokenHubAddress = settings.tokenHubAddress;
         initialReserveImbalance = initialReserveImbalance_;
         isCollateralized = initialReserveImbalance_ == 0;
         tokenMultiplier = 10 ** decimalsShift;
@@ -145,14 +139,14 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
-     * @notice Sends a message to the contract's specified source token bridge instance to register this destination
-     * instance. Destination instances must be registered with their source contract's prior to being able to receive
+     * @notice Sends a message to the contract's specified token hub instance to register this spoke
+     * instance. Spoke instances must be registered with their hub contract prior to being able to receive
      * tokens from them.
      */
-    function registerWithSource(TeleporterFeeInfo calldata feeInfo) external virtual {
-        require(!isRegistered, "TeleporterTokenDestination: already registered");
+    function registerWithHub(TeleporterFeeInfo calldata feeInfo) external virtual {
+        require(!isRegistered, "TokenSpoke: already registered");
 
-        // Send a message to the source token bridge instance to register this destination instance.
+        // Send a message to the token hub instance to register this spoke instance.
         RegisterSpokeMessage memory registerMessage = RegisterSpokeMessage({
             initialReserveImbalance: initialReserveImbalance,
             tokenMultiplier: tokenMultiplier,
@@ -166,10 +160,10 @@ abstract contract TeleporterTokenDestination is
         uint256 feeAmount = _handleFees(feeInfo.feeTokenAddress, feeInfo.amount);
         _sendTeleporterMessage(
             TeleporterMessageInput({
-                destinationBlockchainID: sourceBlockchainID,
-                destinationAddress: tokenSourceAddress,
+                destinationBlockchainID: tokenHubBlockchainID,
+                destinationAddress: tokenHubAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeInfo.feeTokenAddress, amount: feeAmount}),
-                requiredGasLimit: REGISTER_DESTINATION_REQUIRED_GAS,
+                requiredGasLimit: REGISTER_SPOKE_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
             })
@@ -187,21 +181,14 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
-     * @notice Sends tokens to the specified destination token bridge instance.
+     * @notice Sends tokens to the specified destination.
      *
-     * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message.
-     * Tokens can be sent to the same blockchain this bridge instance is deployed on,
-     * to another destination bridge instance.
-     * Requirements:
-     *
-     * - {input.destinationBridgeAddress} cannot be the zero address
-     * - {input.recipient} cannot be the zero address
-     * - {amount} must be greater than 0
+     * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message to the token hub instance.
+     * Tokens can be sent the token hub instance, or to any spoke instance registered with the hub other than this one.
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
         _validateSendTokensInput(input);
-
-        if (input.destinationBlockchainID == sourceBlockchainID) {
+        if (input.destinationBlockchainID == tokenHubBlockchainID) {
             _processSend(input, amount);
         } else {
             _processSendMultiHop(input, amount);
@@ -209,12 +196,12 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
-     * @notice Sends tokens to the specified recipient contract on the destination chain by
+     * @notice Sends tokens to the specified recipient contract on the destination blockchain ID by
      * calling the {receiveTokens} method of the respective recipient.
      *
      * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message.
-     * Tokens and data can be sent to the same blockchain this bridge instance is deployed on,
-     * to another destination bridge instance.
+     * Tokens and data can be sent to the token hub instance, or to any spoke instance registered with the hub
+     * other than this one.
      */
     function _sendAndCall(
         SendAndCallInput calldata input,
@@ -222,7 +209,7 @@ abstract contract TeleporterTokenDestination is
     ) internal sendNonReentrant {
         _validateSendAndCallInput(input);
 
-        if (input.destinationBlockchainID == sourceBlockchainID) {
+        if (input.destinationBlockchainID == tokenHubBlockchainID) {
             return _processSendAndCall(input, amount);
         } else {
             return _processSendAndCallMultiHop(input, amount);
@@ -230,34 +217,31 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
-     * @notice Verifies the source token bridge instance, and withdraws the amount to the recipient address.
+     * @notice Handles receiving messages from the token hub instance. The supported message types are
+     * single-hop sends, and single-hop calls.
      *
      * @dev See {ITeleporterUpgradeable-_receiveTeleporterMessage}
      */
     function _receiveTeleporterMessage(
-        bytes32 sourceBlockchainID_,
+        bytes32 sourceBlockchainID,
         address originSenderAddress,
         bytes memory message
     ) internal override {
         require(
-            sourceBlockchainID_ == sourceBlockchainID,
-            "TeleporterTokenDestination: invalid source chain"
+            sourceBlockchainID == tokenHubBlockchainID, "TokenSpoke: invalid source blockchain ID"
         );
-        require(
-            originSenderAddress == tokenSourceAddress,
-            "TeleporterTokenDestination: invalid token source address"
-        );
+        require(originSenderAddress == tokenHubAddress, "TokenSpoke: invalid origin sender address");
         BridgeMessage memory bridgeMessage = abi.decode(message, (BridgeMessage));
 
         // If the contract was not previously known to be registered or collateralized, it is now given that
-        // the source has sent a message to mint funds.
+        // the hub has sent a message to mint funds.
         if (!isRegistered || !isCollateralized) {
             isRegistered = true;
             isCollateralized = true;
         }
 
-        // Destination contracts should only ever receive single-hop messages because
-        // multi-hop messages are always routed through the source contract.
+        // Spoke contracts should only ever receive single-hop messages because
+        // multi-hop messages are always routed through the hub contract.
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
@@ -266,12 +250,12 @@ abstract contract TeleporterTokenDestination is
             // The {sourceBlockchainID}, and {originSenderAddress} specified in the message
             // payload will not match the sender of this Teleporter message in the case of a
             // multi-hop message. Since Teleporter messages are only received from the specified
-            // source contract, no additional authentication is needed on the payload values.
+            // token hub instance, no additional authentication is needed on the payload values.
             SingleHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
             _handleSendAndCall(payload, payload.amount);
         } else {
-            revert("TeleporterTokenDestination: invalid message type");
+            revert("TokenSpoke: invalid message type");
         }
     }
 
@@ -311,7 +295,7 @@ abstract contract TeleporterTokenDestination is
     /**
      * @dev Prepares tokens to be sent to another chain by handling the
      * deposit, burning, and checking that the corresonding amount of
-     * source tokens is greater than zero.
+     * hub tokens is greater than zero.
      */
     function _prepareSend(
         uint256 amount,
@@ -332,12 +316,12 @@ abstract contract TeleporterTokenDestination is
         _burn(amount);
 
         // The bridged amount must cover the secondary fee, because the secondary fee
-        // is directly subtracted from the bridged amount on the intermediate chain
-        // performing the multi-hop, before forwarding to the final destination chain.
+        // is directly subtracted from the bridged amount on the intermediate (hub) chain
+        // performing the multi-hop, before forwarding to the final destination spoke instance.
         require(
             TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnSpoke, amount)
                 > TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnSpoke, secondaryFee),
-            "TeleporterTokenDestination: insufficient tokens to transfer"
+            "TokenSpoke: insufficient tokens to transfer"
         );
 
         // Return the amount in this contract's local denomination and the primary fee.
@@ -345,13 +329,7 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
-     * @dev Sends tokens to the specified destination token bridge instance.
-     *
-     * Requirements:
-     *
-     * - {input.destinationBridgeAddress} cannot be the zero address
-     * - {input.recipient} cannot be the zero address
-     * - {amount} must be greater than 0
+     * @dev Sends tokens to the specified destination.
      */
     function _processSend(SendTokensInput calldata input, uint256 amount) private {
         _validateSingleHopInput(
@@ -373,8 +351,8 @@ abstract contract TeleporterTokenDestination is
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
-                destinationBlockchainID: sourceBlockchainID,
-                destinationAddress: tokenSourceAddress,
+                destinationBlockchainID: tokenHubBlockchainID,
+                destinationAddress: tokenHubAddress,
                 feeInfo: TeleporterFeeInfo({
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: primaryFee
@@ -389,13 +367,7 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
-     * @dev Sends tokens to the specified destination token bridge instance via multi-hop.
-     *
-     * Requirements:
-     *
-     * - {input.destinationBridgeAddress} cannot be the zero address
-     * - {input.recipient} cannot be the zero address
-     * - {amount} must be greater than 0
+     * @dev Sends tokens to the specified destination via multi-hop.
      */
     function _processSendMultiHop(SendTokensInput calldata input, uint256 amount) private {
         _validateMultiHopInput(
@@ -427,8 +399,8 @@ abstract contract TeleporterTokenDestination is
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
-                destinationBlockchainID: sourceBlockchainID,
-                destinationAddress: tokenSourceAddress,
+                destinationBlockchainID: tokenHubBlockchainID,
+                destinationAddress: tokenHubAddress,
                 feeInfo: TeleporterFeeInfo({
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: primaryFee
@@ -443,7 +415,7 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
-     * @dev Sends tokens to the specified recipient contract on the destination chain by
+     * @dev Sends tokens to the specified recipient contract on the destination blockchain ID by
      * calling the {receiveTokens} method of the respective recipient.
      */
     function _processSendAndCall(SendAndCallInput calldata input, uint256 amount) private {
@@ -475,11 +447,11 @@ abstract contract TeleporterTokenDestination is
                 )
         });
 
-        // Send message to the destination bridge address
+        // Send message to the token hub instance.
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
-                destinationBlockchainID: sourceBlockchainID,
-                destinationAddress: tokenSourceAddress,
+                destinationBlockchainID: tokenHubBlockchainID,
+                destinationAddress: tokenHubAddress,
                 feeInfo: TeleporterFeeInfo({
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: primaryFee
@@ -494,7 +466,7 @@ abstract contract TeleporterTokenDestination is
     }
 
     /**
-     * @dev Sends tokens to the specified recipient contract on the destination chain by
+     * @dev Sends tokens to the specified recipient contract on the destination blockchain ID by
      * calling the {receiveTokens} method of the respective recipient.
      */
     function _processSendAndCallMultiHop(SendAndCallInput calldata input, uint256 amount) private {
@@ -529,17 +501,17 @@ abstract contract TeleporterTokenDestination is
                 )
         });
 
-        // The required gas limit for the first message sent back to the source chain
-        // needs to account for the number of words in the payload, which each use additional
-        // gas to send in a message to the final destination chain.
+        // The required gas limit for the first message sent back to the hub instance
+        // needs to account for the number of words in the payload. Each word uses additional
+        // gas to include in the message to the final destination chain.
         uint256 messageRequiredGasLimit = MULTI_HOP_REQUIRED_GAS
             + (calculateNumWords(input.recipientPayload.length) * MULTI_HOP_CALL_GAS_PER_WORD);
 
-        // Send message to the destination bridge address
+        // Send message to the token hub instance
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
-                destinationBlockchainID: sourceBlockchainID,
-                destinationAddress: tokenSourceAddress,
+                destinationBlockchainID: tokenHubBlockchainID,
+                destinationAddress: tokenHubAddress,
                 feeInfo: TeleporterFeeInfo({
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: primaryFee
@@ -575,14 +547,11 @@ abstract contract TeleporterTokenDestination is
         address multiHopFallback
     ) private view {
         require(
-            destinationBridgeAddress == tokenSourceAddress,
-            "TeleporterTokenDestination: invalid destination bridge address"
+            destinationBridgeAddress == tokenHubAddress,
+            "TokenSpoke: invalid destination bridge address"
         );
-        require(secondaryFee == 0, "TeleporterTokenDestination: non-zero secondary fee");
-        require(
-            multiHopFallback == address(0),
-            "TeleporterTokenDestination: non-zero multi-hop fallback"
-        );
+        require(secondaryFee == 0, "TokenSpoke: non-zero secondary fee");
+        require(multiHopFallback == address(0), "TokenSpoke: non-zero multi-hop fallback");
     }
 
     function _validateMultiHopInput(
@@ -596,49 +565,45 @@ abstract contract TeleporterTokenDestination is
         if (destinationBlockchainID == blockchainID) {
             require(
                 destinationBridgeAddress != address(this),
-                "TeleporterTokenDestination: invalid destination bridge address"
+                "TokenSpoke: invalid destination bridge address"
             );
         }
-        require(
-            multiHopFallback != address(0), "TeleporterTokenDestination: zero multi-hop fallback"
-        );
+        require(multiHopFallback != address(0), "TokenSpoke: zero multi-hop fallback");
     }
 
     function _validateSendTokensInput(SendTokensInput calldata input) private pure {
-        require(input.recipient != address(0), "TeleporterTokenDestination: zero recipient address");
-        require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
+        require(input.recipient != address(0), "TokenSpoke: zero recipient address");
+        require(input.requiredGasLimit > 0, "TokenSpoke: zero required gas limit");
         require(
             input.destinationBlockchainID != bytes32(0),
-            "TeleporterTokenDestination: zero destination blockchain ID"
+            "TokenSpoke: zero destination blockchain ID"
         );
         require(
             input.destinationBridgeAddress != address(0),
-            "TeleporterTokenDestination: zero destination bridge address"
+            "TokenSpoke: zero destination bridge address"
         );
     }
 
     function _validateSendAndCallInput(SendAndCallInput calldata input) private pure {
         require(
             input.destinationBlockchainID != bytes32(0),
-            "TeleporterTokenDestination: zero destination blockchain ID"
+            "TokenSpoke: zero destination blockchain ID"
         );
         require(
             input.destinationBridgeAddress != address(0),
-            "TeleporterTokenDestination: zero destination bridge address"
+            "TokenSpoke: zero destination bridge address"
         );
         require(
-            input.recipientContract != address(0),
-            "TeleporterTokenDestination: zero recipient contract address"
+            input.recipientContract != address(0), "TokenSpoke: zero recipient contract address"
         );
-        require(input.requiredGasLimit > 0, "TeleporterTokenDestination: zero required gas limit");
-        require(input.recipientGasLimit > 0, "TeleporterTokenDestination: zero recipient gas limit");
+        require(input.requiredGasLimit > 0, "TokenSpoke: zero required gas limit");
+        require(input.recipientGasLimit > 0, "TokenSpoke: zero recipient gas limit");
         require(
             input.recipientGasLimit < input.requiredGasLimit,
-            "TeleporterTokenDestination: invalid recipient gas limit"
+            "TokenSpoke: invalid recipient gas limit"
         );
         require(
-            input.fallbackRecipient != address(0),
-            "TeleporterTokenDestination: zero fallback recipient address"
+            input.fallbackRecipient != address(0), "TokenSpoke: zero fallback recipient address"
         );
     }
 }

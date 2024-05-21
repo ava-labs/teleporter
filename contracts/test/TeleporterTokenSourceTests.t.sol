@@ -15,7 +15,7 @@ import {
     BridgeMessage,
     MultiHopSendMessage,
     RegisterSpokeMessage
-} from "../src/interfaces/ITeleporterTokenBridge.sol";
+} from "../src/interfaces/ITokenBridge.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessageInput,

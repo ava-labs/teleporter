@@ -143,8 +143,8 @@ struct MultiHopSendMessage {
 /**
  * @dev Multi hop call message payloads include the required information to call the target contract on the
  * destination chain, as well as the information the intermediate (hub) chain bridge contract needs to route
- * the call message on to its final destination. This includes the secondaryRequiredGasLimit, which is the
- * required gas limit set for the second Teleporter message. The secondaryRequiredGasLimit should be sufficient
+ * the call message on to its final destination. This includes the {secondaryRequiredGasLimit}, which is the
+ * required gas limit set for the second Teleporter message. The {secondaryRequiredGasLimit} should be sufficient
  * to cover the destination token operations as well as the call to the recipient contract, and will always be
  * greater than the recipientGasLimit. The multi-hop message also includes the address of the original sender.
  * The source blockchain ID of the sender is known from the Teleporter message.
@@ -168,7 +168,7 @@ struct MultiHopCallMessage {
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-interface ITeleporterTokenBridge is ITeleporterReceiver {
+interface ITokenBridge is ITeleporterReceiver {
     /**
      * @notice Emitted when tokens are sent to another chain.
      */

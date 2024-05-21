@@ -7,7 +7,7 @@ pragma solidity 0.8.18;
 
 import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
 import {INativeTokenBridge} from "../src/interfaces/INativeTokenBridge.sol";
-import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenBridge.sol";
 
 abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
     INativeTokenBridge public nativeTokenBridge;

@@ -5,9 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {
-    ITeleporterTokenBridge, SendTokensInput, SendAndCallInput
-} from "./ITeleporterTokenBridge.sol";
+import {ITokenBridge, SendTokensInput, SendAndCallInput} from "../../interfaces/ITokenBridge.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -18,7 +16,7 @@ import {
  * @dev Interface for a "hub" bridge contract that locks a specific token
  * on its chain to be bridged to supported "spoke" bridge contracts on other chains.
  */
-interface ITokenHub is ITeleporterTokenBridge {
+interface ITokenHub is ITokenBridge {
     /**
      * @dev Emitted when tokens are added as collateral for a given spoke instance.
      * The event emits a {remaining} value of 0 when the spoke instance is fully collateralized.

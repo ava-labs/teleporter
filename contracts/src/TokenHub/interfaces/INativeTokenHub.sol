@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {INativeTokenBridge} from "./INativeTokenBridge.sol";
+import {INativeTokenBridge} from "../../interfaces/INativeTokenBridge.sol";
 import {ITokenHub} from "./ITokenHub.sol";
 
 /**

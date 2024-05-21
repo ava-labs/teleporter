@@ -18,7 +18,7 @@ import {TeleporterTokenDestinationSettings} from "../src/interfaces/ITeleporterT
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
-import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
@@ -266,7 +266,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             SendTokensInput({
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
-                recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                recipient: app.HUB_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
@@ -293,7 +293,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             SendTokensInput({
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
-                recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                recipient: app.HUB_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
@@ -332,7 +332,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
             SendTokensInput({
                 destinationBlockchainID: app.sourceBlockchainID(),
                 destinationBridgeAddress: app.tokenSourceAddress(),
-                recipient: app.SOURCE_CHAIN_BURN_ADDRESS(),
+                recipient: app.HUB_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: 0,
                 secondaryFee: 0,

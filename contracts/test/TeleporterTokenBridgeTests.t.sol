@@ -13,7 +13,7 @@ import {
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
 import {
-    ITeleporterTokenBridge,
+    ITokenBridge,
     SendTokensInput,
     SendAndCallInput,
     BridgeMessageType,
@@ -22,7 +22,7 @@ import {
     SingleHopCallMessage,
     MultiHopSendMessage,
     MultiHopCallMessage
-} from "../src/interfaces/ITeleporterTokenBridge.sol";
+} from "../src/interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
@@ -70,7 +70,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
     uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 10 ** _DEFAULT_DECIMALS_SHIFT;
     uint256 internal constant _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE = 1;
 
-    ITeleporterTokenBridge public tokenBridge;
+    ITokenBridge public tokenBridge;
 
     /**
      * @notice The token that is bridged by the token bridge.

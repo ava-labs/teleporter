@@ -5,21 +5,11 @@
 
 pragma solidity 0.8.18;
 
-import {
-    TeleporterTokenDestination,
-    TeleporterFeeInfo,
-    TeleporterMessageInput
-} from "./TeleporterTokenDestination.sol";
-import {INativeMinter} from
-    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {INativeTokenDestination} from "./interfaces/INativeTokenDestination.sol";
-import {TeleporterTokenDestinationSettings} from "./interfaces/ITeleporterTokenDestination.sol";
-import {INativeSendAndCallReceiver} from "./interfaces/INativeSendAndCallReceiver.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
-// We need IAllowList as an indirect dependency in order to compile.
-// solhint-disable-next-line no-unused-import
-import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IAllowList.sol";
-import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
+import {TokenSpoke} from "./TokenSpoke.sol";
+import {TokenSpokeSettings} from "./interfaces/ITokenSpoke.sol";
+import {INativeTokenSpoke} from "./interfaces/INativeTokenSpoke.sol";
+import {INativeSendAndCallReceiver} from "../interfaces/INativeSendAndCallReceiver.sol";
+import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
@@ -27,12 +17,18 @@ import {
     BridgeMessage,
     SingleHopSendMessage,
     SingleHopCallMessage
-} from "./interfaces/ITeleporterTokenBridge.sol";
+} from "../interfaces/ITokenBridge.sol";
+import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
+import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
+// We need IAllowList as an indirect dependency in order to compile.
+import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IAllowList.sol";
 import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
-import {CallUtils} from "./utils/CallUtils.sol";
-import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
+import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
+import {CallUtils} from "../utils/CallUtils.sol";
+import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -40,19 +36,17 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
  */
 
 /**
- * @notice Implementation of the {INativeTokenDestination} interface.
- *
- * @dev This contract pairs with exactly one {TokenSource} contract on the source chain and one wrapped native
- * token on the chain this contract is deployed to.
- * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
+ * @title NativeTokenSpoke
+ * @notice This contract is an {INativeTokenSpoke} that receives tokens from its specifed {TokenHub} instance,
+ * and represents the received tokens as the native token on this chain.
+ * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-contract NativeTokenDestination is
-    ERC20,
-    TeleporterOwnerUpgradeable,
-    INativeTokenDestination,
+contract NativeTokenSpoke is
     SendReentrancyGuard,
-    TeleporterTokenDestination,
-    IWrappedNativeToken
+    INativeTokenSpoke,
+    TokenSpoke,
+    IWrappedNativeToken,
+    ERC20
 {
     using Address for address payable;
 
@@ -76,13 +70,13 @@ contract NativeTokenDestination is
     address public constant BURNED_FOR_BRIDGE_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
-     * @notice Address used to blackhole funds on the source chain, effectively burning them.
+     * @notice Address used to blackhole funds on the hub chain, effectively burning them.
      *
      * @dev When reporting burned transaction fee amounts, this address is used as the recipient
-     * address for the funds to be sent to be burned on the source chain.
+     * address for the funds to be sent to be burned on the hub chain.
      * This address was chosen arbitrarily.
      */
-    address public constant SOURCE_CHAIN_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
+    address public constant HUB_CHAIN_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
      * @notice The native minter precompile.
@@ -102,7 +96,7 @@ contract NativeTokenDestination is
     uint256 public totalMinted;
 
     /**
-     * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the source chain.
+     * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the hub instance.
      */
     uint256 public lastestBurnedFeesReported;
 
@@ -111,24 +105,23 @@ contract NativeTokenDestination is
      * accounting for the initialReserveImbalance.
      */
     modifier onlyWhenCollateralized() {
-        require(isCollateralized, "NativeTokenDestination: contract undercollateralized");
+        require(isCollateralized, "NativeTokenSpoke: contract undercollateralized");
         _;
     }
 
     /**
-     * @notice Initializes this destination token bridge instance to receive
-     * tokens from the specified source chain and token bridge instance, and represents the
-     * received tokens with native tokens on this chain.
-     * @param settings Constructor settings for this destination token bridge instance.
+     * @notice Initializes this token spoke instance to receive tokens from the specified hub instance,
+     * and represents the received tokens with the native token on this chain.
+     * @param settings Constructor settings for this token spoke instance.
      * @param nativeAssetSymbol The symbol of the native asset.
-     * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
-     * @param decimalsShift The number of decimal places to shift the token amount by.
-     * @param multiplyOnSpoke See {TeleporterTokenDestination-multiplyOnSpoke}.
+     * @param initialReserveImbalance See {TokenSpoke-initialReserveImbalance_}.
+     * @param decimalsShift See {TokenSpoke-decimalsShift}.
+     * @param multiplyOnSpoke See {TokenSpoke-multiplyOnSpoke}.
      * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
      * that will be rewarded to sender of the report.
      */
     constructor(
-        TeleporterTokenDestinationSettings memory settings,
+        TokenSpokeSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
         uint8 decimalsShift,
@@ -136,15 +129,11 @@ contract NativeTokenDestination is
         uint256 burnedFeesReportingRewardPercentage_
     )
         ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
-        TeleporterTokenDestination(settings, initialReserveImbalance, decimalsShift, multiplyOnSpoke)
+        TokenSpoke(settings, initialReserveImbalance, decimalsShift, multiplyOnSpoke)
     {
-        require(
-            initialReserveImbalance != 0, "NativeTokenDestination: zero initial reserve imbalance"
-        );
+        require(initialReserveImbalance != 0, "NativeTokenSpoke: zero initial reserve imbalance");
 
-        require(
-            burnedFeesReportingRewardPercentage_ < 100, "NativeTokenDestination: invalid percentage"
-        );
+        require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenSpoke: invalid percentage");
         burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
     }
 
@@ -179,13 +168,13 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
+     * @dev See {INativeTokenSpoke-reportTotalBurnedTxFees}.
      */
     function reportBurnedTxFees(uint256 requiredGasLimit) external sendNonReentrant {
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
         require(
             burnAddressBalance > lastestBurnedFeesReported,
-            "NativeTokenDestination: burn address balance not greater than last report"
+            "NativeTokenSpoke: burn address balance not greater than last report"
         );
 
         uint256 burnedDifference = burnAddressBalance - lastestBurnedFeesReported;
@@ -201,24 +190,24 @@ contract NativeTokenDestination is
             _deposit(reward);
         }
 
-        // Check that the scaled amount on the source chain will be non-zero.
+        // Check that the scaled amount on the hub instance will be non-zero.
         require(
             TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnSpoke, burnedTxFees) > 0,
-            "NativeTokenDestination: zero scaled amount to report burn"
+            "NativeTokenSpoke: zero scaled amount to report burn"
         );
 
-        // Returned the burned transaction fees denominated by destination bridge's token scale.
+        // Report the burned amount to the hub instance.
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
-                SingleHopSendMessage({recipient: SOURCE_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
+                SingleHopSendMessage({recipient: HUB_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
                 )
         });
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
-                destinationBlockchainID: sourceBlockchainID,
-                destinationAddress: tokenSourceAddress,
+                destinationBlockchainID: tokenHubBlockchainID,
+                destinationAddress: tokenHubAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: reward}),
                 requiredGasLimit: requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
@@ -232,9 +221,9 @@ contract NativeTokenDestination is
     /**
      * @dev See {IWrappedNativeToken-withdraw}.
      *
-     * Note: {IWrappedNativeToken-withdraw} should not be confused with {TeleporterTokenDestination-_withdraw}.
+     * Note: {IWrappedNativeToken-withdraw} should not be confused with {TokenSpoke-_withdraw}.
      * {IWrappedNativeToken-withdraw} is the external method to redeem a wrapped native token (ERC20) balance
-     * for the native token itself. {TeleporterTokenDestination-_withdraw} is the internal method used when
+     * for the native token itself. {TokenSpoke-_withdraw} is the internal method used when
      * processing bridge transfers.
      */
     function withdraw(uint256 amount) external {
@@ -246,9 +235,9 @@ contract NativeTokenDestination is
     /**
      * @dev See {IWrappedNativeToken-deposit}.
      *
-     * Note: {IWrappedNativeToken-deposit} should not be confused with {TeleporterTokenDestination-_deposit}.
+     * Note: {IWrappedNativeToken-deposit} should not be confused with {TokenSpoke-_deposit}.
      * {IWrappedNativeToken-deposit} is the public method for converting native tokens into the wrapped native
-     * token (ERC20) representation. {TeleporterTokenDestination-_deposit} is the internal method used when
+     * token (ERC20) representation. {TokenSpoke-_deposit} is the internal method used when
      * processing bridge transfers.
      */
     function deposit() public payable {
@@ -257,13 +246,13 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {INativeTokenDestination-totalNativeAssetSupply}.
+     * @dev See {INativeTokenSpoke-totalNativeAssetSupply}.
      *
-     * Note: {INativeTokenDestination-totalNativeAssetSupply} should not be confused with {IERC20-totalSupply}
-     * {INativeTokenDestination-totalNativeAssetSupply} returns the supply of the native asset of the chain,
+     * Note: {INativeTokenSpoke-totalNativeAssetSupply} should not be confused with {IERC20-totalSupply}
+     * {INativeTokenSpoke-totalNativeAssetSupply} returns the supply of the native asset of the chain,
      * accounting for the amounts that have been bridged in and out of the chain as well as burnt transaction
      * fees. The {initialReserveBalance} is included in this supply since it is in circulation on this
-     * chain even prior to it being backed by collateral on the source chain.
+     * chain even prior to it being backed by collateral on the hub instance.
      * {IERC20-totalSupply} returns the supply of the native asset held by this contract
      * that is represented as an ERC20.
      */
@@ -274,7 +263,7 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {TeleporterTokenDestination-_deposit}
+     * @dev See {TokenSpoke-_deposit}
      *
      * Native tokens to be deposited are sent via the payable {send} and {sendAndCall} functions, and
      * remained locked in this contract. The internal call to {_mint} here credits the full amount as
@@ -287,17 +276,15 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {TeleporterTokenDestination-_withdraw}
+     * @dev See {TokenSpoke-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
-        // `amount` isn't expected to be zero, since the source bridge contract
-        // checks whether the scaled amount is non-zero before sending the message.
         emit TokensWithdrawn(recipient, amount);
         _mintNativeCoin(recipient, amount);
     }
 
     /**
-     * @dev See {TeleporterTokenDestination-_burn}
+     * @dev See {TokenSpoke-_burn}
      *
      * This is the internal {_burn} method called when bridging tokens to another chain.
      * The tokens to be burnt are already be held by this contract, and credited to this
@@ -313,7 +300,7 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {TeleporterTokenDestination-_handleSendAndCall}
+     * @dev See {TokenSpoke-_handleSendAndCall}
      *
      * Mints the tokens to this contract, and send them to the recipient contract as a
      * part of the call to {INativeSendAndCallReceiver-receiveTokens} on the recipient contract.
@@ -341,7 +328,7 @@ contract NativeTokenDestination is
             )
         );
 
-        // Call the destination contract with the given payload, gas amount, and value.
+        // Call the recipient contract with the given payload, gas amount, and value.
         bool success = CallUtils._callWithExactGasAndValue(
             message.recipientGasLimit, amount, message.recipientContract, payload
         );

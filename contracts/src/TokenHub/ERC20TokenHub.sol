@@ -7,16 +7,14 @@ pragma solidity 0.8.18;
 
 import {TokenHub} from "./TokenHub.sol";
 import {IERC20TokenHub} from "./interfaces/IERC20TokenHub.sol";
-import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.sol";
+import {IERC20SendAndCallReceiver} from "../interfaces/IERC20SendAndCallReceiver.sol";
+import {
+    SendTokensInput, SendAndCallInput, SingleHopCallMessage
+} from "../interfaces/ITokenBridge.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {
-    SendTokensInput,
-    SendAndCallInput,
-    SingleHopCallMessage
-} from "./interfaces/ITeleporterTokenBridge.sol";
-import {CallUtils} from "./utils/CallUtils.sol";
+import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -24,45 +22,42 @@ import {CallUtils} from "./utils/CallUtils.sol";
  */
 
 /**
- * @title ERC20Source
- * @notice This contract is an {IERC20Source} that sends ERC20 tokens to another chain's
- * {ITeleporterTokenBridge} instance, and gets represented by the tokens of that destination
- * token bridge instance.
- *
+ * @title ERC20TokenHub
+ * @notice An {IERC20TokenHub} implementation that locks a specified ERC20 token to be send to
+ * spoke instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract ERC20TokenHub is IERC20TokenHub, TokenHub {
     using SafeERC20 for IERC20;
 
-    /// @notice The ERC20 token this source contract bridges to destination instances.
+    /// @notice The ERC20 token this hub contract bridges to spoke instances.
     IERC20 public immutable token;
 
     /**
-     * @notice Initializes this source token bridge instance to send ERC20
-     * tokens to other destination token bridges.
+     * @notice Initializes the token hub instance to send ERC20 tokens to spoke instances on other chains.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
-     * @param tokenAddress The ERC20 token contract address to bridge to the destination chain
+     * @param tokenAddress The ERC20 token contract address to be bridged by this hub.
      */
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
         address tokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, tokenAddress) {
+    ) TokenHub(teleporterRegistryAddress, teleporterManager, tokenAddress) {
         token = IERC20(tokenAddress);
     }
 
     /**
-     * @dev See {IERC20Bridge-send}
+     * @dev See {IERC20TokenBridge-send}
      */
     function send(SendTokensInput calldata input, uint256 amount) external {
         _send(input, amount);
     }
 
     /**
-     * @dev See {IERC20Bridge-sendAndCall}
+     * @dev See {IERC20TokenBridge-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
         _sendAndCall({
@@ -75,25 +70,25 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
     }
 
     /**
-     * @dev See {INativeTokenSource-addCollateral}
+     * @dev See {IERC20TokenHub-addCollateral}
      */
     function addCollateral(
-        bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
+        bytes32 spokeBlockchainID,
+        address spokeBridgeAddress,
         uint256 amount
     ) external {
-        _addCollateral(destinationBlockchainID, destinationBridgeAddress, amount);
+        _addCollateral(spokeBlockchainID, spokeBridgeAddress, amount);
     }
 
     /**
-     * @dev See {TeleportTokenSource-_deposit}
+     * @dev See {TokenHub-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
         return SafeERC20TransferFrom.safeTransferFrom(token, amount);
     }
 
     /**
-     * @dev See {TeleportTokenSource-_withdraw}
+     * @dev See {TokenHub-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
         emit TokensWithdrawn(recipient, amount);
@@ -101,7 +96,7 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
     }
 
     /**
-     * @dev See {TeleporterTokenDestination-_handleSendAndCall}
+     * @dev See {TokenHub-_handleSendAndCall}
      *
      * Approves the recipient contract to spend the amount of tokens from this contract,
      * and calls {IERC20SendAndCallReceiver-receiveTokens} on the recipient contract.
@@ -112,7 +107,7 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
         SingleHopCallMessage memory message,
         uint256 amount
     ) internal virtual override {
-        // Approve the destination contract to spend the amount from the collateral.
+        // Approve the recipient contract to spend the amount from the collateral.
         SafeERC20.safeIncreaseAllowance(token, message.recipientContract, amount);
 
         // Encode the call to {IERC20SendAndCallReceiver-receiveTokens}
@@ -128,14 +123,14 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
             )
         );
 
-        // Call the destination contract with the given payload and gas amount.
+        // Call the recipient contract with the given payload and gas amount.
         bool success = CallUtils._callWithExactGas(
             message.recipientGasLimit, message.recipientContract, payload
         );
 
         uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
 
-        // Reset the destination contract allowance to 0.
+        // Reset the recipient contract allowance to 0.
         // Use of {safeApprove} is okay to reset the allowance to 0.
         SafeERC20.safeApprove(token, message.recipientContract, 0);
 

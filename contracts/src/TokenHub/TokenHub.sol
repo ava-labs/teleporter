@@ -18,9 +18,9 @@ import {
     MultiHopSendMessage,
     MultiHopCallMessage,
     RegisterSpokeMessage
-} from "./interfaces/ITeleporterTokenBridge.sol";
-import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
-import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
+} from "../interfaces/ITokenBridge.sol";
+import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
+import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
@@ -49,7 +49,7 @@ struct SpokeBridgeSettings {
 
 /**
  * @title TokenHub
- * @dev Abstract contract for a Teleporter token bridge hub that sends tokens to {TokenSpoke} instances.
+ * @dev Abstract contract for a token bridge hub that sends its specified token to {TokenSpoke} instances.
  *
  * This contract also handles multi-hop transfers, where tokens sent from a {TokenSpoke}
  * instance are forwarded to another {TokenSpoke} instance.
@@ -61,7 +61,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
     bytes32 public immutable blockchainID;
 
     /**
-     * @notice The token address this source contract bridges to spoke instances.
+     * @notice The token address this hub contract bridges to spoke instances.
      * For multi-hop transfers, this {tokenAddress} is always used to pay for the secondary message fees.
      * If the token is an ERC20 token, the contract address is directly passed in.
      * If the token is a native asset, the contract address is the wrapped token contract.
@@ -118,10 +118,10 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         );
         require(
             !registeredSpokes[spokeBlockchainID][spokeBridgeAddress].registered,
-            "TokenHub: spokeƒ already registered"
+            "TokenHub: spoke already registered"
         );
 
-        // Calculate the collateral needed in source token denomination.
+        // Calculate the collateral needed in hub token denomination.
         uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(
             tokenMultiplier, multiplyOnSpoke, initialReserveImbalance
         );
@@ -168,8 +168,8 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         require(input.multiHopFallback == address(0), "TokenHub: non-zero multi-hop fallback");
 
         (uint256 adjustedAmount, uint256 feeAmount) = _prepareSend({
-            destinationBlockchainID: input.destinationBlockchainID,
-            destinationBridgeAddress: input.destinationBridgeAddress,
+            spokeBlockchainID: input.destinationBlockchainID,
+            spokeBridgeAddress: input.destinationBridgeAddress,
             amount: amount,
             primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             feeAmount: input.primaryFee
@@ -205,7 +205,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
      *
      * @dev Increases the bridge balance sent to the spoke token bridge instance,
      * and uses Teleporter to send a cross chain message. The amount passed is assumed to
-     * be already scaled to the local denomination for this token source.
+     * be already scaled to the local denomination for this token hub.
      * Requirements:
      *
      * - The spoke instance specified by {input.destinationBlockchainID} and {input.destinationBridgeAddress} must
@@ -268,8 +268,8 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         require(input.multiHopFallback == address(0), "TokenHub: non-zero multi-hop fallback");
 
         (uint256 adjustedAmount, uint256 feeAmount) = _prepareSend({
-            destinationBlockchainID: input.destinationBlockchainID,
-            destinationBridgeAddress: input.destinationBridgeAddress,
+            spokeBlockchainID: input.destinationBlockchainID,
+            spokeBridgeAddress: input.destinationBridgeAddress,
             amount: amount,
             primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             feeAmount: input.primaryFee
@@ -363,7 +363,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
     }
 
     /**
-     * @dev See {INativeTokenSource-addCollateral}
+     * @dev See {INativeTokenHub-addCollateral}
      */
     function _addCollateral(
         bytes32 spokeBlockchainID,
@@ -420,17 +420,17 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
             SingleHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
 
-            uint256 sourceAmount =
+            uint256 hubAmount =
                 _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
 
             // Send the tokens to the recipient.
-            _withdraw(payload.recipient, sourceAmount);
+            _withdraw(payload.recipient, hubAmount);
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
             SingleHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
 
-            uint256 sourceAmount =
+            uint256 hubAmount =
                 _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
 
             // Verify that the payload's source blockchain ID and origin bridge address matches the source blockchain ID
@@ -444,13 +444,13 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
                 "TokenHub: mismatched origin sender address"
             );
 
-            _handleSendAndCall(payload, sourceAmount);
+            _handleSendAndCall(payload, hubAmount);
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.MULTI_HOP_SEND) {
             MultiHopSendMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopSendMessage));
 
-            (uint256 sourceAmount, uint256 fee) = _processMultiHopTransfer(
+            (uint256 hubAmount, uint256 fee) = _processMultiHopTransfer(
                 sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
             );
 
@@ -469,14 +469,14 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
                     requiredGasLimit: payload.secondaryGasLimit,
                     multiHopFallback: payload.multiHopFallback
                 }),
-                sourceAmount
+                hubAmount
             );
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.MULTI_HOP_CALL) {
             MultiHopCallMessage memory payload =
                 abi.decode(bridgeMessage.payload, (MultiHopCallMessage));
 
-            (uint256 sourceAmount, uint256 fee) = _processMultiHopTransfer(
+            (uint256 hubAmount, uint256 fee) = _processMultiHopTransfer(
                 sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
             );
 
@@ -501,7 +501,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
                     primaryFee: fee,
                     secondaryFee: 0
                 }),
-                amount: sourceAmount
+                amount: hubAmount
             });
             return;
         } else if (bridgeMessage.messageType == BridgeMessageType.REGISTER_SPOKE) {
@@ -536,7 +536,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
      * @notice Processes a send and call message by calling the recipient contract.
      * @param message The send and call message include recipient calldata
      * @param amount The amount of tokens to be sent to the recipient. This amount is assumed to be
-     * already scaled to the local denomination for this token source.
+     * already scaled to the local denomination for this token hub.
      */
     function _handleSendAndCall(
         SingleHopCallMessage memory message,
@@ -618,13 +618,13 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         _deductSenderBalance(spokeBlockchainID, spokeBridgeAddress, amount);
 
         // Remove the token scaling of the spoke and get hub token amount.
-        uint256 sourceAmount = TokenScalingUtils.removeTokenScale(
+        uint256 hubAmount = TokenScalingUtils.removeTokenScale(
             spokeSettings.tokenMultiplier, spokeSettings.multiplyOnSpoke, amount
         );
 
-        // Require that the source token amount is greater than zero after removed scaling.
-        require(sourceAmount > 0, "TokenHub: zero token amount");
-        return sourceAmount;
+        // Require that the hub token amount is greater than zero after removed scaling.
+        require(hubAmount > 0, "TokenHub: zero token amount");
+        return hubAmount;
     }
 
     /**

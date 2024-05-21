@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import {INativeTokenBridge} from "./INativeTokenBridge.sol";
-import {ITeleporterTokenDestination} from "./ITeleporterTokenDestination.sol";
+import {INativeTokenBridge} from "../../interfaces/INativeTokenBridge.sol";
+import {ITokenSpoke} from "./ITokenSpoke.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -15,11 +15,11 @@ import {ITeleporterTokenDestination} from "./ITeleporterTokenDestination.sol";
 
 /**
  * @dev Interface that describes functionalities for a contract that can mint native tokens when
- * paired with a {ITeleporterTokenSource} contract that will lock tokens on another chain.
+ * paired with a {ITokenHub} contract that will lock tokens on another chain.
  */
-interface INativeTokenDestination is ITeleporterTokenDestination, INativeTokenBridge {
+interface INativeTokenSpoke is ITokenSpoke, INativeTokenBridge {
     /**
-     * @dev Emitted when reporting burned tx fees to source chain.
+     * @dev Emitted when reporting burned tx fees to hub chain.
      */
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
