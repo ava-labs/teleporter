@@ -518,7 +518,8 @@ abstract contract TeleporterTokenSource is
             RegisterDestinationMessage memory payload =
                 abi.decode(bridgeMessage.payload, (RegisterDestinationMessage));
             require(
-                payload.sourceTokenDecimals == tokenDecimals, "TeleporterTokenSource: invalide token decmials"
+                payload.sourceTokenDecimals == tokenDecimals,
+                "TeleporterTokenSource: invalide token decmials"
             );
             _registerDestination(
                 sourceBlockchainID,
