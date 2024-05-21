@@ -175,14 +175,12 @@ abstract contract TeleporterTokenSource is
             multiplyOnDestination: multiplyOnDestination
         });
 
-        emit DestinationRegistered({
-            destinationBlockchainID: destinationBlockchainID,
-            destinationBridgeAddress: destinationBridgeAddress,
-            initialCollateralNeeded: collateralNeeded,
-            tokenMultiplier: tokenMultiplier,
-            multiplyOnDestination: multiplyOnDestination,
-            tokenDecimals: destinationTokenDecimals
-        });
+        emit DestinationRegistered(
+            destinationBlockchainID,
+            destinationBridgeAddress,
+            collateralNeeded,
+            destinationTokenDecimals
+        );
     }
 
     /**
