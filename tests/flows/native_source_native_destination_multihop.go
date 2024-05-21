@@ -53,7 +53,7 @@ func NativeSourceNativeDestinationMultiHop(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnDestination,
+		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -67,7 +67,7 @@ func NativeSourceNativeDestinationMultiHop(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnDestination,
+		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -81,7 +81,7 @@ func NativeSourceNativeDestinationMultiHop(network interfaces.Network) {
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		multiplyOnDestination,
+		multiplyOnSpoke,
 	)
 
 	collateralAmountB := utils.RegisterTokenDestinationOnSource(
@@ -93,7 +93,7 @@ func NativeSourceNativeDestinationMultiHop(network interfaces.Network) {
 		nativeTokenDestinationAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		multiplyOnDestination,
+		multiplyOnSpoke,
 	)
 
 	// Add collateral for both NativeTokenDestinations

@@ -17,7 +17,7 @@ import {
     SendAndCallInput,
     BridgeMessageType,
     BridgeMessage,
-    RegisterDestinationMessage
+    RegisterSpokeMessage
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
@@ -139,7 +139,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
 
         if (
             TokenScalingUtils.removeTokenScale(
-                tokenDestination.tokenMultiplier(), tokenDestination.multiplyOnDestination(), amount
+                tokenDestination.tokenMultiplier(), tokenDestination.multiplyOnSpoke(), amount
             ) != 0
         ) {
             return;
@@ -415,12 +415,12 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         );
 
         BridgeMessage memory expectedBridgeMessage = BridgeMessage({
-            messageType: BridgeMessageType.REGISTER_DESTINATION,
+            messageType: BridgeMessageType.REGISTER_SPOKE,
             payload: abi.encode(
-                RegisterDestinationMessage({
+                RegisterSpokeMessage({
                     initialReserveImbalance: tokenDestination.initialReserveImbalance(),
                     tokenMultiplier: tokenDestination.tokenMultiplier(),
-                    multiplyOnDestination: tokenDestination.multiplyOnDestination()
+                    multiplyOnSpoke: tokenDestination.multiplyOnSpoke()
                 })
                 )
         });
@@ -614,11 +614,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         });
     }
 
-    function _createDefaultSendMultiHopInput()
-        internal
-        view
-        returns (SendTokensInput memory)
-    {
+    function _createDefaultSendMultiHopInput() internal view returns (SendTokensInput memory) {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
         input.multiHopFallback = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;

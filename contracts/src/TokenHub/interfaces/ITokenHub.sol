@@ -15,30 +15,30 @@ import {
  */
 
 /**
- * @dev Interface for a "home" or "source" bridge contract that locks
- * tokens on its chain to be bridge to supported destination bridge contracts on other chains.
+ * @dev Interface for a "hub" bridge contract that locks a specific token
+ * on its chain to be bridged to supported "spoke" bridge contracts on other chains.
  */
-interface ITeleporterTokenSource is ITeleporterTokenBridge {
+interface ITokenHub is ITeleporterTokenBridge {
     /**
-     * @dev Emitted when tokens are added as collateral for a destination bridge.
-     * The event emits a {remaining} value of 0 when the destination bridge is fully collateralized.
+     * @dev Emitted when tokens are added as collateral for a given spoke instance.
+     * The event emits a {remaining} value of 0 when the spoke instance is fully collateralized.
      */
     event CollateralAdded(
-        bytes32 indexed destinationBlockchainID,
-        address indexed destinationBridgeAddress,
+        bytes32 indexed spokeBlockchainID,
+        address indexed spokeBridgeAddress,
         uint256 amount,
         uint256 remaining
     );
 
     /**
-     * @notice Emitted when a destination is registered with the token bridge.
+     * @notice Emitted when a new spoke instance is registered with the token bridge.
      */
-    event DestinationRegistered(
-        bytes32 indexed destinationBlockchainID,
-        address indexed destinationBridgeAddress,
+    event SpokeRegistered(
+        bytes32 indexed spokeBlockchainID,
+        address indexed spokeBridgeAddress,
         uint256 initialCollateralNeeded,
         uint256 tokenMultiplier,
-        bool multiplyOnDestination
+        bool multiplyOnSpoke
     );
 
     /**

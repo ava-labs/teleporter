@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenSource} from "./TeleporterTokenSource.sol";
-import {IERC20Source} from "./interfaces/IERC20Source.sol";
+import {TokenHub} from "./TokenHub.sol";
+import {IERC20TokenHub} from "./interfaces/IERC20TokenHub.sol";
 import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
@@ -31,7 +31,7 @@ import {CallUtils} from "./utils/CallUtils.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-contract ERC20Source is IERC20Source, TeleporterTokenSource {
+contract ERC20TokenHub is IERC20TokenHub, TokenHub {
     using SafeERC20 for IERC20;
 
     /// @notice The ERC20 token this source contract bridges to destination instances.

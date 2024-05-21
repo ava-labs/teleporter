@@ -16,7 +16,7 @@ import {
     SingleHopCallMessage,
     MultiHopSendMessage,
     MultiHopCallMessage,
-    RegisterDestinationMessage
+    RegisterSpokeMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
 import {
     ITeleporterTokenDestination,
@@ -63,15 +63,15 @@ abstract contract TeleporterTokenDestination is
     uint256 public immutable tokenMultiplier;
 
     /**
-     * @notice If {multiplyOnDestination} is true, the source token amount value will be multiplied by {tokenMultiplier} when tokens
+     * @notice If {multiplyOnSpoke} is true, the source token amount value will be multiplied by {tokenMultiplier} when tokens
      * are transferred from the source chain into this destination chain, and divided by {tokenMultiplier} when
      * tokens are transferred from this destination chain back to the source chain. This is intended
      * when the "decimals" value on the source chain is less than the native EVM denomination of 18.
-     * If {multiplyOnDestination} is false, the source token amount value will be divided by {tokenMultiplier} when tokens
+     * If {multiplyOnSpoke} is false, the source token amount value will be divided by {tokenMultiplier} when tokens
      * are transferred from the source chain into this destination chain, and multiplied by {tokenMultiplier} when
      * tokens are transferred from this destination chain back to the source chain.
      */
-    bool public immutable multiplyOnDestination;
+    bool public immutable multiplyOnSpoke;
 
     /**
      * @notice Initial reserve imbalance that the token for this destination bridge
@@ -120,7 +120,7 @@ abstract contract TeleporterTokenDestination is
         TeleporterTokenDestinationSettings memory settings,
         uint256 initialReserveImbalance_,
         uint8 decimalsShift,
-        bool multiplyOnDestination_
+        bool multiplyOnSpoke_
     ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
@@ -141,7 +141,7 @@ abstract contract TeleporterTokenDestination is
         initialReserveImbalance = initialReserveImbalance_;
         isCollateralized = initialReserveImbalance_ == 0;
         tokenMultiplier = 10 ** decimalsShift;
-        multiplyOnDestination = multiplyOnDestination_;
+        multiplyOnSpoke = multiplyOnSpoke_;
     }
 
     /**
@@ -153,13 +153,13 @@ abstract contract TeleporterTokenDestination is
         require(!isRegistered, "TeleporterTokenDestination: already registered");
 
         // Send a message to the source token bridge instance to register this destination instance.
-        RegisterDestinationMessage memory registerMessage = RegisterDestinationMessage({
+        RegisterSpokeMessage memory registerMessage = RegisterSpokeMessage({
             initialReserveImbalance: initialReserveImbalance,
             tokenMultiplier: tokenMultiplier,
-            multiplyOnDestination: multiplyOnDestination
+            multiplyOnSpoke: multiplyOnSpoke
         });
         BridgeMessage memory message = BridgeMessage({
-            messageType: BridgeMessageType.REGISTER_DESTINATION,
+            messageType: BridgeMessageType.REGISTER_SPOKE,
             payload: abi.encode(registerMessage)
         });
 
@@ -335,10 +335,8 @@ abstract contract TeleporterTokenDestination is
         // is directly subtracted from the bridged amount on the intermediate chain
         // performing the multi-hop, before forwarding to the final destination chain.
         require(
-            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnDestination, amount)
-                > TokenScalingUtils.removeTokenScale(
-                    tokenMultiplier, multiplyOnDestination, secondaryFee
-                ),
+            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnSpoke, amount)
+                > TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnSpoke, secondaryFee),
             "TeleporterTokenDestination: insufficient tokens to transfer"
         );
 

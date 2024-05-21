@@ -123,7 +123,7 @@ contract NativeTokenDestination is
      * @param nativeAssetSymbol The symbol of the native asset.
      * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
      * @param decimalsShift The number of decimal places to shift the token amount by.
-     * @param multiplyOnDestination See {TeleporterTokenDestination-multiplyOnDestination}.
+     * @param multiplyOnSpoke See {TeleporterTokenDestination-multiplyOnSpoke}.
      * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
      * that will be rewarded to sender of the report.
      */
@@ -132,16 +132,11 @@ contract NativeTokenDestination is
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
         uint8 decimalsShift,
-        bool multiplyOnDestination,
+        bool multiplyOnSpoke,
         uint256 burnedFeesReportingRewardPercentage_
     )
         ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
-        TeleporterTokenDestination(
-            settings,
-            initialReserveImbalance,
-            decimalsShift,
-            multiplyOnDestination
-        )
+        TeleporterTokenDestination(settings, initialReserveImbalance, decimalsShift, multiplyOnSpoke)
     {
         require(
             initialReserveImbalance != 0, "NativeTokenDestination: zero initial reserve imbalance"
@@ -208,8 +203,7 @@ contract NativeTokenDestination is
 
         // Check that the scaled amount on the source chain will be non-zero.
         require(
-            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnDestination, burnedTxFees)
-                > 0,
+            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnSpoke, burnedTxFees) > 0,
             "NativeTokenDestination: zero scaled amount to report burn"
         );
 

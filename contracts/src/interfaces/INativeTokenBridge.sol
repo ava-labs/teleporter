@@ -21,14 +21,15 @@ import {
  */
 interface INativeTokenBridge is ITeleporterTokenBridge {
     /**
-     * @notice Sends native tokens transferred to this contract to the destination token bridge instance.
+     * @notice Sends native tokens transferred to this contract to the spoke contract instance.
      * @param input Specifies information for delivery of the tokens
      */
     function send(SendTokensInput calldata input) external payable;
 
     /**
-     * @notice Sends native tokens transferred to this contract to the destination token bridge instance.
-     * @param input Specifies information for delivery of the tokens and destination contract to be called.
+     * @notice Sends native tokens transferred to this contract to the spoke contract instance.
+     * @param input Specifies information for delivery of the tokens to the spoke contract and contract to be called
+     * on the spoke chain.
      */
     function sendAndCall(SendAndCallInput calldata input) external payable;
 }

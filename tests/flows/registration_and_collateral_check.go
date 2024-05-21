@@ -56,7 +56,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		erc20SourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnDestination,
+		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -107,7 +107,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		multiplyOnDestination,
+		multiplyOnSpoke,
 	)
 
 	// Try sending again and expect failure since destination is not collateralized

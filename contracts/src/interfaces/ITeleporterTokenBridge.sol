@@ -14,7 +14,7 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 
 /**
  * @notice Parameters for delivery of tokens to another chain and destination recipient.
- * @param destinationBlockchainID BlockchainID of the destination
+ * @param destinationBlockchainID Blockchain ID of the destination
  * @param destinationBridgeAddress Address of the destination token bridge instance
  * @param recipient Address of the recipient on the destination chain
  * @param primaryFeeTokenAddress Address of the ERC20 contract to optionally pay a Teleporter message fee
@@ -24,7 +24,7 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * This is required because the gas requirement varies based on the token bridge instance
  * specified by {destinationBlockchainID} and {destinationBridgeAddress}.
  * @param multiHopFallback In the case of a multi-hop transfer, the address where the tokens
- * are sent on the source chain if the transfer is unable to be routed to its final destination.
+ * are sent on the hub chain if the transfer is unable to be routed to its final destination.
  */
 struct SendTokensInput {
     bytes32 destinationBlockchainID;
@@ -48,7 +48,7 @@ struct SendTokensInput {
  * @param recipientGasLimit The amount of gas that will provided to the recipient contract on the destination chain,
  * which must be less than the requiredGasLimit of the message as a whole.
  * @param multiHopFallback In the case of a multi-hop transfer, the address where the tokens
- * are sent on the source chain if the transfer is unable to be routed to its final destination.
+ * are sent on the hub chain if the transfer is unable to be routed to its final destination.
  * @param fallbackRecipient Address on the {destinationBlockchainID} where the bridged tokens are sent to if the call to the recipient contract fails.
  * @param primaryFeeTokenAddress Address of the ERC20 contract to optionally pay a Teleporter message fee
  * @param primaryFee Amount of tokens to pay for Teleporter fee on the chain that iniiated the transfer
@@ -69,7 +69,7 @@ struct SendAndCallInput {
 }
 
 enum BridgeMessageType {
-    REGISTER_DESTINATION,
+    REGISTER_SPOKE,
     SINGLE_HOP_SEND,
     SINGLE_HOP_CALL,
     MULTI_HOP_SEND,
@@ -86,22 +86,22 @@ struct BridgeMessage {
 }
 
 /**
- * @dev Register destination message payloads are sent to the source bridge contract
- * to register a new destination chain and bridge contract.
- * @param initialReserveImbalance The initial reserve imbalance of the destination bridge contract to calculate associated collateral needed on source bridge contract.
- * @param tokenMultiplier The token multiplier to scale the amount of tokens sent to the destination.
- * @param multiplyOnDestination Whether the source bridge contract should multiply or divide
- * the amount of tokens before sending to the destination.
+ * @dev Register spoke message payloads are sent to the hub bridge contract
+ * to register a new spoke contract instance on another chain.
+ * @param initialReserveImbalance The initial reserve imbalance of the spoke contract to calculate associated collateral needed on hub contract.
+ * @param tokenMultiplier The token multiplier to scale the amount of tokens sent to the spoke.
+ * @param multiplyOnSpoke Whether the hub contract should multiply or divide
+ * the amount of tokens before sending to the spoke.
  */
-struct RegisterDestinationMessage {
+struct RegisterSpokeMessage {
     uint256 initialReserveImbalance;
     uint256 tokenMultiplier;
-    bool multiplyOnDestination;
+    bool multiplyOnSpoke;
 }
 
 /**
- * @dev Single hop send message payloads include the recipient address and bridged amount .
- * The destination chain and bridge address are defined by the Teleporter message.
+ * @dev Single hop send message payloads include the recipient address and bridged amount.
+ * The destination chain and bridge address for the transfer are defined by the Teleporter message.
  */
 struct SingleHopSendMessage {
     address recipient;
@@ -127,7 +127,7 @@ struct SingleHopCallMessage {
 
 /**
  * @dev Multi hop send message payloads include the recipient address as well as all
- * the information the intermediate (source) chain bridge contract needs to route
+ * the information the intermediate (hub) chain bridge contract needs to route
  * the send message on to its final destination.
  */
 struct MultiHopSendMessage {
@@ -142,7 +142,7 @@ struct MultiHopSendMessage {
 
 /**
  * @dev Multi hop call message payloads include the required information to call the target contract on the
- * destination chain, as well as the information the intermediate (source) chain bridge contract needs to route
+ * destination chain, as well as the information the intermediate (hub) chain bridge contract needs to route
  * the call message on to its final destination. This includes the secondaryRequiredGasLimit, which is the
  * required gas limit set for the second Teleporter message. The secondaryRequiredGasLimit should be sufficient
  * to cover the destination token operations as well as the call to the recipient contract, and will always be

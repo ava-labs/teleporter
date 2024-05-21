@@ -53,7 +53,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		erc20SourceAddress,
 		initialReserveImbalance,
 		decimalsShift,
-		multiplyOnDestination,
+		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -66,7 +66,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
-		multiplyOnDestination,
+		multiplyOnSpoke,
 	)
 
 	utils.AddCollateralToERC20Source(
@@ -153,7 +153,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	)
 
 	// Check that the recipient received the tokens
-	scaledAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnDestination, bridgedAmount)
+	scaledAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnSpoke, bridgedAmount)
 	utils.CheckERC20SourceWithdrawal(
 		ctx,
 		erc20SourceAddress,

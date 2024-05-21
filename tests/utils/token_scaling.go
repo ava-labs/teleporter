@@ -16,31 +16,31 @@ import (
 // Token scaling is applied when sending tokens from the source to the destination bridge,
 func ApplyTokenScaling(
 	tokenMultiplier *big.Int,
-	multiplyOnDestination bool,
+	multiplyOnSpoke bool,
 	sourceTokenAmount *big.Int,
 ) *big.Int {
-	return scaleTokens(tokenMultiplier, multiplyOnDestination, sourceTokenAmount, true)
+	return scaleTokens(tokenMultiplier, multiplyOnSpoke, sourceTokenAmount, true)
 }
 
 // RemoveTokenScaling removes token scaling from the given amount of destination tokens.
 // Token scaling is removed when sending tokens from the destination bridge back to the source.
 func RemoveTokenScaling(
 	tokenMultiplier *big.Int,
-	multiplyOnDestination bool,
+	multiplyOnSpoke bool,
 	destinationTokenAmount *big.Int,
 ) *big.Int {
-	return scaleTokens(tokenMultiplier, multiplyOnDestination, destinationTokenAmount, false)
+	return scaleTokens(tokenMultiplier, multiplyOnSpoke, destinationTokenAmount, false)
 }
 
 func scaleTokens(
 	tokenMultiplier *big.Int,
-	multiplyOnDestination bool,
+	multiplyOnSpoke bool,
 	amount *big.Int,
 	isSendToDestination bool,
 ) *big.Int {
-	// Multiply when multiplyOnDestination and isSendToDestination are
+	// Multiply when multiplyOnSpoke and isSendToDestination are
 	// both true or both false.
-	if multiplyOnDestination == isSendToDestination {
+	if multiplyOnSpoke == isSendToDestination {
 		return big.NewInt(0).Mul(amount, tokenMultiplier)
 	}
 
@@ -64,7 +64,7 @@ func GetScaledAmountFromERC20Source(
 
 	return ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnDestination,
+		destinationSettings.multiplyOnSpoke,
 		sourceTokenAmount,
 	)
 }
@@ -86,7 +86,7 @@ func GetScaledAmountFromNativeTokenSource(
 
 	return ApplyTokenScaling(
 		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnDestination,
+		destinationSettings.multiplyOnSpoke,
 		amount,
 	)
 }
@@ -94,12 +94,12 @@ func GetScaledAmountFromNativeTokenSource(
 func calculateCollateralNeeded(
 	initialReserveImbalance *big.Int,
 	tokenMultiplier *big.Int,
-	multiplyOnDestination bool,
+	multiplyOnSpoke bool,
 ) *big.Int {
-	collateralNeeded := RemoveTokenScaling(tokenMultiplier, multiplyOnDestination, initialReserveImbalance)
+	collateralNeeded := RemoveTokenScaling(tokenMultiplier, multiplyOnSpoke, initialReserveImbalance)
 
 	remainder := big.NewInt(0).Mod(collateralNeeded, tokenMultiplier)
-	if multiplyOnDestination && (remainder.Cmp(big.NewInt(0)) != 0) {
+	if multiplyOnSpoke && (remainder.Cmp(big.NewInt(0)) != 0) {
 		collateralNeeded.Add(collateralNeeded, big.NewInt(1))
 	}
 	return collateralNeeded

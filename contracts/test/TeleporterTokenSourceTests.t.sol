@@ -14,7 +14,7 @@ import {
     BridgeMessageType,
     BridgeMessage,
     MultiHopSendMessage,
-    RegisterDestinationMessage
+    RegisterSpokeMessage
 } from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {
     ITeleporterMessenger,
@@ -389,7 +389,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testReceiveWrongOriginBridgeAddress() public {
-         // First send to destination blockchain to increase the bridge balance
+        // First send to destination blockchain to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
@@ -873,15 +873,15 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         address destinationBridgeAddress,
         uint256 initialReserveImbalance,
         uint256 tokenMultiplier,
-        bool multiplyOnDestination
+        bool multiplyOnSpoke
     ) internal virtual {
-        RegisterDestinationMessage memory payload = RegisterDestinationMessage({
+        RegisterSpokeMessage memory payload = RegisterSpokeMessage({
             initialReserveImbalance: initialReserveImbalance,
             tokenMultiplier: tokenMultiplier,
-            multiplyOnDestination: multiplyOnDestination
+            multiplyOnSpoke: multiplyOnSpoke
         });
         BridgeMessage memory message = BridgeMessage({
-            messageType: BridgeMessageType.REGISTER_DESTINATION,
+            messageType: BridgeMessageType.REGISTER_SPOKE,
             payload: abi.encode(payload)
         });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
