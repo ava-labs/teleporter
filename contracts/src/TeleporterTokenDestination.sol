@@ -266,7 +266,7 @@ abstract contract TeleporterTokenDestination is
                         secondaryGasLimit: input.requiredGasLimit,
                         multiHopFallback: input.multiHopFallback
                     })
-                    )
+                )
             });
             messageRequiredGasLimit = MULTI_HOP_REQUIRED_GAS;
         }
@@ -352,7 +352,7 @@ abstract contract TeleporterTokenDestination is
                         recipientGasLimit: input.recipientGasLimit,
                         fallbackRecipient: input.fallbackRecipient
                     })
-                    )
+                )
             });
         } else {
             require(
@@ -385,7 +385,7 @@ abstract contract TeleporterTokenDestination is
                         secondaryRequiredGasLimit: input.requiredGasLimit,
                         secondaryFee: input.secondaryFee
                     })
-                    )
+                )
             });
 
             // The required gas limit for the first message sent back to the source chain

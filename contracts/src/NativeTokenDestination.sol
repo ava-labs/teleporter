@@ -218,7 +218,7 @@ contract NativeTokenDestination is
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: SOURCE_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
-                )
+            )
         });
 
         bytes32 messageID = _sendTeleporterMessage(
