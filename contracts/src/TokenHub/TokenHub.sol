@@ -406,7 +406,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
     /**
      * @dev See {ITeleporterUpgradeable-_receiveTeleporterMessage}
      *
-     * Handles the processing of Teleporter messages sent to this contracts.
+     * Handles the processing of Teleporter messages sent to this contract.
      * Support message types include registering a spoke instance, single-hop sends,
      * single-hop calls, multi-hop sends, and multi-hop calls.
      */
