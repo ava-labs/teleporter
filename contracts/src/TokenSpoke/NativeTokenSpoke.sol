@@ -18,12 +18,9 @@ import {
     SingleHopSendMessage,
     SingleHopCallMessage
 } from "../interfaces/ITokenBridge.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-// We need IAllowList as an indirect dependency in order to compile.
-import {IAllowList} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IAllowList.sol";
 import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";

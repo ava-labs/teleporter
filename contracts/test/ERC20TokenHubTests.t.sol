@@ -64,9 +64,7 @@ contract ERC20TokenHubTest is ERC20TokenBridgeTest, TokenHubTest {
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(tokenHub));
         emit TokensWithdrawn(recipient, amount);
-        vm.expectCall(
-            address(mockERC20), abi.encodeCall(IERC20.transfer, (address(recipient), amount))
-        );
+        vm.expectCall(address(mockERC20), abi.encodeCall(IERC20.transfer, (address(recipient), amount)));
         vm.expectEmit(true, true, true, true, address(mockERC20));
         emit Transfer(address(app), recipient, amount);
     }
@@ -81,7 +79,7 @@ contract ERC20TokenHubTest is ERC20TokenBridgeTest, TokenHubTest {
         bool targetHasCode,
         bool expectSuccess
     ) internal override {
-        // The recipient contract will be approved to spend the tokens from the source bridge contract.
+        // The recipient contract will be approved to spend the tokens from the token hub contract.
         vm.expectEmit(true, true, true, true, address(mockERC20));
         emit Approval(address(app), DEFAULT_RECIPIENT_CONTRACT_ADDRESS, amount);
 
@@ -128,11 +126,7 @@ contract ERC20TokenHubTest is ERC20TokenBridgeTest, TokenHubTest {
         }
     }
 
-    function _addCollateral(
-        bytes32 spokeBlockchainID,
-        address spokeBridgeAddress,
-        uint256 amount
-    ) internal override {
+    function _addCollateral(bytes32 spokeBlockchainID, address spokeBridgeAddress, uint256 amount) internal override {
         app.addCollateral(spokeBlockchainID, spokeBridgeAddress, amount);
     }
 

@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
+	nativetokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/NativeTokenHub"
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
@@ -15,28 +15,27 @@ import (
 )
 
 /**
- * Deploy a native token source on the primary network
- * Deploys ERC20Destination to Subnet A and Subnet B
+ * Deploy a NativeTokenHub on the primary network
+ * Deploys ERC20TokenSpoke to Subnet A and Subnet B
  * Bridges C-Chain native tokens to Subnet A
  * Bridge tokens from Subnet A to Subnet B through multi-hop
  * Brige back tokens from Subnet B to Subnet A through multi-hop
  */
-func NativeSourceERC20DestinationMultiHop(network interfaces.Network) {
+func NativeTokenHubERC20TokenSpokeMultiHop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
-	// Deploy a native token source on the primary network
+	// Deploy a NativeTokenHub on the primary network
 	wavaxAddress, wavax := utils.DeployWrappedNativeToken(
 		ctx,
 		fundedKey,
 		cChainInfo,
 		"AVAX",
 	)
-
-	nativeTokenSourceAddress, nativeTokenSource := utils.DeployNativeTokenSource(
+	nativeTokenHubAddress, nativeTokenHub := utils.DeployNativeTokenHub(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -52,49 +51,49 @@ func NativeSourceERC20DestinationMultiHop(network interfaces.Network) {
 	tokenDecimals, err := wavax.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Deploy an ERC20Destination on Subnet A
-	erc20DestinationAddress_A, erc20Destination_A := utils.DeployERC20Destination(
+	// Deploy an ERC20TokenSpoke on Subnet A
+	erc20TokenSpokeAddressA, erc20TokenSpokeA := utils.DeployERC20TokenSpoke(
 		ctx,
 		fundedKey,
 		subnetAInfo,
 		fundedAddress,
 		cChainInfo.BlockchainID,
-		nativeTokenSourceAddress,
+		nativeTokenHubAddress,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
 	)
 
-	// Deploy an ERC20Destination on Subnet B
-	erc20DestinationAddress_B, erc20Destination_B := utils.DeployERC20Destination(
+	// Deploy an ERC20TokenSpoke on Subnet B
+	erc20TokenSpokeAddressB, erc20TokenSpokeB := utils.DeployERC20TokenSpoke(
 		ctx,
 		fundedKey,
 		subnetBInfo,
 		fundedAddress,
 		cChainInfo.BlockchainID,
-		nativeTokenSourceAddress,
+		nativeTokenHubAddress,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
 	)
 
-	// Register both ERC20Destinations on the native token source
-	utils.RegisterERC20DestinationOnSource(
+	// Register both ERC20Destinations on the NativeTokenHub
+	utils.RegisterERC20TokenSpokeOnHub(
 		ctx,
 		network,
 		cChainInfo,
-		nativeTokenSourceAddress,
+		nativeTokenHubAddress,
 		subnetAInfo,
-		erc20DestinationAddress_A,
+		erc20TokenSpokeAddressA,
 	)
 
-	utils.RegisterERC20DestinationOnSource(
+	utils.RegisterERC20TokenSpokeOnHub(
 		ctx,
 		network,
 		cChainInfo,
-		nativeTokenSourceAddress,
+		nativeTokenHubAddress,
 		subnetBInfo,
-		erc20DestinationAddress_B,
+		erc20TokenSpokeAddressB,
 	)
 
 	// Generate new recipient to receive bridged tokens
@@ -103,9 +102,9 @@ func NativeSourceERC20DestinationMultiHop(network interfaces.Network) {
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
 	// Send tokens from C-Chain to recipient on subnet A
-	input := nativetokensource.SendTokensInput{
+	input := nativetokenhub.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: erc20DestinationAddress_A,
+		DestinationBridgeAddress: erc20TokenSpokeAddressA,
 		Recipient:                recipientAddress,
 		PrimaryFeeTokenAddress:   wavaxAddress,
 		PrimaryFee:               big.NewInt(1e10),
@@ -118,8 +117,8 @@ func NativeSourceERC20DestinationMultiHop(network interfaces.Network) {
 	receipt, bridgedAmount := utils.SendNativeTokenSource(
 		ctx,
 		cChainInfo,
-		nativeTokenSource,
-		nativeTokenSourceAddress,
+		nativeTokenHub,
+		nativeTokenHubAddress,
 		wavax,
 		input,
 		teleporterUtils.BigIntSub(amount, input.PrimaryFee),
@@ -135,32 +134,32 @@ func NativeSourceERC20DestinationMultiHop(network interfaces.Network) {
 		true,
 	)
 
-	utils.CheckERC20DestinationWithdrawal(
+	utils.CheckERC20TokenSpokeWithdrawal(
 		ctx,
-		erc20Destination_A,
+		erc20TokenSpokeA,
 		receipt,
 		recipientAddress,
 		bridgedAmount,
 	)
 
 	// Check that the recipient received the tokens
-	balance, err := erc20Destination_A.BalanceOf(&bind.CallOpts{}, recipientAddress)
+	balance, err := erc20TokenSpokeA.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(bridgedAmount))
 
 	// Send tokens from subnet A to recipient on subnet B through a multi-hop
-	utils.SendERC20MultiHopAndVerify(
+	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
 		network,
 		fundedKey,
 		recipientKey,
 		recipientAddress,
 		subnetAInfo,
-		erc20Destination_A,
-		erc20DestinationAddress_A,
+		erc20TokenSpokeA,
+		erc20TokenSpokeAddressA,
 		subnetBInfo,
-		erc20Destination_B,
-		erc20DestinationAddress_B,
+		erc20TokenSpokeB,
+		erc20TokenSpokeAddressB,
 		cChainInfo,
 		bridgedAmount,
 	)

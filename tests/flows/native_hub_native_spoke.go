@@ -4,8 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	nativetokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenDestination"
-	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
+	nativetokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/NativeTokenHub"
+	nativetokenspoke "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenSpoke/NativeTokenSpoke"
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
@@ -17,18 +17,18 @@ var (
 	decimalsShift           = uint8(1)
 	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
 	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
-	multiplyOnSpoke   = true
+	multiplyOnSpoke         = true
 
 	burnedFeesReportingRewardPercentage = big.NewInt(1)
 )
 
 /**
- * Deploy a native token source on the primary network
- * Deploys a native token destination to Subnet A
+ * Deploy a NativeTokenHub on the primary network
+ * Deploys a NativeTokenSpoke to Subnet A
  * Bridges C-Chain native tokens to Subnet A
  * Bridge back tokens from Subnet A to C-Chain
  */
-func NativeSourceNativeDestination(network interfaces.Network) {
+func NativeTokenHubNativeDestination(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -43,8 +43,8 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		"AVAX",
 	)
 
-	// Create a NativeTokenSource on the primary network
-	nativeTokenSourceAddress, nativeTokenSource := utils.DeployNativeTokenSource(
+	// Create a NativeTokenHub on the primary network
+	nativeTokenHubAddress, nativeTokenHub := utils.DeployNativeTokenHub(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -52,26 +52,26 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		cChainWAVAXAddress,
 	)
 
-	// Deploy a NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddress, nativeTokenDestination := utils.DeployNativeTokenDestination(
+	// Deploy a NativeTokenSpoke to Subnet A
+	nativeTokenDestinationAddress, nativeTokenSpoke := utils.DeployNativeTokenSpoke(
 		ctx,
 		subnetAInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
-		nativeTokenSourceAddress,
+		nativeTokenHubAddress,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
 
-	// Register the NativeTokenDestination on the NativeTokenSource
-	collateralAmount := utils.RegisterTokenDestinationOnSource(
+	// Register the NativeTokenSpoke on the NativeTokenHub
+	collateralAmount := utils.RegisterTokenSpokeOnHub(
 		ctx,
 		network,
 		cChainInfo,
-		nativeTokenSourceAddress,
+		nativeTokenHubAddress,
 		subnetAInfo,
 		nativeTokenDestinationAddress,
 		initialReserveImbalance,
@@ -79,11 +79,11 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		multiplyOnSpoke,
 	)
 
-	utils.AddCollateralToNativeTokenSource(
+	utils.AddCollateralToNativeTokenHub(
 		ctx,
 		cChainInfo,
-		nativeTokenSource,
-		nativeTokenSourceAddress,
+		nativeTokenHub,
+		nativeTokenHubAddress,
 		subnetAInfo.BlockchainID,
 		nativeTokenDestinationAddress,
 		collateralAmount,
@@ -98,7 +98,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	// Send tokens from C-Chain to recipient on subnet A that fully collateralize bridge with leftover tokens.
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 	{
-		input := nativetokensource.SendTokensInput{
+		input := nativetokenhub.SendTokensInput{
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
 			DestinationBridgeAddress: nativeTokenDestinationAddress,
 			Recipient:                recipientAddress,
@@ -112,8 +112,8 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		receipt, _ := utils.SendNativeTokenSource(
 			ctx,
 			cChainInfo,
-			nativeTokenSource,
-			nativeTokenSourceAddress,
+			nativeTokenHub,
+			nativeTokenHubAddress,
 			wavax,
 			input,
 			utils.RemoveTokenScaling(tokenMultiplier, multiplyOnSpoke, amount),
@@ -138,9 +138,9 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 
 	// Send tokens on Subnet A back for native tokens on C-Chain
 	{
-		input_A := nativetokendestination.SendTokensInput{
+		input_A := nativetokenspoke.SendTokensInput{
 			DestinationBlockchainID:  cChainInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenSourceAddress,
+			DestinationBridgeAddress: nativeTokenHubAddress,
 			Recipient:                recipientAddress,
 			PrimaryFeeTokenAddress:   nativeTokenDestinationAddress,
 			PrimaryFee:               big.NewInt(1e18),
@@ -150,10 +150,10 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 
 		// Send half of the tokens back to C-Chain
 		amount := big.NewInt(0).Div(amount, big.NewInt(2))
-		receipt, bridgedAmount := utils.SendNativeTokenDestination(
+		receipt, bridgedAmount := utils.SendNativeTokenSpoke(
 			ctx,
 			subnetAInfo,
-			nativeTokenDestination,
+			nativeTokenSpoke,
 			nativeTokenDestinationAddress,
 			input_A,
 			amount,
@@ -170,9 +170,9 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 
 		// Check that the recipient received the tokens
 		sourceAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnSpoke, bridgedAmount)
-		utils.CheckNativeTokenSourceWithdrawal(
+		utils.CheckNativeTokenHubWithdrawal(
 			ctx,
-			nativeTokenSourceAddress,
+			nativeTokenHubAddress,
 			wavax,
 			receipt,
 			sourceAmount,

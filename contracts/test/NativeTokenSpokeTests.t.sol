@@ -9,14 +9,9 @@ import {TokenSpokeTest} from "./TokenSpokeTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {TokenSpoke} from "../src/TokenSpoke/TokenSpoke.sol";
-import {
-    NativeTokenSpoke,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "../src/TokenSpoke/NativeTokenSpoke.sol";
+import {NativeTokenSpoke, TeleporterMessageInput, TeleporterFeeInfo} from "../src/TokenSpoke/NativeTokenSpoke.sol";
 import {TokenSpokeSettings} from "../src/TokenSpoke/interfaces/ITokenSpoke.sol";
-import {INativeMinter} from
-    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
+import {INativeMinter} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
@@ -154,8 +149,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
 
         IERC20(separateFeeAsset).safeIncreaseAllowance(address(app), feeAmount);
         vm.expectCall(
-            address(separateFeeAsset),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
+            address(separateFeeAsset), abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
         );
 
         vm.expectEmit(true, true, true, true, address(app));
@@ -194,12 +188,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = _DEFAULT_TRANSFER_AMOUNT;
         vm.expectEmit(true, true, true, true, address(app));
-        emit TokensSent({
-            teleporterMessageID: _MOCK_MESSAGE_ID,
-            sender: address(this),
-            input: input,
-            amount: amount
-        });
+        emit TokensSent({teleporterMessageID: _MOCK_MESSAGE_ID, sender: address(this), input: input, amount: amount});
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
@@ -238,9 +227,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         vm.deal(address(app), amount - 1);
         vm.expectRevert("CallUtils: insufficient value");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSpoke.receiveTeleporterMessage(
-            DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID, DEFAULT_TOKEN_HUB_ADDRESS, message
-        );
+        tokenSpoke.receiveTeleporterMessage(DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID, DEFAULT_TOKEN_HUB_ADDRESS, message);
     }
 
     function testReportBurnFeesNoNewAmount() public {
@@ -388,8 +375,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
         );
         vm.deal(recipient, amount);
     }
@@ -401,8 +387,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
         );
         vm.deal(recipient, amount);
     }
@@ -423,8 +408,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS,
-            abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), amount))
         );
 
         // Mock the native minter precompile crediting native balance to the contract.
@@ -466,9 +450,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             if (address(bridgedToken) != address(app)) {
                 vm.expectCall(
                     address(bridgedToken),
-                    abi.encodeCall(
-                        IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
-                    )
+                    abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
                 );
             }
         }
@@ -485,7 +467,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
     }
 
     // The native token spoke contract is considered collateralized once it has received
-    // a message from its configured source to mint tokens. Until then, the source contract is
+    // a message from its configured hub to mint tokens. Until then, the hub contract is
     // still assumed to have insufficient collateral.
     function _collateralizeBridge() private {
         assertFalse(app.isCollateralized());

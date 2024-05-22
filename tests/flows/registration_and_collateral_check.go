@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	erc20source "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Source"
+	erc20tokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/ERC20TokenHub"
 	"github.com/ava-labs/teleporter-token-bridge/tests/errors"
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -15,13 +15,13 @@ import (
 )
 
 /**
- * Deploys an ERC20Source contract on the C-Chain
- * Deploys an ERC20Destination contract on Subnet A
- * Check sending to non registered destination fails
- * Register the ERC20Destination to source contract
- * Check sending to non collateralized destination fails
- * Collateralize the destination
- * Check sending to collateralized destination succeeds and withdraws with correct scale.
+ * Deploys an ERC20TokenHub contract on the C-Chain
+ * Deploys an ERC20TokenSpoke contract on Subnet A
+ * Check sending to  unregistered spoke fails
+ * Register the ERC20TokenSpoke to hub contract
+ * Check sending to non-collateralized spoke fails
+ * Collateralize the spoke
+ * Check sending to collateralized spoke succeeds and withdraws with correct scale.
  */
 func RegistrationAndCollateralCheck(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
@@ -30,30 +30,30 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 
 	ctx := context.Background()
 
-	// Deploy an ExampleERC20 on subnet A as the source token to be bridged
-	sourceTokenAddress, sourceToken := teleporterUtils.DeployExampleERC20(
+	// Deploy an ExampleERC20 on subnet A as the token to be bridged
+	exampleERC20Address, exampleERC20 := teleporterUtils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
 	)
 
-	// Create an ERC20Source for bridging the source token
-	erc20SourceAddress, erc20Source := utils.DeployERC20Source(
+	// Create an ERC20TokenHub for bridging the ERC20 token
+	erc20TokenHubAddress, erc20TokenHub := utils.DeployERC20TokenHub(
 		ctx,
 		fundedKey,
 		cChainInfo,
 		fundedAddress,
-		sourceTokenAddress,
+		exampleERC20Address,
 	)
 
-	// Deploy a NativeTokenDestination to Subnet A
-	nativeTokenDestinationAddressA, _ := utils.DeployNativeTokenDestination(
+	// Deploy a NativeTokenSpoke to Subnet A
+	nativeTokenDestinationAddressA, _ := utils.DeployNativeTokenSpoke(
 		ctx,
 		subnetAInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
-		erc20SourceAddress,
+		erc20TokenHubAddress,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnSpoke,
@@ -66,11 +66,11 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
 	// Send tokens from C-Chain to Subnet A
-	input := erc20source.SendTokensInput{
+	input := erc20tokenhub.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: nativeTokenDestinationAddressA,
 		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   sourceTokenAddress,
+		PrimaryFeeTokenAddress:   exampleERC20Address,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
@@ -78,31 +78,31 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
 
-	initialBalance, err := sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	initialBalance, err := exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHubAddress)
 	Expect(err).Should(BeNil())
 
-	// Send the tokens and expect for failure since destination bridge is not registered.
+	// Send the tokens and expect for failure since spoke instance is not registered.
 	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, cChainInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	_, err = erc20Source.Send(
+	_, err = erc20TokenHub.Send(
 		optsA,
 		input,
 		amount,
 	)
 	Expect(err).Should(Not(BeNil()))
-	Expect(err.Error()).Should(ContainSubstring(errors.ErrDestinationNotRegistered))
+	Expect(err.Error()).Should(ContainSubstring(errors.ErrSpokeNotRegistered))
 
-	// Check the balance of the ERC20Source to ensure it was not changed
-	balance, err := sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	// Check the balance of the ERC20TokenHub to ensure it was not changed
+	balance, err := exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHubAddress)
 	Expect(err).Should(BeNil())
 	teleporterUtils.ExpectBigEqual(balance, initialBalance)
 
-	// Register the NativeTokenDestination to the ERC20Source
-	collateralNeeded := utils.RegisterTokenDestinationOnSource(
+	// Register the NativeTokenSpoke to the ERC20TokenHub
+	collateralNeeded := utils.RegisterTokenSpokeOnHub(
 		ctx,
 		network,
 		cChainInfo,
-		erc20SourceAddress,
+		erc20TokenHubAddress,
 		subnetAInfo,
 		nativeTokenDestinationAddressA,
 		initialReserveImbalance,
@@ -111,7 +111,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	)
 
 	// Try sending again and expect failure since destination is not collateralized
-	_, err = erc20Source.Send(
+	_, err = erc20TokenHub.Send(
 		optsA,
 		input,
 		amount,
@@ -119,40 +119,40 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	Expect(err).Should(Not(BeNil()))
 	Expect(err.Error()).Should(ContainSubstring(errors.ErrNonZeroCollateralNeeded))
 
-	// Check the balance of the ERC20Source to ensure it was not changed
-	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	// Check the balance of the ERC20TokenHub to ensure it was not changed
+	balance, err = exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHubAddress)
 	Expect(err).Should(BeNil())
 	teleporterUtils.ExpectBigEqual(balance, initialBalance)
 
-	// Add collateral to the ERC20Source
-	utils.AddCollateralToERC20Source(
+	// Add collateral to the ERC20TokenHub
+	utils.AddCollateralToERC20TokenHub(
 		ctx,
 		cChainInfo,
-		erc20Source,
-		erc20SourceAddress,
-		sourceToken,
+		erc20TokenHub,
+		erc20TokenHubAddress,
+		exampleERC20,
 		subnetAInfo.BlockchainID,
 		nativeTokenDestinationAddressA,
 		collateralNeeded,
 		fundedKey,
 	)
 
-	// Check the balance of the ERC20Source to ensure it was increased by the collateral amount.
+	// Check the balance of the ERC20TokenHub to ensure it was increased by the collateral amount.
 	// Also set the new initial balance before sending tokens
-	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	balance, err = exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHubAddress)
 	Expect(err).Should(BeNil())
 	teleporterUtils.ExpectBigEqual(balance, initialBalance.Add(initialBalance, collateralNeeded))
 
 	// Send the tokens and expect success now that collateral is added
 	teleporterUtils.ERC20Approve(
 		ctx,
-		sourceToken,
-		erc20SourceAddress,
+		exampleERC20,
+		erc20TokenHubAddress,
 		big.NewInt(0).Add(amount, input.PrimaryFee),
 		cChainInfo,
 		fundedKey,
 	)
-	tx, err := erc20Source.Send(
+	tx, err := erc20TokenHub.Send(
 		optsA,
 		input,
 		amount,
@@ -160,21 +160,21 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20Source.ParseTokensSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHub.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(fundedKey.PublicKey)))
 
 	// Compute the scaled amount
-	scaledAmount := utils.GetScaledAmountFromERC20Source(
-		erc20Source,
+	scaledAmount := utils.GetScaledAmountFromERC20TokenHub(
+		erc20TokenHub,
 		input.DestinationBlockchainID,
 		input.DestinationBridgeAddress,
 		amount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
 
-	// Check the balance of the ERC20Source increased by the bridged amount
-	balance, err = sourceToken.BalanceOf(&bind.CallOpts{}, erc20SourceAddress)
+	// Check the balance of the ERC20TokenHub increased by the bridged amount
+	balance, err = exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHubAddress)
 	Expect(err).Should(BeNil())
 	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, amount))
 
