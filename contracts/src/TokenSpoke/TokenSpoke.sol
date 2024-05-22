@@ -105,7 +105,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
 
     /**
      * @notice Initializes this token spoke instance.
-     * @param settings The settings for the token spoke instance.*
+     * @param settings The settings for the token spoke instance.
      * @param initialReserveImbalance_ The initial reserve imbalance that must be collateralized before minting.
      * @param decimalsShift The number of decimal places to shift the token amount by.
      * @param multiplyOnSpoke_ If true, the hub token amount will be multiplied by {tokenMultiplier} when tokens
