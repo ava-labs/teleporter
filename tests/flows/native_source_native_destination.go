@@ -36,10 +36,11 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an example WAVAX on the primary network
-	cChainWAVAXAddress, wavax := utils.DeployExampleWAVAX(
+	cChainWAVAXAddress, wavax := utils.DeployWrappedNativeToken(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		"AVAX",
 	)
 
 	// Create a NativeTokenSource on the primary network

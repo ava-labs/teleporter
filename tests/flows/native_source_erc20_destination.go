@@ -28,10 +28,11 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an example WAVAX on the primary network
-	wavaxAddress, wavax := utils.DeployExampleWAVAX(
+	wavaxAddress, wavax := utils.DeployWrappedNativeToken(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		"AVAX",
 	)
 
 	// Create a NativeTokenSource for bridging the native token
