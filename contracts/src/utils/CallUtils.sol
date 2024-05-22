@@ -9,11 +9,7 @@ library CallUtils {
      * @dev calls target address with exactly gasAmount gas and data as calldata
      * or reverts if at least gasAmount gas is not available.
      */
-    function _callWithExactGas(
-        uint256 gasAmount,
-        address target,
-        bytes memory data
-    ) internal returns (bool) {
+    function _callWithExactGas(uint256 gasAmount, address target, bytes memory data) internal returns (bool) {
         return _callWithExactGasAndValue(gasAmount, 0, target, data);
     }
 
@@ -21,12 +17,10 @@ library CallUtils {
      * @dev calls target address with exactly gasAmount gas and data as calldata
      * or reverts if at least gasAmount gas is not available.
      */
-    function _callWithExactGasAndValue(
-        uint256 gasAmount,
-        uint256 value,
-        address target,
-        bytes memory data
-    ) internal returns (bool) {
+    function _callWithExactGasAndValue(uint256 gasAmount, uint256 value, address target, bytes memory data)
+        internal
+        returns (bool)
+    {
         require(gasleft() >= gasAmount, "CallUtils: insufficient gas");
         require(address(this).balance >= value, "CallUtils: insufficient value");
 
@@ -36,7 +30,7 @@ library CallUtils {
             return false;
         }
 
-        // Call the destination address of the message with the provided data and amount of gas.
+        // Call the target address of the message with the provided data and amount of gas.
         //
         // Assembly is used for the low-level call to avoid unnecessary expansion of the return data in memory.
         // This prevents possible "return bomb" vectors where the external contract could force the caller

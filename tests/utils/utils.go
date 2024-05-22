@@ -138,7 +138,7 @@ func DeployNativeTokenSpoke(
 	multiplyOnSpoke bool,
 	burnedFeesReportingRewardPercentage *big.Int,
 ) (common.Address, *nativetokenspoke.NativeTokenSpoke) {
-	// The Native Token Destination needs a unique deployer key, whose nonce 0 is used to deploy the contract.
+	// The NativeTokenSpoke needs a unique deployer key, whose nonce 0 is used to deploy the contract.
 	// The resulting contract address has been added to the genesis file as an admin for the Native Minter precompile.
 	Expect(nativeTokenSpokeDeployerKeyIndex).Should(BeNumerically("<", len(nativeTokenSpokeDeployerKeys)))
 	deployerKeyStr := nativeTokenSpokeDeployerKeys[nativeTokenSpokeDeployerKeyIndex]
@@ -292,7 +292,7 @@ func RegisterTokenSpokeOnHub(
 	expectedTokenMultiplier *big.Int,
 	expectedmultiplyOnSpoke bool,
 ) *big.Int {
-	// Call the destination to send a register message to the hub
+	// Call the spoke to send a register message to the hub
 	tokenSpoke, err := tokenspoke.NewTokenSpoke(
 		spokeAddress,
 		spokeSubnet.RPCClient,
@@ -334,7 +334,7 @@ func RegisterTokenSpokeOnHub(
 	// Relay the register message to the hub
 	receipt = network.RelayMessage(ctx, receipt, spokeSubnet, hubSubnet, true)
 
-	// Check that the destination registered event was emitted
+	// Check that the spoke registered event was emitted
 	tokenHub, err := tokenhub.NewTokenHub(hubAddress, hubSubnet.RPCClient)
 	Expect(err).Should(BeNil())
 	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, tokenHub.ParseSpokeRegistered)
@@ -342,8 +342,8 @@ func RegisterTokenSpokeOnHub(
 	Expect(registerEvent.SpokeBlockchainID[:]).Should(Equal(spokeSubnet.BlockchainID[:]))
 	Expect(registerEvent.SpokeBridgeAddress).Should(Equal(spokeAddress))
 
-	// Based on the initial reserve balance of the destination bridge,
-	// calculate the collateral amount of hub tokens needed to collateralize the destination.
+	// Based on the initial reserve balance of the spoke instance,
+	// calculate the collateral amount of hub tokens needed to collateralize the spoke.
 	collateralNeeded := calculateCollateralNeeded(
 		expectedInitialReserveBalance,
 		expectedTokenMultiplier,
@@ -814,8 +814,8 @@ func SendNativeMultiHopAndVerify(
 		sendingKey,
 	)
 
-	// Relay the first message back to the home-chain, in this case C-Chain,
-	// which then performs the multi-hop transfer to the destination chain
+	// Relay the first message back to the hub chain, in this case C-Chain,
+	// which then performs the multi-hop transfer to the destination spoke
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -827,9 +827,9 @@ func SendNativeMultiHopAndVerify(
 	initialBalance, err := toSubnet.RPCClient.BalanceAt(ctx, recipientAddress, nil)
 	Expect(err).Should(BeNil())
 
-	// When we relay the above message to the home-chain, a multi-hop transfer
-	// is performed to the destination chain. Parse for the send tokens event
-	// and relay to final destination.
+	// When we relay the above message to the hub chain, a multi-hop transfer
+	// is performed to the destination spoke. Parse for the send tokens event
+	// and relay to destination spoke.
 	network.RelayMessage(
 		ctx,
 		intermediateReceipt,
@@ -891,8 +891,8 @@ func SendERC20TokenMultiHopAndVerify(
 		sendingKey,
 	)
 
-	// Relay the first message back to the home-chain, in this case C-Chain,
-	// which then performs the multi-hop transfer to the destination chain
+	// Relay the first message back to the hub chain, in this case C-Chain,
+	// which then performs the multi-hop transfer to the destination spoke
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -911,9 +911,9 @@ func SendERC20TokenMultiHopAndVerify(
 	initialBalance, err := toBridge.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
 
-	// When we relay the above message to the home-chain, a multi-hop transfer
-	// is performed to the destination chain. Parse for the send tokens event
-	// and relay to final destination.
+	// When we relay the above message to the hub chain, a multi-hop transfer
+	// is performed to the destination spoke. Parse for the send tokens event
+	// and relay to destination spoke.
 	destinationReceipt := network.RelayMessage(
 		ctx,
 		intermediateReceipt,

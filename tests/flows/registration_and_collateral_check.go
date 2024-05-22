@@ -47,7 +47,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenSpoke to Subnet A
-	nativeTokenDestinationAddressA, _ := utils.DeployNativeTokenSpoke(
+	nativeTokenSpokeAddressA, _ := utils.DeployNativeTokenSpoke(
 		ctx,
 		subnetAInfo,
 		"SUBA",
@@ -68,7 +68,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	// Send tokens from C-Chain to Subnet A
 	input := erc20tokenhub.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenDestinationAddressA,
+		DestinationBridgeAddress: nativeTokenSpokeAddressA,
 		Recipient:                recipientAddress,
 		PrimaryFeeTokenAddress:   exampleERC20Address,
 		PrimaryFee:               big.NewInt(1e18),
@@ -104,13 +104,13 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		cChainInfo,
 		erc20TokenHubAddress,
 		subnetAInfo,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnSpoke,
 	)
 
-	// Try sending again and expect failure since destination is not collateralized
+	// Try sending again and expect failure since spoke is not collateralized
 	_, err = erc20TokenHub.Send(
 		optsA,
 		input,
@@ -132,7 +132,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		erc20TokenHubAddress,
 		exampleERC20,
 		subnetAInfo.BlockchainID,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeAddressA,
 		collateralNeeded,
 		fundedKey,
 	)
