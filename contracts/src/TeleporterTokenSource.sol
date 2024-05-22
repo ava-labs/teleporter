@@ -39,7 +39,7 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  * through {addCollateral} calls, before tokens can be bridged to the destination token bridge.
  * @param tokenMultiplier The scaling factor for the amount of tokens to be bridged to the destination.
  * @param multiplyOnDestination Whether the scaling factor is multiplied or divided when sending to the destination.
- * @param tokenDecimals the number of decimals that the destination token has.
+ * @param tokenDecimals The number of decimals that the destination token has.
  */
 struct DestinationBridgeSettings {
     bool registered;
@@ -142,7 +142,7 @@ abstract contract TeleporterTokenSource is
         );
         require(
             destinationTokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
-            "TeleporterTokenSource: destination token decmials too high"
+            "TeleporterTokenSource: destination token decimals too high"
         );
 
         (uint256 tokenMultiplier, bool multiplyOnDestination) =

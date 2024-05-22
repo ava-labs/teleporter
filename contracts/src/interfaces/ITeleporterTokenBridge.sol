@@ -89,8 +89,8 @@ struct BridgeMessage {
  * @dev Register destination message payloads are sent to the source bridge contract
  * to register a new destination chain and bridge contract.
  * @param initialReserveImbalance The initial reserve imbalance of the destination bridge contract to calculate associated collateral needed on source bridge contract.
- * @param sourceTokenDecimals the number of decimals that the source token has
- * @param destinationTokenDecimals the number of decimals that the destination token has
+ * @param sourceTokenDecimals The number of decimals that the source token has.
+ * @param destinationTokenDecimals The number of decimals that the destination token has.
  */
 struct RegisterDestinationMessage {
     uint256 initialReserveImbalance;
