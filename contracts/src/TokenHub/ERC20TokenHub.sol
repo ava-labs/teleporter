@@ -23,7 +23,7 @@ import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
  * @title ERC20TokenHub
- * @notice An {IERC20TokenHub} implementation that locks a specified ERC20 token to be send to
+ * @notice An {IERC20TokenHub} implementation that locks a specified ERC20 token to be sent to
  * spoke instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
