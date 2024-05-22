@@ -40,7 +40,7 @@ library TokenScalingUtils {
         uint8 sourceTokenDecimals,
         uint8 destinationTokenDecimals
     ) internal pure returns (uint256 tokenMultiplier, bool multiplyOnDestination) {
-        multiplyOnDestination = destinationTokenDecimals > sourceTokenDecimals; // TODO: should this be >= ?
+        multiplyOnDestination = destinationTokenDecimals > sourceTokenDecimals;
         tokenMultiplier = 10
             ** (
                 multiplyOnDestination
