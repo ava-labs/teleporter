@@ -21,7 +21,7 @@ The spoke tokens are designed to by default have compatibility with the token br
 
 The token bridge also supports "multi-hop" transfers, where tokens can be transferred between spoke chains. The multi-hop transfer first transfers the token from the origin spoke chain to the hub chain, where token balances are updated, and then triggers a second transfer to the final spoke chain.
 
-In addition to supporting basic token transfers, the token bridge contracts offer a `sendAndCall` interface for atomically bridging tokens and using them to interact with a smart contract on the destination chain of a given transfer. If the call to the recipient smart contract fails, the bridged tokens are sent to a fallback recipient address. The `sendAndCall` interfaces enables the direct use of bridged tokens in dApps on other chains, such as performing swaps, using the tokens to pay for fees when invoking services, etc.
+In addition to supporting basic token transfers, the token bridge contracts offer a `sendAndCall` interface for atomically bridging tokens and using them to interact with a smart contract on the destination chain of a given transfer. If the call to the recipient smart contract fails, the bridged tokens are sent to a fallback recipient address. The `sendAndCall` interface enables the direct use of bridged tokens in dApps on other chains, such as performing swaps, using the tokens to pay for fees when invoking services, etc.
 
 A breakdown of the structure of the contracts that implement this function can be found under `./contracts` [here](./contracts/README.md).
 

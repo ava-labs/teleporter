@@ -36,7 +36,7 @@ struct TokenSpokeSettings {
 interface ITokenSpoke is ITokenBridge {
     /**
      * @notice Sends a Teleporter message to register the spoke instance with its configured hub.
-     * @param feeInfo The fee asset and amount for the Teleporter message.
+     * @param feeInfo The optional fee asset and amount for the Teleporter message, for relayer incentivization.
      */
     function registerWithHub(TeleporterFeeInfo calldata feeInfo) external;
 }
