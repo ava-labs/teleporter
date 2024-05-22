@@ -18,7 +18,7 @@ import (
 	nativetokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/NativeTokenSource"
 	teleportertokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenDestination"
 	teleportertokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenSource"
-	examplewavax "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleWAVAX"
+	wrappednativetoken "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/WrappedNativeToken"
 	mockERC20SACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
 	mockNSACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockNativeSendAndCallReceiver"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
@@ -202,18 +202,19 @@ func DeployNativeTokenSource(
 	return address, nativeTokenSource
 }
 
-func DeployExampleWAVAX(
+func DeployWrappedNativeToken(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
-) (common.Address, *examplewavax.ExampleWAVAX) {
+	tokenSymbol string,
+) (common.Address, *wrappednativetoken.WrappedNativeToken) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 
 	// Deploy mock WAVAX contract
-	address, tx, token, err := examplewavax.DeployExampleWAVAX(opts, subnet.RPCClient)
+	address, tx, token, err := wrappednativetoken.DeployWrappedNativeToken(opts, subnet.RPCClient, tokenSymbol)
 	Expect(err).Should(BeNil())
-	log.Info("Deployed ExampleWAVAX contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
+	log.Info("Deployed WrappedNativeToken contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
 
 	// Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
@@ -500,7 +501,7 @@ func SendNativeTokenSource(
 	subnet interfaces.SubnetTestInfo,
 	nativeTokenSource *nativetokensource.NativeTokenSource,
 	nativeTokenSourceAddress common.Address,
-	wrappedToken *examplewavax.ExampleWAVAX,
+	wrappedToken *wrappednativetoken.WrappedNativeToken,
 	input nativetokensource.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
@@ -970,7 +971,7 @@ func CheckERC20DestinationWithdrawal(
 func CheckNativeTokenSourceWithdrawal(
 	ctx context.Context,
 	nativeTokenSourceAddress common.Address,
-	sourceToken *examplewavax.ExampleWAVAX,
+	sourceToken *wrappednativetoken.WrappedNativeToken,
 	receipt *types.Receipt,
 	expectedAmount *big.Int,
 ) {

@@ -6,14 +6,14 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
-import {ExampleWAVAX} from "../src/mocks/ExampleWAVAX.sol";
+import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
 
-contract ExampleWAVAXTest is Test {
+contract WrappedNativeTokenTest is Test {
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
-    ExampleWAVAX public wavax;
+    WrappedNativeToken public wavax;
 
     function setUp() public virtual {
-        wavax = new ExampleWAVAX();
+        wavax = new WrappedNativeToken("AVAX");
     }
 
     function testFallback() public {

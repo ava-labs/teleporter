@@ -67,7 +67,7 @@ Running tests...
 | src/NativeTokenSource.sol                   | 100.00% (14/14)   | 100.00% (16/16)   | 100.00% (2/2)    | 100.00% (6/6)   |
 | src/TeleporterTokenDestination.sol          | 100.00% (69/69)   | 100.00% (78/78)   | 96.88% (62/64)   | 100.00% (6/6)   |
 | src/TeleporterTokenSource.sol               | 100.00% (132/132) | 100.00% (147/147) | 100.00% (90/90)  | 100.00% (11/11) |
-| src/mocks/ExampleWAVAX.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (3/3)   |
+| src/WrappedNativeToken.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (3/3)   |
 | src/mocks/MockERC20SendAndCallReceiver.sol  | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (4/4)    | 100.00% (2/2)   |
 | src/mocks/MockNativeSendAndCallReceiver.sol | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (4/4)    | 100.00% (2/2)   |
 | src/utils/CallUtils.sol                     | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)    | 100.00% (2/2)   |
