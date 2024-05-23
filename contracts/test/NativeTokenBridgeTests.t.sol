@@ -5,11 +5,11 @@
 
 pragma solidity 0.8.18;
 
-import {TeleporterTokenBridgeTest} from "./TeleporterTokenBridgeTests.t.sol";
+import {TokenBridgeTest} from "./TokenBridgeTests.t.sol";
 import {INativeTokenBridge} from "../src/interfaces/INativeTokenBridge.sol";
-import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
+import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenBridge.sol";
 
-abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
+abstract contract NativeTokenBridgeTest is TokenBridgeTest {
     INativeTokenBridge public nativeTokenBridge;
 
     event Deposit(address indexed sender, uint256 amount);
@@ -17,9 +17,7 @@ abstract contract NativeTokenBridgeTest is TeleporterTokenBridgeTest {
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredDestination(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 0
-        );
+        _setUpRegisterSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
     }

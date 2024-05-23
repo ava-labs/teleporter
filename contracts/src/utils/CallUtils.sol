@@ -36,7 +36,7 @@ library CallUtils {
             return false;
         }
 
-        // Call the destination address of the message with the provided data and amount of gas.
+        // Call the target address of the message with the provided data and amount of gas.
         //
         // Assembly is used for the low-level call to avoid unnecessary expansion of the return data in memory.
         // This prevents possible "return bomb" vectors where the external contract could force the caller
