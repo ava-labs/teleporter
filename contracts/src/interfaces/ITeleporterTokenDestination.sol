@@ -21,6 +21,10 @@ import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
  * Teleporter registry and Teleporter versions.
  * @param sourceBlockchainID The blockchain ID of the associated source token bridge
  * @param tokenSourceAddress The address of the source token bridge contract.
+ * @param tokenSourceDecimals The number of decimal places used by the source
+ * token.
+ * @param tokenDecimals The number of decimal places used by the destination
+ * token described by these settings.
  */
 struct TeleporterTokenDestinationSettings {
     address teleporterRegistryAddress;
