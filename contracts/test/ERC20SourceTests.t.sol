@@ -26,7 +26,8 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         app = new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            address(mockERC20)
+            address(mockERC20),
+            TOKEN_SOURCE_DECIMALS
         );
         erc20Bridge = app;
         tokenSource = app;
@@ -40,7 +41,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
      */
     function testZeroTeleporterRegistryAddress() public {
         vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new ERC20Source(address(0), address(this), address(mockERC20));
+        new ERC20Source(address(0), address(this), address(mockERC20), TOKEN_SOURCE_DECIMALS);
     }
 
     function testZeroTeleporterManagerAddress() public {
@@ -48,7 +49,8 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
-            address(mockERC20)
+            address(mockERC20),
+            TOKEN_SOURCE_DECIMALS
         );
     }
 
@@ -57,7 +59,8 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
-            address(0)
+            address(0),
+            TOKEN_SOURCE_DECIMALS
         );
     }
 

@@ -430,8 +430,8 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             payload: abi.encode(
                 RegisterDestinationMessage({
                     initialReserveImbalance: tokenDestination.initialReserveImbalance(),
-                    tokenMultiplier: tokenDestination.tokenMultiplier(),
-                    multiplyOnDestination: tokenDestination.multiplyOnDestination()
+                    destinationTokenDecimals: tokenDestination.tokenDecimals(),
+                    sourceTokenDecimals: tokenDestination.tokenDecimals() - _DEFAULT_DECIMALS_SHIFT
                 })
                 )
         });

@@ -21,6 +21,7 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
+import {Math} from "@openzeppelin/contracts@4.8.1/utils/math/Math.sol";
 
 abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
@@ -744,20 +745,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(DEFAULT_DESTINATION_BLOCKCHAIN_ID, address(0), 0);
     }
 
-    function testRegisterDestinationZeroTokenMultiplier() public {
-        vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 0, false
-        );
-    }
-
-    function testRegisterDestinationTokenMultiplierToLarge() public {
-        vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 1e18 + 1, false
-        );
-    }
-
     function testRegisterDestinationRoundUpCollateralNeeded() public {
         _setUpRegisteredDestination(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 11, 10, true
@@ -875,10 +862,15 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         uint256 tokenMultiplier,
         bool multiplyOnDestination
     ) internal virtual {
+        uint8 destinationTokenDecimals =
+            uint8(multiplyOnDestination
+                ? TOKEN_SOURCE_DECIMALS + Math.log10(tokenMultiplier)
+                : TOKEN_SOURCE_DECIMALS - Math.log10(tokenMultiplier)
+            );
         RegisterDestinationMessage memory payload = RegisterDestinationMessage({
             initialReserveImbalance: initialReserveImbalance,
-            tokenMultiplier: tokenMultiplier,
-            multiplyOnDestination: multiplyOnDestination
+            sourceTokenDecimals: TOKEN_SOURCE_DECIMALS,
+            destinationTokenDecimals: uint8(destinationTokenDecimals)
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,

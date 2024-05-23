@@ -43,6 +43,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         bytes32(hex"9876987698769876987698769876987698769876987698769876987698769876");
     address public constant DEFAULT_DESTINATION_ADDRESS = 0xd878229c9c3575F224784DE610911B5607a3ad15;
     address public constant TOKEN_SOURCE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    uint8 public constant TOKEN_SOURCE_DECIMALS = 18;
     address public constant DEFAULT_SENDER_ADDRESS = 0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5;
     address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
     address public constant DEFAULT_RECIPIENT_CONTRACT_ADDRESS =

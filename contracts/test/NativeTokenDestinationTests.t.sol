@@ -51,12 +51,12 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: 0,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
         );
     }
@@ -68,12 +68,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: 100}
         );
     }
@@ -85,12 +86,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: bytes32(0),
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
         );
     }
@@ -102,12 +104,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
         );
     }
@@ -313,12 +316,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: 0}
         );
         tokenDestination = app;
@@ -373,12 +377,13 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnDestination: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
         );
     }
