@@ -36,6 +36,11 @@ library TokenScalingUtils {
         return _scaleTokens(tokenMultiplier, multiplyOnDestination, destinationTokenAmount, false);
     }
 
+    /**
+     * @notice Accepts the client-facing token decimals denominations and uses
+     * them to derive the scaling factors that are used by the internal scaling
+     * logic.
+     */
     function deriveFactors(
         uint8 sourceTokenDecimals,
         uint8 destinationTokenDecimals
