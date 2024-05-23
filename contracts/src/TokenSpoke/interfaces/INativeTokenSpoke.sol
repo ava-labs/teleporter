@@ -24,9 +24,8 @@ interface INativeTokenSpoke is ITokenSpoke, INativeTokenBridge {
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     /**
-     * @notice Reports the increase in total burned transaction fees on this chain to the
-     * corresponding source token bridge.
-     * @param requiredGasLimit The gas limit required to report the burned tx fees.
+     * @notice Reports the increase in total burned transaction fees on this chain to its corresponding hub instance.
+     * @param requiredGasLimit The gas limit required to report the burned transaction fees to the hub contract.
      */
     function reportBurnedTxFees(uint256 requiredGasLimit) external;
 
