@@ -19,9 +19,9 @@ Hub contract instances specify either an ERC20 token or the native token to be b
 
 The spoke tokens are designed to by default have compatibility with the token bridge on the hub chain, and allow custom logic to be implemented in addition. For example, developers can inherit and extend the `ERC20TokenSpoke` contract to add additional functionality, such as a custom minting, burning, or transfer logic.
 
-The token bridge also supports "multi-hop" transfers, where tokens can be transferred between spoke chains. The multi-hop transfer first transfers the token from the origin spoke chain to the hub chain, where token balances are updated, and then triggers a second transfer to the final spoke chain.
+The token bridge also supports "multi-hop" transfers, where tokens can be transferred between spoke chains. To illustrate, consider two spokes _S<sub>a</sub>_ and _S<sub>b</sub>_ that are both connected to the same hub _H_. A multi-hop transfer from _S<sub>a</sub>_ to _S<sub>b</sub>_ first gets routed from _S<sub>a</sub>_ to _H_, where spoke balances are updated, and then _H_ automatically routes the transfer on to _S<sub>b</sub>_.
 
-In addition to supporting basic token transfers, the token bridge contracts offer a `sendAndCall` interface for bridging tokens and using them in a smart contract interaction all within a single Teleporter message. If the call to the recipient smart contract fails, the bridged tokens are sent to a fallback recipient address. The `sendAndCall` interface enables the direct use of bridged tokens in dApps on other chains, such as performing swaps, using the tokens to pay for fees when invoking services, etc.
+In addition to supporting basic token transfers, the token bridge contracts offer a `sendAndCall` interface for bridging tokens and using them in a smart contract interaction all within a single Teleporter message. If the call to the recipient smart contract fails, the bridged tokens are sent to a fallback recipient address on the destination chain of the transfer. The `sendAndCall` interface enables the direct use of bridged tokens in dApps on other chains, such as performing swaps, using the tokens to pay for fees when invoking services, etc.
 
 A breakdown of the structure of the contracts that implement this function can be found under `./contracts` [here](./contracts/README.md).
 
