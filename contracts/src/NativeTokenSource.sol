@@ -72,7 +72,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * @dev See {INativeTokenBridge-send}
      */
     function send(SendTokensInput calldata input) external payable {
-        _send(input, msg.value, false);
+        _send(input, msg.value);
     }
 
     /**
@@ -84,8 +84,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
             originBridgeAddress: address(this),
             originSenderAddress: _msgSender(),
             input: input,
-            amount: msg.value,
-            isMultiHop: false
+            amount: msg.value
         });
     }
 
