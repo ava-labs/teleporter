@@ -35,7 +35,7 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
     using SafeERC20 for IERC20;
 
     /// @notice The ERC20 token this source contract bridges to destination instances.
-    IERC20 public immutable token;
+    IERC20 public token;
 
     /**
      * @notice Initializes this source token bridge instance to send ERC20
@@ -46,11 +46,12 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
      * Teleporter registry and Teleporter versions.
      * @param tokenAddress The ERC20 token contract address to bridge to the destination chain
      */
-    constructor(
+    function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
         address tokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, tokenAddress) {
+    ) public override initializer {
+        TeleporterTokenSource.initialize(teleporterRegistryAddress, teleporterManager, tokenAddress);
         token = IERC20(tokenAddress);
     }
 

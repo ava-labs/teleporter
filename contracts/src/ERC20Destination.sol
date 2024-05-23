@@ -9,8 +9,8 @@ import {TeleporterTokenDestination} from "./TeleporterTokenDestination.sol";
 import {TeleporterTokenDestinationSettings} from "./interfaces/ITeleporterTokenDestination.sol";
 import {IERC20Bridge} from "./interfaces/IERC20Bridge.sol";
 import {IERC20SendAndCallReceiver} from "./interfaces/IERC20SendAndCallReceiver.sol";
-import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Upgradeable, ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
@@ -31,10 +31,10 @@ import {CallUtils} from "./utils/CallUtils.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
-    using SafeERC20 for IERC20;
+contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20Upgradeable {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    uint8 private immutable _decimals;
+    uint8 private _decimals;
 
     /**
      * @notice Initializes this destination token bridge instance to receive
@@ -45,12 +45,14 @@ contract ERC20Destination is IERC20Bridge, TeleporterTokenDestination, ERC20 {
      * @param tokenSymbol The symbol of the ERC20 token.
      * @param tokenDecimals The number of decimals for the ERC20 token.
      */
-    constructor(
+    function initialize(
         TeleporterTokenDestinationSettings memory settings,
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals
-    ) TeleporterTokenDestination(settings, 0, 0, false) ERC20(tokenName, tokenSymbol) {
+    ) public initializer {
+        __ERC20_init(tokenName, tokenSymbol);
+        TeleporterTokenDestination.initialize(settings, 0, 0, false);
         _decimals = tokenDecimals;
     }
 

@@ -28,11 +28,11 @@ import {
     SingleHopSendMessage,
     SingleHopCallMessage
 } from "./interfaces/ITeleporterTokenBridge.sol";
-import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SendReentrancyGuard} from "./utils/SendReentrancyGuard.sol";
 import {CallUtils} from "./utils/CallUtils.sol";
 import {TokenScalingUtils} from "./utils/TokenScalingUtils.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -47,8 +47,7 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
  * It mints and burns native tokens on the destination chain corresponding to locks and unlocks on the source chain.
  */
 contract NativeTokenDestination is
-    ERC20,
-    TeleporterOwnerUpgradeable,
+    ERC20Upgradeable,
     INativeTokenDestination,
     SendReentrancyGuard,
     TeleporterTokenDestination,
@@ -94,7 +93,7 @@ contract NativeTokenDestination is
      * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering
      * the message created by calling calling reportBurnedTxFees().
      */
-    uint256 public immutable burnedFeesReportingRewardPercentage;
+    uint256 public burnedFeesReportingRewardPercentage;
 
     /**
      * @notice Total number of tokens minted by this contract through the native minter precompile.
@@ -127,22 +126,17 @@ contract NativeTokenDestination is
      * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
      * that will be rewarded to sender of the report.
      */
-    constructor(
+    function initialize(
         TeleporterTokenDestinationSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
         uint8 decimalsShift,
         bool multiplyOnDestination,
         uint256 burnedFeesReportingRewardPercentage_
-    )
-        ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
-        TeleporterTokenDestination(
-            settings,
-            initialReserveImbalance,
-            decimalsShift,
-            multiplyOnDestination
-        )
+    ) public initializer
     {
+        __ERC20_init(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol);
+        TeleporterTokenDestination.initialize(settings, initialReserveImbalance, decimalsShift, multiplyOnDestination);
         require(
             initialReserveImbalance != 0, "NativeTokenDestination: zero initial reserve imbalance"
         );

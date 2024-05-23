@@ -37,7 +37,7 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
-    IWrappedNativeToken public immutable wrappedToken;
+    IWrappedNativeToken public wrappedToken;
 
     /**
      * @notice Initializes this source token bridge instance to send
@@ -49,11 +49,12 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
      * @param wrappedTokenAddress The wrapped token contract address of the native asset
      * to be bridged to destination bridges.
      */
-    constructor(
+    function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
         address wrappedTokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress) {
+    ) public override initializer {
+        TeleporterTokenSource.initialize(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress);
         wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
 

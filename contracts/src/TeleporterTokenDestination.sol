@@ -46,12 +46,12 @@ abstract contract TeleporterTokenDestination is
     SendReentrancyGuard
 {
     /// @notice The blockchain ID of the chain this contract is deployed on.
-    bytes32 public immutable blockchainID;
+    bytes32 public blockchainID;
 
     /// @notice The blockchain ID of the source chain this contract receives tokens from.
-    bytes32 public immutable sourceBlockchainID;
+    bytes32 public sourceBlockchainID;
     /// @notice The address of the source token bridge instance this contract receives tokens from.
-    address public immutable tokenSourceAddress;
+    address public tokenSourceAddress;
 
     /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
@@ -60,7 +60,7 @@ abstract contract TeleporterTokenDestination is
      * @dev This can be used to normalize the number of decimals places between the tokens on
      * the two subnets. Is calculated as 10^d, where d is decimalsShift specified in the constructor.
      */
-    uint256 public immutable tokenMultiplier;
+    uint256 public tokenMultiplier;
 
     /**
      * @notice If {multiplyOnDestination} is true, the source token amount value will be multiplied by {tokenMultiplier} when tokens
@@ -71,14 +71,14 @@ abstract contract TeleporterTokenDestination is
      * are transferred from the source chain into this destination chain, and multiplied by {tokenMultiplier} when
      * tokens are transferred from this destination chain back to the source chain.
      */
-    bool public immutable multiplyOnDestination;
+    bool public multiplyOnDestination;
 
     /**
      * @notice Initial reserve imbalance that the token for this destination bridge
      * starts with. The source bridge contract must collateralize a corresonding amount
      * of source tokens before tokens can be minted on this contract.
      */
-    uint256 public immutable initialReserveImbalance;
+    uint256 public initialReserveImbalance;
 
     /**
      * @notice Whether or not the contract is known to be fully collateralized. The contract initially
@@ -116,12 +116,13 @@ abstract contract TeleporterTokenDestination is
      * @notice Initializes this destination token bridge instance to receive
      * tokens from the specified source blockchain and token bridge instance.
      */
-    constructor(
+    function initialize(
         TeleporterTokenDestinationSettings memory settings,
         uint256 initialReserveImbalance_,
         uint8 decimalsShift,
         bool multiplyOnDestination_
-    ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
+    ) internal onlyInitializing {
+        TeleporterOwnerUpgradeable.initialize(settings.teleporterRegistryAddress, settings.teleporterManager) ;
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
             settings.sourceBlockchainID != bytes32(0),

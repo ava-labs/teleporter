@@ -62,7 +62,7 @@ abstract contract TeleporterTokenSource is
     SendReentrancyGuard
 {
     /// @notice The blockchain ID of the chain this contract is deployed on.
-    bytes32 public immutable blockchainID;
+    bytes32 public blockchainID;
 
     /**
      * @notice The token address this source contract bridges to destination instances.
@@ -70,7 +70,7 @@ abstract contract TeleporterTokenSource is
      * If the token is an ERC20 token, the contract address is directly passed in.
      * If the token is a native asset, the contract address is the wrapped token contract.
      */
-    address public immutable tokenAddress;
+    address public tokenAddress;
 
     /**
      * @notice Tracks the settings for each destination bridge instance. Destination bridge instances
@@ -101,11 +101,12 @@ abstract contract TeleporterTokenSource is
      * @notice Initializes this source token bridge instance to send
      * tokens to the specified destination chain and token bridge instance.
      */
-    constructor(
+    function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
         address tokenAddress_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
+    ) public virtual onlyInitializing {
+        TeleporterOwnerUpgradeable.initialize(teleporterRegistryAddress, teleporterManager);
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(tokenAddress_ != address(0), "TeleporterTokenSource: zero token address");
         tokenAddress = tokenAddress_;
