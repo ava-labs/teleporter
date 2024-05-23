@@ -184,7 +184,7 @@ contract NativeTokenDestination is
     }
 
     /**
-     * @dev See {INativeTokenDestination-reportTotalBurnedTxFees}.
+     * @dev See {INativeTokenDestination-reportBurnedTxFees}.
      */
     function reportBurnedTxFees(uint256 requiredGasLimit) external sendNonReentrant {
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
