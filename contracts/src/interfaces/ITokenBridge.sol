@@ -38,7 +38,7 @@ struct SendTokensInput {
 }
 
 /**
- * @notice Parameters for briding tokens to another chain and calling a contract on that chain
+ * @notice Parameters for bridging tokens to another chain and calling a contract on that chain
  * @param destinationBlockchainID BlockchainID of the destination
  * @param destinationBridgeAddress Address of the destination token bridge instance
  * @param recipientContract The contract on the destination chain that will be called
