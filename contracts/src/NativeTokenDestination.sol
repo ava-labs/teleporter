@@ -137,7 +137,10 @@ contract NativeTokenDestination is
         require(
             initialReserveImbalance != 0, "NativeTokenDestination: zero initial reserve imbalance"
         );
-
+        require(
+            settings.tokenDecimals == 18, // to match the ERC20 default
+            "NativeTokenDestination: settings.tokenDecimals is not 18"
+        );
         require(
             burnedFeesReportingRewardPercentage_ < 100, "NativeTokenDestination: invalid percentage"
         );
