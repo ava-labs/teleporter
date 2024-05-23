@@ -159,7 +159,7 @@ abstract contract TeleporterTokenDestination is
         sourceTokenDecimals = settings.tokenSourceDecimals;
         tokenDecimals = settings.tokenDecimals;
         (tokenMultiplier, multiplyOnDestination) =
-            TokenScalingUtils.deriveFactors(sourceTokenDecimals, tokenDecimals);
+            TokenScalingUtils.deriveTokenMultiplierValues(sourceTokenDecimals, tokenDecimals);
     }
 
     /**

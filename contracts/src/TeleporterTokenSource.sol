@@ -146,7 +146,7 @@ abstract contract TeleporterTokenSource is
         );
 
         (uint256 tokenMultiplier, bool multiplyOnDestination) =
-            TokenScalingUtils.deriveFactors(tokenDecimals, destinationTokenDecimals);
+            TokenScalingUtils.deriveTokenMultiplierValues(tokenDecimals, destinationTokenDecimals);
 
         // Calculate the collateral needed in source token denomination.
         uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(

@@ -38,20 +38,21 @@ library TokenScalingUtils {
 
     /**
      * @notice Accepts the client-facing token decimals denominations and uses
-     * them to derive the scaling factors that are used by the internal scaling
+     * them to derive the scaling multiplier values that are used by the internal scaling
      * logic.
      */
-    function deriveFactors(
+    function deriveTokenMultiplierValues(
         uint8 sourceTokenDecimals,
         uint8 destinationTokenDecimals
-    ) internal pure returns (uint256 tokenMultiplier, bool multiplyOnDestination) {
-        multiplyOnDestination = destinationTokenDecimals > sourceTokenDecimals;
-        tokenMultiplier = 10
+    ) internal pure returns (uint256, bool) {
+        bool multiplyOnDestination = destinationTokenDecimals > sourceTokenDecimals;
+        uint256 tokenMultiplier = 10
             ** (
                 multiplyOnDestination
                     ? destinationTokenDecimals - sourceTokenDecimals
                     : sourceTokenDecimals - destinationTokenDecimals
             );
+        return (tokenMultiplier, multiplyOnDestination);
     }
 
     /**
