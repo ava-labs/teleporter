@@ -121,8 +121,7 @@ abstract contract TeleporterTokenSource is
     function _registerDestination(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
-        uint256 initialReserveImbalance,
-        uint8 destinationTokenDecimals
+        RegisterDestinationMessage memory message
     ) internal {
         require(
             destinationBlockchainID != bytes32(0),
@@ -141,22 +140,26 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: destination already registered"
         );
         require(
-            destinationTokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            message.destinationTokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TeleporterTokenSource: destination token decimals too high"
         );
+        require(
+            message.sourceTokenDecimals == tokenDecimals,
+            "TeleporterTokenSource: invalid token decimals"
+        );
 
-        (uint256 tokenMultiplier, bool multiplyOnDestination) =
-            TokenScalingUtils.deriveTokenMultiplierValues(tokenDecimals, destinationTokenDecimals);
+        (uint256 tokenMultiplier, bool multiplyOnDestination) = TokenScalingUtils
+            .deriveTokenMultiplierValues(tokenDecimals, message.destinationTokenDecimals);
 
         // Calculate the collateral needed in source token denomination.
         uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(
-            tokenMultiplier, multiplyOnDestination, initialReserveImbalance
+            tokenMultiplier, multiplyOnDestination, message.initialReserveImbalance
         );
 
         // Round up the collateral needed by 1 in the case that {multiplyOnDestination} is true and
         // {initialReserveImbalance} is not divisible by the {tokenMultiplier} to
         // ensure that the full amount is accounted for.
-        if (multiplyOnDestination && initialReserveImbalance % tokenMultiplier != 0) {
+        if (multiplyOnDestination && message.initialReserveImbalance % tokenMultiplier != 0) {
             collateralNeeded += 1;
         }
 
@@ -172,7 +175,7 @@ abstract contract TeleporterTokenSource is
             destinationBlockchainID,
             destinationBridgeAddress,
             collateralNeeded,
-            destinationTokenDecimals
+            message.destinationTokenDecimals
         );
     }
 
@@ -551,16 +554,7 @@ abstract contract TeleporterTokenSource is
         } else if (bridgeMessage.messageType == BridgeMessageType.REGISTER_DESTINATION) {
             RegisterDestinationMessage memory payload =
                 abi.decode(bridgeMessage.payload, (RegisterDestinationMessage));
-            require(
-                payload.sourceTokenDecimals == tokenDecimals,
-                "TeleporterTokenSource: invalid token decimals"
-            );
-            _registerDestination(
-                sourceBlockchainID,
-                originSenderAddress,
-                payload.initialReserveImbalance,
-                payload.destinationTokenDecimals
-            );
+            _registerDestination(sourceBlockchainID, originSenderAddress, payload);
         }
     }
 
