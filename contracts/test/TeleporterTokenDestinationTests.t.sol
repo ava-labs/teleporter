@@ -27,6 +27,8 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     using SafeERC20 for IERC20;
 
     TeleporterTokenDestination public tokenDestination;
+    uint8 public constant DEFAULT_TOKEN_DECIMALS = 18;
+    uint8 public tokenDecimals = DEFAULT_TOKEN_DECIMALS;
 
     function setUp() public virtual {
         vm.mockCall(
@@ -419,8 +421,8 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
             payload: abi.encode(
                 RegisterDestinationMessage({
                     initialReserveImbalance: tokenDestination.initialReserveImbalance(),
-                    destinationTokenDecimals: tokenDestination.tokenDecimals(),
-                    sourceTokenDecimals: tokenDestination.tokenDecimals() - _DEFAULT_DECIMALS_SHIFT
+                    destinationTokenDecimals: tokenDecimals,
+                    sourceTokenDecimals: TOKEN_SOURCE_DECIMALS
                 })
                 )
         });

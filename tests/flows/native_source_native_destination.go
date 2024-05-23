@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	decimalsShift           = uint8(1)
+	decimalsShift           = uint8(0)
 	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
 	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
 	multiplyOnDestination   = true

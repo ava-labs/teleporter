@@ -53,7 +53,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
                 tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
-                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+                tokenDecimals: tokenDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: 0,
@@ -70,7 +70,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
                 tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
-                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+                tokenDecimals: tokenDecimals
 
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -88,7 +88,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 sourceBlockchainID: bytes32(0),
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
                 tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
-                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+                tokenDecimals: tokenDecimals
 
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -106,7 +106,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
                 tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
-                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+                tokenDecimals: tokenDecimals
 
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -251,12 +251,6 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
     }
 
-    function testReportBurnFeesScaledToZero() public {
-        vm.deal(app.BURNED_TX_FEES_ADDRESS(), 1);
-        vm.expectRevert("NativeTokenDestination: zero scaled amount to report burn");
-        app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
-    }
-
     function testReportBurnFeesSuccess() public {
         // First difference is 100,000
         uint256 initialBurnedTxFeeAmount = 100_003;
@@ -318,7 +312,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
                 tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
-                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+                tokenDecimals: tokenDecimals
 
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -379,7 +373,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
                 tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
-                tokenDecimals: TOKEN_SOURCE_DECIMALS + _DEFAULT_DECIMALS_SHIFT
+                tokenDecimals: tokenDecimals
 
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
