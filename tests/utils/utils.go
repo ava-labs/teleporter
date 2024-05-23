@@ -70,6 +70,7 @@ func DeployERC20Source(
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
 	tokenSourceAddress common.Address,
+	tokenSourceDecimals uint8,
 ) (common.Address, *erc20source.ERC20Source) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
@@ -82,6 +83,7 @@ func DeployERC20Source(
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
 		tokenSourceAddress,
+		tokenSourceDecimals,
 	)
 	Expect(err).Should(BeNil())
 
@@ -97,6 +99,7 @@ func DeployERC20Destination(
 	teleporterManager common.Address,
 	sourceBlockchainID ids.ID,
 	tokenSourceAddress common.Address,
+	tokenSourceDecimals uint8,
 	tokenName string,
 	tokenSymbol string,
 	tokenDecimals uint8,
@@ -114,6 +117,8 @@ func DeployERC20Destination(
 			TeleporterManager:         teleporterManager,
 			SourceBlockchainID:        sourceBlockchainID,
 			TokenSourceAddress:        tokenSourceAddress,
+			TokenSourceDecimals:       tokenSourceDecimals,
+			TokenDecimals:             tokenDecimals,
 		},
 		tokenName,
 		tokenSymbol,
@@ -133,6 +138,7 @@ func DeployNativeTokenDestination(
 	teleporterManager common.Address,
 	sourceBlockchainID ids.ID,
 	tokenSourceAddress common.Address,
+	tokenSourceDecimals uint8,
 	initialReserveImbalance *big.Int,
 	decimalsShift uint8,
 	multiplyOnDestination bool,
@@ -151,6 +157,13 @@ func DeployNativeTokenDestination(
 	)
 	Expect(err).Should(BeNil())
 
+	var tokenDecimals uint8
+	if multiplyOnDestination {
+		tokenDecimals = tokenSourceDecimals + decimalsShift
+	} else {
+		tokenDecimals = tokenSourceDecimals - decimalsShift
+	}
+
 	address, tx, nativeTokenDestination, err := nativetokendestination.DeployNativeTokenDestination(
 		opts,
 		subnet.RPCClient,
@@ -159,11 +172,11 @@ func DeployNativeTokenDestination(
 			TeleporterManager:         teleporterManager,
 			SourceBlockchainID:        sourceBlockchainID,
 			TokenSourceAddress:        tokenSourceAddress,
+			TokenSourceDecimals:       tokenSourceDecimals,
+			TokenDecimals:             tokenDecimals,
 		},
 		symbol,
 		initialReserveImbalance,
-		decimalsShift,
-		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
 	Expect(err).Should(BeNil())
@@ -350,8 +363,6 @@ func RegisterTokenDestinationOnSource(
 		expectedMultiplyOnDestination,
 	)
 	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
-	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
-	Expect(registerEvent.MultiplyOnDestination).Should(Equal(expectedMultiplyOnDestination))
 
 	return collateralNeeded
 }

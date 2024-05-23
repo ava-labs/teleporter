@@ -34,6 +34,9 @@ func ERC20SourceERC20DestinationMultiHop(network interfaces.Network) {
 		cChainInfo,
 	)
 
+	sourceTokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+
 	// Create an ERC20Source for bridging the source token
 	erc20SourceAddress, erc20Source := utils.DeployERC20Source(
 		ctx,
@@ -41,6 +44,7 @@ func ERC20SourceERC20DestinationMultiHop(network interfaces.Network) {
 		cChainInfo,
 		fundedAddress,
 		sourceTokenAddress,
+		sourceTokenDecimals,
 	)
 
 	// Token representation on subnets A and B will have same name, symbol, and decimals
@@ -59,6 +63,7 @@ func ERC20SourceERC20DestinationMultiHop(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20SourceAddress,
+		sourceTokenDecimals,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
@@ -72,6 +77,7 @@ func ERC20SourceERC20DestinationMultiHop(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20SourceAddress,
+		sourceTokenDecimals,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,

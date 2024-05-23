@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	erc20source "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ERC20Source"
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -34,6 +35,9 @@ func ERC20SourceNativeDestinationMultiHop(network interfaces.Network) {
 		cChainInfo,
 	)
 
+	sourceTokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+
 	// Create an ERC20Source for bridging the source token
 	erc20SourceAddress, erc20Source := utils.DeployERC20Source(
 		ctx,
@@ -41,6 +45,7 @@ func ERC20SourceNativeDestinationMultiHop(network interfaces.Network) {
 		cChainInfo,
 		fundedAddress,
 		sourceTokenAddress,
+		sourceTokenDecimals,
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
@@ -51,6 +56,7 @@ func ERC20SourceNativeDestinationMultiHop(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20SourceAddress,
+		sourceTokenDecimals,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnDestination,
@@ -65,6 +71,7 @@ func ERC20SourceNativeDestinationMultiHop(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20SourceAddress,
+		sourceTokenDecimals,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnDestination,

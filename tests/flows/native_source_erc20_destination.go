@@ -60,6 +60,7 @@ func NativeSourceERC20Destination(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
+		18,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,

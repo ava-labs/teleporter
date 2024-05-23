@@ -60,6 +60,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
+		18,
 		initialReserveImbalance,
 		decimalsShift,
 		multiplyOnDestination,
