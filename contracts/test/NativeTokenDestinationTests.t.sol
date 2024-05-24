@@ -35,6 +35,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function setUp() public override {
         TeleporterTokenDestinationTest.setUp();
 
+        tokenSourceDecimals = 18;
         app = NativeTokenDestination(payable(address(_createNewDestinationInstance())));
         tokenDestination = app;
         nativeTokenBridge = app;
@@ -52,7 +53,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenSourceDecimals: tokenSourceDecimals,
                 tokenDecimals: tokenDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -69,7 +70,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenSourceDecimals: tokenSourceDecimals,
                 tokenDecimals: tokenDecimals
 
             }),
@@ -87,7 +88,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: bytes32(0),
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenSourceDecimals: tokenSourceDecimals,
                 tokenDecimals: tokenDecimals
 
             }),
@@ -105,7 +106,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenSourceDecimals: tokenSourceDecimals,
                 tokenDecimals: tokenDecimals
 
             }),
@@ -311,7 +312,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenSourceDecimals: tokenSourceDecimals,
                 tokenDecimals: tokenDecimals
 
             }),
@@ -372,7 +373,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: TOKEN_SOURCE_DECIMALS,
+                tokenSourceDecimals: tokenSourceDecimals,
                 tokenDecimals: tokenDecimals
 
             }),

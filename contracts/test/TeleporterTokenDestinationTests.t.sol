@@ -422,7 +422,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
                 RegisterDestinationMessage({
                     initialReserveImbalance: tokenDestination.initialReserveImbalance(),
                     destinationTokenDecimals: tokenDecimals,
-                    sourceTokenDecimals: TOKEN_SOURCE_DECIMALS
+                    sourceTokenDecimals: tokenSourceDecimals
                 })
                 )
         });
