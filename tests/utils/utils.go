@@ -19,7 +19,7 @@ import (
 	teleportertokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenDestination"
 	teleportertokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenSource"
 	wrappednativetoken "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/WrappedNativeToken"
-	exampleerc20 "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleERC20"
+	exampleerc20 "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleERC20Decimals"
 	mockERC20SACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
 	mockNSACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockNativeSendAndCallReceiver"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -276,7 +276,7 @@ func DeployExampleERC20(
 	senderKey *ecdsa.PrivateKey,
 	source interfaces.SubnetTestInfo,
 	tokenDecimals uint8,
-) (common.Address, *exampleerc20.ExampleERC20) {
+) (common.Address, *exampleerc20.ExampleERC20Decimals) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
 	Expect(err).Should(BeNil())
 
@@ -400,7 +400,7 @@ func AddCollateralToERC20Source(
 	subnet interfaces.SubnetTestInfo,
 	erc20Source *erc20source.ERC20Source,
 	erc20SourceAddress common.Address,
-	exampleERC20 *exampleerc20.ExampleERC20,
+	exampleERC20 *exampleerc20.ExampleERC20Decimals,
 	destinationBlockchainID ids.ID,
 	destinationBridgeAddress common.Address,
 	collateralAmount *big.Int,
@@ -490,7 +490,7 @@ func SendERC20Source(
 	subnet interfaces.SubnetTestInfo,
 	erc20Source *erc20source.ERC20Source,
 	erc20SourceAddress common.Address,
-	sourceToken *exampleerc20.ExampleERC20,
+	sourceToken *exampleerc20.ExampleERC20Decimals,
 	input erc20source.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
@@ -657,7 +657,7 @@ func SendAndCallERC20Source(
 	subnet interfaces.SubnetTestInfo,
 	erc20Source *erc20source.ERC20Source,
 	erc20SourceAddress common.Address,
-	sourceToken *exampleerc20.ExampleERC20,
+	sourceToken *exampleerc20.ExampleERC20Decimals,
 	input erc20source.SendAndCallInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
@@ -978,7 +978,7 @@ func SendERC20MultiHopAndVerify(
 func CheckERC20SourceWithdrawal(
 	ctx context.Context,
 	erc20SourceAddress common.Address,
-	sourceToken *exampleerc20.ExampleERC20,
+	sourceToken *exampleerc20.ExampleERC20Decimals,
 	receipt *types.Receipt,
 	expectedRecipientAddress common.Address,
 	expectedAmount *big.Int,
@@ -1059,7 +1059,7 @@ func DepositAndApproveWrappedTokenForFees(
 
 func ERC20Approve(
 	ctx context.Context,
-	token *exampleerc20.ExampleERC20,
+	token *exampleerc20.ExampleERC20Decimals,
 	spender common.Address,
 	amount *big.Int,
 	source interfaces.SubnetTestInfo,
