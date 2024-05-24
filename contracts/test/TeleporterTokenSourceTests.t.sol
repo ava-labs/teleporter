@@ -765,7 +765,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testSendScaledAmount() public {
+    function testSendScaledUpAmount() public {
         uint256 amount = 100;
         uint256 feeAmount = 1;
 
@@ -793,6 +793,16 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount * tokenMultiplier);
         _send(input, amount);
+    }
+
+    function testSendScaledDownAmount() public {
+        uint256 amount = 100;
+        uint256 feeAmount = 1;
+
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFee = feeAmount;
+
+        uint256 tokenMultiplier = 1e12;
 
         // For another destination, the raw amount sent over the wire should be divided by 1e12.
         amount = 42 * tokenMultiplier;
@@ -803,7 +813,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, false
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
-        expectedMessage = TeleporterMessageInput({
+        TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({
