@@ -5,7 +5,7 @@
 pragma solidity 0.8.18;
 
 library TokenScalingUtils {
-    uint256 public constant MAX_TOKEN_DECIMALS = 30;
+    uint256 public constant MAX_TOKEN_DECIMALS = 18;
 
     /**
      * @notice Scales the {amount} of source tokens to the destination bridge's token scale.
