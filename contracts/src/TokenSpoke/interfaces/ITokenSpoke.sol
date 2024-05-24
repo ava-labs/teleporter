@@ -19,14 +19,16 @@ import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
  * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades.
  * @param teleporterManager Address that manages this contract's integration with the
  * Teleporter registry and Teleporter versions.
- * @param tokenHubBlockchainID The blockchain ID of the associated token hub instance.
- * @param tokenHubAddress The address of the associated token hub instance on the {tokenHubBlockchainID}.
+ * @param tokenHubBlockchainID The blockchain ID of the associated hub instance.
+ * @param tokenHubAddress The address of the associated token hub contract.
+ * @param tokenHubDecimals The number of decimal places used by the token hub's token.
  */
 struct TokenSpokeSettings {
     address teleporterRegistryAddress;
     address teleporterManager;
     bytes32 tokenHubBlockchainID;
     address tokenHubAddress;
+    uint8 tokenHubDecimals;
 }
 
 /**

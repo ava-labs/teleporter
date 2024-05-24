@@ -27,6 +27,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
     using SafeERC20 for IERC20;
 
     TokenSpoke public tokenSpoke;
+    uint8 public tokenDecimals = 18;
 
     function setUp() public virtual {
         vm.mockCall(
@@ -56,11 +57,25 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
+    function testZeroDestinationBlockchainWithSendAndCall() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.destinationBlockchainID = bytes32(0);
+        vm.expectRevert(_formatErrorMessage("zero destination blockchain ID"));
+        _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
     function testZeroDestinationBridgeAddress() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(0);
         vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testZeroDestinationBridgeAddressWithSendAndCall() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.destinationBridgeAddress = address(0);
+        vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
+        _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testInvalidSendingBackToSourceBlockchain() public {
@@ -70,21 +85,21 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
-    function testInvalidSendAndCallingBackToSourceBlockchain() public {
+    function testInvalidSendAndCallingBackToHubBlockchain() public {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.destinationBridgeAddress = address(this);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));
         _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
-    function testNonZeroSecondaryFeeToSourceBlockchain() public {
+    function testNonZeroSecondaryFeeToHubBlockchain() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.secondaryFee = 1;
         vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
-    function testNonZeroSecondaryFeeToSourceBlockchainCall() public {
+    function testNonZeroSecondaryFeeToHubBlockchainCall() public {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.secondaryFee = 1;
         vm.expectRevert(_formatErrorMessage("non-zero secondary fee"));
@@ -115,7 +130,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
     }
 
     function testSendingToOtherInstanceOnSameChain() public {
-        _sendMultiHopSendSuccess(tokenSpoke.blockchainID(), 100_000, 999, 555);
+        _sendMultiHopSendSuccess(tokenSpoke.blockchainID(), 1e18, 999, 555);
     }
 
     function testSendAndCallingToSameInstance() public {
@@ -128,7 +143,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
     }
 
     function testSendAndCallingToOtherInstanceOnSameChain() public {
-        _sendMultiHopCallSuccess(tokenSpoke.blockchainID(), 100_000, 999, 555);
+        _sendMultiHopCallSuccess(tokenSpoke.blockchainID(), 1e18, 999, 555);
     }
 
     function testSendZeroAmountAfterRemoveScaling() public {
@@ -151,7 +166,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
     }
 
     function testSendToSameBlockchainDifferentDestination() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenSpoke.blockchainID();
         // Set the desintation bridge address to an address different than the token spoke contract.
@@ -187,14 +202,14 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
     }
 
     function testSendMultiHopSendSuccess() public {
-        uint256 amount = 400_000;
+        uint256 amount = 4e15;
         uint256 primaryFee = 5;
         uint256 secondaryFee = 2;
         _sendMultiHopSendSuccess(OTHER_BLOCKCHAIN_ID, amount, primaryFee, secondaryFee);
     }
 
     function testSendMultiHopCallSuccess() public {
-        uint256 amount = 400_000;
+        uint256 amount = 4e18;
         uint256 primaryFee = 5;
         uint256 secondaryFee = 1;
         _sendMultiHopCallSuccess(OTHER_BLOCKCHAIN_ID, amount, primaryFee, secondaryFee);
@@ -395,7 +410,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
         assertEq(tokenSpoke.calculateNumWords(65), 3);
     }
 
-    function testRegisterWithSourceSuccess() public {
+    function testRegisterWithHubSuccess() public {
         // Create a new instance that has not yet received any messages.
         tokenSpoke = _createNewSpokeInstance();
         tokenBridge = tokenSpoke;
@@ -418,8 +433,8 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
             payload: abi.encode(
                 RegisterSpokeMessage({
                     initialReserveImbalance: tokenSpoke.initialReserveImbalance(),
-                    tokenMultiplier: tokenSpoke.tokenMultiplier(),
-                    multiplyOnSpoke: tokenSpoke.multiplyOnSpoke()
+                    spokeTokenDecimals: tokenDecimals,
+                    hubTokenDecimals: tokenHubDecimals
                 })
                 )
         });
@@ -444,7 +459,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
         tokenSpoke.registerWithHub(feeInfo);
     }
 
-    function testRegisterWithSourceAlreadyRegistered() public {
+    function testRegisterWithHubAlreadyRegistered() public {
         // Mock receiving a message from the hub so that the spoke knows
         // that it is registered already.
         uint256 amount = 1;
@@ -523,7 +538,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
 
     // Spokes don't need to register supported spokes because they
     // only send messages to their configured token hub.
-    function _setUpRegisterSpoke(bytes32, address, uint256) internal virtual override {
+    function _setUpRegisteredSpoke(bytes32, address, uint256) internal virtual override {
         return;
     }
 
@@ -636,7 +651,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
         });
     }
 
-    function _getDefaultSourceBlockchainID() internal pure override returns (bytes32) {
+    function _getDefaultMessageSourceBlockchainID() internal pure override returns (bytes32) {
         return DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID;
     }
 

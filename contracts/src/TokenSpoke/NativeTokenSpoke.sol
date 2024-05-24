@@ -111,9 +111,7 @@ contract NativeTokenSpoke is
      * and represents the received tokens with the native token on this chain.
      * @param settings Constructor settings for this token spoke instance.
      * @param nativeAssetSymbol The symbol of the native asset.
-     * @param initialReserveImbalance See {TokenSpoke-initialReserveImbalance_}.
-     * @param decimalsShift See {TokenSpoke-decimalsShift}.
-     * @param multiplyOnSpoke See {TokenSpoke-multiplyOnSpoke}.
+     * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
      * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
      * that will be rewarded to sender of the report.
      */
@@ -121,15 +119,12 @@ contract NativeTokenSpoke is
         TokenSpokeSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
-        uint8 decimalsShift,
-        bool multiplyOnSpoke,
         uint256 burnedFeesReportingRewardPercentage_
     )
         ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
-        TokenSpoke(settings, initialReserveImbalance, decimalsShift, multiplyOnSpoke)
+        TokenSpoke(settings, initialReserveImbalance, 18)
     {
         require(initialReserveImbalance != 0, "NativeTokenSpoke: zero initial reserve imbalance");
-
         require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenSpoke: invalid percentage");
         burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
     }

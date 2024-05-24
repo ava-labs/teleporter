@@ -28,11 +28,15 @@ func ERC20TokenHubERC20TokenSpoke(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on the primary network as the token to be bridged
-	exampleERC20Address, exampleERC20 := teleporterUtils.DeployExampleERC20(
+	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		erc20TokenHubDecimals,
 	)
+
+	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
 
 	// Create an ERC20TokenHub for bridging the ERC20 token
 	erc20TokenHubAddress, erc20TokenHub := utils.DeployERC20TokenHub(
@@ -41,6 +45,7 @@ func ERC20TokenHubERC20TokenSpoke(network interfaces.Network) {
 		cChainInfo,
 		fundedAddress,
 		exampleERC20Address,
+		exampleERC20Decimals,
 	)
 
 	// Token representation on subnet A will have same name, symbol, and decimals
@@ -59,6 +64,7 @@ func ERC20TokenHubERC20TokenSpoke(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHubAddress,
+		exampleERC20Decimals,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,

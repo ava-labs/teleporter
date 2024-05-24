@@ -13,15 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var (
-	decimalsShift           = uint8(1)
-	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
-	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
-	multiplyOnSpoke         = true
-
-	burnedFeesReportingRewardPercentage = big.NewInt(1)
-)
-
 /**
  * Deploy a NativeTokenHub on the primary network
  * Deploys a NativeTokenSpoke to Subnet A
@@ -53,15 +44,15 @@ func NativeTokenHubNativeDestination(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenSpoke to Subnet A
-	nativeTokenDestinationAddress, nativeTokenSpoke := utils.DeployNativeTokenSpoke(
+	nativeTokenSpokeAddress, nativeTokenSpoke := utils.DeployNativeTokenSpoke(
 		ctx,
 		subnetAInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenHubAddress,
+		18,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
@@ -73,9 +64,9 @@ func NativeTokenHubNativeDestination(network interfaces.Network) {
 		cChainInfo,
 		nativeTokenHubAddress,
 		subnetAInfo,
-		nativeTokenDestinationAddress,
+		nativeTokenSpokeAddress,
 		initialReserveImbalance,
-		utils.GetTokenMultiplier(decimalsShift),
+		big.NewInt(1),
 		multiplyOnSpoke,
 	)
 
@@ -85,7 +76,7 @@ func NativeTokenHubNativeDestination(network interfaces.Network) {
 		nativeTokenHub,
 		nativeTokenHubAddress,
 		subnetAInfo.BlockchainID,
-		nativeTokenDestinationAddress,
+		nativeTokenSpokeAddress,
 		collateralAmount,
 		fundedKey,
 	)
@@ -100,7 +91,7 @@ func NativeTokenHubNativeDestination(network interfaces.Network) {
 	{
 		input := nativetokenhub.SendTokensInput{
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenDestinationAddress,
+			DestinationBridgeAddress: nativeTokenSpokeAddress,
 			Recipient:                recipientAddress,
 			PrimaryFeeTokenAddress:   cChainWAVAXAddress,
 			PrimaryFee:               big.NewInt(1e18),
@@ -109,14 +100,14 @@ func NativeTokenHubNativeDestination(network interfaces.Network) {
 		}
 
 		// Send initialReserveImbalance tokens to fully collateralize bridge and mint the remainder.
-		receipt, _ := utils.SendNativeTokenSource(
+		receipt, _ := utils.SendNativeTokenHub(
 			ctx,
 			cChainInfo,
 			nativeTokenHub,
 			nativeTokenHubAddress,
 			wavax,
 			input,
-			utils.RemoveTokenScaling(tokenMultiplier, multiplyOnSpoke, amount),
+			amount,
 			fundedKey,
 		)
 
@@ -142,7 +133,7 @@ func NativeTokenHubNativeDestination(network interfaces.Network) {
 			DestinationBlockchainID:  cChainInfo.BlockchainID,
 			DestinationBridgeAddress: nativeTokenHubAddress,
 			Recipient:                recipientAddress,
-			PrimaryFeeTokenAddress:   nativeTokenDestinationAddress,
+			PrimaryFeeTokenAddress:   nativeTokenSpokeAddress,
 			PrimaryFee:               big.NewInt(1e18),
 			SecondaryFee:             big.NewInt(0),
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
@@ -154,7 +145,7 @@ func NativeTokenHubNativeDestination(network interfaces.Network) {
 			ctx,
 			subnetAInfo,
 			nativeTokenSpoke,
-			nativeTokenDestinationAddress,
+			nativeTokenSpokeAddress,
 			input_A,
 			amount,
 			recipientKey,
@@ -169,15 +160,15 @@ func NativeTokenHubNativeDestination(network interfaces.Network) {
 		)
 
 		// Check that the recipient received the tokens
-		sourceAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnSpoke, bridgedAmount)
+		hubAmount := bridgedAmount
 		utils.CheckNativeTokenHubWithdrawal(
 			ctx,
 			nativeTokenHubAddress,
 			wavax,
 			receipt,
-			sourceAmount,
+			hubAmount,
 		)
 
-		teleporterUtils.CheckBalance(ctx, recipientAddress, sourceAmount, cChainInfo.RPCClient)
+		teleporterUtils.CheckBalance(ctx, recipientAddress, hubAmount, cChainInfo.RPCClient)
 	}
 }

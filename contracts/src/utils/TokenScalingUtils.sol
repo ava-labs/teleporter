@@ -5,6 +5,8 @@
 pragma solidity 0.8.18;
 
 library TokenScalingUtils {
+    uint256 public constant MAX_TOKEN_DECIMALS = 18;
+
     /**
      * @notice Scales the {amount} of hub tokens to a spoke instance's token scale.
      * @param tokenMultiplier The token multiplier of the spoke instance.
@@ -32,6 +34,25 @@ library TokenScalingUtils {
         uint256 spokeTokenAmount
     ) internal pure returns (uint256) {
         return _scaleTokens(tokenMultiplier, multiplyOnSpoke, spokeTokenAmount, false);
+    }
+
+    /**
+     * @notice Accepts the client-facing token decimals denominations and uses
+     * them to derive the scaling multiplier values that are used by the internal scaling
+     * logic.
+     */
+    function deriveTokenMultiplierValues(
+        uint8 hubTokenDecimals,
+        uint8 spokeTokenDecimals
+    ) internal pure returns (uint256, bool) {
+        bool multiplyOnSpoke = spokeTokenDecimals > hubTokenDecimals;
+        uint256 tokenMultiplier = 10
+            ** (
+                multiplyOnSpoke
+                    ? spokeTokenDecimals - hubTokenDecimals
+                    : hubTokenDecimals - spokeTokenDecimals
+            );
+        return (tokenMultiplier, multiplyOnSpoke);
     }
 
     /**

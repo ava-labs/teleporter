@@ -35,8 +35,7 @@ interface ITokenHub is ITokenBridge {
         bytes32 indexed spokeBlockchainID,
         address indexed spokeBridgeAddress,
         uint256 initialCollateralNeeded,
-        uint256 tokenMultiplier,
-        bool multiplyOnSpoke
+        uint8 tokenDecimals
     );
 
     /**

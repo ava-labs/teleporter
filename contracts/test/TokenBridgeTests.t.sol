@@ -66,9 +66,9 @@ abstract contract TokenBridgeTest is Test {
     uint256 internal constant _DEFAULT_FEE_AMOUNT = 123456;
     uint256 internal constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
     uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1e18;
-    uint8 internal constant _DEFAULT_DECIMALS_SHIFT = 3;
-    uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 10 ** _DEFAULT_DECIMALS_SHIFT;
     uint256 internal constant _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE = 1;
+
+    uint8 public tokenHubDecimals;
 
     ITokenBridge public tokenBridge;
 
@@ -153,19 +153,19 @@ abstract contract TokenBridgeTest is Test {
     }
 
     function testSendWithFees() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         uint256 primaryFee = 100;
         _sendSingleHopSendSuccess(amount, primaryFee);
     }
 
     function testSendNoFees() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         uint256 primaryFee = 0;
         _sendSingleHopSendSuccess(amount, primaryFee);
     }
 
     function testSendAndCallWithFees() public {
-        uint256 amount = 100_000;
+        uint256 amount = 1e17;
         uint256 primaryFee = 10;
         _sendSingleHopCallSuccess(amount, primaryFee);
     }
@@ -212,7 +212,7 @@ abstract contract TokenBridgeTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisterSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedDeposit(amount, input.primaryFee);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(tokenBridge));
@@ -224,14 +224,14 @@ abstract contract TokenBridgeTest is Test {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisterSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedDeposit(amount, input.primaryFee);
         OriginSenderInfo memory originInfo;
         originInfo.bridgeAddress = address(tokenBridge);
         originInfo.senderAddress = address(this);
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopCallTeleporterMessageInput(
-                _getDefaultSourceBlockchainID(), originInfo, input, amount
+                _getDefaultMessageSourceBlockchainID(), originInfo, input, amount
             )
         );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
@@ -239,7 +239,7 @@ abstract contract TokenBridgeTest is Test {
         _sendAndCall(input, amount);
     }
 
-    function _setUpRegisterSpoke(
+    function _setUpRegisteredSpoke(
         bytes32 spokeBlockchainID,
         address spokeBridgeAddress,
         uint256 initialReserveImbalance
@@ -335,7 +335,7 @@ abstract contract TokenBridgeTest is Test {
         });
     }
 
-    function _getDefaultSourceBlockchainID() internal pure virtual returns (bytes32);
+    function _getDefaultMessageSourceBlockchainID() internal pure virtual returns (bytes32);
 
     function _formatErrorMessage(string memory message)
         internal

@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	erc20tokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/ERC20TokenHub"
 	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -28,45 +29,49 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on subnet A as the token to be bridged
-	exampleERC20Address, exampleERC20 := teleporterUtils.DeployExampleERC20(
+	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		erc20TokenHubDecimals,
 	)
 
-	// Create an ERC20TokenHub for bridging the ERC20 token
+	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+
 	erc20TokenHubAddress, erc20TokenHub := utils.DeployERC20TokenHub(
 		ctx,
 		fundedKey,
 		cChainInfo,
 		fundedAddress,
 		exampleERC20Address,
+		exampleERC20Decimals,
 	)
 
 	// Deploy a NativeTokenSpoke to Subnet A
-	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenSpoke(
+	nativeTokenSpokeAddressA, nativeTokenSpokeA := utils.DeployNativeTokenSpoke(
 		ctx,
 		subnetAInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHubAddress,
+		exampleERC20Decimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
 
 	// Deploy a NativeTokenSpoke to Subnet B
-	nativeTokenDestinationAddressB, nativeTokenDestinationB := utils.DeployNativeTokenSpoke(
+	nativeTokenSpokeAddressB, nativeTokenSpokeB := utils.DeployNativeTokenSpoke(
 		ctx,
 		subnetBInfo,
 		"SUBB",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHubAddress,
+		exampleERC20Decimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
@@ -78,7 +83,7 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		cChainInfo,
 		erc20TokenHubAddress,
 		subnetAInfo,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnSpoke,
@@ -90,7 +95,7 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		cChainInfo,
 		erc20TokenHubAddress,
 		subnetBInfo,
-		nativeTokenDestinationAddressB,
+		nativeTokenSpokeAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnSpoke,
@@ -104,7 +109,7 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		erc20TokenHubAddress,
 		exampleERC20,
 		subnetAInfo.BlockchainID,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeAddressA,
 		collateralAmountA,
 		fundedKey,
 	)
@@ -116,7 +121,7 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		erc20TokenHubAddress,
 		exampleERC20,
 		subnetBInfo.BlockchainID,
-		nativeTokenDestinationAddressB,
+		nativeTokenSpokeAddressB,
 		collateralAmountB,
 		fundedKey,
 	)
@@ -132,7 +137,7 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 	// Send tokens from C-Chain to Subnet A
 	inputA := erc20tokenhub.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenDestinationAddressA,
+		DestinationBridgeAddress: nativeTokenSpokeAddressA,
 		Recipient:                recipientAddress,
 		PrimaryFeeTokenAddress:   exampleERC20Address,
 		PrimaryFee:               big.NewInt(1e18),
@@ -166,7 +171,7 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 	// Send tokens from C-Chain to Subnet B
 	inputB := erc20tokenhub.SendTokensInput{
 		DestinationBlockchainID:  subnetBInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenDestinationAddressB,
+		DestinationBridgeAddress: nativeTokenSpokeAddressB,
 		Recipient:                recipientAddress,
 		PrimaryFeeTokenAddress:   exampleERC20Address,
 		PrimaryFee:               big.NewInt(1e18),
@@ -207,11 +212,11 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		fundedKey,
 		recipientAddress,
 		subnetAInfo,
-		nativeTokenDestinationA,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeA,
+		nativeTokenSpokeAddressA,
 		subnetBInfo,
-		nativeTokenDestinationB,
-		nativeTokenDestinationAddressB,
+		nativeTokenSpokeB,
+		nativeTokenSpokeAddressB,
 		cChainInfo,
 		amountToSend,
 	)
@@ -223,11 +228,11 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		fundedKey,
 		recipientAddress,
 		subnetBInfo,
-		nativeTokenDestinationB,
-		nativeTokenDestinationAddressB,
+		nativeTokenSpokeB,
+		nativeTokenSpokeAddressB,
 		subnetAInfo,
-		nativeTokenDestinationA,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeA,
+		nativeTokenSpokeAddressA,
 		cChainInfo,
 		amountToSend,
 	)

@@ -86,17 +86,17 @@ struct BridgeMessage {
 }
 
 /**
- * @dev Register spoke message payloads are sent to the hub bridge contract
- * to register a new spoke contract instance on another chain.
- * @param initialReserveImbalance The initial reserve imbalance of the spoke contract to calculate associated collateral needed on hub contract.
- * @param tokenMultiplier The token multiplier to scale the amount of tokens sent to the spoke.
- * @param multiplyOnSpoke Whether the hub contract should multiply or divide
- * the amount of tokens before sending to the spoke.
+ * @dev Register spoke message payloads are sent to the hub bridge contract to register a new spoke contract
+ * instance on another chain.
+ * @param initialReserveImbalance The initial reserve imbalance of the spoke contract to calculate
+ * associated collateral needed on hub contract.
+ * @param hubTokenDecimals The number of decimals that the hub token has.
+ * @param spokeTokenDecimals The number of decimals that the s[ple] token has.
  */
 struct RegisterSpokeMessage {
     uint256 initialReserveImbalance;
-    uint256 tokenMultiplier;
-    bool multiplyOnSpoke;
+    uint8 hubTokenDecimals;
+    uint8 spokeTokenDecimals;
 }
 
 /**

@@ -17,7 +17,7 @@ abstract contract NativeTokenBridgeTest is TokenBridgeTest {
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisterSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
     }

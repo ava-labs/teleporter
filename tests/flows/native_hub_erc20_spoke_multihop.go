@@ -59,6 +59,7 @@ func NativeTokenHubERC20TokenSpokeMultiHop(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenHubAddress,
+		18,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
@@ -72,6 +73,7 @@ func NativeTokenHubERC20TokenSpokeMultiHop(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenHubAddress,
+		18,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
@@ -114,7 +116,7 @@ func NativeTokenHubERC20TokenSpokeMultiHop(network interfaces.Network) {
 
 	// Send the tokens and verify expected events
 	amount := big.NewInt(2e18)
-	receipt, bridgedAmount := utils.SendNativeTokenSource(
+	receipt, bridgedAmount := utils.SendNativeTokenHub(
 		ctx,
 		cChainInfo,
 		nativeTokenHub,

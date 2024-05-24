@@ -21,13 +21,14 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
 
     string public constant MOCK_TOKEN_NAME = "Test Token";
     string public constant MOCK_TOKEN_SYMBOL = "TST";
-    uint8 public constant MOCK_TOKEN_DECIMALS = 18;
 
     ERC20TokenSpoke public app;
 
     function setUp() public virtual override {
         TokenSpokeTest.setUp();
 
+        tokenDecimals = 14;
+        tokenHubDecimals = 18;
         app = ERC20TokenSpoke(address(_createNewSpokeInstance()));
 
         erc20Bridge = app;
@@ -56,11 +57,12 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: address(0),
                 teleporterManager: address(this),
                 tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 
@@ -71,11 +73,12 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(0),
                 tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 
@@ -86,17 +89,18 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: bytes32(0),
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 
     function testDecimals() public {
         uint8 res = app.decimals();
-        assertEq(MOCK_TOKEN_DECIMALS, res);
+        assertEq(tokenDecimals, res);
     }
 
     function testDeployToSameBlockchain() public {
@@ -106,11 +110,12 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 
@@ -121,11 +126,12 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHubAddress: address(0)
+                tokenHubAddress: address(0),
+                tokenHubDecimals: 18
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            18
         );
     }
 
@@ -159,11 +165,12 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 

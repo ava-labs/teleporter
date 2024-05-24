@@ -77,7 +77,7 @@ func GetScaledAmountFromNativeTokenHub(
 	spokeAddress common.Address,
 	amount *big.Int,
 ) *big.Int {
-	destinationSettings, err := nativeTokenHub.RegisteredSpokes(
+	spokeSettings, err := nativeTokenHub.RegisteredSpokes(
 		&bind.CallOpts{},
 		spokeBlockchainID,
 		spokeAddress,
@@ -85,8 +85,8 @@ func GetScaledAmountFromNativeTokenHub(
 	Expect(err).Should(BeNil())
 
 	return ApplyTokenScaling(
-		destinationSettings.TokenMultiplier,
-		destinationSettings.MultiplyOnSpoke,
+		spokeSettings.TokenMultiplier,
+		spokeSettings.MultiplyOnSpoke,
 		amount,
 	)
 }

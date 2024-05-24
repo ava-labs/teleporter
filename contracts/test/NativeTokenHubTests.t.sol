@@ -21,7 +21,7 @@ contract NativeTokenHubTest is NativeTokenBridgeTest, TokenHubTest {
     IWrappedNativeToken public mockWrappedToken;
 
     receive() external payable {
-        require(msg.sender == address(app), "NativeTokenSourceTest: invalid receive payable sender");
+        require(msg.sender == address(app), "NativeTokenHubTest: invalid receive payable sender");
     }
 
     function setUp() public override {
@@ -37,6 +37,7 @@ contract NativeTokenHubTest is NativeTokenBridgeTest, TokenHubTest {
         nativeTokenBridge = app;
         tokenBridge = app;
         bridgedToken = mockWrappedToken;
+        tokenHubDecimals = 18;
     }
 
     /**

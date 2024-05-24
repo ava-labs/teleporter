@@ -44,8 +44,9 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address tokenAddress
-    ) TokenHub(teleporterRegistryAddress, teleporterManager, tokenAddress) {
+        address tokenAddress,
+        uint8 tokenDecimals
+    ) TokenHub(teleporterRegistryAddress, teleporterManager, tokenAddress, tokenDecimals) {
         token = IERC20(tokenAddress);
     }
 

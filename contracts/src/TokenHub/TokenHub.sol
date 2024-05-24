@@ -36,9 +36,10 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  * to the spoke bridge contract.
  * @param registered Whether the spoke bridge is registered
  * @param collateralNeeded The amount of tokens that must be first added as collateral,
- * through {addCollateral} calls, before tokens can be bridged to the spoke instance.
+ * through {addCollateral} calls, before tokens can be bridged to the spoke token bridge.
  * @param tokenMultiplier The scaling factor for the amount of tokens to be bridged to the spoke.
- * @param multiplyOnSpoke Whether the scaling factor is multiplied or divided when sending to the spoke.
+ * @param tokenMultiplier The scaling factor for the amount of tokens to be bridged to the spoke.
+ * @param tokenDecimals The number of decimals that the spoke token has.
  */
 struct SpokeBridgeSettings {
     bool registered;
@@ -68,6 +69,8 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
      */
     address public immutable tokenAddress;
 
+    uint8 public immutable tokenDecimals;
+
     /**
      * @notice Tracks the settings for each spoke bridge instance. Spoke instances
      * must register with their {TokenHub} contracts via Teleporter message to be able to
@@ -87,49 +90,55 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
     mapping(bytes32 spokeBlockchainID => mapping(address spokeBridgeAddress => uint256 balance))
         public bridgedBalances;
 
-    uint256 public constant MAX_TOKEN_MULTIPLIER = 1e18;
-
     /**
      * @notice Initializes this hub bridge instance to send tokens to spoke instances on other chains.
      */
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address tokenAddress_
+        address tokenAddress_,
+        uint8 tokenDecimals_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(tokenAddress_ != address(0), "TokenHub: zero token address");
+        require(
+            tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TokenHub: token decimals too high"
+        );
         tokenAddress = tokenAddress_;
+        tokenDecimals = tokenDecimals_;
     }
 
     function _registerSpoke(
         bytes32 spokeBlockchainID,
         address spokeBridgeAddress,
-        uint256 initialReserveImbalance,
-        uint256 tokenMultiplier,
-        bool multiplyOnSpoke
+        RegisterSpokeMessage memory message
     ) internal {
         require(spokeBlockchainID != bytes32(0), "TokenHub: zero spoke blockchain ID");
         require(spokeBlockchainID != blockchainID, "TokenHub: cannot register spoke on same chain");
         require(spokeBridgeAddress != address(0), "TokenHub: zero spoke bridge address");
         require(
-            tokenMultiplier > 0 && tokenMultiplier < MAX_TOKEN_MULTIPLIER,
-            "TokenHub: invalid token multiplier"
-        );
-        require(
             !registeredSpokes[spokeBlockchainID][spokeBridgeAddress].registered,
             "TokenHub: spoke already registered"
         );
+        require(
+            message.spokeTokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TokenHub: spoke token decimals too high"
+        );
+        require(message.hubTokenDecimals == tokenDecimals, "TokenHub: invalid hub token decimals");
+
+        (uint256 tokenMultiplier, bool multiplyOnSpoke) =
+            TokenScalingUtils.deriveTokenMultiplierValues(tokenDecimals, message.spokeTokenDecimals);
 
         // Calculate the collateral needed in hub token denomination.
         uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(
-            tokenMultiplier, multiplyOnSpoke, initialReserveImbalance
+            tokenMultiplier, multiplyOnSpoke, message.initialReserveImbalance
         );
 
         // Round up the collateral needed by 1 in the case that {multiplyOnSpoke} is true and
         // {initialReserveImbalance} is not divisible by the {tokenMultiplier} to
         // ensure that the full amount is accounted for.
-        if (multiplyOnSpoke && initialReserveImbalance % tokenMultiplier != 0) {
+        if (multiplyOnSpoke && message.initialReserveImbalance % tokenMultiplier != 0) {
             collateralNeeded += 1;
         }
 
@@ -141,11 +150,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         });
 
         emit SpokeRegistered(
-            spokeBlockchainID,
-            spokeBridgeAddress,
-            collateralNeeded,
-            tokenMultiplier,
-            multiplyOnSpoke
+            spokeBlockchainID, spokeBridgeAddress, collateralNeeded, message.spokeTokenDecimals
         );
     }
 
@@ -507,13 +512,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         } else if (bridgeMessage.messageType == BridgeMessageType.REGISTER_SPOKE) {
             RegisterSpokeMessage memory payload =
                 abi.decode(bridgeMessage.payload, (RegisterSpokeMessage));
-            _registerSpoke(
-                sourceBlockchainID,
-                originSenderAddress,
-                payload.initialReserveImbalance,
-                payload.tokenMultiplier,
-                payload.multiplyOnSpoke
-            );
+            _registerSpoke(sourceBlockchainID, originSenderAddress, payload);
         }
     }
 

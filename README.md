@@ -56,26 +56,27 @@ Unit test coverage of the contracts can be viewed using `forge coverage`:
 ```
 $ forge coverage
 [⠢] Compiling...
-[⠑] Compiling 75 files with 0.8.18
-[⠃] Solc 0.8.18 finished in 5.57s
+[⠔] Compiling 78 files with 0.8.18
+[⠘] Solc 0.8.18 finished in 5.51s
 Compiler run successful!
 Analysing contracts...
 Running tests...
-| File                                        | % Lines           | % Statements      | % Branches       | % Funcs         |
-|---------------------------------------------|-------------------|-------------------|------------------|-----------------|
-| src/TokenHub/ERC20TokenHub.sol              | 100.00% (16/16)   | 100.00% (19/19)   | 100.00% (4/4)    | 100.00% (6/6)   |
-| src/TokenHub/NativeTokenHub.sol             | 100.00% (14/14)   | 100.00% (16/16)   | 100.00% (2/2)    | 100.00% (6/6)   |
-| src/TokenHub/TokenHub.sol                   | 100.00% (132/132) | 100.00% (156/156) | 100.00% (82/82)  | 100.00% (15/15) |
-| src/TokenSpoke/ERC20TokenSpoke.sol          | 100.00% (20/20)   | 100.00% (22/22)   | 100.00% (4/4)    | 100.00% (7/7)   |
-| src/TokenSpoke/NativeTokenSpoke.sol         | 100.00% (39/39)   | 100.00% (48/48)   | 100.00% (8/8)    | 100.00% (12/12) |
-| src/TokenSpoke/TokenSpoke.sol               | 100.00% (81/81)   | 100.00% (102/102) | 96.43% (54/56)   | 100.00% (15/15) |
-| src/WrappedNativeToken.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (3/3)   |
-| src/mocks/MockERC20SendAndCallReceiver.sol  | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (4/4)    | 100.00% (2/2)   |
-| src/mocks/MockNativeSendAndCallReceiver.sol | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (4/4)    | 100.00% (2/2)   |
-| src/utils/CallUtils.sol                     | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)    | 100.00% (2/2)   |
-| src/utils/SafeWrappedNativeTokenDeposit.sol | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (2/2)    | 100.00% (1/1)   |
-| src/utils/TokenScalingUtils.sol             | 100.00% (5/5)     | 100.00% (9/9)     | 100.00% (2/2)    | 100.00% (3/3)   |
-| Total                                       | 100.00% (335/335) | 100.00% (404/404) | 98.85% (172/174) | 100.00% (74/74) |
+| File                                        | % Lines           | % Statements      | % Branches        | % Funcs         |
+|---------------------------------------------|-------------------|-------------------|-------------------|-----------------|
+| src/TokenHub/ERC20TokenHub.sol              | 100.00% (16/16)   | 100.00% (19/19)   | 100.00% (4/4)     | 100.00% (6/6)   |
+| src/TokenHub/NativeTokenHub.sol             | 100.00% (14/14)   | 100.00% (16/16)   | 100.00% (2/2)     | 100.00% (6/6)   |
+| src/TokenHub/TokenHub.sol                   | 100.00% (135/135) | 100.00% (159/159) | 100.00% (84/84)   | 100.00% (15/15) |
+| src/TokenSpoke/ERC20TokenSpoke.sol          | 100.00% (20/20)   | 100.00% (22/22)   | 100.00% (4/4)     | 100.00% (7/7)   |
+| src/TokenSpoke/NativeTokenSpoke.sol         | 100.00% (39/39)   | 100.00% (48/48)   | 100.00% (8/8)     | 100.00% (12/12) |
+| src/TokenSpoke/TokenSpoke.sol               | 100.00% (81/81)   | 100.00% (102/102) | 100.00% (56/56)   | 100.00% (15/15) |
+| src/WrappedNativeToken.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)     | 100.00% (3/3)   |
+| src/mocks/ExampleERC20Decimals.sol          | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)     | 100.00% (1/1)   |
+| src/mocks/MockERC20SendAndCallReceiver.sol  | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (4/4)     | 100.00% (2/2)   |
+| src/mocks/MockNativeSendAndCallReceiver.sol | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (2/2)   |
+| src/utils/CallUtils.sol                     | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)     | 100.00% (2/2)   |
+| src/utils/SafeWrappedNativeTokenDeposit.sol | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (2/2)     | 100.00% (1/1)   |
+| src/utils/TokenScalingUtils.sol             | 100.00% (8/8)     | 100.00% (14/14)   | 100.00% (2/2)     | 100.00% (4/4)   |
+| Total                                       | 100.00% (342/342) | 100.00% (413/413) | 100.00% (176/176) | 100.00% (76/76) |
 ```
 
 ## E2E tests

@@ -45,7 +45,7 @@ contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20 {
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals
-    ) TokenSpoke(settings, 0, 0, false) ERC20(tokenName, tokenSymbol) {
+    ) TokenSpoke(settings, 0, tokenDecimals) ERC20(tokenName, tokenSymbol) {
         _decimals = tokenDecimals;
     }
 

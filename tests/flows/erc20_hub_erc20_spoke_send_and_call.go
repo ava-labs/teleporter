@@ -29,11 +29,15 @@ func ERC20TokenHubERC20TokenSpokeSendAndCall(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on the primary network as the token to be bridged
-	exampleERC20Address, exampleERC20 := teleporterUtils.DeployExampleERC20(
+	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		erc20TokenHubDecimals,
 	)
+
+	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
 
 	// Create an ERC20TokenHub for bridging the ERC20 token
 	erc20TokenHubAddress, erc20TokenHub := utils.DeployERC20TokenHub(
@@ -42,15 +46,16 @@ func ERC20TokenHubERC20TokenSpokeSendAndCall(network interfaces.Network) {
 		cChainInfo,
 		fundedAddress,
 		exampleERC20Address,
+		exampleERC20Decimals,
 	)
 
-	sourceMockERC20SACRAddress, sourceMockERC20SACR := utils.DeployMockERC20SendAndCallReceiver(
+	hubMockERC20SACRAddress, hubMockERC20SACR := utils.DeployMockERC20SendAndCallReceiver(
 		ctx,
 		fundedKey,
 		cChainInfo,
 	)
 
-	destMockERC20SACRAddress, destMockERC20SACR := utils.DeployMockERC20SendAndCallReceiver(
+	spokeMockERC20SACRAddress, spokeMockERC20SACR := utils.DeployMockERC20SendAndCallReceiver(
 		ctx,
 		fundedKey,
 		subnetAInfo,
@@ -72,6 +77,7 @@ func ERC20TokenHubERC20TokenSpokeSendAndCall(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHubAddress,
+		exampleERC20Decimals,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
@@ -105,7 +111,7 @@ func ERC20TokenHubERC20TokenSpokeSendAndCall(network interfaces.Network) {
 		input := erc20tokenhub.SendAndCallInput{
 			DestinationBlockchainID:  subnetAInfo.BlockchainID,
 			DestinationBridgeAddress: erc20TokenSpokeAddress,
-			RecipientContract:        destMockERC20SACRAddress,
+			RecipientContract:        spokeMockERC20SACRAddress,
 			RecipientPayload:         []byte{1},
 			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
 			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
@@ -140,13 +146,13 @@ func ERC20TokenHubERC20TokenSpokeSendAndCall(network interfaces.Network) {
 		Expect(event.RecipientContract).Should(Equal(input.RecipientContract))
 		Expect(event.Amount).Should(Equal(bridgedAmount))
 
-		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, destMockERC20SACR.ParseTokensReceived)
+		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, spokeMockERC20SACR.ParseTokensReceived)
 		Expect(err).Should(BeNil())
 		Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
 		Expect(receiverEvent.Payload).Should(Equal(input.RecipientPayload))
 
 		// Check that the contract received the tokens
-		balance, err := erc20TokenSpoke.BalanceOf(&bind.CallOpts{}, destMockERC20SACRAddress)
+		balance, err := erc20TokenSpoke.BalanceOf(&bind.CallOpts{}, spokeMockERC20SACRAddress)
 		Expect(err).Should(BeNil())
 		Expect(balance).Should(Equal(bridgedAmount))
 	}
@@ -212,7 +218,7 @@ func ERC20TokenHubERC20TokenSpokeSendAndCall(network interfaces.Network) {
 		inputB := erc20tokenspoke.SendAndCallInput{
 			DestinationBlockchainID:  cChainInfo.BlockchainID,
 			DestinationBridgeAddress: erc20TokenHubAddress,
-			RecipientContract:        sourceMockERC20SACRAddress,
+			RecipientContract:        hubMockERC20SACRAddress,
 			RecipientPayload:         []byte{1},
 			RequiredGasLimit:         teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
 			RecipientGasLimit:        teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
@@ -240,18 +246,18 @@ func ERC20TokenHubERC20TokenSpokeSendAndCall(network interfaces.Network) {
 			true,
 		)
 
-		sourceEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHub.ParseCallSucceeded)
+		hubEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHub.ParseCallSucceeded)
 		Expect(err).Should(BeNil())
-		Expect(sourceEvent.RecipientContract).Should(Equal(inputB.RecipientContract))
-		Expect(sourceEvent.Amount).Should(Equal(bridgedAmount))
+		Expect(hubEvent.RecipientContract).Should(Equal(inputB.RecipientContract))
+		Expect(hubEvent.Amount).Should(Equal(bridgedAmount))
 
-		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, sourceMockERC20SACR.ParseTokensReceived)
+		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, hubMockERC20SACR.ParseTokensReceived)
 		Expect(err).Should(BeNil())
 		Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
 		Expect(receiverEvent.Payload).Should(Equal(inputB.RecipientPayload))
 
 		// Check that the recipient received the tokens
-		balance, err := exampleERC20.BalanceOf(&bind.CallOpts{}, sourceMockERC20SACRAddress)
+		balance, err := exampleERC20.BalanceOf(&bind.CallOpts{}, hubMockERC20SACRAddress)
 		Expect(err).Should(BeNil())
 		Expect(balance).Should(Equal(bridgedAmount))
 	}

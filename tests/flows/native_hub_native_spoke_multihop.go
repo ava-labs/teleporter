@@ -27,6 +27,9 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 
 	ctx := context.Background()
 
+	// decimalsShift is always 0 for native to native
+	decimalsShift := uint8(0)
+
 	// Deploy an example WAVAX on the primary network
 	wavaxAddress, wavax := utils.DeployWrappedNativeToken(
 		ctx,
@@ -45,29 +48,29 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 	)
 
 	// Deploy a NativeTokenSpoke to Subnet A
-	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenSpoke(
+	nativeTokenSpokeAddressA, nativeTokenSpokeA := utils.DeployNativeTokenSpoke(
 		ctx,
 		subnetAInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenHubAddress,
+		utils.NativeTokenDecimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
 
 	// Deploy a NativeTokenSpoke to Subnet B
-	nativeTokenDestinationAddressB, nativeTokenDestinationB := utils.DeployNativeTokenSpoke(
+	nativeTokenSpokeAddressB, nativeTokenSpokeB := utils.DeployNativeTokenSpoke(
 		ctx,
 		subnetBInfo,
 		"SUBB",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenHubAddress,
+		utils.NativeTokenDecimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
@@ -79,7 +82,7 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		cChainInfo,
 		nativeTokenHubAddress,
 		subnetAInfo,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnSpoke,
@@ -91,7 +94,7 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		cChainInfo,
 		nativeTokenHubAddress,
 		subnetBInfo,
-		nativeTokenDestinationAddressB,
+		nativeTokenSpokeAddressB,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnSpoke,
@@ -104,7 +107,7 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		nativeTokenHub,
 		nativeTokenHubAddress,
 		subnetAInfo.BlockchainID,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeAddressA,
 		collateralAmountA,
 		fundedKey,
 	)
@@ -115,7 +118,7 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		nativeTokenHub,
 		nativeTokenHubAddress,
 		subnetBInfo.BlockchainID,
-		nativeTokenDestinationAddressB,
+		nativeTokenSpokeAddressB,
 		collateralAmountB,
 		fundedKey,
 	)
@@ -130,7 +133,7 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 	// Send tokens from C-Chain to Subnet A
 	inputA := nativetokenhub.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenDestinationAddressA,
+		DestinationBridgeAddress: nativeTokenSpokeAddressA,
 		Recipient:                recipientAddress,
 		PrimaryFeeTokenAddress:   wavaxAddress,
 		PrimaryFee:               big.NewInt(1e18),
@@ -138,7 +141,7 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
 
-	receipt, bridgedAmountA := utils.SendNativeTokenSource(
+	receipt, bridgedAmountA := utils.SendNativeTokenHub(
 		ctx,
 		cChainInfo,
 		nativeTokenHub,
@@ -164,14 +167,14 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 	// Send tokens from C-Chain to Subnet B
 	inputB := nativetokenhub.SendTokensInput{
 		DestinationBlockchainID:  subnetBInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenDestinationAddressB,
+		DestinationBridgeAddress: nativeTokenSpokeAddressB,
 		Recipient:                recipientAddress,
 		PrimaryFeeTokenAddress:   wavaxAddress,
 		PrimaryFee:               big.NewInt(1e18),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 	}
-	receipt, bridgedAmountB := utils.SendNativeTokenSource(
+	receipt, bridgedAmountB := utils.SendNativeTokenHub(
 		ctx,
 		cChainInfo,
 		nativeTokenHub,
@@ -204,11 +207,11 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		fundedKey,
 		recipientAddress,
 		subnetAInfo,
-		nativeTokenDestinationA,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeA,
+		nativeTokenSpokeAddressA,
 		subnetBInfo,
-		nativeTokenDestinationB,
-		nativeTokenDestinationAddressB,
+		nativeTokenSpokeB,
+		nativeTokenSpokeAddressB,
 		cChainInfo,
 		amountToSendA,
 	)
@@ -223,11 +226,11 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		fundedKey,
 		recipientAddress,
 		subnetBInfo,
-		nativeTokenDestinationB,
-		nativeTokenDestinationAddressB,
+		nativeTokenSpokeB,
+		nativeTokenSpokeAddressB,
 		subnetAInfo,
-		nativeTokenDestinationA,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeA,
+		nativeTokenSpokeAddressA,
 		cChainInfo,
 		amountToSendB,
 	)

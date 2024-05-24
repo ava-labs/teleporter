@@ -14,6 +14,18 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var (
+	decimalsShift           = uint8(1)
+	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
+	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
+
+	// These two should be changed together
+	multiplyOnSpoke       = true
+	erc20TokenHubDecimals = utils.NativeTokenDecimals - decimalsShift
+
+	burnedFeesReportingRewardPercentage = big.NewInt(1)
+)
+
 /**
  * Deploy a ERC20Token on the primary network
  * Deploys NativeTokenSpoke to Subnet A and Subnet B
@@ -28,11 +40,15 @@ func ERC20TokenHubNativeTokenSpoke(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on subnet A as the token to be bridged
-	exampleERC20Address, exampleERC20 := teleporterUtils.DeployExampleERC20(
+	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		erc20TokenHubDecimals,
 	)
+
+	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
 
 	// Create an ERC20TokenHub for bridging the ERC20 token
 	erc20TokenHubAddress, erc20TokenHub := utils.DeployERC20TokenHub(
@@ -41,18 +57,19 @@ func ERC20TokenHubNativeTokenSpoke(network interfaces.Network) {
 		cChainInfo,
 		fundedAddress,
 		exampleERC20Address,
+		exampleERC20Decimals,
 	)
 
 	// Deploy a NativeTokenSpoke to Subnet A
-	nativeTokenDestinationAddressA, nativeTokenDestinationA := utils.DeployNativeTokenSpoke(
+	nativeTokenSpokeAddressA, nativeTokenSpokeA := utils.DeployNativeTokenSpoke(
 		ctx,
 		subnetAInfo,
 		"SUBA",
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHubAddress,
+		exampleERC20Decimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnSpoke,
 		burnedFeesReportingRewardPercentage,
 	)
@@ -63,7 +80,7 @@ func ERC20TokenHubNativeTokenSpoke(network interfaces.Network) {
 		cChainInfo,
 		erc20TokenHubAddress,
 		subnetAInfo,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeAddressA,
 		initialReserveImbalance,
 		utils.GetTokenMultiplier(decimalsShift),
 		multiplyOnSpoke,
@@ -76,7 +93,7 @@ func ERC20TokenHubNativeTokenSpoke(network interfaces.Network) {
 		erc20TokenHubAddress,
 		exampleERC20,
 		subnetAInfo.BlockchainID,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeAddressA,
 		collateralAmount,
 		fundedKey,
 	)
@@ -90,7 +107,7 @@ func ERC20TokenHubNativeTokenSpoke(network interfaces.Network) {
 	// Send tokens from C-Chain to Subnet A
 	input := erc20tokenhub.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenDestinationAddressA,
+		DestinationBridgeAddress: nativeTokenSpokeAddressA,
 		Recipient:                recipientAddress,
 		PrimaryFeeTokenAddress:   exampleERC20Address,
 		PrimaryFee:               big.NewInt(1e18),
@@ -127,7 +144,7 @@ func ERC20TokenHubNativeTokenSpoke(network interfaces.Network) {
 		DestinationBlockchainID:  cChainInfo.BlockchainID,
 		DestinationBridgeAddress: erc20TokenHubAddress,
 		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   nativeTokenDestinationAddressA,
+		PrimaryFeeTokenAddress:   nativeTokenSpokeAddressA,
 		PrimaryFee:               big.NewInt(1e10),
 		SecondaryFee:             big.NewInt(0),
 		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
@@ -137,8 +154,8 @@ func ERC20TokenHubNativeTokenSpoke(network interfaces.Network) {
 	receipt, bridgedAmount = utils.SendNativeTokenSpoke(
 		ctx,
 		subnetAInfo,
-		nativeTokenDestinationA,
-		nativeTokenDestinationAddressA,
+		nativeTokenSpokeA,
+		nativeTokenSpokeAddressA,
 		input_A,
 		amountToSendA,
 		recipientKey,

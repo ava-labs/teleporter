@@ -9,9 +9,14 @@ import {TokenSpokeTest} from "./TokenSpokeTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {TokenSpoke} from "../src/TokenSpoke/TokenSpoke.sol";
-import {NativeTokenSpoke, TeleporterMessageInput, TeleporterFeeInfo} from "../src/TokenSpoke/NativeTokenSpoke.sol";
+import {
+    NativeTokenSpoke,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "../src/TokenSpoke/NativeTokenSpoke.sol";
 import {TokenSpokeSettings} from "../src/TokenSpoke/interfaces/ITokenSpoke.sol";
-import {INativeMinter} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
@@ -30,6 +35,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
     function setUp() public override {
         TokenSpokeTest.setUp();
 
+        tokenHubDecimals = 6;
         app = NativeTokenSpoke(payable(address(_createNewSpokeInstance())));
         tokenSpoke = app;
         nativeTokenBridge = app;
@@ -46,12 +52,11 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: 0,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnSpoke: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
         );
     }
@@ -63,12 +68,11 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnSpoke: true,
             burnedFeesReportingRewardPercentage_: 100}
         );
     }
@@ -80,12 +84,11 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: bytes32(0),
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnSpoke: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
         );
     }
@@ -97,12 +100,11 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnSpoke: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
         );
     }
@@ -116,11 +118,11 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         bridgedToken = app;
 
         vm.expectRevert("NativeTokenSpoke: contract undercollateralized");
-        app.send{value: 100_000}(_createDefaultSendTokensInput());
+        app.send{value: 1e17}(_createDefaultSendTokensInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
         _collateralizeBridge();
-        _sendSingleHopSendSuccess(100_000, 0);
+        _sendSingleHopSendSuccess(1e17, 0);
     }
 
     function testSendAndCallBeforeCollateralized() public {
@@ -132,15 +134,15 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         bridgedToken = app;
 
         vm.expectRevert("NativeTokenSpoke: contract undercollateralized");
-        app.sendAndCall{value: 100_000}(_createDefaultSendAndCallInput());
+        app.sendAndCall{value: 1e15}(_createDefaultSendAndCallInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
         _collateralizeBridge();
-        _sendSingleHopSendSuccess(100_000, 0);
+        _sendSingleHopSendSuccess(1e15, 0);
     }
 
     function testSendWithSeparateFeeAsset() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         uint256 feeAmount = 100;
         ExampleERC20 separateFeeAsset = new ExampleERC20();
         SendTokensInput memory input = _createDefaultSendTokensInput();
@@ -149,7 +151,8 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
 
         IERC20(separateFeeAsset).safeIncreaseAllowance(address(app), feeAmount);
         vm.expectCall(
-            address(separateFeeAsset), abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
+            address(separateFeeAsset),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
         );
 
         vm.expectEmit(true, true, true, true, address(app));
@@ -188,7 +191,12 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = _DEFAULT_TRANSFER_AMOUNT;
         vm.expectEmit(true, true, true, true, address(app));
-        emit TokensSent({teleporterMessageID: _MOCK_MESSAGE_ID, sender: address(this), input: input, amount: amount});
+        emit TokensSent({
+            teleporterMessageID: _MOCK_MESSAGE_ID,
+            sender: address(this),
+            input: input,
+            amount: amount
+        });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
@@ -227,7 +235,9 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         vm.deal(address(app), amount - 1);
         vm.expectRevert("CallUtils: insufficient value");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSpoke.receiveTeleporterMessage(DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID, DEFAULT_TOKEN_HUB_ADDRESS, message);
+        tokenSpoke.receiveTeleporterMessage(
+            DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID, DEFAULT_TOKEN_HUB_ADDRESS, message
+        );
     }
 
     function testReportBurnFeesNoNewAmount() public {
@@ -242,9 +252,8 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
     }
 
     function testReportBurnFeesSuccess() public {
-        // First difference is 100,000
-        uint256 initialBurnedTxFeeAmount = 100_003;
-        uint256 expectedReward = 1_000; // 1%, rounded down due to integer division.
+        uint256 initialBurnedTxFeeAmount = 1e19;
+        uint256 expectedReward = initialBurnedTxFeeAmount / 100; // 1% of 1e17
         uint256 expectedReportedAmount = initialBurnedTxFeeAmount - expectedReward;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialBurnedTxFeeAmount);
 
@@ -270,8 +279,8 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
 
         // Mock more transaction fees being burned.
-        uint256 additionalBurnTxFeeAmount = 50_007;
-        expectedReward = 500; // 1%, rounded down due to integer division.
+        uint256 additionalBurnTxFeeAmount = 5 * 1e15 + 3;
+        expectedReward = additionalBurnTxFeeAmount / 100; // 1%, rounded down due to integer division.
         expectedReportedAmount = additionalBurnTxFeeAmount - expectedReward;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialBurnedTxFeeAmount + additionalBurnTxFeeAmount);
 
@@ -300,12 +309,11 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnSpoke: true,
             burnedFeesReportingRewardPercentage_: 0}
         );
         tokenSpoke = app;
@@ -313,7 +321,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         tokenBridge = app;
         bridgedToken = app;
 
-        uint256 burnedTxFeeAmount = 100_000;
+        uint256 burnedTxFeeAmount = 1e15;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
@@ -356,12 +364,11 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHubBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS
+                tokenHubAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHubDecimals: tokenHubDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            decimalsShift: _DEFAULT_DECIMALS_SHIFT,
-            multiplyOnSpoke: true,
             burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
         );
     }
@@ -375,7 +382,8 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
         );
         vm.deal(recipient, amount);
     }
@@ -387,7 +395,8 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
         );
         vm.deal(recipient, amount);
     }
@@ -408,7 +417,8 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), amount))
         );
 
         // Mock the native minter precompile crediting native balance to the contract.
@@ -450,7 +460,9 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             if (address(bridgedToken) != address(app)) {
                 vm.expectCall(
                     address(bridgedToken),
-                    abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
+                    abi.encodeCall(
+                        IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                    )
                 );
             }
         }

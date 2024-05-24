@@ -49,11 +49,26 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     address public immutable tokenHubAddress;
 
     /**
+     * @notice The number of decimal places in the denomination of the hub
+     * token.
+     * @dev Used to derive tokenMultiplier and multiplyOnSpoke.
+     */
+    uint8 public immutable hubTokenDecimals;
+
+    /**
+     * @notice The number of decimal places in the denomination of the spoke token.
+     * @dev Used to derive tokenMultiplier and multiplyOnSpoke.
+     */
+    uint8 public immutable tokenDecimals;
+
+    /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
      * its token hub instance.
      *
-     * @dev This can be used to normalize the number of decimals places between the tokens on
-     * the two subnets. Is calculated as 10^d, where d is decimalsShift specified in the constructor.
+     * @dev This can be used to normalize the number of decimal places between
+     * the tokens on the two subnets. Is derived from the decimal values
+     * specified in the {TeleporterTokenDestinationSettings} struct that's
+     * passed into the constructor.
      */
     uint256 public immutable tokenMultiplier;
 
@@ -107,18 +122,12 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
      * @notice Initializes this token spoke instance.
      * @param settings The settings for the token spoke instance.
      * @param initialReserveImbalance_ The initial reserve imbalance that must be collateralized before minting.
-     * @param decimalsShift The number of decimal places to shift the token amount by.
-     * @param multiplyOnSpoke_ If true, the hub token amount will be multiplied by {tokenMultiplier} when tokens
-     * are transferred from the hub into this spoke, and divided by {tokenMultiplier} when tokens are transferred
-     * from this spoke back to its hub. If false, the hub token amount value will be divided by {tokenMultiplier}
-     * when tokens are transferred from the hub into this spoke, and multiplied by {tokenMultiplier} when tokens
-     * are transferred from this spoke back to its hub.
+     * @param tokenDecimals_ The number of decimal places in the denomination of the spoke token.
      */
     constructor(
         TokenSpokeSettings memory settings,
         uint256 initialReserveImbalance_,
-        uint8 decimalsShift,
-        bool multiplyOnSpoke_
+        uint8 tokenDecimals_
     ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
@@ -129,13 +138,22 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
             "TokenSpoke: cannot deploy to same blockchain as token hub"
         );
         require(settings.tokenHubAddress != address(0), "TokenSpoke: zero token hub address");
-        require(decimalsShift <= 18, "TokenSpoke: invalid decimalsShift");
+        require(
+            settings.tokenHubDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TokenSpoke: token hub decimals too high"
+        );
+        require(
+            tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TokenSpoke: token decimals too high"
+        );
         tokenHubBlockchainID = settings.tokenHubBlockchainID;
         tokenHubAddress = settings.tokenHubAddress;
         initialReserveImbalance = initialReserveImbalance_;
         isCollateralized = initialReserveImbalance_ == 0;
-        tokenMultiplier = 10 ** decimalsShift;
-        multiplyOnSpoke = multiplyOnSpoke_;
+        hubTokenDecimals = settings.tokenHubDecimals;
+        tokenDecimals = tokenDecimals_;
+        (tokenMultiplier, multiplyOnSpoke) =
+            TokenScalingUtils.deriveTokenMultiplierValues(hubTokenDecimals, tokenDecimals);
     }
 
     /**
@@ -149,8 +167,8 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         // Send a message to the token hub instance to register this spoke instance.
         RegisterSpokeMessage memory registerMessage = RegisterSpokeMessage({
             initialReserveImbalance: initialReserveImbalance,
-            tokenMultiplier: tokenMultiplier,
-            multiplyOnSpoke: multiplyOnSpoke
+            hubTokenDecimals: hubTokenDecimals,
+            spokeTokenDecimals: tokenDecimals
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_SPOKE,
