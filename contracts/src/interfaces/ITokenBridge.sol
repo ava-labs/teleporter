@@ -13,7 +13,7 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  */
 
 /**
- * @notice Parameters for delivery of tokens to another chain and destination recipient.
+ * @notice Input parameters for bridging tokens to another chain as part of simple transfer.
  * @param destinationBlockchainID Blockchain ID of the destination
  * @param destinationBridgeAddress Address of the destination token bridge instance
  * @param recipient Address of the recipient on the destination chain
@@ -38,7 +38,7 @@ struct SendTokensInput {
 }
 
 /**
- * @notice Parameters for bridging tokens to another chain and calling a contract on that chain
+ * @notice Input parameters for bridging tokens to another chain as part of a transfer with a contract call.
  * @param destinationBlockchainID BlockchainID of the destination
  * @param destinationBridgeAddress Address of the destination token bridge instance
  * @param recipientContract The contract on the destination chain that will be called

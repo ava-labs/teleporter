@@ -37,9 +37,10 @@ library TokenScalingUtils {
     }
 
     /**
-     * @notice Accepts the client-facing token decimals denominations and uses
-     * them to derive the scaling multiplier values that are used by the internal scaling
-     * logic.
+     * @notice Takes both the hub and spoke token denominations and uses
+     * them to derive the token bridge scaling multiplier values
+     * @param hubTokenDecimals The number of decimals of the hub token.
+     * @param spokeTokenDecimals The number of decimals of the spoke token.
      */
     function deriveTokenMultiplierValues(
         uint8 hubTokenDecimals,

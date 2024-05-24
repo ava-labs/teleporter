@@ -38,14 +38,14 @@ contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20 {
      * @param settings Constructor settings for this token spoke instance.
      * @param tokenName The name of the ERC20 token.
      * @param tokenSymbol The symbol of the ERC20 token.
-     * @param tokenDecimals The number of decimals for the ERC20 token.
+     * @param tokenDecimals_ The number of decimals for the ERC20 token.
      */
     constructor(
         TokenSpokeSettings memory settings,
         string memory tokenName,
         string memory tokenSymbol,
-        uint8 tokenDecimals
-    ) TokenSpoke(settings, 0, tokenDecimals) ERC20(tokenName, tokenSymbol) {
+        uint8 tokenDecimals_
+    ) TokenSpoke(settings, 0, tokenDecimals_) ERC20(tokenName, tokenSymbol) {
         _decimals = tokenDecimals;
     }
 
