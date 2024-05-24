@@ -160,7 +160,7 @@ contract NativeTokenSpoke is
     }
 
     /**
-     * @dev See {INativeTokenSpoke-reportTotalBurnedTxFees}.
+     * @dev See {INativeTokenSpoke-reportBurnedTxFees}.
      */
     function reportBurnedTxFees(uint256 requiredGasLimit) external sendNonReentrant {
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
