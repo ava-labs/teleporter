@@ -53,7 +53,9 @@ contract NativeTokenSource is INativeTokenBridge, TeleporterTokenSource {
         address teleporterRegistryAddress,
         address teleporterManager,
         address wrappedTokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress) {
+    )
+        TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18)
+    {
         wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
 

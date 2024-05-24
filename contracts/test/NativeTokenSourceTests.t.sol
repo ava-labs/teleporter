@@ -37,6 +37,7 @@ contract NativeTokenSourceTest is NativeTokenBridgeTest, TeleporterTokenSourceTe
         nativeTokenBridge = app;
         tokenBridge = app;
         bridgedToken = mockWrappedToken;
+        tokenSourceDecimals = 18;
     }
 
     /**

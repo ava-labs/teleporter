@@ -37,8 +37,7 @@ interface ITeleporterTokenSource is ITeleporterTokenBridge {
         bytes32 indexed destinationBlockchainID,
         address indexed destinationBridgeAddress,
         uint256 initialCollateralNeeded,
-        uint256 tokenMultiplier,
-        bool multiplyOnDestination
+        uint8 tokenDecimals
     );
 
     /**

@@ -21,13 +21,14 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
 
     string public constant MOCK_TOKEN_NAME = "Test Token";
     string public constant MOCK_TOKEN_SYMBOL = "TST";
-    uint8 public constant MOCK_TOKEN_DECIMALS = 18;
 
     ERC20Destination public app;
 
     function setUp() public virtual override {
         TeleporterTokenDestinationTest.setUp();
 
+        tokenDecimals = 14;
+        tokenSourceDecimals = 18;
         app = ERC20Destination(address(_createNewDestinationInstance()));
 
         erc20Bridge = app;
@@ -56,11 +57,12 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: address(0),
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 
@@ -71,11 +73,12 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(0),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 
@@ -86,17 +89,18 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: bytes32(0),
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 
     function testDecimals() public {
         uint8 res = app.decimals();
-        assertEq(MOCK_TOKEN_DECIMALS, res);
+        assertEq(tokenDecimals, res);
     }
 
     function testDeployToSameBlockchain() public {
@@ -106,11 +110,12 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 
@@ -121,11 +126,12 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: address(0)
+                tokenSourceAddress: address(0),
+                tokenSourceDecimals: 18
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            18
         );
     }
 
@@ -163,11 +169,12 @@ contract ERC20DestinationTest is ERC20BridgeTest, TeleporterTokenDestinationTest
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
-                tokenSourceAddress: TOKEN_SOURCE_ADDRESS
+                tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            MOCK_TOKEN_DECIMALS
+            tokenDecimals
         );
     }
 

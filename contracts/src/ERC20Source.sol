@@ -44,13 +44,22 @@ contract ERC20Source is IERC20Source, TeleporterTokenSource {
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
-     * @param tokenAddress The ERC20 token contract address to bridge to the destination chain
+     * @param tokenAddress_ The ERC20 token contract address to bridge to the destination chain
+     * @param tokenDecimals_ The number of decimals for the ERC20 token
      */
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address tokenAddress
-    ) TeleporterTokenSource(teleporterRegistryAddress, teleporterManager, tokenAddress) {
+        address tokenAddress_,
+        uint8 tokenDecimals_
+    )
+        TeleporterTokenSource(
+            teleporterRegistryAddress,
+            teleporterManager,
+            tokenAddress_,
+            tokenDecimals_
+        )
+    {
         token = IERC20(tokenAddress);
     }
 

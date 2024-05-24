@@ -21,6 +21,7 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
+import {Math} from "@openzeppelin/contracts@4.8.1/utils/math/Math.sol";
 
 abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     TeleporterTokenSource public tokenSource;
@@ -206,39 +207,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testReceiveZeroSourceTokenAmount() public {
-        // Set up a registered destination that will scale down the received amount
-        // to zero source tokens.
-        uint256 tokenMultiplier = 100_000;
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, tokenMultiplier, true
-        );
-
-        // Send over source token to the destination
-        // and check for expected calls for scaled amount of tokens sent.
-        SendTokensInput memory input = _createDefaultSendTokensInput();
-        uint256 amount = 1;
-        _setUpExpectedDeposit(amount, input.primaryFee);
-
-        uint256 scaledAmount = tokenMultiplier * amount;
-        _checkExpectedTeleporterCallsForSend(
-            _createSingleHopTeleporterMessageInput(input, scaledAmount)
-        );
-        vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledAmount);
-        _send(input, amount);
-
-        // Receive an amount from destination less than `scaledAmount`
-        // which will be scaled down to zero source tokens.
-        vm.expectRevert(_formatErrorMessage("zero token amount"));
-        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenSource.receiveTeleporterMessage(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
-            DEFAULT_DESTINATION_ADDRESS,
-            _encodeSingleHopSendMessage(scaledAmount - 1, DEFAULT_RECIPIENT_ADDRESS)
-        );
-    }
-
     function testReceiveInsufficientBridgeBalance() public {
         uint256 collateralAmount = 100;
         _setUpRegisteredDestination(
@@ -389,7 +357,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testReceiveWrongOriginBridgeAddress() public {
-         // First send to destination blockchain to increase the bridge balance
+        // First send to destination blockchain to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
@@ -744,30 +712,6 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         _setUpRegisteredDestination(DEFAULT_DESTINATION_BLOCKCHAIN_ID, address(0), 0);
     }
 
-    function testRegisterDestinationZeroTokenMultiplier() public {
-        vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 0, false
-        );
-    }
-
-    function testRegisterDestinationTokenMultiplierToLarge() public {
-        vm.expectRevert(_formatErrorMessage("invalid token multiplier"));
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 1e18 + 1, false
-        );
-    }
-
-    function testRegisterDestinationRoundUpCollateralNeeded() public {
-        _setUpRegisteredDestination(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 11, 10, true
-        );
-        (, uint256 collateralNeeded,,) = tokenSource.registeredDestinations(
-            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
-        );
-        assertEq(collateralNeeded, 2);
-    }
-
     function testRegisterDestinationAlreadyReigstered() public {
         _setUpRegisteredDestination(
             DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0
@@ -778,36 +722,41 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
-    function testSendScaledAmount() public {
+    function testRegisterDestinationTokenDecimalsTooHigh() public {
+        vm.expectRevert(_formatErrorMessage("destination token decimals too high"));
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 1e19, true
+        );
+    }
+
+    function testRegisterInvalidSourceTokenDecimals() public {
+        vm.expectRevert(_formatErrorMessage("invalid source token decimals"));
+        uint8 destinationTokenDecimals = uint8(18);
+        RegisterDestinationMessage memory payload = RegisterDestinationMessage({
+            initialReserveImbalance: 0,
+            sourceTokenDecimals: tokenSourceDecimals + 1,
+            destinationTokenDecimals: uint8(destinationTokenDecimals)
+        });
+        BridgeMessage memory message = BridgeMessage({
+            messageType: BridgeMessageType.REGISTER_DESTINATION,
+            payload: abi.encode(payload)
+        });
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, abi.encode(message)
+        );
+    }
+
+    function testSendScaledDownAmount() public {
         uint256 amount = 100;
         uint256 feeAmount = 1;
 
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        // Raw amount sent over wire should be multipled by 1e12.
-        uint256 tokenMultiplier = 1e12;
-        _setUpRegisteredDestination(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, true
-        );
-        _setUpExpectedDeposit(amount, input.primaryFee);
-        TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
-            destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(bridgedToken),
-                amount: input.primaryFee
-            }),
-            requiredGasLimit: input.requiredGasLimit,
-            allowedRelayerAddresses: new address[](0),
-            message: _encodeSingleHopSendMessage(amount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
-        });
-        _checkExpectedTeleporterCallsForSend(expectedMessage);
-        vm.expectEmit(true, true, true, true, address(tokenBridge));
-        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount * tokenMultiplier);
-        _send(input, amount);
+        uint256 tokenMultiplier = 1e2;
 
-        // For another destination, the raw amount sent over the wire should be divided by 1e12.
+        // For another destination, the raw amount sent over the wire should be divided by 1e2.
         amount = 42 * tokenMultiplier;
         feeAmount = 0;
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
@@ -816,7 +765,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
             input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, false
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
-        expectedMessage = TeleporterMessageInput({
+        TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
             feeInfo: TeleporterFeeInfo({
@@ -875,10 +824,15 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         uint256 tokenMultiplier,
         bool multiplyOnDestination
     ) internal virtual {
+        uint8 destinationTokenDecimals = uint8(
+            multiplyOnDestination
+                ? tokenSourceDecimals + Math.log10(tokenMultiplier)
+                : tokenSourceDecimals - Math.log10(tokenMultiplier)
+        );
         RegisterDestinationMessage memory payload = RegisterDestinationMessage({
             initialReserveImbalance: initialReserveImbalance,
-            tokenMultiplier: tokenMultiplier,
-            multiplyOnDestination: multiplyOnDestination
+            sourceTokenDecimals: tokenSourceDecimals,
+            destinationTokenDecimals: destinationTokenDecimals
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,

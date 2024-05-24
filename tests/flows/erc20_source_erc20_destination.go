@@ -28,11 +28,15 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on the primary network as the source token to be bridged
-	sourceTokenAddress, sourceToken := teleporterUtils.DeployExampleERC20(
+	sourceTokenAddress, sourceToken := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		erc20SourceDecimals,
 	)
+
+	sourceTokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
 
 	// Create an ERC20Source for bridging the source token
 	erc20SourceAddress, erc20Source := utils.DeployERC20Source(
@@ -41,6 +45,7 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 		cChainInfo,
 		fundedAddress,
 		sourceTokenAddress,
+		sourceTokenDecimals,
 	)
 
 	// Token representation on subnet A will have same name, symbol, and decimals
@@ -59,6 +64,7 @@ func ERC20SourceERC20Destination(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20SourceAddress,
+		sourceTokenDecimals,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,

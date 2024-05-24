@@ -14,6 +14,18 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var (
+	decimalsShift           = uint8(1)
+	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
+	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
+
+	// These two should be changed together
+	multiplyOnDestination = true
+	erc20SourceDecimals   = utils.NativeTokenDecimals - decimalsShift
+
+	burnedFeesReportingRewardPercentage = big.NewInt(1)
+)
+
 /**
  * Deploy a ERC20 token source on the primary network
  * Deploys NativeDestination to Subnet A and Subnet B
@@ -28,11 +40,15 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on subnet A as the source token to be bridged
-	sourceTokenAddress, sourceToken := teleporterUtils.DeployExampleERC20(
+	sourceTokenAddress, sourceToken := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		erc20SourceDecimals,
 	)
+
+	sourceTokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
 
 	// Create an ERC20Source for bridging the source token
 	erc20SourceAddress, erc20Source := utils.DeployERC20Source(
@@ -41,6 +57,7 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		cChainInfo,
 		fundedAddress,
 		sourceTokenAddress,
+		sourceTokenDecimals,
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
@@ -51,8 +68,8 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20SourceAddress,
+		sourceTokenDecimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)

@@ -8,10 +8,13 @@ pragma solidity 0.8.18;
 import {ERC20BridgeTest} from "./ERC20BridgeTests.t.sol";
 import {TeleporterTokenSourceTest} from "./TeleporterTokenSourceTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
+import {SendTokensInput} from "../src/interfaces/ITeleporterTokenBridge.sol";
 import {ERC20Source} from "../src/ERC20Source.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
+import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 
 contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
     using SafeERC20 for IERC20;
@@ -23,10 +26,12 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         TeleporterTokenSourceTest.setUp();
 
         mockERC20 = new ExampleERC20();
+        tokenSourceDecimals = 6;
         app = new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            address(mockERC20)
+            address(mockERC20),
+            tokenSourceDecimals
         );
         erc20Bridge = app;
         tokenSource = app;
@@ -40,7 +45,7 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
      */
     function testZeroTeleporterRegistryAddress() public {
         vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new ERC20Source(address(0), address(this), address(mockERC20));
+        new ERC20Source(address(0), address(this), address(mockERC20), tokenSourceDecimals);
     }
 
     function testZeroTeleporterManagerAddress() public {
@@ -48,7 +53,8 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
-            address(mockERC20)
+            address(mockERC20),
+            tokenSourceDecimals
         );
     }
 
@@ -57,8 +63,92 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
         new ERC20Source(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
-            address(0)
+            address(0),
+            tokenSourceDecimals
         );
+    }
+
+    function testTokenDecimalsTooHigh() public {
+        vm.expectRevert(_formatErrorMessage("token decimals too high"));
+        new ERC20Source(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(this),
+            address(mockERC20),
+            uint8(TokenScalingUtils.MAX_TOKEN_DECIMALS) + 1
+        );
+    }
+
+    function testReceiveZeroSourceTokenAmount() public {
+        // Set up a registered destination that will scale down the received amount
+        // to zero source tokens.
+        uint256 tokenMultiplier = 100_000;
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, tokenMultiplier, true
+        );
+
+        // Send over source token to the destination
+        // and check for expected calls for scaled amount of tokens sent.
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        uint256 amount = 1;
+        _setUpExpectedDeposit(amount, input.primaryFee);
+
+        uint256 scaledAmount = tokenMultiplier * amount;
+        _checkExpectedTeleporterCallsForSend(
+            _createSingleHopTeleporterMessageInput(input, scaledAmount)
+        );
+        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledAmount);
+        _send(input, amount);
+
+        // Receive an amount from destination less than `scaledAmount`
+        // which will be scaled down to zero source tokens.
+        vm.expectRevert(_formatErrorMessage("zero token amount"));
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID,
+            DEFAULT_DESTINATION_ADDRESS,
+            _encodeSingleHopSendMessage(scaledAmount - 1, DEFAULT_RECIPIENT_ADDRESS)
+        );
+    }
+
+    function testRegisterDestinationRoundUpCollateralNeeded() public {
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 11, 10, true
+        );
+        (, uint256 collateralNeeded,,) = tokenSource.registeredDestinations(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS
+        );
+        assertEq(collateralNeeded, 2);
+    }
+
+    function testSendScaledUpAmount() public {
+        uint256 amount = 100;
+        uint256 feeAmount = 1;
+
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFee = feeAmount;
+
+        // Raw amount sent over wire should be multipled by 1e2.
+        uint256 tokenMultiplier = 1e2;
+        _setUpRegisteredDestination(
+            input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, true
+        );
+        _setUpExpectedDeposit(amount, input.primaryFee);
+        TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
+            destinationBlockchainID: input.destinationBlockchainID,
+            destinationAddress: input.destinationBridgeAddress,
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(bridgedToken),
+                amount: input.primaryFee
+            }),
+            requiredGasLimit: input.requiredGasLimit,
+            allowedRelayerAddresses: new address[](0),
+            message: _encodeSingleHopSendMessage(amount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
+        });
+        _checkExpectedTeleporterCallsForSend(expectedMessage);
+        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount * tokenMultiplier);
+        _send(input, amount);
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
@@ -90,7 +180,14 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
 
             bytes memory expectedCalldata = abi.encodeCall(
                 IERC20SendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, address(mockERC20), amount, payload)
+                (
+                    sourceBlockchainID,
+                    originInfo.bridgeAddress,
+                    originInfo.senderAddress,
+                    address(mockERC20),
+                    amount,
+                    payload
+                )
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, expectedCalldata, new bytes(0));

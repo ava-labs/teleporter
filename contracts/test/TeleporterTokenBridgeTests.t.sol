@@ -43,6 +43,7 @@ abstract contract TeleporterTokenBridgeTest is Test {
         bytes32(hex"9876987698769876987698769876987698769876987698769876987698769876");
     address public constant DEFAULT_DESTINATION_ADDRESS = 0xd878229c9c3575F224784DE610911B5607a3ad15;
     address public constant TOKEN_SOURCE_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
+    uint8 public tokenSourceDecimals;
     address public constant DEFAULT_SENDER_ADDRESS = 0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5;
     address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
     address public constant DEFAULT_RECIPIENT_CONTRACT_ADDRESS =
@@ -66,8 +67,6 @@ abstract contract TeleporterTokenBridgeTest is Test {
     uint256 internal constant _DEFAULT_FEE_AMOUNT = 123456;
     uint256 internal constant _DEFAULT_TRANSFER_AMOUNT = 1e18;
     uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1e18;
-    uint8 internal constant _DEFAULT_DECIMALS_SHIFT = 3;
-    uint256 internal constant _DEFAULT_TOKEN_MULTIPLIER = 10 ** _DEFAULT_DECIMALS_SHIFT;
     uint256 internal constant _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE = 1;
 
     ITeleporterTokenBridge public tokenBridge;
@@ -153,19 +152,19 @@ abstract contract TeleporterTokenBridgeTest is Test {
     }
 
     function testSendWithFees() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         uint256 primaryFee = 100;
         _sendSingleHopSendSuccess(amount, primaryFee);
     }
 
     function testSendNoFees() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         uint256 primaryFee = 0;
         _sendSingleHopSendSuccess(amount, primaryFee);
     }
 
     function testSendAndCallWithFees() public {
-        uint256 amount = 100_000;
+        uint256 amount = 1e17;
         uint256 primaryFee = 10;
         _sendSingleHopCallSuccess(amount, primaryFee);
     }

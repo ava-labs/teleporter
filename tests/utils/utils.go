@@ -19,9 +19,9 @@ import (
 	teleportertokendestination "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenDestination"
 	teleportertokensource "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TeleporterTokenSource"
 	wrappednativetoken "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/WrappedNativeToken"
+	exampleerc20 "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleERC20Decimals"
 	mockERC20SACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
 	mockNSACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockNativeSendAndCallReceiver"
-	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -62,7 +62,13 @@ var nativeTokenDestinationDeployerKeys = []string{
 	// NativeTokenDestination address: 0x463a6bE7a5098A5f06435c6c468adD338F15B93A
 	"ebb7f0cf71e0b6fd880326e5f5061b8456b0aef81901566cbe578b5024852ec9",
 }
-var nativeTokenDestinationDeployerKeyIndex = 0
+
+var (
+	nativeTokenDestinationDeployerKeyIndex = 0
+	ExpectedExampleERC20DeployerBalance    = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e10))
+)
+
+const NativeTokenDecimals = 18
 
 func DeployERC20Source(
 	ctx context.Context,
@@ -70,6 +76,7 @@ func DeployERC20Source(
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
 	tokenSourceAddress common.Address,
+	tokenSourceDecimals uint8,
 ) (common.Address, *erc20source.ERC20Source) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
@@ -82,6 +89,7 @@ func DeployERC20Source(
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
 		tokenSourceAddress,
+		tokenSourceDecimals,
 	)
 	Expect(err).Should(BeNil())
 
@@ -97,6 +105,7 @@ func DeployERC20Destination(
 	teleporterManager common.Address,
 	sourceBlockchainID ids.ID,
 	tokenSourceAddress common.Address,
+	tokenSourceDecimals uint8,
 	tokenName string,
 	tokenSymbol string,
 	tokenDecimals uint8,
@@ -114,6 +123,7 @@ func DeployERC20Destination(
 			TeleporterManager:         teleporterManager,
 			SourceBlockchainID:        sourceBlockchainID,
 			TokenSourceAddress:        tokenSourceAddress,
+			TokenSourceDecimals:       tokenSourceDecimals,
 		},
 		tokenName,
 		tokenSymbol,
@@ -133,8 +143,8 @@ func DeployNativeTokenDestination(
 	teleporterManager common.Address,
 	sourceBlockchainID ids.ID,
 	tokenSourceAddress common.Address,
+	tokenSourceDecimals uint8,
 	initialReserveImbalance *big.Int,
-	decimalsShift uint8,
 	multiplyOnDestination bool,
 	burnedFeesReportingRewardPercentage *big.Int,
 ) (common.Address, *nativetokendestination.NativeTokenDestination) {
@@ -159,11 +169,10 @@ func DeployNativeTokenDestination(
 			TeleporterManager:         teleporterManager,
 			SourceBlockchainID:        sourceBlockchainID,
 			TokenSourceAddress:        tokenSourceAddress,
+			TokenSourceDecimals:       tokenSourceDecimals,
 		},
 		symbol,
 		initialReserveImbalance,
-		decimalsShift,
-		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
 	Expect(err).Should(BeNil())
@@ -260,6 +269,32 @@ func DeployMockERC20SendAndCallReceiver(
 	return address, contract
 }
 
+func DeployExampleERC20(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	source interfaces.SubnetTestInfo,
+	tokenDecimals uint8,
+) (common.Address, *exampleerc20.ExampleERC20Decimals) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
+	Expect(err).Should(BeNil())
+
+	// Deploy Mock ERC20 contract
+	address, tx, token, err := exampleerc20.DeployExampleERC20Decimals(opts, source.RPCClient, tokenDecimals)
+	Expect(err).Should(BeNil())
+	log.Info("Deployed Mock ERC20 contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
+
+	// Wait for the transaction to be mined
+	teleporterUtils.WaitForTransactionSuccess(ctx, source, tx.Hash())
+
+	// Check that the deployer has the expected initial balance
+	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
+	balance, err := token.BalanceOf(&bind.CallOpts{}, senderAddress)
+	Expect(err).Should(BeNil())
+	Expect(balance).Should(Equal(ExpectedExampleERC20DeployerBalance))
+
+	return address, token
+}
+
 func RegisterERC20DestinationOnSource(
 	ctx context.Context,
 	network interfaces.Network,
@@ -301,15 +336,16 @@ func RegisterTokenDestinationOnSource(
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	// Deploy a new ERC20 token for testing registering with fees
-	feeTokenAddress, feeToken := teleporterUtils.DeployExampleERC20(
+	feeTokenAddress, feeToken := DeployExampleERC20(
 		ctx,
 		fundedKey,
 		destinationSubnet,
+		18,
 	)
 
 	// Approve the ERC20Source to spend the tokens
 	feeAmount := big.NewInt(1e18)
-	teleporterUtils.ERC20Approve(
+	ERC20Approve(
 		ctx,
 		feeToken,
 		destinationBridgeAddress,
@@ -350,8 +386,6 @@ func RegisterTokenDestinationOnSource(
 		expectedMultiplyOnDestination,
 	)
 	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
-	teleporterUtils.ExpectBigEqual(registerEvent.TokenMultiplier, expectedTokenMultiplier)
-	Expect(registerEvent.MultiplyOnDestination).Should(Equal(expectedMultiplyOnDestination))
 
 	return collateralNeeded
 }
@@ -364,14 +398,14 @@ func AddCollateralToERC20Source(
 	subnet interfaces.SubnetTestInfo,
 	erc20Source *erc20source.ERC20Source,
 	erc20SourceAddress common.Address,
-	exampleERC20 *exampleerc20.ExampleERC20,
+	exampleERC20 *exampleerc20.ExampleERC20Decimals,
 	destinationBlockchainID ids.ID,
 	destinationBridgeAddress common.Address,
 	collateralAmount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) {
 	// Approve the ERC20Source to spend the collateral
-	teleporterUtils.ERC20Approve(
+	ERC20Approve(
 		ctx,
 		exampleERC20,
 		erc20SourceAddress,
@@ -454,13 +488,13 @@ func SendERC20Source(
 	subnet interfaces.SubnetTestInfo,
 	erc20Source *erc20source.ERC20Source,
 	erc20SourceAddress common.Address,
-	sourceToken *exampleerc20.ExampleERC20,
+	sourceToken *exampleerc20.ExampleERC20Decimals,
 	input erc20source.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
 	// Approve the ERC20Source to spend the tokens
-	teleporterUtils.ERC20Approve(
+	ERC20Approve(
 		ctx,
 		sourceToken,
 		erc20SourceAddress,
@@ -621,13 +655,13 @@ func SendAndCallERC20Source(
 	subnet interfaces.SubnetTestInfo,
 	erc20Source *erc20source.ERC20Source,
 	erc20SourceAddress common.Address,
-	sourceToken *exampleerc20.ExampleERC20,
+	sourceToken *exampleerc20.ExampleERC20Decimals,
 	input erc20source.SendAndCallInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
 	// Approve the ERC20Source to spend the tokens
-	teleporterUtils.ERC20Approve(
+	ERC20Approve(
 		ctx,
 		sourceToken,
 		erc20SourceAddress,
@@ -942,7 +976,7 @@ func SendERC20MultiHopAndVerify(
 func CheckERC20SourceWithdrawal(
 	ctx context.Context,
 	erc20SourceAddress common.Address,
-	sourceToken *exampleerc20.ExampleERC20,
+	sourceToken *exampleerc20.ExampleERC20Decimals,
 	receipt *types.Receipt,
 	expectedRecipientAddress common.Address,
 	expectedAmount *big.Int,
@@ -1019,4 +1053,21 @@ func DepositAndApproveWrappedTokenForFees(
 	Expect(err).Should(BeNil())
 
 	_ = teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+}
+
+func ERC20Approve(
+	ctx context.Context,
+	token *exampleerc20.ExampleERC20Decimals,
+	spender common.Address,
+	amount *big.Int,
+	source interfaces.SubnetTestInfo,
+	senderKey *ecdsa.PrivateKey,
+) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := token.Approve(opts, spender, amount)
+	Expect(err).Should(BeNil())
+	log.Info("Approved ERC20", "spender", spender.Hex(), "txHash", tx.Hash().Hex())
+
+	teleporterUtils.WaitForTransactionSuccess(ctx, source, tx.Hash())
 }

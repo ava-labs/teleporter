@@ -54,11 +54,27 @@ abstract contract TeleporterTokenDestination is
     address public immutable tokenSourceAddress;
 
     /**
+     * @notice The number of decimal places in the denomination of the source
+     * token.
+     * @dev Used to derive tokenMultiplier and multiplyOnDestination.
+     */
+    uint8 public immutable sourceTokenDecimals;
+
+    /**
+     * @notice The number of decimal places in the denomination of the
+     * destination token.
+     * @dev Used to derive tokenMultiplier and multiplyOnDestination.
+     */
+    uint8 public immutable tokenDecimals;
+
+    /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
      * the source chain.
      *
-     * @dev This can be used to normalize the number of decimals places between the tokens on
-     * the two subnets. Is calculated as 10^d, where d is decimalsShift specified in the constructor.
+     * @dev This is used to normalize the number of decimal places between
+     * the tokens on the two subnets. Is derived from the decimal values
+     * passed in to the constructor of this contract for source and destination
+     * token decimals.
      */
     uint256 public immutable tokenMultiplier;
 
@@ -119,8 +135,7 @@ abstract contract TeleporterTokenDestination is
     constructor(
         TeleporterTokenDestinationSettings memory settings,
         uint256 initialReserveImbalance_,
-        uint8 decimalsShift,
-        bool multiplyOnDestination_
+        uint8 tokenDecimals_
     ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
@@ -135,13 +150,22 @@ abstract contract TeleporterTokenDestination is
             settings.tokenSourceAddress != address(0),
             "TeleporterTokenDestination: zero token source address"
         );
-        require(decimalsShift <= 18, "TeleporterTokenDestination: invalid decimalsShift");
+        require(
+            settings.tokenSourceDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TeleporterTokenDestination: source token decimals too high"
+        );
+        require(
+            tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TeleporterTokenDestination: token decimals too high"
+        );
         sourceBlockchainID = settings.sourceBlockchainID;
         tokenSourceAddress = settings.tokenSourceAddress;
         initialReserveImbalance = initialReserveImbalance_;
         isCollateralized = initialReserveImbalance_ == 0;
-        tokenMultiplier = 10 ** decimalsShift;
-        multiplyOnDestination = multiplyOnDestination_;
+        sourceTokenDecimals = settings.tokenSourceDecimals;
+        tokenDecimals = tokenDecimals_;
+        (tokenMultiplier, multiplyOnDestination) =
+            TokenScalingUtils.deriveTokenMultiplierValues(sourceTokenDecimals, tokenDecimals);
     }
 
     /**
@@ -155,8 +179,8 @@ abstract contract TeleporterTokenDestination is
         // Send a message to the source token bridge instance to register this destination instance.
         RegisterDestinationMessage memory registerMessage = RegisterDestinationMessage({
             initialReserveImbalance: initialReserveImbalance,
-            tokenMultiplier: tokenMultiplier,
-            multiplyOnDestination: multiplyOnDestination
+            sourceTokenDecimals: sourceTokenDecimals,
+            destinationTokenDecimals: tokenDecimals
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,

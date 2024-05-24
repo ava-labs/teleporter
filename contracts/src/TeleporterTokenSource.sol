@@ -39,6 +39,7 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  * through {addCollateral} calls, before tokens can be bridged to the destination token bridge.
  * @param tokenMultiplier The scaling factor for the amount of tokens to be bridged to the destination.
  * @param multiplyOnDestination Whether the scaling factor is multiplied or divided when sending to the destination.
+ * @param tokenDecimals The number of decimals that the destination token has.
  */
 struct DestinationBridgeSettings {
     bool registered;
@@ -72,6 +73,8 @@ abstract contract TeleporterTokenSource is
      */
     address public immutable tokenAddress;
 
+    uint8 public immutable tokenDecimals;
+
     /**
      * @notice Tracks the settings for each destination bridge instance. Destination bridge instances
      * must register with their {TeleporterTokenSource} contracts via Teleporter message to be able to
@@ -95,8 +98,6 @@ abstract contract TeleporterTokenSource is
             => mapping(address destinationBridgeAddress => uint256 balance)
     ) public bridgedBalances;
 
-    uint256 public constant MAX_TOKEN_MULTIPLIER = 1e18;
-
     /**
      * @notice Initializes this source token bridge instance to send
      * tokens to the specified destination chain and token bridge instance.
@@ -104,19 +105,23 @@ abstract contract TeleporterTokenSource is
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address tokenAddress_
+        address tokenAddress_,
+        uint8 tokenDecimals_
     ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(tokenAddress_ != address(0), "TeleporterTokenSource: zero token address");
+        require(
+            tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TeleporterTokenSource: token decimals too high"
+        );
         tokenAddress = tokenAddress_;
+        tokenDecimals = tokenDecimals_;
     }
 
     function _registerDestination(
         bytes32 destinationBlockchainID,
         address destinationBridgeAddress,
-        uint256 initialReserveImbalance,
-        uint256 tokenMultiplier,
-        bool multiplyOnDestination
+        RegisterDestinationMessage memory message
     ) internal {
         require(
             destinationBlockchainID != bytes32(0),
@@ -131,23 +136,30 @@ abstract contract TeleporterTokenSource is
             "TeleporterTokenSource: zero destination bridge address"
         );
         require(
-            tokenMultiplier > 0 && tokenMultiplier < MAX_TOKEN_MULTIPLIER,
-            "TeleporterTokenSource: invalid token multiplier"
-        );
-        require(
             !registeredDestinations[destinationBlockchainID][destinationBridgeAddress].registered,
             "TeleporterTokenSource: destination already registered"
         );
+        require(
+            message.destinationTokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TeleporterTokenSource: destination token decimals too high"
+        );
+        require(
+            message.sourceTokenDecimals == tokenDecimals,
+            "TeleporterTokenSource: invalid source token decimals"
+        );
+
+        (uint256 tokenMultiplier, bool multiplyOnDestination) = TokenScalingUtils
+            .deriveTokenMultiplierValues(tokenDecimals, message.destinationTokenDecimals);
 
         // Calculate the collateral needed in source token denomination.
         uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(
-            tokenMultiplier, multiplyOnDestination, initialReserveImbalance
+            tokenMultiplier, multiplyOnDestination, message.initialReserveImbalance
         );
 
         // Round up the collateral needed by 1 in the case that {multiplyOnDestination} is true and
         // {initialReserveImbalance} is not divisible by the {tokenMultiplier} to
         // ensure that the full amount is accounted for.
-        if (multiplyOnDestination && initialReserveImbalance % tokenMultiplier != 0) {
+        if (multiplyOnDestination && message.initialReserveImbalance % tokenMultiplier != 0) {
             collateralNeeded += 1;
         }
 
@@ -163,8 +175,7 @@ abstract contract TeleporterTokenSource is
             destinationBlockchainID,
             destinationBridgeAddress,
             collateralNeeded,
-            tokenMultiplier,
-            multiplyOnDestination
+            message.destinationTokenDecimals
         );
     }
 
@@ -543,13 +554,7 @@ abstract contract TeleporterTokenSource is
         } else if (bridgeMessage.messageType == BridgeMessageType.REGISTER_DESTINATION) {
             RegisterDestinationMessage memory payload =
                 abi.decode(bridgeMessage.payload, (RegisterDestinationMessage));
-            _registerDestination(
-                sourceBlockchainID,
-                originSenderAddress,
-                payload.initialReserveImbalance,
-                payload.tokenMultiplier,
-                payload.multiplyOnDestination
-            );
+            _registerDestination(sourceBlockchainID, originSenderAddress, payload);
         }
     }
 
