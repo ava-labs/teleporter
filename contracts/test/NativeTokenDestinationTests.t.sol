@@ -53,8 +53,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: tokenSourceDecimals,
-                tokenDecimals: tokenDecimals
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: 0,
@@ -70,9 +69,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: tokenSourceDecimals,
-                tokenDecimals: tokenDecimals
-
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -88,9 +85,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: bytes32(0),
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: tokenSourceDecimals,
-                tokenDecimals: tokenDecimals
-
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -106,9 +101,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: tokenSourceDecimals,
-                tokenDecimals: tokenDecimals
-
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -312,9 +305,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: tokenSourceDecimals,
-                tokenDecimals: tokenDecimals
-
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
@@ -373,9 +364,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
                 teleporterManager: address(this),
                 sourceBlockchainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
                 tokenSourceAddress: TOKEN_SOURCE_ADDRESS,
-                tokenSourceDecimals: tokenSourceDecimals,
-                tokenDecimals: tokenDecimals
-
+                tokenSourceDecimals: tokenSourceDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,

@@ -134,7 +134,8 @@ abstract contract TeleporterTokenDestination is
      */
     constructor(
         TeleporterTokenDestinationSettings memory settings,
-        uint256 initialReserveImbalance_
+        uint256 initialReserveImbalance_,
+        uint8 tokenDecimals_
     ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
@@ -159,10 +160,10 @@ abstract contract TeleporterTokenDestination is
         isCollateralized = initialReserveImbalance_ == 0;
         sourceTokenDecimals = settings.tokenSourceDecimals;
         require(
-            settings.tokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TeleporterTokenDestination: token decimals too high"
         );
-        tokenDecimals = settings.tokenDecimals;
+        tokenDecimals = tokenDecimals_;
         (tokenMultiplier, multiplyOnDestination) =
             TokenScalingUtils.deriveTokenMultiplierValues(sourceTokenDecimals, tokenDecimals);
     }

@@ -132,14 +132,10 @@ contract NativeTokenDestination is
         uint256 burnedFeesReportingRewardPercentage_
     )
         ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
-        TeleporterTokenDestination(settings, initialReserveImbalance)
+        TeleporterTokenDestination(settings, initialReserveImbalance, 18)
     {
         require(
             initialReserveImbalance != 0, "NativeTokenDestination: zero initial reserve imbalance"
-        );
-        require(
-            settings.tokenDecimals == 18, // to match the EVM's native asset denomination
-            "NativeTokenDestination: settings.tokenDecimals is not 18"
         );
         require(
             burnedFeesReportingRewardPercentage_ < 100, "NativeTokenDestination: invalid percentage"
