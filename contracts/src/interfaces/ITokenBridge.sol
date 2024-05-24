@@ -91,7 +91,7 @@ struct BridgeMessage {
  * @param initialReserveImbalance The initial reserve imbalance of the spoke contract to calculate
  * associated collateral needed on hub contract.
  * @param hubTokenDecimals The number of decimals that the hub token has.
- * @param spokeTokenDecimals The number of decimals that the s[ple] token has.
+ * @param spokeTokenDecimals The number of decimals that the spoke token has.
  */
 struct RegisterSpokeMessage {
     uint256 initialReserveImbalance;
