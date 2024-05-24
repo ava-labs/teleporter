@@ -78,7 +78,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
         _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
-    function testInvalidSendingBackToSourceBlockchain() public {
+    function testInvalidSendingBackToHubBlockchain() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(this);
         vm.expectRevert(_formatErrorMessage("invalid destination bridge address"));

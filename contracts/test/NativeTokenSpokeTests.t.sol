@@ -187,7 +187,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         assertEq(app.totalSupply(), 2);
     }
 
-    function testTransferToSource() public {
+    function testTransferToHub() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = _DEFAULT_TRANSFER_AMOUNT;
         vm.expectEmit(true, true, true, true, address(app));
