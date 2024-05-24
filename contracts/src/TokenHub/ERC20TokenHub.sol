@@ -39,7 +39,7 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
-     * @param tokenAddress_ The ERC20 token contract address to bridged by the hub.
+     * @param tokenAddress_ The ERC20 token contract address to be bridged by the hub.
      * @param tokenDecimals_ The number of decimals for the ERC20 token
      */
     constructor(
