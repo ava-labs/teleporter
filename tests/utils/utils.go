@@ -281,7 +281,7 @@ func DeployExampleERC20(
 	Expect(err).Should(BeNil())
 
 	// Deploy Mock ERC20 contract
-	address, tx, token, err := exampleerc20.DeployExampleERC20(opts, source.RPCClient, tokenDecimals)
+	address, tx, token, err := exampleerc20.DeployExampleERC20Decimals(opts, source.RPCClient, tokenDecimals)
 	Expect(err).Should(BeNil())
 	log.Info("Deployed Mock ERC20 contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
 
