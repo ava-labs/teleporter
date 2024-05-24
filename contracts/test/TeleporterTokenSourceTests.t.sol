@@ -357,7 +357,7 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
     }
 
     function testReceiveWrongOriginBridgeAddress() public {
-         // First send to destination blockchain to increase the bridge balance
+        // First send to destination blockchain to increase the bridge balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
@@ -722,6 +722,31 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         );
     }
 
+    function testRegisterDestinationTokenDecimalsTooHigh() public {
+        vm.expectRevert(_formatErrorMessage("destination token decimals too high"));
+        _setUpRegisteredDestination(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, 0, 1e19, true
+        );
+    }
+
+    function testRegisterInvalidSourceTokenDecimals() public {
+        vm.expectRevert(_formatErrorMessage("invalid source token decimals"));
+        uint8 destinationTokenDecimals = uint8(18);
+        RegisterDestinationMessage memory payload = RegisterDestinationMessage({
+            initialReserveImbalance: 0,
+            sourceTokenDecimals: tokenSourceDecimals + 1,
+            destinationTokenDecimals: uint8(destinationTokenDecimals)
+        });
+        BridgeMessage memory message = BridgeMessage({
+            messageType: BridgeMessageType.REGISTER_DESTINATION,
+            payload: abi.encode(payload)
+        });
+        vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
+        tokenSource.receiveTeleporterMessage(
+            DEFAULT_DESTINATION_BLOCKCHAIN_ID, DEFAULT_DESTINATION_ADDRESS, abi.encode(message)
+        );
+    }
+
     function testSendScaledDownAmount() public {
         uint256 amount = 100;
         uint256 feeAmount = 1;
@@ -799,15 +824,15 @@ abstract contract TeleporterTokenSourceTest is TeleporterTokenBridgeTest {
         uint256 tokenMultiplier,
         bool multiplyOnDestination
     ) internal virtual {
-        uint8 destinationTokenDecimals =
-            uint8(multiplyOnDestination
+        uint8 destinationTokenDecimals = uint8(
+            multiplyOnDestination
                 ? tokenSourceDecimals + Math.log10(tokenMultiplier)
                 : tokenSourceDecimals - Math.log10(tokenMultiplier)
-            );
+        );
         RegisterDestinationMessage memory payload = RegisterDestinationMessage({
             initialReserveImbalance: initialReserveImbalance,
             sourceTokenDecimals: tokenSourceDecimals,
-            destinationTokenDecimals: uint8(destinationTokenDecimals)
+            destinationTokenDecimals: destinationTokenDecimals
         });
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.REGISTER_DESTINATION,

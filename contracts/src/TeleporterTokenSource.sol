@@ -145,7 +145,7 @@ abstract contract TeleporterTokenSource is
         );
         require(
             message.sourceTokenDecimals == tokenDecimals,
-            "TeleporterTokenSource: invalid token decimals"
+            "TeleporterTokenSource: invalid source token decimals"
         );
 
         (uint256 tokenMultiplier, bool multiplyOnDestination) = TokenScalingUtils

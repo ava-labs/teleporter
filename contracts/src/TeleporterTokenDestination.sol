@@ -150,19 +150,19 @@ abstract contract TeleporterTokenDestination is
             settings.tokenSourceAddress != address(0),
             "TeleporterTokenDestination: zero token source address"
         );
-        sourceBlockchainID = settings.sourceBlockchainID;
-        tokenSourceAddress = settings.tokenSourceAddress;
         require(
             settings.tokenSourceDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TeleporterTokenDestination: source token decimals too high"
         );
-        initialReserveImbalance = initialReserveImbalance_;
-        isCollateralized = initialReserveImbalance_ == 0;
-        sourceTokenDecimals = settings.tokenSourceDecimals;
         require(
             tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TeleporterTokenDestination: token decimals too high"
         );
+        sourceBlockchainID = settings.sourceBlockchainID;
+        tokenSourceAddress = settings.tokenSourceAddress;
+        initialReserveImbalance = initialReserveImbalance_;
+        isCollateralized = initialReserveImbalance_ == 0;
+        sourceTokenDecimals = settings.tokenSourceDecimals;
         tokenDecimals = tokenDecimals_;
         (tokenMultiplier, multiplyOnDestination) =
             TokenScalingUtils.deriveTokenMultiplierValues(sourceTokenDecimals, tokenDecimals);

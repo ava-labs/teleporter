@@ -13,10 +13,8 @@ import {ERC20Source} from "../src/ERC20Source.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
+import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 
 contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
     using SafeERC20 for IERC20;
@@ -67,6 +65,16 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
             address(this),
             address(0),
             tokenSourceDecimals
+        );
+    }
+
+    function testTokenDecimalsTooHigh() public {
+        vm.expectRevert(_formatErrorMessage("token decimals too high"));
+        new ERC20Source(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(this),
+            address(mockERC20),
+            uint8(TokenScalingUtils.MAX_TOKEN_DECIMALS) + 1
         );
     }
 
@@ -172,7 +180,14 @@ contract ERC20SourceTest is ERC20BridgeTest, TeleporterTokenSourceTest {
 
             bytes memory expectedCalldata = abi.encodeCall(
                 IERC20SendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, address(mockERC20), amount, payload)
+                (
+                    sourceBlockchainID,
+                    originInfo.bridgeAddress,
+                    originInfo.senderAddress,
+                    address(mockERC20),
+                    amount,
+                    payload
+                )
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, expectedCalldata, new bytes(0));
