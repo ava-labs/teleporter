@@ -35,7 +35,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     function setUp() public override {
         TeleporterTokenDestinationTest.setUp();
 
-        tokenSourceDecimals = 18;
+        tokenSourceDecimals = 6;
         app = NativeTokenDestination(payable(address(_createNewDestinationInstance())));
         tokenDestination = app;
         nativeTokenBridge = app;
@@ -118,11 +118,11 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         bridgedToken = app;
 
         vm.expectRevert("NativeTokenDestination: contract undercollateralized");
-        app.send{value: 100_000}(_createDefaultSendTokensInput());
+        app.send{value: 1e17}(_createDefaultSendTokensInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
         _collateralizeBridge();
-        _sendSingleHopSendSuccess(100_000, 0);
+        _sendSingleHopSendSuccess(1e17, 0);
     }
 
     function testSendAndCallBeforeCollateralized() public {
@@ -134,15 +134,15 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         bridgedToken = app;
 
         vm.expectRevert("NativeTokenDestination: contract undercollateralized");
-        app.sendAndCall{value: 100_000}(_createDefaultSendAndCallInput());
+        app.sendAndCall{value: 1e15}(_createDefaultSendAndCallInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
         _collateralizeBridge();
-        _sendSingleHopSendSuccess(100_000, 0);
+        _sendSingleHopSendSuccess(1e15, 0);
     }
 
     function testSendWithSeparateFeeAsset() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         uint256 feeAmount = 100;
         ExampleERC20 separateFeeAsset = new ExampleERC20();
         SendTokensInput memory input = _createDefaultSendTokensInput();
@@ -215,6 +215,12 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         app.send{value: amount}(input);
     }
 
+    function testReportBurnFeesScaledToZero() public {
+        vm.deal(app.BURNED_TX_FEES_ADDRESS(), 1);
+        vm.expectRevert("NativeTokenDestination: zero scaled amount to report burn");
+        app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
+    }
+
     function testReceiveSendAndCallFailureInsufficientValue() public {
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
@@ -246,9 +252,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
     }
 
     function testReportBurnFeesSuccess() public {
-        // First difference is 100,000
-        uint256 initialBurnedTxFeeAmount = 100_003;
-        uint256 expectedReward = 1_000; // 1%, rounded down due to integer division.
+        uint256 initialBurnedTxFeeAmount = 1e19;
+        uint256 expectedReward = initialBurnedTxFeeAmount / 100; // 1% of 1e17
         uint256 expectedReportedAmount = initialBurnedTxFeeAmount - expectedReward;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialBurnedTxFeeAmount);
 
@@ -274,8 +279,8 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         app.reportBurnedTxFees(DEFAULT_REQUIRED_GAS_LIMIT);
 
         // Mock more transaction fees being burned.
-        uint256 additionalBurnTxFeeAmount = 50_007;
-        expectedReward = 500; // 1%, rounded down due to integer division.
+        uint256 additionalBurnTxFeeAmount = 5 * 1e15 + 3;
+        expectedReward = additionalBurnTxFeeAmount / 100; // 1%, rounded down due to integer division.
         expectedReportedAmount = additionalBurnTxFeeAmount - expectedReward;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), initialBurnedTxFeeAmount + additionalBurnTxFeeAmount);
 
@@ -316,7 +321,7 @@ contract NativeTokenDestinationTest is NativeTokenBridgeTest, TeleporterTokenDes
         tokenBridge = app;
         bridgedToken = app;
 
-        uint256 burnedTxFeeAmount = 100_000;
+        uint256 burnedTxFeeAmount = 1e15;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({

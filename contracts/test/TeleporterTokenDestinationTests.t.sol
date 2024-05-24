@@ -131,7 +131,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testSendingToOtherInstanceOnSameChain() public {
-        _sendMultiHopSendSuccess(tokenDestination.blockchainID(), 100_000, 999, 555);
+        _sendMultiHopSendSuccess(tokenDestination.blockchainID(), 1e18, 999, 555);
     }
 
     function testSendAndCallingToSameInstance() public {
@@ -144,7 +144,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testSendAndCallingToOtherInstanceOnSameChain() public {
-        _sendMultiHopCallSuccess(tokenDestination.blockchainID(), 100_000, 999, 555);
+        _sendMultiHopCallSuccess(tokenDestination.blockchainID(), 1e18, 999, 555);
     }
 
     function testSendZeroAmountAfterRemoveScaling() public {
@@ -167,7 +167,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testSendToSameBlockchainDifferentDestination() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = tokenDestination.blockchainID();
         // Set the desintation bridge address to an address different than the token destination contract.
@@ -203,14 +203,14 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
     }
 
     function testSendMultiHopSendSuccess() public {
-        uint256 amount = 400_000;
+        uint256 amount = 4e15;
         uint256 primaryFee = 5;
         uint256 secondaryFee = 2;
         _sendMultiHopSendSuccess(OTHER_BLOCKCHAIN_ID, amount, primaryFee, secondaryFee);
     }
 
     function testSendMultiHopCallSuccess() public {
-        uint256 amount = 400_000;
+        uint256 amount = 4e18;
         uint256 primaryFee = 5;
         uint256 secondaryFee = 1;
         _sendMultiHopCallSuccess(OTHER_BLOCKCHAIN_ID, amount, primaryFee, secondaryFee);
@@ -630,11 +630,7 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         });
     }
 
-    function _createDefaultSendMultiHopInput()
-        internal
-        view
-        returns (SendTokensInput memory)
-    {
+    function _createDefaultSendMultiHopInput() internal view returns (SendTokensInput memory) {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
         input.multiHopFallback = DEFAULT_FALLBACK_RECIPIENT_ADDRESS;

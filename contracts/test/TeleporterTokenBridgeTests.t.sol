@@ -152,19 +152,19 @@ abstract contract TeleporterTokenBridgeTest is Test {
     }
 
     function testSendWithFees() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         uint256 primaryFee = 100;
         _sendSingleHopSendSuccess(amount, primaryFee);
     }
 
     function testSendNoFees() public {
-        uint256 amount = 200_000;
+        uint256 amount = 2e15;
         uint256 primaryFee = 0;
         _sendSingleHopSendSuccess(amount, primaryFee);
     }
 
     function testSendAndCallWithFees() public {
-        uint256 amount = 100_000;
+        uint256 amount = 1e17;
         uint256 primaryFee = 10;
         _sendSingleHopCallSuccess(amount, primaryFee);
     }
