@@ -37,9 +37,10 @@ library TokenScalingUtils {
     }
 
     /**
-     * @notice Accepts the client-facing token decimals denominations and uses
-     * them to derive the scaling multiplier values that are used by the internal scaling
-     * logic.
+     * @notice Takes both the source and destination token denominations and uses
+     * them to derive the token bridge scaling multiplier values
+     * @param sourceTokenDecimals The number of decimals of the source token.
+     * @param destinationTokenDecimals The number of decimals of the destination token.
      */
     function deriveTokenMultiplierValues(
         uint8 sourceTokenDecimals,

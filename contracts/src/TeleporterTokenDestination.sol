@@ -71,10 +71,10 @@ abstract contract TeleporterTokenDestination is
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
      * the source chain.
      *
-     * @dev This can be used to normalize the number of decimal places between
+     * @dev This is used to normalize the number of decimal places between
      * the tokens on the two subnets. Is derived from the decimal values
-     * specified in the {TeleporterTokenDestinationSettings} struct that's
-     * passed into the constructor.
+     * passed in to the constructor of this contract for source and destination
+     * token decimals.
      */
     uint256 public immutable tokenMultiplier;
 
