@@ -158,6 +158,10 @@ abstract contract TeleporterTokenDestination is
         initialReserveImbalance = initialReserveImbalance_;
         isCollateralized = initialReserveImbalance_ == 0;
         sourceTokenDecimals = settings.tokenSourceDecimals;
+        require(
+            settings.tokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TeleporterTokenDestination: token decimals too high"
+        );
         tokenDecimals = settings.tokenDecimals;
         (tokenMultiplier, multiplyOnDestination) =
             TokenScalingUtils.deriveTokenMultiplierValues(sourceTokenDecimals, tokenDecimals);
