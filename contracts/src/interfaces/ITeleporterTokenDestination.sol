@@ -23,8 +23,6 @@ import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
  * @param tokenSourceAddress The address of the source token bridge contract.
  * @param tokenSourceDecimals The number of decimal places used by the source
  * token.
- * @param tokenDecimals The number of decimal places used by the destination
- * token described by these settings.
  */
 struct TeleporterTokenDestinationSettings {
     address teleporterRegistryAddress;
