@@ -138,7 +138,7 @@ contract NativeTokenDestination is
             initialReserveImbalance != 0, "NativeTokenDestination: zero initial reserve imbalance"
         );
         require(
-            settings.tokenDecimals == 18, // to match the ERC20 default
+            settings.tokenDecimals == 18, // to match the EVM's native asset denomination
             "NativeTokenDestination: settings.tokenDecimals is not 18"
         );
         require(
