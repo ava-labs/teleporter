@@ -27,6 +27,9 @@ func NativeSourceNativeDestinationMultiHop(network interfaces.Network) {
 
 	ctx := context.Background()
 
+	// decimalsShift is always 0 for native to native
+	decimalsShift := uint8(0)
+
 	// Deploy an example WAVAX on the primary network
 	wavaxAddress, wavax := utils.DeployWrappedNativeToken(
 		ctx,

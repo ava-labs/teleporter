@@ -14,6 +14,18 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var (
+	decimalsShift           = uint8(1)
+	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
+	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
+
+	// These two should be changed together
+	multiplyOnDestination = true
+	erc20SourceDecimals   = utils.NativeTokenDecimals - decimalsShift
+
+	burnedFeesReportingRewardPercentage = big.NewInt(1)
+)
+
 /**
  * Deploy a ERC20 token source on the primary network
  * Deploys NativeDestination to Subnet A and Subnet B
