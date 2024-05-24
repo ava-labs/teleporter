@@ -58,11 +58,25 @@ abstract contract TeleporterTokenDestinationTest is TeleporterTokenBridgeTest {
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
+    function testZeroDestinationBlockchainWithSendAndCall() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.destinationBlockchainID = bytes32(0);
+        vm.expectRevert(_formatErrorMessage("zero destination blockchain ID"));
+        _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
     function testZeroDestinationBridgeAddress() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.destinationBridgeAddress = address(0);
         vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
+    }
+
+    function testZeroDestinationBridgeAddressWithSendAndCall() public {
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.destinationBridgeAddress = address(0);
+        vm.expectRevert(_formatErrorMessage("zero destination bridge address"));
+        _sendAndCall(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testInvalidSendingBackToSourceBlockchain() public {
