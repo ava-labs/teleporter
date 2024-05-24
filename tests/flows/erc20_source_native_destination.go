@@ -14,6 +14,18 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var (
+	decimalsShift           = uint8(1)
+	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
+	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
+
+	// These two should be changed together
+	multiplyOnDestination = true
+	erc20SourceDecimals   = utils.NativeTokenDecimals - decimalsShift
+
+	burnedFeesReportingRewardPercentage = big.NewInt(1)
+)
+
 /**
  * Deploy a ERC20 token source on the primary network
  * Deploys NativeDestination to Subnet A and Subnet B
@@ -28,10 +40,11 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on subnet A as the source token to be bridged
-	sourceTokenAddress, sourceToken := teleporterUtils.DeployExampleERC20(
+	sourceTokenAddress, sourceToken := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		erc20SourceDecimals,
 	)
 
 	sourceTokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
@@ -57,7 +70,6 @@ func ERC20SourceNativeDestination(network interfaces.Network) {
 		erc20SourceAddress,
 		sourceTokenDecimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)

@@ -13,15 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var (
-	decimalsShift           = uint8(0)
-	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
-	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
-	multiplyOnDestination   = true
-
-	burnedFeesReportingRewardPercentage = big.NewInt(1)
-)
-
 /**
  * Deploy a native token source on the primary network
  * Deploys a native token destination to Subnet A
@@ -62,7 +53,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		18,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
@@ -76,7 +66,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		subnetAInfo,
 		nativeTokenDestinationAddress,
 		initialReserveImbalance,
-		utils.GetTokenMultiplier(decimalsShift),
+		big.NewInt(1),
 		multiplyOnDestination,
 	)
 
@@ -117,7 +107,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 			nativeTokenSourceAddress,
 			wavax,
 			input,
-			utils.RemoveTokenScaling(tokenMultiplier, multiplyOnDestination, amount),
+			amount,
 			fundedKey,
 		)
 
@@ -170,7 +160,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		)
 
 		// Check that the recipient received the tokens
-		sourceAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnDestination, bridgedAmount)
+		sourceAmount := bridgedAmount
 		utils.CheckNativeTokenSourceWithdrawal(
 			ctx,
 			nativeTokenSourceAddress,

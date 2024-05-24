@@ -31,14 +31,12 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on subnet A as the source token to be bridged
-	sourceTokenAddress, sourceToken := teleporterUtils.DeployExampleERC20(
+	sourceTokenAddress, sourceToken := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		erc20SourceDecimals,
 	)
-
-	sourceTokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
-	Expect(err).Should(BeNil())
 
 	// Create an ERC20Source for bridging the source token
 	erc20SourceAddress, erc20Source := utils.DeployERC20Source(
@@ -47,7 +45,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		cChainInfo,
 		fundedAddress,
 		sourceTokenAddress,
-		sourceTokenDecimals,
+		erc20SourceDecimals,
 	)
 
 	// Deploy a NativeTokenDestination to Subnet A
@@ -58,9 +56,8 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20SourceAddress,
-		sourceTokenDecimals,
+		erc20SourceDecimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
@@ -149,7 +146,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	teleporterUtils.ExpectBigEqual(balance, initialBalance.Add(initialBalance, collateralNeeded))
 
 	// Send the tokens and expect success now that collateral is added
-	teleporterUtils.ERC20Approve(
+	utils.ERC20Approve(
 		ctx,
 		sourceToken,
 		erc20SourceAddress,
