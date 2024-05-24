@@ -17,7 +17,10 @@ var (
 	decimalsShift           = uint8(1)
 	tokenMultiplier         = utils.GetTokenMultiplier(decimalsShift)
 	initialReserveImbalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e6))
-	multiplyOnDestination   = true
+
+	// These two should be changed together
+	multiplyOnDestination = true
+	erc20SourceDecimals   = utils.NativeTokenDecimals - decimalsShift
 
 	burnedFeesReportingRewardPercentage = big.NewInt(1)
 )
@@ -62,7 +65,6 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		nativeTokenSourceAddress,
 		18,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
@@ -76,7 +78,7 @@ func NativeSourceNativeDestination(network interfaces.Network) {
 		subnetAInfo,
 		nativeTokenDestinationAddress,
 		initialReserveImbalance,
-		utils.GetTokenMultiplier(decimalsShift),
+		big.NewInt(1),
 		multiplyOnDestination,
 	)
 

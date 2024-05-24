@@ -52,9 +52,8 @@ func NativeSourceNativeDestinationMultiHop(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
-		18,
+		erc20SourceDecimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)
@@ -67,9 +66,8 @@ func NativeSourceNativeDestinationMultiHop(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		nativeTokenSourceAddress,
-		18,
+		erc20SourceDecimals,
 		initialReserveImbalance,
-		decimalsShift,
 		multiplyOnDestination,
 		burnedFeesReportingRewardPercentage,
 	)

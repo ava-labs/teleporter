@@ -29,10 +29,11 @@ func ERC20SourceERC20DestinationSendAndCall(network interfaces.Network) {
 	ctx := context.Background()
 
 	// Deploy an ExampleERC20 on the primary network as the source token to be bridged
-	sourceTokenAddress, sourceToken := teleporterUtils.DeployExampleERC20(
+	sourceTokenAddress, sourceToken := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		cChainInfo,
+		erc20SourceDecimals,
 	)
 
 	sourceTokenDecimals, err := sourceToken.Decimals(&bind.CallOpts{})
