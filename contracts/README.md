@@ -22,7 +22,7 @@ An abstract implementation of `ITokenBridge` for a bridge contract on a spoke ch
 
 All messages sent by `TokenSpoke` instances are sent to the specified `TokenHub` contract, whether they are to redeem the collateral on the hub chain or route the tokens to another spoke chain. Routing tokens from one spoke chain to another is referred to as a "multi-hop", where the tokens are first sent back to their `TokenHub` contract to update its accounting, and then automatically routed on to their intended destination spoke.
 
-`TokenSpoke` contracts allow for scaling token amounts, if the representative "wrapped" token is not a 1-to-1 equivalent of the backing asset. This token scaling can be used when the spoke asset has a higher or lower denomination than the hub asset, such as allowing for a ERC20 hub asset with a denomination of 6 to be used as the native EVM asset on a spoke chain (with a denomination of 18).
+TokenSpoke contracts allow for scaling token amounts, which should be used when the spoke asset has a higher or lower denomination than the hub asset, such as allowing for a ERC20 hub asset with a denomination of 6 to be used as the native EVM asset on a spoke chain (with a denomination of 18).
 
 ### `ERC20TokenSpoke`
 A concrete implementation of `TokenSpoke`, `IERC20TokenBridge`, and `IERC20` that handles the minting and burning of an ERC20 spoke chain asset. Note that the `ERC20TokenSpoke` contract is an ERC20 implementation itself, which is why it takes the `tokenName`, `tokenSymbol`, and `tokenDecimals` in its constructor. All of the ERC20 interface implementations are inherited from the standard OpenZeppelin ERC20 implementation, and can be overriden in other implementations if desired.
