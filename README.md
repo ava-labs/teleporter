@@ -17,7 +17,7 @@ Hub contract instances specify either an ERC20 token or the native token to be b
 - `Native` -> `ERC20`
 - `Native` -> `Native`
 
-The spoke tokens are designed to by default have compatibility with the token bridge on the hub chain, and allow custom logic to be implemented in addition. For example, developers can inherit and extend the `ERC20TokenSpoke` contract to add additional functionality, such as a custom minting, burning, or transfer logic.
+The spoke tokens are designed to have compatibility with the token bridge on the hub chain by default, and they allow custom logic to be implemented in addition. For example, developers can inherit and extend the `ERC20TokenSpoke` contract to add additional functionality, such as a custom minting, burning, or transfer logic.
 
 The token bridge also supports "multi-hop" transfers, where tokens can be transferred between spoke chains. To illustrate, consider two spokes _S<sub>a</sub>_ and _S<sub>b</sub>_ that are both connected to the same hub _H_. A multi-hop transfer from _S<sub>a</sub>_ to _S<sub>b</sub>_ first gets routed from _S<sub>a</sub>_ to _H_, where spoke balances are updated, and then _H_ automatically routes the transfer on to _S<sub>b</sub>_.
 
