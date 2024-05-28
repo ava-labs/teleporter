@@ -19,13 +19,13 @@ import {ITokenBridge, SendTokensInput, SendAndCallInput} from "./ITokenBridge.so
  */
 interface INativeTokenBridge is ITokenBridge {
     /**
-     * @notice Sends native tokens transferred to this contract to the spoke contract instance.
+     * @notice Sends native tokens to the specified destination.
      * @param input Specifies information for delivery of the tokens
      */
     function send(SendTokensInput calldata input) external payable;
 
     /**
-     * @notice Sends native tokens transferred to this contract to the spoke contract instance.
+     * @notice Sends native tokens to the specified destination to be used in a smart contract interaction.
      * @param input Specifies information for delivery of the tokens to the spoke contract and contract to be called
      * on the spoke chain.
      */

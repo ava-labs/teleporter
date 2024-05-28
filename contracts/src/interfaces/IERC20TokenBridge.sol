@@ -19,14 +19,14 @@ import {ITokenBridge, SendTokensInput, SendAndCallInput} from "./ITokenBridge.so
  */
 interface IERC20TokenBridge is ITokenBridge {
     /**
-     * @notice Sends ERC20 tokens transferred to this contract to the spoke contract instance.
+     * @notice Sends ERC20 tokens to the specified destination.
      * @param input Specifies information for delivery of the tokens
      * @param amount Amount of tokens to send
      */
     function send(SendTokensInput calldata input, uint256 amount) external;
 
     /**
-     * @notice Sends ERC20 tokens transferred to this contract to the spoke contract instance.
+     * @notice Sends ERC20 tokens to the specified destination to be used in a smart contract interaction.
      * @param input Specifies information for delivery of the tokens
      * @param amount Amount of tokens to send
      */

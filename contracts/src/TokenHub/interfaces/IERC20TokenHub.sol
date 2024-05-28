@@ -14,7 +14,7 @@ import {ITokenHub} from "./ITokenHub.sol";
  */
 
 /**
- * @notice Interface for a "hub" ERC20 bridge contract that locks its specified ERC20
+ * @notice Interface for a ERC20 token "hub" contract that locks its specified ERC20
  * token on its chain to be bridged to supported spoke bridge contracts on other chains.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md

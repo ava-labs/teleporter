@@ -13,7 +13,7 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  */
 
 /**
- * @notice Input parameters for bridging tokens to another chain as part of simple transfer.
+ * @notice Input parameters for bridging tokens to another chain as part of a simple transfer.
  * @param destinationBlockchainID Blockchain ID of the destination
  * @param destinationBridgeAddress Address of the destination token bridge instance
  * @param recipient Address of the recipient on the destination chain
