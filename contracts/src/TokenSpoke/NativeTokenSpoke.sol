@@ -38,13 +38,7 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
  * and represents the received tokens as the native token on this chain.
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-contract NativeTokenSpoke is
-    SendReentrancyGuard,
-    INativeTokenSpoke,
-    TokenSpoke,
-    IWrappedNativeToken,
-    ERC20
-{
+contract NativeTokenSpoke is INativeTokenSpoke, IWrappedNativeToken, ERC20, TokenSpoke {
     using Address for address payable;
 
     /**

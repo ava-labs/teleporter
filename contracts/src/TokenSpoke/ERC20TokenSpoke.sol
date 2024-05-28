@@ -27,7 +27,7 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * and represents the received tokens with an ERC20 token on this chain.
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20 {
+contract ERC20TokenSpoke is IERC20TokenBridge, ERC20, TokenSpoke {
     using SafeERC20 for IERC20;
 
     uint8 private immutable _decimals;
