@@ -8,16 +8,16 @@ Please note that `teleporter-token-bridge` is still under active development and
 
 Teleporter token bridge is an application that allows users to transfer tokens between Subnets. The bridge is a set of smart contracts that are deployed across multiple Subnets, and leverages [Teleporter](https://github.com/ava-labs/teleporter) for cross-chain communication.
 
-Each bridge instance consists of one "hub" contract and at least one but possibly many "spoke" contracts. Each hub contract instance manages one asset to be bridged out to spoke instances. The hub contract lives on the Subnet where the asset to be bridged exists and locks that asset as collateral to be bridged to other Subnets. The spoke contracts, each of which has a single specified hub contract, live on other Subnets that want to import the asset bridged by their specified hub. The token bridges are designed to be permissionless: anyone can register compatible spoke instances to allow for bridging tokens from the hub instance to that new spoke. The token bridge hub contract keeps track of token balances bridged to each spoke instance, and handles returning the original tokens back to the user when bridged back to the hub instance. Spoke instances are registered with their hub contract via a Teleporter message upon creation.
+Each bridge instance consists of one "hub" contract and at least one but possibly many "spoke" contracts. Each hub contract instance manages one asset to be bridged out to spoke instances. The hub contract lives on the Subnet where the asset to be bridged exists and locks that asset as collateral to be bridged to other Subnets. The spoke contracts, each of which has a single specified hub contract, live on other Subnets that want to import the asset bridged by their specified hub. The token bridges are designed to be permissionless: anyone can register compatible spoke instances to allow for bridging tokens from the hub instance to that new spoke. The hub contract keeps track of token balances bridged to each spoke instance, and it handles returning the original tokens back to the user when assets are bridged back to the hub instance. Spoke instances are registered with their hub contract via a Teleporter message upon creation.
 
-Hub contract instances specify either an ERC20 token or the native token to be bridged, and allow for transferring the token to any registered spoke instances. The token representation on the spoke chain can also either be an ERC20 or native token, allowing users to have any combination of ERC20 and native tokens between hub and spoke chains:
+Hub contract instances specify the asset to be bridged as either an ERC20 token or the native token, and they allow for transferring the token to any registered spoke instances. The token representation on the spoke chain can also either be an ERC20 or native token, allowing users to have any combination of ERC20 and native tokens between hub and spoke chains:
 
 - `ERC20` -> `ERC20`
 - `ERC20` -> `Native`
 - `Native` -> `ERC20`
 - `Native` -> `Native`
 
-The spoke tokens are designed to by default have compatibility with the token bridge on the hub chain, and allow custom logic to be implemented in addition. For example, developers can inherit and extend the `ERC20TokenSpoke` contract to add additional functionality, such as a custom minting, burning, or transfer logic.
+The spoke tokens are designed to have compatibility with the token bridge on the hub chain by default, and they allow custom logic to be implemented in addition. For example, developers can inherit and extend the `ERC20TokenSpoke` contract to add additional functionality, such as a custom minting, burning, or transfer logic.
 
 The token bridge also supports "multi-hop" transfers, where tokens can be transferred between spoke chains. To illustrate, consider two spokes _S<sub>a</sub>_ and _S<sub>b</sub>_ that are both connected to the same hub _H_. A multi-hop transfer from _S<sub>a</sub>_ to _S<sub>b</sub>_ first gets routed from _S<sub>a</sub>_ to _H_, where spoke balances are updated, and then _H_ automatically routes the transfer on to _S<sub>b</sub>_.
 
@@ -107,7 +107,7 @@ GINKGO_FOCUS="Bridge an ERC20 token" ./scripts/e2e_test.sh
 
 The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all `ERC20TokenHub` E2E tests:
 
-```bash
+```go
 	ginkgo.It("Bridge an ERC20 token between two Subnets",
 		ginkgo.Label(erc20TokenHubLabel, erc20TokenSpokeLabel),
 		func() {

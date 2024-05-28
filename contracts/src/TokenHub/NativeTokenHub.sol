@@ -37,7 +37,7 @@ contract NativeTokenHub is INativeTokenHub, TokenHub {
 
     /**
      * @notice Initializes this token hub instance to send native tokens to spoke instances on other chains.
-     * Always uses a {tokenDecimals_} value of 18 since it is the denomincation of the native token of EVM instances.
+     * Always uses a {tokenDecimals_} value of 18 since it is the denomination of the native token of EVM instances.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
