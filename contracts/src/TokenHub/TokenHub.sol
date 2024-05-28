@@ -229,7 +229,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         );
 
         if (adjustedAmount == 0) {
-            // If the adjusted amount is zero for any reason (i.e. unregisted spoke,
+            // If the adjusted amount is zero for any reason (i.e. unregistered spoke,
             // being scaled down to zero, etc.), send the tokens to the multi-hop fallback.
             _withdraw(input.multiHopFallback, amount);
             return;
