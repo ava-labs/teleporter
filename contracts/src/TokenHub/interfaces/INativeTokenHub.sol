@@ -24,7 +24,7 @@ interface INativeTokenHub is INativeTokenBridge, ITokenHub {
      * @notice Adds collateral to the hub bridge contract for the specified spoke instance. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.
      * @param spokeBlockchainID The blockchain ID of the spoke bridge contract to add collateral for.
-     * @param spokeBridgeAddress the address of the spoke bridge contract to add collateral for on
+     * @param spokeBridgeAddress The address of the spoke bridge contract to add collateral for on
      * the {spokeBlockchainID}.
      */
     function addCollateral(
