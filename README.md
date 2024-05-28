@@ -107,7 +107,7 @@ GINKGO_FOCUS="Bridge an ERC20 token" ./scripts/e2e_test.sh
 
 The E2E tests also supports `GINKGO_LABEL_FILTER`, making it easy to group test cases and run them together. For example, to run all `ERC20TokenHub` E2E tests:
 
-```bash
+```go
 	ginkgo.It("Bridge an ERC20 token between two Subnets",
 		ginkgo.Label(erc20TokenHubLabel, erc20TokenSpokeLabel),
 		func() {
