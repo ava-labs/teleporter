@@ -266,8 +266,10 @@ func CreateRetryMessageExecutionTransaction(
 	data, err := teleportermessenger.PackRetryMessageExecution(sourceBlockchainID, message)
 	Expect(err).Should(BeNil())
 
-	// TODO: replace with actual number of signers
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit)
+	gasEstimate, err := subnetInfo.RPCClient.EstimateGas(ctx, subnetEvmInterfaces.CallMsg{
+		To:   &teleporterContractAddress,
+		Data: data,
+	})
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(senderKey))
@@ -277,7 +279,7 @@ func CreateRetryMessageExecutionTransaction(
 		ChainID:   subnetInfo.EVMChainID,
 		Nonce:     nonce,
 		To:        &teleporterContractAddress,
-		Gas:       gasLimit,
+		Gas:       gasEstimate,
 		GasFeeCap: gasFeeCap,
 		GasTipCap: gasTipCap,
 		Value:     DefaultTeleporterTransactionValue,
@@ -302,7 +304,7 @@ func CreateReceiveCrossChainMessageTransaction(
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, uint32(len(signedMessage.Payload)), requiredGasLimit)
 	Expect(err).Should(BeNil())
 
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, PrivateKeyToAddress(senderKey))

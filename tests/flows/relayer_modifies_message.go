@@ -105,7 +105,7 @@ func createAlteredReceiveCrossChainMessageTransaction(
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, uint32(len(signedMessage.Payload)), requiredGasLimit)
 	Expect(err).Should(BeNil())
 
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
