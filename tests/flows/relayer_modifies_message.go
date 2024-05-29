@@ -11,6 +11,7 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
+	iteleporterreceiver "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/ITeleporterReceiver"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -102,13 +103,29 @@ func createAlteredReceiveCrossChainMessageTransaction(
 	// Construct the transaction to send the Warp message to the destination chain
 	log.Info("Constructing transaction for the destination chain")
 
-	numSigners, err := signedMessage.Signature.NumSigners()
-	Expect(err).Should(BeNil())
-
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
-	Expect(err).Should(BeNil())
+	teleporterMessage := utils.ParseTeleporterMessage(signedMessage.UnsignedMessage)
 
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
+	Expect(err).Should(BeNil())
+
+	destinationCallData, err := iteleporterreceiver.PackReceiveTeleporterMessage(
+		signedMessage.SourceChainID,
+		teleporterMessage.OriginSenderAddress,
+		teleporterMessage.Message,
+	)
+	Expect(err).Should(BeNil())
+
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(
+		ctx,
+		subnetInfo.RPCClient,
+		fundedAddress,
+		teleporterContractAddress,
+		teleporterMessage.DestinationAddress,
+		requiredGasLimit,
+		callData,
+		destinationCallData,
+		signedMessage.Bytes(),
+	)
 	Expect(err).Should(BeNil())
 
 	gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(ctx, subnetInfo, fundedAddress)
