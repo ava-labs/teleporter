@@ -27,7 +27,7 @@ contract ERC20TokenHubTest is ERC20TokenBridgeTest, TokenHubTest {
 
         mockERC20 = new ExampleERC20();
         tokenHubDecimals = 6;
-        app = new ERC20TokenHub(
+        app = deployERC20TokenHub(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             address(mockERC20),
@@ -38,6 +38,19 @@ contract ERC20TokenHubTest is ERC20TokenBridgeTest, TokenHubTest {
         tokenBridge = app;
 
         bridgedToken = mockERC20;
+    }
+
+    function deployERC20TokenHub(
+        address teleporterRegistryAddress,
+        address teleporterManager,
+        address tokenAddress,
+        uint8 tokenDecimals
+    ) internal returns (ERC20TokenHub) {
+        ERC20TokenHub instance = new ERC20TokenHub();
+        instance.initialize(
+            teleporterRegistryAddress, teleporterManager, tokenAddress, tokenDecimals
+        );
+        return instance;
     }
 
     /**

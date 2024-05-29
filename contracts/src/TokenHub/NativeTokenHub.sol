@@ -49,7 +49,7 @@ contract NativeTokenHub is INativeTokenHub, TokenHub {
         address teleporterRegistryAddress,
         address teleporterManager,
         address wrappedTokenAddress
-    ) public override initializer {
+    ) public initializer {
         TokenHub.initialize(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18);
         wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
