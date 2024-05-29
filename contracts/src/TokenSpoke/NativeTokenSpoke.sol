@@ -21,11 +21,12 @@ import {
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
+import {ERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -43,7 +44,7 @@ contract NativeTokenSpoke is
     INativeTokenSpoke,
     TokenSpoke,
     IWrappedNativeToken,
-    ERC20
+    ERC20Upgradeable
 {
     using Address for address payable;
 
@@ -85,7 +86,7 @@ contract NativeTokenSpoke is
      * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering
      * the message created by calling calling reportBurnedTxFees().
      */
-    uint256 public immutable burnedFeesReportingRewardPercentage;
+    uint256 public burnedFeesReportingRewardPercentage;
 
     /**
      * @notice Total number of tokens minted by this contract through the native minter precompile.
@@ -115,16 +116,16 @@ contract NativeTokenSpoke is
      * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
      * that will be rewarded to sender of the report.
      */
-    constructor(
+    function initialize(
         TokenSpokeSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
         uint256 burnedFeesReportingRewardPercentage_
-    )
-        ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
-        TokenSpoke(settings, initialReserveImbalance, 18)
-    {
+    ) public initializer {
+        __ERC20_init(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol);
+        TokenSpoke.initialize(settings, initialReserveImbalance, 18);
         require(initialReserveImbalance != 0, "NativeTokenSpoke: zero initial reserve imbalance");
+
         require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenSpoke: invalid percentage");
         burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
     }

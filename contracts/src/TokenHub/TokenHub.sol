@@ -59,7 +59,7 @@ struct SpokeBridgeSettings {
  */
 abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentrancyGuard {
     /// @notice The blockchain ID of the chain this contract is deployed on.
-    bytes32 public immutable blockchainID;
+    bytes32 public blockchainID;
 
     /**
      * @notice The token address this hub contract bridges to spoke instances.
@@ -67,9 +67,9 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
      * If the token is an ERC20 token, the contract address is directly passed in.
      * If the token is a native asset, the contract address is the wrapped token contract.
      */
-    address public immutable tokenAddress;
+    address public tokenAddress;
 
-    uint8 public immutable tokenDecimals;
+    uint8 public tokenDecimals;
 
     /**
      * @notice Tracks the settings for each spoke bridge instance. Spoke instances
@@ -93,12 +93,13 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
     /**
      * @notice Initializes this hub bridge instance to send tokens to spoke instances on other chains.
      */
-    constructor(
+    function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
         address tokenAddress_,
         uint8 tokenDecimals_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
+    ) public virtual onlyInitializing {
+        TeleporterOwnerUpgradeable.initialize(teleporterRegistryAddress, teleporterManager);
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(tokenAddress_ != address(0), "TokenHub: zero token address");
         require(

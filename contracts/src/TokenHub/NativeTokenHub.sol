@@ -33,7 +33,7 @@ contract NativeTokenHub is INativeTokenHub, TokenHub {
     /**
      * @notice The wrapped native token contract that represents the native tokens on this chain.
      */
-    IWrappedNativeToken public immutable wrappedToken;
+    IWrappedNativeToken public wrappedToken;
 
     /**
      * @notice Initializes this token hub instance to send native tokens to spoke instances on other chains.
@@ -45,11 +45,12 @@ contract NativeTokenHub is INativeTokenHub, TokenHub {
      * @param wrappedTokenAddress The wrapped native token contract address of the native asset
      * to be bridged to spoke instances.
      */
-    constructor(
+    function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
         address wrappedTokenAddress
-    ) TokenHub(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18) {
+    ) public override initializer {
+        TokenHub.initialize(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18);
         wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
 

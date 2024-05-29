@@ -12,8 +12,12 @@ import {IERC20SendAndCallReceiver} from "../interfaces/IERC20SendAndCallReceiver
 import {
     SendTokensInput, SendAndCallInput, SingleHopCallMessage
 } from "../interfaces/ITokenBridge.sol";
-import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {
+    IERC20Upgradeable,
+    ERC20Upgradeable
+} from "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
@@ -27,10 +31,10 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * and represents the received tokens with an ERC20 token on this chain.
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20 {
-    using SafeERC20 for IERC20;
+contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20Upgradeable {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    uint8 private immutable _decimals;
+    uint8 private _decimals;
 
     /**
      * @notice Initializes this token spoke instance to receive tokens from the specified hub instance,
@@ -40,12 +44,14 @@ contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20 {
      * @param tokenSymbol The symbol of the ERC20 token.
      * @param tokenDecimals_ The number of decimals for the ERC20 token.
      */
-    constructor(
+    function initialize(
         TokenSpokeSettings memory settings,
         string memory tokenName,
         string memory tokenSymbol,
         uint8 tokenDecimals_
-    ) TokenSpoke(settings, 0, tokenDecimals_) ERC20(tokenName, tokenSymbol) {
+    ) public initializer {
+        __ERC20_init(tokenName, tokenSymbol);
+        TokenSpoke.initialize(settings, 0, tokenDecimals_);
         _decimals = tokenDecimals;
     }
 

@@ -31,7 +31,7 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
     using SafeERC20 for IERC20;
 
     /// @notice The ERC20 token this hub contract bridges to spoke instances.
-    IERC20 public immutable token;
+    IERC20 public token;
 
     /**
      * @notice Initializes the token hub instance to send ERC20 tokens to spoke instances on other chains.
@@ -42,12 +42,15 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
      * @param tokenAddress_ The ERC20 token contract address to be bridged by the hub.
      * @param tokenDecimals_ The number of decimals for the ERC20 token
      */
-    constructor(
+    function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
         address tokenAddress_,
         uint8 tokenDecimals_
-    ) TokenHub(teleporterRegistryAddress, teleporterManager, tokenAddress_, tokenDecimals_) {
+    ) public override initializer {
+        TokenHub.initialize(
+            teleporterRegistryAddress, teleporterManager, tokenAddress_, tokenDecimals_
+        );
         token = IERC20(tokenAddress);
     }
 

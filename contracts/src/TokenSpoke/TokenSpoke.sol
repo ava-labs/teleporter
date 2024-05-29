@@ -40,26 +40,26 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
  */
 abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendReentrancyGuard {
     /// @notice The blockchain ID of the chain this contract is deployed on.
-    bytes32 public immutable blockchainID;
+    bytes32 public blockchainID;
 
     /// @notice The blockchain ID of the hub instance this contract receives tokens from.
-    bytes32 public immutable tokenHubBlockchainID;
+    bytes32 public tokenHubBlockchainID;
 
     /// @notice The address of the hub instance this contract receives tokens from on the {tokenHubBlockchainID}.
-    address public immutable tokenHubAddress;
+    address public tokenHubAddress;
 
     /**
      * @notice The number of decimal places in the denomination of the hub
      * token.
      * @dev Used to derive tokenMultiplier and multiplyOnSpoke.
      */
-    uint8 public immutable hubTokenDecimals;
+    uint8 public hubTokenDecimals;
 
     /**
      * @notice The number of decimal places in the denomination of the spoke token.
      * @dev Used to derive tokenMultiplier and multiplyOnSpoke.
      */
-    uint8 public immutable tokenDecimals;
+    uint8 public tokenDecimals;
 
     /**
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
@@ -70,7 +70,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
      * passed in to the constructor of this contract for source and destination
      * token decimals.
      */
-    uint256 public immutable tokenMultiplier;
+    uint256 public tokenMultiplier;
 
     /**
      * @notice If {multiplyOnSpoke} is true, the hub token amount will be multiplied by {tokenMultiplier} when tokens
@@ -80,13 +80,13 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
      * are transferred from the hub into this spoke, and multiplied by {tokenMultiplier} when tokens are transferred
      * from this spoke back to its hub.
      */
-    bool public immutable multiplyOnSpoke;
+    bool public multiplyOnSpoke;
 
     /**
      * @notice Initial reserve imbalance that the token for this spoke instance starts with. The hub contract must
      * collateralize a corresonding amount of hub tokens before tokens can be minted on this contract.
      */
-    uint256 public immutable initialReserveImbalance;
+    uint256 public initialReserveImbalance;
 
     /**
      * @notice Whether or not the contract is known to be fully collateralized.
@@ -124,11 +124,14 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
      * @param initialReserveImbalance_ The initial reserve imbalance that must be collateralized before minting.
      * @param tokenDecimals_ The number of decimal places in the denomination of the spoke token.
      */
-    constructor(
+    function initialize(
         TokenSpokeSettings memory settings,
         uint256 initialReserveImbalance_,
         uint8 tokenDecimals_
-    ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
+    ) internal onlyInitializing {
+        TeleporterOwnerUpgradeable.initialize(
+            settings.teleporterRegistryAddress, settings.teleporterManager
+        );
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
             settings.tokenHubBlockchainID != bytes32(0), "TokenSpoke: zero token hub blockchain ID"
