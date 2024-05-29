@@ -105,13 +105,13 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
      * @notice Fixed gas cost for executing a multi-hop send message on the token hub contract,
      * before forwarding to the destination token spoke instance.
      */
-    uint256 public constant MULTI_HOP_SEND_REQUIRED_GAS = 195_000;
+    uint256 public constant MULTI_HOP_SEND_REQUIRED_GAS = 340_000;
 
     /**
      * @notice Fixed gas cost for executing a multi-hop call message on the token hub contract,
      * before forwarding to the destination token spoke instance.
      */
-    uint256 public constant MULTI_HOP_CALL_REQUIRED_GAS = 205_000;
+    uint256 public constant MULTI_HOP_CALL_REQUIRED_GAS = 350_000;
 
     /**
      * @notice The amount of gas added to the required gas limit for a multi-hop call message
@@ -122,7 +122,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     /**
      * @notice Fixed gas cost for registering the spoke contract on the hub contract.
      */
-    uint256 public constant REGISTER_SPOKE_REQUIRED_GAS = 75_000;
+    uint256 public constant REGISTER_SPOKE_REQUIRED_GAS = 115_000;
 
     /**
      * @notice Initializes this token spoke instance.

@@ -821,7 +821,8 @@ func SendNativeMultiHopAndVerify(
 	toBridge *nativetokenspoke.NativeTokenSpoke,
 	toBridgeAddress common.Address,
 	cChainInfo interfaces.SubnetTestInfo,
-	bridgedAmount *big.Int,
+	amount *big.Int,
+	secondaryFeeAmount *big.Int,
 ) {
 	input := nativetokenspoke.SendTokensInput{
 		DestinationBlockchainID:  toSubnet.BlockchainID,
@@ -829,22 +830,19 @@ func SendNativeMultiHopAndVerify(
 		Recipient:                recipientAddress,
 		PrimaryFeeTokenAddress:   fromBridgeAddress,
 		PrimaryFee:               big.NewInt(0),
-		SecondaryFee:             big.NewInt(0),
+		SecondaryFee:             secondaryFeeAmount,
 		RequiredGasLimit:         DefaultNativeTokenRequiredGas,
 		MultiHopFallback:         recipientAddress,
 	}
 
-	// Find the amount sent by fromBridge. This is before any scaling/unscaling is applied.
-	bridgedAmount = teleporterUtils.BigIntSub(bridgedAmount, input.PrimaryFee)
-
 	// Send tokens through a multi-hop transfer
-	originReceipt, bridgedAmount := SendNativeTokenSpoke(
+	originReceipt, amount := SendNativeTokenSpoke(
 		ctx,
 		fromSubnet,
 		fromBridge,
 		fromBridgeAddress,
 		input,
-		bridgedAmount,
+		amount,
 		sendingKey,
 	)
 
@@ -872,6 +870,7 @@ func SendNativeMultiHopAndVerify(
 		true,
 	)
 
+	bridgedAmount := big.NewInt(0).Sub(amount, input.SecondaryFee)
 	teleporterUtils.CheckBalance(
 		ctx,
 		recipientAddress,
@@ -893,7 +892,8 @@ func SendERC20TokenMultiHopAndVerify(
 	toBridge *erc20tokenspoke.ERC20TokenSpoke,
 	toBridgeAddress common.Address,
 	cChainInfo interfaces.SubnetTestInfo,
-	bridgedAmount *big.Int,
+	amount *big.Int,
+	secondaryFeeAmount *big.Int,
 ) {
 	// Send tokens to the sender address to have gas for submitting the send tokens transaction
 	teleporterUtils.SendNativeTransfer(
@@ -909,19 +909,19 @@ func SendERC20TokenMultiHopAndVerify(
 		Recipient:                recipientAddress,
 		PrimaryFeeTokenAddress:   common.Address{},
 		PrimaryFee:               big.NewInt(0),
-		SecondaryFee:             big.NewInt(0),
+		SecondaryFee:             secondaryFeeAmount,
 		RequiredGasLimit:         DefaultERC20RequiredGas,
 		MultiHopFallback:         recipientAddress,
 	}
 
 	// Send tokens through a multi-hop transfer
-	originReceipt, bridgedAmount := SendERC20TokenSpoke(
+	originReceipt, amount := SendERC20TokenSpoke(
 		ctx,
 		fromSubnet,
 		fromBridge,
 		fromBridgeAddress,
 		input,
-		bridgedAmount,
+		amount,
 		sendingKey,
 	)
 
@@ -960,6 +960,7 @@ func SendERC20TokenMultiHopAndVerify(
 		teleporterUtils.TraceTransactionAndExit(ctx, toSubnet, spokeReceipt.TxHash)
 	}
 
+	bridgedAmount := big.NewInt(0).Sub(amount, input.SecondaryFee)
 	CheckERC20TokenSpokeWithdrawal(
 		ctx,
 		toBridge,

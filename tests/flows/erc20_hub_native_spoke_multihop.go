@@ -219,9 +219,11 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		nativeTokenSpokeAddressB,
 		cChainInfo,
 		amountToSend,
+		big.NewInt(0),
 	)
 
 	// Multi-hop transfer back to Subnet A
+	secondaryFeeAmount := new(big.Int).Div(amountToSend, big.NewInt(4))
 	utils.SendNativeMultiHopAndVerify(
 		ctx,
 		network,
@@ -235,5 +237,6 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		nativeTokenSpokeAddressA,
 		cChainInfo,
 		amountToSend,
+		secondaryFeeAmount,
 	)
 }
