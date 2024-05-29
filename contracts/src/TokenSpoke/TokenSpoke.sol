@@ -102,21 +102,27 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     bool public isRegistered;
 
     /**
-     * @notice Fixed gas cost for performing a multi-hop transfer on the token hub contract,
+     * @notice Fixed gas cost for executing a multi-hop send message on the token hub contract,
      * before forwarding to the destination token spoke instance.
      */
-    uint256 public constant MULTI_HOP_REQUIRED_GAS = 240_000;
+    uint256 public constant MULTI_HOP_SEND_REQUIRED_GAS = 195_000;
+
+    /**
+     * @notice Fixed gas cost for executing a multi-hop call message on the token hub contract,
+     * before forwarding to the destination token spoke instance.
+     */
+    uint256 public constant MULTI_HOP_CALL_REQUIRED_GAS = 205_000;
 
     /**
      * @notice The amount of gas added to the required gas limit for a multi-hop call message
      * for each 32-byte word of the recipient payload.
      */
-    uint256 public constant MULTI_HOP_CALL_GAS_PER_WORD = 8_500;
+    uint256 public constant MULTI_HOP_CALL_GAS_PER_WORD = 1_500;
 
     /**
      * @notice Fixed gas cost for registering the spoke contract on the hub contract.
      */
-    uint256 public constant REGISTER_SPOKE_REQUIRED_GAS = 150_000;
+    uint256 public constant REGISTER_SPOKE_REQUIRED_GAS = 75_000;
 
     /**
      * @notice Initializes this token spoke instance.
@@ -423,7 +429,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: primaryFee
                 }),
-                requiredGasLimit: MULTI_HOP_REQUIRED_GAS,
+                requiredGasLimit: MULTI_HOP_SEND_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
             })
@@ -522,7 +528,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         // The required gas limit for the first message sent back to the hub instance
         // needs to account for the number of words in the payload. Each word uses additional
         // gas to include in the message to the final destination chain.
-        uint256 messageRequiredGasLimit = MULTI_HOP_REQUIRED_GAS
+        uint256 messageRequiredGasLimit = MULTI_HOP_CALL_REQUIRED_GAS
             + (calculateNumWords(input.recipientPayload.length) * MULTI_HOP_CALL_GAS_PER_WORD);
 
         // Send message to the token hub instance
