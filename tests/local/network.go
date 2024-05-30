@@ -353,7 +353,8 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 			n.subnetsInfo[subnetInfo.SubnetID].TeleporterRegistry = teleporterRegistry
 		}
 
-		log.Info("Deployed TeleporterRegistry contract to subnet", subnetInfo.SubnetID.Hex(),
+		log.Info("Deployed TeleporterRegistry contract",
+			"subnet", subnetInfo.SubnetID.Hex(),
 			"address", teleporterRegistryAddress.Hex())
 	}
 
