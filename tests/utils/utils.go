@@ -302,7 +302,13 @@ func CreateReceiveCrossChainMessageTransaction(
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit, len(signedMessage.Bytes()))
+	teleporterMessage := ParseTeleporterMessage(signedMessage.UnsignedMessage)
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(
+		numSigners,
+		requiredGasLimit,
+		len(signedMessage.Bytes()),
+		teleporterMessage,
+	)
 	Expect(err).Should(BeNil())
 
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, PrivateKeyToAddress(senderKey))
@@ -1122,4 +1128,14 @@ func SetChainConfig(customChainConfigs map[string]string, subnet interfaces.Subn
 	} else {
 		customChainConfigs[subnet.BlockchainID.String()] = chainConfig
 	}
+}
+
+func ParseTeleporterMessage(unsignedMessage avalancheWarp.UnsignedMessage) *teleportermessenger.TeleporterMessage {
+	addressedPayload, err := payload.ParseAddressedCall(unsignedMessage.Payload)
+	Expect(err).Should(BeNil())
+
+	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(addressedPayload.Payload)
+	Expect(err).Should(BeNil())
+
+	return teleporterMessage
 }

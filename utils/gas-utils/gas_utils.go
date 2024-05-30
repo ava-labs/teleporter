@@ -9,10 +9,13 @@ import (
 
 	"github.com/ava-labs/avalanchego/utils/math"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 )
 
 const (
-	ReceiveCrossChainMessageStaticGasCost uint64 = 200_000
+	ReceiveCrossChainMessageStaticGasCost uint64 = 250_000
+	DecodeGasPerByte                      uint64 = 35
+	TeleporterMessageReceiptGas                  = 2500
 
 	BaseFeeFactor        = 2
 	MaxPriorityFeePerGas = 2500000000 // 2.5 gwei
@@ -26,14 +29,21 @@ const (
 func CalculateReceiveMessageGasLimit(
 	numSigners int,
 	executionRequiredGasLimit *big.Int,
-	numBytes int) (uint64, error) {
+	numWarpMessageBytes int,
+	teleporterMessage *teleportermessenger.TeleporterMessage) (uint64, error) {
 	if !executionRequiredGasLimit.IsUint64() {
 		return 0, errors.New("required gas limit too high")
 	}
 
 	gasAmounts := []uint64{
 		executionRequiredGasLimit.Uint64(),
-		uint64(numBytes) * warp.GasCostPerWarpMessageBytes * 3,
+		// The variable gas on message bytes is accounted for both when used in predicate verification
+		// and also when used in `getVerifiedWarpMessage`
+		uint64(numWarpMessageBytes) * warp.GasCostPerWarpMessageBytes * 2,
+		// Take into the variable gas cost for decoding the Teleporter message
+		// and marking the receipts as received.
+		uint64(len(teleporterMessage.Message)) * DecodeGasPerByte,
+		uint64(len(teleporterMessage.Receipts)) * TeleporterMessageReceiptGas,
 		ReceiveCrossChainMessageStaticGasCost,
 		uint64(numSigners) * warp.GasCostPerWarpSigner,
 		warp.GasCostPerSignatureVerification,

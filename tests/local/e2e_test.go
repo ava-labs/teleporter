@@ -97,7 +97,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 		})
 
 	// Teleporter tests
-	ginkgo.FIt("Send a message from Subnet A to Subnet B, and one from B to A",
+	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
 			flows.BasicSendReceive(LocalNetworkInstance)

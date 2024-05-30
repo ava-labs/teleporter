@@ -80,6 +80,7 @@ func relayAlteredMessage(
 	signedTx := createAlteredReceiveCrossChainMessageTransaction(
 		ctx,
 		signedWarpMessage,
+		&sendEvent.Message,
 		sendEvent.Message.RequiredGasLimit,
 		network.GetTeleporterContractAddress(),
 		fundedKey,
@@ -93,6 +94,7 @@ func relayAlteredMessage(
 func createAlteredReceiveCrossChainMessageTransaction(
 	ctx context.Context,
 	signedMessage *avalancheWarp.Message,
+	teleporterMesage *teleportermessenger.TeleporterMessage,
 	requiredGasLimit *big.Int,
 	teleporterContractAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
@@ -105,7 +107,12 @@ func createAlteredReceiveCrossChainMessageTransaction(
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit, len(signedMessage.Bytes()))
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(
+		numSigners,
+		requiredGasLimit,
+		len(signedMessage.Bytes()),
+		teleporterMesage,
+	)
 	Expect(err).Should(BeNil())
 
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, fundedAddress)
