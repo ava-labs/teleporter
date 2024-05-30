@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	ReceiveCrossChainMessageStaticGasCost uint64 = 250_000
-	DecodeGasPerByte                      uint64 = 35
-	TeleporterMessageReceiptGas                  = 2500
+	ReceiveCrossChainMessageBaseGasCost uint64 = 250_000
+	MarkMessageReceiptGasCost           uint64 = 2500
+	DecodeMessageGasCostPerByte         uint64 = 35
 
 	BaseFeeFactor        = 2
 	MaxPriorityFeePerGas = 2500000000 // 2.5 gwei
