@@ -214,10 +214,12 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		nativeTokenSpokeAddressB,
 		cChainInfo,
 		amountToSendA,
+		big.NewInt(0),
 	)
 
 	// Again, send half of the received amount to account for gas expenses
 	amountToSendB := new(big.Int).Div(amountToSendA, big.NewInt(2))
+	secondaryFeeAmount := new(big.Int).Div(amountToSendB, big.NewInt(4))
 
 	// Multi-hop transfer back to Subnet A
 	utils.SendNativeMultiHopAndVerify(
@@ -233,5 +235,6 @@ func NativeTokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 		nativeTokenSpokeAddressA,
 		cChainInfo,
 		amountToSendB,
+		secondaryFeeAmount,
 	)
 }

@@ -150,6 +150,7 @@ func NativeTokenHubERC20TokenSpokeMultiHop(network interfaces.Network) {
 	Expect(balance).Should(Equal(bridgedAmount))
 
 	// Send tokens from subnet A to recipient on subnet B through a multi-hop
+	secondaryFeeAmount := new(big.Int).Div(bridgedAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
 		network,
@@ -164,5 +165,6 @@ func NativeTokenHubERC20TokenSpokeMultiHop(network interfaces.Network) {
 		erc20TokenSpokeAddressB,
 		cChainInfo,
 		bridgedAmount,
+		secondaryFeeAmount,
 	)
 }

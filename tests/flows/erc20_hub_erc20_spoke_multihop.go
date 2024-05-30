@@ -152,8 +152,9 @@ func ERC20TokenHubERC20TokenSpokeMultiHop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(bridgedAmount))
 
-	bridgedAmount = big.NewInt(0).Div(bridgedAmount, big.NewInt(2))
 	// Multi-hop transfer to Subnet B
+	bridgedAmount = big.NewInt(0).Div(bridgedAmount, big.NewInt(2))
+	secondaryFeeAmount := big.NewInt(0).Div(bridgedAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
 		network,
@@ -168,9 +169,12 @@ func ERC20TokenHubERC20TokenSpokeMultiHop(network interfaces.Network) {
 		erc20TokenSpokeAddressB,
 		cChainInfo,
 		bridgedAmount,
+		secondaryFeeAmount,
 	)
 
 	// Multi-hop transfer back to Subnet A
+	bridgedAmount = big.NewInt(0).Sub(bridgedAmount, secondaryFeeAmount)
+	secondaryFeeAmount = big.NewInt(0).Div(bridgedAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
 		network,
@@ -185,5 +189,6 @@ func ERC20TokenHubERC20TokenSpokeMultiHop(network interfaces.Network) {
 		erc20TokenSpokeAddressA,
 		cChainInfo,
 		bridgedAmount,
+		secondaryFeeAmount,
 	)
 }
