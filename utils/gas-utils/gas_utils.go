@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	ReceiveCrossChainMessageStaticGasCost uint64 = 500_000
+	ReceiveCrossChainMessageStaticGasCost uint64 = 200_000
 
 	BaseFeeFactor        = 2
 	MaxPriorityFeePerGas = 2500000000 // 2.5 gwei
@@ -23,13 +23,17 @@ const (
 // depends on the required limit for the message execution, the number of validator signatures
 // included in the aggregate signature, the static gas cost defined by the precompile, and an
 // extra buffer amount defined here to ensure the call doesn't run out of gas.
-func CalculateReceiveMessageGasLimit(numSigners int, executionRequiredGasLimit *big.Int) (uint64, error) {
+func CalculateReceiveMessageGasLimit(
+	numSigners int,
+	executionRequiredGasLimit *big.Int,
+	numBytes int) (uint64, error) {
 	if !executionRequiredGasLimit.IsUint64() {
 		return 0, errors.New("required gas limit too high")
 	}
 
 	gasAmounts := []uint64{
 		executionRequiredGasLimit.Uint64(),
+		uint64(numBytes) * warp.GasCostPerWarpMessageBytes * 3,
 		ReceiveCrossChainMessageStaticGasCost,
 		uint64(numSigners) * warp.GasCostPerWarpSigner,
 		warp.GasCostPerSignatureVerification,
