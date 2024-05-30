@@ -275,7 +275,8 @@ func CreateReceiveCrossChainMessageTransaction(
 		numSigners,
 		requiredGasLimit,
 		len(signedMessage.Bytes()),
-		*teleporterMessage,
+		len(signedMessage.Payload),
+		len(teleporterMessage.Receipts),
 	)
 	Expect(err).Should(BeNil())
 

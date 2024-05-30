@@ -9,7 +9,6 @@ import (
 
 	"github.com/ava-labs/avalanchego/utils/math"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 )
 
 const (
@@ -23,14 +22,20 @@ const (
 
 // CalculateReceiveMessageGasLimit calculates the estimated gas amount used by a single call
 // to receiveCrossChainMessage for the given message and validator bit vector. The result amount
-// depends on the required limit for the message execution, the number of validator signatures
-// included in the aggregate signature, the static gas cost defined by the precompile, and an
-// extra buffer amount defined here to ensure the call doesn't run out of gas.
+// depends on the following:
+// - Required gas limit for the message execution
+// - The size of the Warp message
+// - The size of the Teleporter message included in the Warp message
+// - The number of Teleporter receipts
+// - Base gas cost for {receiveCrossChainMessage} call
+// -The number of validator signatures included in the aggregate signature
 func CalculateReceiveMessageGasLimit(
 	numSigners int,
 	executionRequiredGasLimit *big.Int,
 	warpMessageSize int,
-	teleporterMessage teleportermessenger.TeleporterMessage) (uint64, error) {
+	teleporterMessageSize int,
+	teleporterReceiptsCount int,
+) (uint64, error) {
 	if !executionRequiredGasLimit.IsUint64() {
 		return 0, errors.New("required gas limit too high")
 	}
@@ -42,8 +47,8 @@ func CalculateReceiveMessageGasLimit(
 		uint64(warpMessageSize) * warp.GasCostPerWarpMessageBytes * 2,
 		// Take into the variable gas cost for decoding the Teleporter message
 		// and marking the receipts as received.
-		uint64(len(teleporterMessage.Message)) * DecodeMessageGasCostPerByte,
-		uint64(len(teleporterMessage.Receipts)) * MarkMessageReceiptGasCost,
+		uint64(teleporterMessageSize) * DecodeMessageGasCostPerByte,
+		uint64(teleporterReceiptsCount) * MarkMessageReceiptGasCost,
 		ReceiveCrossChainMessageBaseGasCost,
 		uint64(numSigners) * warp.GasCostPerWarpSigner,
 		warp.GasCostPerSignatureVerification,
