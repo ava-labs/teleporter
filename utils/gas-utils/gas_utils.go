@@ -28,7 +28,7 @@ const (
 // - The size of the Teleporter message included in the Warp message
 // - The number of Teleporter receipts
 // - Base gas cost for {receiveCrossChainMessage} call
-// -The number of validator signatures included in the aggregate signature
+// - The number of validator signatures included in the aggregate signature
 func CalculateReceiveMessageGasLimit(
 	numSigners int,
 	executionRequiredGasLimit *big.Int,
