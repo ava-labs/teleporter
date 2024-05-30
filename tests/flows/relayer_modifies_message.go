@@ -111,7 +111,7 @@ func createAlteredReceiveCrossChainMessageTransaction(
 		numSigners,
 		requiredGasLimit,
 		len(signedMessage.Bytes()),
-		teleporterMesage,
+		*teleporterMesage,
 	)
 	Expect(err).Should(BeNil())
 

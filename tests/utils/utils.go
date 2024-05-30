@@ -255,38 +255,6 @@ func CreateSendCrossChainMessageTransaction(
 	return SignTransaction(tx, senderKey, source.EVMChainID)
 }
 
-// func CreateRetryMessageExecutionTransaction(
-// 	ctx context.Context,
-// 	subnetInfo interfaces.SubnetTestInfo,
-// 	sourceBlockchainID ids.ID,
-// 	message teleportermessenger.TeleporterMessage,
-// 	senderKey *ecdsa.PrivateKey,
-// 	teleporterContractAddress common.Address,
-// ) *types.Transaction {
-// 	data, err := teleportermessenger.PackRetryMessageExecution(sourceBlockchainID, message)
-// 	Expect(err).Should(BeNil())
-
-// 	// TODO: replace with actual number of signers
-// 	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit)
-// 	Expect(err).Should(BeNil())
-
-// 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(senderKey))
-
-// 	// Sign a transaction to the Teleporter contract
-// 	tx := types.NewTx(&types.DynamicFeeTx{
-// 		ChainID:   subnetInfo.EVMChainID,
-// 		Nonce:     nonce,
-// 		To:        &teleporterContractAddress,
-// 		Gas:       gasLimit,
-// 		GasFeeCap: gasFeeCap,
-// 		GasTipCap: gasTipCap,
-// 		Value:     DefaultTeleporterTransactionValue,
-// 		Data:      data,
-// 	})
-
-// 	return SignTransaction(tx, senderKey, subnetInfo.EVMChainID)
-// }
-
 // Constructs a transaction to call receiveCrossChainMessage
 // Returns the signed transaction.
 func CreateReceiveCrossChainMessageTransaction(
@@ -307,7 +275,7 @@ func CreateReceiveCrossChainMessageTransaction(
 		numSigners,
 		requiredGasLimit,
 		len(signedMessage.Bytes()),
-		teleporterMessage,
+		*teleporterMessage,
 	)
 	Expect(err).Should(BeNil())
 

@@ -30,7 +30,7 @@ func CalculateReceiveMessageGasLimit(
 	numSigners int,
 	executionRequiredGasLimit *big.Int,
 	numWarpMessageBytes int,
-	teleporterMessage *teleportermessenger.TeleporterMessage) (uint64, error) {
+	teleporterMessage teleportermessenger.TeleporterMessage) (uint64, error) {
 	if !executionRequiredGasLimit.IsUint64() {
 		return 0, errors.New("required gas limit too high")
 	}
