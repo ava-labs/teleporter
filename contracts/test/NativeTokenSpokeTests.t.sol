@@ -458,9 +458,13 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
         }
+        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenBridge));
+
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(app), amount);
         if (feeAmount > 0) {
+            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(bridgedToken));
             emit Transfer(address(this), address(tokenBridge), feeAmount);
         }

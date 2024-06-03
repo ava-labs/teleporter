@@ -246,6 +246,26 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
         vm.expectRevert(_formatErrorMessage("insufficient tokens to transfer"));
     }
 
+    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
+        // Transfer the fee to the bridge if it is greater than 0
+        if (feeAmount > 0) {
+            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+        }
+        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenBridge));
+
+        // Increase the allowance of the bridge to transfer the funds from the user
+        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
+
+        vm.expectEmit(true, true, true, true, address(bridgedToken));
+        emit Transfer(address(this), address(tokenBridge), amount);
+        if (feeAmount > 0) {
+            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount);
+            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            emit Transfer(address(this), address(tokenBridge), feeAmount);
+        }
+    }
+
     function _getTotalSupply() internal view override returns (uint256) {
         return app.totalSupply();
     }
@@ -254,21 +274,5 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
         // Don't need to mock the minting of an ERC20TokenSpoke since it is an internal call
         // on the spoke contract.
         return;
-    }
-
-    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
-        // Transfer the fee to the bridge if it is greater than 0
-        if (feeAmount > 0) {
-            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
-        }
-        // Increase the allowance of the bridge to transfer the funds from the user
-        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
-
-        vm.expectEmit(true, true, true, true, address(bridgedToken));
-        emit Transfer(address(this), address(tokenBridge), amount);
-        if (feeAmount > 0) {
-            vm.expectEmit(true, true, true, true, address(bridgedToken));
-            emit Transfer(address(this), address(tokenBridge), feeAmount);
-        }
     }
 }

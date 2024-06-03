@@ -21,8 +21,6 @@ import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporter
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 
