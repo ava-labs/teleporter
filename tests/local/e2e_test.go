@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/teleporter/tests/flows"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/log"
@@ -40,7 +41,9 @@ func TestE2E(t *testing.T) {
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
 	// Create the local network instance
-	LocalNetworkInstance = NewLocalNetwork(warpGenesisFile)
+	logLevel, err := logging.ToLevel("info")
+	Expect(err).Should(BeNil())
+	LocalNetworkInstance = NewLocalNetwork(warpGenesisFile, logLevel)
 
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=

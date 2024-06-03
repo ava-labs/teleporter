@@ -65,7 +65,7 @@ const (
 	}`
 )
 
-func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
+func NewLocalNetwork(warpGenesisFile string, logLevel logging.Level) *LocalNetwork {
 	ctx := context.Background()
 	var err error
 
@@ -131,9 +131,6 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	setupProposerVM(ctx, globalFundedKey, manager, 1)
 
 	// Create the ANR client
-	logLevel, err := logging.ToLevel("info")
-	Expect(err).Should(BeNil())
-
 	logFactory := logging.NewFactory(logging.Config{
 		DisplayLevel: logLevel,
 		LogLevel:     logLevel,
