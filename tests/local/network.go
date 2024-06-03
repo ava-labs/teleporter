@@ -93,6 +93,7 @@ func NewLocalNetwork(warpGenesisFile string, logLevel logging.Level) *LocalNetwo
 
 	anrConfig := runner.NewDefaultANRConfig()
 	anrConfig.GlobalCChainConfig = warpEnabledChainConfig
+	anrConfig.LogLevel = logLevel.LowerString()
 	manager := runner.NewNetworkManager(anrConfig)
 
 	// Construct the network using the avalanche-network-runner
