@@ -15,15 +15,34 @@ source "$TELEPORTER_PATH"/scripts/versions.sh
 BASEDIR=${BASEDIR:-"$HOME/.teleporter-deps"}
 
 cwd=$(pwd)
-# Install the avalanchego and subnet-evm binaries
-rm -rf $BASEDIR/avalanchego
-BASEDIR=$BASEDIR AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego ./scripts/install_avalanchego_release.sh
-BASEDIR=$BASEDIR ./scripts/install_subnetevm_release.sh
 
-cp ${BASEDIR}/subnet-evm/subnet-evm ${BASEDIR}/avalanchego/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
-echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/plugins/"
+AVALANCHE_CLI_DIR=$HOME/.avalanche-cli
 
-export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
+export AVALANCHEGO_BUILD_PATH=${AVALANCHE_CLI_DIR}/bin/avalanchego/avalanchego-${AVALANCHEGO_VERSION}
+
+# ensure that avalanche-cli has installed the version of avalanchego that we need:
+if [[ ! -x "$AVALANCHEGO_BUILD_PATH/avalanchego" ]]; then
+  avalanche network clean
+  avalanche network start --avalanchego-version "$AVALANCHEGO_VERSION"
+  avalanche network clean
+fi
+
+# ensure that avalanche-cli has installed the version of subnetevm that we need:
+subnetevm_bin=${AVALANCHE_CLI_DIR}/bin/subnet-evm/subnet-evm-${SUBNET_EVM_VERSION}/subnet-evm
+if [[ ! -x "$subnetevm_bin" ]]; then
+  avalanche subnet create dummy --evm --vm-version "$SUBNET_EVM_VERSION" \
+    --force \
+    --teleporter --relayer --evm-chain-id 1 --evm-token DUM --evm-defaults # this line is just to avoid the dialog prompts
+fi
+
+# Install the subnet-evm binary as a plugin within the avalanche-cli resources.
+# This is a hack that can probably be undone when we stop setting up the
+# avalanche network and subnet ourselves (via BeforeSuite/AfterSuite in
+# tests/local/e2e_test.go) and start having avalanche-cli do that for us
+# instead.
+mkdir -p "${AVALANCHEGO_BUILD_PATH}/plugins"
+cp "$subnetevm_bin" \
+  "${AVALANCHEGO_BUILD_PATH}/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy"
 
 cd $TELEPORTER_PATH/contracts
 if command -v forge &> /dev/null; then
