@@ -58,6 +58,7 @@ const (
 	fundedKeyStr           = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
 	warpEnabledChainConfig = `{
 		"warp-api-enabled": true, 
+		"log-level": "%s",
 		"eth-apis":["eth","eth-filter","net","admin","web3",
 					"internal-eth","internal-blockchain","internal-transaction",
 					"internal-debug","internal-account","internal-personal",
@@ -83,7 +84,7 @@ func NewLocalNetwork(warpGenesisFile string, logLevel logging.Level) *LocalNetwo
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
-	_, err = f.Write([]byte(warpEnabledChainConfig))
+	_, err = f.Write([]byte(fmt.Sprintf(warpEnabledChainConfig, logLevel.LowerString())))
 	Expect(err).Should(BeNil())
 	warpChainConfigPath := f.Name()
 
