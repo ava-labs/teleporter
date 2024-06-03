@@ -14,6 +14,7 @@ import {
 } from "../interfaces/ITokenBridge.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
@@ -83,7 +84,9 @@ contract ERC20TokenSpoke is IERC20TokenBridge, ERC20, TokenSpoke {
      * implemenation to ensure the amount returned is correct.
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return _transferSenderAllowance(amount);
+        _spendAllowance(_msgSender(), address(this), amount);
+        _transfer(_msgSender(), address(this), amount);
+        return amount;
     }
 
     /**
@@ -158,9 +161,26 @@ contract ERC20TokenSpoke is IERC20TokenBridge, ERC20, TokenSpoke {
         }
     }
 
-    function _transferSenderAllowance(uint256 amount) internal virtual override returns (uint256) {
-        _spendAllowance(_msgSender(), address(this), amount);
-        _transfer(_msgSender(), address(this), amount);
-        return amount;
+    /**
+     * @notice See {TokenSpoke-_handleFees}
+     *
+     * If the {feeTokenAddress} is this contract, use the internal ERC20 calls
+     * to transfer the tokens directly. Otherwise, use the {SafeERC20TransferFrom} library
+     * to transfer the tokens.
+     */
+    function _handleFees(
+        address feeTokenAddress,
+        uint256 feeAmount
+    ) internal override returns (uint256) {
+        if (feeAmount == 0) {
+            return 0;
+        }
+        // If the {feeTokenAddress} is this contract, then just deposit the tokens directly.
+        if (feeTokenAddress == address(this)) {
+            _spendAllowance(_msgSender(), address(this), feeAmount);
+            _transfer(_msgSender(), address(this), feeAmount);
+            return feeAmount;
+        }
+        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
     }
 }

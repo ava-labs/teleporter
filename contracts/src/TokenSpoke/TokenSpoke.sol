@@ -320,7 +320,15 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         uint256 amount
     ) internal virtual;
 
-    function _transferSenderAllowance(uint256 amount) internal virtual returns (uint256);
+    /**
+     * @notice Handles fees sent to this contract
+     * @param feeTokenAddress The address of the fee token
+     * @param feeAmount The amount of the fee
+     */
+    function _handleFees(
+        address feeTokenAddress,
+        uint256 feeAmount
+    ) internal virtual returns (uint256);
 
     /**
      * @dev Prepares tokens to be sent to another chain by handling the
@@ -553,22 +561,6 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         );
 
         emit TokensAndCallSent(messageID, _msgSender(), input, amount);
-    }
-
-    /**
-     * @notice Handles fees sent to this contract
-     * @param feeTokenAddress The address of the fee token
-     * @param feeAmount The amount of the fee
-     */
-    function _handleFees(address feeTokenAddress, uint256 feeAmount) private returns (uint256) {
-        if (feeAmount == 0) {
-            return 0;
-        }
-        // If the {feeTokenAddress} is this contract, then just deposit the tokens directly.
-        if (feeTokenAddress == address(this)) {
-            return _transferSenderAllowance(feeAmount);
-        }
-        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
     }
 
     function _validateSingleHopInput(
