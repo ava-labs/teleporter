@@ -33,32 +33,4 @@ abstract contract ERC20TokenBridgeTest is TokenBridgeTest {
     ) internal virtual override {
         erc20Bridge.sendAndCall(input, amount);
     }
-
-    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
-        // Transfer the fee to the bridge if it is greater than 0
-        if (feeAmount > 0) {
-            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
-            if (address(bridgedToken) != address(tokenBridge)) {
-                vm.expectCall(
-                    address(bridgedToken),
-                    abi.encodeCall(
-                        IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
-                    )
-                );
-            }
-        }
-        // Increase the allowance of the bridge to transfer the funds from the user
-        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
-
-        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
-        // This is only the case if the bridge is not the fee token itself, in which case this is an internal call.
-        if (address(bridgedToken) != address(tokenBridge)) {
-            vm.expectCall(
-                address(bridgedToken),
-                abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), amount))
-            );
-        }
-        vm.expectEmit(true, true, true, true, address(bridgedToken));
-        emit Transfer(address(this), address(tokenBridge), amount);
-    }
 }

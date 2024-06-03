@@ -320,6 +320,8 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         uint256 amount
     ) internal virtual;
 
+    function _transferSenderAllowance(uint256 amount) internal virtual returns (uint256);
+
     /**
      * @dev Prepares tokens to be sent to another chain by handling the
      * deposit, burning, and checking that the corresonding amount of
@@ -564,7 +566,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         }
         // If the {feeTokenAddress} is this contract, then just deposit the tokens directly.
         if (feeTokenAddress == address(this)) {
-            return _deposit(feeAmount);
+            return _transferSenderAllowance(feeAmount);
         }
         return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
     }

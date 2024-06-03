@@ -327,6 +327,12 @@ contract NativeTokenSpoke is INativeTokenSpoke, IWrappedNativeToken, ERC20, Toke
         }
     }
 
+    function _transferSenderAllowance(uint256 amount) internal virtual override returns (uint256) {
+        _spendAllowance(_msgSender(), address(this), amount);
+        _transfer(_msgSender(), address(this), amount);
+        return amount;
+    }
+
     /**
      * @dev Mints coins to the recipient through the NativeMinter precompile.
      */

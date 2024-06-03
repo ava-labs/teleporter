@@ -83,9 +83,7 @@ contract ERC20TokenSpoke is IERC20TokenBridge, ERC20, TokenSpoke {
      * implemenation to ensure the amount returned is correct.
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        _spendAllowance(_msgSender(), address(this), amount);
-        _transfer(_msgSender(), address(this), amount);
-        return amount;
+        return _transferSenderAllowance(amount);
     }
 
     /**
@@ -158,5 +156,11 @@ contract ERC20TokenSpoke is IERC20TokenBridge, ERC20, TokenSpoke {
         if (remainingAllowance > 0) {
             _transfer(address(this), message.fallbackRecipient, remainingAllowance);
         }
+    }
+
+    function _transferSenderAllowance(uint256 amount) internal virtual override returns (uint256) {
+        _spendAllowance(_msgSender(), address(this), amount);
+        _transfer(_msgSender(), address(this), amount);
+        return amount;
     }
 }
