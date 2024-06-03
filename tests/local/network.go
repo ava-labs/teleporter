@@ -84,7 +84,8 @@ func NewLocalNetwork(warpGenesisFile string, logLevel logging.Level) *LocalNetwo
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
-	_, err = f.Write([]byte(fmt.Sprintf(warpEnabledChainConfig, logLevel.LowerString())))
+	formattedConfig := fmt.Sprintf(warpEnabledChainConfig, logLevel.LowerString())
+	_, err = f.Write([]byte(formattedConfig))
 	Expect(err).Should(BeNil())
 	warpChainConfigPath := f.Name()
 
@@ -93,7 +94,7 @@ func NewLocalNetwork(warpGenesisFile string, logLevel logging.Level) *LocalNetwo
 	Expect(err).Should(BeNil())
 
 	anrConfig := runner.NewDefaultANRConfig()
-	anrConfig.GlobalCChainConfig = warpEnabledChainConfig
+	anrConfig.GlobalCChainConfig = formattedConfig
 	anrConfig.LogLevel = logLevel.LowerString()
 	manager := runner.NewNetworkManager(anrConfig)
 
