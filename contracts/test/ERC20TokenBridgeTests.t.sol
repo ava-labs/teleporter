@@ -23,6 +23,24 @@ abstract contract ERC20TokenBridgeTest is TokenBridgeTest {
         _send(input, 0);
     }
 
+    function testSendNoAllowance() public {
+        uint256 amount = 2e15;
+
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        vm.expectRevert("ERC20: insufficient allowance");
+        _send(input, amount);
+    }
+
+    function testSendAndCallNoAllowance() public {
+        uint256 amount = 2e15;
+
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        vm.expectRevert("ERC20: insufficient allowance");
+        _sendAndCall(input, amount);
+    }
+
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
         erc20Bridge.send(input, amount);
     }
