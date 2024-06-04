@@ -319,7 +319,9 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     ) internal virtual;
 
     /**
-     * @notice Handles fees sent to this contract
+     * @notice Handles fees sent to this contract for a bridge transfer.
+     * The fee is expected to be approved by the sender for this bridge contract to use,
+     * and will be transferred to this contract to allocate for the bridge transfer.
      * @param feeTokenAddress The address of the fee token
      * @param feeAmount The amount of the fee
      */
