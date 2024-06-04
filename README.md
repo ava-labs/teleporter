@@ -125,7 +125,7 @@ source vars.sh                # source the variables needed to interact with the
 
 In addition to the docker setup, end-to-end integration tests written using Ginkgo are provided in the `tests/` directory. E2E tests are run as part of CI, but can also be run locally. Any new features or cross-chain example applications checked into the repository should be accompanied by an end-to-end tests. See the [Contribution Guide](./CONTRIBUTING.md) for additional details.
 
-To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo).
+To run the E2E tests locally, you'll need to install Gingko following the instructions [here](https://onsi.github.io/ginkgo/#installing-ginkgo), and avalanche-cli as instructed [here](https://docs.avax.network/tooling/cli-guides/install-avalanche-cli).
 
 Then run the following command from the root of the repository:
 
