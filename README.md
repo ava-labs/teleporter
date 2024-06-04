@@ -64,63 +64,6 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
   - `scripts/local/` includes scripts for running Teleporter in Docker.
 - `docker/` includes configurations for a local, containerized setup of Teleporter.
 
-## Run a local testnet in Docker
-
-A docker setup for running a local network with Teleporter deployed is provided. This setup provides a convenient way to develop and test Teleporter as well as cross-chain applications built on top of Teleporter. Teleporter messages are relayed between subnets using [AWM Relayer](https://github.com/ava-labs/awm-relayer), a fully featured implementation of a Warp message relayer.
-
-### Start up the local testnet
-
-- Run `./scripts/local/run.sh` to run the local testnet in Docker containers with the ability to interact with the nodes directly.
-
-  - `./scripts/local/run.sh` usage is as follows:
-
-  ```
-    -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub
-    -h, --help                        Print this help message
-  ```
-
-  - If using `-l, --local` to use a local version of the `awm-relayer` image, build it using `./scripts/build_local_image.sh` from the root of the `awm-relayer` repository.
-  - Note that if `-l, --local` is not set, then the latest published `awm-relayer` image will be pulled from Dockerhub.
-
-- After calling `./scripts/local/run.sh`, you'll know the network is ready once the "Waiting for subnets to start up." messages from the `relayer_run` container stop. Once the network is ready, you can interact with the deployed Teleporter contracts directly, or deploy a cross-chain application contract such as `ExampleCrossChainMessenger`. To open a terminal in the container and initialize it with the environment variables needed to interact with the contracts, run:
-
-```
-# Open a shell in the container
-docker exec -it local_network_run /bin/bash
-
-# In the container:
-set -a                        # export all variables so child processes can access
-source vars.sh                # source the variables needed to interact with the contracts
-```
-
-- Once you've opened a shell in the container, try interacting with the network.
-
-  - For example, send 1 AVAX on the C-Chain using `cast`
-
-  ```
-  c_address=0x333d17d3b42bf7930dbc6e852ca7bcf560a69003   # pick an arbitrary address
-  cast balance --rpc-url $c_chain_rpc_url $c_address
-  cast send --private-key $user_private_key --value 1 $c_address --rpc-url $c_chain_rpc_url
-  cast balance --rpc-url $c_chain_rpc_url $c_address
-  ```
-
-  - An example of how to interact with Teleporter is provided in `scripts/local/examples/basic_send_receive.sh`. This script sends a dummy payload via Teleporter from the C-Chain to a subnet, and back again.
-
-  ```
-  ./scripts/local/examples/basic_send_receive.sh
-  ```
-
-  - You should see "Received on Subnet A is true" and "Received on the C-Chain is true" to indicate that Teleporter messages were successfully sent between the C-Chain and Subnet A.
-    - These examples can be adapted to send messages between any two subnets, or between the C-Chain and any subnet by changing the RPC URLs.
-    - Use these as a starting point to build and interact with your own cross-chain applications on top of Teleporter!
-
-### Additional notes
-
-- The `./scripts/local/run.sh` script runs five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
-- `./scripts/local/run.sh` will force-recreate the containers, which will reset the network state on each subsequent run.
-- Logs from the subnets on one of the five nodes are printed to stdout when run using either script.
-- These logs can also be found at `~/.avalanche-cli/runs/network_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log` in the `local_network_run` container.
-
 ## E2E tests
 
 In addition to the docker setup, end-to-end integration tests written using Ginkgo are provided in the `tests/` directory. E2E tests are run as part of CI, but can also be run locally. Any new features or cross-chain example applications checked into the repository should be accompanied by an end-to-end tests. See the [Contribution Guide](./CONTRIBUTING.md) for additional details.
@@ -182,40 +125,13 @@ For more information on the registry and how to integrate with Teleporter dApps,
 
 ## Deploy Teleporter to a Subnet
 
-From the root of the repo, the TeleporterMessenger contract can be deployed by calling
-
-```bash
-./scripts/deploy_teleporter.sh --version <version> --rpc-url <url> [OPTIONS]
-```
-
-Required arguments:
-
-- `--version <version>` Specify the release version to deploy. These will all be of the form `v1.X.0`. Each Teleporter version can only send and receive messages from the **same** Teleporter version on another chain. You can see a list of released versions at https://github.com/ava-labs/teleporter/releases.
-- `--rpc-url <url>` Specify the rpc url of the node to use.
-
-Options:
-
-- `--private-key <private_key>` Funds the deployer address with the account held by `<private_key>`
-
 To ensure that Teleporter can be deployed to the same address on every EVM based chain, it uses [Nick's Method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c) to deploy from a static deployer address. Teleporter costs exactly `10eth` in the subnet's native gas token to deploy, which must be sent to the deployer address.
 
-`deploy_teleporter.sh` will send the necessary native tokens to the deployer address if it is provided with a private key for an account with sufficient funds. Alternatively, the deployer address can be funded externally. The deployer address for each version can be found by looking up the appropriate version at https://github.com/ava-labs/teleporter/releases and downloading `TeleporterMessenger_Deployer_Address_<VERSION>.txt`.
+For reference, see the call to the `DeployTeleporterContracts` function in `tests/local/e2e_test.go`.
 
 ## Deploy TeleporterRegistry to a Subnet
 
-There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. The registry does not need to be deployed to the same address on every chain, and therefore does not need a Nick's method transaction. To deploy, run the following command from the root of the repository:
-
-```bash
-./scripts/deploy_registry.sh --version <version> --rpc-url <url> --private-key <private_key> [OPTIONS]
-```
-
-Required arguments:
-
-- `--version <version>` Specify the release version to deploy. These will all be of the form `v1.X.0`.
-- `--rpc-url <url>` Specify the rpc url of the node to use.
-- `--private-key <private_key>` Funds the deployer address with the account held by `<private_key>`
-
-`deploy_registry.sh` will deploy a new `TeleporterRegistry` contract for the intended release version, and will also have the corresponding `TeleporterMessenger` contract registered as the initial protocol version.
+There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. The registry does not need to be deployed to the same address on every chain, and therefore does not need a Nick's method transaction. For reference, see the registry deployment code in the `DeployTeleporterRegistryContracts` function in `tests/local/network.go`.
 
 ## ABI Bindings
 
