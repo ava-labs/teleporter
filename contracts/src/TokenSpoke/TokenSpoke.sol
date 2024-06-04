@@ -21,8 +21,6 @@ import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporter
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 
@@ -321,6 +319,18 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     ) internal virtual;
 
     /**
+     * @notice Handles fees sent to this contract for a bridge transfer.
+     * The fee is expected to be approved by the sender for this bridge contract to use,
+     * and will be transferred to this contract to allocate for the bridge transfer.
+     * @param feeTokenAddress The address of the fee token
+     * @param feeAmount The amount of the fee
+     */
+    function _handleFees(
+        address feeTokenAddress,
+        uint256 feeAmount
+    ) internal virtual returns (uint256);
+
+    /**
      * @dev Prepares tokens to be sent to another chain by handling the
      * deposit, burning, and checking that the corresonding amount of
      * hub tokens is greater than zero.
@@ -551,22 +561,6 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         );
 
         emit TokensAndCallSent(messageID, _msgSender(), input, amount);
-    }
-
-    /**
-     * @notice Handles fees sent to this contract
-     * @param feeTokenAddress The address of the fee token
-     * @param feeAmount The amount of the fee
-     */
-    function _handleFees(address feeTokenAddress, uint256 feeAmount) private returns (uint256) {
-        if (feeAmount == 0) {
-            return 0;
-        }
-        // If the {feeTokenAddress} is this contract, then just deposit the tokens directly.
-        if (feeTokenAddress == address(this)) {
-            return _deposit(feeAmount);
-        }
-        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
     }
 
     function _validateSingleHopInput(

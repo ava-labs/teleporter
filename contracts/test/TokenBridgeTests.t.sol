@@ -152,6 +152,32 @@ abstract contract TokenBridgeTest is Test {
         _sendAndCall(input, 0);
     }
 
+    function testSendWithNoFeeAllowance() public {
+        uint256 amount = 2e15;
+        uint256 primaryFee = 100;
+
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        input.primaryFee = primaryFee;
+
+        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpExpectedDeposit(amount, 0);
+        vm.expectRevert("ERC20: insufficient allowance");
+        _send(input, amount);
+    }
+
+    function testSendAndCallWithNoFeeAllowance() public {
+        uint256 amount = 2e15;
+        uint256 primaryFee = 100;
+
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        input.primaryFee = primaryFee;
+
+        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpExpectedDeposit(amount, 0);
+        vm.expectRevert("ERC20: insufficient allowance");
+        _sendAndCall(input, amount);
+    }
+
     function testSendWithFees() public {
         uint256 amount = 2e15;
         uint256 primaryFee = 100;

@@ -23,6 +23,24 @@ abstract contract ERC20TokenBridgeTest is TokenBridgeTest {
         _send(input, 0);
     }
 
+    function testSendNoAllowance() public {
+        uint256 amount = 2e15;
+
+        SendTokensInput memory input = _createDefaultSendTokensInput();
+        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        vm.expectRevert("ERC20: insufficient allowance");
+        _send(input, amount);
+    }
+
+    function testSendAndCallNoAllowance() public {
+        uint256 amount = 2e15;
+
+        SendAndCallInput memory input = _createDefaultSendAndCallInput();
+        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        vm.expectRevert("ERC20: insufficient allowance");
+        _sendAndCall(input, amount);
+    }
+
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
         erc20Bridge.send(input, amount);
     }
@@ -32,33 +50,5 @@ abstract contract ERC20TokenBridgeTest is TokenBridgeTest {
         uint256 amount
     ) internal virtual override {
         erc20Bridge.sendAndCall(input, amount);
-    }
-
-    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
-        // Transfer the fee to the bridge if it is greater than 0
-        if (feeAmount > 0) {
-            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
-            if (address(bridgedToken) != address(tokenBridge)) {
-                vm.expectCall(
-                    address(bridgedToken),
-                    abi.encodeCall(
-                        IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
-                    )
-                );
-            }
-        }
-        // Increase the allowance of the bridge to transfer the funds from the user
-        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
-
-        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
-        // This is only the case if the bridge is not the fee token itself, in which case this is an internal call.
-        if (address(bridgedToken) != address(tokenBridge)) {
-            vm.expectCall(
-                address(bridgedToken),
-                abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), amount))
-            );
-        }
-        vm.expectEmit(true, true, true, true, address(bridgedToken));
-        emit Transfer(address(this), address(tokenBridge), amount);
     }
 }
