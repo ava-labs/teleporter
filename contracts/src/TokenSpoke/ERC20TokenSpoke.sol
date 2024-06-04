@@ -171,7 +171,7 @@ contract ERC20TokenSpoke is IERC20TokenBridge, ERC20, TokenSpoke {
     function _handleFees(
         address feeTokenAddress,
         uint256 feeAmount
-    ) internal override returns (uint256) {
+    ) internal virtual override returns (uint256) {
         if (feeAmount == 0) {
             return 0;
         }

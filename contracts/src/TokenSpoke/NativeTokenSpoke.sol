@@ -338,7 +338,7 @@ contract NativeTokenSpoke is INativeTokenSpoke, IWrappedNativeToken, ERC20, Toke
     function _handleFees(
         address feeTokenAddress,
         uint256 feeAmount
-    ) internal override returns (uint256) {
+    ) internal virtual override returns (uint256) {
         if (feeAmount == 0) {
             return 0;
         }
