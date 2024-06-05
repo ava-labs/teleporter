@@ -1,4 +1,4 @@
-package examplecrosschainmessenger
+package testmessenger
 
 import "math/big"
 

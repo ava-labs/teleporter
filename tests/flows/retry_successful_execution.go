@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/ExampleMessenger/ExampleCrossChainMessenger"
+	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/tests/TestMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"
@@ -17,17 +17,17 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Deploy ExampleMessenger to Subnets A and B
+	// Deploy TestMessenger to Subnets A and B
 	//
 	ctx := context.Background()
 
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(
+	_, subnetATestMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
 		subnetAInfo,
 	)
-	exampleMessengerContractAddressB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
+	testMessengerContractAddressB, subnetBTestMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
@@ -35,18 +35,18 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	)
 
 	//
-	// Call the example messenger contract on Subnet A
+	// Call the test messenger contract on Subnet A
 	//
 	message := "Hello, world!"
 	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := subnetAExampleMessenger.SendMessage(
+	tx, err := subnetATestMessenger.SendMessage(
 		optsA,
 		subnetBInfo.BlockchainID,
-		exampleMessengerContractAddressB,
+		testMessengerContractAddressB,
 		fundedAddress,
 		big.NewInt(0),
-		examplecrosschainmessenger.SendMessageRequiredGas,
+		testmessenger.SendMessageRequiredGas,
 		message,
 	)
 	Expect(err).Should(BeNil())
@@ -81,7 +81,7 @@ func RetrySuccessfulExecution(network interfaces.Network) {
 	//
 	// Verify we received the expected string
 	//
-	_, currMessage, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
+	_, currMessage, err := subnetBTestMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
 	Expect(err).Should(BeNil())
 	Expect(currMessage).Should(Equal(message))
 

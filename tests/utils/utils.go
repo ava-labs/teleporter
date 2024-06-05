@@ -15,12 +15,9 @@ import (
 	"strings"
 	"time"
 
-	erc20bridge "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/ERC20Bridge/ERC20Bridge"
-	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/ExampleMessenger/ExampleCrossChainMessenger"
-	blockhashpublisher "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/VerifiedBlockHash/BlockHashPublisher"
-	blockhashreceiver "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/VerifiedBlockHash/BlockHashReceiver"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/tests/TestMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
@@ -834,16 +831,16 @@ func DeployExampleERC20(
 	return address, token
 }
 
-func DeployExampleCrossChainMessenger(
+func DeployTestMessenger(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	teleporterManager common.Address,
 	subnet interfaces.SubnetTestInfo,
-) (common.Address, *examplecrosschainmessenger.ExampleCrossChainMessenger) {
+) (common.Address, *testmessenger.TestMessenger) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	address, tx, exampleMessenger, err := examplecrosschainmessenger.DeployExampleCrossChainMessenger(
+	address, tx, exampleMessenger, err := testmessenger.DeployTestMessenger(
 		opts,
 		subnet.RPCClient,
 		subnet.TeleporterRegistryAddress,
@@ -855,76 +852,6 @@ func DeployExampleCrossChainMessenger(
 	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	return address, exampleMessenger
-}
-
-func DeployERC20Bridge(
-	ctx context.Context,
-	senderKey *ecdsa.PrivateKey,
-	teleporterManager common.Address,
-	source interfaces.SubnetTestInfo,
-) (common.Address, *erc20bridge.ERC20Bridge) {
-	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, source.EVMChainID)
-	Expect(err).Should(BeNil())
-	address, tx, erc20Bridge, err := erc20bridge.DeployERC20Bridge(
-		opts,
-		source.RPCClient,
-		source.TeleporterRegistryAddress,
-		teleporterManager,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, source, tx.Hash())
-
-	log.Info("Deployed ERC20 Bridge contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
-
-	return address, erc20Bridge
-}
-
-func DeployBlockHashPublisher(
-	ctx context.Context,
-	senderKey *ecdsa.PrivateKey,
-	subnet interfaces.SubnetTestInfo,
-) (common.Address, *blockhashpublisher.BlockHashPublisher) {
-	opts, err := bind.NewKeyedTransactorWithChainID(
-		senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	address, tx, publisher, err := blockhashpublisher.DeployBlockHashPublisher(
-		opts, subnet.RPCClient, subnet.TeleporterRegistryAddress,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	return address, publisher
-}
-
-func DeployBlockHashReceiver(
-	ctx context.Context,
-	senderKey *ecdsa.PrivateKey,
-	teleporterManager common.Address,
-	subnet interfaces.SubnetTestInfo,
-	publisherAddress common.Address,
-	publisherChainID [32]byte,
-) (common.Address, *blockhashreceiver.BlockHashReceiver) {
-	opts, err := bind.NewKeyedTransactorWithChainID(
-		senderKey, subnet.EVMChainID)
-	Expect(err).Should(BeNil())
-	address, tx, receiver, err := blockhashreceiver.DeployBlockHashReceiver(
-		opts,
-		subnet.RPCClient,
-		subnet.TeleporterRegistryAddress,
-		teleporterManager,
-		publisherChainID,
-		publisherAddress,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for the transaction to be mined
-	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	return address, receiver
 }
 
 func GetTwoSubnets(network interfaces.Network) (
@@ -940,10 +867,10 @@ func SendExampleCrossChainMessageAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
 	source interfaces.SubnetTestInfo,
-	sourceExampleMessenger *examplecrosschainmessenger.ExampleCrossChainMessenger,
+	sourceExampleMessenger *testmessenger.TestMessenger,
 	destination interfaces.SubnetTestInfo,
 	destExampleMessengerAddress common.Address,
-	destExampleMessenger *examplecrosschainmessenger.ExampleCrossChainMessenger,
+	destExampleMessenger *testmessenger.TestMessenger,
 	senderKey *ecdsa.PrivateKey,
 	message string,
 	expectSuccess bool,
@@ -957,7 +884,7 @@ func SendExampleCrossChainMessageAndVerify(
 		destExampleMessengerAddress,
 		common.BigToAddress(common.Big0),
 		big.NewInt(0),
-		examplecrosschainmessenger.SendMessageRequiredGas,
+		testmessenger.SendMessageRequiredGas,
 		message,
 	)
 	Expect(err).Should(BeNil())
