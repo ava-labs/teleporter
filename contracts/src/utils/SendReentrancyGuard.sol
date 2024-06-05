@@ -5,6 +5,9 @@
 
 pragma solidity 0.8.18;
 
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/proxy/utils/Initializable.sol";
+
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
@@ -21,7 +24,7 @@ pragma solidity 0.8.18;
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-abstract contract SendReentrancyGuard {
+abstract contract SendReentrancyGuard is Initializable {
     uint256 internal constant _NOT_ENTERED = 1;
     uint256 internal constant _ENTERED = 2;
     uint256 private _sendEntered;
@@ -34,7 +37,7 @@ abstract contract SendReentrancyGuard {
         _sendEntered = _NOT_ENTERED;
     }
 
-    constructor() {
+    function initialize() internal onlyInitializing {
         _sendEntered = _NOT_ENTERED;
     }
 }

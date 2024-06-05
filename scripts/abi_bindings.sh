@@ -18,6 +18,8 @@ setARCH
 # Contract names to generate Go bindings for
 DEFAULT_CONTRACT_LIST="TokenHub TokenSpoke ERC20TokenHub ERC20TokenSpoke NativeTokenHub NativeTokenSpoke WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver ExampleERC20Decimals"
 
+PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
+
 CONTRACT_LIST=
 HELP=
 while [ $# -gt 0 ]; do
@@ -50,7 +52,7 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
 cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts
-forge build --skip test --force --extra-output-files abi bin
+forge build --skip test --extra-output-files abi bin
 
 contract_names=($CONTRACT_LIST)
 
@@ -59,26 +61,37 @@ if [[ -z "${CONTRACT_LIST}" ]]; then
     contract_names=($DEFAULT_CONTRACT_LIST)
 fi
 
-cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/src
-for contract_name in "${contract_names[@]}"
-do
-    path=$(find . -name $contract_name.sol)
-    dir=$(dirname $path)
-    abi_file=$TELEPORTER_TOKEN_BRIDGE_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
-    if ! [ -f $abi_file ]; then
-        echo "Error: Contract $contract_name abi file not found"
-        exit 1
-    fi
+generate_bindings() {
+    local contract_names=("$@")
+    for contract_name in "${contract_names[@]}"
+    do
+        path=$(find . -name $contract_name.sol)
+        echo "Path: $path"
+        echo "Contract Name: $contract_name"
+        dir=$(dirname $path)
+        abi_file=$TELEPORTER_TOKEN_BRIDGE_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
+        if ! [ -f $abi_file ]; then
+            echo "Error: Contract $contract_name abi file not found"
+            exit 1
+        fi
 
-    echo "Generating Go bindings for $contract_name..."
-    gen_path=$TELEPORTER_TOKEN_BRIDGE_PATH/abi-bindings/go/$dir/$contract_name
-    mkdir -p $gen_path
-    $GOPATH/bin/abigen --abi $abi_file \
-                       --pkg $(convertToLower $contract_name) \
-                       --bin $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
-                       --type $contract_name \
-                       --out $gen_path/$contract_name.go
-    echo "Done generating Go bindings for $contract_name."
-done
+        echo "Generating Go bindings for $contract_name..."
+        gen_path=$TELEPORTER_TOKEN_BRIDGE_PATH/abi-bindings/go/$dir/$contract_name
+        mkdir -p $gen_path
+        $GOPATH/bin/abigen --abi $abi_file \
+                           --pkg $(convertToLower $contract_name) \
+                           --bin $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
+                           --type $contract_name \
+                           --out $gen_path/$contract_name.go
+        echo "Done generating Go bindings for $contract_name."
+    done
+}
+
+cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/src
+generate_bindings "${contract_names[@]}"
+
+contract_names=($PROXY_LIST)
+cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
+generate_bindings "${contract_names[@]}"
 
 exit 0

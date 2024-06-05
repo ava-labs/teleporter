@@ -12,12 +12,14 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
+	proxyadmin "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ProxyAdmin"
 	erc20tokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/ERC20TokenHub"
 	nativetokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/NativeTokenHub"
 	tokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/TokenHub"
 	erc20tokenspoke "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenSpoke/ERC20TokenSpoke"
 	nativetokenspoke "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenSpoke/NativeTokenSpoke"
 	tokenspoke "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenSpoke/TokenSpoke"
+	transparentupgradeableproxy "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TransparentUpgradeableProxy"
 	wrappednativetoken "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/WrappedNativeToken"
 	exampleerc20 "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleERC20Decimals"
 	mockERC20SACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
@@ -83,19 +85,44 @@ func DeployERC20TokenHub(
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	address, tx, erc20TokenHub, err := erc20tokenhub.DeployERC20TokenHub(
+	implAddress, tx, erc20TokenHub, err := erc20tokenhub.DeployERC20TokenHub(
 		opts,
 		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	proxyAdminAddress, tx, _, err := proxyadmin.DeployProxyAdmin(
+		opts,
+		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	proxyAddress, tx, _, err := transparentupgradeableproxy.DeployTransparentUpgradeableProxy(
+		opts,
+		subnet.RPCClient,
+		implAddress,
+		proxyAdminAddress,
+		[]byte{},
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	erc20TokenHub, err = erc20tokenhub.NewERC20TokenHub(proxyAddress, subnet.RPCClient)
+	Expect(err).Should(BeNil())
+
+	tx, err = erc20TokenHub.Initialize(
+		opts,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
 		tokenAddress,
 		tokenHubDecimals,
 	)
 	Expect(err).Should(BeNil())
-
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, erc20TokenHub
+	return proxyAddress, erc20TokenHub
 }
 
 func DeployERC20TokenSpoke(
@@ -133,7 +160,7 @@ func DeployERC20TokenSpoke(
 
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, erc20TokenSpoke
+	return implAddress, erc20TokenSpoke
 }
 
 func DeployNativeTokenSpoke(
@@ -182,7 +209,7 @@ func DeployNativeTokenSpoke(
 	// Increment to the next deployer key so that the next contract deployment succeeds
 	nativeTokenSpokeDeployerKeyIndex++
 
-	return address, nativeTokenSpoke
+	return implAddress, nativeTokenSpoke
 }
 
 func DeployNativeTokenHub(
@@ -208,7 +235,7 @@ func DeployNativeTokenHub(
 
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, nativeTokenHub
+	return implAddress, nativeTokenHub
 }
 
 func DeployWrappedNativeToken(
@@ -228,7 +255,7 @@ func DeployWrappedNativeToken(
 	// Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, token
+	return implAddress, token
 }
 
 func DeployMockNativeSendAndCallReceiver(
@@ -247,7 +274,7 @@ func DeployMockNativeSendAndCallReceiver(
 	// Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, contract
+	return implAddress, contract
 }
 
 func DeployMockERC20SendAndCallReceiver(
@@ -266,7 +293,7 @@ func DeployMockERC20SendAndCallReceiver(
 	// Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, contract
+	return implAddress, contract
 }
 
 func DeployExampleERC20(
@@ -292,7 +319,7 @@ func DeployExampleERC20(
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(ExpectedExampleERC20DeployerBalance))
 
-	return address, token
+	return implAddress, token
 }
 
 func RegisterERC20TokenSpokeOnHub(

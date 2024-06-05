@@ -15,8 +15,6 @@ import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
-import {UUPSUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -29,7 +27,7 @@ import {UUPSUpgradeable} from
  * spoke instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-contract ERC20TokenHub is UUPSUpgradeable, IERC20TokenHub, TokenHub {
+contract ERC20TokenHub is IERC20TokenHub, TokenHub {
     using SafeERC20 for IERC20;
 
     /// @notice The ERC20 token this hub contract bridges to spoke instances.
@@ -55,8 +53,6 @@ contract ERC20TokenHub is UUPSUpgradeable, IERC20TokenHub, TokenHub {
         );
         token = IERC20(tokenAddress);
     }
-
-    function _authorizeUpgrade(address) internal override onlyOwner {}
 
     /**
      * @dev See {IERC20TokenBridge-send}

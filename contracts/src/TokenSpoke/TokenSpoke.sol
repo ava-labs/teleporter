@@ -132,6 +132,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         TeleporterOwnerUpgradeable.initialize(
             settings.teleporterRegistryAddress, settings.teleporterManager
         );
+        SendReentrancyGuard.initialize();
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
             settings.tokenHubBlockchainID != bytes32(0), "TokenSpoke: zero token hub blockchain ID"

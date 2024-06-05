@@ -100,6 +100,7 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         uint8 tokenDecimals_
     ) public virtual onlyInitializing {
         TeleporterOwnerUpgradeable.initialize(teleporterRegistryAddress, teleporterManager);
+        SendReentrancyGuard.initialize();
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(tokenAddress_ != address(0), "TokenHub: zero token address");
         require(
