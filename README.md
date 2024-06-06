@@ -8,6 +8,8 @@ It's important to understand the distinction between Avalanche Warp Messaging an
 
 The Teleporter protocol, on the other hand, is implemented at the smart contract level, and is a user-friendly interface to AWM, aimed at dApp developers. All of the message signing and verification is abstracted away from developers. Instead, developers simply call `sendCrossChainMessage` on the `TeleporterMessenger` contract to send a message invoking a smart contract on another subnet, and implement the `ITeleporterReceiver` interface to receive messages on the destination subnet. Teleporter handles all of the Warp message construction and sending, as well as the message delivery and execution.
 
+To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subnets on a Local Network](https://docs.avax.network/tooling/cli-cross-chain/teleporter-on-local-networks)
+
 - [Deployed Addresses](#deployed-addresses)
 - [Setup](#setup)
   - [Initialize the repository](#initialize-the-repository)
