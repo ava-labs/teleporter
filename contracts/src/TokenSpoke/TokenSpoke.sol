@@ -132,15 +132,15 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
      * @param initialReserveImbalance_ The initial reserve imbalance that must be collateralized before minting.
      * @param tokenDecimals_ The number of decimal places in the denomination of the spoke token.
      */
-    function initialize(
+    function __TokenSpoke_init(
         TokenSpokeSettings memory settings,
         uint256 initialReserveImbalance_,
         uint8 tokenDecimals_
     ) internal onlyInitializing {
-        TeleporterOwnerUpgradeable.initialize(
+        __TeleporterOwnerUpgradeable_init(
             settings.teleporterRegistryAddress, settings.teleporterManager
         );
-        SendReentrancyGuard.initialize();
+        __SendReentrancyGuard_init();
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(
             settings.tokenHubBlockchainID != bytes32(0), "TokenSpoke: zero token hub blockchain ID"

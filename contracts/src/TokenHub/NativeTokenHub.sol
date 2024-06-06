@@ -50,7 +50,7 @@ contract NativeTokenHub is INativeTokenHub, TokenHub {
         address teleporterManager,
         address wrappedTokenAddress
     ) public initializer {
-        TokenHub.initialize(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18);
+        __TokenHub_init(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18);
         wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
 

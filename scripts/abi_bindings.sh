@@ -52,7 +52,7 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
 cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts
-forge build --skip test --extra-output-files abi bin
+forge build --skip test --force --extra-output-files abi bin
 
 contract_names=($CONTRACT_LIST)
 
@@ -66,8 +66,6 @@ generate_bindings() {
     for contract_name in "${contract_names[@]}"
     do
         path=$(find . -name $contract_name.sol)
-        echo "Path: $path"
-        echo "Contract Name: $contract_name"
         dir=$(dirname $path)
         abi_file=$TELEPORTER_TOKEN_BRIDGE_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
         if ! [ -f $abi_file ]; then

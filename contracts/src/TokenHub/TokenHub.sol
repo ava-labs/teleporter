@@ -100,14 +100,14 @@ abstract contract TokenHub is
     /**
      * @notice Initializes this hub bridge instance to send tokens to spoke instances on other chains.
      */
-    function initialize(
+    function __TokenHub_init(
         address teleporterRegistryAddress,
         address teleporterManager,
         address tokenAddress_,
         uint8 tokenDecimals_
     ) public virtual onlyInitializing {
-        TeleporterOwnerUpgradeable.initialize(teleporterRegistryAddress, teleporterManager);
-        SendReentrancyGuard.initialize();
+        __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+        __SendReentrancyGuard_init();
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         require(tokenAddress_ != address(0), "TokenHub: zero token address");
         require(

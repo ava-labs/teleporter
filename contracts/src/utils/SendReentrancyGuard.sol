@@ -37,7 +37,7 @@ abstract contract SendReentrancyGuard is Initializable {
         _sendEntered = _NOT_ENTERED;
     }
 
-    function initialize() internal onlyInitializing {
+    function __SendReentrancyGuard_init() internal onlyInitializing {
         _sendEntered = _NOT_ENTERED;
     }
 }

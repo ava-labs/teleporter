@@ -18,6 +18,7 @@ import {
 } from "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
@@ -52,7 +53,7 @@ contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20Upgradeable {
         uint8 tokenDecimals_
     ) public initializer {
         __ERC20_init(tokenName, tokenSymbol);
-        TokenSpoke.initialize(settings, 0, tokenDecimals_);
+        __TokenSpoke_init(settings, 0, tokenDecimals_);
         _decimals = tokenDecimals;
     }
 

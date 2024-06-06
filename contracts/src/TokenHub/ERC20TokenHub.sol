@@ -47,10 +47,8 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
         address teleporterManager,
         address tokenAddress_,
         uint8 tokenDecimals_
-    ) public override initializer {
-        TokenHub.initialize(
-            teleporterRegistryAddress, teleporterManager, tokenAddress_, tokenDecimals_
-        );
+    ) public initializer {
+        __TokenHub_init(teleporterRegistryAddress, teleporterManager, tokenAddress_, tokenDecimals_);
         token = IERC20(tokenAddress);
     }
 

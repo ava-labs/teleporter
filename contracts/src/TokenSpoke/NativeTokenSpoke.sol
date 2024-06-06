@@ -24,8 +24,12 @@ import {INativeMinter} from
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
-import {ERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+import {
+    IERC20Upgradeable,
+    ERC20Upgradeable
+} from "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -121,7 +125,7 @@ contract NativeTokenSpoke is
         uint256 burnedFeesReportingRewardPercentage_
     ) public initializer {
         __ERC20_init(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol);
-        TokenSpoke.initialize(settings, initialReserveImbalance, 18);
+        __TokenSpoke_init(settings, initialReserveImbalance, 18);
         require(initialReserveImbalance != 0, "NativeTokenSpoke: zero initial reserve imbalance");
 
         require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenSpoke: invalid percentage");
