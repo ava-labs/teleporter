@@ -27,8 +27,9 @@ if [[ ! -x "$AVALANCHEGO_BUILD_PATH/avalanchego" ]]; then
   avalanche network clean
 fi
 
-# ensure that avalanche-cli has installed the version of subnetevm that we need:
 subnetevm_bin=${AVALANCHE_CLI_DIR}/bin/subnet-evm/subnet-evm-${SUBNET_EVM_VERSION}/subnet-evm
+
+# ensure that avalanche-cli has installed the version of subnetevm that we need:
 if [[ ! -x "$subnetevm_bin" ]]; then
   avalanche subnet create dummy --evm --vm-version "$SUBNET_EVM_VERSION" \
     --force \
