@@ -37,7 +37,6 @@ import (
 	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
-	"github.com/ava-labs/subnet-evm/rpc"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -113,32 +112,33 @@ func RedeemRelayerRewardsAndConfirm(
 	subnet interfaces.SubnetTestInfo,
 	feeToken *exampleerc20.ExampleERC20,
 	feeTokenAddress common.Address,
-	relayerKey *ecdsa.PrivateKey,
+	redeemerKey *ecdsa.PrivateKey,
 	expectedAmount *big.Int,
 ) *types.Receipt {
-	relayerAddress := crypto.PubkeyToAddress(relayerKey.PublicKey)
+	redeemerAddress := crypto.PubkeyToAddress(redeemerKey.PublicKey)
 
+	// Check the ERC20 balance before redemption
 	balanceBeforeRedemption, err := feeToken.BalanceOf(
-		&bind.CallOpts{}, relayerAddress,
+		&bind.CallOpts{}, redeemerAddress,
 	)
 	Expect(err).Should(BeNil())
 
-	tx_opts, err := bind.NewKeyedTransactorWithChainID(
-		relayerKey, subnet.EVMChainID,
+	// Redeem the rewards
+	txOpts, err := bind.NewKeyedTransactorWithChainID(
+		redeemerKey, subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
 	tx, err := subnet.TeleporterMessenger.RedeemRelayerRewards(
-		tx_opts, feeTokenAddress,
+		txOpts, feeTokenAddress,
 	)
 	Expect(err).Should(BeNil())
-
 	receipt := WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
+	// Check that the ERC20 balance was incremented
 	balanceAfterRedemption, err := feeToken.BalanceOf(
-		&bind.CallOpts{}, relayerAddress,
+		&bind.CallOpts{}, redeemerAddress,
 	)
 	Expect(err).Should(BeNil())
-
 	Expect(balanceAfterRedemption).Should(
 		Equal(
 			big.NewInt(0).Add(
@@ -147,9 +147,10 @@ func RedeemRelayerRewardsAndConfirm(
 		),
 	)
 
+	// Check that the redeemable rewards amount is now zero.
 	updatedRewardAmount, err := subnet.TeleporterMessenger.CheckRelayerRewardAmount(
 		&bind.CallOpts{},
-		relayerAddress,
+		redeemerAddress,
 		feeTokenAddress,
 	)
 	Expect(err).Should(BeNil())
@@ -160,8 +161,8 @@ func RedeemRelayerRewardsAndConfirm(
 
 func SendSpecifiedReceiptsAndWaitForAcceptance(
 	ctx context.Context,
-	sourceBlockchainID ids.ID,
 	source interfaces.SubnetTestInfo,
+	destinationBlockchainID ids.ID,
 	messageIDs [][32]byte,
 	feeInfo teleportermessenger.TeleporterFeeInfo,
 	allowedRelayerAddresses []common.Address,
@@ -171,7 +172,7 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	Expect(err).Should(BeNil())
 
 	tx, err := source.TeleporterMessenger.SendSpecifiedReceipts(
-		opts, sourceBlockchainID, messageIDs, feeInfo, allowedRelayerAddresses)
+		opts, destinationBlockchainID, messageIDs, feeInfo, allowedRelayerAddresses)
 	Expect(err).Should(BeNil())
 
 	receipt := WaitForTransactionSuccess(ctx, source, tx.Hash())
@@ -179,10 +180,10 @@ func SendSpecifiedReceiptsAndWaitForAcceptance(
 	// Check the transaction logs for the SendCrossChainMessage event emitted by the Teleporter contract
 	event, err := GetEventFromLogs(receipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
-	Expect(event.DestinationBlockchainID[:]).Should(Equal(sourceBlockchainID[:]))
+	Expect(event.DestinationBlockchainID[:]).Should(Equal(destinationBlockchainID[:]))
 
 	log.Info("Sending SendSpecifiedReceipts transaction",
-		"sourceBlockchainID", sourceBlockchainID,
+		"destinationBlockchainID", destinationBlockchainID,
 		"txHash", tx.Hash())
 
 	return receipt, event.MessageID
@@ -254,38 +255,6 @@ func CreateSendCrossChainMessageTransaction(
 	return SignTransaction(tx, senderKey, source.EVMChainID)
 }
 
-func CreateRetryMessageExecutionTransaction(
-	ctx context.Context,
-	subnetInfo interfaces.SubnetTestInfo,
-	sourceBlockchainID ids.ID,
-	message teleportermessenger.TeleporterMessage,
-	senderKey *ecdsa.PrivateKey,
-	teleporterContractAddress common.Address,
-) *types.Transaction {
-	data, err := teleportermessenger.PackRetryMessageExecution(sourceBlockchainID, message)
-	Expect(err).Should(BeNil())
-
-	// TODO: replace with actual number of signers
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(10, message.RequiredGasLimit)
-	Expect(err).Should(BeNil())
-
-	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(senderKey))
-
-	// Sign a transaction to the Teleporter contract
-	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   subnetInfo.EVMChainID,
-		Nonce:     nonce,
-		To:        &teleporterContractAddress,
-		Gas:       gasLimit,
-		GasFeeCap: gasFeeCap,
-		GasTipCap: gasTipCap,
-		Value:     DefaultTeleporterTransactionValue,
-		Data:      data,
-	})
-
-	return SignTransaction(tx, senderKey, subnetInfo.EVMChainID)
-}
-
 // Constructs a transaction to call receiveCrossChainMessage
 // Returns the signed transaction.
 func CreateReceiveCrossChainMessageTransaction(
@@ -301,7 +270,14 @@ func CreateReceiveCrossChainMessageTransaction(
 	numSigners, err := signedMessage.Signature.NumSigners()
 	Expect(err).Should(BeNil())
 
-	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(numSigners, requiredGasLimit)
+	teleporterMessage := ParseTeleporterMessage(signedMessage.UnsignedMessage)
+	gasLimit, err := gasUtils.CalculateReceiveMessageGasLimit(
+		numSigners,
+		requiredGasLimit,
+		len(signedMessage.Bytes()),
+		len(signedMessage.Payload),
+		len(teleporterMessage.Receipts),
+	)
 	Expect(err).Should(BeNil())
 
 	callData, err := teleportermessenger.PackReceiveCrossChainMessage(0, PrivateKeyToAddress(senderKey))
@@ -530,7 +506,7 @@ func waitForTransaction(
 
 	if success {
 		if receipt.Status == types.ReceiptStatusFailed {
-			TraceTransactionAndExit(ctx, subnetInfo, receipt.TxHash)
+			TraceTransactionAndExit(ctx, subnetInfo.RPCClient, receipt.TxHash)
 		}
 	} else {
 		Expect(receipt.Status).Should(Equal(types.ReceiptStatusFailed))
@@ -538,18 +514,17 @@ func waitForTransaction(
 	return receipt
 }
 
-// WaitMined waits for tx to be mined on the blockchain.
-// It stops waiting when the context is canceled.
-// Takes a tx hash instead of the full tx in the subnet-evm version of this function.
-// Copied and modified from https://github.com/ava-labs/subnet-evm/blob/v0.6.0-fuji/accounts/abi/bind/util.go#L42
-func WaitMined(ctx context.Context, b bind.DeployBackend, txHash common.Hash) (*types.Receipt, error) {
+// Polls for a transaction receipt of the given txHash on each queryTicker tick until
+// either a transaction receipt returned, or the context is cancelled or expired.
+func waitForTransactionReceipt(
+	cctx context.Context,
+	rpcClient ethclient.Client,
+	txHash common.Hash,
+) (*types.Receipt, error) {
 	queryTicker := time.NewTicker(200 * time.Millisecond)
 	defer queryTicker.Stop()
-	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
 	for {
-		receipt, err := b.TransactionReceipt(cctx, txHash)
+		receipt, err := rpcClient.TransactionReceipt(cctx, txHash)
 		if err == nil {
 			return receipt, nil
 		}
@@ -564,10 +539,70 @@ func WaitMined(ctx context.Context, b bind.DeployBackend, txHash common.Hash) (*
 		// Wait for the next round.
 		select {
 		case <-cctx.Done():
-			return nil, ctx.Err()
+			return nil, cctx.Err()
 		case <-queryTicker.C:
 		}
 	}
+}
+
+// Polls for the eth_blockNumber endpoint for the latest blockheight on each queryTicker tick until
+// either the returned height is greater than or equal to the expectedBlockNumber, or the context
+// is cancelled or expired.
+func waitForBlockHeight(
+	cctx context.Context,
+	rpcClient ethclient.Client,
+	expectedBlockNumber uint64,
+) error {
+	queryTicker := time.NewTicker(2 * time.Second)
+	defer queryTicker.Stop()
+	for {
+		currentBlockNumber, err := rpcClient.BlockNumber(cctx)
+		if err != nil {
+			return err
+		}
+
+		if currentBlockNumber >= expectedBlockNumber {
+			return nil
+		} else {
+			log.Info("Waiting for block height where transaction was included",
+				"blockNumber", expectedBlockNumber)
+		}
+
+		// Wait for the next round.
+		select {
+		case <-cctx.Done():
+			return cctx.Err()
+		case <-queryTicker.C:
+		}
+	}
+}
+
+// WaitMined waits for tx to be mined on the blockchain.
+// It stops waiting when the context is canceled.
+// Takes a tx hash instead of the full tx in the subnet-evm version of this function.
+// Copied and modified from https://github.com/ava-labs/subnet-evm/blob/v0.6.0-fuji/accounts/abi/bind/util.go#L42
+func WaitMined(ctx context.Context, rpcClient ethclient.Client, txHash common.Hash) (*types.Receipt, error) {
+	cctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+
+	receipt, err := waitForTransactionReceipt(cctx, rpcClient, txHash)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check that the block height endpoint returns a block height as high as the block number that the transaction was
+	// included in. This is to workaround the issue where multiple nodes behind a public RPC endpoint see
+	// transactions/blocks at different points in time. Ideally, all nodes in the network should have seen this block
+	// and transaction before returning from WaitMined. The block height endpoint of public RPC endpoints is
+	// configured to return the lowest value currently returned by any node behind the load balancer, so waiting for
+	// it to be at least as high as the block height specified in the receipt should provide a relatively strong
+	// indication that the transaction has been seen widely throughout the network.
+	err = waitForBlockHeight(cctx, rpcClient, receipt.BlockNumber.Uint64())
+	if err != nil {
+		return nil, err
+	}
+
+	return receipt, nil
 }
 
 // Returns the first log in 'logs' that is successfully parsed by 'parser'
@@ -580,7 +615,7 @@ func GetEventFromLogsOrTrace[T any](
 ) T {
 	log, err := GetEventFromLogs(receipt.Logs, parser)
 	if err != nil {
-		TraceTransactionAndExit(ctx, subnetInfo, receipt.TxHash)
+		TraceTransactionAndExit(ctx, subnetInfo.RPCClient, receipt.TxHash)
 	}
 	return log
 }
@@ -697,19 +732,14 @@ func CheckBalance(ctx context.Context, addr common.Address, expectedBalance *big
 }
 
 // Gomega will print the transaction trace and exit
-func TraceTransactionAndExit(ctx context.Context, subnetInfo interfaces.SubnetTestInfo, txHash common.Hash) {
-	Expect(TraceTransaction(ctx, subnetInfo, txHash)).Should(Equal(""))
+func TraceTransactionAndExit(ctx context.Context, rpcClient ethclient.Client, txHash common.Hash) {
+	Expect(TraceTransaction(ctx, rpcClient, txHash)).Should(Equal(""))
 }
 
-func TraceTransaction(ctx context.Context, subnetInfo interfaces.SubnetTestInfo, txHash common.Hash) string {
-	url := HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String())
-	rpcClient, err := rpc.DialContext(ctx, url)
-	Expect(err).Should(BeNil())
-	defer rpcClient.Close()
-
+func TraceTransaction(ctx context.Context, rpcClient ethclient.Client, txHash common.Hash) string {
 	var result interface{}
 	ct := "callTracer"
-	err = rpcClient.Call(&result, "debug_traceTransaction", txHash.String(), tracers.TraceConfig{Tracer: &ct})
+	err := rpcClient.Client().Call(&result, "debug_traceTransaction", txHash.String(), tracers.TraceConfig{Tracer: &ct})
 	Expect(err).Should(BeNil())
 
 	jsonStr, err := json.Marshal(result)
@@ -1067,4 +1097,14 @@ func SetChainConfig(customChainConfigs map[string]string, subnet interfaces.Subn
 	} else {
 		customChainConfigs[subnet.BlockchainID.String()] = chainConfig
 	}
+}
+
+func ParseTeleporterMessage(unsignedMessage avalancheWarp.UnsignedMessage) *teleportermessenger.TeleporterMessage {
+	addressedPayload, err := payload.ParseAddressedCall(unsignedMessage.Payload)
+	Expect(err).Should(BeNil())
+
+	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(addressedPayload.Payload)
+	Expect(err).Should(BeNil())
+
+	return teleporterMessage
 }

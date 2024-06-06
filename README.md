@@ -1,4 +1,6 @@
-## Overview
+<p align="center">
+  <img width="85%" alt="teleporter" src="resources/TeleporterLogo.png?raw=true"/>
+</p>
 
 Teleporter is an EVM compatible cross-subnet communication protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm), and implemented as a Solidity smart contract. It provides a mechanism to asynchronously invoke smart contract functions on other EVM blockchains within Avalanche. Teleporter provides a handful of useful features on top of AWM, such as specifying relayer incentives for message delivery, replay protection, message delivery and execution retries, and a standard interface for sending and receiving messages within a dApp deployed across multiple subnets.
 
@@ -6,7 +8,7 @@ It's important to understand the distinction between Avalanche Warp Messaging an
 
 The Teleporter protocol, on the other hand, is implemented at the smart contract level, and is a user-friendly interface to AWM, aimed at dApp developers. All of the message signing and verification is abstracted away from developers. Instead, developers simply call `sendCrossChainMessage` on the `TeleporterMessenger` contract to send a message invoking a smart contract on another subnet, and implement the `ITeleporterReceiver` interface to receive messages on the destination subnet. Teleporter handles all of the Warp message construction and sending, as well as the message delivery and execution.
 
-- [Overview](#overview)
+- [Deployed Addresses](#deployed-addresses)
 - [Setup](#setup)
   - [Initialize the repository](#initialize-the-repository)
   - [Dependencies](#dependencies)
@@ -23,6 +25,18 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 - [ABI Bindings](#abi-bindings)
 - [Docs](#docs)
 - [Resources](#resources)
+
+## Deployed Addresses
+
+| Contract              | Address                                        | Chain                    |
+| --------------------- | ---------------------------------------------- | ------------------------ |
+| `TeleporterMessenger` | **0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf** | All chains, all networks |
+| `TeleporterRegistry`  | **0x7C43605E14F391720e1b37E49C78C4b03A488d98** | Mainnet C-Chain          |
+| `TeleporterRegistry`  | **0xF86Cb19Ad8405AEFa7d09C778215D2Cb6eBfB228** | Fuji C-Chain             |
+
+- When deployed using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` will be at the same address on all chains. See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet) for more details.
+
+- `TeleporterRegistry` can be deployed to any address. See [Deploy TeleporterRegistry to a Subnet](#deploy-teleporterregistry-to-a-subnet) for details. The table above enumerates the canonical registry addresses on the Mainnet and Fuji C-Chains.
 
 ## Setup
 
@@ -62,7 +76,6 @@ A docker setup for running a local network with Teleporter deployed is provided.
 
   ```
     -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub
-    -p, --pause                       Pause the network on stop. Will attempt to restart the paused network on subsequent runs
     -h, --help                        Print this help message
   ```
 
@@ -101,16 +114,10 @@ source vars.sh                # source the variables needed to interact with the
     - These examples can be adapted to send messages between any two subnets, or between the C-Chain and any subnet by changing the RPC URLs.
     - Use these as a starting point to build and interact with your own cross-chain applications on top of Teleporter!
 
-- The script `./scripts/local/run_stop.sh` should be used to gracefully shut down the containers, preserving the local network state between runs. This script is called automatically at the end of `./scripts/local/run.sh`, but can be called at any time from a separate terminal to pause the network.
-  - `./scripts/local/run_stop.sh` usage is as follows:
-  ```
-  ./run_stop.sh             # stop the running containers and preserve the network for subsequent runs
-  ./run_stop.sh -c          # stop the running containers and clean the network
-  ```
-
 ### Additional notes
 
 - The `./scripts/local/run.sh` script runs five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
+- `./scripts/local/run.sh` will force-recreate the containers, which will reset the network state on each subsequent run.
 - Logs from the subnets on one of the five nodes are printed to stdout when run using either script.
 - These logs can also be found at `~/.avalanche-cli/runs/network_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log` in the `local_network_run` container.
 
@@ -163,7 +170,7 @@ cp .env.example .env # Set proper values after copying.
 ./scripts/testnet/run_testnet_e2e_flows.sh
 ```
 
-The user wallet set in `.env` must have native tokens for each of the subnets used in order for the test flows to be able to send transactions on those networks.
+The user wallet set in `.env` must have native tokens for each of the Subnets used in order for the test flows to be able to send transactions on those networks. The [Avalanche Testnet Faucet](https://core.app/tools/testnet-faucet) can be used to obtain native tokens for certain public testnet Subnets.
 
 ## Upgradeability
 

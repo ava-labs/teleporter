@@ -8,7 +8,6 @@ import (
 	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/ExampleMessenger/ExampleCrossChainMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -51,8 +50,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	// Derive the eventual address of the destination contract on Subnet B
 	nonce, err := subnetBInfo.RPCClient.NonceAt(ctx, deployerAddress, nil)
 	Expect(err).Should(BeNil())
-	destinationContractAddress, err := deploymentUtils.DeriveEVMContractAddress(deployerAddress, nonce)
-	Expect(err).Should(BeNil())
+	destinationContractAddress := crypto.CreateAddress(deployerAddress, nonce)
 
 	//
 	// Call the example messenger contract on Subnet A

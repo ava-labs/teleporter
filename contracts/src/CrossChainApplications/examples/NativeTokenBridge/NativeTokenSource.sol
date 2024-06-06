@@ -90,23 +90,4 @@ contract NativeTokenSource is INativeTokenSource, TokenSource {
         emit UnlockTokens(recipient, amount);
         Address.sendValue(payable(recipient), amount);
     }
-
-    /**
-     * @dev See {TokenSource-_handleBurnTokens}
-     */
-    function _handleBurnTokens(uint256 newBurnTotal) internal override {
-        if (newBurnTotal > destinationBurnedTotal) {
-            uint256 difference = newBurnTotal - destinationBurnedTotal;
-            _burnTokens(difference);
-            destinationBurnedTotal = newBurnTotal;
-        }
-    }
-
-    /**
-     * @dev See {TokenSource-_burnTokens}
-     */
-    function _burnTokens(uint256 amount) private {
-        emit BurnTokens(amount);
-        Address.sendValue(payable(BURN_ADDRESS), amount);
-    }
 }

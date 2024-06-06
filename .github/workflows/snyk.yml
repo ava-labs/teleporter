@@ -16,12 +16,19 @@ jobs:
           submodules: recursive
 
       - name: Run Snyk
-        uses: snyk/actions/golang@master
+        uses: snyk/actions/golang@0.4.0
         continue-on-error: true # To make sure that SARIF upload gets called
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --sarif-file-output=snyk.sarif --all-projects --detection-depth=4
+
+      # Replace any "undefined" security severity values with 0. The undefined value is used in the case
+      # of license-related findings, which do not do not indicate a security vulnerability.
+      # See https://github.com/github/codeql-action/issues/2187 for more context.
+      - name: Post-process sarif output
+        run: |
+          sed -i 's/"security-severity": "undefined"/"security-severity": "0"/g' snyk.sarif
 
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
@@ -52,7 +59,7 @@ jobs:
         # Snyk can be used to break the build when it detects vulnerabilities.
         # In this case we want to upload the issues to GitHub Code Scanning
         # continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: snyk/actions/docker@0.4.0
         env:
           # In order to use the Snyk Action you will need to have a Snyk API token.
           # More details in https://github.com/snyk/actions#getting-your-snyk-token

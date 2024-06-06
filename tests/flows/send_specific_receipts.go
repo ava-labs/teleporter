@@ -96,8 +96,8 @@ func SendSpecificReceipts(network interfaces.Network) {
 	// Call send specific receipts to get reward of relaying two messages
 	receipt, messageID := utils.SendSpecifiedReceiptsAndWaitForAcceptance(
 		ctx,
-		subnetAInfo.BlockchainID,
 		subnetBInfo,
+		subnetAInfo.BlockchainID,
 		[][32]byte{messageID1, messageID2},
 		teleportermessenger.TeleporterFeeInfo{
 			FeeTokenAddress: mockTokenAddress,
