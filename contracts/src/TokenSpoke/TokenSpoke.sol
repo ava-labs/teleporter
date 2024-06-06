@@ -21,8 +21,6 @@ import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporter
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 
@@ -102,21 +100,31 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     bool public isRegistered;
 
     /**
-     * @notice Fixed gas cost for performing a multi-hop transfer on the token hub contract,
-     * before forwarding to the destination token spoke instance.
+     * @notice Fixed gas cost for executing a multi-hop send message on the token hub contract,
+     * before forwarding to the destination token spoke instance. Note that for certain hub implementations,
+     * a higher required gas limit may be needed depending on the gas expenditure of the external call to the
+     * token contract to approve the spending of the optional secondary fee amount.
      */
-    uint256 public constant MULTI_HOP_REQUIRED_GAS = 240_000;
+    uint256 public constant MULTI_HOP_SEND_REQUIRED_GAS = 340_000;
+
+    /**
+     * @notice Fixed gas cost for executing a multi-hop call message on the token hub contract,
+     * before forwarding to the destination token spoke instance. Note that for certain hub implementations,
+     * a higher required gas limit may be needed depending on the gas expenditure of the external call to the
+     * token contract to approve the spending of the optional secondary fee amount.
+     */
+    uint256 public constant MULTI_HOP_CALL_REQUIRED_GAS = 350_000;
 
     /**
      * @notice The amount of gas added to the required gas limit for a multi-hop call message
      * for each 32-byte word of the recipient payload.
      */
-    uint256 public constant MULTI_HOP_CALL_GAS_PER_WORD = 8_500;
+    uint256 public constant MULTI_HOP_CALL_GAS_PER_WORD = 1_500;
 
     /**
      * @notice Fixed gas cost for registering the spoke contract on the hub contract.
      */
-    uint256 public constant REGISTER_SPOKE_REQUIRED_GAS = 150_000;
+    uint256 public constant REGISTER_SPOKE_REQUIRED_GAS = 115_000;
 
     /**
      * @notice Initializes this token spoke instance.
@@ -315,6 +323,18 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     ) internal virtual;
 
     /**
+     * @notice Handles fees sent to this contract for a bridge transfer.
+     * The fee is expected to be approved by the sender for this bridge contract to use,
+     * and will be transferred to this contract to allocate for the bridge transfer.
+     * @param feeTokenAddress The address of the fee token
+     * @param feeAmount The amount of the fee
+     */
+    function _handleFees(
+        address feeTokenAddress,
+        uint256 feeAmount
+    ) internal virtual returns (uint256);
+
+    /**
      * @dev Prepares tokens to be sent to another chain by handling the
      * deposit, burning, and checking that the corresonding amount of
      * hub tokens is greater than zero.
@@ -427,7 +447,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: primaryFee
                 }),
-                requiredGasLimit: MULTI_HOP_REQUIRED_GAS,
+                requiredGasLimit: MULTI_HOP_SEND_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
             })
@@ -526,7 +546,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         // The required gas limit for the first message sent back to the hub instance
         // needs to account for the number of words in the payload. Each word uses additional
         // gas to include in the message to the final destination chain.
-        uint256 messageRequiredGasLimit = MULTI_HOP_REQUIRED_GAS
+        uint256 messageRequiredGasLimit = MULTI_HOP_CALL_REQUIRED_GAS
             + (calculateNumWords(input.recipientPayload.length) * MULTI_HOP_CALL_GAS_PER_WORD);
 
         // Send message to the token hub instance
@@ -545,22 +565,6 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         );
 
         emit TokensAndCallSent(messageID, _msgSender(), input, amount);
-    }
-
-    /**
-     * @notice Handles fees sent to this contract
-     * @param feeTokenAddress The address of the fee token
-     * @param feeAmount The amount of the fee
-     */
-    function _handleFees(address feeTokenAddress, uint256 feeAmount) private returns (uint256) {
-        if (feeAmount == 0) {
-            return 0;
-        }
-        // If the {feeTokenAddress} is this contract, then just deposit the tokens directly.
-        if (feeTokenAddress == address(this)) {
-            return _deposit(feeAmount);
-        }
-        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
     }
 
     function _validateSingleHopInput(

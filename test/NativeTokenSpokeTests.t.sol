@@ -457,17 +457,17 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
-            if (address(bridgedToken) != address(app)) {
-                vm.expectCall(
-                    address(bridgedToken),
-                    abi.encodeCall(
-                        IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
-                    )
-                );
-            }
         }
+        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenBridge));
+
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(app), amount);
+        if (feeAmount > 0) {
+            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount);
+            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            emit Transfer(address(this), address(tokenBridge), feeAmount);
+        }
     }
 
     function _setUpExpectedZeroAmountRevert() internal override {

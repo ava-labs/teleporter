@@ -557,7 +557,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
                 feeTokenAddress: address(bridgedToken),
                 amount: input.primaryFee
             }),
-            requiredGasLimit: tokenSpoke.MULTI_HOP_REQUIRED_GAS(),
+            requiredGasLimit: tokenSpoke.MULTI_HOP_SEND_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: _encodeMultiHopSendMessage({
                 amount: bridgeAmount,
@@ -583,7 +583,7 @@ abstract contract TokenSpokeTest is TokenBridgeTest {
                 feeTokenAddress: address(bridgedToken),
                 amount: input.primaryFee
             }),
-            requiredGasLimit: tokenSpoke.MULTI_HOP_REQUIRED_GAS()
+            requiredGasLimit: tokenSpoke.MULTI_HOP_CALL_REQUIRED_GAS()
                 + (
                     tokenSpoke.calculateNumWords(input.recipientPayload.length)
                         * tokenSpoke.MULTI_HOP_CALL_GAS_PER_WORD()

@@ -247,4 +247,28 @@ contract ERC20TokenHubTest is ERC20TokenBridgeTest, TokenHubTest {
     function _setUpExpectedZeroAmountRevert() internal override {
         vm.expectRevert("SafeERC20TransferFrom: balance not increased");
     }
+
+    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
+        // Transfer the fee to the bridge if it is greater than 0
+        if (feeAmount > 0) {
+            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            vm.expectCall(
+                address(bridgedToken),
+                abi.encodeCall(
+                    IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                )
+            );
+        }
+        // Increase the allowance of the bridge to transfer the funds from the user
+        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
+
+        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
+        // This is the case because for the {ERC20TokenHub) is not the fee token itself
+        vm.expectCall(
+            address(bridgedToken),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), amount))
+        );
+        vm.expectEmit(true, true, true, true, address(bridgedToken));
+        emit Transfer(address(this), address(tokenBridge), amount);
+    }
 }
