@@ -6,7 +6,8 @@
 pragma solidity 0.8.18;
 
 import {TeleporterUpgradeable} from "./TeleporterUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable@4.9.6/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/access/OwnableUpgradeable.sol";
 
 /**
  * @dev Contract that inherits {TeleporterUpgradeable} and allows
@@ -20,6 +21,7 @@ abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, OwnableUp
         address initialOwner
     ) internal onlyInitializing {
         TeleporterUpgradeable.initialize(teleporterRegistryAddress);
+        OwnableUpgradeable.__Ownable_init();
         transferOwnership(initialOwner);
     }
 

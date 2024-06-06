@@ -8,8 +8,10 @@ pragma solidity 0.8.18;
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "../ITeleporterMessenger.sol";
-import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable@4.9.6/utils/ContextUpgradeable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
+import {ContextUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/utils/ContextUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/security/ReentrancyGuardUpgradeable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 
@@ -23,7 +25,11 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-abstract contract TeleporterUpgradeable is ContextUpgradeable, ITeleporterReceiver, ReentrancyGuard {
+abstract contract TeleporterUpgradeable is
+    ContextUpgradeable,
+    ITeleporterReceiver,
+    ReentrancyGuardUpgradeable
+{
     using SafeERC20 for IERC20;
 
     // The Teleporter registry contract manages different Teleporter contract versions.
@@ -61,6 +67,7 @@ abstract contract TeleporterUpgradeable is ContextUpgradeable, ITeleporterReceiv
      * instance and setting `_minTeleporterVersion`.
      */
     function initialize(address teleporterRegistryAddress) internal onlyInitializing {
+        ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
         require(
             teleporterRegistryAddress != address(0),
             "TeleporterUpgradeable: zero teleporter registry address"
