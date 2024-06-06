@@ -66,8 +66,11 @@ abstract contract TeleporterUpgradeable is
      * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
      * instance and setting `_minTeleporterVersion`.
      */
-    function initialize(address teleporterRegistryAddress) internal onlyInitializing {
-        ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+    function __TeleporterUpgradeable_init(address teleporterRegistryAddress)
+        internal
+        onlyInitializing
+    {
+        __ReentrancyGuard_init();
         require(
             teleporterRegistryAddress != address(0),
             "TeleporterUpgradeable: zero teleporter registry address"

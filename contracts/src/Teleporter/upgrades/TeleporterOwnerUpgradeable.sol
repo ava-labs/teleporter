@@ -16,12 +16,12 @@ import {OwnableUpgradeable} from
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, OwnableUpgradeable {
-    function initialize(
+    function __TeleporterOwnerUpgradeable_init(
         address teleporterRegistryAddress,
         address initialOwner
     ) internal onlyInitializing {
-        TeleporterUpgradeable.initialize(teleporterRegistryAddress);
-        OwnableUpgradeable.__Ownable_init();
+        __TeleporterUpgradeable_init(teleporterRegistryAddress);
+        __Ownable_init();
         transferOwnership(initialOwner);
     }
 
