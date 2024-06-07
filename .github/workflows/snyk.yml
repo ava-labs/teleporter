@@ -8,7 +8,7 @@ on:
       - "dependabot/**"
 jobs:
   golang-snyk:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repositories and submodules
         uses: actions/checkout@v4
