@@ -6,7 +6,8 @@
 pragma solidity 0.8.18;
 
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
-import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
 /**
@@ -16,8 +17,7 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 contract WrappedNativeToken is IWrappedNativeToken, ERC20Upgradeable {
     using Address for address payable;
 
-    function initialize(string memory symbol) public initializer
-    {
+    function initialize(string memory symbol) public initializer {
         __ERC20_init(string.concat("Wrapped ", symbol), string.concat("W", symbol));
     }
 

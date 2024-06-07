@@ -25,8 +25,6 @@ import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {UUPSUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -59,12 +57,7 @@ struct SpokeBridgeSettings {
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
-abstract contract TokenHub is
-    ITokenHub,
-    TeleporterOwnerUpgradeable,
-    SendReentrancyGuard,
-    UUPSUpgradeable
-{
+abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentrancyGuard {
     /// @notice The blockchain ID of the chain this contract is deployed on.
     bytes32 public blockchainID;
 
@@ -550,8 +543,6 @@ abstract contract TokenHub is
         SingleHopCallMessage memory message,
         uint256 amount
     ) internal virtual;
-
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /**
      * @notice Processes a received single hop transfer from a spoke instance.

@@ -24,10 +24,8 @@ import {INativeMinter} from
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
-import {
-    IERC20Upgradeable,
-    ERC20Upgradeable
-} from "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 
