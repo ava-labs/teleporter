@@ -63,8 +63,8 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
      * @notice tokenMultiplier allows this contract to scale the number of tokens it sends/receives to/from
      * its token hub instance.
      *
-     * @dev This is used to normalize the number of decimal places between the hub asset and the spoke asset.
-     * It is derived from hub and spoke token decimals values passed in the constructor.
+     * @dev This is used to normalize the number of decimal places between the token hub asset and the
+     * token spoke asset. It is derived from hub and spoke token decimals values passed in the constructor.
      */
     uint256 public immutable tokenMultiplier;
 
