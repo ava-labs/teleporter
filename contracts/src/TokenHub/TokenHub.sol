@@ -38,7 +38,7 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  * @param collateralNeeded The amount of tokens that must be first added as collateral,
  * through {addCollateral} calls, before tokens can be bridged to the spoke token bridge.
  * @param tokenMultiplier The scaling factor for the amount of tokens to be bridged to the spoke.
- * @param multiplyOnSpoke Whether the token multiplier should be applied when transferring tokens to
+ * @param multiplyOnSpoke Whether the {tokenMultiplier} should be applied when transferring tokens to
  * the spoke (multiplyOnSpoke=true), or when transferring tokens back to the hub (multiplyOnSpoke=false).
  */
 struct SpokeBridgeSettings {
