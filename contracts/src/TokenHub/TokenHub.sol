@@ -21,9 +21,9 @@ import {
 } from "../interfaces/ITokenBridge.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
+import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 
 /**
@@ -684,8 +684,9 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         amount = _deposit(amount);
 
         if (feeAmount > 0) {
-            feeAmount =
-                SafeERC20TransferFrom.safeTransferFrom(IERC20(primaryFeeTokenAddress), feeAmount);
+            feeAmount = SafeERC20TransferFrom.safeTransferFrom(
+                IERC20(primaryFeeTokenAddress), _msgSender(), feeAmount
+            );
         }
 
         // Scale the amount based on the token multiplier for the given spoke instance.
