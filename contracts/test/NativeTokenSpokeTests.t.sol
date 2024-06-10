@@ -30,8 +30,6 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
     string public constant DEFAULT_SYMBOL = "XYZ";
     NativeTokenSpoke public app;
 
-    event BurnedForBridge(uint256 amount);
-
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     function setUp() public override {
@@ -156,9 +154,6 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             address(separateFeeAsset),
             abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
         );
-
-        vm.expectEmit(true, true, true, true, address(app));
-        emit BurnedForBridge(amount);
 
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(app));
@@ -469,7 +464,6 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             vm.expectEmit(true, true, true, true, address(bridgedToken));
             emit Transfer(address(this), address(tokenBridge), feeAmount);
         }
-        emit BurnedForBridge(amount);
     }
 
     function _setUpExpectedZeroAmountRevert() internal override {
