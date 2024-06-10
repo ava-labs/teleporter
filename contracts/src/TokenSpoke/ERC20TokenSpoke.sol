@@ -87,9 +87,9 @@ contract ERC20TokenSpoke is IERC20TokenBridge, ERC20, TokenSpoke {
      * @dev See {TokenSpoke-_burn}
      *
      * Spends the allowance the caller has given to this contract, and
-     * calls {ERC20-_burn} to burn tokens from this contract.
+     * calls {ERC20-_burn} to burn tokens from the sender.
      *
-     * Note: The amount burned must match the amount credited as a result of the transfer.
+     * Note: The amount returned must match the amount credited as a result of the burn.
      * For a standard ERC20 implementation such as this contract, that is equal to the full amount given.
      * Child contracts with different {_burn} implementations may need to override this
      * implemenation to ensure the amount returned is correct.
