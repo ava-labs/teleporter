@@ -50,8 +50,8 @@ library TokenScalingUtils {
         uint256 tokenMultiplier = 10
             ** (
                 multiplyOnSpoke
-                    ? spokeTokenDecimals - hubTokenDecimals
-                    : hubTokenDecimals - spokeTokenDecimals
+                    ? uint256(spokeTokenDecimals - hubTokenDecimals)
+                    : uint256(hubTokenDecimals - spokeTokenDecimals)
             );
         return (tokenMultiplier, multiplyOnSpoke);
     }
