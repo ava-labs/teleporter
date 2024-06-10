@@ -295,7 +295,8 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     /**
      * @notice Burns the user's tokens to initiate a bridge transfer.
      * @param amount The amount of tokens to burn
-     * @return The amount of tokens burned
+     * @return The amount of tokens burned, which is the amount to credit
+     * for the bridge transfer.
      */
     function _burn(uint256 amount) internal virtual returns (uint256);
 

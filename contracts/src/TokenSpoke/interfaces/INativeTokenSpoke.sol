@@ -19,7 +19,12 @@ import {ITokenSpoke} from "./ITokenSpoke.sol";
  */
 interface INativeTokenSpoke is ITokenSpoke, INativeTokenBridge {
     /**
-     * @dev Emitted when reporting burned tx fees to hub chain.
+     * @notice Emitted when native tokens are burned for bridge transfers.
+     */
+    event BurnedForBridge(uint256 amount);
+
+    /**
+     * @notice Emitted when reporting burned tx fees to hub chain.
      */
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 

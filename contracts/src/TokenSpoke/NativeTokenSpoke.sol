@@ -264,6 +264,7 @@ contract NativeTokenSpoke is INativeTokenSpoke, IWrappedNativeToken, ERC20, Toke
      * native token amount to the BURNED_FOR_BRIDGE_ADDRESS.
      */
     function _burn(uint256 amount) internal virtual override returns (uint256) {
+        emit BurnedForBridge(amount);
         payable(BURNED_FOR_BRIDGE_ADDRESS).sendValue(amount);
         return amount;
     }
