@@ -152,7 +152,7 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
         bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
 
         vm.expectEmit(true, true, true, true, address(bridgedToken));
-        emit Transfer(address(this), address(tokenBridge), amount);
+        emit Transfer(address(this), address(0), amount);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount);
@@ -251,19 +251,21 @@ contract ERC20TokenSpokeTest is ERC20TokenBridgeTest, TokenSpokeTest {
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
         }
-        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenBridge));
 
         // Increase the allowance of the bridge to transfer the funds from the user
         bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
 
-        vm.expectEmit(true, true, true, true, address(bridgedToken));
-        emit Transfer(address(this), address(tokenBridge), amount);
+        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenBridge));
         if (feeAmount > 0) {
             vm.expectEmit(true, true, true, true, address(bridgedToken));
             emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(bridgedToken));
             emit Transfer(address(this), address(tokenBridge), feeAmount);
         }
+        vm.expectEmit(true, true, true, true, address(bridgedToken));
+        emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount - amount);
+        vm.expectEmit(true, true, true, true, address(bridgedToken));
+        emit Transfer(address(this), address(0), amount);
     }
 
     function _getTotalSupply() internal view override returns (uint256) {

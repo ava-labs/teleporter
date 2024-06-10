@@ -160,7 +160,6 @@ abstract contract TokenBridgeTest is Test {
         input.primaryFee = primaryFee;
 
         _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
-        _setUpExpectedDeposit(amount, 0);
         vm.expectRevert("ERC20: insufficient allowance");
         _send(input, amount);
     }
@@ -173,7 +172,6 @@ abstract contract TokenBridgeTest is Test {
         input.primaryFee = primaryFee;
 
         _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
-        _setUpExpectedDeposit(amount, 0);
         vm.expectRevert("ERC20: insufficient allowance");
         _sendAndCall(input, amount);
     }

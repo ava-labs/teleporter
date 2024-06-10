@@ -339,7 +339,7 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         primaryFee = _handleFees(primaryFeeTokenAddress, primaryFee);
 
         // Burn the amount of tokens that will be bridged.
-        _burn(amount);
+        amount = _burn(amount);
 
         // The bridged amount must cover the secondary fee, because the secondary fee
         // is directly subtracted from the bridged amount on the intermediate (hub) chain
