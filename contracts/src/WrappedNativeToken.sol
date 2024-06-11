@@ -29,13 +29,13 @@ contract WrappedNativeToken is IWrappedNativeToken, ERC20 {
     }
 
     function withdraw(uint256 amount) external {
-        _burn(msg.sender, amount);
-        emit Withdrawal(msg.sender, amount);
-        payable(msg.sender).sendValue(amount);
+        _burn(_msgSender(), amount);
+        emit Withdrawal(_msgSender(), amount);
+        payable(_msgSender()).sendValue(amount);
     }
 
     function deposit() public payable {
-        _mint(msg.sender, msg.value);
-        emit Deposit(msg.sender, msg.value);
+        _mint(_msgSender(), msg.value);
+        emit Deposit(_msgSender(), msg.value);
     }
 }

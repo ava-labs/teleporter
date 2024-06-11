@@ -11,9 +11,9 @@ import {IERC20SendAndCallReceiver} from "../interfaces/IERC20SendAndCallReceiver
 import {
     SendTokensInput, SendAndCallInput, SingleHopCallMessage
 } from "../interfaces/ITokenBridge.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
@@ -86,7 +86,7 @@ contract ERC20TokenHub is IERC20TokenHub, TokenHub {
      * @dev See {TokenHub-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return SafeERC20TransferFrom.safeTransferFrom(token, amount);
+        return SafeERC20TransferFrom.safeTransferFrom(token, _msgSender(), amount);
     }
 
     /**
