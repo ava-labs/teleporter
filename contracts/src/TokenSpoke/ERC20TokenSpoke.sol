@@ -15,7 +15,7 @@ import {
 import {ERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {SafeERC20TransferFrom} from "../SafeERC20TransferFrom.sol";
+import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
