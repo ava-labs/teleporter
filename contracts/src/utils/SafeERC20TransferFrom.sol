@@ -20,7 +20,7 @@ import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC
  *
  * Note: Contracts that use this library must ensure that users cannot pass arbitrary addresses as
  * the {from} address for the {transferFrom} call. Proper authorization (such as msg.sender) must
- * be required to ensure no one can inproperly transfer tokens from any address.
+ * be required to ensure no one can improperly transfer tokens from any address.
  *
  * Note: A reentrancy guard must always be used when calling token.safeTransferFrom in order to
  * prevent against possible "before-after" pattern vulnerabilities.
