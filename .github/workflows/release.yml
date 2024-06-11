@@ -11,7 +11,7 @@ on:
 jobs:
   build_and_upload_artifacts:
     name: Build and Upload Teleporter Artifacts
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       deployment_tx_fn: TeleporterMessenger_Deployment_Transaction_${{ github.ref_name }}.txt
       deployer_addr_fn: TeleporterMessenger_Deployer_Address_${{ github.ref_name }}.txt
