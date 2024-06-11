@@ -155,8 +155,6 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
             abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
         );
 
-        vm.expectEmit(true, true, true, true, address(app));
-        emit Transfer(address(0), address(app), amount);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(app));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount);
@@ -452,7 +450,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         }
     }
 
-    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal override {
+    function _setUpExpectedDeposit(uint256, uint256 feeAmount) internal override {
         app.deposit{value: feeAmount}();
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
@@ -460,8 +458,6 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         }
         uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenBridge));
 
-        vm.expectEmit(true, true, true, true, address(app));
-        emit Transfer(address(0), address(app), amount);
         if (feeAmount > 0) {
             vm.expectEmit(true, true, true, true, address(bridgedToken));
             emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount);

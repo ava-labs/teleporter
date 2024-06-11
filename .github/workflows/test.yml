@@ -10,7 +10,7 @@ on:
 
 jobs:
   solidity-unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
       - name: Checkout repository and submodules
@@ -28,7 +28,7 @@ jobs:
           forge test -vvv
 
   go-unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repositories and submodules
@@ -53,7 +53,7 @@ jobs:
 
   e2e_tests:
     name: e2e_tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repositories and submodules
         uses: actions/checkout@v4

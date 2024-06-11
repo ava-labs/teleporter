@@ -27,7 +27,7 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {ERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
+import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -180,7 +180,7 @@ contract NativeTokenSpoke is
             // native token (ERC20) representation, such that they can be used as a Teleporter
             // message fee.
             _mintNativeCoin(address(this), reward);
-            _deposit(reward);
+            _mint(address(this), reward);
         }
 
         // Check that the scaled amount on the hub instance will be non-zero.
@@ -256,19 +256,6 @@ contract NativeTokenSpoke is
     }
 
     /**
-     * @dev See {TokenSpoke-_deposit}
-     *
-     * Native tokens to be deposited are sent via the payable {send} and {sendAndCall} functions, and
-     * remained locked in this contract. The internal call to {_mint} here credits the full amount as
-     * the wrapped native asset (ERC20) token by incrementing the ERC20 balance of this contract, such
-     * that it can be used to pay for message fees if needed.
-     */
-    function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        _mint(address(this), amount);
-        return amount;
-    }
-
-    /**
      * @dev See {TokenSpoke-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
@@ -280,16 +267,12 @@ contract NativeTokenSpoke is
      * @dev See {TokenSpoke-_burn}
      *
      * This is the internal {_burn} method called when bridging tokens to another chain.
-     * The tokens to be burnt are already be held by this contract, and credited to this
-     * contract's balance of the wrapped native token. To burn the tokens, first burn the
-     * wrapped ERC20 representation of the native token (decreasing the totalSupply of the
-     * wrappen native token and reducing this contract's balance of it), and then send the
+     * The tokens to be burnt are already held by this contract. To burn the tokens, send the
      * native token amount to the BURNED_FOR_BRIDGE_ADDRESS.
-     *
      */
-    function _burn(uint256 amount) internal virtual override {
-        _burn(address(this), amount);
+    function _burn(uint256 amount) internal virtual override returns (uint256) {
         payable(BURNED_FOR_BRIDGE_ADDRESS).sendValue(amount);
+        return amount;
     }
 
     /**
@@ -355,7 +338,8 @@ contract NativeTokenSpoke is
             _transfer(_msgSender(), address(this), feeAmount);
             return feeAmount;
         }
-        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+        return
+            SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), _msgSender(), feeAmount);
     }
 
     /**

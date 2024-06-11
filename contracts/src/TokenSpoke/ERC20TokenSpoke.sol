@@ -12,14 +12,10 @@ import {IERC20SendAndCallReceiver} from "../interfaces/IERC20SendAndCallReceiver
 import {
     SendTokensInput, SendAndCallInput, SingleHopCallMessage
 } from "../interfaces/ITokenBridge.sol";
-import {
-    IERC20Upgradeable,
-    ERC20Upgradeable
-} from "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
-import {SafeERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {ERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
+import {SafeERC20TransferFrom} from "../SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
@@ -34,8 +30,6 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20Upgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
-
     uint8 private _decimals;
 
     /**
@@ -83,20 +77,6 @@ contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20Upgradeable {
     }
 
     /**
-     * @dev See {TokenSpoke-_deposit}
-     *
-     * Note: The amount returned must be the amount credited as a result of the transfer.
-     * For a standard ERC20 implementation such as this contract, that is equal to the full amount given.
-     * Child contracts with different {_transfer} implementations may need to override this
-     * implemenation to ensure the amount returned is correct.
-     */
-    function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        _spendAllowance(_msgSender(), address(this), amount);
-        _transfer(_msgSender(), address(this), amount);
-        return amount;
-    }
-
-    /**
      * @dev See {TokenSpoke-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
@@ -107,10 +87,18 @@ contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20Upgradeable {
     /**
      * @dev See {TokenSpoke-_burn}
      *
-     * Calls {ERC20-_burn} to burn tokens from this contract.
+     * Spends the allowance the caller has given to this contract, and
+     * calls {ERC20-_burn} to burn tokens from the sender.
+     *
+     * Note: The amount returned must match the amount credited as a result of the burn.
+     * For a standard ERC20 implementation such as this contract, that is equal to the full amount given.
+     * Child contracts with different {_burn} implementations may need to override this
+     * implemenation to ensure the amount returned is correct.
      */
-    function _burn(uint256 amount) internal virtual override {
-        _burn(address(this), amount);
+    function _burn(uint256 amount) internal virtual override returns (uint256) {
+        _spendAllowance(_msgSender(), address(this), amount);
+        _burn(_msgSender(), amount);
+        return amount;
     }
 
     /**
@@ -188,6 +176,7 @@ contract ERC20TokenSpoke is IERC20TokenBridge, TokenSpoke, ERC20Upgradeable {
             _transfer(_msgSender(), address(this), feeAmount);
             return feeAmount;
         }
-        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+        return
+            SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), _msgSender(), feeAmount);
     }
 }
