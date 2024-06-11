@@ -450,7 +450,7 @@ contract NativeTokenSpokeTest is NativeTokenBridgeTest, TokenSpokeTest {
         }
     }
 
-    function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal override {
+    function _setUpExpectedDeposit(uint256, uint256 feeAmount) internal override {
         app.deposit{value: feeAmount}();
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
