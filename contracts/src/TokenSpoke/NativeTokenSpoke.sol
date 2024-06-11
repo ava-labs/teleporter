@@ -25,7 +25,7 @@ import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
+import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -331,7 +331,8 @@ contract NativeTokenSpoke is INativeTokenSpoke, IWrappedNativeToken, ERC20, Toke
             _transfer(_msgSender(), address(this), feeAmount);
             return feeAmount;
         }
-        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+        return
+            SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), _msgSender(), feeAmount);
     }
 
     /**

@@ -13,8 +13,7 @@ import {
     SendTokensInput, SendAndCallInput, SingleHopCallMessage
 } from "../interfaces/ITokenBridge.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
+import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
@@ -29,8 +28,6 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract ERC20TokenSpoke is IERC20TokenBridge, ERC20, TokenSpoke {
-    using SafeERC20 for IERC20;
-
     uint8 private immutable _decimals;
 
     /**
@@ -175,6 +172,7 @@ contract ERC20TokenSpoke is IERC20TokenBridge, ERC20, TokenSpoke {
             _transfer(_msgSender(), address(this), feeAmount);
             return feeAmount;
         }
-        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), feeAmount);
+        return
+            SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), _msgSender(), feeAmount);
     }
 }

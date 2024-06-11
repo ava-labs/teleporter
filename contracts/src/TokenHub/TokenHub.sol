@@ -21,9 +21,9 @@ import {
 } from "../interfaces/ITokenBridge.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
+import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {SafeERC20TransferFrom} from "@teleporter/SafeERC20TransferFrom.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 
 /**
@@ -38,8 +38,8 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  * @param collateralNeeded The amount of tokens that must be first added as collateral,
  * through {addCollateral} calls, before tokens can be bridged to the spoke token bridge.
  * @param tokenMultiplier The scaling factor for the amount of tokens to be bridged to the spoke.
- * @param tokenMultiplier The scaling factor for the amount of tokens to be bridged to the spoke.
- * @param tokenDecimals The number of decimals that the spoke token has.
+ * @param multiplyOnSpoke Whether the {tokenMultiplier} should be applied when transferring tokens to
+ * the spoke (multiplyOnSpoke=true), or when transferring tokens back to the hub (multiplyOnSpoke=false).
  */
 struct SpokeBridgeSettings {
     bool registered;
@@ -684,8 +684,9 @@ abstract contract TokenHub is ITokenHub, TeleporterOwnerUpgradeable, SendReentra
         amount = _deposit(amount);
 
         if (feeAmount > 0) {
-            feeAmount =
-                SafeERC20TransferFrom.safeTransferFrom(IERC20(primaryFeeTokenAddress), feeAmount);
+            feeAmount = SafeERC20TransferFrom.safeTransferFrom(
+                IERC20(primaryFeeTokenAddress), _msgSender(), feeAmount
+            );
         }
 
         // Scale the amount based on the token multiplier for the given spoke instance.
