@@ -284,14 +284,6 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     }
 
     /**
-     * @notice Deposits tokens from the sender to this contract,
-     * and returns the adjusted amount of tokens deposited.
-     * @param amount The initial amount sent to this contract.
-     * @return The actual amount deposited to this contract.
-     */
-    function _deposit(uint256 amount) internal virtual returns (uint256);
-
-    /**
      * @notice Withdraws tokens to the recipient address.
      * @param recipient The address to withdraw tokens to
      * @param amount The amount of tokens to withdraw
@@ -299,11 +291,12 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
     function _withdraw(address recipient, uint256 amount) internal virtual;
 
     /**
-     * @notice Burns a fee adjusted amount of tokens that the user
-     * has deposited to this token bridge instance.
+     * @notice Burns the user's tokens to initiate a bridge transfer.
      * @param amount The amount of tokens to burn
+     * @return The amount of tokens burned, which is the amount to credit
+     * for the bridge transfer.
      */
-    function _burn(uint256 amount) internal virtual;
+    function _burn(uint256 amount) internal virtual returns (uint256);
 
     /**
      * @notice Processes a send and call message by calling the recipient contract.
@@ -339,17 +332,13 @@ abstract contract TokenSpoke is ITokenSpoke, TeleporterOwnerUpgradeable, SendRee
         uint256 primaryFee,
         uint256 secondaryFee
     ) private returns (uint256, uint256) {
-        // Deposit the funds sent from the user to the bridge,
-        // and set to adjusted amount after deposit
-        amount = _deposit(amount);
-
         // Transfer the primary fee to pay for fees on the first hop.
         // The user can specify this contract as {primaryFeeTokenAddress},
         // in which case the fee will be paid on top of the bridged amount.
         primaryFee = _handleFees(primaryFeeTokenAddress, primaryFee);
 
         // Burn the amount of tokens that will be bridged.
-        _burn(amount);
+        amount = _burn(amount);
 
         // The bridged amount must cover the secondary fee, because the secondary fee
         // is directly subtracted from the bridged amount on the intermediate (hub) chain
