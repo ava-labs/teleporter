@@ -10,6 +10,8 @@ It's important to understand the distinction between Avalanche Warp Messaging an
 
 The Teleporter protocol, on the other hand, is implemented at the smart contract level, and is a user-friendly interface to AWM, aimed at dApp developers. All of the message signing and verification is abstracted away from developers. Instead, developers simply call `sendCrossChainMessage` on the `TeleporterMessenger` contract to send a message invoking a smart contract on another subnet, and implement the `ITeleporterReceiver` interface to receive messages on the destination subnet. Teleporter handles all of the Warp message construction and sending, as well as the message delivery and execution.
 
+To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subnets on a Local Network](https://docs.avax.network/tooling/cli-cross-chain/teleporter-on-local-networks)
+
 - [Deployed Addresses](#deployed-addresses)
 - [Setup](#setup)
   - [Initialize the repository](#initialize-the-repository)
@@ -65,63 +67,6 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
   - `lint.sh` performs Solidity and Golang linting.
   - `scripts/local/` includes scripts for running Teleporter in Docker.
 - `docker/` includes configurations for a local, containerized setup of Teleporter.
-
-## Run a local testnet in Docker
-
-A docker setup for running a local network with Teleporter deployed is provided. This setup provides a convenient way to develop and test Teleporter as well as cross-chain applications built on top of Teleporter. Teleporter messages are relayed between subnets using [AWM Relayer](https://github.com/ava-labs/awm-relayer), a fully featured implementation of a Warp message relayer.
-
-### Start up the local testnet
-
-- Run `./scripts/local/run.sh` to run the local testnet in Docker containers with the ability to interact with the nodes directly.
-
-  - `./scripts/local/run.sh` usage is as follows:
-
-  ```
-    -l, --local-relayer-image <tag>   Use a local AWM Relayer image instead of pulling from dockerhub
-    -h, --help                        Print this help message
-  ```
-
-  - If using `-l, --local` to use a local version of the `awm-relayer` image, build it using `./scripts/build_local_image.sh` from the root of the `awm-relayer` repository.
-  - Note that if `-l, --local` is not set, then the latest published `awm-relayer` image will be pulled from Dockerhub.
-
-- After calling `./scripts/local/run.sh`, you'll know the network is ready once the "Waiting for subnets to start up." messages from the `relayer_run` container stop. Once the network is ready, you can interact with the deployed Teleporter contracts directly, or deploy a cross-chain application contract such as `ExampleCrossChainMessenger`. To open a terminal in the container and initialize it with the environment variables needed to interact with the contracts, run:
-
-```
-# Open a shell in the container
-docker exec -it local_network_run /bin/bash
-
-# In the container:
-set -a                        # export all variables so child processes can access
-source vars.sh                # source the variables needed to interact with the contracts
-```
-
-- Once you've opened a shell in the container, try interacting with the network.
-
-  - For example, send 1 AVAX on the C-Chain using `cast`
-
-  ```
-  c_address=0x333d17d3b42bf7930dbc6e852ca7bcf560a69003   # pick an arbitrary address
-  cast balance --rpc-url $c_chain_rpc_url $c_address
-  cast send --private-key $user_private_key --value 1 $c_address --rpc-url $c_chain_rpc_url
-  cast balance --rpc-url $c_chain_rpc_url $c_address
-  ```
-
-  - An example of how to interact with Teleporter is provided in `scripts/local/examples/basic_send_receive.sh`. This script sends a dummy payload via Teleporter from the C-Chain to a subnet, and back again.
-
-  ```
-  ./scripts/local/examples/basic_send_receive.sh
-  ```
-
-  - You should see "Received on Subnet A is true" and "Received on the C-Chain is true" to indicate that Teleporter messages were successfully sent between the C-Chain and Subnet A.
-    - These examples can be adapted to send messages between any two subnets, or between the C-Chain and any subnet by changing the RPC URLs.
-    - Use these as a starting point to build and interact with your own cross-chain applications on top of Teleporter!
-
-### Additional notes
-
-- The `./scripts/local/run.sh` script runs five local network nodes, with each of the nodes validating the primary network and three subnets (Subnet A, Subnet B, and Subnet C).
-- `./scripts/local/run.sh` will force-recreate the containers, which will reset the network state on each subsequent run.
-- Logs from the subnets on one of the five nodes are printed to stdout when run using either script.
-- These logs can also be found at `~/.avalanche-cli/runs/network_<DATE>_<TIMESTAMP>/node{1,5]/logs/<SUBNET_ID>.log` in the `local_network_run` container.
 
 ## E2E tests
 
