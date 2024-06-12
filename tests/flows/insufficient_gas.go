@@ -16,15 +16,15 @@ func InsufficientGas(network interfaces.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 	ctx := context.Background()
 
-	// Deploy ExampleMessenger to Subnets A
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(
+	// Deploy TestMessenger to Subnets A
+	_, subnetATestMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
 		subnetAInfo,
 	)
-	// Deploy ExampleMessenger to Subnets B
-	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
+	// Deploy TestMessenger to Subnets B
+	testMessengerContractB, subnetBTestMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
@@ -36,8 +36,8 @@ func InsufficientGas(network interfaces.Network) {
 	optsA, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := subnetAExampleMessenger.SendMessage(
-		optsA, subnetBInfo.BlockchainID, exampleMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message,
+	tx, err := subnetATestMessenger.SendMessage(
+		optsA, subnetBInfo.BlockchainID, testMessengerContractB, fundedAddress, big.NewInt(0), big.NewInt(0), message,
 	)
 	Expect(err).Should(BeNil())
 
@@ -84,7 +84,7 @@ func InsufficientGas(network interfaces.Network) {
 	//
 	// Verify we received the expected string
 	//
-	_, currMessage, err := subnetBExampleMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
+	_, currMessage, err := subnetBTestMessenger.GetCurrentMessage(&bind.CallOpts{}, subnetAInfo.BlockchainID)
 	Expect(err).Should(BeNil())
 	Expect(currMessage).Should(Equal(message))
 }

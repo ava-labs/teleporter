@@ -45,11 +45,6 @@ func main() {
 	runFlow("SendSpecificReceipts", flows.SendSpecificReceipts, network)
 	log.Info("Finished Teleporter test flows")
 
-	// Run the cross-chain application test flows.
-	runFlow("ExampleMessenger", flows.ExampleMessenger, network)
-	runFlow("ERC20BridgeMutlihop", flows.ERC20BridgeMultihop, network)
-	log.Info("Finished cross-chain application test flows")
-
 	// Run the upgradeability test flows
 	runFlow("CheckUpgradeAccess", flows.CheckUpgradeAccess, network)
 	runFlow("PauseTeleporter", flows.PauseTeleporter, network)

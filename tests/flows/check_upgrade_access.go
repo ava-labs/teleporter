@@ -16,11 +16,11 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Deploy ExampleMessenger to the subnet
+	// Deploy TestMessenger to the subnet
 	//
 	ctx := context.Background()
 	teleporterAddress := network.GetTeleporterContractAddress()
-	_, exampleMessenger := utils.DeployExampleCrossChainMessenger(
+	_, testMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
@@ -28,7 +28,7 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	)
 
 	// Check that owner is the funded address
-	owner, err := exampleMessenger.Owner(&bind.CallOpts{})
+	owner, err := testMessenger.Owner(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	Expect(owner).Should(Equal(fundedAddress))
 
@@ -51,12 +51,12 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	nonOwnerOpts, err := bind.NewKeyedTransactorWithChainID(
 		nonOwnerKey, subnetInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	_, err = exampleMessenger.PauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
+	_, err = testMessenger.PauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
 	Expect(err).ShouldNot(BeNil())
 	Expect(err.Error()).Should(ContainSubstring(errCallerNotOwnerStr))
 
 	// Check that the teleporter address is not paused, because previous call should have failed
-	isPaused, err := exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
+	isPaused, err := testMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeFalse())
 
@@ -65,41 +65,41 @@ func CheckUpgradeAccess(network interfaces.Network) {
 		fundedKey, subnetInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	// Try to call pauseTeleporterAddress from the owner account
-	tx, err := exampleMessenger.PauseTeleporterAddress(ownerOpts, teleporterAddress)
+	tx, err := testMessenger.PauseTeleporterAddress(ownerOpts, teleporterAddress)
 	Expect(err).Should(BeNil())
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
-	pauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, exampleMessenger.ParseTeleporterAddressPaused)
+	pauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, testMessenger.ParseTeleporterAddressPaused)
 	Expect(err).Should(BeNil())
 	Expect(pauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
 
-	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
+	isPaused, err = testMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeTrue())
 
 	// Transfer ownership to the non owner account
-	tx, err = exampleMessenger.TransferOwnership(ownerOpts, nonOwnerAddress)
+	tx, err = testMessenger.TransferOwnership(ownerOpts, nonOwnerAddress)
 	Expect(err).Should(BeNil())
 	utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
 
 	// Try to call unpauseTeleporterAddress from the previous owner account
-	_, err = exampleMessenger.UnpauseTeleporterAddress(ownerOpts, teleporterAddress)
+	_, err = testMessenger.UnpauseTeleporterAddress(ownerOpts, teleporterAddress)
 	Expect(err).ShouldNot(BeNil())
 	Expect(err.Error()).Should(ContainSubstring(errCallerNotOwnerStr))
 
 	// Make sure the teleporter address is still paused
-	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
+	isPaused, err = testMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeTrue())
 
 	// Try to call unpauseTeleporterAddress from the non owner account now
-	tx, err = exampleMessenger.UnpauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
+	tx, err = testMessenger.UnpauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
 	Expect(err).Should(BeNil())
 	receipt = utils.WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
-	unpauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, exampleMessenger.ParseTeleporterAddressUnpaused)
+	unpauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, testMessenger.ParseTeleporterAddressUnpaused)
 	Expect(err).Should(BeNil())
 	Expect(unpauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
 
-	isPaused, err = exampleMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
+	isPaused, err = testMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeFalse())
 }
