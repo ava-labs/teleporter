@@ -10,10 +10,11 @@ TELEPORTER_PATH=$(
 )
 
 source $TELEPORTER_PATH/scripts/constants.sh
-source $TELEPORTER_PATH/scripts/utils.sh
 source $TELEPORTER_PATH/scripts/versions.sh
 
-setARCH
+export ARCH=$(uname -m)
+[ $ARCH = x86_64 ] && ARCH=amd64
+echo "ARCH set to $ARCH"
 
 DEFAULT_CONTRACT_LIST="TeleporterMessenger ERC20Bridge ExampleCrossChainMessenger BlockHashPublisher BlockHashReceiver BridgeToken TeleporterRegistry NativeTokenSource NativeTokenDestination ERC20TokenSource ExampleERC20"
 
@@ -50,6 +51,14 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 echo "Building Contracts"
 cd $TELEPORTER_PATH/contracts
 forge build --force --extra-output-files abi bin
+
+function convertToLower() {
+    if [ "$ARCH" = 'arm64' ]; then
+        echo $1 | perl -ne 'print lc'
+    else
+        echo $1 | sed -e 's/\(.*\)/\L\1/'
+    fi
+}
 
 contract_names=($CONTRACT_LIST)
 
