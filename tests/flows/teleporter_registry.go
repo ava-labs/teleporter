@@ -3,7 +3,6 @@ package flows
 import (
 	"context"
 
-	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -76,8 +75,9 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	utils.SetChainConfig(chainConfigs, subnetAInfo, warpEnabledChainConfigA)
 
 	// Restart nodes with new chain config
-	nodeNames := network.GetAllNodeNames()
-	network.RestartNodes(ctx, nodeNames, runner_sdk.WithChainConfigs(chainConfigs))
+	nodeIDs := network.GetAllNodeIDs()
+	network.SetChainConfigs(chainConfigs)
+	network.RestartNodes(ctx, nodeIDs)
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version
 	utils.AddProtocolVersionAndWaitForAcceptance(

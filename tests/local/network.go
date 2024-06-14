@@ -3,26 +3,28 @@ package local
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
+	"encoding/hex"
+	"encoding/json"
 	"math/big"
 	"os"
+	"slices"
 	"time"
 
-	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
-	"github.com/ava-labs/avalanche-network-runner/rpcpb"
+	"github.com/ava-labs/avalanchego/api/info"
+	"github.com/ava-labs/avalanchego/config"
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
 	"github.com/ava-labs/avalanchego/utils/constants"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmInterfaces "github.com/ava-labs/subnet-evm/interfaces"
-	"github.com/ava-labs/subnet-evm/plugin/evm"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	"github.com/ava-labs/subnet-evm/rpc"
-	"github.com/ava-labs/subnet-evm/tests/utils/runner"
+	subnetEvmTestUtils "github.com/ava-labs/subnet-evm/tests/utils"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
@@ -42,15 +44,13 @@ var _ interfaces.LocalNetwork = &LocalNetwork{}
 type LocalNetwork struct {
 	teleporterContractAddress common.Address
 	primaryNetworkInfo        *interfaces.SubnetTestInfo
-	subnetAID, subnetBID      ids.ID
 	subnetsInfo               map[ids.ID]*interfaces.SubnetTestInfo
-	subnetNodeNames           map[ids.ID][]string
+	extraNodes                []*tmpnet.Node
 
 	globalFundedKey *ecdsa.PrivateKey
 
 	// Internal vars only used to set up the local network
-	anrClient           runner_sdk.Client
-	manager             *runner.NetworkManager
+	tmpnet              *tmpnet.Network
 	warpChainConfigPath string
 }
 
@@ -69,17 +69,11 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	ctx := context.Background()
 	var err error
 
-	// Name 10 new validators (which should have BLS key registered)
-	var subnetANodeNames []string
-	var subnetBNodeNames []string
-	for i := 1; i <= 10; i++ {
-		n := fmt.Sprintf("node%d-bls", i)
-		if i <= 5 {
-			subnetANodeNames = append(subnetANodeNames, n)
-		} else {
-			subnetBNodeNames = append(subnetBNodeNames, n)
-		}
-	}
+	// Declare 10 new validators (which should have BLS key registered)
+	subnetANodes := subnetEvmTestUtils.NewTmpnetNodes(5)
+	subnetBNodes := subnetEvmTestUtils.NewTmpnetNodes(5)
+	// and some extra nodes to be used to add more validators later:
+	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(5)
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
@@ -91,81 +85,66 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	_, err = os.Stat(warpGenesisFile)
 	Expect(err).Should(BeNil())
 
-	anrConfig := runner.NewDefaultANRConfig()
-	anrConfig.GlobalCChainConfig = warpEnabledChainConfig
-	manager := runner.NewNetworkManager(anrConfig)
-
-	// Construct the network using the avalanche-network-runner
-	_, err = manager.StartDefaultNetwork(ctx)
-	Expect(err).Should(BeNil())
-	err = manager.SetupNetwork(
-		ctx,
-		anrConfig.AvalancheGoExecPath,
-		[]*rpcpb.BlockchainSpec{
-			{
-				VmName:      evm.IDStr,
-				Genesis:     warpGenesisFile,
-				ChainConfig: warpChainConfigPath,
-				SubnetSpec: &rpcpb.SubnetSpec{
-					SubnetConfig: "",
-					Participants: subnetANodeNames,
-				},
-			},
-			{
-				VmName:      evm.IDStr,
-				Genesis:     warpGenesisFile,
-				ChainConfig: warpChainConfigPath,
-				SubnetSpec: &rpcpb.SubnetSpec{
-					SubnetConfig: "",
-					Participants: subnetBNodeNames,
-				},
-			},
-		},
+	subnetA := subnetEvmTestUtils.NewTmpnetSubnet(
+		"A",
+		warpGenesisFile,
+		subnetEvmTestUtils.DefaultChainConfig,
+		subnetANodes...,
 	)
+
+	subnetB := subnetEvmTestUtils.NewTmpnetSubnet(
+		"B",
+		warpGenesisFile,
+		subnetEvmTestUtils.DefaultChainConfig,
+		subnetBNodes...,
+	)
+
+	network := subnetEvmTestUtils.NewTmpnetNetwork(
+		"teleporter-test-local-network",
+		append(subnetANodes, append(subnetBNodes, extraNodes...)...),
+		tmpnet.FlagsMap{},
+		subnetA,
+		subnetB,
+	)
+	Expect(network).ShouldNot(BeNil())
+
+	avalancheGoBuildPath, ok := os.LookupEnv("AVALANCHEGO_BUILD_PATH")
+	Expect(ok).Should(Equal(true))
+
+	ctxWithTimeout, cancelBootstrap := context.WithTimeout(ctx, time.Minute*5)
+	err = tmpnet.BootstrapNewNetwork(
+		ctxWithTimeout,
+		os.Stdout,
+		network,
+		"",
+		avalancheGoBuildPath+"/avalanchego",
+		avalancheGoBuildPath+"/plugins",
+	)
+	defer cancelBootstrap()
 	Expect(err).Should(BeNil())
 
-	// Issue transactions to activate the proposerVM fork on the chains
+	fundedKeyBytes, err := hex.DecodeString(fundedKeyStr)
+	Expect(err).Should(BeNil())
+	fundedKeySecp256k1, err := secp256k1.ToPrivateKey(fundedKeyBytes)
+	Expect(err).Should(BeNil())
+	network.PreFundedKeys = append(network.PreFundedKeys, fundedKeySecp256k1)
+
 	globalFundedKey, err := crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
-	setupProposerVM(ctx, globalFundedKey, manager, 0)
-	setupProposerVM(ctx, globalFundedKey, manager, 1)
 
-	// Create the ANR client
-	logLevel, err := logging.ToLevel("info")
-	Expect(err).Should(BeNil())
+	subnetAID := network.GetSubnet("A").SubnetID
+	subnetBID := network.GetSubnet("B").SubnetID
 
-	logFactory := logging.NewFactory(logging.Config{
-		DisplayLevel: logLevel,
-		LogLevel:     logLevel,
-	})
-	zapLog, err := logFactory.Make("main")
-	Expect(err).Should(BeNil())
-
-	anrClient, err := runner_sdk.New(runner_sdk.Config{
-		Endpoint:    "0.0.0.0:12352",
-		DialTimeout: 10 * time.Second,
-	}, zapLog)
-	Expect(err).Should(BeNil())
-
-	// On initial startup, we need to first set the subnet node names
-	// before calling setSubnetValues for the two subnets
-	subnetIDs := manager.GetSubnets()
-	Expect(len(subnetIDs)).Should(Equal(2))
-	subnetAID := subnetIDs[0]
-	subnetBID := subnetIDs[1]
+	// Issue transactions to activate the proposerVM fork on the chains
+	setupProposerVM(ctx, globalFundedKey, network, subnetAID)
+	setupProposerVM(ctx, globalFundedKey, network, subnetBID)
 
 	res := &LocalNetwork{
-		subnetAID:          subnetAID,
-		subnetBID:          subnetBID,
-		primaryNetworkInfo: &interfaces.SubnetTestInfo{},
-		subnetsInfo:        make(map[ids.ID]*interfaces.SubnetTestInfo),
-		subnetNodeNames: map[ids.ID][]string{
-			subnetAID: subnetANodeNames,
-			subnetBID: subnetBNodeNames,
-		},
+		primaryNetworkInfo:  &interfaces.SubnetTestInfo{},
+		subnetsInfo:         make(map[ids.ID]*interfaces.SubnetTestInfo),
+		extraNodes:          extraNodes,
 		globalFundedKey:     globalFundedKey,
-		anrClient:           anrClient,
-		manager:             manager,
+		tmpnet:              network,
 		warpChainConfigPath: warpChainConfigPath,
 	}
 	res.setSubnetValues(subnetAID)
@@ -179,22 +158,20 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 	// Get the C-Chain node URIs.
 	// All subnet nodes validate the C-Chain, so we can include them all here
 	var nodeURIs []string
-	nodeURIs = append(nodeURIs, n.subnetsInfo[n.subnetAID].NodeURIs...)
-	nodeURIs = append(nodeURIs, n.subnetsInfo[n.subnetBID].NodeURIs...)
-	pChainClient := platformvm.NewClient(nodeURIs[0])
-	blockChains, err := pChainClient.GetBlockchains(context.Background())
-	Expect(err).Should(BeNil())
-
-	var cChainBlockchainID ids.ID
-	for _, chain := range blockChains {
-		if chain.Name == "C-Chain" {
-			cChainBlockchainID = chain.ID
-		}
+	nodeURIs = append(nodeURIs, n.subnetsInfo[n.tmpnet.GetSubnet("A").SubnetID].NodeURIs...)
+	nodeURIs = append(nodeURIs, n.subnetsInfo[n.tmpnet.GetSubnet("B").SubnetID].NodeURIs...)
+	for _, extraNode := range n.extraNodes {
+		uri, err := n.tmpnet.GetURIForNodeID(extraNode.NodeID)
+		Expect(err).Should(BeNil())
+		nodeURIs = append(nodeURIs, uri)
 	}
+
+	cChainBlockchainID, err := info.NewClient(nodeURIs[0]).GetBlockchainID(context.Background(), "C")
+	Expect(err).Should(BeNil())
 	Expect(cChainBlockchainID).ShouldNot(Equal(ids.Empty))
 
-	chainWSURI := utils.HttpToWebsocketURI(nodeURIs[0], utils.CChainPathSpecifier)
-	chainRPCURI := utils.HttpToRPCURI(nodeURIs[0], utils.CChainPathSpecifier)
+	chainWSURI := utils.HttpToWebsocketURI(nodeURIs[0], cChainBlockchainID.String())
+	chainRPCURI := utils.HttpToRPCURI(nodeURIs[0], cChainBlockchainID.String())
 	if n.primaryNetworkInfo != nil && n.primaryNetworkInfo.WSClient != nil {
 		n.primaryNetworkInfo.WSClient.Close()
 	}
@@ -220,22 +197,26 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 }
 
 func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
-	subnetDetails, ok := n.manager.GetSubnet(subnetID)
-	Expect(ok).Should(BeTrue())
-	blockchainID := subnetDetails.BlockchainID
+	subnet := n.tmpnet.Subnets[slices.IndexFunc(
+		n.tmpnet.Subnets,
+		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
+	)]
 
-	// Reset the validator URIs, as they may have changed
-	subnetDetails.ValidatorURIs = nil
-	status, err := n.anrClient.Status(context.Background())
-	Expect(err).Should(BeNil())
-	nodeInfos := status.GetClusterInfo().GetNodeInfos()
+	blockchainID := subnet.Chains[slices.IndexFunc(
+		subnet.Chains,
+		func(c *tmpnet.Chain) bool {
+			// pick the chain ID for the chain that's not the c-chain
+			return c.ChainID.String() != "11111111111111111111111111111111LpoYY"
+		},
+	)].ChainID
 
-	for _, nodeName := range n.subnetNodeNames[subnetID] {
-		log.Info("Adding validator URI", "nodeName", nodeName, "uri", nodeInfos[nodeName].Uri)
-		subnetDetails.ValidatorURIs = append(subnetDetails.ValidatorURIs, nodeInfos[nodeName].Uri)
-	}
 	var chainNodeURIs []string
-	chainNodeURIs = append(chainNodeURIs, subnetDetails.ValidatorURIs...)
+	for _, validatorID := range subnet.ValidatorIDs {
+		uri, err := n.tmpnet.GetURIForNodeID(validatorID)
+		Expect(err).Should(BeNil(), "failed to get URI for node ID %s", validatorID)
+		Expect(uri).ShouldNot(HaveLen(0))
+		chainNodeURIs = append(chainNodeURIs, uri)
+	}
 
 	chainWSURI := utils.HttpToWebsocketURI(chainNodeURIs[0], blockchainID.String())
 	chainRPCURI := utils.HttpToRPCURI(chainNodeURIs[0], blockchainID.String())
@@ -363,8 +344,8 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 
 func (n *LocalNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
 	return []interfaces.SubnetTestInfo{
-		*n.subnetsInfo[n.subnetAID],
-		*n.subnetsInfo[n.subnetBID],
+		*n.subnetsInfo[n.tmpnet.GetSubnet("A").SubnetID],
+		*n.subnetsInfo[n.tmpnet.GetSubnet("B").SubnetID],
 	}
 }
 
@@ -453,72 +434,144 @@ func (n *LocalNetwork) RelayMessage(ctx context.Context,
 }
 
 func (n *LocalNetwork) setAllSubnetValues() {
-	subnetIDs := n.manager.GetSubnets()
+	subnetIDs := n.GetSubnetsInfo()
 	Expect(len(subnetIDs)).Should(Equal(2))
 
-	n.subnetAID = subnetIDs[0]
-	n.setSubnetValues(n.subnetAID)
-
-	n.subnetBID = subnetIDs[1]
-	n.setSubnetValues(n.subnetBID)
+	n.setSubnetValues(n.tmpnet.GetSubnet("A").SubnetID)
+	n.setSubnetValues(n.tmpnet.GetSubnet("B").SubnetID)
 
 	n.setPrimaryNetworkValues()
 }
 
 func (n *LocalNetwork) TearDownNetwork() {
 	log.Info("Tearing down network")
-	Expect(n.manager).ShouldNot(BeNil())
-	Expect(n.manager.TeardownNetwork()).Should(BeNil())
+	Expect(n).ShouldNot(BeNil())
+	Expect(n.tmpnet).ShouldNot(BeNil())
+	Expect(n.tmpnet.Stop(context.Background())).Should(BeNil())
 	Expect(os.Remove(n.warpChainConfigPath)).Should(BeNil())
 }
 
-func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string) {
-	_, err := n.anrClient.AddSubnetValidators(ctx, []*rpcpb.SubnetValidatorsSpec{
-		{
-			SubnetId:  subnetID.String(),
-			NodeNames: nodeNames,
-		},
-	})
+func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {
+	Expect(count > 0).Should(BeTrue(), "can't add 0 validators")
+	Expect(uint(len(n.extraNodes)) >= count).Should(
+		BeTrue(),
+		"not enough extra nodes to use",
+	)
+
+	subnet := n.tmpnet.Subnets[slices.IndexFunc(
+		n.tmpnet.Subnets,
+		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
+	)]
+
+	// consume some of the extraNodes
+	newValidatorNodes := n.extraNodes[0:count]
+	slices.Delete(n.extraNodes, 0, int(count))
+
+	apiURI, err := n.tmpnet.GetURIForNodeID(subnet.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
 
-	// Add the new node names
-	n.subnetNodeNames[subnetID] = append(n.subnetNodeNames[subnetID], nodeNames...)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	err = subnet.AddValidators(
+		ctx,
+		os.Stdout,
+		apiURI,
+		newValidatorNodes...,
+	)
+	Expect(err).Should(BeNil())
+
+	for _, node := range newValidatorNodes {
+		subnet.ValidatorIDs = append(subnet.ValidatorIDs, node.NodeID)
+		node.Flags[config.TrackSubnetsKey] = subnetID.String()
+	}
+
+	tmpnet.WaitForActiveValidators(ctx, os.Stdout, platformvm.NewClient(n.tmpnet.Nodes[0].URI), subnet)
+
+	nodeIdsToRestart := make([]ids.NodeID, len(newValidatorNodes))
+	for i, node := range newValidatorNodes {
+		nodeIdsToRestart[i] = node.NodeID
+	}
+	n.RestartNodes(ctx, nodeIdsToRestart)
 
 	n.setAllSubnetValues()
 }
 
-// GetAllNodeNames returns a slice that copies all node names in the network
-func (n *LocalNetwork) GetAllNodeNames() []string {
-	// The network starts off with 5 nodes that validate the primary network.
-	// These nodes were not added by this network setup, and are not in n.subnetNodeNames.
-	// So we query the ANR client to get the full list of node names.
-	status, err := n.anrClient.Status(context.Background())
-	Expect(err).Should(BeNil())
-	return status.GetClusterInfo().GetNodeNames()
+// GetAllNodeIDs returns a slice that copies the NodeID's of all nodes in the network
+func (n *LocalNetwork) GetAllNodeIDs() []ids.NodeID {
+	nodeIDs := make([]ids.NodeID, len(n.tmpnet.Nodes))
+	for i, node := range n.tmpnet.Nodes {
+		nodeIDs[i] = node.NodeID
+	}
+	return nodeIDs
 }
 
-func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeNames []string, opts ...runner_sdk.OpOption) {
-	log.Info("Network restarting nodes", "nodeNames", nodeNames)
-	opts = append(opts,
-		runner_sdk.WithExecPath(n.manager.ANRConfig.AvalancheGoExecPath),
-		runner_sdk.WithPluginDir(n.manager.ANRConfig.PluginDir))
-	for _, nodeName := range nodeNames {
-		_, err := n.anrClient.RestartNode(ctx, nodeName, opts...)
+func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
+	log.Info("Restarting nodes", "nodeIDs", nodeIDs)
+	var nodes []*tmpnet.Node
+	for _, nodeID := range nodeIDs {
+		for _, node := range n.tmpnet.Nodes {
+			if node.NodeID == nodeID {
+				nodes = append(nodes, node)
+			}
+		}
+	}
+
+	for _, node := range nodes {
+		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
+		err := node.SaveAPIPort()
+		Expect(err).Should(BeNil())
+
+		err = node.Stop(ctx)
+		Expect(err).Should(BeNil())
+
+		err = n.tmpnet.StartNode(ctx, os.Stdout, node)
 		Expect(err).Should(BeNil())
 	}
 
-	log.Info("Waiting for all VMs to report healthy")
-	for {
-		v, err := n.anrClient.Health(ctx)
-		log.Info("Pinged CLI Health", "result", v, "err", err)
-		if err != nil {
-			time.Sleep(1 * time.Second)
-			continue
-		}
-		break
+	log.Info("Waiting for all nodes to report healthy")
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	for _, node := range nodes {
+		err := tmpnet.WaitForHealthy(ctx, node)
+		Expect(err).Should(BeNil())
 	}
 
 	n.setAllSubnetValues()
+}
+
+func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
+	for chainIdStr, chainConfig := range chainConfigs {
+		if chainIdStr == utils.CChainPathSpecifier {
+			var cfg tmpnet.FlagsMap
+			err := json.Unmarshal([]byte(chainConfig), &cfg)
+			if err != nil {
+				log.Error(
+					"failed to unmarshal chain config",
+					"error", err,
+					"chainConfig", chainConfig,
+				)
+			}
+			n.tmpnet.ChainConfigs[utils.CChainPathSpecifier] = cfg
+			continue
+		}
+
+		for _, subnet := range n.tmpnet.Subnets {
+			for _, chain := range subnet.Chains {
+				if chain.ChainID.String() == chainIdStr {
+					chain.Config = chainConfig
+				}
+			}
+		}
+	}
+	err := n.tmpnet.Write()
+	if err != nil {
+		log.Error("failed to write network", "error", err)
+	}
+	err = n.tmpnet.WriteSubnets()
+	if err != nil {
+		log.Error("failed to write subnets", "error", err)
+	}
 }
 
 func (n *LocalNetwork) ConstructSignedWarpMessage(
@@ -591,7 +644,5 @@ func (n *LocalNetwork) GetSignedMessage(
 }
 
 func (n *LocalNetwork) GetNetworkID() uint32 {
-	status, err := n.anrClient.Status(context.Background())
-	Expect(err).Should(BeNil())
-	return status.GetClusterInfo().GetNetworkId()
+	return n.tmpnet.Genesis.NetworkID
 }

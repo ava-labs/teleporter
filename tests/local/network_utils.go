@@ -3,12 +3,13 @@ package local
 import (
 	"context"
 	"crypto/ecdsa"
+	"slices"
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	subnetEvmUtils "github.com/ava-labs/subnet-evm/tests/utils"
-	"github.com/ava-labs/subnet-evm/tests/utils/runner"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/log"
 
@@ -16,13 +17,23 @@ import (
 )
 
 // Issues txs to activate the proposer VM fork on the specified subnet index in the manager
-func setupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, manager *runner.NetworkManager, index int) {
-	subnet := manager.GetSubnets()[index]
-	subnetDetails, ok := manager.GetSubnet(subnet)
-	Expect(ok).Should(BeTrue())
+func setupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, network *tmpnet.Network, subnetID ids.ID) {
+	subnetDetails := network.Subnets[slices.IndexFunc(
+		network.Subnets,
+		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
+	)]
 
-	chainID := subnetDetails.BlockchainID
-	uri := utils.HttpToWebsocketURI(subnetDetails.ValidatorURIs[0], chainID.String())
+	chainID := subnetDetails.Chains[slices.IndexFunc(
+		subnetDetails.Chains,
+		func(c *tmpnet.Chain) bool {
+			// pick the chain that's NOT the C-Chain:
+			return c.ChainID.String() != "11111111111111111111111111111111LpoYY"
+		},
+	)].ChainID
+
+	nodeURI, err := network.GetURIForNodeID(subnetDetails.ValidatorIDs[0])
+	Expect(err).Should(BeNil())
+	uri := utils.HttpToWebsocketURI(nodeURI, chainID.String())
 
 	client, err := ethclient.Dial(uri)
 	Expect(err).Should(BeNil())

@@ -4,7 +4,6 @@ import (
 	"context"
 	"math/big"
 
-	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/Utilities/ValidatorSetSig"
@@ -132,8 +131,9 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	utils.SetChainConfig(chainConfigs, subnetB, warpEnabledChainConfigWithMsg)
 
 	// Restart nodes with new chain config
-	nodeNames := network.GetAllNodeNames()
-	network.RestartNodes(ctx, nodeNames, runner_sdk.WithChainConfigs(chainConfigs))
+	network.SetChainConfigs(chainConfigs)
+	nodeIDs := network.GetAllNodeIDs()
+	network.RestartNodes(ctx, nodeIDs)
 
 	// ************************************************************************************************
 	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)
