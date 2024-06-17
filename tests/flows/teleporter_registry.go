@@ -32,14 +32,14 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 
 	ctx := context.Background()
 
-	// Deploy an example cross chain messenger to both chains
-	exampleMessengerContractC, exampleMessengerC := utils.DeployExampleCrossChainMessenger(
+	// Deploy a test cross chain messenger to both chains
+	testMessengerContractC, testMessengerC := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
 		cChainInfo,
 	)
-	exampleMessengerContractB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(
+	testMessengerContractB, testMessengerB := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
@@ -88,16 +88,16 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		fundedKey,
 		offchainMessageB)
 
-	// Send a message using old Teleporter version to example messenger using new Teleporter version.
+	// Send a message using old Teleporter version to test messenger using new Teleporter version.
 	// Message should be received successfully since we haven't updated mininum Teleporter version yet.
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		network,
 		cChainInfo,
-		exampleMessengerC,
+		testMessengerC,
 		subnetBInfo,
-		exampleMessengerContractB,
-		exampleMessengerB,
+		testMessengerContractB,
+		testMessengerB,
 		fundedKey,
 		"message_1",
 		true)
@@ -108,9 +108,9 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 
 	latestVersionB, err := subnetBInfo.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
-	minTeleporterVersion, err := exampleMessengerB.GetMinTeleporterVersion(&bind.CallOpts{})
+	minTeleporterVersion, err := testMessengerB.GetMinTeleporterVersion(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
-	tx, err := exampleMessengerB.UpdateMinTeleporterVersion(opts, latestVersionB)
+	tx, err := testMessengerB.UpdateMinTeleporterVersion(opts, latestVersionB)
 	Expect(err).Should(BeNil())
 
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx.Hash())
@@ -118,21 +118,21 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	// Verify that minTeleporterVersion updated
 	minTeleporterVersionUpdatedEvent, err := utils.GetEventFromLogs(
 		receipt.Logs,
-		exampleMessengerB.ParseMinTeleporterVersionUpdated)
+		testMessengerB.ParseMinTeleporterVersionUpdated)
 	Expect(err).Should(BeNil())
 	Expect(minTeleporterVersionUpdatedEvent.OldMinTeleporterVersion.Cmp(minTeleporterVersion)).Should(Equal(0))
 	Expect(minTeleporterVersionUpdatedEvent.NewMinTeleporterVersion.Cmp(latestVersionB)).Should(Equal(0))
 
-	// Send a message using old Teleporter version to example messenger with updated minimum Teleporter version.
+	// Send a message using old Teleporter version to test messenger with updated minimum Teleporter version.
 	// Message should fail since we updated minimum Teleporter version.
 	utils.SendExampleCrossChainMessageAndVerify(
 		ctx,
 		network,
 		cChainInfo,
-		exampleMessengerC,
+		testMessengerC,
 		subnetBInfo,
-		exampleMessengerContractB,
-		exampleMessengerB,
+		testMessengerContractB,
+		testMessengerB,
 		fundedKey,
 		"message_2",
 		false)
@@ -145,10 +145,10 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 		ctx,
 		network,
 		subnetBInfo,
-		exampleMessengerB,
+		testMessengerB,
 		cChainInfo,
-		exampleMessengerContractC,
-		exampleMessengerC,
+		testMessengerContractC,
+		testMessengerC,
 		fundedKey,
 		"message_3",
 		false)
@@ -167,10 +167,10 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	utils.SendExampleCrossChainMessageAndVerify(ctx,
 		network,
 		subnetBInfo,
-		exampleMessengerB,
+		testMessengerB,
 		cChainInfo,
-		exampleMessengerContractC,
-		exampleMessengerC,
+		testMessengerContractC,
+		testMessengerC,
 		fundedKey,
 		"message_4",
 		true)

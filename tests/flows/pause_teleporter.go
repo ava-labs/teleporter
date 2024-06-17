@@ -15,17 +15,17 @@ func PauseTeleporter(network interfaces.Network) {
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
 
 	//
-	// Deploy ExampleMessenger to Subnets A and B
+	// Deploy TestMessenger to Subnets A and B
 	//
 	ctx := context.Background()
 	teleporterAddress := network.GetTeleporterContractAddress()
-	_, exampleMessengerA := utils.DeployExampleCrossChainMessenger(
+	_, testMessengerA := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
 		subnetAInfo,
 	)
-	exampleMessengerAddressB, exampleMessengerB := utils.DeployExampleCrossChainMessenger(
+	testMessengerAddressB, testMessengerB := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
@@ -36,15 +36,15 @@ func PauseTeleporter(network interfaces.Network) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey, subnetBInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := exampleMessengerB.PauseTeleporterAddress(opts, teleporterAddress)
+	tx, err := testMessengerB.PauseTeleporterAddress(opts, teleporterAddress)
 	Expect(err).Should(BeNil())
 
 	receipt := utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx.Hash())
-	pauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, exampleMessengerB.ParseTeleporterAddressPaused)
+	pauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, testMessengerB.ParseTeleporterAddressPaused)
 	Expect(err).Should(BeNil())
 	Expect(pauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
 
-	isPaused, err := exampleMessengerB.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
+	isPaused, err := testMessengerB.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeTrue())
 
@@ -53,24 +53,24 @@ func PauseTeleporter(network interfaces.Network) {
 		ctx,
 		network,
 		subnetAInfo,
-		exampleMessengerA,
+		testMessengerA,
 		subnetBInfo,
-		exampleMessengerAddressB,
-		exampleMessengerB,
+		testMessengerAddressB,
+		testMessengerB,
 		fundedKey,
 		"message_1",
 		false)
 
 	// Unpause Teleporter on subnet B
-	tx, err = exampleMessengerB.UnpauseTeleporterAddress(opts, teleporterAddress)
+	tx, err = testMessengerB.UnpauseTeleporterAddress(opts, teleporterAddress)
 	Expect(err).Should(BeNil())
 
 	receipt = utils.WaitForTransactionSuccess(ctx, subnetBInfo, tx.Hash())
-	unpauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, exampleMessengerB.ParseTeleporterAddressUnpaused)
+	unpauseTeleporterEvent, err := utils.GetEventFromLogs(receipt.Logs, testMessengerB.ParseTeleporterAddressUnpaused)
 	Expect(err).Should(BeNil())
 	Expect(unpauseTeleporterEvent.TeleporterAddress).Should(Equal(teleporterAddress))
 
-	isPaused, err = exampleMessengerB.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
+	isPaused, err = testMessengerB.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
 	Expect(err).Should(BeNil())
 	Expect(isPaused).Should(BeFalse())
 
@@ -79,10 +79,10 @@ func PauseTeleporter(network interfaces.Network) {
 		ctx,
 		network,
 		subnetAInfo,
-		exampleMessengerA,
+		testMessengerA,
 		subnetBInfo,
-		exampleMessengerAddressB,
-		exampleMessengerB,
+		testMessengerAddressB,
+		testMessengerB,
 		fundedKey,
 		"message_2",
 		true)

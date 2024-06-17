@@ -17,10 +17,10 @@ import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/Reentrancy
  */
 
 /**
- * @dev ExampleCrossChainMessenger is an example contract that demonstrates how to send and receive
+ * @dev TestMessenger is test fixture contract that exercises sending and receiving
  * messages cross chain.
  */
-contract ExampleCrossChainMessenger is ReentrancyGuard, TeleporterOwnerUpgradeable {
+contract TestMessenger is ReentrancyGuard, TeleporterOwnerUpgradeable {
     using SafeERC20 for IERC20;
 
     // Messages sent to this contract.
