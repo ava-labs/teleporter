@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	warpPrecompileAddress = "0x0200000000000000000000000000000000000005"
+	warpPrecompileAddressHex = "0x0200000000000000000000000000000000000005"
 )
 
 var (
@@ -51,17 +51,18 @@ func checkReceipt(cmd *cobra.Command, txHash common.Hash) {
 	receipt, err := client.TransactionReceipt(context.Background(), txHash)
 	cobra.CheckErr(err)
 
+	warpPrecompileAddress := common.HexToAddress(warpPrecompileAddressHex)
 	for _, log := range receipt.Logs {
-		printTeleporterLogs(cmd, log)
-		printWarpLogs(cmd, log)
+		switch log.Address {
+		case teleporterAddress:
+			printTeleporterLogs(cmd, log)
+		case warpPrecompileAddress:
+			printWarpLogs(cmd, log)
+		}
 	}
 }
 
 func printTeleporterLogs(cmd *cobra.Command, log *types.Log) {
-	if log.Address != teleporterAddress {
-		return
-	}
-
 	logJson, err := json.MarshalIndent(log, "", "  ")
 	cobra.CheckErr(err)
 
@@ -81,10 +82,6 @@ func printTeleporterLogs(cmd *cobra.Command, log *types.Log) {
 }
 
 func printWarpLogs(cmd *cobra.Command, log *types.Log) {
-	if log.Address != common.HexToAddress(warpPrecompileAddress) {
-		return
-	}
-
 	logJson, err := json.MarshalIndent(log, "", "  ")
 	cobra.CheckErr(err)
 
@@ -116,7 +113,10 @@ func traceTransaction(cmd *cobra.Command, txHash common.Hash) {
 	var result interface{}
 	ct := "callTracer"
 	err := client.Client().Call(&result, "debug_traceTransaction", txHash.String(), tracers.TraceConfig{Tracer: &ct})
-	cobra.CheckErr(err)
+	if err != nil {
+		cmd.PrintErr("Error calling debug_traceTransaction: " + err.Error())
+		return
+	}
 	json, err := json.MarshalIndent(result, "", "  ")
 	cobra.CheckErr(err)
 
