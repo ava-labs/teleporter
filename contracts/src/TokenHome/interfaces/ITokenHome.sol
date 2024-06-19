@@ -22,7 +22,10 @@ interface ITokenHome is ITokenBridge {
      * The event emits a {remaining} value of 0 when the remote instance is fully collateralized.
      */
     event CollateralAdded(
-        bytes32 indexed remoteBlockchainID, address indexed remoteBridgeAddress, uint256 amount, uint256 remaining
+        bytes32 indexed remoteBlockchainID,
+        address indexed remoteBridgeAddress,
+        uint256 amount,
+        uint256 remaining
     );
 
     /**
@@ -44,5 +47,7 @@ interface ITokenHome is ITokenBridge {
      * @notice Emitted when tokens are routed from a mulit-hop send message,
      * with calldata for a contract recipient, to another chain.
      */
-    event TokensAndCallRouted(bytes32 indexed teleporterMessageID, SendAndCallInput input, uint256 amount);
+    event TokensAndCallRouted(
+        bytes32 indexed teleporterMessageID, SendAndCallInput input, uint256 amount
+    );
 }

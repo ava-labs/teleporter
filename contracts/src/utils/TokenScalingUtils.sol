@@ -13,11 +13,11 @@ library TokenScalingUtils {
      * @param multiplyOnRemote Whether the amount of home tokens will be multiplied on the remote, or divided.
      * @param homeTokenAmount The amount of home tokens to scale.
      */
-    function applyTokenScale(uint256 tokenMultiplier, bool multiplyOnRemote, uint256 homeTokenAmount)
-        internal
-        pure
-        returns (uint256)
-    {
+    function applyTokenScale(
+        uint256 tokenMultiplier,
+        bool multiplyOnRemote,
+        uint256 homeTokenAmount
+    ) internal pure returns (uint256) {
         return _scaleTokens(tokenMultiplier, multiplyOnRemote, homeTokenAmount, true);
     }
 
@@ -28,11 +28,11 @@ library TokenScalingUtils {
      * @param multiplyOnRemote Whether the amount of home tokens will be multiplied on the remote, or divided.
      * @param remoteTokenAmount The amount of remote tokens to remove scaling from.
      */
-    function removeTokenScale(uint256 tokenMultiplier, bool multiplyOnRemote, uint256 remoteTokenAmount)
-        internal
-        pure
-        returns (uint256)
-    {
+    function removeTokenScale(
+        uint256 tokenMultiplier,
+        bool multiplyOnRemote,
+        uint256 remoteTokenAmount
+    ) internal pure returns (uint256) {
         return _scaleTokens(tokenMultiplier, multiplyOnRemote, remoteTokenAmount, false);
     }
 
@@ -42,11 +42,10 @@ library TokenScalingUtils {
      * @param homeTokenDecimals The number of decimals of the home token.
      * @param remoteTokenDecimals The number of decimals of the remote token.
      */
-    function deriveTokenMultiplierValues(uint8 homeTokenDecimals, uint8 remoteTokenDecimals)
-        internal
-        pure
-        returns (uint256, bool)
-    {
+    function deriveTokenMultiplierValues(
+        uint8 homeTokenDecimals,
+        uint8 remoteTokenDecimals
+    ) internal pure returns (uint256, bool) {
         bool multiplyOnRemote = remoteTokenDecimals > homeTokenDecimals;
         uint256 tokenMultiplier = 10
             ** (
@@ -68,11 +67,12 @@ library TokenScalingUtils {
      * remote instance, so applies token scale. If false, indicates the amount is being
      * sent back to the home instance, so removes token scale.
      */
-    function _scaleTokens(uint256 tokenMultiplier, bool multiplyOnRemote, uint256 amount, bool isSendToRemote)
-        private
-        pure
-        returns (uint256)
-    {
+    function _scaleTokens(
+        uint256 tokenMultiplier,
+        bool multiplyOnRemote,
+        uint256 amount,
+        bool isSendToRemote
+    ) private pure returns (uint256) {
         // Multiply when multiplyOnRemote and isSendToRemote are
         // both true or both false.
         if (multiplyOnRemote == isSendToRemote) {

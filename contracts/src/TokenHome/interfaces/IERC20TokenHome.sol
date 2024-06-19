@@ -27,5 +27,9 @@ interface IERC20TokenHome is IERC20TokenBridge, ITokenHome {
      * @param remoteBridgeAddress The address of the remote instance to add collateral for on the {remoteBlockchainID}.
      * @param amount Amount of tokens to add as collateral.
      */
-    function addCollateral(bytes32 remoteBlockchainID, address remoteBridgeAddress, uint256 amount) external;
+    function addCollateral(
+        bytes32 remoteBlockchainID,
+        address remoteBridgeAddress,
+        uint256 amount
+    ) external;
 }

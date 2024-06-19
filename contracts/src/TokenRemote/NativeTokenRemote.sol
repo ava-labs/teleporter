@@ -19,7 +19,8 @@ import {
     SingleHopCallMessage
 } from "../interfaces/ITokenBridge.sol";
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
-import {INativeMinter} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
@@ -71,7 +72,8 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
     /**
      * @notice The native minter precompile.
      */
-    INativeMinter public constant NATIVE_MINTER = INativeMinter(0x0200000000000000000000000000000000000001);
+    INativeMinter public constant NATIVE_MINTER =
+        INativeMinter(0x0200000000000000000000000000000000000001);
 
     /**
      * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering
@@ -183,7 +185,9 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
         // Report the burned amount to the home instance.
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
-            payload: abi.encode(SingleHopSendMessage({recipient: HUB_CHAIN_BURN_ADDRESS, amount: burnedTxFees}))
+            payload: abi.encode(
+                SingleHopSendMessage({recipient: HUB_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
+                )
         });
 
         bytes32 messageID = _sendTeleporterMessage(
@@ -275,7 +279,10 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * the balance can be locked in the recipient contract. Receiving contracts must make
      * sure to properly handle the balance to ensure it does not get locked improperly.
      */
-    function _handleSendAndCall(SingleHopCallMessage memory message, uint256 amount) internal virtual override {
+    function _handleSendAndCall(
+        SingleHopCallMessage memory message,
+        uint256 amount
+    ) internal virtual override {
         // Mint the tokens to this contract address.
         _mintNativeCoin(address(this), amount);
 
@@ -291,8 +298,9 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
         );
 
         // Call the recipient contract with the given payload, gas amount, and value.
-        bool success =
-            CallUtils._callWithExactGasAndValue(message.recipientGasLimit, amount, message.recipientContract, payload);
+        bool success = CallUtils._callWithExactGasAndValue(
+            message.recipientGasLimit, amount, message.recipientContract, payload
+        );
 
         // If the call failed, send the funds to the fallback recipient.
         if (success) {
@@ -310,7 +318,10 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * to transfer the tokens directly. Otherwise, use the {SafeERC20TransferFrom} library
      * to transfer the tokens.
      */
-    function _handleFees(address feeTokenAddress, uint256 feeAmount) internal virtual override returns (uint256) {
+    function _handleFees(
+        address feeTokenAddress,
+        uint256 feeAmount
+    ) internal virtual override returns (uint256) {
         if (feeAmount == 0) {
             return 0;
         }
@@ -320,7 +331,8 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
             _transfer(_msgSender(), address(this), feeAmount);
             return feeAmount;
         }
-        return SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), _msgSender(), feeAmount);
+        return
+            SafeERC20TransferFrom.safeTransferFrom(IERC20(feeTokenAddress), _msgSender(), feeAmount);
     }
 
     /**

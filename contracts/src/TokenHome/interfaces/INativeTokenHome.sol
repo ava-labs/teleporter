@@ -27,5 +27,8 @@ interface INativeTokenHome is INativeTokenBridge, ITokenHome {
      * @param remoteBridgeAddress The address of the remote bridge contract to add collateral for on
      * the {remoteBlockchainID}.
      */
-    function addCollateral(bytes32 remoteBlockchainID, address remoteBridgeAddress) external payable;
+    function addCollateral(
+        bytes32 remoteBlockchainID,
+        address remoteBridgeAddress
+    ) external payable;
 }

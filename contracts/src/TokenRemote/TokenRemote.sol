@@ -19,7 +19,8 @@ import {
 } from "../interfaces/ITokenBridge.sol";
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
-import {IWarpMessenger} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
+import {IWarpMessenger} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 
@@ -129,11 +130,16 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * @param initialReserveImbalance_ The initial reserve imbalance that must be collateralized before minting.
      * @param tokenDecimals_ The number of decimal places in the denomination of the remote token.
      */
-    constructor(TokenRemoteSettings memory settings, uint256 initialReserveImbalance_, uint8 tokenDecimals_)
-        TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager)
-    {
+    constructor(
+        TokenRemoteSettings memory settings,
+        uint256 initialReserveImbalance_,
+        uint8 tokenDecimals_
+    ) TeleporterOwnerUpgradeable(settings.teleporterRegistryAddress, settings.teleporterManager) {
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
-        require(settings.tokenHomeBlockchainID != bytes32(0), "TokenRemote: zero token home blockchain ID");
+        require(
+            settings.tokenHomeBlockchainID != bytes32(0),
+            "TokenRemote: zero token home blockchain ID"
+        );
         require(
             settings.tokenHomeBlockchainID != blockchainID,
             "TokenRemote: cannot deploy to same blockchain as token home"
@@ -143,7 +149,10 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             settings.tokenHomeDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TokenRemote: token home decimals too high"
         );
-        require(tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS, "TokenRemote: token decimals too high");
+        require(
+            tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            "TokenRemote: token decimals too high"
+        );
         tokenHomeBlockchainID = settings.tokenHomeBlockchainID;
         tokenHomeAddress = settings.tokenHomeAddress;
         initialReserveImbalance = initialReserveImbalance_;
@@ -168,8 +177,10 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             homeTokenDecimals: homeTokenDecimals,
             remoteTokenDecimals: tokenDecimals
         });
-        BridgeMessage memory message =
-            BridgeMessage({messageType: BridgeMessageType.REGISTER_SPOKE, payload: abi.encode(registerMessage)});
+        BridgeMessage memory message = BridgeMessage({
+            messageType: BridgeMessageType.REGISTER_SPOKE,
+            payload: abi.encode(registerMessage)
+        });
 
         uint256 feeAmount = _handleFees(feeInfo.feeTokenAddress, feeInfo.amount);
         _sendTeleporterMessage(
@@ -217,7 +228,10 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * Tokens and data can be sent to the token home instance, or to any remote instance registered with the home
      * other than this one.
      */
-    function _sendAndCall(SendAndCallInput calldata input, uint256 amount) internal sendNonReentrant {
+    function _sendAndCall(
+        SendAndCallInput calldata input,
+        uint256 amount
+    ) internal sendNonReentrant {
         _validateSendAndCallInput(input);
 
         if (input.destinationBlockchainID == tokenHomeBlockchainID) {
@@ -233,12 +247,17 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      *
      * @dev See {ITeleporterUpgradeable-_receiveTeleporterMessage}
      */
-    function _receiveTeleporterMessage(bytes32 sourceBlockchainID, address originSenderAddress, bytes memory message)
-        internal
-        override
-    {
-        require(sourceBlockchainID == tokenHomeBlockchainID, "TokenRemote: invalid source blockchain ID");
-        require(originSenderAddress == tokenHomeAddress, "TokenRemote: invalid origin sender address");
+    function _receiveTeleporterMessage(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        bytes memory message
+    ) internal override {
+        require(
+            sourceBlockchainID == tokenHomeBlockchainID, "TokenRemote: invalid source blockchain ID"
+        );
+        require(
+            originSenderAddress == tokenHomeAddress, "TokenRemote: invalid origin sender address"
+        );
         BridgeMessage memory bridgeMessage = abi.decode(message, (BridgeMessage));
 
         // If the contract was not previously known to be registered or collateralized, it is now given that
@@ -251,14 +270,16 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
         // Remote contracts should only ever receive single-hop messages because
         // multi-hop messages are always routed through the home contract.
         if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_SEND) {
-            SingleHopSendMessage memory payload = abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
+            SingleHopSendMessage memory payload =
+                abi.decode(bridgeMessage.payload, (SingleHopSendMessage));
             _withdraw(payload.recipient, payload.amount);
         } else if (bridgeMessage.messageType == BridgeMessageType.SINGLE_HOP_CALL) {
             // The {sourceBlockchainID}, and {originSenderAddress} specified in the message
             // payload will not match the sender of this Teleporter message in the case of a
             // multi-hop message. Since Teleporter messages are only received from the specified
             // token home instance, no additional authentication is needed on the payload values.
-            SingleHopCallMessage memory payload = abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
+            SingleHopCallMessage memory payload =
+                abi.decode(bridgeMessage.payload, (SingleHopCallMessage));
             _handleSendAndCall(payload, payload.amount);
         } else {
             revert("TokenRemote: invalid message type");
@@ -286,7 +307,10 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * @param amount The amount of tokens to be sent to the recipient. This amount is assumed to be
      * already scaled to the local denomination of this contract.
      */
-    function _handleSendAndCall(SingleHopCallMessage memory message, uint256 amount) internal virtual;
+    function _handleSendAndCall(
+        SingleHopCallMessage memory message,
+        uint256 amount
+    ) internal virtual;
 
     /**
      * @notice Handles fees sent to this contract for a bridge transfer.
@@ -295,17 +319,22 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * @param feeTokenAddress The address of the fee token
      * @param feeAmount The amount of the fee
      */
-    function _handleFees(address feeTokenAddress, uint256 feeAmount) internal virtual returns (uint256);
+    function _handleFees(
+        address feeTokenAddress,
+        uint256 feeAmount
+    ) internal virtual returns (uint256);
 
     /**
      * @dev Prepares tokens to be sent to another chain by handling the
      * deposit, burning, and checking that the corresonding amount of
      * home tokens is greater than zero.
      */
-    function _prepareSend(uint256 amount, address primaryFeeTokenAddress, uint256 primaryFee, uint256 secondaryFee)
-        private
-        returns (uint256, uint256)
-    {
+    function _prepareSend(
+        uint256 amount,
+        address primaryFeeTokenAddress,
+        uint256 primaryFee,
+        uint256 secondaryFee
+    ) private returns (uint256, uint256) {
         // Transfer the primary fee to pay for fees on the first hop.
         // The user can specify this contract as {primaryFeeTokenAddress},
         // in which case the fee will be paid on top of the bridged amount.
@@ -331,7 +360,9 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * @dev Sends tokens to the specified destination.
      */
     function _processSend(SendTokensInput calldata input, uint256 amount) private {
-        _validateSingleHopInput(input.destinationBridgeAddress, input.secondaryFee, input.multiHopFallback);
+        _validateSingleHopInput(
+            input.destinationBridgeAddress, input.secondaryFee, input.multiHopFallback
+        );
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
@@ -350,7 +381,10 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             TeleporterMessageInput({
                 destinationBlockchainID: tokenHomeBlockchainID,
                 destinationAddress: tokenHomeAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.primaryFeeTokenAddress, amount: primaryFee}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: primaryFee
+                }),
                 requiredGasLimit: input.requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -364,7 +398,9 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * @dev Sends tokens to the specified destination via multi-hop.
      */
     function _processSendMultiHop(SendTokensInput calldata input, uint256 amount) private {
-        _validateMultiHopInput(input.destinationBlockchainID, input.destinationBridgeAddress, input.multiHopFallback);
+        _validateMultiHopInput(
+            input.destinationBlockchainID, input.destinationBridgeAddress, input.multiHopFallback
+        );
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
@@ -393,7 +429,10 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             TeleporterMessageInput({
                 destinationBlockchainID: tokenHomeBlockchainID,
                 destinationAddress: tokenHomeAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.primaryFeeTokenAddress, amount: primaryFee}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: primaryFee
+                }),
                 requiredGasLimit: MULTI_HOP_SEND_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -408,7 +447,9 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * calling the {receiveTokens} method of the respective recipient.
      */
     function _processSendAndCall(SendAndCallInput calldata input, uint256 amount) private {
-        _validateSingleHopInput(input.destinationBridgeAddress, input.secondaryFee, input.multiHopFallback);
+        _validateSingleHopInput(
+            input.destinationBridgeAddress, input.secondaryFee, input.multiHopFallback
+        );
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
@@ -439,7 +480,10 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             TeleporterMessageInput({
                 destinationBlockchainID: tokenHomeBlockchainID,
                 destinationAddress: tokenHomeAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.primaryFeeTokenAddress, amount: primaryFee}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: primaryFee
+                }),
                 requiredGasLimit: input.requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -454,7 +498,9 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * calling the {receiveTokens} method of the respective recipient.
      */
     function _processSendAndCallMultiHop(SendAndCallInput calldata input, uint256 amount) private {
-        _validateMultiHopInput(input.destinationBlockchainID, input.destinationBridgeAddress, input.multiHopFallback);
+        _validateMultiHopInput(
+            input.destinationBlockchainID, input.destinationBridgeAddress, input.multiHopFallback
+        );
 
         uint256 primaryFee;
         (amount, primaryFee) = _prepareSend({
@@ -494,7 +540,10 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             TeleporterMessageInput({
                 destinationBlockchainID: tokenHomeBlockchainID,
                 destinationAddress: tokenHomeAddress,
-                feeInfo: TeleporterFeeInfo({feeTokenAddress: input.primaryFeeTokenAddress, amount: primaryFee}),
+                feeInfo: TeleporterFeeInfo({
+                    feeTokenAddress: input.primaryFeeTokenAddress,
+                    amount: primaryFee
+                }),
                 requiredGasLimit: messageRequiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
@@ -504,11 +553,15 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
         emit TokensAndCallSent(messageID, _msgSender(), input, amount);
     }
 
-    function _validateSingleHopInput(address destinationBridgeAddress, uint256 secondaryFee, address multiHopFallback)
-        private
-        view
-    {
-        require(destinationBridgeAddress == tokenHomeAddress, "TokenRemote: invalid destination bridge address");
+    function _validateSingleHopInput(
+        address destinationBridgeAddress,
+        uint256 secondaryFee,
+        address multiHopFallback
+    ) private view {
+        require(
+            destinationBridgeAddress == tokenHomeAddress,
+            "TokenRemote: invalid destination bridge address"
+        );
         require(secondaryFee == 0, "TokenRemote: non-zero secondary fee");
         require(multiHopFallback == address(0), "TokenRemote: non-zero multi-hop fallback");
     }
@@ -522,7 +575,10 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
         // bridge address must be a different contract. This is a multi-hop case to
         // a different bridge contract on this chain.
         if (destinationBlockchainID == blockchainID) {
-            require(destinationBridgeAddress != address(this), "TokenRemote: invalid destination bridge address");
+            require(
+                destinationBridgeAddress != address(this),
+                "TokenRemote: invalid destination bridge address"
+            );
         }
         require(multiHopFallback != address(0), "TokenRemote: zero multi-hop fallback");
     }
@@ -530,17 +586,36 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     function _validateSendTokensInput(SendTokensInput calldata input) private pure {
         require(input.recipient != address(0), "TokenRemote: zero recipient address");
         require(input.requiredGasLimit > 0, "TokenRemote: zero required gas limit");
-        require(input.destinationBlockchainID != bytes32(0), "TokenRemote: zero destination blockchain ID");
-        require(input.destinationBridgeAddress != address(0), "TokenRemote: zero destination bridge address");
+        require(
+            input.destinationBlockchainID != bytes32(0),
+            "TokenRemote: zero destination blockchain ID"
+        );
+        require(
+            input.destinationBridgeAddress != address(0),
+            "TokenRemote: zero destination bridge address"
+        );
     }
 
     function _validateSendAndCallInput(SendAndCallInput calldata input) private pure {
-        require(input.destinationBlockchainID != bytes32(0), "TokenRemote: zero destination blockchain ID");
-        require(input.destinationBridgeAddress != address(0), "TokenRemote: zero destination bridge address");
-        require(input.recipientContract != address(0), "TokenRemote: zero recipient contract address");
+        require(
+            input.destinationBlockchainID != bytes32(0),
+            "TokenRemote: zero destination blockchain ID"
+        );
+        require(
+            input.destinationBridgeAddress != address(0),
+            "TokenRemote: zero destination bridge address"
+        );
+        require(
+            input.recipientContract != address(0), "TokenRemote: zero recipient contract address"
+        );
         require(input.requiredGasLimit > 0, "TokenRemote: zero required gas limit");
         require(input.recipientGasLimit > 0, "TokenRemote: zero recipient gas limit");
-        require(input.recipientGasLimit < input.requiredGasLimit, "TokenRemote: invalid recipient gas limit");
-        require(input.fallbackRecipient != address(0), "TokenRemote: zero fallback recipient address");
+        require(
+            input.recipientGasLimit < input.requiredGasLimit,
+            "TokenRemote: invalid recipient gas limit"
+        );
+        require(
+            input.fallbackRecipient != address(0), "TokenRemote: zero fallback recipient address"
+        );
     }
 }

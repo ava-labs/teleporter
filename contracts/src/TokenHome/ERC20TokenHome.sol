@@ -8,7 +8,9 @@ pragma solidity 0.8.18;
 import {TokenHome} from "./TokenHome.sol";
 import {IERC20TokenHome} from "./interfaces/IERC20TokenHome.sol";
 import {IERC20SendAndCallReceiver} from "../interfaces/IERC20SendAndCallReceiver.sol";
-import {SendTokensInput, SendAndCallInput, SingleHopCallMessage} from "../interfaces/ITokenBridge.sol";
+import {
+    SendTokensInput, SendAndCallInput, SingleHopCallMessage
+} from "../interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
@@ -72,7 +74,11 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     /**
      * @dev See {IERC20TokenHome-addCollateral}
      */
-    function addCollateral(bytes32 remoteBlockchainID, address remoteBridgeAddress, uint256 amount) external {
+    function addCollateral(
+        bytes32 remoteBlockchainID,
+        address remoteBridgeAddress,
+        uint256 amount
+    ) external {
         _addCollateral(remoteBlockchainID, remoteBridgeAddress, amount);
     }
 
@@ -99,7 +105,10 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
      * If the call fails or doesn't spend all of the tokens, the remaining amount is
      * sent to the fallback recipient.
      */
-    function _handleSendAndCall(SingleHopCallMessage memory message, uint256 amount) internal virtual override {
+    function _handleSendAndCall(
+        SingleHopCallMessage memory message,
+        uint256 amount
+    ) internal virtual override {
         // Approve the recipient contract to spend the amount from the collateral.
         SafeERC20.safeIncreaseAllowance(token, message.recipientContract, amount);
 
@@ -117,7 +126,9 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
         );
 
         // Call the recipient contract with the given payload and gas amount.
-        bool success = CallUtils._callWithExactGas(message.recipientGasLimit, message.recipientContract, payload);
+        bool success = CallUtils._callWithExactGas(
+            message.recipientGasLimit, message.recipientContract, payload
+        );
 
         uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
 

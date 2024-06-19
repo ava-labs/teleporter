@@ -177,14 +177,20 @@ interface ITokenBridge is ITeleporterReceiver {
      * @notice Emitted when tokens are sent to another chain.
      */
     event TokensSent(
-        bytes32 indexed teleporterMessageID, address indexed sender, SendTokensInput input, uint256 amount
+        bytes32 indexed teleporterMessageID,
+        address indexed sender,
+        SendTokensInput input,
+        uint256 amount
     );
 
     /**
      * @notice Emitted when tokens are sent to another chain with calldata for a contract recipient.
      */
     event TokensAndCallSent(
-        bytes32 indexed teleporterMessageID, address indexed sender, SendAndCallInput input, uint256 amount
+        bytes32 indexed teleporterMessageID,
+        address indexed sender,
+        SendAndCallInput input,
+        uint256 amount
     );
 
     /**
