@@ -24,8 +24,8 @@ import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
  * This is required because the gas requirement varies based on the token bridge instance
  * specified by {destinationBlockchainID} and {destinationBridgeAddress}.
  * @param multiHopFallback In the case of a multi-hop transfer, the address where the tokens
- * are sent on the hub chain if the transfer is unable to be routed to its final destination.
- * Note that this address must be able to receive the tokens held as collateral in the hub contract.
+ * are sent on the home chain if the transfer is unable to be routed to its final destination.
+ * Note that this address must be able to receive the tokens held as collateral in the home contract.
  */
 struct SendTokensInput {
     bytes32 destinationBlockchainID;
@@ -49,8 +49,8 @@ struct SendTokensInput {
  * @param recipientGasLimit The amount of gas that will provided to the recipient contract on the destination chain,
  * which must be less than the requiredGasLimit of the message as a whole.
  * @param multiHopFallback In the case of a multi-hop transfer, the address where the tokens
- * are sent on the hub chain if the transfer is unable to be routed to its final destination.
- * Note that this address must be able to receive the tokens held as collateral in the hub contract.
+ * are sent on the home chain if the transfer is unable to be routed to its final destination.
+ * Note that this address must be able to receive the tokens held as collateral in the home contract.
  * @param fallbackRecipient Address on the {destinationBlockchainID} where the bridged tokens are sent to if the call
  * to the recipient contract fails. Note that this address must be able to receive the tokens on the destination
  * chain of the transfer.
@@ -90,17 +90,17 @@ struct BridgeMessage {
 }
 
 /**
- * @dev Register spoke message payloads are sent to the hub bridge contract to register a new spoke contract
+ * @dev Register remote message payloads are sent to the home bridge contract to register a new remote contract
  * instance on another chain.
- * @param initialReserveImbalance The initial reserve imbalance of the spoke contract to calculate
- * associated collateral needed on hub contract.
- * @param hubTokenDecimals The number of decimals that the hub token has.
- * @param spokeTokenDecimals The number of decimals that the spoke token has.
+ * @param initialReserveImbalance The initial reserve imbalance of the remote contract to calculate
+ * associated collateral needed on home contract.
+ * @param homeTokenDecimals The number of decimals that the home token has.
+ * @param remoteTokenDecimals The number of decimals that the remote token has.
  */
-struct RegisterSpokeMessage {
+struct RegisterRemoteMessage {
     uint256 initialReserveImbalance;
-    uint8 hubTokenDecimals;
-    uint8 spokeTokenDecimals;
+    uint8 homeTokenDecimals;
+    uint8 remoteTokenDecimals;
 }
 
 /**
@@ -131,7 +131,7 @@ struct SingleHopCallMessage {
 
 /**
  * @dev Multi hop send message payloads include the recipient address as well as all
- * the information the intermediate (hub) chain bridge contract needs to route
+ * the information the intermediate (home) chain bridge contract needs to route
  * the send message on to its final destination.
  */
 struct MultiHopSendMessage {
@@ -146,7 +146,7 @@ struct MultiHopSendMessage {
 
 /**
  * @dev Multi hop call message payloads include the required information to call the target contract on the
- * destination chain, as well as the information the intermediate (hub) chain bridge contract needs to route
+ * destination chain, as well as the information the intermediate (home) chain bridge contract needs to route
  * the call message on to its final destination. This includes the {secondaryRequiredGasLimit}, which is the
  * required gas limit set for the second Teleporter message. The {secondaryRequiredGasLimit} should be sufficient
  * to cover the destination token operations as well as the call to the recipient contract, and will always be
@@ -177,20 +177,14 @@ interface ITokenBridge is ITeleporterReceiver {
      * @notice Emitted when tokens are sent to another chain.
      */
     event TokensSent(
-        bytes32 indexed teleporterMessageID,
-        address indexed sender,
-        SendTokensInput input,
-        uint256 amount
+        bytes32 indexed teleporterMessageID, address indexed sender, SendTokensInput input, uint256 amount
     );
 
     /**
      * @notice Emitted when tokens are sent to another chain with calldata for a contract recipient.
      */
     event TokensAndCallSent(
-        bytes32 indexed teleporterMessageID,
-        address indexed sender,
-        SendAndCallInput input,
-        uint256 amount
+        bytes32 indexed teleporterMessageID, address indexed sender, SendAndCallInput input, uint256 amount
     );
 
     /**

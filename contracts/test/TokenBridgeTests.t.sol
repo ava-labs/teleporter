@@ -7,11 +7,7 @@ pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
-import {
-    ITeleporterMessenger,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "@teleporter/ITeleporterMessenger.sol";
+import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {
     ITokenBridge,
     SendTokensInput,
@@ -45,21 +41,15 @@ abstract contract TokenBridgeTest is Test {
     address public constant DEFAULT_TOKEN_HUB_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_SENDER_ADDRESS = 0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5;
     address public constant DEFAULT_RECIPIENT_ADDRESS = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
-    address public constant DEFAULT_RECIPIENT_CONTRACT_ADDRESS =
-        0xa83114A443dA1CecEFC50368531cACE9F37fCCcb;
+    address public constant DEFAULT_RECIPIENT_CONTRACT_ADDRESS = 0xa83114A443dA1CecEFC50368531cACE9F37fCCcb;
     uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 200_000;
     uint256 public constant DEFAULT_RECIPIENT_GAS_LIMIT = 100_000;
-    address public constant DEFAULT_MULTIHOP_FALLBACK_ADDRESS =
-        0x043448b3FE2F24522D9CeB32AD8623c0b6b53E26;
-    address public constant DEFAULT_FALLBACK_RECIPIENT_ADDRESS =
-        0xe69Ea1BAF997002602c0A3D451b2b5c9B7F8E6A1;
+    address public constant DEFAULT_MULTIHOP_FALLBACK_ADDRESS = 0x043448b3FE2F24522D9CeB32AD8623c0b6b53E26;
+    address public constant DEFAULT_FALLBACK_RECIPIENT_ADDRESS = 0xe69Ea1BAF997002602c0A3D451b2b5c9B7F8E6A1;
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
-    address public constant NATIVE_MINTER_PRECOMPILE_ADDRESS =
-        address(0x0200000000000000000000000000000000000001);
-    address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS =
-        0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
-    address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS =
-        0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
+    address public constant NATIVE_MINTER_PRECOMPILE_ADDRESS = address(0x0200000000000000000000000000000000000001);
+    address public constant MOCK_TELEPORTER_MESSENGER_ADDRESS = 0x644E5b7c5D4Bc8073732CEa72c66e0BB90dFC00f;
+    address public constant MOCK_TELEPORTER_REGISTRY_ADDRESS = 0xf9FA4a0c696b659328DDaaBCB46Ae4eBFC9e68e4;
     bytes32 internal constant _MOCK_MESSAGE_ID =
         bytes32(hex"1111111111111111111111111111111111111111111111111111111111111111");
 
@@ -68,7 +58,7 @@ abstract contract TokenBridgeTest is Test {
     uint256 internal constant _DEFAULT_INITIAL_RESERVE_IMBALANCE = 1e18;
     uint256 internal constant _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE = 1;
 
-    uint8 public tokenHubDecimals;
+    uint8 public tokenHomeDecimals;
 
     ITokenBridge public tokenBridge;
 
@@ -79,21 +69,13 @@ abstract contract TokenBridgeTest is Test {
     IERC20 public bridgedToken;
 
     event TokensSent(
-        bytes32 indexed teleporterMessageID,
-        address indexed sender,
-        SendTokensInput input,
-        uint256 amount
+        bytes32 indexed teleporterMessageID, address indexed sender, SendTokensInput input, uint256 amount
     );
     event TokensRouted(bytes32 indexed teleporterMessageID, SendTokensInput input, uint256 amount);
     event TokensAndCallSent(
-        bytes32 indexed teleporterMessageID,
-        address indexed sender,
-        SendAndCallInput input,
-        uint256 amount
+        bytes32 indexed teleporterMessageID, address indexed sender, SendAndCallInput input, uint256 amount
     );
-    event TokensAndCallRouted(
-        bytes32 indexed teleporterMessageID, SendAndCallInput input, uint256 amount
-    );
+    event TokensAndCallRouted(bytes32 indexed teleporterMessageID, SendAndCallInput input, uint256 amount);
 
     event TokensWithdrawn(address indexed recipient, uint256 amount);
     event CallSucceeded(address indexed recipientContract, uint256 amount);
@@ -159,7 +141,7 @@ abstract contract TokenBridgeTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = primaryFee;
 
-        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         vm.expectRevert("ERC20: insufficient allowance");
         _send(input, amount);
     }
@@ -171,7 +153,7 @@ abstract contract TokenBridgeTest is Test {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = primaryFee;
 
-        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         vm.expectRevert("ERC20: insufficient allowance");
         _sendAndCall(input, amount);
     }
@@ -197,9 +179,7 @@ abstract contract TokenBridgeTest is Test {
     function _initMockTeleporterRegistry() internal {
         vm.mockCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(
-                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
-            ),
+            abi.encodeWithSelector(TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector),
             abi.encode(1)
         );
 
@@ -236,7 +216,7 @@ abstract contract TokenBridgeTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedDeposit(amount, input.primaryFee);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(tokenBridge));
@@ -248,7 +228,7 @@ abstract contract TokenBridgeTest is Test {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedDeposit(amount, input.primaryFee);
         OriginSenderInfo memory originInfo;
         originInfo.bridgeAddress = address(tokenBridge);
@@ -263,9 +243,9 @@ abstract contract TokenBridgeTest is Test {
         _sendAndCall(input, amount);
     }
 
-    function _setUpRegisteredSpoke(
-        bytes32 spokeBlockchainID,
-        address spokeBridgeAddress,
+    function _setUpRegisteredRemote(
+        bytes32 remoteBlockchainID,
+        address remoteBridgeAddress,
         uint256 initialReserveImbalance
     ) internal virtual;
 
@@ -275,16 +255,11 @@ abstract contract TokenBridgeTest is Test {
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal virtual;
 
-    function _checkExpectedTeleporterCallsForSend(
-        TeleporterMessageInput memory expectedMessageInput
-    ) internal {
+    function _checkExpectedTeleporterCallsForSend(TeleporterMessageInput memory expectedMessageInput) internal {
         if (expectedMessageInput.feeInfo.amount > 0) {
             vm.expectCall(
                 expectedMessageInput.feeInfo.feeTokenAddress,
-                abi.encodeCall(
-                    IERC20.allowance,
-                    (address(tokenBridge), address(MOCK_TELEPORTER_MESSENGER_ADDRESS))
-                )
+                abi.encodeCall(IERC20.allowance, (address(tokenBridge), address(MOCK_TELEPORTER_MESSENGER_ADDRESS)))
             );
         }
         vm.mockCall(
@@ -303,29 +278,19 @@ abstract contract TokenBridgeTest is Test {
         return amount;
     }
 
-    function _createDefaultSendTokensInput()
-        internal
-        view
-        virtual
-        returns (SendTokensInput memory);
+    function _createDefaultSendTokensInput() internal view virtual returns (SendTokensInput memory);
 
-    function _createDefaultSendAndCallInput()
-        internal
-        view
-        virtual
-        returns (SendAndCallInput memory);
+    function _createDefaultSendAndCallInput() internal view virtual returns (SendAndCallInput memory);
 
-    function _createSingleHopTeleporterMessageInput(
-        SendTokensInput memory input,
-        uint256 bridgeAmount
-    ) internal pure returns (TeleporterMessageInput memory) {
+    function _createSingleHopTeleporterMessageInput(SendTokensInput memory input, uint256 bridgeAmount)
+        internal
+        pure
+        returns (TeleporterMessageInput memory)
+    {
         return TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(input.primaryFeeTokenAddress),
-                amount: input.primaryFee
-            }),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(input.primaryFeeTokenAddress), amount: input.primaryFee}),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopSendMessage(bridgeAmount, input.recipient)
@@ -341,10 +306,7 @@ abstract contract TokenBridgeTest is Test {
         return TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
             destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({
-                feeTokenAddress: address(input.primaryFeeTokenAddress),
-                amount: input.primaryFee
-            }),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(input.primaryFeeTokenAddress), amount: input.primaryFee}),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopCallMessage({
@@ -361,16 +323,9 @@ abstract contract TokenBridgeTest is Test {
 
     function _getDefaultMessageSourceBlockchainID() internal pure virtual returns (bytes32);
 
-    function _formatErrorMessage(string memory message)
-        internal
-        pure
-        virtual
-        returns (bytes memory);
+    function _formatErrorMessage(string memory message) internal pure virtual returns (bytes memory);
 
-    function _encodeSingleHopSendMessage(
-        uint256 amount,
-        address recipient
-    ) internal pure returns (bytes memory) {
+    function _encodeSingleHopSendMessage(uint256 amount, address recipient) internal pure returns (bytes memory) {
         return abi.encode(
             BridgeMessage({
                 messageType: BridgeMessageType.SINGLE_HOP_SEND,
