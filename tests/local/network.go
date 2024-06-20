@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"math/big"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/ava-labs/avalanchego/api/info"
@@ -468,7 +469,14 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	}
 
 	newNodes := subnetEvmTestUtils.NewTmpnetNodes(int(count))
-	Expect(subnet.AddValidators(ctx, os.Stdout, newNodes...)).Should(BeNil())
+	subnetsInfo := n.GetSubnetsInfo()
+	apiURI := subnetsInfo[slices.IndexFunc(
+		subnetsInfo,
+		func(si interfaces.SubnetTestInfo) bool {
+			return si.SubnetID == subnetID
+		},
+	)].NodeURIs[0]
+	Expect(subnet.AddValidators(ctx, os.Stdout, apiURI, newNodes...)).Should(BeNil())
 
 	n.setAllSubnetValues()
 }
