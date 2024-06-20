@@ -38,9 +38,13 @@ To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subn
 | `TeleporterRegistry`  | **0x7C43605E14F391720e1b37E49C78C4b03A488d98** | Mainnet C-Chain          |
 | `TeleporterRegistry`  | **0xF86Cb19Ad8405AEFa7d09C778215D2Cb6eBfB228** | Fuji C-Chain             |
 
-- Using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` deploys at a universal address across all chains, varying with each teleporter major release. **Compatibility exists only between same-version `TeleporterMessenger` instances.** See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet) for more details.
+- Using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` deploys at a universal address across all chains, varying with each teleporter Major release. **Compatibility exists only between same-version `TeleporterMessenger` instances.** See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet) for more details.
 
 - `TeleporterRegistry` can be deployed to any address. See [Deploy TeleporterRegistry to a Subnet](#deploy-teleporterregistry-to-a-subnet) for details. The table above enumerates the canonical registry addresses on the Mainnet and Fuji C-Chains.
+
+## A Note on Versioning
+
+Release versions follow the [semver](https://semver.org/) convention of incompatible Major releases, and backwards-compatible Minor and Patch releases. A new Major version is released whenever the `TeleporterMessenger` bytecode is changed, due to the use of Nick's method to deploy the contract to the same address on all chains (see [Teleporter Contract Deployment](./utils/contract-deployment/README.md) for details). Minor and Patch versions may pertain to contract changes that do not change the `TeleporterMessenger` bytecode, or to changes in the test frameworks.
 
 ## Setup
 
