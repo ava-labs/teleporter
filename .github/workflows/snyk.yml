@@ -30,7 +30,7 @@ jobs:
         run: |
           sed -i 's/"security-severity": "undefined"/"security-severity": "0"/g' snyk.sarif
 
-      - name: Upload result to GitHub Code Scanning
+      - name: Upload result to Github Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif

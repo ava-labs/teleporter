@@ -26,8 +26,8 @@ interface INativeTokenBridge is ITokenBridge {
 
     /**
      * @notice Sends native tokens to the specified destination to be used in a smart contract interaction.
-     * @param input Specifies information for delivery of the tokens to the spoke contract and contract to be called
-     * on the spoke chain.
+     * @param input Specifies information for delivery of the tokens to the remote contract and contract to be called
+     * on the remote chain.
      */
     function sendAndCall(SendAndCallInput calldata input) external payable;
 }
