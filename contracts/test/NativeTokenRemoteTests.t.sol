@@ -46,8 +46,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -62,8 +62,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -79,7 +79,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHomeBlockchainID: bytes32(0),
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -94,8 +94,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -209,7 +209,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         originInfo.bridgeAddress = address(app);
         originInfo.senderAddress = address(this);
         bytes memory message = _encodeSingleHopCallMessage({
-            sourceBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
+            sourceBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
             originInfo: originInfo,
             amount: amount,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
@@ -222,7 +222,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         vm.deal(address(app), amount - 1);
         vm.expectRevert("CallUtils: insufficient value");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenRemote.receiveTeleporterMessage(DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID, DEFAULT_TOKEN_HUB_ADDRESS, message);
+        tokenRemote.receiveTeleporterMessage(DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, message);
     }
 
     function testReportBurnFeesNoNewAmount() public {
@@ -247,7 +247,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
                 destinationBridgeAddress: app.tokenHomeAddress(),
-                recipient: app.HUB_CHAIN_BURN_ADDRESS(),
+                recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
@@ -274,7 +274,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
                 destinationBridgeAddress: app.tokenHomeAddress(),
-                recipient: app.HUB_CHAIN_BURN_ADDRESS(),
+                recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
@@ -293,8 +293,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
@@ -312,7 +312,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
                 destinationBridgeAddress: app.tokenHomeAddress(),
-                recipient: app.HUB_CHAIN_BURN_ADDRESS(),
+                recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: 0,
                 secondaryFee: 0,
@@ -348,8 +348,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,

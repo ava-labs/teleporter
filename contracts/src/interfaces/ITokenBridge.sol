@@ -73,7 +73,7 @@ struct SendAndCallInput {
 }
 
 enum BridgeMessageType {
-    REGISTER_SPOKE,
+    REGISTER_REMOTE,
     SINGLE_HOP_SEND,
     SINGLE_HOP_CALL,
     MULTI_HOP_SEND,

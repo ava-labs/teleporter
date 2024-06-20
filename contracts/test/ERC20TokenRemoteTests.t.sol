@@ -41,8 +41,8 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         app.receiveTeleporterMessage(
-            DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-            DEFAULT_TOKEN_HUB_ADDRESS,
+            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_HOME_ADDRESS,
             _encodeSingleHopSendMessage(10e18, address(this))
         );
     }
@@ -56,8 +56,8 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: address(0),
                 teleporterManager: address(this),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             MOCK_TOKEN_NAME,
@@ -72,8 +72,8 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(0),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             MOCK_TOKEN_NAME,
@@ -89,7 +89,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
                 tokenHomeBlockchainID: bytes32(0),
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             MOCK_TOKEN_NAME,
@@ -109,8 +109,8 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             MOCK_TOKEN_NAME,
@@ -125,7 +125,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: address(0),
                 tokenHomeDecimals: 18
             }),
@@ -164,8 +164,8 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
-                tokenHomeBlockchainID: DEFAULT_TOKEN_HUB_BLOCKCHAIN_ID,
-                tokenHomeAddress: DEFAULT_TOKEN_HUB_ADDRESS,
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
             }),
             MOCK_TOKEN_NAME,

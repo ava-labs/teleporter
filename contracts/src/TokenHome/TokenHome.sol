@@ -513,7 +513,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                 amount: homeAmount
             });
             return;
-        } else if (bridgeMessage.messageType == BridgeMessageType.REGISTER_SPOKE) {
+        } else if (bridgeMessage.messageType == BridgeMessageType.REGISTER_REMOTE) {
             RegisterRemoteMessage memory payload =
                 abi.decode(bridgeMessage.payload, (RegisterRemoteMessage));
             _registerRemote(sourceBlockchainID, originSenderAddress, payload);

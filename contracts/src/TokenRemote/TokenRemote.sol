@@ -122,7 +122,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     /**
      * @notice Fixed gas cost for registering the remote contract on the home contract.
      */
-    uint256 public constant REGISTER_SPOKE_REQUIRED_GAS = 115_000;
+    uint256 public constant REGISTER_REMOTE_REQUIRED_GAS = 115_000;
 
     /**
      * @notice Initializes this token remote instance.
@@ -178,7 +178,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             remoteTokenDecimals: tokenDecimals
         });
         BridgeMessage memory message = BridgeMessage({
-            messageType: BridgeMessageType.REGISTER_SPOKE,
+            messageType: BridgeMessageType.REGISTER_REMOTE,
             payload: abi.encode(registerMessage)
         });
 
@@ -188,7 +188,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
                 destinationBlockchainID: tokenHomeBlockchainID,
                 destinationAddress: tokenHomeAddress,
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: feeInfo.feeTokenAddress, amount: feeAmount}),
-                requiredGasLimit: REGISTER_SPOKE_REQUIRED_GAS,
+                requiredGasLimit: REGISTER_REMOTE_REQUIRED_GAS,
                 allowedRelayerAddresses: new address[](0),
                 message: abi.encode(message)
             })

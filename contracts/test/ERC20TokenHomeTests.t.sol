@@ -82,7 +82,7 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
         // Set up a registered remote that will scale down the received amount
         // to zero home tokens.
         uint256 tokenMultiplier = 100_000;
-        _setUpRegisteredRemote(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 0, tokenMultiplier, true);
+        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 0, tokenMultiplier, true);
 
         // Send over home token to the remote
         // and check for expected calls for scaled amount of tokens sent.
@@ -101,16 +101,16 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
         vm.expectRevert(_formatErrorMessage("zero token amount"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
-            DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID,
-            DEFAULT_TOKEN_SPOKE_ADDRESS,
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_REMOTE_ADDRESS,
             _encodeSingleHopSendMessage(scaledAmount - 1, DEFAULT_RECIPIENT_ADDRESS)
         );
     }
 
     function testRegisterDestinationRoundUpCollateralNeeded() public {
-        _setUpRegisteredRemote(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS, 11, 10, true);
+        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 11, 10, true);
         (, uint256 collateralNeeded,,) =
-            tokenHome.registeredRemotes(DEFAULT_TOKEN_SPOKE_BLOCKCHAIN_ID, DEFAULT_TOKEN_SPOKE_ADDRESS);
+            tokenHome.registeredRemotes(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS);
         assertEq(collateralNeeded, 2);
     }
 

@@ -67,7 +67,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * address for the funds to be sent to be burned on the home chain.
      * This address was chosen arbitrarily.
      */
-    address public constant HUB_CHAIN_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
+    address public constant HOME_CHAIN_BURN_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
      * @notice The native minter precompile.
@@ -186,7 +186,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
-                SingleHopSendMessage({recipient: HUB_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
+                SingleHopSendMessage({recipient: HOME_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
                 )
         });
 
