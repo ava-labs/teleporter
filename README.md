@@ -12,7 +12,7 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 
 To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subnets on a Local Network](https://docs.avax.network/tooling/cli-cross-chain/teleporter-on-local-networks)
 
-- [Deployed Addresses](#deployed-addresses)
+- [Deployed Addresses](#deployed-addresses-for-latest-major-version)
 - [Setup](#setup)
   - [Initialize the repository](#initialize-the-repository)
   - [Dependencies](#dependencies)
@@ -30,7 +30,7 @@ To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subn
 - [Docs](#docs)
 - [Resources](#resources)
 
-## Deployed Addresses
+## Deployed Addresses for Latest Major Version
 
 | Contract              | Address                                        | Chain                    |
 | --------------------- | ---------------------------------------------- | ------------------------ |
@@ -38,7 +38,7 @@ To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subn
 | `TeleporterRegistry`  | **0x7C43605E14F391720e1b37E49C78C4b03A488d98** | Mainnet C-Chain          |
 | `TeleporterRegistry`  | **0xF86Cb19Ad8405AEFa7d09C778215D2Cb6eBfB228** | Fuji C-Chain             |
 
-- When deployed using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` will be at the same address on all chains. See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet) for more details.
+- Using [Nick's method](https://yamenmerhi.medium.com/nicks-method-ethereum-keyless-execution-168a6659479c#), `TeleporterMessenger` deploys at a universal address across all chains, varying with each teleporter major release. **Compatibility exists only between same-version `TeleporterMessenger` instances.** See [Teleporter Contract Deployment](./utils/contract-deployment/README.md) and [Deploy Teleporter to a Subnet](#deploy-teleporter-to-a-subnet) for more details.
 
 - `TeleporterRegistry` can be deployed to any address. See [Deploy TeleporterRegistry to a Subnet](#deploy-teleporterregistry-to-a-subnet) for details. The table above enumerates the canonical registry addresses on the Mainnet and Fuji C-Chains.
 
