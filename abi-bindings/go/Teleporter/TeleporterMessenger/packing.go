@@ -102,7 +102,8 @@ func PackReceiveCrossChainMessage(messageIndex uint32, relayerRewardAddress comm
 func PackCalculateMessageID(
 	sourceBlockchainID [32]byte,
 	destinationBlockchainID [32]byte,
-	nonce *big.Int) ([]byte, error) {
+	nonce *big.Int,
+) ([]byte, error) {
 	abi, err := TeleporterMessengerMetaData.GetAbi()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get abi")
