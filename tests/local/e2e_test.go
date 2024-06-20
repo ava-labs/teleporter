@@ -146,6 +146,11 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 		func() {
 			flows.TeleporterRegistry(LocalNetworkInstance)
 		})
+	ginkgo.It("Deliver ValidatorSetSig signed message",
+		ginkgo.Label(utilsLabel),
+		func() {
+
+		})
 	ginkgo.It("Validator churn",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {

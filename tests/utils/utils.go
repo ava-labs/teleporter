@@ -989,6 +989,13 @@ func CreateOffChainRegistryMessage(
 	return unsignedMessage
 }
 
+func CreateOffChainValidatorSetSigMessage(
+	networkID uint32,
+	subnet interfaces.SubnetTestInfo,
+) *avalancheWarp.UnsignedMessage {
+
+}
+
 // Deploys a new version of Teleporter and returns its address
 // Does NOT modify the global Teleporter contract address to provide greater testing flexibility.
 func DeployNewTeleporterVersion(

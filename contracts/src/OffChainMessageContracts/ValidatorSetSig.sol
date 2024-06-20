@@ -11,6 +11,7 @@ import {
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 
+// Message format for the WarpMessage payload to be forwarded to the target contract
 struct ValidatorSetSigMessage {
     address validatorSetSigAddress;
     address targetContractAddress;
