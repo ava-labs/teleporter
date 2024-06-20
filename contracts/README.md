@@ -28,7 +28,7 @@ An abstract implementation of `ITokenBridge` for a bridge contract on a "remote"
 
 All messages sent by `TokenRemote` instances are sent to the specified `TokenHome` contract, whether they are to redeem the collateral from the home instance or route the tokens to another remote instance. Routing tokens from one remote instance to another is referred to as a "multi-hop", where the tokens are first sent back to their `TokenHome` contract to update its accounting, and then automatically routed on to their intended destination remote.
 
-TokenRemote contracts allow for scaling token amounts, which should be used when the remote asset has a higher or lower denomination than the home asset, such as allowing for a ERC20 home asset with a denomination of 6 to be used as the native EVM asset on a remote (with a denomination of 18).
+TokenRemote contracts allow for scaling token amounts, which should be used when the remote asset has a higher or lower denomination than the home asset, such as allowing for a ERC20 home asset with a denomination of 6 to be used as the native EVM asset on a remote chain (with a denomination of 18).
 
 ### `ERC20TokenRemote`
 
