@@ -68,8 +68,8 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	var err error
 
 	// Declare 10 new validators (which should have BLS key registered)
-	subnetANodes := subnetEvmTestUtils.NewTmpnetNodes(5)
-	subnetBNodes := subnetEvmTestUtils.NewTmpnetNodes(5)
+	subnetANodes := subnetEvmTestUtils.NewTmpnetNodes(1)
+	subnetBNodes := subnetEvmTestUtils.NewTmpnetNodes(1)
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
