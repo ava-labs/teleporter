@@ -13,6 +13,7 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subnets on a Local Network](https://docs.avax.network/tooling/cli-cross-chain/teleporter-on-local-networks)
 
 - [Deployed Addresses](#deployed-addresses-for-latest-major-version)
+- [A Note on Versioning](#a-note-on-versioning)
 - [Setup](#setup)
   - [Initialize the repository](#initialize-the-repository)
   - [Dependencies](#dependencies)
