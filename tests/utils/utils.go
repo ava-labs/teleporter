@@ -847,7 +847,7 @@ func SendNativeMultiHopAndVerify(
 	)
 
 	// Relay the first message back to the home chain, in this case C-Chain,
-	// which then performs the multi-hop transfer to the destination remote
+	// which then performs the multi-hop transfer to the destination remote instance.
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -860,8 +860,8 @@ func SendNativeMultiHopAndVerify(
 	Expect(err).Should(BeNil())
 
 	// When we relay the above message to the home chain, a multi-hop transfer
-	// is performed to the destination remote. Parse for the send tokens event
-	// and relay to destination remote.
+	// is performed to the destination remote instance. Parse for the send tokens event
+	// and relay to the destination remote instance.
 	network.RelayMessage(
 		ctx,
 		intermediateReceipt,
@@ -926,7 +926,7 @@ func SendERC20TokenMultiHopAndVerify(
 	)
 
 	// Relay the first message back to the home chain, in this case C-Chain,
-	// which then performs the multi-hop transfer to the destination remote
+	// which then performs the multi-hop transfer to the destination remote instance.
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -946,8 +946,8 @@ func SendERC20TokenMultiHopAndVerify(
 	Expect(err).Should(BeNil())
 
 	// When we relay the above message to the home chain, a multi-hop transfer
-	// is performed to the destination remote. Parse for the send tokens event
-	// and relay to destination remote.
+	// is performed to the destination remote instance. Parse for the send tokens event
+	// and relay to the destination remote instance.
 	remoteReceipt := network.RelayMessage(
 		ctx,
 		intermediateReceipt,
