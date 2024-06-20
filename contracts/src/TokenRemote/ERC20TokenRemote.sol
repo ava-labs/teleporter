@@ -31,9 +31,9 @@ contract ERC20TokenRemote is IERC20TokenBridge, ERC20, TokenRemote {
     uint8 private immutable _decimals;
 
     /**
-     * @notice Initializes this token remote instance to receive tokens from the specified home instance,
+     * @notice Initializes this token TokenRemote instance to receive tokens from the specified TokenHome instance,
      * and represents the received tokens with an ERC20 token on this chain.
-     * @param settings Constructor settings for this token remote instance.
+     * @param settings Constructor settings for this token TokenRemote instance.
      * @param tokenName The name of the ERC20 token.
      * @param tokenSymbol The symbol of the ERC20 token.
      * @param tokenDecimals_ The number of decimals for the ERC20 token.
@@ -51,8 +51,8 @@ contract ERC20TokenRemote is IERC20TokenBridge, ERC20, TokenRemote {
      * @dev See {IERC20TokenBridge-send}
      *
      * Note: For transfers to an {input.destinationBlockchainID} that is not the {tokenHomeBlockchainID},
-     * a multi-hop transfer is performed, where the tokens are sent back to the token home instance
-     * first to check for bridge balance, and then routed to the final destination remote instance.
+     * a multi-hop transfer is performed, where the tokens are sent back to the token TokenHome instance
+     * first to check for bridge balance, and then routed to the final destination TokenRemote instance.
      */
     function send(SendTokensInput calldata input, uint256 amount) external {
         _send(input, amount);

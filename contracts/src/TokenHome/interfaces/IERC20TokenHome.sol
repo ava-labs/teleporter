@@ -21,10 +21,10 @@ import {ITokenHome} from "./ITokenHome.sol";
  */
 interface IERC20TokenHome is IERC20TokenBridge, ITokenHome {
     /**
-     * @notice Adds collateral to the home bridge contract for the specified remote instance. If more value is provided
+     * @notice Adds collateral to the home bridge contract for the specified TokenRemote instance. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.
-     * @param remoteBlockchainID The blockchain ID of the remote instance to add collateral for.
-     * @param remoteBridgeAddress The address of the remote instance to add collateral for on the {remoteBlockchainID}.
+     * @param remoteBlockchainID The blockchain ID of the TokenRemote instance to add collateral for.
+     * @param remoteBridgeAddress The address of the TokenRemote instance to add collateral for on the {remoteBlockchainID}.
      * @param amount Amount of tokens to add as collateral.
      */
     function addCollateral(

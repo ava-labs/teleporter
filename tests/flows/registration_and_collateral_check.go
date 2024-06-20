@@ -83,7 +83,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	initialBalance, err := exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHomeAddress)
 	Expect(err).Should(BeNil())
 
-	// Send the tokens and expect for failure since remote instance is not registered.
+	// Send the tokens and expect for failure since TokenRemote instance is not registered.
 	optsA, err := bind.NewKeyedTransactorWithChainID(fundedKey, cChainInfo.EVMChainID)
 	Expect(err).Should(BeNil())
 	_, err = erc20TokenHome.Send(

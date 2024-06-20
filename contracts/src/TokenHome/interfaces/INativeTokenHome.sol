@@ -21,7 +21,7 @@ import {ITokenHome} from "./ITokenHome.sol";
  */
 interface INativeTokenHome is INativeTokenBridge, ITokenHome {
     /**
-     * @notice Adds collateral to the home bridge contract for the specified remote instance. If more value is provided
+     * @notice Adds collateral to the home bridge contract for the specified TokenRemote instance. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.
      * @param remoteBlockchainID The blockchain ID of the remote bridge contract to add collateral for.
      * @param remoteBridgeAddress The address of the remote bridge contract to add collateral for on

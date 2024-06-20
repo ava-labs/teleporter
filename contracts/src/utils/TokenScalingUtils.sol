@@ -8,8 +8,8 @@ library TokenScalingUtils {
     uint256 public constant MAX_TOKEN_DECIMALS = 18;
 
     /**
-     * @notice Scales the {amount} of home tokens to a remote instance's token scale.
-     * @param tokenMultiplier The token multiplier of the remote instance.
+     * @notice Scales the {amount} of home tokens to a TokenRemote instance's token scale.
+     * @param tokenMultiplier The token multiplier of the TokenRemote instance.
      * @param multiplyOnRemote Whether the amount of home tokens will be multiplied on the remote, or divided.
      * @param homeTokenAmount The amount of home tokens to scale.
      */
@@ -22,9 +22,9 @@ library TokenScalingUtils {
     }
 
     /**
-     * @notice Removes the remote instance's token scaling, and returns the corresponding
+     * @notice Removes the TokenRemote instance's token scaling, and returns the corresponding
      * amount of home tokens.
-     * @param tokenMultiplier The token multiplier of the remote instance.
+     * @param tokenMultiplier The token multiplier of the TokenRemote instance.
      * @param multiplyOnRemote Whether the amount of home tokens will be multiplied on the remote, or divided.
      * @param remoteTokenAmount The amount of remote tokens to remove scaling from.
      */
@@ -58,14 +58,14 @@ library TokenScalingUtils {
 
     /**
      * @dev Scales {value} based on {tokenMultiplier} and if the amount is applying or
-     * removing the remote instance's token scale.
+     * removing the TokenRemote instance's token scale.
      * Should be used for all tokens and fees being transferred to/from other subnets.
-     * @param tokenMultiplier The token multiplier of the remote instance.
+     * @param tokenMultiplier The token multiplier of the TokenRemote instance.
      * @param multiplyOnRemote Whether the amount of home tokens will be multiplied on the remote, or divided.
      * @param amount The amount of tokens to scale.
      * @param isSendToRemote If true, indicates the amount is being sent to the
-     * remote instance, so applies token scale. If false, indicates the amount is being
-     * sent back to the home instance, so removes token scale.
+     * TokenRemote instance, so applies token scale. If false, indicates the amount is being
+     * sent back to the TokenHome instance, so removes token scale.
      */
     function _scaleTokens(
         uint256 tokenMultiplier,

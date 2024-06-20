@@ -288,7 +288,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
     }
 
     function testReportBurnFeesNoRewardSuccess() public {
-        // Create a new remote instance with no rewards for reporting burned fees.
+        // Create a new TokenRemote instance with no rewards for reporting burned fees.
         app = new NativeTokenRemote({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,

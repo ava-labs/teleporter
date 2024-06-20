@@ -19,7 +19,7 @@ import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
  * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades.
  * @param teleporterManager Address that manages this contract's integration with the
  * Teleporter registry and Teleporter versions.
- * @param tokenHomeBlockchainID The blockchain ID of the associated home instance.
+ * @param tokenHomeBlockchainID The blockchain ID of the associated TokenHome instance.
  * @param tokenHomeAddress The address of the associated token home contract.
  * @param tokenHomeDecimals The number of decimal places used by the token home's token.
  */
@@ -37,7 +37,7 @@ struct TokenRemoteSettings {
  */
 interface ITokenRemote is ITokenBridge {
     /**
-     * @notice Sends a Teleporter message to register the remote instance with its configured home.
+     * @notice Sends a Teleporter message to register the TokenRemote instance with its configured home.
      * @param feeInfo The optional fee asset and amount for the Teleporter message, for relayer incentivization.
      */
     function registerWithHome(TeleporterFeeInfo calldata feeInfo) external;

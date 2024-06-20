@@ -378,7 +378,7 @@ func RegisterTokenRemoteOnHome(
 	Expect(registerEvent.RemoteBlockchainID[:]).Should(Equal(remoteSubnet.BlockchainID[:]))
 	Expect(registerEvent.RemoteBridgeAddress).Should(Equal(remoteAddress))
 
-	// Based on the initial reserve balance of the remote instance,
+	// Based on the initial reserve balance of the TokenRemote instance,
 	// calculate the collateral amount of home tokens needed to collateralize the remote.
 	collateralNeeded := calculateCollateralNeeded(
 		expectedInitialReserveBalance,
@@ -847,7 +847,7 @@ func SendNativeMultiHopAndVerify(
 	)
 
 	// Relay the first message back to the home chain, in this case C-Chain,
-	// which then performs the multi-hop transfer to the destination remote instance.
+	// which then performs the multi-hop transfer to the destination TokenRemote instance.
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -860,8 +860,8 @@ func SendNativeMultiHopAndVerify(
 	Expect(err).Should(BeNil())
 
 	// When we relay the above message to the home chain, a multi-hop transfer
-	// is performed to the destination remote instance. Parse for the send tokens event
-	// and relay to the destination remote instance.
+	// is performed to the destination TokenRemote instance. Parse for the send tokens event
+	// and relay to the destination TokenRemote instance.
 	network.RelayMessage(
 		ctx,
 		intermediateReceipt,
@@ -926,7 +926,7 @@ func SendERC20TokenMultiHopAndVerify(
 	)
 
 	// Relay the first message back to the home chain, in this case C-Chain,
-	// which then performs the multi-hop transfer to the destination remote instance.
+	// which then performs the multi-hop transfer to the destination TokenRemote instance.
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -946,8 +946,8 @@ func SendERC20TokenMultiHopAndVerify(
 	Expect(err).Should(BeNil())
 
 	// When we relay the above message to the home chain, a multi-hop transfer
-	// is performed to the destination remote instance. Parse for the send tokens event
-	// and relay to the destination remote instance.
+	// is performed to the destination TokenRemote instance. Parse for the send tokens event
+	// and relay to the destination TokenRemote instance.
 	remoteReceipt := network.RelayMessage(
 		ctx,
 		intermediateReceipt,

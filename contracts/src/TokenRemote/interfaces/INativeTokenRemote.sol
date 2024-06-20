@@ -24,7 +24,7 @@ interface INativeTokenRemote is ITokenRemote, INativeTokenBridge {
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
     /**
-     * @notice Reports the increase in total burned transaction fees on this chain to its corresponding home instance.
+     * @notice Reports the increase in total burned transaction fees on this chain to its corresponding TokenHome instance.
      * @param requiredGasLimit The gas limit required to report the burned transaction fees to the home contract.
      */
     function reportBurnedTxFees(uint256 requiredGasLimit) external;

@@ -13,7 +13,7 @@ import (
 )
 
 // ApplyTokenScaling applies token scaling to the given amount of home tokens.
-// Token scaling is applied when sending tokens from the home to the remote instances.
+// Token scaling is applied when sending tokens from the home to the TokenRemote instances.
 func ApplyTokenScaling(
 	tokenMultiplier *big.Int,
 	multiplyOnRemote bool,
@@ -23,7 +23,7 @@ func ApplyTokenScaling(
 }
 
 // RemoveTokenScaling removes token scaling from the given amount of remote tokens.
-// Token scaling is removed when sending tokens from the remote back to the home instance.
+// Token scaling is removed when sending tokens from the remote back to the TokenHome instance.
 func RemoveTokenScaling(
 	tokenMultiplier *big.Int,
 	multiplyOnRemote bool,

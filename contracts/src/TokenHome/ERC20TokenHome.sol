@@ -24,17 +24,17 @@ import {CallUtils} from "../utils/CallUtils.sol";
 /**
  * @title ERC20TokenHome
  * @notice An {IERC20TokenHome} implementation that locks a specified ERC20 token to be sent to
- * remote instances on other chains.
+ * TokenRemote instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;
 
-    /// @notice The ERC20 token this home contract bridges to remote instances.
+    /// @notice The ERC20 token this home contract bridges to TokenRemote instances.
     IERC20 public immutable token;
 
     /**
-     * @notice Initializes the token home instance to send ERC20 tokens to remote instances on other chains.
+     * @notice Initializes the token TokenHome instance to send ERC20 tokens to TokenRemote instances on other chains.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the

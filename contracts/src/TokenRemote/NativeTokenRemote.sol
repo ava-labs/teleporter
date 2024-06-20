@@ -87,7 +87,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
     uint256 public totalMinted;
 
     /**
-     * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the home instance.
+     * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the TokenHome instance.
      */
     uint256 public lastestBurnedFeesReported;
 
@@ -101,9 +101,9 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
     }
 
     /**
-     * @notice Initializes this token remote instance to receive tokens from the specified home instance,
+     * @notice Initializes this token TokenRemote instance to receive tokens from the specified TokenHome instance,
      * and represents the received tokens with the native token on this chain.
-     * @param settings Constructor settings for this token remote instance.
+     * @param settings Constructor settings for this token TokenRemote instance.
      * @param nativeAssetSymbol The symbol of the native asset.
      * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
      * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
@@ -176,13 +176,13 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
             _mint(address(this), reward);
         }
 
-        // Check that the scaled amount on the home instance will be non-zero.
+        // Check that the scaled amount on the TokenHome instance will be non-zero.
         require(
             TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnRemote, burnedTxFees) > 0,
             "NativeTokenRemote: zero scaled amount to report burn"
         );
 
-        // Report the burned amount to the home instance.
+        // Report the burned amount to the TokenHome instance.
         BridgeMessage memory message = BridgeMessage({
             messageType: BridgeMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
@@ -238,7 +238,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * {INativeTokenRemote-totalNativeAssetSupply} returns the supply of the native asset of the chain,
      * accounting for the amounts that have been bridged in and out of the chain as well as burnt transaction
      * fees. The {initialReserveBalance} is included in this supply since it is in circulation on this
-     * chain even prior to it being backed by collateral on the home instance.
+     * chain even prior to it being backed by collateral on the TokenHome instance.
      * {IERC20-totalSupply} returns the supply of the native asset held by this contract
      * that is represented as an ERC20.
      */

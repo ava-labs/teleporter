@@ -18,8 +18,8 @@ import {ITokenBridge, SendTokensInput, SendAndCallInput} from "../../interfaces/
  */
 interface ITokenHome is ITokenBridge {
     /**
-     * @dev Emitted when tokens are added as collateral for a given remote instance.
-     * The event emits a {remaining} value of 0 when the remote instance is fully collateralized.
+     * @dev Emitted when tokens are added as collateral for a given TokenRemote instance.
+     * The event emits a {remaining} value of 0 when the TokenRemote instance is fully collateralized.
      */
     event CollateralAdded(
         bytes32 indexed remoteBlockchainID,
@@ -29,7 +29,7 @@ interface ITokenHome is ITokenBridge {
     );
 
     /**
-     * @notice Emitted when a new remote instance is registered with the token bridge.
+     * @notice Emitted when a new TokenRemote instance is registered with the token bridge.
      */
     event RemoteRegistered(
         bytes32 indexed remoteBlockchainID,

@@ -24,7 +24,7 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 /**
  * @title NativeTokenHome
  * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be bridged to
- * remote instances on other chains.
+ * TokenRemote instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
  */
 contract NativeTokenHome is INativeTokenHome, TokenHome {
@@ -36,14 +36,14 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
     IWrappedNativeToken public immutable wrappedToken;
 
     /**
-     * @notice Initializes this token home instance to send native tokens to remote instances on other chains.
+     * @notice Initializes this token TokenHome instance to send native tokens to TokenRemote instances on other chains.
      * Always uses a {tokenDecimals_} value of 18 since it is the denomination of the native token of EVM instances.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param wrappedTokenAddress The wrapped native token contract address of the native asset
-     * to be bridged to remote instances.
+     * to be bridged to TokenRemote instances.
      */
     constructor(
         address teleporterRegistryAddress,
