@@ -111,7 +111,7 @@ func TestUnpackEvent(t *testing.T) {
 					message,
 					feeInfo,
 				},
-				out: new(TeleporterMessengerSendCrossChainMessage),
+				out: new(ReadableTeleporterMessengerSendCrossChainMessage),
 				expected: &ReadableTeleporterMessengerSendCrossChainMessage{
 					DestinationBlockchainID: mockBlockchainID,
 					MessageID:               mockMessageID,
@@ -128,7 +128,7 @@ func TestUnpackEvent(t *testing.T) {
 					deliverer,
 					message,
 				},
-				out: new(TeleporterMessengerReceiveCrossChainMessage),
+				out: new(ReadableTeleporterMessengerReceiveCrossChainMessage),
 				expected: &ReadableTeleporterMessengerReceiveCrossChainMessage{
 					SourceBlockchainID: mockBlockchainID,
 					MessageID:          mockMessageID,
@@ -143,8 +143,8 @@ func TestUnpackEvent(t *testing.T) {
 					mockMessageID,
 					mockBlockchainID,
 				},
-				out: new(TeleporterMessengerMessageExecuted),
-				expected: &TeleporterMessengerMessageExecuted{
+				out: new(ReadableTeleporterMessengerMessageExecuted),
+				expected: &ReadableTeleporterMessengerMessageExecuted{
 					MessageID:          mockMessageID,
 					SourceBlockchainID: mockBlockchainID,
 				},
