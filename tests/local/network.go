@@ -96,7 +96,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	)
 
 	network := subnetEvmTestUtils.NewTmpnetNetwork(
-		"",
+		"teleporter-test-local-network",
 		append(subnetANodes, subnetBNodes...),
 		tmpnet.FlagsMap{},
 		subnetA,
@@ -114,7 +114,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 		ctxWithTimeout,
 		os.Stdout,
 		network,
-		"./tmpnets",
+		"",
 		avalancheGoBuildPath+"/avalanchego",
 		avalancheGoBuildPath+"/plugins",
 	)
