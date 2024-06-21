@@ -23,6 +23,8 @@ struct ValidatorSetSigMessage {
 /**
  * @dev Contract that verifies that a set threshold of validators from a given blockchainID
  * have signed an off-chain Warp message and forwards the payload to the destination contract specified in the payload.
+ * The threshold itself is set by the validator themselves in their Warp configs:
+ * https://github.com/ava-labs/subnet-evm/blob/master/precompile/contracts/warp/config.go#L50
  *
  * This is intended to be used for safe off-chain governance of enabled contracts by having the target contract be owned by
  * an instance of this contract and adding the `onlyOwner` modifier to the functions that should be governed.
@@ -35,8 +37,9 @@ contract ValidatorSetSig is ReentrancyGuard {
 
     /**
      * @dev Tracks nonces for messages sent to a specific contract address to provide replay protection.
-     * The target contract address is used as the key instead of keeping a global nonce in order to prevent
-     * race conditions where the same instance of ValidatorSetSig contract is used to manage multiple downstream contracts.
+     * The target contract address is used as the key instead of keeping a global nonce to prevent
+     * one party from consuming a global nonce that another was intending to use
+     * in case a single instance of ValidatorSetSig contract is used to manage multiple downstream contracts.
      */
     mapping(address targetContractAddress => uint256 nonce) public nonces;
 
