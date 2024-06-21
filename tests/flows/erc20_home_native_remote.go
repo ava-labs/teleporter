@@ -51,7 +51,7 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Create an ERC20TokenHome for bridging the ERC20 token
-	erc20TokenHomeAddress, erc20TokenHome := utils.DeployERC20TokenHome(
+	erc20TokenHomeAddress, _, erc20TokenHome := utils.DeployERC20TokenHome(
 		ctx,
 		fundedKey,
 		cChainInfo,
