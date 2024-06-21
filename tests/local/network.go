@@ -119,8 +119,6 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	)
 	Expect(err).Should(BeNil())
 
-	network.StartNodes(ctx, os.Stdout, network.Nodes...)
-
 	fundedKeyBytes, err := hex.DecodeString(fundedKeyStr)
 	Expect(err).Should(BeNil())
 	fundedKeySecp256k1, err := secp256k1.ToPrivateKey(fundedKeyBytes)
