@@ -6,7 +6,7 @@ package validatorsetsig
 import (
 	"fmt"
 
-	"github.com/ava-labs/coreth/accounts/abi"
+	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/pkg/errors"
 )
 
