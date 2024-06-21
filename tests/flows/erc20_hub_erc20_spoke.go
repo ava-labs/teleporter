@@ -39,7 +39,7 @@ func ERC20TokenHubERC20TokenSpoke(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	// Create an ERC20TokenHub for bridging the ERC20 token
-	erc20TokenHubAddress, erc20TokenHub := utils.DeployERC20TokenHub(
+	erc20TokenHubAddress, _, erc20TokenHub := utils.DeployERC20TokenHub(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -115,6 +115,12 @@ func ERC20TokenHubERC20TokenSpoke(network interfaces.Network) {
 		subnetAInfo,
 		true,
 	)
+
+	_, err = teleporterUtils.GetEventFromLogs(receipt.Logs, subnetAInfo.TeleporterMessenger.ParseMessageExecuted)
+	if err != nil {
+		teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo, receipt.TxHash)
+		panic("failed to find message executed event")
+	}
 
 	utils.CheckERC20TokenSpokeWithdrawal(
 		ctx,

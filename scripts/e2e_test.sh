@@ -26,7 +26,7 @@ echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/p
 export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 
 if command -v forge &> /dev/null; then
-  FORGE_COMMAND="forge build"
+  FORGE_COMMAND="forge build --skip test"
 else
   echo "Forge command not found, attempting to use from $HOME"
   FORGE_COMMAND="$HOME/.foundry/bin/forge build"

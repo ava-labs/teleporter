@@ -79,38 +79,26 @@ func DeployERC20TokenHub(
 	teleporterManager common.Address,
 	tokenAddress common.Address,
 	tokenHubDecimals uint8,
-) (common.Address, *erc20tokenhub.ERC20TokenHub) {
+) (common.Address, *proxyadmin.ProxyAdmin, *erc20tokenhub.ERC20TokenHub) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	implAddress, tx, erc20TokenHub, err := erc20tokenhub.DeployERC20TokenHub(
+	implAddress, tx, _, err := erc20tokenhub.DeployERC20TokenHub(
 		opts,
 		subnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	proxyAdminAddress, tx, _, err := proxyadmin.DeployProxyAdmin(
-		opts,
-		subnet.RPCClient,
-	)
-	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	proxyAddress, tx, _, err := transparentupgradeableproxy.DeployTransparentUpgradeableProxy(
-		opts,
-		subnet.RPCClient,
+	proxyAddress, proxyAdmin, erc20TokenHub := DeployTransparentUpgradeableProxy(
+		ctx,
+		subnet,
+		senderKey,
 		implAddress,
-		proxyAdminAddress,
-		[]byte{},
+		erc20tokenhub.NewERC20TokenHub,
 	)
-	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	erc20TokenHub, err = erc20tokenhub.NewERC20TokenHub(proxyAddress, subnet.RPCClient)
-	Expect(err).Should(BeNil())
 
 	tx, err = erc20TokenHub.Initialize(
 		opts,
@@ -122,7 +110,7 @@ func DeployERC20TokenHub(
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return proxyAddress, erc20TokenHub
+	return proxyAddress, proxyAdmin, erc20TokenHub
 }
 
 func DeployERC20TokenSpoke(
@@ -142,9 +130,24 @@ func DeployERC20TokenSpoke(
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	address, tx, erc20TokenSpoke, err := erc20tokenspoke.DeployERC20TokenSpoke(
+	implAddress, tx, _, err := erc20tokenspoke.DeployERC20TokenSpoke(
 		opts,
 		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	proxyAddress, _, erc20TokenSpoke := DeployTransparentUpgradeableProxy(
+		ctx,
+		subnet,
+		senderKey,
+		implAddress,
+		erc20tokenspoke.NewERC20TokenSpoke,
+	)
+
+	tx, err = erc20TokenSpoke.Initialize(
+		opts,
 		erc20tokenspoke.TokenSpokeSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
@@ -157,10 +160,9 @@ func DeployERC20TokenSpoke(
 		tokenDecimals,
 	)
 	Expect(err).Should(BeNil())
-
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return implAddress, erc20TokenSpoke
+	return proxyAddress, erc20TokenSpoke
 }
 
 func DeployNativeTokenSpoke(
@@ -188,9 +190,23 @@ func DeployNativeTokenSpoke(
 	)
 	Expect(err).Should(BeNil())
 
-	address, tx, nativeTokenSpoke, err := nativetokenspoke.DeployNativeTokenSpoke(
+	implAddress, tx, nativeTokenSpoke, err := nativetokenspoke.DeployNativeTokenSpoke(
 		opts,
 		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	// proxyAddress, _, nativeTokenSpoke := DeployTransparentUpgradeableProxy(
+	// 	ctx,
+	// 	subnet,
+	// 	senderKey,
+	// 	implAddress,
+	// 	nativetokenspoke.NewNativeTokenSpoke,
+	// )
+
+	tx, err = nativeTokenSpoke.Initialize(
+		opts,
 		nativetokenspoke.TokenSpokeSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
@@ -203,7 +219,6 @@ func DeployNativeTokenSpoke(
 		burnedFeesReportingRewardPercentage,
 	)
 	Expect(err).Should(BeNil())
-
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	// Increment to the next deployer key so that the next contract deployment succeeds
@@ -224,18 +239,31 @@ func DeployNativeTokenHub(
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	address, tx, nativeTokenHub, err := nativetokenhub.DeployNativeTokenHub(
+	implAddress, tx, _, err := nativetokenhub.DeployNativeTokenHub(
 		opts,
 		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	proxyAddress, _, nativeTokenHub := DeployTransparentUpgradeableProxy(
+		ctx,
+		subnet,
+		senderKey,
+		implAddress,
+		nativetokenhub.NewNativeTokenHub,
+	)
+
+	tx, err = nativeTokenHub.Initialize(
+		opts,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
 		tokenAddress,
 	)
 	Expect(err).Should(BeNil())
-
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return implAddress, nativeTokenHub
+	return proxyAddress, nativeTokenHub
 }
 
 func DeployWrappedNativeToken(
@@ -248,14 +276,18 @@ func DeployWrappedNativeToken(
 	Expect(err).Should(BeNil())
 
 	// Deploy mock WAVAX contract
-	address, tx, token, err := wrappednativetoken.DeployWrappedNativeToken(opts, subnet.RPCClient, tokenSymbol)
-	Expect(err).Should(BeNil())
-	log.Info("Deployed WrappedNativeToken contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
-
-	// Wait for the transaction to be mined
+	address, tx, token, err := wrappednativetoken.DeployWrappedNativeToken(opts, subnet.RPCClient)
+	Expect(err).Should(BeNil()) // Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return implAddress, token
+	tx, err = token.Initialize(
+		opts,
+		tokenSymbol,
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	return address, token
 }
 
 func DeployMockNativeSendAndCallReceiver(
@@ -274,7 +306,7 @@ func DeployMockNativeSendAndCallReceiver(
 	// Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return implAddress, contract
+	return address, contract
 }
 
 func DeployMockERC20SendAndCallReceiver(
@@ -293,7 +325,7 @@ func DeployMockERC20SendAndCallReceiver(
 	// Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return implAddress, contract
+	return address, contract
 }
 
 func DeployExampleERC20(
@@ -319,7 +351,40 @@ func DeployExampleERC20(
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(ExpectedExampleERC20DeployerBalance))
 
-	return implAddress, token
+	return address, token
+}
+
+func DeployTransparentUpgradeableProxy[T any](
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	senderKey *ecdsa.PrivateKey,
+	implAddress common.Address,
+	newInstance func(address common.Address, backend bind.ContractBackend) (*T, error),
+) (common.Address, *proxyadmin.ProxyAdmin, *T) {
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		senderKey,
+		subnet.EVMChainID,
+	)
+	Expect(err).Should((BeNil()))
+
+	proxyAdminAddress, tx, proxyAdmin, err := proxyadmin.DeployProxyAdmin(opts, subnet.RPCClient)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	proxyAddress, tx, _, err := transparentupgradeableproxy.DeployTransparentUpgradeableProxy(
+		opts,
+		subnet.RPCClient,
+		implAddress,
+		proxyAdminAddress,
+		[]byte{},
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	contract, err := newInstance(proxyAddress, subnet.RPCClient)
+	Expect(err).Should(BeNil())
+
+	return proxyAddress, proxyAdmin, contract
 }
 
 func RegisterERC20TokenSpokeOnHub(
@@ -329,8 +394,8 @@ func RegisterERC20TokenSpokeOnHub(
 	hubAddress common.Address,
 	spokeSubnet interfaces.SubnetTestInfo,
 	spokeAddress common.Address,
-) *big.Int {
-	return RegisterTokenSpokeOnHub(
+) {
+	RegisterTokenSpokeOnHub(
 		ctx,
 		network,
 		hubSubnet,

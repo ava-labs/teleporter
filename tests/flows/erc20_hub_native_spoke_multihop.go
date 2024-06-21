@@ -39,7 +39,7 @@ func ERC20TokenHubNativeTokenSpokeMultiHop(network interfaces.Network) {
 	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	erc20TokenHubAddress, erc20TokenHub := utils.DeployERC20TokenHub(
+	erc20TokenHubAddress, _, erc20TokenHub := utils.DeployERC20TokenHub(
 		ctx,
 		fundedKey,
 		cChainInfo,

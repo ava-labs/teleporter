@@ -27,6 +27,7 @@ const (
 	multiHopLabel         = "MultiHop"
 	sendAndCallLabel      = "SendAndCall"
 	registrationLabel     = "Registration"
+	upgradabilityLabel    = "Upgradability"
 )
 
 var LocalNetworkInstance *local.LocalNetwork
@@ -122,5 +123,10 @@ var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 		ginkgo.Label(erc20TokenHubLabel, nativeTokenSpokeLabel, registrationLabel),
 		func() {
 			flows.RegistrationAndCollateralCheck(LocalNetworkInstance)
+		})
+	ginkgo.FIt("Transparent proxy upgrade",
+		ginkgo.Label(erc20TokenHubLabel, erc20TokenSpokeLabel, upgradabilityLabel),
+		func() {
+			flows.TransparentUpgradeableProxy(LocalNetworkInstance)
 		})
 })

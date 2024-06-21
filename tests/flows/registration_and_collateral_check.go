@@ -39,7 +39,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	)
 
 	// Create an ERC20TokenHub for bridging the ERC20 token
-	erc20TokenHubAddress, erc20TokenHub := utils.DeployERC20TokenHub(
+	erc20TokenHubAddress, _, erc20TokenHub := utils.DeployERC20TokenHub(
 		ctx,
 		fundedKey,
 		cChainInfo,

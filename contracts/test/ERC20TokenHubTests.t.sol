@@ -57,37 +57,42 @@ contract ERC20TokenHubTest is ERC20TokenBridgeTest, TokenHubTest {
      * Initialization unit tests
      */
     function testZeroTeleporterRegistryAddress() public {
-        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new ERC20TokenHub(address(0), address(this), address(mockERC20), tokenHubDecimals);
+        deployExpectError(
+            address(0),
+            address(this),
+            address(mockERC20),
+            tokenHubDecimals,
+            "TeleporterUpgradeable: zero teleporter registry address"
+        );
     }
 
     function testZeroTeleporterManagerAddress() public {
-        vm.expectRevert("Ownable: new owner is the zero address");
-        new ERC20TokenHub(
+        deployExpectError(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
             address(mockERC20),
-            tokenHubDecimals
+            tokenHubDecimals,
+            "Ownable: new owner is the zero address"
         );
     }
 
     function testZeroFeeTokenAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero token address"));
-        new ERC20TokenHub(
+        deployExpectError(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
             address(0),
-            tokenHubDecimals
+            tokenHubDecimals,
+            _formatErrorMessage("zero token address")
         );
     }
 
     function testTokenDecimalsTooHigh() public {
-        vm.expectRevert(_formatErrorMessage("token decimals too high"));
-        new ERC20TokenHub(
+        deployExpectError(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
             address(mockERC20),
-            uint8(TokenScalingUtils.MAX_TOKEN_DECIMALS) + 1
+            uint8(TokenScalingUtils.MAX_TOKEN_DECIMALS) + 1,
+            _formatErrorMessage("token decimals too high")
         );
     }
 
@@ -270,5 +275,19 @@ contract ERC20TokenHubTest is ERC20TokenBridgeTest, TokenHubTest {
         );
         vm.expectEmit(true, true, true, true, address(bridgedToken));
         emit Transfer(address(this), address(tokenBridge), amount);
+    }
+
+    function deployExpectError(
+        address teleporterRegistryAddress,
+        address teleporterManager,
+        address tokenAddress,
+        uint8 tokenDecimals,
+        bytes memory expectedError
+    ) private {
+        ERC20TokenHub instance = new ERC20TokenHub();
+        vm.expectRevert(expectedError);
+        instance.initialize(
+            teleporterRegistryAddress, teleporterManager, tokenAddress, tokenDecimals
+        );
     }
 }
