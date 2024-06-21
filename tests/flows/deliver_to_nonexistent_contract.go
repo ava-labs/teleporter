@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	examplecrosschainmessenger "github.com/ava-labs/teleporter/abi-bindings/go/CrossChainApplications/examples/ExampleMessenger/ExampleCrossChainMessenger"
+	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/tests/TestMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -40,7 +40,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	// Send a message that should fail to be executed on Subnet B
 	//
 	log.Info("Deploying ExampleMessenger to Subnet A")
-	_, subnetAExampleMessenger := utils.DeployExampleCrossChainMessenger(
+	_, subnetAExampleMessenger := utils.DeployTestMessenger(
 		ctx,
 		fundedKey,
 		fundedAddress,
@@ -66,7 +66,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 		destinationContractAddress,
 		common.BigToAddress(common.Big0),
 		big.NewInt(0),
-		examplecrosschainmessenger.SendMessageRequiredGas,
+		testmessenger.SendMessageRequiredGas,
 		message,
 	)
 	Expect(err).Should(BeNil())
@@ -115,7 +115,7 @@ func DeliverToNonExistentContract(network interfaces.Network) {
 	// Deploy the contract on Subnet B
 	//
 	log.Info("Deploying the contract on Subnet B")
-	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployExampleCrossChainMessenger(
+	exampleMessengerContractB, subnetBExampleMessenger := utils.DeployTestMessenger(
 		ctx,
 		deployerKey,
 		deployerAddress,

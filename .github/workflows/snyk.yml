@@ -8,7 +8,7 @@ on:
       - "dependabot/**"
 jobs:
   golang-snyk:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repositories and submodules
         uses: actions/checkout@v4
@@ -34,44 +34,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
-  docker-snyk:
-    runs-on: ubuntu-20.04
-    env:
-      BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-    steps:
-      - name: Checkout repositories and submodules
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Build local-network-image
-        run: |
-          source ./scripts/utils.sh
-          source ./scripts/versions.sh
-          setARCH
-          docker compose -f docker/docker-compose-run.yml --project-directory ./ build local_network
-
-      - name: Run Snyk on Docker image
-        # Dependabot isn't allowed to use the Snyk token, so skip this step.
-        if: ${{ ! startsWith(env.BRANCH_NAME, 'dependabot') }}
-        # TODO: Once we address the sarif upload issue below, we can re-enable
-        # continue-on-error to then upload the results to github.
-        # Snyk can be used to break the build when it detects vulnerabilities.
-        # In this case we want to upload the issues to GitHub Code Scanning
-        # continue-on-error: true
-        uses: snyk/actions/docker@0.4.0
-        env:
-          # In order to use the Snyk Action you will need to have a Snyk API token.
-          # More details in https://github.com/snyk/actions#getting-your-snyk-token
-          # or you can signup for free at https://snyk.io/login
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          image: local-network-image
-          args: --file=docker/Dockerfile --severity-threshold=high
-
-    # TODO: Investigate how to limit the snyk.sarif file to only have a maximum of 20 "runs" so the upload succeeds here.
-    # See: https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#validating-your-sarif-file
-    # - name: Upload results to GitHub Code Scanning
-    #   uses: github/codeql-action/upload-sarif@v3
-    #   with:
-    #     sarif_file: snyk.sarif
