@@ -14,7 +14,13 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TransparentUpgradeableProxy(network interfaces.Network) {
+/**
+ * Deploy an ERC20TokenHome on the primary network
+ * Deploys ERC20TokenRemote to Subnet A
+ * Bridges C-Chain example ERC20 tokens to Subnet A
+ * Bridge tokens from Subnet A to C-Chain
+ */
+func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -29,6 +35,20 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 		erc20TokenHomeDecimals,
 	)
 
+	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+
+	// Create an ERC20TokenHome for bridging the ERC20 token
+	erc20TokenHomeAddress, _, erc20TokenHome := utils.DeployERC20TokenHome(
+		ctx,
+		fundedKey,
+		cChainInfo,
+		fundedAddress,
+		exampleERC20Address,
+		exampleERC20Decimals,
+	)
+
+	// Token representation on subnet A will have same name, symbol, and decimals
 	tokenName, err := exampleERC20.Name(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	tokenSymbol, err := exampleERC20.Symbol(&bind.CallOpts{})
@@ -36,17 +56,7 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 	tokenDecimals, err := exampleERC20.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Deploy the ERC20TokenHome logic contract on primary network
-	erc20TokenHomeAddress, proxyAdmin, erc20TokenHome := utils.DeployERC20TokenHome(
-		ctx,
-		fundedKey,
-		cChainInfo,
-		fundedAddress,
-		exampleERC20Address,
-		tokenDecimals,
-	)
-
-	// Deploy the ERC20TokenRemote contract on Subnet A
+	// Deploy an ERC20TokenRemote to Subnet A
 	erc20TokenRemoteAddress, erc20TokenRemote := utils.DeployERC20TokenRemote(
 		ctx,
 		fundedKey,
@@ -54,7 +64,7 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHomeAddress,
-		tokenDecimals,
+		exampleERC20Decimals,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
@@ -69,12 +79,12 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 		erc20TokenRemoteAddress,
 	)
 
-	// Send a bridge transfer from primary network to Subnet A
 	// Generate new recipient to receive bridged tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
+	// Send tokens from C-Chain to recipient on subnet A
 	input := erc20tokenhome.SendTokensInput{
 		DestinationBlockchainID:  subnetAInfo.BlockchainID,
 		DestinationBridgeAddress: erc20TokenRemoteAddress,
@@ -97,7 +107,7 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 		fundedKey,
 	)
 
-	// Check that the bridge transfer was successful, and expected balances are correct
+	// Relay the message to Subnet A and check for message delivery
 	receipt = network.RelayMessage(
 		ctx,
 		receipt,
@@ -119,31 +129,8 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(bridgedAmount))
 
-	// Deploy a new ERC20TokenHome logic contract on primary network
-	opts, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey,
-		cChainInfo.EVMChainID,
-	)
-	Expect(err).Should(BeNil())
-
-	newLogic, tx, _, err := erc20tokenhome.DeployERC20TokenHome(
-		opts,
-		cChainInfo.RPCClient,
-	)
-	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
-
-	// Upgrade the TransparentUpgradeableProxy contract to use the new logic contract
-	opts, err = bind.NewKeyedTransactorWithChainID(
-		fundedKey,
-		cChainInfo.EVMChainID,
-	)
-	Expect(err).Should(BeNil())
-	tx, err = proxyAdmin.Upgrade(opts, erc20TokenHomeAddress, newLogic)
-	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
-
-	// Send a bridge transfer from Subnet A back to primary network
+	// Bridge back to home chain
+	// Fund recipient with gas tokens on subnet A
 	teleporterUtils.SendNativeTransfer(
 		ctx,
 		subnetAInfo,
@@ -179,7 +166,6 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 		true,
 	)
 
-	// Check that the bridge transfer was successful, and expected balances are correct
 	utils.CheckERC20TokenHomeWithdrawal(
 		ctx,
 		erc20TokenHomeAddress,

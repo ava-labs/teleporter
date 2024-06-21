@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import "forge-std/Script.sol";
-import {ERC20TokenHub} from "../src/TokenHub/ERC20TokenHub.sol";
+import {ERC20TokenHome} from "../src/TokenHome/ERC20TokenHome.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts@4.8.1/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts@4.8.1/proxy/transparent/ProxyAdmin.sol";
@@ -22,7 +22,7 @@ contract DeployScript is Script {
             IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         console.logBytes32(blockchainID);
 
-        ERC20TokenHub instance = new ERC20TokenHub();
+        ERC20TokenHome instance = new ERC20TokenHome();
         ProxyAdmin proxyAdmin = new ProxyAdmin();
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             address(instance),

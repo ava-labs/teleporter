@@ -18,7 +18,7 @@ abstract contract ERC20TokenBridgeTest is TokenBridgeTest {
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
     }
@@ -27,7 +27,7 @@ abstract contract ERC20TokenBridgeTest is TokenBridgeTest {
         uint256 amount = 2e15;
 
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         vm.expectRevert("ERC20: insufficient allowance");
         _send(input, amount);
     }
@@ -36,7 +36,7 @@ abstract contract ERC20TokenBridgeTest is TokenBridgeTest {
         uint256 amount = 2e15;
 
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
-        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         vm.expectRevert("ERC20: insufficient allowance");
         _sendAndCall(input, amount);
     }
@@ -45,10 +45,7 @@ abstract contract ERC20TokenBridgeTest is TokenBridgeTest {
         erc20Bridge.send(input, amount);
     }
 
-    function _sendAndCall(
-        SendAndCallInput memory input,
-        uint256 amount
-    ) internal virtual override {
+    function _sendAndCall(SendAndCallInput memory input, uint256 amount) internal virtual override {
         erc20Bridge.sendAndCall(input, amount);
     }
 }

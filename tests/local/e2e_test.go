@@ -20,14 +20,14 @@ const (
 	teleporterByteCodeFile = "./contracts/lib/teleporter/contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 	warpGenesisFile        = "./tests/utils/warp-genesis.json"
 
-	erc20TokenHubLabel    = "ERC20TokenHub"
-	erc20TokenSpokeLabel  = "ERC20TokenSpoke"
-	nativeTokenHubLabel   = "NativeTokenHub"
-	nativeTokenSpokeLabel = "NativeTokenSpoke"
-	multiHopLabel         = "MultiHop"
-	sendAndCallLabel      = "SendAndCall"
-	registrationLabel     = "Registration"
-	upgradabilityLabel    = "Upgradability"
+	erc20TokenHomeLabel    = "ERC20TokenHome"
+	erc20TokenRemoteLabel  = "ERC20TokenRemote"
+	nativeTokenHomeLabel   = "NativeTokenHome"
+	nativeTokenRemoteLabel = "NativeTokenRemote"
+	multiHopLabel          = "MultiHop"
+	sendAndCallLabel       = "SendAndCall"
+	registrationLabel      = "Registration"
+	upgradabilityLabel     = "Upgradability"
 )
 
 var LocalNetworkInstance *local.LocalNetwork
@@ -75,52 +75,52 @@ var _ = ginkgo.AfterSuite(func() {
 
 var _ = ginkgo.Describe("[Teleporter Token Bridge integration tests]", func() {
 	ginkgo.It("Bridge an ERC20 token between two Subnets",
-		ginkgo.Label(erc20TokenHubLabel, erc20TokenSpokeLabel),
+		ginkgo.Label(erc20TokenHomeLabel, erc20TokenRemoteLabel),
 		func() {
-			flows.ERC20TokenHubERC20TokenSpoke(LocalNetworkInstance)
+			flows.ERC20TokenHomeERC20TokenRemote(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge a native token to an ERC20 token",
-		ginkgo.Label(nativeTokenHubLabel, erc20TokenSpokeLabel),
+		ginkgo.Label(nativeTokenHomeLabel, erc20TokenRemoteLabel),
 		func() {
-			flows.NativeTokenHubERC20TokenSpoke(LocalNetworkInstance)
+			flows.NativeTokenHomeERC20TokenRemote(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge a native token to a native token",
-		ginkgo.Label(nativeTokenHubLabel, nativeTokenSpokeLabel),
+		ginkgo.Label(nativeTokenHomeLabel, nativeTokenRemoteLabel),
 		func() {
-			flows.NativeTokenHubNativeDestination(LocalNetworkInstance)
+			flows.NativeTokenHomeNativeDestination(LocalNetworkInstance)
 		})
-	ginkgo.It("Bridge an ERC20 token with ERC20TokenHub multi-hop",
-		ginkgo.Label(erc20TokenHubLabel, erc20TokenSpokeLabel, multiHopLabel),
+	ginkgo.It("Bridge an ERC20 token with ERC20TokenHome multi-hop",
+		ginkgo.Label(erc20TokenHomeLabel, erc20TokenRemoteLabel, multiHopLabel),
 		func() {
-			flows.ERC20TokenHubERC20TokenSpokeMultiHop(LocalNetworkInstance)
+			flows.ERC20TokenHomeERC20TokenRemoteMultiHop(LocalNetworkInstance)
 		})
-	ginkgo.It("Bridge a native token with NativeTokenHub multi-hop",
-		ginkgo.Label(nativeTokenHubLabel, erc20TokenSpokeLabel, multiHopLabel),
+	ginkgo.It("Bridge a native token with NativeTokenHome multi-hop",
+		ginkgo.Label(nativeTokenHomeLabel, erc20TokenRemoteLabel, multiHopLabel),
 		func() {
-			flows.NativeTokenHubERC20TokenSpokeMultiHop(LocalNetworkInstance)
+			flows.NativeTokenHomeERC20TokenRemoteMultiHop(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge an ERC20 token to a native token",
-		ginkgo.Label(erc20TokenHubLabel, nativeTokenSpokeLabel),
+		ginkgo.Label(erc20TokenHomeLabel, nativeTokenRemoteLabel),
 		func() {
-			flows.ERC20TokenHubNativeTokenSpoke(LocalNetworkInstance)
+			flows.ERC20TokenHomeNativeTokenRemote(LocalNetworkInstance)
 		})
-	ginkgo.It("Bridge a native token with ERC20TokenHub multi-hop",
-		ginkgo.Label(erc20TokenHubLabel, nativeTokenSpokeLabel, multiHopLabel),
+	ginkgo.It("Bridge a native token with ERC20TokenHome multi-hop",
+		ginkgo.Label(erc20TokenHomeLabel, nativeTokenRemoteLabel, multiHopLabel),
 		func() {
-			flows.ERC20TokenHubNativeTokenSpokeMultiHop(LocalNetworkInstance)
+			flows.ERC20TokenHomeNativeTokenRemoteMultiHop(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge a native token to a native token multi-hop",
-		ginkgo.Label(nativeTokenHubLabel, nativeTokenSpokeLabel, multiHopLabel),
+		ginkgo.Label(nativeTokenHomeLabel, nativeTokenRemoteLabel, multiHopLabel),
 		func() {
-			flows.NativeTokenHubNativeTokenSpokeMultiHop(LocalNetworkInstance)
+			flows.NativeTokenHomeNativeTokenRemoteMultiHop(LocalNetworkInstance)
 		})
 	ginkgo.It("Bridge an ERC20 token using sendAndCall",
-		ginkgo.Label(erc20TokenHubLabel, erc20TokenSpokeLabel, sendAndCallLabel),
+		ginkgo.Label(erc20TokenHomeLabel, erc20TokenRemoteLabel, sendAndCallLabel),
 		func() {
-			flows.ERC20TokenHubERC20TokenSpokeSendAndCall(LocalNetworkInstance)
+			flows.ERC20TokenHomeERC20TokenRemoteSendAndCall(LocalNetworkInstance)
 		})
 	ginkgo.It("Registration and collateral checks",
-		ginkgo.Label(erc20TokenHubLabel, nativeTokenSpokeLabel, registrationLabel),
+		ginkgo.Label(erc20TokenHomeLabel, nativeTokenRemoteLabel, registrationLabel),
 		func() {
 			flows.RegistrationAndCollateralCheck(LocalNetworkInstance)
 		})

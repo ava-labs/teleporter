@@ -13,12 +13,12 @@ import (
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	proxyadmin "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/ProxyAdmin"
-	erc20tokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/ERC20TokenHub"
-	nativetokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/NativeTokenHub"
-	tokenhub "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHub/TokenHub"
-	erc20tokenspoke "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenSpoke/ERC20TokenSpoke"
-	nativetokenspoke "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenSpoke/NativeTokenSpoke"
-	tokenspoke "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenSpoke/TokenSpoke"
+	erc20tokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/ERC20TokenHome"
+	nativetokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/NativeTokenHome"
+	tokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/TokenHome"
+	erc20tokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/ERC20TokenRemote"
+	nativetokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/NativeTokenRemote"
+	tokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/TokenRemote"
 	transparentupgradeableproxy "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TransparentUpgradeableProxy"
 	wrappednativetoken "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/WrappedNativeToken"
 	exampleerc20 "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleERC20Decimals"
@@ -36,101 +36,101 @@ import (
 // Deployer keys set in the genesis file in order to determine the deployed address in advance.
 // The deployed address is set as an admin for the Native Minter precompile.
 
-var nativeTokenSpokeDeployerKeys = []string{
+var nativeTokenRemoteDeployerKeys = []string{
 	// Deployer address: 			   0x1337cfd2dCff6270615B90938aCB1efE79801704
-	// NativeTokenSpoke address: 0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B
+	// NativeTokenRemote address: 0xAcB633F5B00099c7ec187eB00156c5cd9D854b5B
 	"aad7440febfc8f9d73a58c3cb1f1754779a566978f9ebffcd4f4698e9b043985",
 
 	// Deployer address: 			   0xFcec6c0674037f99fa473de09609B4b6D8158863
-	// NativeTokenSpoke address: 0x962c62B01529ecc0561D85d3fe395921ddC3665B
+	// NativeTokenRemote address: 0x962c62B01529ecc0561D85d3fe395921ddC3665B
 	"81e5e98c89023dabbe43e1081314eaae174330aae6b44c9d1371b6c0bb7ae74a",
 
 	// Deployer address:			   0x2e1533d976A675bCD6306deC3B05e9f73e6722Fb
-	// NativeTokenSpoke address: 0x1549B96D9D97F435CA9b25000FEDE3A7e54C0bb9
+	// NativeTokenRemote address: 0x1549B96D9D97F435CA9b25000FEDE3A7e54C0bb9
 	"5ded9cacaca7b88d6a3dc24641cfe41ef00186f98e7fa65135eac50fd5977f7a",
 
 	// Deployer address:			   0xA638b0a597dc0520e2f20E83cFbeBBCd45a79990
-	// NativeTokenSpoke address: 0x190110D1228EB2cDd36559b2215A572Dc8592C3d
+	// NativeTokenRemote address: 0x190110D1228EB2cDd36559b2215A572Dc8592C3d
 	"a6c530cb407778d10e1f70be6624aa57d0c724f6f9cb585e9744052d7f48ba19",
 
 	// Deployer address:			   0x787C079cB0d5A7AA1Cae95d991F76Dce771A432D
-	// NativeTokenSpoke address: 0xf9EF017A764F265A1fD0975bfc200725E41d860E
+	// NativeTokenRemote address: 0xf9EF017A764F265A1fD0975bfc200725E41d860E
 	"e95fa6fd1d2a6b02890b75062bed583ce6256c5b473b3323b93ac4cbf20dbe7a",
 
 	// Deployer address:			   0x741D536f5B07bcD43727CD8435389CA36aE5A4Ae
-	// NativeTokenSpoke address: 0x4f3663be6d22B0F19F8617f1A9E9485aB0144Bff
+	// NativeTokenRemote address: 0x4f3663be6d22B0F19F8617f1A9E9485aB0144Bff
 	"8a92f3f468ce5b0d99f9aaa55695f93e03dbbb6d5e3faba80f92a7876be740d6",
 	// Deployer address:			   0xd466f12795BA59d0fef389c21fA63c287956fb18
-	// NativeTokenSpoke address: 0x463a6bE7a5098A5f06435c6c468adD338F15B93A
+	// NativeTokenRemote address: 0x463a6bE7a5098A5f06435c6c468adD338F15B93A
 	"ebb7f0cf71e0b6fd880326e5f5061b8456b0aef81901566cbe578b5024852ec9",
 }
 
 var (
-	nativeTokenSpokeDeployerKeyIndex    = 0
+	nativeTokenRemoteDeployerKeyIndex   = 0
 	ExpectedExampleERC20DeployerBalance = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1e10))
 )
 
 const NativeTokenDecimals = 18
 
-func DeployERC20TokenHub(
+func DeployERC20TokenHome(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
 	tokenAddress common.Address,
-	tokenHubDecimals uint8,
-) (common.Address, *proxyadmin.ProxyAdmin, *erc20tokenhub.ERC20TokenHub) {
+	tokenHomeDecimals uint8,
+) (common.Address, *proxyadmin.ProxyAdmin, *erc20tokenhome.ERC20TokenHome) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	implAddress, tx, _, err := erc20tokenhub.DeployERC20TokenHub(
+	implAddress, tx, _, err := erc20tokenhome.DeployERC20TokenHome(
 		opts,
 		subnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	proxyAddress, proxyAdmin, erc20TokenHub := DeployTransparentUpgradeableProxy(
+	proxyAddress, proxyAdmin, erc20TokenHome := DeployTransparentUpgradeableProxy(
 		ctx,
 		subnet,
 		senderKey,
 		implAddress,
-		erc20tokenhub.NewERC20TokenHub,
+		erc20tokenhome.NewERC20TokenHome,
 	)
 
-	tx, err = erc20TokenHub.Initialize(
+	tx, err = erc20TokenHome.Initialize(
 		opts,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
 		tokenAddress,
-		tokenHubDecimals,
+		tokenHomeDecimals,
 	)
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return proxyAddress, proxyAdmin, erc20TokenHub
+	return proxyAddress, proxyAdmin, erc20TokenHome
 }
 
-func DeployERC20TokenSpoke(
+func DeployERC20TokenRemote(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
-	tokenHubBlockchainID ids.ID,
-	tokenHubAddress common.Address,
-	tokenHubDecimals uint8,
+	tokenHomeBlockchainID ids.ID,
+	tokenHomeAddress common.Address,
+	tokenHomeDecimals uint8,
 	tokenName string,
 	tokenSymbol string,
 	tokenDecimals uint8,
-) (common.Address, *erc20tokenspoke.ERC20TokenSpoke) {
+) (common.Address, *erc20tokenremote.ERC20TokenRemote) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	implAddress, tx, _, err := erc20tokenspoke.DeployERC20TokenSpoke(
+	implAddress, tx, _, err := erc20tokenremote.DeployERC20TokenRemote(
 		opts,
 		subnet.RPCClient,
 	)
@@ -138,22 +138,22 @@ func DeployERC20TokenSpoke(
 
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	proxyAddress, _, erc20TokenSpoke := DeployTransparentUpgradeableProxy(
+	proxyAddress, _, erc20TokenRemote := DeployTransparentUpgradeableProxy(
 		ctx,
 		subnet,
 		senderKey,
 		implAddress,
-		erc20tokenspoke.NewERC20TokenSpoke,
+		erc20tokenremote.NewERC20TokenRemote,
 	)
 
-	tx, err = erc20TokenSpoke.Initialize(
+	tx, err = erc20TokenRemote.Initialize(
 		opts,
-		erc20tokenspoke.TokenSpokeSettings{
+		erc20tokenremote.TokenRemoteSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
-			TokenHubBlockchainID:      tokenHubBlockchainID,
-			TokenHubAddress:           tokenHubAddress,
-			TokenHubDecimals:          tokenHubDecimals,
+			TokenHomeBlockchainID:     tokenHomeBlockchainID,
+			TokenHomeAddress:          tokenHomeAddress,
+			TokenHomeDecimals:         tokenHomeDecimals,
 		},
 		tokenName,
 		tokenSymbol,
@@ -162,25 +162,25 @@ func DeployERC20TokenSpoke(
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return proxyAddress, erc20TokenSpoke
+	return proxyAddress, erc20TokenRemote
 }
 
-func DeployNativeTokenSpoke(
+func DeployNativeTokenRemote(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
 	symbol string,
 	teleporterManager common.Address,
-	tokenHubBlockchainID ids.ID,
-	tokenHubAddress common.Address,
-	tokenHubDecimals uint8,
+	tokenHomeBlockchainID ids.ID,
+	tokenHomeAddress common.Address,
+	tokenHomeDecimals uint8,
 	initialReserveImbalance *big.Int,
-	multiplyOnSpoke bool,
+	multiplyOnRemote bool,
 	burnedFeesReportingRewardPercentage *big.Int,
-) (common.Address, *nativetokenspoke.NativeTokenSpoke) {
-	// The NativeTokenSpoke needs a unique deployer key, whose nonce 0 is used to deploy the contract.
+) (common.Address, *nativetokenremote.NativeTokenRemote) {
+	// The NativeTokenRemote needs a unique deployer key, whose nonce 0 is used to deploy the contract.
 	// The resulting contract address has been added to the genesis file as an admin for the Native Minter precompile.
-	Expect(nativeTokenSpokeDeployerKeyIndex).Should(BeNumerically("<", len(nativeTokenSpokeDeployerKeys)))
-	deployerKeyStr := nativeTokenSpokeDeployerKeys[nativeTokenSpokeDeployerKeyIndex]
+	Expect(nativeTokenRemoteDeployerKeyIndex).Should(BeNumerically("<", len(nativeTokenRemoteDeployerKeys)))
+	deployerKeyStr := nativeTokenRemoteDeployerKeys[nativeTokenRemoteDeployerKeyIndex]
 	deployerPK, err := crypto.HexToECDSA(deployerKeyStr)
 	Expect(err).Should(BeNil())
 
@@ -190,29 +190,29 @@ func DeployNativeTokenSpoke(
 	)
 	Expect(err).Should(BeNil())
 
-	implAddress, tx, nativeTokenSpoke, err := nativetokenspoke.DeployNativeTokenSpoke(
+	implAddress, tx, nativeTokenRemote, err := nativetokenremote.DeployNativeTokenRemote(
 		opts,
 		subnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	// proxyAddress, _, nativeTokenSpoke := DeployTransparentUpgradeableProxy(
+	// proxyAddress, _, nativeTokenRemote := DeployTransparentUpgradeableProxy(
 	// 	ctx,
 	// 	subnet,
 	// 	senderKey,
 	// 	implAddress,
-	// 	nativetokenspoke.NewNativeTokenSpoke,
+	// 	nativetokenremote.NewNativeTokenRemote,
 	// )
 
-	tx, err = nativeTokenSpoke.Initialize(
+	tx, err = nativeTokenRemote.Initialize(
 		opts,
-		nativetokenspoke.TokenSpokeSettings{
+		nativetokenremote.TokenRemoteSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
-			TokenHubBlockchainID:      tokenHubBlockchainID,
-			TokenHubAddress:           tokenHubAddress,
-			TokenHubDecimals:          tokenHubDecimals,
+			TokenHomeBlockchainID:     tokenHomeBlockchainID,
+			TokenHomeAddress:          tokenHomeAddress,
+			TokenHomeDecimals:         tokenHomeDecimals,
 		},
 		symbol,
 		initialReserveImbalance,
@@ -222,39 +222,39 @@ func DeployNativeTokenSpoke(
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	// Increment to the next deployer key so that the next contract deployment succeeds
-	nativeTokenSpokeDeployerKeyIndex++
+	nativeTokenRemoteDeployerKeyIndex++
 
-	return implAddress, nativeTokenSpoke
+	return implAddress, nativeTokenRemote
 }
 
-func DeployNativeTokenHub(
+func DeployNativeTokenHome(
 	ctx context.Context,
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	teleporterManager common.Address,
 	tokenAddress common.Address,
-) (common.Address, *nativetokenhub.NativeTokenHub) {
+) (common.Address, *nativetokenhome.NativeTokenHome) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	implAddress, tx, _, err := nativetokenhub.DeployNativeTokenHub(
+	implAddress, tx, _, err := nativetokenhome.DeployNativeTokenHome(
 		opts,
 		subnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	proxyAddress, _, nativeTokenHub := DeployTransparentUpgradeableProxy(
+	proxyAddress, _, nativeTokenHome := DeployTransparentUpgradeableProxy(
 		ctx,
 		subnet,
 		senderKey,
 		implAddress,
-		nativetokenhub.NewNativeTokenHub,
+		nativetokenhome.NewNativeTokenHome,
 	)
 
-	tx, err = nativeTokenHub.Initialize(
+	tx, err = nativeTokenHome.Initialize(
 		opts,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
@@ -263,7 +263,7 @@ func DeployNativeTokenHub(
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return proxyAddress, nativeTokenHub
+	return proxyAddress, nativeTokenHome
 }
 
 func DeployWrappedNativeToken(
@@ -387,42 +387,42 @@ func DeployTransparentUpgradeableProxy[T any](
 	return proxyAddress, proxyAdmin, contract
 }
 
-func RegisterERC20TokenSpokeOnHub(
+func RegisterERC20TokenRemoteOnHome(
 	ctx context.Context,
 	network interfaces.Network,
-	hubSubnet interfaces.SubnetTestInfo,
-	hubAddress common.Address,
-	spokeSubnet interfaces.SubnetTestInfo,
-	spokeAddress common.Address,
+	homeSubnet interfaces.SubnetTestInfo,
+	homeAddress common.Address,
+	remoteSubnet interfaces.SubnetTestInfo,
+	remoteAddress common.Address,
 ) {
-	RegisterTokenSpokeOnHub(
+	RegisterTokenRemoteOnHome(
 		ctx,
 		network,
-		hubSubnet,
-		hubAddress,
-		spokeSubnet,
-		spokeAddress,
+		homeSubnet,
+		homeAddress,
+		remoteSubnet,
+		remoteAddress,
 		big.NewInt(0),
 		big.NewInt(1),
 		false,
 	)
 }
 
-func RegisterTokenSpokeOnHub(
+func RegisterTokenRemoteOnHome(
 	ctx context.Context,
 	network interfaces.Network,
-	hubSubnet interfaces.SubnetTestInfo,
-	hubAddress common.Address,
-	spokeSubnet interfaces.SubnetTestInfo,
-	spokeAddress common.Address,
+	homeSubnet interfaces.SubnetTestInfo,
+	homeAddress common.Address,
+	remoteSubnet interfaces.SubnetTestInfo,
+	remoteAddress common.Address,
 	expectedInitialReserveBalance *big.Int,
 	expectedTokenMultiplier *big.Int,
-	expectedmultiplyOnSpoke bool,
+	expectedmultiplyOnRemote bool,
 ) *big.Int {
-	// Call the spoke to send a register message to the hub
-	tokenSpoke, err := tokenspoke.NewTokenSpoke(
-		spokeAddress,
-		spokeSubnet.RPCClient,
+	// Call the remote to send a register message to the home
+	tokenRemote, err := tokenremote.NewTokenRemote(
+		remoteAddress,
+		remoteSubnet.RPCClient,
 	)
 	Expect(err).Should(BeNil())
 	_, fundedKey := network.GetFundedAccountInfo()
@@ -431,165 +431,165 @@ func RegisterTokenSpokeOnHub(
 	feeTokenAddress, feeToken := DeployExampleERC20(
 		ctx,
 		fundedKey,
-		spokeSubnet,
+		remoteSubnet,
 		18,
 	)
 
-	// Approve the ERC20TokenHub to spend the tokens
+	// Approve the ERC20TokenHome to spend the tokens
 	feeAmount := big.NewInt(1e18)
 	ERC20Approve(
 		ctx,
 		feeToken,
-		spokeAddress,
+		remoteAddress,
 		feeAmount,
-		spokeSubnet,
+		remoteSubnet,
 		fundedKey,
 	)
 
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, spokeSubnet.EVMChainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, remoteSubnet.EVMChainID)
 	Expect(err).Should(BeNil())
 
-	sendRegisterTx, err := tokenSpoke.RegisterWithHub(
+	sendRegisterTx, err := tokenRemote.RegisterWithHome(
 		opts,
-		tokenspoke.TeleporterFeeInfo{
+		tokenremote.TeleporterFeeInfo{
 			FeeTokenAddress: feeTokenAddress,
 			Amount:          feeAmount,
 		},
 	)
 	Expect(err).Should(BeNil())
-	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, spokeSubnet, sendRegisterTx.Hash())
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, remoteSubnet, sendRegisterTx.Hash())
 
-	// Relay the register message to the hub
-	receipt = network.RelayMessage(ctx, receipt, spokeSubnet, hubSubnet, true)
+	// Relay the register message to the home
+	receipt = network.RelayMessage(ctx, receipt, remoteSubnet, homeSubnet, true)
 
-	// Check that the spoke registered event was emitted
-	tokenHub, err := tokenhub.NewTokenHub(hubAddress, hubSubnet.RPCClient)
+	// Check that the remote registered event was emitted
+	tokenHome, err := tokenhome.NewTokenHome(homeAddress, homeSubnet.RPCClient)
 	Expect(err).Should(BeNil())
-	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, tokenHub.ParseSpokeRegistered)
+	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, tokenHome.ParseRemoteRegistered)
 	Expect(err).Should(BeNil())
-	Expect(registerEvent.SpokeBlockchainID[:]).Should(Equal(spokeSubnet.BlockchainID[:]))
-	Expect(registerEvent.SpokeBridgeAddress).Should(Equal(spokeAddress))
+	Expect(registerEvent.RemoteBlockchainID[:]).Should(Equal(remoteSubnet.BlockchainID[:]))
+	Expect(registerEvent.RemoteBridgeAddress).Should(Equal(remoteAddress))
 
-	// Based on the initial reserve balance of the spoke instance,
-	// calculate the collateral amount of hub tokens needed to collateralize the spoke.
+	// Based on the initial reserve balance of the TokenRemote instance,
+	// calculate the collateral amount of home tokens needed to collateralize the remote.
 	collateralNeeded := calculateCollateralNeeded(
 		expectedInitialReserveBalance,
 		expectedTokenMultiplier,
-		expectedmultiplyOnSpoke,
+		expectedmultiplyOnRemote,
 	)
 	teleporterUtils.ExpectBigEqual(registerEvent.InitialCollateralNeeded, collateralNeeded)
 
 	return collateralNeeded
 }
 
-// AddCollateralToERC20TokenHub adds collateral to the ERC20TokenHub contract
+// AddCollateralToERC20TokenHome adds collateral to the ERC20TokenHome contract
 // and verifies the collateral was added successfully. Any excess amount
 // is returned to the caller.
-func AddCollateralToERC20TokenHub(
+func AddCollateralToERC20TokenHome(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	erc20TokenHub *erc20tokenhub.ERC20TokenHub,
-	erc20TokenHubAddress common.Address,
+	erc20TokenHome *erc20tokenhome.ERC20TokenHome,
+	erc20TokenHomeAddress common.Address,
 	exampleERC20 *exampleerc20.ExampleERC20Decimals,
-	spokeBlockchainID ids.ID,
-	spokeAddress common.Address,
+	remoteBlockchainID ids.ID,
+	remoteAddress common.Address,
 	collateralAmount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) {
-	// Approve the ERC20TokenHub to spend the collateral
+	// Approve the ERC20TokenHome to spend the collateral
 	ERC20Approve(
 		ctx,
 		exampleERC20,
-		erc20TokenHubAddress,
+		erc20TokenHomeAddress,
 		collateralAmount,
 		subnet,
 		senderKey,
 	)
 
-	// Add collateral to the ERC20TokenHub
+	// Add collateral to the ERC20TokenHome
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := erc20TokenHub.AddCollateral(
+	tx, err := erc20TokenHome.AddCollateral(
 		opts,
-		spokeBlockchainID,
-		spokeAddress,
+		remoteBlockchainID,
+		remoteAddress,
 		collateralAmount,
 	)
 	Expect(err).Should(BeNil())
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHub.ParseCollateralAdded)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseCollateralAdded)
 	Expect(err).Should(BeNil())
-	Expect(event.SpokeBlockchainID[:]).Should(Equal(spokeBlockchainID[:]))
-	Expect(event.SpokeBridgeAddress).Should(Equal(spokeAddress))
+	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
+	Expect(event.RemoteBridgeAddress).Should(Equal(remoteAddress))
 
-	spokeSettings, err := erc20TokenHub.RegisteredSpokes(
+	remoteSettings, err := erc20TokenHome.RegisteredRemotes(
 		&bind.CallOpts{},
-		spokeBlockchainID,
-		spokeAddress)
+		remoteBlockchainID,
+		remoteAddress)
 	Expect(err).Should(BeNil())
-	if collateralAmount.Cmp(spokeSettings.CollateralNeeded) > 0 {
-		collateralAmount.Sub(collateralAmount, spokeSettings.CollateralNeeded)
+	if collateralAmount.Cmp(remoteSettings.CollateralNeeded) > 0 {
+		collateralAmount.Sub(collateralAmount, remoteSettings.CollateralNeeded)
 	}
 	teleporterUtils.ExpectBigEqual(event.Amount, collateralAmount)
 	teleporterUtils.ExpectBigEqual(event.Remaining, big.NewInt(0))
 }
 
-// AddCollateralToNativeTokenHub adds collateral to the NativeTokenHub contract
+// AddCollateralToNativeTokenHome adds collateral to the NativeTokenHome contract
 // and verifies the collateral was added successfully. Any excess amount
 // is returned to the caller.
-func AddCollateralToNativeTokenHub(
+func AddCollateralToNativeTokenHome(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	nativeTokenHub *nativetokenhub.NativeTokenHub,
-	nativeTokenHubAddress common.Address,
-	spokeBlockchainID ids.ID,
-	spokeAddress common.Address,
+	nativeTokenHome *nativetokenhome.NativeTokenHome,
+	nativeTokenHomeAddress common.Address,
+	remoteBlockchainID ids.ID,
+	remoteAddress common.Address,
 	collateralAmount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) {
-	// Add collateral to the ERC20TokenHub
+	// Add collateral to the ERC20TokenHome
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	opts.Value = collateralAmount
 
-	tx, err := nativeTokenHub.AddCollateral(
+	tx, err := nativeTokenHome.AddCollateral(
 		opts,
-		spokeBlockchainID,
-		spokeAddress,
+		remoteBlockchainID,
+		remoteAddress,
 	)
 	Expect(err).Should(BeNil())
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenHub.ParseCollateralAdded)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenHome.ParseCollateralAdded)
 	Expect(err).Should(BeNil())
-	Expect(event.SpokeBlockchainID[:]).Should(Equal(spokeBlockchainID[:]))
-	Expect(event.SpokeBridgeAddress).Should(Equal(spokeAddress))
-	spokeSettings, err := nativeTokenHub.RegisteredSpokes(
+	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
+	Expect(event.RemoteBridgeAddress).Should(Equal(remoteAddress))
+	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
 		&bind.CallOpts{},
-		spokeBlockchainID,
-		spokeAddress)
+		remoteBlockchainID,
+		remoteAddress)
 	Expect(err).Should(BeNil())
-	if collateralAmount.Cmp(spokeSettings.CollateralNeeded) > 0 {
-		collateralAmount.Sub(collateralAmount, spokeSettings.CollateralNeeded)
+	if collateralAmount.Cmp(remoteSettings.CollateralNeeded) > 0 {
+		collateralAmount.Sub(collateralAmount, remoteSettings.CollateralNeeded)
 	}
 	teleporterUtils.ExpectBigEqual(event.Amount, collateralAmount)
 	teleporterUtils.ExpectBigEqual(event.Remaining, big.NewInt(0))
 }
 
-func SendERC20TokenHub(
+func SendERC20TokenHome(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	erc20TokenHub *erc20tokenhub.ERC20TokenHub,
-	erc20TokenHubAddress common.Address,
+	erc20TokenHome *erc20tokenhome.ERC20TokenHome,
+	erc20TokenHomeAddress common.Address,
 	token *exampleerc20.ExampleERC20Decimals,
-	input erc20tokenhub.SendTokensInput,
+	input erc20tokenhome.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
-	// Approve the ERC20TokenHub to spend the tokens
+	// Approve the ERC20TokenHome to spend the tokens
 	ERC20Approve(
 		ctx,
 		token,
-		erc20TokenHubAddress,
+		erc20TokenHomeAddress,
 		big.NewInt(0).Add(amount, input.PrimaryFee),
 		subnet,
 		senderKey,
@@ -598,7 +598,7 @@ func SendERC20TokenHub(
 	// Send the tokens and verify expected events
 	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := erc20TokenHub.Send(
+	tx, err := erc20TokenHome.Send(
 		optsA,
 		input,
 		amount,
@@ -606,13 +606,13 @@ func SendERC20TokenHub(
 	Expect(err).Should(BeNil())
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHub.ParseTokensSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 
 	// Compute the scaled amount
-	scaledAmount := GetScaledAmountFromERC20TokenHub(
-		erc20TokenHub,
+	scaledAmount := GetScaledAmountFromERC20TokenHome(
+		erc20TokenHome,
 		input.DestinationBlockchainID,
 		input.DestinationBridgeAddress,
 		amount,
@@ -622,13 +622,13 @@ func SendERC20TokenHub(
 	return receipt, event.Amount
 }
 
-func SendNativeTokenHub(
+func SendNativeTokenHome(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	nativeTokenHub *nativetokenhub.NativeTokenHub,
-	nativeTokenHubAddress common.Address,
+	nativeTokenHome *nativetokenhome.NativeTokenHome,
+	nativeTokenHomeAddress common.Address,
 	wrappedToken *wrappednativetoken.WrappedNativeToken,
-	input nativetokenhub.SendTokensInput,
+	input nativetokenhome.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
@@ -637,7 +637,7 @@ func SendNativeTokenHub(
 		subnet,
 		wrappedToken,
 		input.PrimaryFee,
-		nativeTokenHubAddress,
+		nativeTokenHomeAddress,
 		senderKey,
 	)
 
@@ -645,20 +645,20 @@ func SendNativeTokenHub(
 	Expect(err).Should(BeNil())
 	opts.Value = amount
 
-	tx, err := nativeTokenHub.Send(
+	tx, err := nativeTokenHome.Send(
 		opts,
 		input,
 	)
 	Expect(err).Should(BeNil())
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenHub.ParseTokensSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenHome.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 
 	// Compute the scaled amount
-	scaledAmount := GetScaledAmountFromNativeTokenHub(
-		nativeTokenHub,
+	scaledAmount := GetScaledAmountFromNativeTokenHome(
+		nativeTokenHome,
 		input.DestinationBlockchainID,
 		input.DestinationBridgeAddress,
 		amount,
@@ -668,21 +668,21 @@ func SendNativeTokenHub(
 	return receipt, event.Amount
 }
 
-func SendNativeTokenSpoke(
+func SendNativeTokenRemote(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	nativeTokenSpoke *nativetokenspoke.NativeTokenSpoke,
-	nativeTokenSpokeAddress common.Address,
-	input nativetokenspoke.SendTokensInput,
+	nativeTokenRemote *nativetokenremote.NativeTokenRemote,
+	nativeTokenRemoteAddress common.Address,
+	input nativetokenremote.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
 	DepositAndApproveWrappedTokenForFees(
 		ctx,
 		subnet,
-		nativeTokenSpoke,
+		nativeTokenRemote,
 		input.PrimaryFee,
-		nativeTokenSpokeAddress,
+		nativeTokenRemoteAddress,
 		senderKey,
 	)
 
@@ -690,14 +690,14 @@ func SendNativeTokenSpoke(
 	Expect(err).Should(BeNil())
 	opts.Value = amount
 
-	tx, err := nativeTokenSpoke.Send(
+	tx, err := nativeTokenRemote.Send(
 		opts,
 		input,
 	)
 	Expect(err).Should(BeNil())
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSpoke.ParseTokensSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenRemote.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	teleporterUtils.ExpectBigEqual(event.Amount, amount)
@@ -705,20 +705,20 @@ func SendNativeTokenSpoke(
 	return receipt, event.Amount
 }
 
-func SendERC20TokenSpoke(
+func SendERC20TokenRemote(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	erc20TokenSpoke *erc20tokenspoke.ERC20TokenSpoke,
-	erc20TokenSpokeAddress common.Address,
-	input erc20tokenspoke.SendTokensInput,
+	erc20TokenRemote *erc20tokenremote.ERC20TokenRemote,
+	erc20TokenRemoteAddress common.Address,
+	input erc20tokenremote.SendTokensInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := erc20TokenSpoke.Approve(
+	tx, err := erc20TokenRemote.Approve(
 		opts,
-		erc20TokenSpokeAddress,
+		erc20TokenRemoteAddress,
 		big.NewInt(0).Add(amount, input.PrimaryFee),
 	)
 	Expect(err).Should(BeNil())
@@ -726,7 +726,7 @@ func SendERC20TokenSpoke(
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	// Bridge the tokens back to subnet A
-	tx, err = erc20TokenSpoke.Send(
+	tx, err = erc20TokenRemote.Send(
 		opts,
 		input,
 		amount,
@@ -734,7 +734,7 @@ func SendERC20TokenSpoke(
 	Expect(err).Should(BeNil())
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenSpoke.ParseTokensSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenRemote.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(senderKey.PublicKey)))
 	teleporterUtils.ExpectBigEqual(event.Amount, amount)
@@ -742,21 +742,21 @@ func SendERC20TokenSpoke(
 	return receipt, event.Amount
 }
 
-func SendAndCallERC20TokenHub(
+func SendAndCallERC20TokenHome(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	erc20TokenHub *erc20tokenhub.ERC20TokenHub,
-	erc20TokenHubAddress common.Address,
+	erc20TokenHome *erc20tokenhome.ERC20TokenHome,
+	erc20TokenHomeAddress common.Address,
 	exampleToken *exampleerc20.ExampleERC20Decimals,
-	input erc20tokenhub.SendAndCallInput,
+	input erc20tokenhome.SendAndCallInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
-	// Approve the ERC20TokenHub to spend the tokens
+	// Approve the ERC20TokenHome to spend the tokens
 	ERC20Approve(
 		ctx,
 		exampleToken,
-		erc20TokenHubAddress,
+		erc20TokenHomeAddress,
 		big.NewInt(0).Add(amount, input.PrimaryFee),
 		subnet,
 		senderKey,
@@ -765,7 +765,7 @@ func SendAndCallERC20TokenHub(
 	// Send the tokens and verify expected events
 	optsA, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := erc20TokenHub.SendAndCall(
+	tx, err := erc20TokenHome.SendAndCall(
 		optsA,
 		input,
 		amount,
@@ -773,13 +773,13 @@ func SendAndCallERC20TokenHub(
 	Expect(err).Should(BeNil())
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHub.ParseTokensAndCallSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseTokensAndCallSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 
 	// Computer the scaled amount
-	scaledAmount := GetScaledAmountFromERC20TokenHub(
-		erc20TokenHub,
+	scaledAmount := GetScaledAmountFromERC20TokenHome(
+		erc20TokenHome,
 		input.DestinationBlockchainID,
 		input.DestinationBridgeAddress,
 		amount,
@@ -789,11 +789,11 @@ func SendAndCallERC20TokenHub(
 	return receipt, event.Amount
 }
 
-func SendAndCallNativeTokenHub(
+func SendAndCallNativeTokenHome(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	nativeTokenHub *nativetokenhub.NativeTokenHub,
-	input nativetokenhub.SendAndCallInput,
+	nativeTokenHome *nativetokenhome.NativeTokenHome,
+	input nativetokenhome.SendAndCallInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
@@ -801,27 +801,27 @@ func SendAndCallNativeTokenHub(
 	Expect(err).Should(BeNil())
 	opts.Value = amount
 
-	tx, err := nativeTokenHub.SendAndCall(
+	tx, err := nativeTokenHome.SendAndCall(
 		opts,
 		input,
 	)
 	Expect(err).Should(BeNil())
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenHub.ParseTokensAndCallSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenHome.ParseTokensAndCallSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 
 	// Compute the scaled amount
-	spokeSettings, err := nativeTokenHub.RegisteredSpokes(
+	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
 		&bind.CallOpts{},
 		input.DestinationBlockchainID,
 		input.DestinationBridgeAddress)
 	Expect(err).Should(BeNil())
 
 	scaledAmount := ApplyTokenScaling(
-		spokeSettings.TokenMultiplier,
-		spokeSettings.MultiplyOnSpoke,
+		remoteSettings.TokenMultiplier,
+		remoteSettings.MultiplyOnRemote,
 		amount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
@@ -829,21 +829,21 @@ func SendAndCallNativeTokenHub(
 	return receipt, event.Amount
 }
 
-func SendAndCallNativeTokenSpoke(
+func SendAndCallNativeTokenRemote(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	nativeTokenSpoke *nativetokenspoke.NativeTokenSpoke,
-	input nativetokenspoke.SendAndCallInput,
+	nativeTokenRemote *nativetokenremote.NativeTokenRemote,
+	input nativetokenremote.SendAndCallInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 	tokenMultiplier *big.Int,
-	multiplyOnSpoke bool,
+	multiplyOnRemote bool,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
 	opts.Value = amount
 
-	tx, err := nativeTokenSpoke.SendAndCall(
+	tx, err := nativeTokenRemote.SendAndCall(
 		opts,
 		input,
 	)
@@ -852,7 +852,7 @@ func SendAndCallNativeTokenSpoke(
 	bridgedAmount := big.NewInt(0).Sub(amount, input.PrimaryFee)
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenSpoke.ParseTokensAndCallSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenRemote.ParseTokensAndCallSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 	teleporterUtils.ExpectBigEqual(event.Amount, bridgedAmount)
@@ -860,20 +860,20 @@ func SendAndCallNativeTokenSpoke(
 	return receipt, event.Amount
 }
 
-func SendAndCallERC20TokenSpoke(
+func SendAndCallERC20TokenRemote(
 	ctx context.Context,
 	subnet interfaces.SubnetTestInfo,
-	erc20TokenSpoke *erc20tokenspoke.ERC20TokenSpoke,
-	erc20TokenSpokeAddress common.Address,
-	input erc20tokenspoke.SendAndCallInput,
+	erc20TokenRemote *erc20tokenremote.ERC20TokenRemote,
+	erc20TokenRemoteAddress common.Address,
+	input erc20tokenremote.SendAndCallInput,
 	amount *big.Int,
 	senderKey *ecdsa.PrivateKey,
 ) (*types.Receipt, *big.Int) {
 	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err := erc20TokenSpoke.Approve(
+	tx, err := erc20TokenRemote.Approve(
 		opts,
-		erc20TokenSpokeAddress,
+		erc20TokenRemoteAddress,
 		big.NewInt(0).Add(amount, input.PrimaryFee),
 	)
 	Expect(err).Should(BeNil())
@@ -881,7 +881,7 @@ func SendAndCallERC20TokenSpoke(
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	// Bridge the tokens back to subnet A
-	tx, err = erc20TokenSpoke.SendAndCall(
+	tx, err = erc20TokenRemote.SendAndCall(
 		opts,
 		input,
 		amount,
@@ -889,7 +889,7 @@ func SendAndCallERC20TokenSpoke(
 	Expect(err).Should(BeNil())
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenSpoke.ParseTokensAndCallSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenRemote.ParseTokensAndCallSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 	teleporterUtils.ExpectBigEqual(event.Amount, amount)
@@ -899,7 +899,7 @@ func SendAndCallERC20TokenSpoke(
 
 // Send a native token from fromBridge to toBridge via multi-hop through the C-Chain
 // Requires that both fromBridge and toBridge are fully collateralized
-// Requires that both fromBridge and toBridge have the same tokenMultiplier and multiplyOnSpoke
+// Requires that both fromBridge and toBridge have the same tokenMultiplier and multiplyOnRemote
 // with respect to the original asset on the C-Chain
 func SendNativeMultiHopAndVerify(
 	ctx context.Context,
@@ -907,16 +907,16 @@ func SendNativeMultiHopAndVerify(
 	sendingKey *ecdsa.PrivateKey,
 	recipientAddress common.Address,
 	fromSubnet interfaces.SubnetTestInfo,
-	fromBridge *nativetokenspoke.NativeTokenSpoke,
+	fromBridge *nativetokenremote.NativeTokenRemote,
 	fromBridgeAddress common.Address,
 	toSubnet interfaces.SubnetTestInfo,
-	toBridge *nativetokenspoke.NativeTokenSpoke,
+	toBridge *nativetokenremote.NativeTokenRemote,
 	toBridgeAddress common.Address,
 	cChainInfo interfaces.SubnetTestInfo,
 	amount *big.Int,
 	secondaryFeeAmount *big.Int,
 ) {
-	input := nativetokenspoke.SendTokensInput{
+	input := nativetokenremote.SendTokensInput{
 		DestinationBlockchainID:  toSubnet.BlockchainID,
 		DestinationBridgeAddress: toBridgeAddress,
 		Recipient:                recipientAddress,
@@ -928,7 +928,7 @@ func SendNativeMultiHopAndVerify(
 	}
 
 	// Send tokens through a multi-hop transfer
-	originReceipt, amount := SendNativeTokenSpoke(
+	originReceipt, amount := SendNativeTokenRemote(
 		ctx,
 		fromSubnet,
 		fromBridge,
@@ -938,8 +938,8 @@ func SendNativeMultiHopAndVerify(
 		sendingKey,
 	)
 
-	// Relay the first message back to the hub chain, in this case C-Chain,
-	// which then performs the multi-hop transfer to the destination spoke
+	// Relay the first message back to the home chain, in this case C-Chain,
+	// which then performs the multi-hop transfer to the destination TokenRemote instance.
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -951,9 +951,9 @@ func SendNativeMultiHopAndVerify(
 	initialBalance, err := toSubnet.RPCClient.BalanceAt(ctx, recipientAddress, nil)
 	Expect(err).Should(BeNil())
 
-	// When we relay the above message to the hub chain, a multi-hop transfer
-	// is performed to the destination spoke. Parse for the send tokens event
-	// and relay to destination spoke.
+	// When we relay the above message to the home chain, a multi-hop transfer
+	// is performed to the destination TokenRemote instance. Parse for the send tokens event
+	// and relay to the destination TokenRemote instance.
 	network.RelayMessage(
 		ctx,
 		intermediateReceipt,
@@ -978,10 +978,10 @@ func SendERC20TokenMultiHopAndVerify(
 	sendingKey *ecdsa.PrivateKey,
 	recipientAddress common.Address,
 	fromSubnet interfaces.SubnetTestInfo,
-	fromBridge *erc20tokenspoke.ERC20TokenSpoke,
+	fromBridge *erc20tokenremote.ERC20TokenRemote,
 	fromBridgeAddress common.Address,
 	toSubnet interfaces.SubnetTestInfo,
-	toBridge *erc20tokenspoke.ERC20TokenSpoke,
+	toBridge *erc20tokenremote.ERC20TokenRemote,
 	toBridgeAddress common.Address,
 	cChainInfo interfaces.SubnetTestInfo,
 	amount *big.Int,
@@ -995,7 +995,7 @@ func SendERC20TokenMultiHopAndVerify(
 		crypto.PubkeyToAddress(sendingKey.PublicKey),
 		big.NewInt(1e18),
 	)
-	input := erc20tokenspoke.SendTokensInput{
+	input := erc20tokenremote.SendTokensInput{
 		DestinationBlockchainID:  toSubnet.BlockchainID,
 		DestinationBridgeAddress: toBridgeAddress,
 		Recipient:                recipientAddress,
@@ -1007,7 +1007,7 @@ func SendERC20TokenMultiHopAndVerify(
 	}
 
 	// Send tokens through a multi-hop transfer
-	originReceipt, amount := SendERC20TokenSpoke(
+	originReceipt, amount := SendERC20TokenRemote(
 		ctx,
 		fromSubnet,
 		fromBridge,
@@ -1017,8 +1017,8 @@ func SendERC20TokenMultiHopAndVerify(
 		sendingKey,
 	)
 
-	// Relay the first message back to the hub chain, in this case C-Chain,
-	// which then performs the multi-hop transfer to the destination spoke
+	// Relay the first message back to the home chain, in this case C-Chain,
+	// which then performs the multi-hop transfer to the destination TokenRemote instance.
 	intermediateReceipt := network.RelayMessage(
 		ctx,
 		originReceipt,
@@ -1037,26 +1037,26 @@ func SendERC20TokenMultiHopAndVerify(
 	initialBalance, err := toBridge.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
 
-	// When we relay the above message to the hub chain, a multi-hop transfer
-	// is performed to the destination spoke. Parse for the send tokens event
-	// and relay to destination spoke.
-	spokeReceipt := network.RelayMessage(
+	// When we relay the above message to the home chain, a multi-hop transfer
+	// is performed to the destination TokenRemote instance. Parse for the send tokens event
+	// and relay to the destination TokenRemote instance.
+	remoteReceipt := network.RelayMessage(
 		ctx,
 		intermediateReceipt,
 		cChainInfo,
 		toSubnet,
 		true,
 	)
-	_, err = teleporterUtils.GetEventFromLogs(spokeReceipt.Logs, toSubnet.TeleporterMessenger.ParseMessageExecuted)
+	_, err = teleporterUtils.GetEventFromLogs(remoteReceipt.Logs, toSubnet.TeleporterMessenger.ParseMessageExecuted)
 	if err != nil {
-		teleporterUtils.TraceTransactionAndExit(ctx, toSubnet, spokeReceipt.TxHash)
+		teleporterUtils.TraceTransactionAndExit(ctx, toSubnet, remoteReceipt.TxHash)
 	}
 
 	bridgedAmount := big.NewInt(0).Sub(amount, input.SecondaryFee)
-	CheckERC20TokenSpokeWithdrawal(
+	CheckERC20TokenRemoteWithdrawal(
 		ctx,
 		toBridge,
-		spokeReceipt,
+		remoteReceipt,
 		recipientAddress,
 		bridgedAmount,
 	)
@@ -1066,45 +1066,45 @@ func SendERC20TokenMultiHopAndVerify(
 	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, bridgedAmount))
 }
 
-func CheckERC20TokenHubWithdrawal(
+func CheckERC20TokenHomeWithdrawal(
 	ctx context.Context,
-	erc20TokenHubAddress common.Address,
+	erc20TokenHomeAddress common.Address,
 	exampleERC20 *exampleerc20.ExampleERC20Decimals,
 	receipt *types.Receipt,
 	expectedRecipientAddress common.Address,
 	expectedAmount *big.Int,
 ) {
-	hubTransferEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, exampleERC20.ParseTransfer)
+	homeTransferEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, exampleERC20.ParseTransfer)
 	Expect(err).Should(BeNil())
-	Expect(hubTransferEvent.From).Should(Equal(erc20TokenHubAddress))
-	Expect(hubTransferEvent.To).Should(Equal(expectedRecipientAddress))
-	teleporterUtils.ExpectBigEqual(hubTransferEvent.Value, expectedAmount)
+	Expect(homeTransferEvent.From).Should(Equal(erc20TokenHomeAddress))
+	Expect(homeTransferEvent.To).Should(Equal(expectedRecipientAddress))
+	teleporterUtils.ExpectBigEqual(homeTransferEvent.Value, expectedAmount)
 }
 
-func CheckERC20TokenSpokeWithdrawal(
+func CheckERC20TokenRemoteWithdrawal(
 	ctx context.Context,
-	erc20TokenSpoke *erc20tokenspoke.ERC20TokenSpoke,
+	erc20TokenRemote *erc20tokenremote.ERC20TokenRemote,
 	receipt *types.Receipt,
 	expectedRecipientAddress common.Address,
 	expectedAmount *big.Int,
 ) {
-	transferEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenSpoke.ParseTransfer)
+	transferEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenRemote.ParseTransfer)
 	Expect(err).Should(BeNil())
 	Expect(transferEvent.From).Should(Equal(common.Address{}))
 	Expect(transferEvent.To).Should(Equal(expectedRecipientAddress))
 	teleporterUtils.ExpectBigEqual(transferEvent.Value, expectedAmount)
 }
 
-func CheckNativeTokenHubWithdrawal(
+func CheckNativeTokenHomeWithdrawal(
 	ctx context.Context,
-	nativeTokenHubAddress common.Address,
+	nativeTokenHomeAddress common.Address,
 	wrappedNativeToken *wrappednativetoken.WrappedNativeToken,
 	receipt *types.Receipt,
 	expectedAmount *big.Int,
 ) {
 	withdrawalEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, wrappedNativeToken.ParseWithdrawal)
 	Expect(err).Should(BeNil())
-	Expect(withdrawalEvent.Sender).Should(Equal(nativeTokenHubAddress))
+	Expect(withdrawalEvent.Sender).Should(Equal(nativeTokenHomeAddress))
 	teleporterUtils.ExpectBigEqual(withdrawalEvent.Amount, expectedAmount)
 }
 

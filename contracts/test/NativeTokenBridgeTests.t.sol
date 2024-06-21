@@ -17,7 +17,7 @@ abstract contract NativeTokenBridgeTest is TokenBridgeTest {
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredSpoke(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
     }
@@ -26,10 +26,7 @@ abstract contract NativeTokenBridgeTest is TokenBridgeTest {
         nativeTokenBridge.send{value: amount}(input);
     }
 
-    function _sendAndCall(
-        SendAndCallInput memory input,
-        uint256 amount
-    ) internal virtual override {
+    function _sendAndCall(SendAndCallInput memory input, uint256 amount) internal virtual override {
         nativeTokenBridge.sendAndCall{value: amount}(input);
     }
 }

@@ -8,74 +8,74 @@ library TokenScalingUtils {
     uint256 public constant MAX_TOKEN_DECIMALS = 18;
 
     /**
-     * @notice Scales the {amount} of hub tokens to a spoke instance's token scale.
-     * @param tokenMultiplier The token multiplier of the spoke instance.
-     * @param multiplyOnSpoke Whether the amount of hub tokens will be multiplied on the spoke, or divided.
-     * @param hubTokenAmount The amount of hub tokens to scale.
+     * @notice Scales the {amount} of home tokens to a TokenRemote instance's token scale.
+     * @param tokenMultiplier The token multiplier of the TokenRemote instance.
+     * @param multiplyOnRemote Whether the amount of home tokens will be multiplied on the remote, or divided.
+     * @param homeTokenAmount The amount of home tokens to scale.
      */
     function applyTokenScale(
         uint256 tokenMultiplier,
-        bool multiplyOnSpoke,
-        uint256 hubTokenAmount
+        bool multiplyOnRemote,
+        uint256 homeTokenAmount
     ) internal pure returns (uint256) {
-        return _scaleTokens(tokenMultiplier, multiplyOnSpoke, hubTokenAmount, true);
+        return _scaleTokens(tokenMultiplier, multiplyOnRemote, homeTokenAmount, true);
     }
 
     /**
-     * @notice Removes the spoke instance's token scaling, and returns the corresponding
-     * amount of hub tokens.
-     * @param tokenMultiplier The token multiplier of the spoke instance.
-     * @param multiplyOnSpoke Whether the amount of hub tokens will be multiplied on the spoke, or divided.
-     * @param spokeTokenAmount The amount of spoke tokens to remove scaling from.
+     * @notice Removes the TokenRemote instance's token scaling, and returns the corresponding
+     * amount of home tokens.
+     * @param tokenMultiplier The token multiplier of the TokenRemote instance.
+     * @param multiplyOnRemote Whether the amount of home tokens will be multiplied on the remote, or divided.
+     * @param remoteTokenAmount The amount of remote tokens to remove scaling from.
      */
     function removeTokenScale(
         uint256 tokenMultiplier,
-        bool multiplyOnSpoke,
-        uint256 spokeTokenAmount
+        bool multiplyOnRemote,
+        uint256 remoteTokenAmount
     ) internal pure returns (uint256) {
-        return _scaleTokens(tokenMultiplier, multiplyOnSpoke, spokeTokenAmount, false);
+        return _scaleTokens(tokenMultiplier, multiplyOnRemote, remoteTokenAmount, false);
     }
 
     /**
-     * @notice Takes both the hub and spoke token denominations and uses
+     * @notice Takes both the home and remote token denominations and uses
      * them to derive the token bridge scaling multiplier values
-     * @param hubTokenDecimals The number of decimals of the hub token.
-     * @param spokeTokenDecimals The number of decimals of the spoke token.
+     * @param homeTokenDecimals The number of decimals of the home token.
+     * @param remoteTokenDecimals The number of decimals of the remote token.
      */
     function deriveTokenMultiplierValues(
-        uint8 hubTokenDecimals,
-        uint8 spokeTokenDecimals
+        uint8 homeTokenDecimals,
+        uint8 remoteTokenDecimals
     ) internal pure returns (uint256, bool) {
-        bool multiplyOnSpoke = spokeTokenDecimals > hubTokenDecimals;
+        bool multiplyOnRemote = remoteTokenDecimals > homeTokenDecimals;
         uint256 tokenMultiplier = 10
             ** (
-                multiplyOnSpoke
-                    ? uint256(spokeTokenDecimals - hubTokenDecimals)
-                    : uint256(hubTokenDecimals - spokeTokenDecimals)
+                multiplyOnRemote
+                    ? uint256(remoteTokenDecimals - homeTokenDecimals)
+                    : uint256(homeTokenDecimals - remoteTokenDecimals)
             );
-        return (tokenMultiplier, multiplyOnSpoke);
+        return (tokenMultiplier, multiplyOnRemote);
     }
 
     /**
      * @dev Scales {value} based on {tokenMultiplier} and if the amount is applying or
-     * removing the spoke instance's token scale.
+     * removing the TokenRemote instance's token scale.
      * Should be used for all tokens and fees being transferred to/from other subnets.
-     * @param tokenMultiplier The token multiplier of the spoke instance.
-     * @param multiplyOnSpoke Whether the amount of hub tokens will be multiplied on the spoke, or divided.
+     * @param tokenMultiplier The token multiplier of the TokenRemote instance.
+     * @param multiplyOnRemote Whether the amount of home tokens will be multiplied on the remote, or divided.
      * @param amount The amount of tokens to scale.
-     * @param isSendToSpoke If true, indicates the amount is being sent to the
-     * spoke instance, so applies token scale. If false, indicates the amount is being
-     * sent back to the hub instance, so removes token scale.
+     * @param isSendToRemote If true, indicates the amount is being sent to the
+     * TokenRemote instance, so applies token scale. If false, indicates the amount is being
+     * sent back to the TokenHome instance, so removes token scale.
      */
     function _scaleTokens(
         uint256 tokenMultiplier,
-        bool multiplyOnSpoke,
+        bool multiplyOnRemote,
         uint256 amount,
-        bool isSendToSpoke
+        bool isSendToRemote
     ) private pure returns (uint256) {
-        // Multiply when multiplyOnSpoke and isSendToSpoke are
+        // Multiply when multiplyOnRemote and isSendToRemote are
         // both true or both false.
-        if (multiplyOnSpoke == isSendToSpoke) {
+        if (multiplyOnRemote == isSendToRemote) {
             return amount * tokenMultiplier;
         }
         // Otherwise divide.
