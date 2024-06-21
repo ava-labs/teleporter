@@ -452,9 +452,12 @@ func (n *LocalNetwork) setAllSubnetValues() {
 
 func (n *LocalNetwork) TearDownNetwork() {
 	log.Info("Tearing down network")
-	Expect(n.tmpnet).ShouldNot(BeNil())
-	Expect(n.tmpnet.Stop(context.Background())).Should(BeNil())
-	Expect(os.Remove(n.warpChainConfigPath)).Should(BeNil())
+	if n != nil {
+		if n.tmpnet != nil {
+			Expect(n.tmpnet.Stop(context.Background())).Should(BeNil())
+		}
+		Expect(os.Remove(n.warpChainConfigPath)).Should(BeNil())
+	}
 }
 
 func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {
