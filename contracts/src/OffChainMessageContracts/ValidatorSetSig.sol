@@ -86,23 +86,13 @@ contract ValidatorSetSig is ReentrancyGuard {
 
         ValidatorSetSigMessage memory validatorSetSigMessage;
         (validatorSetSigMessage) = abi.decode(message.payload, (ValidatorSetSigMessage));
-        require(
-            validatorSetSigMessage.validatorSetSigAddress == address(this),
-            "ValidatorSetSig: invalid validatorSetSigAddress"
-        );
-        require(
-            validatorSetSigMessage.targetBlockChainID == blockchainID,
-            "ValidatorSetSig: invalid targetBlockChainID"
-        );
 
-        require(
-            nonces[validatorSetSigMessage.targetContractAddress] + 1 == validatorSetSigMessage.nonce,
-            "ValidatorSetSig: invalid nonce"
-        );
+        bool success = validateMessage(validatorSetSigMessage);
+        require(success, "ValidatorSetSig: invalid message");
 
         nonces[validatorSetSigMessage.targetContractAddress] = validatorSetSigMessage.nonce;
 
-        (bool success,) =
+        (success,) =
         // solhint-disable-next-line avoid-low-level-calls
          validatorSetSigMessage.targetContractAddress.call(validatorSetSigMessage.txPayload);
 
@@ -110,5 +100,21 @@ contract ValidatorSetSig is ReentrancyGuard {
         // and requiring re-signing of the message with a new nonce.
         require(success, "ValidatorSetSig: call failed");
         emit Delivered(validatorSetSigMessage.targetContractAddress, validatorSetSigMessage.nonce);
+    }
+
+    function validateMessage(ValidatorSetSigMessage memory message) public view returns (bool) {
+        require(
+            message.validatorSetSigAddress == address(this),
+            "ValidatorSetSig: invalid validatorSetSigAddress"
+        );
+        require(
+            message.targetBlockChainID == blockchainID,
+            "ValidatorSetSig: invalid targetBlockChainID"
+        );
+        require(
+            nonces[message.targetContractAddress] + 1 == message.nonce,
+            "ValidatorSetSig: invalid nonce"
+        );
+        return true;
     }
 }

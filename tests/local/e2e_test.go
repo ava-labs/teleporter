@@ -21,6 +21,7 @@ const (
 	teleporterMessengerLabel = "TeleporterMessenger"
 	upgradeabilityLabel      = "upgradeability"
 	utilsLabel               = "utils"
+	validatorSetSigLabel     = "ValidatorSetSig"
 )
 
 var (
@@ -147,9 +148,9 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 			flows.TeleporterRegistry(LocalNetworkInstance)
 		})
 	ginkgo.It("Deliver ValidatorSetSig signed message",
-		ginkgo.Label(utilsLabel),
+		ginkgo.Label(validatorSetSigLabel),
 		func() {
-
+			flows.ValidatorSetSig(LocalNetworkInstance)
 		})
 	ginkgo.It("Validator churn",
 		ginkgo.Label(teleporterMessengerLabel),
