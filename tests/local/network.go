@@ -109,7 +109,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 
 	Expect(len(network.Nodes)).To(Equal(len(subnetANodes) + len(subnetBNodes)))
 
-	ctxWithTimeout, _ := context.WithTimeout(ctx, time.Minute*5)
+	ctxWithTimeout, cancelBootstrap := context.WithTimeout(ctx, time.Minute*5)
 	err = tmpnet.BootstrapNewNetwork(
 		ctxWithTimeout,
 		os.Stdout,
@@ -118,6 +118,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 		avalancheGoBuildPath+"/avalanchego",
 		avalancheGoBuildPath+"/plugins",
 	)
+	defer cancelBootstrap()
 	Expect(err).Should(BeNil())
 
 	fundedKeyBytes, err := hex.DecodeString(fundedKeyStr)
