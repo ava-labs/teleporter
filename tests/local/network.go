@@ -109,8 +109,9 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 
 	Expect(len(network.Nodes)).To(Equal(len(subnetANodes) + len(subnetBNodes)))
 
+	ctxWithTimeout, _ := context.WithTimeout(ctx, time.Minute*5)
 	err = tmpnet.BootstrapNewNetwork(
-		ctx,
+		ctxWithTimeout,
 		os.Stdout,
 		network,
 		"./tmpnets",
