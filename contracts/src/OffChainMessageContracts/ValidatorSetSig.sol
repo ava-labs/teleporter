@@ -35,7 +35,7 @@ contract ValidatorSetSig is ReentrancyGuard {
 
     /**
      * @dev Tracks nonces for messages sent to a specific contract address to provide replay protection.
-     * The target contract address is used as the key in order to prevent instead of keeping a global nonce in order to prevent
+     * The target contract address is used as the key instead of keeping a global nonce in order to prevent
      * race conditions where the same instance of ValidatorSetSig contract is used to manage multiple downstream contracts.
      */
     mapping(address targetContractAddress => uint256 nonce) public nonces;
