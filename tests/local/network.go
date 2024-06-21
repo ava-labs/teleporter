@@ -441,10 +441,10 @@ func (n *LocalNetwork) setAllSubnetValues() {
 	}
 	Expect(len(subnetIDs)).Should(Equal(2))
 
-	n.subnetAID = subnetIDs[0]
+	n.subnetAID = n.tmpnet.GetSubnet("A").SubnetID
 	n.setSubnetValues(n.subnetAID)
 
-	n.subnetBID = subnetIDs[1]
+	n.subnetBID = n.tmpnet.GetSubnet("B").SubnetID
 	n.setSubnetValues(n.subnetBID)
 
 	n.setPrimaryNetworkValues()
