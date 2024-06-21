@@ -100,5 +100,4 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	endingBalance, err := exampleErc20.BalanceOf(nil, validatorSetSigContractAddress)
 	Expect(err).Should(BeNil())
 	Expect(endingBalance).Should(Equal(big.NewInt(100)))
-
 }

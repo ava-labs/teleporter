@@ -362,7 +362,6 @@ func CreateExecuteCallPredicateTransaction(
 		signedMessage.Bytes(),
 	)
 	return SignTransaction(destinationTx, senderKey, subnetInfo.EVMChainID)
-
 }
 
 func AddProtocolVersionAndWaitForAcceptance(
@@ -426,7 +425,6 @@ func ExecuteValidatorSetSigCallAndWaitForAcceptance(
 
 	// Wait for tx to be accepted and verify events emitted
 	return SendTransactionAndWaitForSuccess(ctx, destination, signedPredicateTx)
-
 }
 
 func CreateNativeTransferTransaction(
@@ -1074,7 +1072,8 @@ func InitOffChainMessageChainConfigValidatorSetSig(
 	return unsignedMessage, GetWarpEnabledChainConfig([]string{offChainMessage})
 }
 
-// Creates an off-chain Warp message pointing to a function, contract and payload to be executed if the validator set signs this message
+// Creates an off-chain Warp message pointing to a function, contract and payload to be executed
+// if the validator set signs this message
 func CreateOffChainValidatorSetSigMessage(
 	networkID uint32,
 	subnet interfaces.SubnetTestInfo,
@@ -1094,7 +1093,6 @@ func CreateOffChainValidatorSetSigMessage(
 	Expect(err).Should(BeNil())
 
 	return unsignedMessage
-
 }
 
 // Deploys a new version of Teleporter and returns its address
