@@ -1149,20 +1149,28 @@ func ParseTeleporterMessage(unsignedMessage avalancheWarp.UnsignedMessage) *tele
 }
 
 func GetWarpEnabledChainConfig(offChainMessages []avalancheWarp.UnsignedMessage) string {
+	// Convert messages to hex
 	hexOffChainMessages := []string{}
 	for _, message := range offChainMessages {
 		hexOffChainMessages = append(hexOffChainMessages, hexutil.Encode(message.Bytes()))
 	}
-	offChainMessageJson, err := json.Marshal(hexOffChainMessages)
+
+	// Create a map to represent the JSON structure
+	jsonMap := map[string]interface{}{
+		"warp-api-enabled":        true,
+		"warp-off-chain-messages": hexOffChainMessages,
+		"log-level":               "debug",
+		"eth-apis": []string{
+			"eth", "eth-filter", "net", "admin", "web3",
+			"internal-eth", "internal-blockchain", "internal-transaction",
+			"internal-debug", "internal-account", "internal-personal",
+			"debug", "debug-tracer", "debug-file-tracer", "debug-handler",
+		},
+	}
+
+	// Marshal the map to JSON
+	offChainMessageJson, err := json.Marshal(jsonMap)
 	Expect(err).Should(BeNil())
 
-	return fmt.Sprintf(`{
-    "warp-api-enabled": true,
-    "warp-off-chain-messages": %s,
-	"log-level": "debug",
-    "eth-apis":["eth","eth-filter","net","admin","web3",
-                "internal-eth","internal-blockchain","internal-transaction",
-                "internal-debug","internal-account","internal-personal",
-                "debug","debug-tracer","debug-file-tracer","debug-handler"]
-	}`, string(offChainMessageJson))
+	return string(offChainMessageJson)
 }
