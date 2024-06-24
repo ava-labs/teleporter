@@ -403,7 +403,7 @@ func AddProtocolVersionAndWaitForAcceptance(
 
 // Returns Receipt for the transaction unlike TeleporterRegistry version since this is a non-teleporter case
 // and we don't want to add the  ValidatorSetSig ABI to the subnetInfo
-func ExecuteValidatorSetSigCallAndWaitForAcceptance(
+func ExecuteValidatorSetSigCallAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
 	source interfaces.SubnetTestInfo,
@@ -411,6 +411,7 @@ func ExecuteValidatorSetSigCallAndWaitForAcceptance(
 	validatorSetSigAddress common.Address,
 	senderKey *ecdsa.PrivateKey,
 	unsignedMessage *avalancheWarp.UnsignedMessage,
+	expectSuccess bool,
 ) *types.Receipt {
 	signedWarpMsg := network.GetSignedMessage(ctx, source, destination, unsignedMessage.ID())
 	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
@@ -424,7 +425,10 @@ func ExecuteValidatorSetSigCallAndWaitForAcceptance(
 	)
 
 	// Wait for tx to be accepted and verify events emitted
-	return SendTransactionAndWaitForSuccess(ctx, destination, signedPredicateTx)
+	if expectSuccess {
+		return SendTransactionAndWaitForSuccess(ctx, destination, signedPredicateTx)
+	}
+	return SendTransactionAndWaitForFailure(ctx, destination, signedPredicateTx)
 }
 
 func CreateNativeTransferTransaction(
@@ -1062,12 +1066,16 @@ func InitOffChainMessageChainConfigValidatorSetSig(
 	networkID uint32,
 	subnet interfaces.SubnetTestInfo,
 	validatorSetSigAddress common.Address,
-	validatorSetSigMessage validatorsetsig.ValidatorSetSigMessage) (*avalancheWarp.UnsignedMessage, string) {
-	unsignedMessage := CreateOffChainValidatorSetSigMessage(networkID, subnet, validatorSetSigMessage)
-	log.Info("Adding validatorSetSig off-chain message to Warp chain config",
-		"messageID", unsignedMessage.ID(),
-		"blockchainID", subnet.BlockchainID.String())
-	return unsignedMessage, GetWarpEnabledChainConfig([]avalancheWarp.UnsignedMessage{*unsignedMessage})
+	validatorSetSigMessages []validatorsetsig.ValidatorSetSigMessage) ([]avalancheWarp.UnsignedMessage, string) {
+	unsignedMessages := []avalancheWarp.UnsignedMessage{}
+	for _, message := range validatorSetSigMessages {
+		unsignedMessage := CreateOffChainValidatorSetSigMessage(networkID, subnet, message)
+		unsignedMessages = append(unsignedMessages, *unsignedMessage)
+		log.Info("Adding validatorSetSig off-chain message to Warp chain config",
+			"messageID", unsignedMessage.ID(),
+			"blockchainID", subnet.BlockchainID.String())
+	}
+	return unsignedMessages, GetWarpEnabledChainConfig(unsignedMessages)
 }
 
 // Creates an off-chain Warp message pointing to a function, contract and payload to be executed
