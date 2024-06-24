@@ -1029,12 +1029,11 @@ func InitOffChainMessageChainConfig(
 		Version:         big.NewInt(int64(version)),
 		ProtocolAddress: teleporterAddress,
 	})
-	offChainMessage := hexutil.Encode(unsignedMessage.Bytes())
 	log.Info("Adding off-chain message to Warp chain config",
 		"messageID", unsignedMessage.ID(),
 		"blockchainID", subnet.BlockchainID.String())
 
-	return unsignedMessage, GetWarpEnabledChainConfig([]string{offChainMessage})
+	return unsignedMessage, GetWarpEnabledChainConfig([]avalancheWarp.UnsignedMessage{*unsignedMessage})
 }
 
 // Creates an off-chain Warp message that registers a Teleporter protocol version with TeleporterRegistry
@@ -1065,11 +1064,10 @@ func InitOffChainMessageChainConfigValidatorSetSig(
 	validatorSetSigAddress common.Address,
 	validatorSetSigMessage validatorsetsig.ValidatorSetSigMessage) (*avalancheWarp.UnsignedMessage, string) {
 	unsignedMessage := CreateOffChainValidatorSetSigMessage(networkID, subnet, validatorSetSigMessage)
-	offChainMessage := hexutil.Encode(unsignedMessage.Bytes())
 	log.Info("Adding validatorSetSig off-chain message to Warp chain config",
 		"messageID", unsignedMessage.ID(),
 		"blockchainID", subnet.BlockchainID.String())
-	return unsignedMessage, GetWarpEnabledChainConfig([]string{offChainMessage})
+	return unsignedMessage, GetWarpEnabledChainConfig([]avalancheWarp.UnsignedMessage{*unsignedMessage})
 }
 
 // Creates an off-chain Warp message pointing to a function, contract and payload to be executed
@@ -1142,8 +1140,12 @@ func ParseTeleporterMessage(unsignedMessage avalancheWarp.UnsignedMessage) *tele
 	return teleporterMessage
 }
 
-func GetWarpEnabledChainConfig(offChainMessages []string) string {
-	offChainMessageJson, err := json.Marshal(offChainMessages)
+func GetWarpEnabledChainConfig(offChainMessages []avalancheWarp.UnsignedMessage) string {
+	hexOffChainMessages := []string{}
+	for _, message := range offChainMessages {
+		hexOffChainMessages = append(hexOffChainMessages, hexutil.Encode(message.Bytes()))
+	}
+	offChainMessageJson, err := json.Marshal(hexOffChainMessages)
 	Expect(err).Should(BeNil())
 
 	return fmt.Sprintf(`{

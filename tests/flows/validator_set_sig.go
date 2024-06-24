@@ -62,7 +62,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	networkID := network.GetNetworkID()
 
-	noMessageWarpEnabledChainConfig := utils.GetWarpEnabledChainConfig([]string{})
+	noMessageWarpEnabledChainConfig := utils.GetWarpEnabledChainConfig(nil)
 	// Create chain config file with off chain validatorsetsig message
 	offchainMessage, warpEnabledChainConfigWithMsg := utils.InitOffChainMessageChainConfigValidatorSetSig(
 		networkID,
