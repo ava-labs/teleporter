@@ -22,12 +22,13 @@ struct ValidatorSetSigMessage {
 
 /**
  * @dev Contract that verifies that a set threshold of validators from a given blockchainID
- * have signed an off-chain Warp message and forwards the payload to the destination contract specified in the payload.
+ * have signed an off-chain Warp message and forwards the payload to the target contract specified in the payload.
  * The threshold itself is set by the validator themselves in their Warp configs:
  * https://github.com/ava-labs/subnet-evm/blob/master/precompile/contracts/warp/config.go#L50
  *
- * This is intended to be used for safe off-chain governance of enabled contracts by having the target contract be owned by
- * an instance of this contract and adding the `onlyOwner` modifier to the functions that should be governed.
+ * This is intended to be used for safe off-chain governance of enabled contracts. An example usecase would be
+ * to deploy a `Ownable` target contract that is owned by an instance of this contract and adding the
+ * `onlyOwner` modifier to the functions that should be governed.
  */
 contract ValidatorSetSig is ReentrancyGuard {
     /**
