@@ -16,9 +16,9 @@ func TestPackUnpackValidatorSetSigMessage(t *testing.T) {
 	msg := ValidatorSetSigMessage{
 		ValidatorSetSigAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		TargetContractAddress:  common.HexToAddress("0x0123456789abcdef0123456789abcdef01234568"),
-		TargetBlockChainID:     ids.ID{1, 2, 3, 4},
+		TargetBlockchainID:     ids.ID{1, 2, 3, 4},
 		Nonce:                  big.NewInt(1),
-		TxPayload:              []byte{1, 2, 3, 4},
+		Payload:                []byte{1, 2, 3, 4},
 	}
 	b, err := PackValidatorSetSigWarpPayload(msg)
 	require.NoError(t, err)
