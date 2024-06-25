@@ -463,23 +463,21 @@ func (n *LocalNetwork) TearDownNetwork() {
 }
 
 func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {
-	var subnet *tmpnet.Subnet
-	for _, s := range n.tmpnet.Subnets {
-		if s.SubnetID == subnetID {
-			subnet = s
-			break
-		}
-	}
+	subnet := n.tmpnet.Subnets[slices.IndexFunc(
+		n.tmpnet.Subnets,
+		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
+	)]
 
-	newNodes := subnetEvmTestUtils.NewTmpnetNodes(int(count))
-	subnetsInfo := n.GetSubnetsInfo()
-	apiURI := subnetsInfo[slices.IndexFunc(
-		subnetsInfo,
-		func(si interfaces.SubnetTestInfo) bool {
-			return si.SubnetID == subnetID
-		},
-	)].NodeURIs[0]
-	Expect(subnet.AddValidators(ctx, os.Stdout, apiURI, newNodes...)).Should(BeNil())
+	apiURI, err := n.tmpnet.GetURIForNodeID(subnet.ValidatorIDs[0])
+	Expect(err).Should(BeNil())
+
+	err = subnet.AddValidators(
+		ctx,
+		os.Stdout,
+		apiURI,
+		subnetEvmTestUtils.NewTmpnetNodes(int(count))...,
+	)
+	Expect(err).Should(BeNil())
 
 	n.setAllSubnetValues()
 }
