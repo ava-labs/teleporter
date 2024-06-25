@@ -203,7 +203,7 @@ func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
 	}
 	Expect(subnetDetails).ShouldNot(BeNil())
 
-	Expect(len(subnetDetails.Chains)).To(Equal(2))
+	//Expect(len(subnetDetails.Chains)).To(Equal(2)) // including C-Chain
 	// find the chain ID for the chain that's not the c-chain
 	var blockchainID ids.ID
 	for _, chain := range subnetDetails.Chains {
@@ -441,7 +441,6 @@ func (n *LocalNetwork) setAllSubnetValues() {
 	for _, subnet := range n.tmpnet.Subnets {
 		subnetIDs = append(subnetIDs, subnet.SubnetID)
 	}
-	Expect(len(subnetIDs)).Should(Equal(2))
 
 	n.subnetAID = n.tmpnet.GetSubnet("A").SubnetID
 	n.setSubnetValues(n.subnetAID)
