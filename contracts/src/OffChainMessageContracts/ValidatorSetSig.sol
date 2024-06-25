@@ -88,8 +88,7 @@ contract ValidatorSetSig is ReentrancyGuard {
             "ValidatorSetSig: non-zero originSenderAddress"
         );
 
-        ValidatorSetSigMessage memory validatorSetSigMessage;
-        (validatorSetSigMessage) = abi.decode(message.payload, (ValidatorSetSigMessage));
+        ValidatorSetSigMessage memory validatorSetSigMessage = abi.decode(message.payload, (ValidatorSetSigMessage));
 
         bool success = validateMessage(validatorSetSigMessage);
         require(success, "ValidatorSetSig: invalid message");
