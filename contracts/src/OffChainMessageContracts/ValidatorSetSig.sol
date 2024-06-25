@@ -11,13 +11,21 @@ import {
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 
-// Message format for the WarpMessage payload to be forwarded to the target contract
+/**
+ * @dev Message format for the WarpMessage payload to be forwarded to the target contract
+ *
+ * validatorSetSigAddress: Address of the ValidatorSetSig contract this message is intended for
+ * targetContractAddress: Address of the contract that the payload should be forwarded to
+ * targetBlockchainID: Blockchain ID of the chain the message is intended for
+ * nonce: Unique nonce for the target contract address to provide replay protection
+ * payload: Payload to be forwarded to the target contract. Usually ABI encoded function call with parameters.
+ */
 struct ValidatorSetSigMessage {
     address validatorSetSigAddress;
     address targetContractAddress;
-    bytes32 targetBlockChainID;
+    bytes32 targetBlockchainID;
     uint256 nonce;
-    bytes txPayload;
+    bytes payload;
 }
 
 /**
@@ -88,16 +96,16 @@ contract ValidatorSetSig is ReentrancyGuard {
             "ValidatorSetSig: non-zero originSenderAddress"
         );
 
-        ValidatorSetSigMessage memory validatorSetSigMessage = abi.decode(message.payload, (ValidatorSetSigMessage));
+        ValidatorSetSigMessage memory validatorSetSigMessage =
+            abi.decode(message.payload, (ValidatorSetSigMessage));
 
-        bool success = validateMessage(validatorSetSigMessage);
-        require(success, "ValidatorSetSig: invalid message");
+        validateMessage(validatorSetSigMessage);
 
         nonces[validatorSetSigMessage.targetContractAddress] = validatorSetSigMessage.nonce;
 
-        (success,) =
+        (bool success,) =
         // solhint-disable-next-line avoid-low-level-calls
-         validatorSetSigMessage.targetContractAddress.call(validatorSetSigMessage.txPayload);
+         validatorSetSigMessage.targetContractAddress.call(validatorSetSigMessage.payload);
 
         // Use require to revert the transaction if the call fails. This is to prevent consuming the nonce if the call fails due to OOG
         // and requiring re-signing of the message with a new nonce.
@@ -105,19 +113,18 @@ contract ValidatorSetSig is ReentrancyGuard {
         emit Delivered(validatorSetSigMessage.targetContractAddress, validatorSetSigMessage.nonce);
     }
 
-    function validateMessage(ValidatorSetSigMessage memory message) public view returns (bool) {
+    function validateMessage(ValidatorSetSigMessage memory message) public view {
         require(
             message.validatorSetSigAddress == address(this),
             "ValidatorSetSig: invalid validatorSetSigAddress"
         );
         require(
-            message.targetBlockChainID == blockchainID,
-            "ValidatorSetSig: invalid targetBlockChainID"
+            message.targetBlockchainID == blockchainID,
+            "ValidatorSetSig: invalid targetBlockchainID"
         );
         require(
             nonces[message.targetContractAddress] + 1 == message.nonce,
             "ValidatorSetSig: invalid nonce"
         );
-        return true;
     }
 }

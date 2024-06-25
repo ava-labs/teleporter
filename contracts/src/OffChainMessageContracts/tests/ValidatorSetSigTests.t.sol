@@ -104,14 +104,14 @@ contract ValidatorSetSigTest is Test {
     function testInvalidTargetBlockChainID() public {
         WarpMessage memory invalidTargetBlockChainIDMessage = _getValidWarpMessage();
         ValidatorSetSigMessage memory validatorSetSigMessage = _getValidValidatorSetSigMessage();
-        validatorSetSigMessage.targetBlockChainID = _MOCK_VALIDATOR_CHAIN_ID;
+        validatorSetSigMessage.targetBlockchainID = _MOCK_VALIDATOR_CHAIN_ID;
         invalidTargetBlockChainIDMessage.payload = abi.encode(validatorSetSigMessage);
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
             abi.encode(invalidTargetBlockChainIDMessage, true)
         );
-        vm.expectRevert("ValidatorSetSig: invalid targetBlockChainID");
+        vm.expectRevert("ValidatorSetSig: invalid targetBlockchainID");
         validatorSetSig.executeCall(0);
     }
 
@@ -180,7 +180,7 @@ contract ValidatorSetSigTest is Test {
         WarpMessage memory warpMessage = _getValidWarpMessage();
         ValidatorSetSigMessage memory validatorSetSigMessage = _getValidValidatorSetSigMessage();
         // Set the targetContractAddress and the txPayload to the ValidatorSetSig contract itself
-        validatorSetSigMessage.txPayload =
+        validatorSetSigMessage.payload =
             abi.encodeWithSelector(validatorSetSig.executeCall.selector, uint32(0));
         validatorSetSigMessage.targetContractAddress = address(validatorSetSig);
         warpMessage.payload = abi.encode(validatorSetSigMessage);
@@ -201,7 +201,7 @@ contract ValidatorSetSigTest is Test {
         ValidatorSetSigMessage memory validatorSetSigMessage = _getValidValidatorSetSigMessage();
         // Set the targetContractAddress and the txPayload to the mockERC20 contract
         validatorSetSigMessage.targetContractAddress = address(mockERC20);
-        validatorSetSigMessage.txPayload =
+        validatorSetSigMessage.payload =
             abi.encodeWithSelector(mockERC20.transfer.selector, _ERC20_RECIPIENT_ADDRESS, 5);
         warpMessage.payload = abi.encode(validatorSetSigMessage);
         vm.mockCall(
@@ -230,9 +230,9 @@ contract ValidatorSetSigTest is Test {
         return ValidatorSetSigMessage({
             validatorSetSigAddress: address(validatorSetSig),
             targetContractAddress: _DEFAULT_TARGET_ADDRESS,
-            targetBlockChainID: _MOCK_BLOCKCHAIN_ID,
+            targetBlockchainID: _MOCK_BLOCKCHAIN_ID,
             nonce: 1,
-            txPayload: ""
+            payload: ""
         });
     }
 }
