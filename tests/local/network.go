@@ -506,12 +506,16 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 	log.Info("Network restarting %d nodes", len(nodeIDs))
 	for _, node := range nodes {
 		log.Info("Restarting node", "NodeID", node.NodeID)
+		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
 		err := n.tmpnet.RestartNode(ctx, os.Stdout, node)
 		Expect(err).Should(BeNil())
 	}
 
 	log.Info("Waiting for all nodes to report healthy")
 	for _, node := range nodes {
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 		err := tmpnet.WaitForHealthy(ctx, node)
 		log.Info("Pinged CLI Health", "err", err)
 		if err != nil {
