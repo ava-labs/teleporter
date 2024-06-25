@@ -20,9 +20,9 @@ func init() {
 	validatorSetSigMessageType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
 		{Name: "validatorSetSigAddress", Type: "address"},
 		{Name: "targetContractAddress", Type: "address"},
-		{Name: "targetBlockChainID", Type: "bytes32"},
+		{Name: "targetBlockchainID", Type: "bytes32"},
 		{Name: "nonce", Type: "uint256"},
-		{Name: "txPayload", Type: "bytes"},
+		{Name: "payload", Type: "bytes"},
 	})
 	if err != nil {
 		panic(fmt.Sprintf("failed to create ValidatorSetSigMessage ABI type: %v", err))

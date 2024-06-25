@@ -56,9 +56,9 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	vssMessage1 := validatorsetsig.ValidatorSetSigMessage{
 		ValidatorSetSigAddress: validatorSetSigContractAddress,
 		TargetContractAddress:  exampleERC20ContractAddress,
-		TargetBlockChainID:     contractSubnet.BlockchainID,
+		TargetBlockchainID:     contractSubnet.BlockchainID,
 		Nonce:                  big.NewInt(1),
-		TxPayload:              callData,
+		Payload:                callData,
 	}
 
 	// Construct a second ValidatorSetSig message with mock ERC20 as the target contract
@@ -68,9 +68,9 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	vssMessage2 := validatorsetsig.ValidatorSetSigMessage{
 		ValidatorSetSigAddress: validatorSetSigContractAddress,
 		TargetContractAddress:  exampleERC20ContractAddress,
-		TargetBlockChainID:     contractSubnet.BlockchainID,
+		TargetBlockchainID:     contractSubnet.BlockchainID,
 		Nonce:                  big.NewInt(2),
-		TxPayload:              callData2,
+		Payload:                callData2,
 	}
 
 	networkID := network.GetNetworkID()
