@@ -18,7 +18,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     using SafeERC20 for IERC20;
 
     NativeTokenHome public app;
-    IWrappedNativeToken public wavaxen;
+    IWrappedNativeToken public wavax;
 
     receive() external payable {
         require(msg.sender == address(app), "NativeTokenHomeTest: invalid receive payable sender");
