@@ -5,8 +5,11 @@ package teleportermessenger
 
 import (
 	"fmt"
+	"math/big"
 	"strings"
 
+	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -86,19 +89,19 @@ func FilterTeleporterEvents(topics []common.Hash, data []byte, event string) (in
 	var out interface{}
 	switch e {
 	case SendCrossChainMessage:
-		out = new(TeleporterMessengerSendCrossChainMessage)
+		out = new(ReadableTeleporterMessengerSendCrossChainMessage)
 	case ReceiveCrossChainMessage:
-		out = new(TeleporterMessengerReceiveCrossChainMessage)
+		out = new(ReadableTeleporterMessengerReceiveCrossChainMessage)
 	case AddFeeAmount:
-		out = new(TeleporterMessengerAddFeeAmount)
+		out = new(ReadableTeleporterMessengerAddFeeAmount)
 	case MessageExecutionFailed:
-		out = new(TeleporterMessengerMessageExecutionFailed)
+		out = new(ReadableTeleporterMessengerMessageExecutionFailed)
 	case MessageExecuted:
-		out = new(TeleporterMessengerMessageExecuted)
+		out = new(ReadableTeleporterMessengerMessageExecuted)
 	case RelayerRewardsRedeemed:
 		out = new(TeleporterMessengerRelayerRewardsRedeemed)
 	case ReceiptReceived:
-		out = new(TeleporterMessengerReceiptReceived)
+		out = new(ReadableTeleporterMessengerReceiptReceived)
 	default:
 		return nil, fmt.Errorf("unknown event %s", e.String())
 	}
@@ -106,4 +109,60 @@ func FilterTeleporterEvents(topics []common.Hash, data []byte, event string) (in
 		return nil, err
 	}
 	return out, nil
+}
+
+type ReadableTeleporterMessengerSendCrossChainMessage struct {
+	MessageID               common.Hash
+	DestinationBlockchainID ids.ID
+	Message                 ReadableTeleporterMessage
+	FeeInfo                 TeleporterFeeInfo
+	Raw                     types.Log
+}
+
+type ReadableTeleporterMessengerReceiveCrossChainMessage struct {
+	MessageID          common.Hash
+	SourceBlockchainID ids.ID
+	Deliverer          common.Address
+	RewardRedeemer     common.Address
+	Message            ReadableTeleporterMessage
+	Raw                types.Log
+}
+
+type ReadableTeleporterMessengerAddFeeAmount struct {
+	MessageID      common.Hash
+	UpdatedFeeInfo TeleporterFeeInfo
+	Raw            types.Log
+}
+
+type ReadableTeleporterMessengerMessageExecutionFailed struct {
+	MessageID          common.Hash
+	SourceBlockchainID ids.ID
+	Message            ReadableTeleporterMessage
+	Raw                types.Log
+}
+
+type ReadableTeleporterMessengerMessageExecuted struct {
+	MessageID          common.Hash
+	SourceBlockchainID ids.ID
+	Raw                types.Log
+}
+
+type ReadableTeleporterMessengerReceiptReceived struct {
+	MessageID               common.Hash
+	DestinationBlockchainID ids.ID
+	RelayerRewardAddress    common.Address
+	FeeInfo                 TeleporterFeeInfo
+	Raw                     types.Log
+}
+
+// TeleporterMessage is an auto generated low-level Go binding around an user-defined struct.
+type ReadableTeleporterMessage struct {
+	MessageNonce            *big.Int
+	OriginSenderAddress     common.Address
+	DestinationBlockchainID ids.ID
+	DestinationAddress      common.Address
+	RequiredGasLimit        *big.Int
+	AllowedRelayerAddresses []common.Address
+	Receipts                []TeleporterMessageReceipt
+	Message                 []byte
 }
