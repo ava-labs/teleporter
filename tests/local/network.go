@@ -504,7 +504,7 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 		}
 	}
 
-	log.Info("Network restarting %d nodes", len(nodeIDs))
+	log.Info("Network restarting", "numberOfNodes", len(nodeIDs))
 	for _, node := range nodes {
 		log.Info("Restarting node", "NodeID", node.NodeID)
 		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
