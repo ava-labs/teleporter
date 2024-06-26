@@ -10,7 +10,7 @@ import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {NativeTokenHome} from "../src/TokenHome/NativeTokenHome.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
-import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
+import {MockWrappedNativeToken} from "../src/mocks/MockWrappedNativeToken.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
@@ -27,7 +27,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     function setUp() public override {
         TokenHomeTest.setUp();
 
-        mockWrappedToken = new WrappedNativeToken("AVAX");
+        mockWrappedToken = new MockWrappedNativeToken("AVAX");
         app = new NativeTokenHome(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -61,7 +61,9 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(tokenHome));
         emit TokensWithdrawn(recipient, amount);
-        vm.expectCall(address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount)));
+        vm.expectCall(
+            address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
+        );
         vm.expectEmit(true, true, true, true, address(mockWrappedToken));
         emit Withdrawal(address(app), amount);
     }
@@ -111,7 +113,9 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
             vm.expectCall(
                 address(bridgedToken),
-                abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
+                abi.encodeCall(
+                    IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                )
             );
         }
 
@@ -124,10 +128,11 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
         vm.expectRevert("SafeWrappedNativeTokenDeposit: balance not increased");
     }
 
-    function _addCollateral(bytes32 remoteBlockchainID, address remoteBridgeAddress, uint256 amount)
-        internal
-        override
-    {
+    function _addCollateral(
+        bytes32 remoteBlockchainID,
+        address remoteBridgeAddress,
+        uint256 amount
+    ) internal override {
         app.addCollateral{value: amount}(remoteBlockchainID, remoteBridgeAddress);
     }
 }

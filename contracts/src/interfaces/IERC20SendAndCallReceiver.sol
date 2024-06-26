@@ -6,11 +6,6 @@
 pragma solidity 0.8.18;
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @notice Interface for a contracts that are called to receive bridge tokens.
  */
 interface IERC20SendAndCallReceiver {

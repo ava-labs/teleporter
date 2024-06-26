@@ -6,11 +6,6 @@
 pragma solidity 0.8.18;
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @dev Abstract contract that helps implement reentrancy guards for Teleporter token bridge {_send} and {_sendAndCall}
  * functions.
  *

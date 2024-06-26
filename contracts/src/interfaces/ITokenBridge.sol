@@ -8,11 +8,6 @@ pragma solidity 0.8.18;
 import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @notice Input parameters for bridging tokens to another chain as part of a simple transfer.
  * @param destinationBlockchainID Blockchain ID of the destination
  * @param destinationBridgeAddress Address of the destination token bridge instance

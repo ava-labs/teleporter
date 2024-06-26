@@ -9,11 +9,6 @@ import {ITokenBridge} from "../../interfaces/ITokenBridge.sol";
 import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @notice Settings for constructing a {ITokenRemote} contract.
  * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
  * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades.

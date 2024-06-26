@@ -17,11 +17,6 @@ import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDepo
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @title NativeTokenHome
  * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be bridged to
  * TokenRemote instances on other chains.
