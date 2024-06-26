@@ -471,9 +471,15 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	Expect(err).Should(BeNil())
 
 	nodes := subnetEvmTestUtils.NewTmpnetNodes(int(count))
-	err = n.tmpnet.StartNodes(ctx, os.Stdout, nodes...)
-	Expect(err).Should(BeNil())
-
+	ctx, _ = context.WithTimeout(ctx, 30*time.Second)
+	for _, node := range nodes {
+		err = n.tmpnet.StartNode(ctx, os.Stdout, node)
+		Expect(err).Should(BeNil())
+	}
+	for _, node := range nodes {
+		err = tmpnet.WaitForHealthy(ctx, node)
+		Expect(err).Should(BeNil())
+	}
 	err = subnet.AddValidators(
 		ctx,
 		os.Stdout,
