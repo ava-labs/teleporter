@@ -11,14 +11,18 @@ import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallRece
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
 import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
+import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {IERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/IERC20Upgradeable.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
 
 contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     string public constant MOCK_TOKEN_NAME = "Test Token";
     string public constant MOCK_TOKEN_SYMBOL = "TST";
@@ -94,7 +98,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
             tokenDecimals,
-            "zero token home blockchain ID"
+            _formatErrorMessage("zero token home blockchain ID")
         );
     }
 
@@ -161,7 +165,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
         );
         // Increase the allowance of the bridge to transfer the funds from the user
-        app.safeIncreaseAllowance(address(tokenBridge), amount);
+        IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenBridge), amount);
 
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(this), address(0), amount);
@@ -172,7 +176,8 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
     }
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
-        return new ERC20TokenRemote(
+        ERC20TokenRemote instance = new ERC20TokenRemote();
+        instance.initialize(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -184,6 +189,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             MOCK_TOKEN_SYMBOL,
             tokenDecimals
         );
+        return instance;
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
@@ -261,11 +267,11 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
-            app.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenBridge), feeAmount);
         }
 
         // Increase the allowance of the bridge to transfer the funds from the user
-        app.safeIncreaseAllowance(address(tokenBridge), amount);
+        IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenBridge), amount);
 
         uint256 currentAllowance = app.allowance(address(this), address(tokenBridge));
         if (feeAmount > 0) {

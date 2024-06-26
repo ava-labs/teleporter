@@ -9,17 +9,27 @@ import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
 import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
-import {NativeTokenRemote, TeleporterMessageInput, TeleporterFeeInfo} from "../src/TokenRemote/NativeTokenRemote.sol";
+import {
+    NativeTokenRemote,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "../src/TokenRemote/NativeTokenRemote.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
-import {INativeMinter} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
+import {INativeMinter} from
+    "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {IERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/IERC20Upgradeable.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
 contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
     string public constant DEFAULT_SYMBOL = "XYZ";
@@ -35,14 +45,12 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         tokenRemote = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        bridgedToken = app;
         assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
         _collateralizeBridge();
     }
 
     function testZeroInitialReserveImbalance() public {
-        vm.expectRevert("NativeTokenRemote: zero initial reserve imbalance");
-        new NativeTokenRemote({
+        invalidInitialization({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -52,13 +60,13 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: 0,
-            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
-        );
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE,
+            expectedErrorMessage: "NativeTokenRemote: zero initial reserve imbalance"
+        });
     }
 
     function testInvalidBurnedRewardPercentage() public {
-        vm.expectRevert("NativeTokenRemote: invalid percentage");
-        new NativeTokenRemote({
+        invalidInitialization({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -68,13 +76,13 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: 100}
-        );
+            burnedFeesReportingRewardPercentage_: 100,
+            expectedErrorMessage: "NativeTokenRemote: invalid percentage"
+        });
     }
 
     function testZeroTokenHomeBlockchainID() public {
-        vm.expectRevert(_formatErrorMessage("zero token home blockchain ID"));
-        new NativeTokenRemote({
+        invalidInitialization({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -84,13 +92,13 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
-        );
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE,
+            expectedErrorMessage: _formatErrorMessage("zero token home blockchain ID")
+        });
     }
 
     function testDeployToSameBlockchain() public {
-        vm.expectRevert(_formatErrorMessage("cannot deploy to same blockchain as token home"));
-        new NativeTokenRemote({
+        invalidInitialization({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -100,8 +108,9 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
-        );
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE,
+            expectedErrorMessage: _formatErrorMessage("cannot deploy to same blockchain as token home")
+        });
     }
 
     function testSendBeforeCollateralized() public {
@@ -110,7 +119,6 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         tokenRemote = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        bridgedToken = app;
 
         vm.expectRevert("NativeTokenRemote: contract undercollateralized");
         app.send{value: 1e17}(_createDefaultSendTokensInput());
@@ -126,7 +134,6 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         tokenRemote = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        bridgedToken = app;
 
         vm.expectRevert("NativeTokenRemote: contract undercollateralized");
         app.sendAndCall{value: 1e15}(_createDefaultSendAndCallInput());
@@ -146,7 +153,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
 
         IERC20(separateFeeAsset).safeIncreaseAllowance(address(app), feeAmount);
         vm.expectCall(
-            address(separateFeeAsset), abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
+            address(separateFeeAsset),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(app), feeAmount))
         );
 
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
@@ -183,7 +191,12 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = _DEFAULT_TRANSFER_AMOUNT;
         vm.expectEmit(true, true, true, true, address(app));
-        emit TokensSent({teleporterMessageID: _MOCK_MESSAGE_ID, sender: address(this), input: input, amount: amount});
+        emit TokensSent({
+            teleporterMessageID: _MOCK_MESSAGE_ID,
+            sender: address(this),
+            input: input,
+            amount: amount
+        });
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
@@ -222,7 +235,9 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         vm.deal(address(app), amount - 1);
         vm.expectRevert("CallUtils: insufficient value");
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenRemote.receiveTeleporterMessage(DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, message);
+        tokenRemote.receiveTeleporterMessage(
+            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, message
+        );
     }
 
     function testReportBurnFeesNoNewAmount() public {
@@ -248,7 +263,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
                 destinationBridgeAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
-                primaryFeeTokenAddress: address(bridgedToken),
+                primaryFeeTokenAddress: address(app),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -275,7 +290,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
                 destinationBridgeAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
-                primaryFeeTokenAddress: address(bridgedToken),
+                primaryFeeTokenAddress: address(app),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -289,7 +304,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
 
     function testReportBurnFeesNoRewardSuccess() public {
         // Create a new TokenRemote instance with no rewards for reporting burned fees.
-        app = new NativeTokenRemote({
+        app = new NativeTokenRemote();
+        app.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -299,12 +315,11 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: 0}
-        );
+            burnedFeesReportingRewardPercentage_: 0
+        });
         tokenRemote = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        bridgedToken = app;
 
         uint256 burnedTxFeeAmount = 1e15;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
@@ -313,7 +328,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
                 destinationBridgeAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
-                primaryFeeTokenAddress: address(bridgedToken),
+                primaryFeeTokenAddress: address(app),
                 primaryFee: 0,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -344,7 +359,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
     }
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
-        return new NativeTokenRemote({
+        NativeTokenRemote instance = new NativeTokenRemote();
+        instance.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -354,8 +370,9 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE}
-        );
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
+        });
+        return instance;
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
@@ -367,7 +384,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
         );
         vm.deal(recipient, amount);
     }
@@ -379,7 +397,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (recipient, amount))
         );
         vm.deal(recipient, amount);
     }
@@ -400,7 +419,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             new bytes(0)
         );
         vm.expectCall(
-            NATIVE_MINTER_PRECOMPILE_ADDRESS, abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), amount))
+            NATIVE_MINTER_PRECOMPILE_ADDRESS,
+            abi.encodeCall(INativeMinter.mintNativeCoin, (address(app), amount))
         );
 
         // Mock the native minter precompile crediting native balance to the contract.
@@ -438,14 +458,14 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         app.deposit{value: feeAmount}();
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
-            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenBridge), feeAmount);
         }
-        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenBridge));
+        uint256 currentAllowance = app.allowance(address(this), address(tokenBridge));
 
         if (feeAmount > 0) {
-            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            vm.expectEmit(true, true, true, true, address(app));
             emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount);
-            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(this), address(tokenBridge), feeAmount);
         }
     }
@@ -472,5 +492,22 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
         );
         assertTrue(app.isCollateralized());
+    }
+
+    function invalidInitialization(
+        TokenRemoteSettings memory settings,
+        string memory nativeAssetSymbol,
+        uint256 initialReserveImbalance,
+        uint256 burnedFeesReportingRewardPercentage_,
+        bytes memory expectedErrorMessage
+    ) private {
+        app = new NativeTokenRemote();
+        vm.expectRevert(expectedErrorMessage);
+        app.initialize(
+            settings,
+            nativeAssetSymbol,
+            initialReserveImbalance,
+            burnedFeesReportingRewardPercentage_
+        );
     }
 }
