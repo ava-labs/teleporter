@@ -27,7 +27,8 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
 
         mockERC20 = new ExampleERC20();
         tokenHomeDecimals = 6;
-        app = new ERC20TokenHome(
+        app = new ERC20TokenHome();
+        app.initialize(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             address(mockERC20),
@@ -44,37 +45,42 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
      * Initialization unit tests
      */
     function testZeroTeleporterRegistryAddress() public {
-        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new ERC20TokenHome(address(0), address(this), address(mockERC20), tokenHomeDecimals);
+        invalidInitialization(
+            address(0),
+            address(this),
+            address(mockERC20),
+            tokenHomeDecimals,
+            "TeleporterUpgradeable: zero teleporter registry address"
+        );
     }
 
     function testZeroTeleporterManagerAddress() public {
-        vm.expectRevert("Ownable: new owner is the zero address");
-        new ERC20TokenHome(
+        invalidInitialization(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
             address(mockERC20),
-            tokenHomeDecimals
+            tokenHomeDecimals,
+            "Ownable: new owner is the zero address"
         );
     }
 
     function testZeroFeeTokenAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero token address"));
-        new ERC20TokenHome(
+        invalidInitialization(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
             address(0),
-            tokenHomeDecimals
+            tokenHomeDecimals,
+            _formatErrorMessage("zero token address")
         );
     }
 
     function testTokenDecimalsTooHigh() public {
-        vm.expectRevert(_formatErrorMessage("token decimals too high"));
-        new ERC20TokenHome(
+        invalidInitialization(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
             address(mockERC20),
-            uint8(TokenScalingUtils.MAX_TOKEN_DECIMALS) + 1
+            uint8(TokenScalingUtils.MAX_TOKEN_DECIMALS) + 1,
+            _formatErrorMessage("token decimals too high")
         );
     }
 
@@ -261,5 +267,19 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
         );
         vm.expectEmit(true, true, true, true, address(bridgedToken));
         emit Transfer(address(this), address(tokenBridge), amount);
+    }
+
+    function invalidInitialization(
+        address teleporterRegistryAddress,
+        address teleporterManagerAddress,
+        address feeTokenAddress,
+        uint8 tokenDecimals,
+        bytes memory expectedErrorMessage
+    ) private {
+        app = new ERC20TokenHome();
+        vm.expectRevert(expectedErrorMessage);
+        app.initialize(
+            teleporterRegistryAddress, teleporterManagerAddress, feeTokenAddress, tokenDecimals
+        );
     }
 }

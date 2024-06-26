@@ -27,8 +27,11 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     function setUp() public override {
         TokenHomeTest.setUp();
 
-        mockWrappedToken = new WrappedNativeToken("AVAX");
-        app = new NativeTokenHome(
+        WrappedNativeToken token = new WrappedNativeToken();
+        token.initialize("AVAX");
+        mockWrappedToken = token;
+        app = new NativeTokenHome();
+        app.initialize(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
             address(mockWrappedToken)
@@ -36,7 +39,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
         tokenHome = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        bridgedToken = mockWrappedToken;
+        bridgedToken = IERC20(address(mockWrappedToken));
         tokenHomeDecimals = 18;
     }
 
@@ -44,24 +47,49 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
      * Initialization unit tests
      */
     function testZeroTeleporterRegistryAddress() public {
-        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new NativeTokenHome(address(0), address(this), address(mockWrappedToken));
+        invalidInitialization(
+            address(0),
+            address(this),
+            address(mockWrappedToken),
+            "TeleporterUpgradeable: zero teleporter registry address"
+        );
     }
 
     function testZeroTeleporterManagerAddress() public {
-        vm.expectRevert("Ownable: new owner is the zero address");
-        new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(0), address(mockWrappedToken));
+        invalidInitialization(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(0),
+            address(mockWrappedToken),
+            "Ownable: new owner is the zero address"
+        );
     }
 
     function testZeroFeeTokenAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero token address"));
-        new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
+        invalidInitialization(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(this),
+            address(0),
+            _formatErrorMessage("zero token address")
+        );
+    }
+
+    function invalidInitialization(
+        address teleporterRegistryAddress,
+        address teleporterManagerAddress,
+        address wrappedTokenAddress,
+        bytes memory expectedErrorMessage
+    ) private {
+        app = new NativeTokenHome();
+        vm.expectRevert(expectedErrorMessage);
+        app.initialize(teleporterRegistryAddress, teleporterManagerAddress, wrappedTokenAddress);
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(tokenHome));
         emit TokensWithdrawn(recipient, amount);
-        vm.expectCall(address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount)));
+        vm.expectCall(
+            address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
+        );
         vm.expectEmit(true, true, true, true, address(mockWrappedToken));
         emit Withdrawal(address(app), amount);
     }
@@ -111,7 +139,9 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
             vm.expectCall(
                 address(bridgedToken),
-                abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
+                abi.encodeCall(
+                    IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount)
+                )
             );
         }
 
@@ -124,10 +154,11 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
         vm.expectRevert("SafeWrappedNativeTokenDeposit: balance not increased");
     }
 
-    function _addCollateral(bytes32 remoteBlockchainID, address remoteBridgeAddress, uint256 amount)
-        internal
-        override
-    {
+    function _addCollateral(
+        bytes32 remoteBlockchainID,
+        address remoteBridgeAddress,
+        uint256 amount
+    ) internal override {
         app.addCollateral{value: amount}(remoteBlockchainID, remoteBridgeAddress);
     }
 }

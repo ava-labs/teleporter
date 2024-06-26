@@ -12,7 +12,8 @@ import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
 import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
 
@@ -34,7 +35,6 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
         erc20Bridge = app;
         tokenRemote = app;
         tokenBridge = app;
-        bridgedToken = IERC20(app);
 
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(this), 10e18);
@@ -51,8 +51,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
      * Initialization unit tests
      */
     function testZeroTeleporterRegistryAddress() public {
-        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new ERC20TokenRemote(
+        invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: address(0),
                 teleporterManager: address(this),
@@ -62,13 +61,13 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            tokenDecimals
+            tokenDecimals,
+            "TeleporterUpgradeable: zero teleporter registry address"
         );
     }
 
     function testZeroTeleporterManagerAddress() public {
-        vm.expectRevert("Ownable: new owner is the zero address");
-        new ERC20TokenRemote(
+        invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(0),
@@ -78,13 +77,13 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            tokenDecimals
+            tokenDecimals,
+            "Ownable: new owner is the zero address"
         );
     }
 
     function testZeroTokenHomeBlockchainID() public {
-        vm.expectRevert(_formatErrorMessage("zero token home blockchain ID"));
-        new ERC20TokenRemote(
+        invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -94,18 +93,13 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            tokenDecimals
+            tokenDecimals,
+            "zero token home blockchain ID"
         );
     }
 
-    function testDecimals() public {
-        uint8 res = app.decimals();
-        assertEq(tokenDecimals, res);
-    }
-
     function testDeployToSameBlockchain() public {
-        vm.expectRevert(_formatErrorMessage("cannot deploy to same blockchain as token home"));
-        new ERC20TokenRemote(
+        invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -115,13 +109,13 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            tokenDecimals
+            tokenDecimals,
+            _formatErrorMessage("cannot deploy to same blockchain as token home")
         );
     }
 
     function testZeroTokenHomeAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero token home address"));
-        new ERC20TokenRemote(
+        invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -131,8 +125,26 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            18
+            18,
+            _formatErrorMessage("zero token home address")
         );
+    }
+
+    function invalidInitialization(
+        TokenRemoteSettings memory settings,
+        string memory tokenName,
+        string memory tokenSymbol,
+        uint8 tokenDecimals_,
+        bytes memory expectedErrorMessage
+    ) private {
+        app = new ERC20TokenRemote();
+        vm.expectRevert(expectedErrorMessage);
+        app.initialize(settings, tokenName, tokenSymbol, tokenDecimals_);
+    }
+
+    function testDecimals() public {
+        uint8 res = app.decimals();
+        assertEq(tokenDecimals, res);
     }
 
     function testSendWithSeparateFeeAsset() public {
@@ -149,9 +161,9 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
         );
         // Increase the allowance of the bridge to transfer the funds from the user
-        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
+        app.safeIncreaseAllowance(address(tokenBridge), amount);
 
-        vm.expectEmit(true, true, true, true, address(bridgedToken));
+        vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(this), address(0), amount);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(tokenBridge));
@@ -204,7 +216,14 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
 
             bytes memory expectedCalldata = abi.encodeCall(
                 IERC20SendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, address(app), amount, payload)
+                (
+                    sourceBlockchainID,
+                    originInfo.bridgeAddress,
+                    originInfo.senderAddress,
+                    address(app),
+                    amount,
+                    payload
+                )
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, expectedCalldata, new bytes(0));
@@ -242,22 +261,22 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
-            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            app.safeIncreaseAllowance(address(tokenBridge), feeAmount);
         }
 
         // Increase the allowance of the bridge to transfer the funds from the user
-        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
+        app.safeIncreaseAllowance(address(tokenBridge), amount);
 
-        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenBridge));
+        uint256 currentAllowance = app.allowance(address(this), address(tokenBridge));
         if (feeAmount > 0) {
-            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            vm.expectEmit(true, true, true, true, address(app));
             emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount);
-            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(this), address(tokenBridge), feeAmount);
         }
-        vm.expectEmit(true, true, true, true, address(bridgedToken));
+        vm.expectEmit(true, true, true, true, address(app));
         emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount - amount);
-        vm.expectEmit(true, true, true, true, address(bridgedToken));
+        vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(this), address(0), amount);
     }
 

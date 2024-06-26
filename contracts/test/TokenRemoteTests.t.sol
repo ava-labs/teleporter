@@ -153,8 +153,9 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
         uint256 amount = 1;
 
         if (
-            TokenScalingUtils.removeTokenScale(tokenRemote.tokenMultiplier(), tokenRemote.multiplyOnRemote(), amount)
-                != 0
+            TokenScalingUtils.removeTokenScale(
+                tokenRemote.tokenMultiplier(), tokenRemote.multiplyOnRemote(), amount
+            ) != 0
         ) {
             return;
         }
@@ -217,19 +218,25 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
     function testReceiveInvalidSourceBlockchainID() public {
         vm.expectRevert(_formatErrorMessage("invalid source blockchain ID"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenRemote.receiveTeleporterMessage(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, new bytes(0));
+        tokenRemote.receiveTeleporterMessage(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, new bytes(0)
+        );
     }
 
     function testReceiveInvalidOriginSenderAddress() public {
         vm.expectRevert(_formatErrorMessage("invalid origin sender address"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenRemote.receiveTeleporterMessage(DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, address(0), new bytes(0));
+        tokenRemote.receiveTeleporterMessage(
+            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, address(0), new bytes(0)
+        );
     }
 
     function testReceiveInvalidMessage() public {
         vm.expectRevert();
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenRemote.receiveTeleporterMessage(DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, bytes("test"));
+        tokenRemote.receiveTeleporterMessage(
+            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, bytes("test")
+        );
     }
 
     function testReceiveWithdrawSuccess() public {
@@ -276,7 +283,9 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
         uint256 initialSupply = _getTotalSupply();
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenRemote.receiveTeleporterMessage(DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, message);
+        tokenRemote.receiveTeleporterMessage(
+            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, message
+        );
 
         assertEq(_getTotalSupply(), initialSupply + amount);
     }
@@ -309,7 +318,9 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenRemote.receiveTeleporterMessage(DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, message);
+        tokenRemote.receiveTeleporterMessage(
+            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, message
+        );
     }
 
     function testReceiveSendAndCallFailureNoCode() public {
@@ -341,7 +352,9 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS
         });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenRemote.receiveTeleporterMessage(DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, message);
+        tokenRemote.receiveTeleporterMessage(
+            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, DEFAULT_TOKEN_HOME_ADDRESS, message
+        );
     }
 
     function testReceiveSendAndCallFailureInsufficientGas() public {
@@ -401,7 +414,6 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
         // Create a new instance that has not yet received any messages.
         tokenRemote = _createNewRemoteInstance();
         tokenBridge = tokenRemote;
-        bridgedToken = IERC20(address(tokenRemote));
 
         // Deploy a separate fee asset for registering with the token home.
         ExampleERC20 separateFeeAsset = new ExampleERC20();
@@ -476,7 +488,9 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
         input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
 
         _setUpExpectedDeposit(amount, input.primaryFee);
-        _checkExpectedTeleporterCallsForSend(_createMultiHopSendTeleporterMessageInput(input, bridgeAmount));
+        _checkExpectedTeleporterCallsForSend(
+            _createMultiHopSendTeleporterMessageInput(input, bridgeAmount)
+        );
         vm.expectEmit(true, true, true, true, address(tokenBridge));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, bridgeAmount);
         _send(input, amount);
@@ -531,15 +545,14 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
 
     function _getTotalSupply() internal view virtual returns (uint256);
 
-    function _createMultiHopSendTeleporterMessageInput(SendTokensInput memory input, uint256 bridgeAmount)
-        internal
-        view
-        returns (TeleporterMessageInput memory)
-    {
+    function _createMultiHopSendTeleporterMessageInput(
+        SendTokensInput memory input,
+        uint256 bridgeAmount
+    ) internal view returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
             destinationBlockchainID: tokenRemote.tokenHomeBlockchainID(),
             destinationAddress: tokenRemote.tokenHomeAddress(),
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(bridgedToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(tokenRemote), amount: input.primaryFee}),
             requiredGasLimit: tokenRemote.MULTI_HOP_SEND_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
             message: _encodeMultiHopSendMessage({
@@ -562,9 +575,15 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
         return TeleporterMessageInput({
             destinationBlockchainID: tokenRemote.tokenHomeBlockchainID(),
             destinationAddress: tokenRemote.tokenHomeAddress(),
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(bridgedToken), amount: input.primaryFee}),
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(tokenRemote),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: tokenRemote.MULTI_HOP_CALL_REQUIRED_GAS()
-                + (tokenRemote.calculateNumWords(input.recipientPayload.length) * tokenRemote.MULTI_HOP_CALL_GAS_PER_WORD()),
+                + (
+                    tokenRemote.calculateNumWords(input.recipientPayload.length)
+                        * tokenRemote.MULTI_HOP_CALL_GAS_PER_WORD()
+                ),
             allowedRelayerAddresses: new address[](0),
             message: _encodeMultiHopCallMessage({
                 originSenderAddress: originSenderAddress,
@@ -582,12 +601,17 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
         });
     }
 
-    function _createDefaultSendTokensInput() internal view override returns (SendTokensInput memory) {
+    function _createDefaultSendTokensInput()
+        internal
+        view
+        override
+        returns (SendTokensInput memory)
+    {
         return SendTokensInput({
             destinationBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
             destinationBridgeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
-            primaryFeeTokenAddress: address(bridgedToken),
+            primaryFeeTokenAddress: address(tokenRemote),
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -602,7 +626,12 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
         return input;
     }
 
-    function _createDefaultSendAndCallInput() internal view override returns (SendAndCallInput memory) {
+    function _createDefaultSendAndCallInput()
+        internal
+        view
+        override
+        returns (SendAndCallInput memory)
+    {
         return SendAndCallInput({
             destinationBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
             destinationBridgeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
@@ -612,7 +641,7 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
             multiHopFallback: address(0),
-            primaryFeeTokenAddress: address(bridgedToken),
+            primaryFeeTokenAddress: address(tokenRemote),
             primaryFee: 0,
             secondaryFee: 0
         });
@@ -622,7 +651,12 @@ abstract contract TokenRemoteTest is TokenBridgeTest {
         return DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID;
     }
 
-    function _formatErrorMessage(string memory message) internal pure override returns (bytes memory) {
+    function _formatErrorMessage(string memory message)
+        internal
+        pure
+        override
+        returns (bytes memory)
+    {
         return bytes(string.concat("TokenRemote: ", message));
     }
 }
