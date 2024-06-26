@@ -10,7 +10,7 @@ import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
 import {NativeTokenHome} from "../src/TokenHome/NativeTokenHome.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
-import {MockWrappedNativeToken} from "../src/mocks/MockWrappedNativeToken.sol";
+import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
@@ -18,7 +18,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     using SafeERC20 for IERC20;
 
     NativeTokenHome public app;
-    IWrappedNativeToken public mockWrappedToken;
+    IWrappedNativeToken public wavaxen;
 
     receive() external payable {
         require(msg.sender == address(app), "NativeTokenHomeTest: invalid receive payable sender");
@@ -27,16 +27,16 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     function setUp() public override {
         TokenHomeTest.setUp();
 
-        mockWrappedToken = new MockWrappedNativeToken("AVAX");
+        wavax = new WrappedNativeToken("AVAX");
         app = new NativeTokenHome(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            address(mockWrappedToken)
+            address(wavax)
         );
         tokenHome = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        bridgedToken = mockWrappedToken;
+        bridgedToken = wavax;
         tokenHomeDecimals = 18;
     }
 
@@ -45,12 +45,12 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
      */
     function testZeroTeleporterRegistryAddress() public {
         vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new NativeTokenHome(address(0), address(this), address(mockWrappedToken));
+        new NativeTokenHome(address(0), address(this), address(wavax));
     }
 
     function testZeroTeleporterManagerAddress() public {
         vm.expectRevert("Ownable: new owner is the zero address");
-        new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(0), address(mockWrappedToken));
+        new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(0), address(wavax));
     }
 
     function testZeroFeeTokenAddress() public {
@@ -61,10 +61,8 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(tokenHome));
         emit TokensWithdrawn(recipient, amount);
-        vm.expectCall(
-            address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
-        );
-        vm.expectEmit(true, true, true, true, address(mockWrappedToken));
+        vm.expectCall(address(wavax), abi.encodeCall(IWrappedNativeToken.withdraw, (amount)));
+        vm.expectEmit(true, true, true, true, address(wavax));
         emit Withdrawal(address(app), amount);
     }
 
@@ -107,7 +105,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     }
 
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal override {
-        mockWrappedToken.deposit{value: feeAmount}();
+        wavax.deposit{value: feeAmount}();
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
