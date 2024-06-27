@@ -27,11 +27,6 @@ import {IWarpMessenger} from
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @notice Each TokenRemote instance registers with the home contract, and provides settings for bridging
  * to the remote bridge contract.
  * @param registered Whether the remote bridge is registered

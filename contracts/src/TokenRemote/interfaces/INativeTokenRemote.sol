@@ -9,11 +9,6 @@ import {INativeTokenBridge} from "../../interfaces/INativeTokenBridge.sol";
 import {ITokenRemote} from "./ITokenRemote.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @dev Interface that describes functionalities for a contract that can mint native tokens when
  * paired with a {ITokenHome} contract that will lock tokens on another chain.
  */

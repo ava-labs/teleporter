@@ -25,11 +25,6 @@ import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @title TokenRemote
  * @dev Abstract contract for a token bridge remote that receives tokens from its specified token TokenHome instance, and
  * allows for burning that token to redeem the backing asset on the home chain, or bridging to other remotes.

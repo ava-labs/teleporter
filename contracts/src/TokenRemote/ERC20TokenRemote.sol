@@ -19,11 +19,6 @@ import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @title ERC20TokenRemote
  * @notice This contract is an {IERC20TokenBridge} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens with an ERC20 token on this chain.

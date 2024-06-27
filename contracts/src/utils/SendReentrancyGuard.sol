@@ -9,11 +9,6 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/proxy/utils/Initializable.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @dev Abstract contract that helps implement reentrancy guards for Teleporter token bridge {_send} and {_sendAndCall}
  * functions.
  *

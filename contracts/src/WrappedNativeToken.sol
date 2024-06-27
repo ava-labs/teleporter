@@ -10,10 +10,6 @@ import {ERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
-/**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
 contract WrappedNativeToken is IWrappedNativeToken, ERC20Upgradeable {
     using Address for address payable;
 

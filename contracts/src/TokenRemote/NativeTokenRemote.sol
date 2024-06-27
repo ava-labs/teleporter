@@ -30,11 +30,6 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @title NativeTokenRemote
  * @notice This contract is an {INativeTokenRemote} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens as the native token on this chain.

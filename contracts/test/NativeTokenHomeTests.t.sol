@@ -18,7 +18,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     using SafeERC20 for IERC20;
 
     NativeTokenHome public app;
-    IWrappedNativeToken public mockWrappedToken;
+    IWrappedNativeToken public wavax;
 
     receive() external payable {
         require(msg.sender == address(app), "NativeTokenHomeTest: invalid receive payable sender");
@@ -29,17 +29,15 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
 
         WrappedNativeToken token = new WrappedNativeToken();
         token.initialize("AVAX");
-        mockWrappedToken = token;
+        wavax = token;
         app = new NativeTokenHome();
         app.initialize(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            address(mockWrappedToken)
+            MOCK_TELEPORTER_REGISTRY_ADDRESS, MOCK_TELEPORTER_MESSENGER_ADDRESS, address(wavax)
         );
         tokenHome = app;
         nativeTokenBridge = app;
         tokenBridge = app;
-        bridgedToken = IERC20(address(mockWrappedToken));
+        bridgedToken = IERC20(address(wavax));
         tokenHomeDecimals = 18;
     }
 
@@ -50,7 +48,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
         invalidInitialization(
             address(0),
             address(this),
-            address(mockWrappedToken),
+            address(wavax),
             "TeleporterUpgradeable: zero teleporter registry address"
         );
     }
@@ -59,7 +57,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
         invalidInitialization(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
-            address(mockWrappedToken),
+            address(wavax),
             "Ownable: new owner is the zero address"
         );
     }
@@ -87,10 +85,8 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(tokenHome));
         emit TokensWithdrawn(recipient, amount);
-        vm.expectCall(
-            address(mockWrappedToken), abi.encodeCall(IWrappedNativeToken.withdraw, (amount))
-        );
-        vm.expectEmit(true, true, true, true, address(mockWrappedToken));
+        vm.expectCall(address(wavax), abi.encodeCall(IWrappedNativeToken.withdraw, (amount)));
+        vm.expectEmit(true, true, true, true, address(wavax));
         emit Withdrawal(address(app), amount);
     }
 
@@ -133,7 +129,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     }
 
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal override {
-        mockWrappedToken.deposit{value: feeAmount}();
+        wavax.deposit{value: feeAmount}();
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);

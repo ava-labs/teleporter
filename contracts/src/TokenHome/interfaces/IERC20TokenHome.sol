@@ -9,11 +9,6 @@ import {IERC20TokenBridge} from "../../interfaces/IERC20TokenBridge.sol";
 import {ITokenHome} from "./ITokenHome.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @notice Interface for a ERC20 token "home" contract that locks its specified ERC20
  * token on its chain to be bridged to supported remote bridge contracts on other chains.
  *

@@ -9,11 +9,6 @@ import {IERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @title IWrappedNativeToken
  * @notice Interface for a wrapped native token
  * @dev Implements the {IERC20} interface, and adds deposit and withdraw functions.

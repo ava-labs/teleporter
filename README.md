@@ -1,8 +1,8 @@
 # Teleporter Token Bridge
 
-## Status
+## Upgradeability
 
-Please note that `teleporter-token-bridge` is still under active development and should not be used in production. The code is not yet audited and will be subject to active changes.
+The teleporter-token-bridge contracts are non-upgradeable and cannot be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging.
 
 ## Overview
 

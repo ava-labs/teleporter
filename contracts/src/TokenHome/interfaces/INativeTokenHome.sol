@@ -9,11 +9,6 @@ import {INativeTokenBridge} from "../../interfaces/INativeTokenBridge.sol";
 import {ITokenHome} from "./ITokenHome.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @notice Interface for a native token "home" contract that locks the native token
  * on its chain to be bridged to supported remote bridge contracts on other chains.
  *

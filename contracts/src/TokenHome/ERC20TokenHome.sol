@@ -17,11 +17,6 @@ import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @title ERC20TokenHome
  * @notice An {IERC20TokenHome} implementation that locks a specified ERC20 token to be sent to
  * TokenRemote instances on other chains.

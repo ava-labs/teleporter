@@ -8,11 +8,6 @@ pragma solidity 0.8.18;
 import {ITokenBridge, SendTokensInput, SendAndCallInput} from "./ITokenBridge.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @notice Interface for a Teleporter token bridge that sends native tokens to another chain.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md

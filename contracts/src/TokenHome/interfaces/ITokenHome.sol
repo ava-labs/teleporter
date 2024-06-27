@@ -8,11 +8,6 @@ pragma solidity 0.8.18;
 import {ITokenBridge, SendTokensInput, SendAndCallInput} from "../../interfaces/ITokenBridge.sol";
 
 /**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
-/**
  * @dev Interface for a "home" bridge contract that locks a specific token
  * on its chain to be bridged to supported "remote" bridge contracts on other chains.
  */
