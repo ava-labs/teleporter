@@ -122,7 +122,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     /**
      * @notice Fixed gas cost for registering the remote contract on the home contract.
      */
-    uint256 public constant REGISTER_REMOTE_REQUIRED_GAS = 115_000;
+    uint256 public constant REGISTER_REMOTE_REQUIRED_GAS = 135_000;
 
     /**
      * @notice Initializes this token TokenRemote instance.

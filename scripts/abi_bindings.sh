@@ -11,9 +11,10 @@ TELEPORTER_TOKEN_BRIDGE_PATH=$(
 
 source $TELEPORTER_TOKEN_BRIDGE_PATH/scripts/constants.sh
 source $TELEPORTER_TOKEN_BRIDGE_PATH/scripts/versions.sh
-source $TELEPORTER_PATH/scripts/utils.sh
 
-setARCH
+export ARCH=$(uname -m)
+[ $ARCH = x86_64 ] && ARCH=amd64
+echo "ARCH set to $ARCH"
 
 # Contract names to generate Go bindings for
 DEFAULT_CONTRACT_LIST="TokenHome TokenRemote ERC20TokenHome ERC20TokenRemote NativeTokenHome NativeTokenRemote WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver ExampleERC20Decimals"
@@ -53,6 +54,14 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 echo "Building Contracts"
 cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts
 forge build --skip test --force --extra-output-files abi bin
+
+function convertToLower() {
+    if [ "$ARCH" = 'arm64' ]; then
+        echo $1 | perl -ne 'print lc'
+    else
+        echo $1 | sed -e 's/\(.*\)/\L\1/'
+    fi
+}
 
 contract_names=($CONTRACT_LIST)
 

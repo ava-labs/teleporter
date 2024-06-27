@@ -58,7 +58,6 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		erc20TokenHomeAddress,
 		erc20TokenHomeDecimals,
 		initialReserveImbalance,
-		multiplyOnRemote,
 		burnedFeesReportingRewardPercentage,
 	)
 

@@ -70,7 +70,6 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 		erc20TokenHomeAddress,
 		exampleERC20Decimals,
 		initialReserveImbalance,
-		multiplyOnRemote,
 		burnedFeesReportingRewardPercentage,
 	)
 

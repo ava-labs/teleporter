@@ -58,7 +58,6 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenHomeAddress,
 		exampleERC20Decimals,
 		initialReserveImbalance,
-		multiplyOnRemote,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -72,7 +71,6 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenHomeAddress,
 		exampleERC20Decimals,
 		initialReserveImbalance,
-		multiplyOnRemote,
 		burnedFeesReportingRewardPercentage,
 	)
 

@@ -53,7 +53,6 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 		nativeTokenHomeAddress,
 		18,
 		initialReserveImbalance,
-		multiplyOnRemote,
 		burnedFeesReportingRewardPercentage,
 	)
 

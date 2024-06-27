@@ -174,7 +174,6 @@ func DeployNativeTokenRemote(
 	tokenHomeAddress common.Address,
 	tokenHomeDecimals uint8,
 	initialReserveImbalance *big.Int,
-	multiplyOnRemote bool,
 	burnedFeesReportingRewardPercentage *big.Int,
 ) (common.Address, *nativetokenremote.NativeTokenRemote) {
 	// The NativeTokenRemote needs a unique deployer key, whose nonce 0 is used to deploy the contract.
@@ -461,6 +460,13 @@ func RegisterTokenRemoteOnHome(
 
 	// Relay the register message to the home
 	receipt = network.RelayMessage(ctx, receipt, remoteSubnet, homeSubnet, true)
+	_, err = teleporterUtils.GetEventFromLogs(
+		receipt.Logs,
+		homeSubnet.TeleporterMessenger.ParseMessageExecuted,
+	)
+	if err != nil {
+		teleporterUtils.TraceTransactionAndExit(ctx, homeSubnet, receipt.TxHash)
+	}
 
 	// Check that the remote registered event was emitted
 	tokenHome, err := tokenhome.NewTokenHome(homeAddress, homeSubnet.RPCClient)

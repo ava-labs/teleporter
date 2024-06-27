@@ -57,7 +57,6 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		nativeTokenHomeAddress,
 		utils.NativeTokenDecimals,
 		initialReserveImbalance,
-		multiplyOnRemote,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -71,7 +70,6 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		nativeTokenHomeAddress,
 		utils.NativeTokenDecimals,
 		initialReserveImbalance,
-		multiplyOnRemote,
 		burnedFeesReportingRewardPercentage,
 	)
 
