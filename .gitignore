@@ -4,8 +4,6 @@ cache/
 target/
 bin/
 Cargo.lock
-contracts/.env
-contracts/broadcast/
 
 # IDE configurations
 .vscode*
