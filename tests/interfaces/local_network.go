@@ -20,6 +20,7 @@ type LocalNetwork interface {
 		destination SubnetTestInfo,
 	) *avalancheWarp.Message
 	GetAllNodeIDs() []ids.NodeID
+	SetChainConfigs(chainConfigs map[string]string)
 	RestartNodes(ctx context.Context, nodeIDs []ids.NodeID)
 	DeployTeleporterContracts(
 		transactionBytes []byte,

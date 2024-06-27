@@ -75,9 +75,8 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	utils.SetChainConfig(chainConfigs, subnetAInfo, warpEnabledChainConfigA)
 
 	// Restart nodes with new chain config
-	// TODO: actually reconfigure the chain here; the new call doesn't take
-	// options right now. this change was made just to get a clean build.
 	nodeIDs := network.GetAllNodeIDs()
+	network.SetChainConfigs(chainConfigs)
 	network.RestartNodes(ctx, nodeIDs)
 
 	// Call addProtocolVersion on subnetB to register the new Teleporter version

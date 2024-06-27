@@ -536,6 +536,18 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 	n.setAllSubnetValues()
 }
 
+func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
+	for chainIdStr, chainConfig := range chainConfigs {
+		for _, subnet := range n.tmpnet.Subnets {
+			for _, chain := range subnet.Chains {
+				if chain.ChainID.String() == chainIdStr {
+					chain.Config = chainConfig
+				}
+			}
+		}
+	}
+}
+
 func (n *LocalNetwork) ConstructSignedWarpMessage(
 	ctx context.Context,
 	sourceReceipt *types.Receipt,
