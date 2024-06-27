@@ -98,6 +98,9 @@ cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/src
 generate_bindings "${contract_names[@]}"
 
 contract_names=($PROXY_LIST)
+cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts
+forge build --skip test --force --extra-output-files abi bin --contracts lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
+
 cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
 generate_bindings "${contract_names[@]}"
 
