@@ -98,7 +98,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenRemoteAddressB,
 	)
 
-	// Generate new recipient to receive bridged tokens
+	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)

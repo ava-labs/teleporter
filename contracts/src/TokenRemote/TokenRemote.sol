@@ -16,7 +16,7 @@ import {
     MultiHopSendMessage,
     MultiHopCallMessage,
     RegisterRemoteMessage
-} from "../interfaces/ITokenBridge.sol";
+} from "../interfaces/ITokenTransferer.sol";
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IWarpMessenger} from
@@ -26,7 +26,7 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 
 /**
  * @title TokenRemote
- * @dev Abstract contract for a token bridge remote that receives tokens from its specified token TokenHome instance, and
+ * @dev Abstract contract for a token transferer remote that receives tokens from its specified token TokenHome instance, and
  * allows for burning that token to redeem the backing asset on the home chain, or bridging to other remotes.
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
@@ -203,7 +203,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     /**
      * @notice Sends tokens to the specified destination.
      *
-     * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message to the token TokenHome instance.
+     * @dev Burns the transferred amount, and uses Teleporter to send a cross chain message to the token TokenHome instance.
      * Tokens can be sent the token TokenHome instance, or to any TokenRemote instance registered with the home other than this one.
      */
     function _send(SendTokensInput calldata input, uint256 amount) internal sendNonReentrant {
@@ -219,7 +219,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * @notice Sends tokens to the specified recipient contract on the destination blockchain ID by
      * calling the {receiveTokens} method of the respective recipient.
      *
-     * @dev Burns the bridged amount, and uses Teleporter to send a cross chain message.
+     * @dev Burns the transferred amount, and uses Teleporter to send a cross chain message.
      * Tokens and data can be sent to the token TokenHome instance, or to any TokenRemote instance registered with the home
      * other than this one.
      */
@@ -332,14 +332,14 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     ) private returns (uint256, uint256) {
         // Transfer the primary fee to pay for fees on the first hop.
         // The user can specify this contract as {primaryFeeTokenAddress},
-        // in which case the fee will be paid on top of the bridged amount.
+        // in which case the fee will be paid on top of the transferred amount.
         primaryFee = _handleFees(primaryFeeTokenAddress, primaryFee);
 
-        // Burn the amount of tokens that will be bridged.
+        // Burn the amount of tokens that will be transferred.
         amount = _burn(amount);
 
-        // The bridged amount must cover the secondary fee, because the secondary fee
-        // is directly subtracted from the bridged amount on the intermediate (home) chain
+        // The transferred amount must cover the secondary fee, because the secondary fee
+        // is directly subtracted from the transferred amount on the intermediate (home) chain
         // performing the multi-hop, before forwarding to the final destination TokenRemote instance.
         require(
             TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnRemote, amount)

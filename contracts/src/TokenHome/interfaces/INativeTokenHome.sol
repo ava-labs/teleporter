@@ -5,16 +5,16 @@
 
 pragma solidity 0.8.18;
 
-import {INativeTokenBridge} from "../../interfaces/INativeTokenBridge.sol";
+import {INativeTokenTransferer} from "../../interfaces/INativeTokenTransferer.sol";
 import {ITokenHome} from "./ITokenHome.sol";
 
 /**
  * @notice Interface for a native token "home" contract that locks the native token
- * on its chain to be bridged to supported remote bridge contracts on other chains.
+ * on its chain to be transferred to supported remote bridge contracts on other chains.
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-interface INativeTokenHome is INativeTokenBridge, ITokenHome {
+interface INativeTokenHome is INativeTokenTransferer, ITokenHome {
     /**
      * @notice Adds collateral to the home bridge contract for the specified TokenRemote instance. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.

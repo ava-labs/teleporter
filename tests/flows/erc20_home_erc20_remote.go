@@ -27,7 +27,7 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 
 	ctx := context.Background()
 
-	// Deploy an ExampleERC20 on the primary network as the token to be bridged
+	// Deploy an ExampleERC20 on the primary network as the token to be transferred
 	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
@@ -79,7 +79,7 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 		erc20TokenRemoteAddress,
 	)
 
-	// Generate new recipient to receive bridged tokens
+	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)

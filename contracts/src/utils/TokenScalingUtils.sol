@@ -38,7 +38,7 @@ library TokenScalingUtils {
 
     /**
      * @notice Takes both the home and remote token denominations and uses
-     * them to derive the token bridge scaling multiplier values
+     * them to derive the token transferer scaling multiplier values
      * @param homeTokenDecimals The number of decimals of the home token.
      * @param remoteTokenDecimals The number of decimals of the remote token.
      */

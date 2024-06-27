@@ -5,16 +5,16 @@
 
 pragma solidity 0.8.18;
 
-import {IERC20TokenBridge} from "../../interfaces/IERC20TokenBridge.sol";
+import {IERC20TokenTransferer} from "../../interfaces/IERC20TokenTransferer.sol";
 import {ITokenHome} from "./ITokenHome.sol";
 
 /**
  * @notice Interface for a ERC20 token "home" contract that locks its specified ERC20
- * token on its chain to be bridged to supported remote bridge contracts on other chains.
+ * token on its chain to be transferred to supported remote bridge contracts on other chains.
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-interface IERC20TokenHome is IERC20TokenBridge, ITokenHome {
+interface IERC20TokenHome is IERC20TokenTransferer, ITokenHome {
     /**
      * @notice Adds collateral to the home bridge contract for the specified TokenRemote instance. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.

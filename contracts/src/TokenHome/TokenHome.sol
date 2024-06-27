@@ -18,7 +18,7 @@ import {
     MultiHopSendMessage,
     MultiHopCallMessage,
     RegisterRemoteMessage
-} from "../interfaces/ITokenBridge.sol";
+} from "../interfaces/ITokenTransferer.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
@@ -31,8 +31,8 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  * to the remote bridge contract.
  * @param registered Whether the remote bridge is registered
  * @param collateralNeeded The amount of tokens that must be first added as collateral,
- * through {addCollateral} calls, before tokens can be bridged to the remote token bridge.
- * @param tokenMultiplier The scaling factor for the amount of tokens to be bridged to the remote.
+ * through {addCollateral} calls, before tokens can be transferred to the remote token transferer.
+ * @param tokenMultiplier The scaling factor for the amount of tokens to be transferred to the remote.
  * @param multiplyOnRemote Whether the {tokenMultiplier} should be applied when transferring tokens to
  * the remote (multiplyOnRemote=true), or when transferring tokens back to the home (multiplyOnRemote=false).
  */
@@ -45,7 +45,7 @@ struct RemoteBridgeSettings {
 
 /**
  * @title TokenHome
- * @dev Abstract contract for a token bridge home that sends its specified token to {TokenRemote} instances.
+ * @dev Abstract contract for a token transferer home that sends its specified token to {TokenRemote} instances.
  *
  * This contract also handles multi-hop transfers, where tokens sent from a {TokenRemote}
  * instance are forwarded to another {TokenRemote} instance.
@@ -154,7 +154,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
     }
 
     /**
-     * @notice Sends tokens to the specified remote token bridge instance.
+     * @notice Sends tokens to the specified remote token transferer instance.
      *
      * @dev Increases the bridge balance sent to the remote bridge instance,
      * and uses Teleporter to send a cross chain message. The amount passed is assumed to
@@ -205,9 +205,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
     }
 
     /**
-     * @notice Routes tokens from a multi-hop message to the specified remote token bridge instance.
+     * @notice Routes tokens from a multi-hop message to the specified remote token transferer instance.
      *
-     * @dev Increases the bridge balance sent to the remote token bridge instance,
+     * @dev Increases the bridge balance sent to the remote token transferer instance,
      * and uses Teleporter to send a cross chain message. The amount passed is assumed to
      * be already scaled to the local denomination for this token home.
      * Requirements:
@@ -595,7 +595,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
     /**
      * @notice Processes a received transfer from a TokenRemote instance.
-     * Deducts the balance bridged to the given TokenRemote instance.
+     * Deducts the balance transferred to the given TokenRemote instance.
      * Removes the token scaling of the remote, checks the associated home token
      * amount is greater than zero, and returns the home token amount.
      * @param remoteSettings The bridge settings for the TokenRemote instance we received the transfer from.
@@ -614,7 +614,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         require(remoteSettings.registered, "TokenHome: remote not registered");
         require(remoteSettings.collateralNeeded == 0, "TokenHome: remote not collateralized");
 
-        // Deduct the balance bridged to the given TokenRemote instance prior to scaling the amount.
+        // Deduct the balance transferred to the given TokenRemote instance prior to scaling the amount.
         _deductSenderBalance(remoteBlockchainID, remoteBridgeAddress, amount);
 
         // Remove the token scaling of the remote and get home token amount.

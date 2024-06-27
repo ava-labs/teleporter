@@ -30,7 +30,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 
 	ctx := context.Background()
 
-	// Deploy an ExampleERC20 on subnet A as the token to be bridged
+	// Deploy an ExampleERC20 on subnet A as the token to be transferred
 	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
@@ -62,7 +62,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		burnedFeesReportingRewardPercentage,
 	)
 
-	// Generate new recipient to receive bridged tokens
+	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
@@ -175,7 +175,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
 
-	// Check the balance of the ERC20TokenHome increased by the bridged amount
+	// Check the balance of the ERC20TokenHome increased by the transferred amount
 	balance, err = exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHomeAddress)
 	Expect(err).Should(BeNil())
 	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, amount))

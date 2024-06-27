@@ -6,22 +6,22 @@ The avalanche-interchain-token-transfer contracts are non-upgradeable and cannot
 
 ## Overview
 
-Teleporter token bridge is an application that allows users to transfer tokens between Subnets. The bridge is a set of smart contracts that are deployed across multiple Subnets, and leverages [Teleporter](https://github.com/ava-labs/teleporter) for cross-chain communication.
+Avalanche interchain token transfer is an application that allows users to transfer tokens between Subnets. The token transferer is a set of smart contracts that are deployed across multiple Subnets, and leverages [Teleporter](https://github.com/ava-labs/teleporter) for cross-chain communication.
 
-Each bridge instance consists of one "home" contract and at least one but possibly many "remote" contracts. Each home contract instance manages one asset to be bridged out to `TokenRemote` instances. The home contract lives on the Subnet where the asset to be bridged exists and locks that asset as collateral to be bridged to other Subnets. The remote contracts, each of which has a single specified home contract, live on other Subnets that want to import the asset bridged by their specified home. The token bridges are designed to be permissionless: anyone can register compatible `TokenRemote` instances to allow for bridging tokens from the `TokenHome` instance to that new `TokenRemote` instance. The home contract keeps track of token balances bridged to each `TokenRemote` instance, and handles returning the original tokens back to the user when assets are bridged back to the `TokenHome` instance. `TokenRemote` instances are registered with their home contract via a Teleporter message upon creation.
+Each token transferer instance consists of one "home" contract and at least one but possibly many "remote" contracts. Each home contract instance manages one asset to be transferred out to `TokenRemote` instances. The home contract lives on the Subnet where the asset to be transferred exists and locks that asset as collateral to be transferred to other Subnets. The remote contracts, each of which has a single specified home contract, live on other Subnets that want to import the asset transferred by their specified home. The token transferers are designed to be permissionless: anyone can register compatible `TokenRemote` instances to allow for bridging tokens from the `TokenHome` instance to that new `TokenRemote` instance. The home contract keeps track of token balances transferred to each `TokenRemote` instance, and handles returning the original tokens back to the user when assets are transferred back to the `TokenHome` instance. `TokenRemote` instances are registered with their home contract via a Teleporter message upon creation.
 
-Home contract instances specify the asset to be bridged as either an ERC20 token or the native token, and they allow for transferring the token to any registered `TokenRemote` instances. The token representation on the remote chain can also either be an ERC20 or native token, allowing users to have any combination of ERC20 and native tokens between home and remote chains:
+Home contract instances specify the asset to be transferred as either an ERC20 token or the native token, and they allow for transferring the token to any registered `TokenRemote` instances. The token representation on the remote chain can also either be an ERC20 or native token, allowing users to have any combination of ERC20 and native tokens between home and remote chains:
 
 - `ERC20` -> `ERC20`
 - `ERC20` -> `Native`
 - `Native` -> `ERC20`
 - `Native` -> `Native`
 
-The remote tokens are designed to have compatibility with the token bridge on the home chain by default, and they allow custom logic to be implemented in addition. For example, developers can inherit and extend the `ERC20TokenRemote` contract to add additional functionality, such as a custom minting, burning, or transfer logic.
+The remote tokens are designed to have compatibility with the token transferer on the home chain by default, and they allow custom logic to be implemented in addition. For example, developers can inherit and extend the `ERC20TokenRemote` contract to add additional functionality, such as a custom minting, burning, or transfer logic.
 
-The token bridge also supports "multi-hop" transfers, where tokens can be transferred between remote chains. To illustrate, consider two remotes _R<sub>a</sub>_ and _R<sub>b</sub>_ that are both connected to the same home _H_. A multi-hop transfer from _R<sub>a</sub>_ to _R<sub>b</sub>_ first gets routed from _R<sub>a</sub>_ to _H_, where remote balances are updated, and then _H_ automatically routes the transfer on to _R<sub>b</sub>_.
+The token transferer also supports "multi-hop" transfers, where tokens can be transferred between remote chains. To illustrate, consider two remotes _R<sub>a</sub>_ and _R<sub>b</sub>_ that are both connected to the same home _H_. A multi-hop transfer from _R<sub>a</sub>_ to _R<sub>b</sub>_ first gets routed from _R<sub>a</sub>_ to _H_, where remote balances are updated, and then _H_ automatically routes the transfer on to _R<sub>b</sub>_.
 
-In addition to supporting basic token transfers, the token bridge contracts offer a `sendAndCall` interface for bridging tokens and using them in a smart contract interaction all within a single Teleporter message. If the call to the recipient smart contract fails, the bridged tokens are sent to a fallback recipient address on the destination chain of the transfer. The `sendAndCall` interface enables the direct use of bridged tokens in dApps on other chains, such as performing swaps, using the tokens to pay for fees when invoking services, etc.
+In addition to supporting basic token transfers, the token transferer contracts offer a `sendAndCall` interface for bridging tokens and using them in a smart contract interaction all within a single Teleporter message. If the call to the recipient smart contract fails, the transferred tokens are sent to a fallback recipient address on the destination chain of the transfer. The `sendAndCall` interface enables the direct use of transferred tokens in dApps on other chains, such as performing swaps, using the tokens to pay for fees when invoking services, etc.
 
 A breakdown of the structure of the contracts that implement this function can be found under `./contracts` [here](./contracts/README.md).
 
@@ -38,7 +38,7 @@ A breakdown of the structure of the contracts that implement this function can b
 
 ## Structure
 
-- `contracts/` is a Foundry project that includes the implementation of the token bridge contracts and Solidity unit tests
+- `contracts/` is a Foundry project that includes the implementation of the token transferer contracts and Solidity unit tests
 - `scripts/` includes various bash utility scripts
 - `tests/` includes integration tests for the contracts in `contracts/`, written using the [Ginkgo](https://onsi.github.io/ginkgo/) testing framework.
 

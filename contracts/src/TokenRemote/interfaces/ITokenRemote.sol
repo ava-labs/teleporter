@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {ITokenBridge} from "../../interfaces/ITokenBridge.sol";
+import {ITokenTransferer} from "../../interfaces/ITokenTransferer.sol";
 import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 
 /**
@@ -30,7 +30,7 @@ struct TokenRemoteSettings {
  * @dev Interface for a remote bridge contract that mints a representation token on its chain, and allows
  * for burning that token to redeem the backing asset on the home chain, or bridging to other remotes.
  */
-interface ITokenRemote is ITokenBridge {
+interface ITokenRemote is ITokenTransferer {
     /**
      * @notice Sends a Teleporter message to register the TokenRemote instance with its configured home.
      * @param feeInfo The optional fee asset and amount for the Teleporter message, for relayer incentivization.

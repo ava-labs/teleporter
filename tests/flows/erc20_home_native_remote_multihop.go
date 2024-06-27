@@ -28,7 +28,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 
 	ctx := context.Background()
 
-	// Deploy an ExampleERC20 on subnet A as the token to be bridged
+	// Deploy an ExampleERC20 on subnet A as the token to be transferred
 	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
@@ -126,7 +126,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		fundedKey,
 	)
 
-	// Generate new recipient to receive bridged tokens
+	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)

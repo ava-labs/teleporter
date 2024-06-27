@@ -17,7 +17,7 @@ import {
     BridgeMessage,
     SingleHopSendMessage,
     SingleHopCallMessage
-} from "../interfaces/ITokenBridge.sol";
+} from "../interfaces/ITokenTransferer.sol";
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
@@ -50,7 +50,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * @notice The address where native tokens are sent in order to be burned to bridge to other chains.
      *
      * @dev This address is distinct from {BURNED_TX_FEES_ADDRESS} so that the amount of burned transaction
-     * fees and burned bridged amounts can be tracked separately.
+     * fees and burned transferred amounts can be tracked separately.
      * This address was chosen arbitrarily.
      */
     address public constant BURNED_FOR_BRIDGE_ADDRESS = 0x0100000000000000000000000000000000010203;
@@ -135,14 +135,14 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
     }
 
     /**
-     * @dev See {INativeTokenBridge-send}.
+     * @dev See {INativeTokenTransferer-send}.
      */
     function send(SendTokensInput calldata input) external payable onlyWhenCollateralized {
         _send(input, msg.value);
     }
 
     /**
-     * @dev See {INativeTokenBridge-sendAndCall}
+     * @dev See {INativeTokenTransferer-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input) external payable onlyWhenCollateralized {
         _sendAndCall(input, msg.value);
@@ -231,7 +231,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      *
      * Note: {INativeTokenRemote-totalNativeAssetSupply} should not be confused with {IERC20-totalSupply}
      * {INativeTokenRemote-totalNativeAssetSupply} returns the supply of the native asset of the chain,
-     * accounting for the amounts that have been bridged in and out of the chain as well as burnt transaction
+     * accounting for the amounts that have been transferred in and out of the chain as well as burnt transaction
      * fees. The {initialReserveBalance} is included in this supply since it is in circulation on this
      * chain even prior to it being backed by collateral on the TokenHome instance.
      * {IERC20-totalSupply} returns the supply of the native asset held by this contract

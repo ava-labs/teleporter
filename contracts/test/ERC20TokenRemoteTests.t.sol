@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {ERC20TokenBridgeTest} from "./ERC20TokenBridgeTests.t.sol";
+import {ERC20TokenTransfererTest} from "./ERC20TokenTransfererTests.t.sol";
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
@@ -14,9 +14,9 @@ import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
-import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
+import {SendTokensInput} from "../src/interfaces/ITokenTransferer.sol";
 
-contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
+contract ERC20TokenRemoteTest is ERC20TokenTransfererTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
 
     string public constant MOCK_TOKEN_NAME = "Test Token";
@@ -33,7 +33,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
 
         erc20Bridge = app;
         tokenRemote = app;
-        tokenBridge = app;
+        tokenTransferer = app;
         bridgedToken = IERC20(app);
 
         vm.expectEmit(true, true, true, true, address(app));
@@ -143,18 +143,20 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
         input.primaryFeeTokenAddress = address(separateFeeAsset);
         input.primaryFee = feeAmount;
 
-        IERC20(separateFeeAsset).safeIncreaseAllowance(address(tokenBridge), feeAmount);
+        IERC20(separateFeeAsset).safeIncreaseAllowance(address(tokenTransferer), feeAmount);
         vm.expectCall(
             address(separateFeeAsset),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
+            abi.encodeCall(
+                IERC20.transferFrom, (address(this), address(tokenTransferer), feeAmount)
+            )
         );
         // Increase the allowance of the bridge to transfer the funds from the user
-        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
+        bridgedToken.safeIncreaseAllowance(address(tokenTransferer), amount);
 
         vm.expectEmit(true, true, true, true, address(bridgedToken));
         emit Transfer(address(this), address(0), amount);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
-        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        vm.expectEmit(true, true, true, true, address(tokenTransferer));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount);
         _send(input, amount);
     }
@@ -204,7 +206,14 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
 
             bytes memory expectedCalldata = abi.encodeCall(
                 IERC20SendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, address(app), amount, payload)
+                (
+                    sourceBlockchainID,
+                    originInfo.bridgeAddress,
+                    originInfo.senderAddress,
+                    address(app),
+                    amount,
+                    payload
+                )
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, expectedCalldata, new bytes(0));
@@ -242,21 +251,23 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
         // Transfer the fee to the bridge if it is greater than 0
         if (feeAmount > 0) {
-            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            bridgedToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
         }
 
         // Increase the allowance of the bridge to transfer the funds from the user
-        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
+        bridgedToken.safeIncreaseAllowance(address(tokenTransferer), amount);
 
-        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenBridge));
+        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenTransferer));
         if (feeAmount > 0) {
             vm.expectEmit(true, true, true, true, address(bridgedToken));
-            emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount);
+            emit Approval(address(this), address(tokenTransferer), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(bridgedToken));
-            emit Transfer(address(this), address(tokenBridge), feeAmount);
+            emit Transfer(address(this), address(tokenTransferer), feeAmount);
         }
         vm.expectEmit(true, true, true, true, address(bridgedToken));
-        emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount - amount);
+        emit Approval(
+            address(this), address(tokenTransferer), currentAllowance - feeAmount - amount
+        );
         vm.expectEmit(true, true, true, true, address(bridgedToken));
         emit Transfer(address(this), address(0), amount);
     }

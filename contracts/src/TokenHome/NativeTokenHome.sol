@@ -9,8 +9,10 @@ import {TokenHome} from "./TokenHome.sol";
 import {INativeTokenHome} from "./interfaces/INativeTokenHome.sol";
 import {INativeSendAndCallReceiver} from "../interfaces/INativeSendAndCallReceiver.sol";
 import {
-    SendTokensInput, SendAndCallInput, SingleHopCallMessage
-} from "../interfaces/ITokenBridge.sol";
+    SendTokensInput,
+    SendAndCallInput,
+    SingleHopCallMessage
+} from "../interfaces/ITokenTransferer.sol";
 import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDeposit.sol";
@@ -18,7 +20,7 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
 /**
  * @title NativeTokenHome
- * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be bridged to
+ * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be transferred to
  * TokenRemote instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
@@ -38,7 +40,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param wrappedTokenAddress The wrapped native token contract address of the native asset
-     * to be bridged to TokenRemote instances.
+     * to be transferred to TokenRemote instances.
      */
     constructor(
         address teleporterRegistryAddress,
@@ -50,7 +52,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
 
     /**
      * @notice Receives native tokens transferred to this contract.
-     * @dev This function is called when the token bridge is withdrawing native tokens to
+     * @dev This function is called when the token transferer is withdrawing native tokens to
      * transfer to the recipient. The caller must be the wrapped native token contract.
      */
     receive() external payable {
@@ -60,14 +62,14 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
     }
 
     /**
-     * @dev See {INativeTokenBridge-send}
+     * @dev See {INativeTokenTransferer-send}
      */
     function send(SendTokensInput calldata input) external payable {
         _send(input, msg.value);
     }
 
     /**
-     * @dev See {INativeTokenBridge-sendAndCall}
+     * @dev See {INativeTokenTransferer-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input) external payable {
         _sendAndCall({

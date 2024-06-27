@@ -5,13 +5,17 @@
 
 pragma solidity 0.8.18;
 
-import {ITokenBridge, SendTokensInput, SendAndCallInput} from "../../interfaces/ITokenBridge.sol";
+import {
+    ITokenTransferer,
+    SendTokensInput,
+    SendAndCallInput
+} from "../../interfaces/ITokenTransferer.sol";
 
 /**
- * @dev Interface for a "home" bridge contract that locks a specific token
- * on its chain to be bridged to supported "remote" bridge contracts on other chains.
+ * @dev Interface for a "home" token transferer contract that locks a specific token
+ * on its chain to be transferred to supported "remote" token transferer contracts on other chains.
  */
-interface ITokenHome is ITokenBridge {
+interface ITokenHome is ITokenTransferer {
     /**
      * @dev Emitted when tokens are added as collateral for a given TokenRemote instance.
      * The event emits a {remaining} value of 0 when the TokenRemote instance is fully collateralized.
@@ -24,7 +28,7 @@ interface ITokenHome is ITokenBridge {
     );
 
     /**
-     * @notice Emitted when a new TokenRemote instance is registered with the token bridge.
+     * @notice Emitted when a new TokenRemote instance is registered with the token transferer.
      */
     event RemoteRegistered(
         bytes32 indexed remoteBlockchainID,
