@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"os"
 	"slices"
@@ -596,6 +597,29 @@ func (n *LocalNetwork) GetSignedMessage(
 	Expect(len(source.NodeURIs)).Should(BeNumerically(">", 0))
 	warpClient, err := warpBackend.NewClient(source.NodeURIs[0], source.BlockchainID.String())
 	Expect(err).Should(BeNil())
+	for _, subnet := range n.tmpnet.Subnets {
+		for _, chain := range subnet.Chains {
+			fmt.Printf(
+				"subnet %s has chain %s\n",
+				subnet.SubnetID.String(),
+				chain.ChainID.String(),
+			)
+		}
+		for _, validatorID := range subnet.ValidatorIDs {
+			fmt.Printf(
+				"subnet %s has validator %s\n",
+				subnet.SubnetID.String(),
+				validatorID.String(),
+			)
+		}
+	}
+	for _, node := range n.tmpnet.Nodes {
+		fmt.Printf(
+			"node %s has URI %s\n",
+			node.NodeID.String(),
+			node.URI,
+		)
+	}
 
 	signingSubnetID := source.SubnetID
 	if source.SubnetID == constants.PrimaryNetworkID {
@@ -609,7 +633,13 @@ func (n *LocalNetwork) GetSignedMessage(
 		warp.WarpDefaultQuorumNumerator,
 		signingSubnetID.String(),
 	)
-	Expect(err).Should(BeNil())
+	Expect(err).Should(
+		BeNil(),
+		"nodeURI: %s; subnetID: %s; blockchainID: %s\n",
+		source.NodeURIs[0],
+		source.SubnetID,
+		source.BlockchainID.String(),
+	)
 
 	signedWarpMsg, err := avalancheWarp.ParseMessage(signedWarpMessageBytes)
 	Expect(err).Should(BeNil())
