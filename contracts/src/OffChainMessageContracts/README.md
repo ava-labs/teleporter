@@ -1,6 +1,6 @@
 ## Off Chain Message Contracts
 
-This directory contains Solidity contracts that use off chain [Avalanche Warp Messages](https://docs.avax.network/build/cross-chain/awm/overview). These are Warp messages whose source contract address is the zero address that is not owned and therefore could not have been originated on-chain.
+This directory contains Solidity contracts that use off-chain [Avalanche Warp Messages](https://docs.avax.network/build/cross-chain/awm/overview). These are Warp messages that are signed via manual approve by a chain's validators, rather than being submitted on-chain to be sent.
 
 These are mainly intended for upgradeability and off-chain governance and were implemented in this [subnet-evm PR](https://github.com/ava-labs/subnet-evm/issues/729).
 
