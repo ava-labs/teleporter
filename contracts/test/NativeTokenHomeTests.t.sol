@@ -45,7 +45,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
      * Initialization unit tests
      */
     function testZeroTeleporterRegistryAddress() public {
-        invalidInitialization(
+        _invalidInitialization(
             address(0),
             address(this),
             address(wavax),
@@ -54,7 +54,7 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     }
 
     function testZeroTeleporterManagerAddress() public {
-        invalidInitialization(
+        _invalidInitialization(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
             address(wavax),
@@ -63,23 +63,12 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
     }
 
     function testZeroFeeTokenAddress() public {
-        invalidInitialization(
+        _invalidInitialization(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
             address(0),
             _formatErrorMessage("zero token address")
         );
-    }
-
-    function invalidInitialization(
-        address teleporterRegistryAddress,
-        address teleporterManagerAddress,
-        address wrappedTokenAddress,
-        bytes memory expectedErrorMessage
-    ) private {
-        app = new NativeTokenHome();
-        vm.expectRevert(expectedErrorMessage);
-        app.initialize(teleporterRegistryAddress, teleporterManagerAddress, wrappedTokenAddress);
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
@@ -156,5 +145,16 @@ contract NativeTokenHomeTest is NativeTokenBridgeTest, TokenHomeTest {
         uint256 amount
     ) internal override {
         app.addCollateral{value: amount}(remoteBlockchainID, remoteBridgeAddress);
+    }
+
+    function _invalidInitialization(
+        address teleporterRegistryAddress,
+        address teleporterManagerAddress,
+        address wrappedTokenAddress,
+        bytes memory expectedErrorMessage
+    ) private {
+        app = new NativeTokenHome();
+        vm.expectRevert(expectedErrorMessage);
+        app.initialize(teleporterRegistryAddress, teleporterManagerAddress, wrappedTokenAddress);
     }
 }

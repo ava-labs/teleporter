@@ -50,7 +50,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
     }
 
     function testZeroInitialReserveImbalance() public {
-        invalidInitialization({
+        _invalidInitialization({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -66,7 +66,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
     }
 
     function testInvalidBurnedRewardPercentage() public {
-        invalidInitialization({
+        _invalidInitialization({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -82,7 +82,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
     }
 
     function testZeroTokenHomeBlockchainID() public {
-        invalidInitialization({
+        _invalidInitialization({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -98,7 +98,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
     }
 
     function testDeployToSameBlockchain() public {
-        invalidInitialization({
+        _invalidInitialization({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -494,7 +494,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         assertTrue(app.isCollateralized());
     }
 
-    function invalidInitialization(
+    function _invalidInitialization(
         TokenRemoteSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,

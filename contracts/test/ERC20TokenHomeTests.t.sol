@@ -45,7 +45,7 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
      * Initialization unit tests
      */
     function testZeroTeleporterRegistryAddress() public {
-        invalidInitialization(
+        _invalidInitialization(
             address(0),
             address(this),
             address(mockERC20),
@@ -55,7 +55,7 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
     }
 
     function testZeroTeleporterManagerAddress() public {
-        invalidInitialization(
+        _invalidInitialization(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
             address(mockERC20),
@@ -65,7 +65,7 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
     }
 
     function testZeroFeeTokenAddress() public {
-        invalidInitialization(
+        _invalidInitialization(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
             address(0),
@@ -75,7 +75,7 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
     }
 
     function testTokenDecimalsTooHigh() public {
-        invalidInitialization(
+        _invalidInitialization(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(this),
             address(mockERC20),
@@ -269,7 +269,7 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
         emit Transfer(address(this), address(tokenBridge), amount);
     }
 
-    function invalidInitialization(
+    function _invalidInitialization(
         address teleporterRegistryAddress,
         address teleporterManagerAddress,
         address feeTokenAddress,

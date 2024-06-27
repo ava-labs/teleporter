@@ -125,6 +125,8 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * @param initialReserveImbalance_ The initial reserve imbalance that must be collateralized before minting.
      * @param tokenDecimals_ The number of decimal places in the denomination of the remote token.
      */
+    // solhint-disable ordering
+    // solhint-disable-next-line func-name-mixedcase
     function __TokenRemote_init(
         TokenRemoteSettings memory settings,
         uint256 initialReserveImbalance_,
@@ -203,6 +205,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
         // Right-shift by 5 bits to divide by 32.
         return (payloadSize + 31) >> 5;
     }
+    // solhint-enable ordering
 
     /**
      * @notice Sends tokens to the specified destination.

@@ -32,6 +32,7 @@ abstract contract SendReentrancyGuard is Initializable {
         _sendEntered = _NOT_ENTERED;
     }
 
+    //solhint-disable-next-line func-name-mixedcase
     function __SendReentrancyGuard_init() internal onlyInitializing {
         _sendEntered = _NOT_ENTERED;
     }

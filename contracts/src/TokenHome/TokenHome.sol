@@ -87,13 +87,19 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
     /**
      * @notice Initializes this home bridge instance to send tokens to TokenRemote instances on other chains.
+     * @param teleporterRegistryAddress The address of the TeleporterRegistry contract.
+     * @param teleporterManager Address that manages this contract's integration with the
+     * Teleporter registry and Teleporter versions.
+     * @param tokenAddress_ The token contract address to be bridged by the home instance.
+     * @param tokenDecimals_ The number of decimals for the token being bridged.
      */
+    // solhint-disable-next-line func-name-mixedcase
     function __TokenHome_init(
         address teleporterRegistryAddress,
         address teleporterManager,
         address tokenAddress_,
         uint8 tokenDecimals_
-    ) public virtual onlyInitializing {
+    ) internal virtual onlyInitializing {
         __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
         __SendReentrancyGuard_init();
         blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();

@@ -24,7 +24,6 @@ import {
     MultiHopCallMessage
 } from "../src/interfaces/ITokenBridge.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract TokenBridgeTest is Test {
     // convenience struct to reduce stack usage

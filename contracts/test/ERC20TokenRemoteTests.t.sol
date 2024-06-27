@@ -55,7 +55,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
      * Initialization unit tests
      */
     function testZeroTeleporterRegistryAddress() public {
-        invalidInitialization(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: address(0),
                 teleporterManager: address(this),
@@ -71,7 +71,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
     }
 
     function testZeroTeleporterManagerAddress() public {
-        invalidInitialization(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(0),
@@ -87,7 +87,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
     }
 
     function testZeroTokenHomeBlockchainID() public {
-        invalidInitialization(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -103,7 +103,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
     }
 
     function testDeployToSameBlockchain() public {
-        invalidInitialization(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -119,7 +119,7 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
     }
 
     function testZeroTokenHomeAddress() public {
-        invalidInitialization(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -132,18 +132,6 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
             18,
             _formatErrorMessage("zero token home address")
         );
-    }
-
-    function invalidInitialization(
-        TokenRemoteSettings memory settings,
-        string memory tokenName,
-        string memory tokenSymbol,
-        uint8 tokenDecimals_,
-        bytes memory expectedErrorMessage
-    ) private {
-        app = new ERC20TokenRemote();
-        vm.expectRevert(expectedErrorMessage);
-        app.initialize(settings, tokenName, tokenSymbol, tokenDecimals_);
     }
 
     function testDecimals() public {
@@ -294,5 +282,17 @@ contract ERC20TokenRemoteTest is ERC20TokenBridgeTest, TokenRemoteTest {
         // Don't need to mock the minting of an ERC20TokenRemote since it is an internal call
         // on the remote contract.
         return;
+    }
+
+    function _invalidInitialization(
+        TokenRemoteSettings memory settings,
+        string memory tokenName,
+        string memory tokenSymbol,
+        uint8 tokenDecimals_,
+        bytes memory expectedErrorMessage
+    ) private {
+        app = new ERC20TokenRemote();
+        vm.expectRevert(expectedErrorMessage);
+        app.initialize(settings, tokenName, tokenSymbol, tokenDecimals_);
     }
 }
