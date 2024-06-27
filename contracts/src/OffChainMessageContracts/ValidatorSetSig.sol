@@ -12,7 +12,7 @@ import {
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 
 /**
- * @dev Message format for the WarpMessage payload to be forwarded to the target contract
+ * @dev Message format for the Warp message payload to be forwarded to the target contract
  *
  * validatorSetSigAddress: Address of the ValidatorSetSig contract this message is intended for
  * targetContractAddress: Address of the contract that the payload should be forwarded to
