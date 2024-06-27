@@ -4,9 +4,9 @@ import (
 	"context"
 	"math/big"
 
+	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	nativetokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/NativeTokenHome"
-	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -17,8 +17,8 @@ import (
 /**
  * Deploy a NativeTokenHome on the primary network
  * Deploys ERC20TokenRemote to Subnet A and Subnet B
- * Bridges C-Chain native tokens to Subnet A
- * Bridge tokens from Subnet A to Subnet B through multi-hop
+ * Transfers C-Chain native tokens to Subnet A
+ * Transfer tokens from Subnet A to Subnet B through multi-hop
  * Brige back tokens from Subnet B to Subnet A through multi-hop
  */
 func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {

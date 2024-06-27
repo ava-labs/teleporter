@@ -12,7 +12,7 @@ import {ITokenHome} from "./ITokenHome.sol";
  * @notice Interface for a ERC20 token "home" contract that locks its specified ERC20
  * token on its chain to be bridged to supported remote bridge contracts on other chains.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 interface IERC20TokenHome is IERC20TokenBridge, ITokenHome {
     /**

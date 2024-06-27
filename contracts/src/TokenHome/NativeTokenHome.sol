@@ -20,7 +20,7 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
  * @title NativeTokenHome
  * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be bridged to
  * TokenRemote instances on other chains.
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 contract NativeTokenHome is INativeTokenHome, TokenHome {
     using Address for address payable;

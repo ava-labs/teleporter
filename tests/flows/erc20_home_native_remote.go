@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
+	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
+	nativetokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/NativeTokenRemote"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	erc20tokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/ERC20TokenHome"
-	nativetokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/NativeTokenRemote"
-	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -29,8 +29,8 @@ var (
 /**
  * Deploy a ERC20Token on the primary network
  * Deploys NativeTokenRemote to Subnet A and Subnet B
- * Bridges C-Chain example ERC20 tokens to Subnet A as Subnet A's native token
- * Bridge back tokens from Subnet A to C-Chain
+ * Transfers C-Chain example ERC20 tokens to Subnet A as Subnet A's native token
+ * Transfer back tokens from Subnet A to C-Chain
  */
 func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()

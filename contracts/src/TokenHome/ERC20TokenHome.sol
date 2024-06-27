@@ -20,7 +20,7 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * @title ERC20TokenHome
  * @notice An {IERC20TokenHome} implementation that locks a specified ERC20 token to be sent to
  * TokenRemote instances on other chains.
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;

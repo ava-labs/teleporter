@@ -20,7 +20,7 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * @title ERC20TokenRemote
  * @notice This contract is an {IERC20TokenBridge} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens with an ERC20 token on this chain.
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 contract ERC20TokenRemote is IERC20TokenBridge, ERC20, TokenRemote {
     uint8 private immutable _decimals;

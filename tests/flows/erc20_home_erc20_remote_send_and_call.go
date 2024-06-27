@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
+	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
+	erc20tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/ERC20TokenRemote"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	erc20tokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/ERC20TokenHome"
-	erc20tokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/ERC20TokenRemote"
-	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -17,8 +17,8 @@ import (
 /**
  * Deploy an ERC20TokenHome on the primary network
  * Deploys ERC20TokenRemote to Subnet A
- * Bridges C-Chain example ERC20 tokens to Subnet A and calls contract on Subnet A using sendAndCall
- * Bridges C-Chain example ERC20 to EOA on Subnet A, and then bridge tokens from Subnet A back
+ * Transfers C-Chain example ERC20 tokens to Subnet A and calls contract on Subnet A using sendAndCall
+ * Transfers C-Chain example ERC20 to EOA on Subnet A, and then bridge tokens from Subnet A back
  * C-Chain and calls contract on the C-Chain using sendAndCall
  */
 func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
@@ -157,7 +157,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 		Expect(balance).Should(Equal(bridgedAmount))
 	}
 
-	// Bridge ERC20 tokens to account on subnet A
+	// Transfer ERC20 tokens to account on subnet A
 	{
 		// Send ERC20 tokens from C-Chain to recipient on subnet A
 		input := erc20tokenhome.SendTokensInput{

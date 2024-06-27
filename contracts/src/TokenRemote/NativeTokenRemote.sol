@@ -31,7 +31,7 @@ import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
  * @title NativeTokenRemote
  * @notice This contract is an {INativeTokenRemote} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens as the native token on this chain.
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, TokenRemote {
     using Address for address payable;

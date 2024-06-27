@@ -4,8 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	nativetokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/NativeTokenHome"
-	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
+	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -15,10 +15,10 @@ import (
 /**
  * Deploy a NativeTokenHome on the primary network
  * Deploys NativeTokenRemote to Subnet A and Subnet B
- * Bridges native tokens from the C-Chain to Subnet A as Subnet A's native token
- * Bridges native tokens from the C-Chain to Subnet B as Subnet B's native token to collateralize the Subnet B bridge
- * Bridge tokens from Subnet A to Subnet B through multi-hop
- * Bridge back tokens from Subnet B to Subnet A through multi-hop
+ * Transfers native tokens from the C-Chain to Subnet A as Subnet A's native token
+ * Transfers native tokens from the C-Chain to Subnet B as Subnet B's native token to collateralize the Subnet B bridge
+ * Transfer tokens from Subnet A to Subnet B through multi-hop
+ * Transfer back tokens from Subnet B to Subnet A through multi-hop
  */
 func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()

@@ -50,7 +50,7 @@ struct RemoteBridgeSettings {
  * This contract also handles multi-hop transfers, where tokens sent from a {TokenRemote}
  * instance are forwarded to another {TokenRemote} instance.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReentrancyGuard {
     /// @notice The blockchain ID of the chain this contract is deployed on.

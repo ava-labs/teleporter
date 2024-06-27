@@ -12,7 +12,7 @@ TELEPORTER_TOKEN_BRIDGE_PATH=$(
 source "$TELEPORTER_TOKEN_BRIDGE_PATH"/scripts/constants.sh
 source "$TELEPORTER_TOKEN_BRIDGE_PATH"/scripts/versions.sh
 
-BASEDIR=${BASEDIR:-"$HOME/.teleporter-token-bridge-deps"}
+BASEDIR=${BASEDIR:-"$HOME/.avalanche-interchain-token-transfer-deps"}
 
 cwd=$(pwd)
 # Install the avalanchego and subnet-evm binaries

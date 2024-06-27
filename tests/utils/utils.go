@@ -9,19 +9,19 @@ import (
 	"math"
 	"math/big"
 
+	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
+	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
+	tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/TokenHome"
+	erc20tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/ERC20TokenRemote"
+	nativetokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/NativeTokenRemote"
+	tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/TokenRemote"
+	wrappednativetoken "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/WrappedNativeToken"
+	exampleerc20 "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/mocks/ExampleERC20Decimals"
+	mockERC20SACR "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
+	mockNSACR "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/mocks/MockNativeSendAndCallReceiver"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	erc20tokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/ERC20TokenHome"
-	nativetokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/NativeTokenHome"
-	tokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/TokenHome"
-	erc20tokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/ERC20TokenRemote"
-	nativetokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/NativeTokenRemote"
-	tokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/TokenRemote"
-	wrappednativetoken "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/WrappedNativeToken"
-	exampleerc20 "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/ExampleERC20Decimals"
-	mockERC20SACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
-	mockNSACR "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/mocks/MockNativeSendAndCallReceiver"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -633,7 +633,7 @@ func SendERC20TokenRemote(
 
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	// Bridge the tokens back to subnet A
+	// Transfer the tokens back to subnet A
 	tx, err = erc20TokenRemote.Send(
 		opts,
 		input,
@@ -788,7 +788,7 @@ func SendAndCallERC20TokenRemote(
 
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	// Bridge the tokens back to subnet A
+	// Transfer the tokens back to subnet A
 	tx, err = erc20TokenRemote.SendAndCall(
 		opts,
 		input,
