@@ -45,6 +45,7 @@ type LocalNetwork struct {
 	subnetAID, subnetBID      ids.ID
 	subnetsInfo               map[ids.ID]*interfaces.SubnetTestInfo
 	subnetNodes               map[ids.ID][]*tmpnet.Node
+	extraNodes                []*tmpnet.Node
 
 	globalFundedKey *ecdsa.PrivateKey
 
@@ -71,6 +72,8 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	// Declare 10 new validators (which should have BLS key registered)
 	subnetANodes := subnetEvmTestUtils.NewTmpnetNodes(1)
 	subnetBNodes := subnetEvmTestUtils.NewTmpnetNodes(1)
+	// and some extra nodes to be used to add more validators later:
+	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(1)
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())
@@ -98,7 +101,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 
 	network := subnetEvmTestUtils.NewTmpnetNetwork(
 		"teleporter-test-local-network",
-		append(subnetANodes, subnetBNodes...),
+		append(subnetANodes, append(subnetBNodes, extraNodes...)...),
 		tmpnet.FlagsMap{},
 		subnetA,
 		subnetB,
@@ -108,7 +111,9 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	avalancheGoBuildPath, ok := os.LookupEnv("AVALANCHEGO_BUILD_PATH")
 	Expect(ok).Should(Equal(true))
 
-	Expect(len(network.Nodes)).To(Equal(len(subnetANodes) + len(subnetBNodes)))
+	Expect(len(network.Nodes)).To(Equal(
+		len(subnetANodes) + len(subnetBNodes) + len(extraNodes),
+	))
 
 	ctxWithTimeout, cancelBootstrap := context.WithTimeout(ctx, time.Minute*5)
 	err = tmpnet.BootstrapNewNetwork(
@@ -147,6 +152,7 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 			subnetAID: subnetANodes,
 			subnetBID: subnetBNodes,
 		},
+		extraNodes:          extraNodes,
 		globalFundedKey:     globalFundedKey,
 		tmpnet:              network,
 		warpChainConfigPath: warpChainConfigPath,
@@ -463,6 +469,11 @@ func (n *LocalNetwork) TearDownNetwork() {
 }
 
 func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {
+	Expect(count > 0).Should(BeTrue(), "can't add 0 validators")
+	Expect(uint(len(n.extraNodes)) >= count).Should(
+		BeTrue(),
+		"not enough extra nodes to use",
+	)
 	subnet := n.tmpnet.Subnets[slices.IndexFunc(
 		n.tmpnet.Subnets,
 		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
@@ -471,17 +482,11 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	apiURI, err := n.tmpnet.GetURIForNodeID(subnet.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
 
-	nodes := subnetEvmTestUtils.NewTmpnetNodes(int(count))
+	nodes := n.extraNodes[0:count]
+	slices.Delete(n.extraNodes, 0, int(count))
+	n.subnetNodes[subnetID] = append(n.subnetNodes[subnetID], n.extraNodes[0:count]...)
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	for _, node := range nodes {
-		err = n.tmpnet.StartNode(ctx, os.Stdout, node)
-		Expect(err).Should(BeNil())
-	}
-	for _, node := range nodes {
-		err = tmpnet.WaitForHealthy(ctx, node)
-		Expect(err).Should(BeNil())
-	}
 	err = subnet.AddValidators(
 		ctx,
 		os.Stdout,
@@ -489,8 +494,10 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 		nodes...,
 	)
 	Expect(err).Should(BeNil())
+	fmt.Println("finished adding validators")
 
 	n.setAllSubnetValues()
+	fmt.Println("finished setting all subnet values")
 }
 
 // GetAllNodeIDs returns a slice that copies all nodes in the network

@@ -67,10 +67,11 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	// Refresh the subnet info
 	subnetAInfo, subnetBInfo = utils.GetTwoSubnets(network)
 
-	// Trigger the proposer VM to update its height so that the inner VM can see the new validator set
+	log.Info("Trigger the proposer VM to update its height so that the inner VM can see the new validator set")
 	// We have to update all subnets, not just the ones directly involved in this test to ensure that the
 	// proposer VM is updated on all subnets.
 	for _, subnetInfo := range network.GetSubnetsInfo() {
+		log.Info("triggering", "SubnetID", subnetInfo.SubnetID.String())
 		err = subnetEvmUtils.IssueTxsToActivateProposerVMFork(
 			ctx, subnetInfo.EVMChainID, fundedKey, subnetInfo.WSClient,
 		)
