@@ -19,12 +19,12 @@ interface IERC20TokenHome is IERC20TokenTransferer, ITokenHome {
      * @notice Adds collateral to the home token transfer contract for the specified TokenRemote instance. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.
      * @param remoteBlockchainID The blockchain ID of the TokenRemote instance to add collateral for.
-     * @param remoteTokenTransferAddress The address of the TokenRemote instance to add collateral for on the {remoteBlockchainID}.
+     * @param remoteTokenTransfererAddress The address of the TokenRemote instance to add collateral for on the {remoteBlockchainID}.
      * @param amount Amount of tokens to add as collateral.
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress,
+        address remoteTokenTransfererAddress,
         uint256 amount
     ) external;
 }

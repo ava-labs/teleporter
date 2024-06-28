@@ -105,13 +105,13 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 
 	// Send tokens from C-Chain to recipient on subnet A
 	input := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: erc20TokenRemoteAddressA,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   wavaxAddress,
-		PrimaryFee:               big.NewInt(1e10),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
+		DestinationBlockchainID:           subnetAInfo.BlockchainID,
+		DestinationTokenTransfererAddress: erc20TokenRemoteAddressA,
+		Recipient:                         recipientAddress,
+		PrimaryFeeTokenAddress:            wavaxAddress,
+		PrimaryFee:                        big.NewInt(1e10),
+		SecondaryFee:                      big.NewInt(0),
+		RequiredGasLimit:                  utils.DefaultERC20RequiredGas,
 	}
 
 	// Send the tokens and verify expected events

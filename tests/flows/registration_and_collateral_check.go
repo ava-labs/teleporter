@@ -69,13 +69,13 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 
 	// Send tokens from C-Chain to Subnet A
 	input := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenRemoteAddressA,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   exampleERC20Address,
-		PrimaryFee:               big.NewInt(1e18),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:           subnetAInfo.BlockchainID,
+		DestinationTokenTransfererAddress: nativeTokenRemoteAddressA,
+		Recipient:                         recipientAddress,
+		PrimaryFeeTokenAddress:            exampleERC20Address,
+		PrimaryFee:                        big.NewInt(1e18),
+		SecondaryFee:                      big.NewInt(0),
+		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 	}
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
@@ -170,7 +170,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	scaledAmount := utils.GetScaledAmountFromERC20TokenHome(
 		erc20TokenHome,
 		input.DestinationBlockchainID,
-		input.DestinationBridgeAddress,
+		input.DestinationTokenTransfererAddress,
 		amount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)

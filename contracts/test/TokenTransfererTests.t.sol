@@ -274,7 +274,7 @@ abstract contract TokenTransfererTest is Test {
 
     function _setUpRegisteredRemote(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress,
+        address remoteTokenTransfererAddress,
         uint256 initialReserveImbalance
     ) internal virtual;
 

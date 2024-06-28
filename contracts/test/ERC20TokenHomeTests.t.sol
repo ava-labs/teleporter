@@ -228,10 +228,10 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
 
     function _addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress,
+        address remoteTokenTransfererAddress,
         uint256 amount
     ) internal override {
-        app.addCollateral(remoteBlockchainID, remoteTokenTransferAddress, amount);
+        app.addCollateral(remoteBlockchainID, remoteTokenTransfererAddress, amount);
     }
 
     function _setUpDeposit(uint256 amount) internal virtual override {

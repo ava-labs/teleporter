@@ -19,11 +19,11 @@ interface INativeTokenHome is INativeTokenTransferer, ITokenHome {
      * @notice Adds collateral to the home token transfer contract for the specified TokenRemote instance. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.
      * @param remoteBlockchainID The blockchain ID of the remote token transfer contract to add collateral for.
-     * @param remoteTokenTransferAddress The address of the remote token transfer contract to add collateral for on
+     * @param remoteTokenTransfererAddress The address of the remote token transfer contract to add collateral for on
      * the {remoteBlockchainID}.
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress
+        address remoteTokenTransfererAddress
     ) external payable;
 }

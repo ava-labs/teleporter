@@ -128,9 +128,9 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
 
     function _addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress,
+        address remoteTokenTransfererAddress,
         uint256 amount
     ) internal override {
-        app.addCollateral{value: amount}(remoteBlockchainID, remoteTokenTransferAddress);
+        app.addCollateral{value: amount}(remoteBlockchainID, remoteTokenTransfererAddress);
     }
 }

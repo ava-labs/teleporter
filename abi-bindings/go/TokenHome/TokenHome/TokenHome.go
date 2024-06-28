@@ -31,34 +31,34 @@ var (
 
 // SendAndCallInput is an auto generated low-level Go binding around an user-defined struct.
 type SendAndCallInput struct {
-	DestinationBlockchainID  [32]byte
-	DestinationBridgeAddress common.Address
-	RecipientContract        common.Address
-	RecipientPayload         []byte
-	RequiredGasLimit         *big.Int
-	RecipientGasLimit        *big.Int
-	MultiHopFallback         common.Address
-	FallbackRecipient        common.Address
-	PrimaryFeeTokenAddress   common.Address
-	PrimaryFee               *big.Int
-	SecondaryFee             *big.Int
+	DestinationBlockchainID           [32]byte
+	DestinationTokenTransfererAddress common.Address
+	RecipientContract                 common.Address
+	RecipientPayload                  []byte
+	RequiredGasLimit                  *big.Int
+	RecipientGasLimit                 *big.Int
+	MultiHopFallback                  common.Address
+	FallbackRecipient                 common.Address
+	PrimaryFeeTokenAddress            common.Address
+	PrimaryFee                        *big.Int
+	SecondaryFee                      *big.Int
 }
 
 // SendTokensInput is an auto generated low-level Go binding around an user-defined struct.
 type SendTokensInput struct {
-	DestinationBlockchainID  [32]byte
-	DestinationBridgeAddress common.Address
-	Recipient                common.Address
-	PrimaryFeeTokenAddress   common.Address
-	PrimaryFee               *big.Int
-	SecondaryFee             *big.Int
-	RequiredGasLimit         *big.Int
-	MultiHopFallback         common.Address
+	DestinationBlockchainID           [32]byte
+	DestinationTokenTransfererAddress common.Address
+	Recipient                         common.Address
+	PrimaryFeeTokenAddress            common.Address
+	PrimaryFee                        *big.Int
+	SecondaryFee                      *big.Int
+	RequiredGasLimit                  *big.Int
+	MultiHopFallback                  common.Address
 }
 
 // TokenHomeMetaData contains all meta data concerning the TokenHome contract.
 var TokenHomeMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"CallFailed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"CallSucceeded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"remoteBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"remoteBridgeAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"remoteBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"remoteBridgeAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"initialCollateralNeeded\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"tokenDecimals\",\"type\":\"uint8\"}],\"name\":\"RemoteRegistered\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"TeleporterAddressPaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"TeleporterAddressUnpaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"recipientPayload\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"recipientGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"fallbackRecipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structSendAndCallInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensAndCallRouted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"recipientPayload\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"recipientGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"fallbackRecipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structSendAndCallInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensAndCallSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"}],\"indexed\":false,\"internalType\":\"structSendTokensInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensRouted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationBridgeAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"}],\"indexed\":false,\"internalType\":\"structSendTokensInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensWithdrawn\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"blockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"remoteBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"remoteBridgeAddress\",\"type\":\"address\"}],\"name\":\"bridgedBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"isTeleporterAddressPaused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"pauseTeleporterAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"remoteBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"remoteBridgeAddress\",\"type\":\"address\"}],\"name\":\"registeredRemotes\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"registered\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"collateralNeeded\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenMultiplier\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"multiplyOnRemote\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenDecimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"unpauseTeleporterAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"CallFailed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"CallSucceeded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"remoteBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"remoteTokenTransfererAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remaining\",\"type\":\"uint256\"}],\"name\":\"CollateralAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"remoteBlockchainID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"remoteTokenTransfererAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"initialCollateralNeeded\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"tokenDecimals\",\"type\":\"uint8\"}],\"name\":\"RemoteRegistered\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"TeleporterAddressPaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"TeleporterAddressUnpaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationTokenTransfererAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"recipientPayload\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"recipientGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"fallbackRecipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structSendAndCallInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensAndCallRouted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationTokenTransfererAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"recipientPayload\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"recipientGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"fallbackRecipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structSendAndCallInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensAndCallSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationTokenTransfererAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"}],\"indexed\":false,\"internalType\":\"structSendTokensInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensRouted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationTokenTransfererAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"}],\"indexed\":false,\"internalType\":\"structSendTokensInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensWithdrawn\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"blockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"remoteBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"remoteTokenTransfererAddress\",\"type\":\"address\"}],\"name\":\"bridgedBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"isTeleporterAddressPaused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"pauseTeleporterAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"remoteBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"remoteTokenTransfererAddress\",\"type\":\"address\"}],\"name\":\"registeredRemotes\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"registered\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"collateralNeeded\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenMultiplier\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"multiplyOnRemote\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenDecimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"unpauseTeleporterAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // TokenHomeABI is the input ABI used to generate the binding from.
@@ -240,10 +240,10 @@ func (_TokenHome *TokenHomeCallerSession) BlockchainID() ([32]byte, error) {
 
 // BridgedBalances is a free data retrieval call binding the contract method 0x02ee3e9c.
 //
-// Solidity: function bridgedBalances(bytes32 remoteBlockchainID, address remoteBridgeAddress) view returns(uint256 balance)
-func (_TokenHome *TokenHomeCaller) BridgedBalances(opts *bind.CallOpts, remoteBlockchainID [32]byte, remoteBridgeAddress common.Address) (*big.Int, error) {
+// Solidity: function bridgedBalances(bytes32 remoteBlockchainID, address remoteTokenTransfererAddress) view returns(uint256 balance)
+func (_TokenHome *TokenHomeCaller) BridgedBalances(opts *bind.CallOpts, remoteBlockchainID [32]byte, remoteTokenTransfererAddress common.Address) (*big.Int, error) {
 	var out []interface{}
-	err := _TokenHome.contract.Call(opts, &out, "bridgedBalances", remoteBlockchainID, remoteBridgeAddress)
+	err := _TokenHome.contract.Call(opts, &out, "bridgedBalances", remoteBlockchainID, remoteTokenTransfererAddress)
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -257,16 +257,16 @@ func (_TokenHome *TokenHomeCaller) BridgedBalances(opts *bind.CallOpts, remoteBl
 
 // BridgedBalances is a free data retrieval call binding the contract method 0x02ee3e9c.
 //
-// Solidity: function bridgedBalances(bytes32 remoteBlockchainID, address remoteBridgeAddress) view returns(uint256 balance)
-func (_TokenHome *TokenHomeSession) BridgedBalances(remoteBlockchainID [32]byte, remoteBridgeAddress common.Address) (*big.Int, error) {
-	return _TokenHome.Contract.BridgedBalances(&_TokenHome.CallOpts, remoteBlockchainID, remoteBridgeAddress)
+// Solidity: function bridgedBalances(bytes32 remoteBlockchainID, address remoteTokenTransfererAddress) view returns(uint256 balance)
+func (_TokenHome *TokenHomeSession) BridgedBalances(remoteBlockchainID [32]byte, remoteTokenTransfererAddress common.Address) (*big.Int, error) {
+	return _TokenHome.Contract.BridgedBalances(&_TokenHome.CallOpts, remoteBlockchainID, remoteTokenTransfererAddress)
 }
 
 // BridgedBalances is a free data retrieval call binding the contract method 0x02ee3e9c.
 //
-// Solidity: function bridgedBalances(bytes32 remoteBlockchainID, address remoteBridgeAddress) view returns(uint256 balance)
-func (_TokenHome *TokenHomeCallerSession) BridgedBalances(remoteBlockchainID [32]byte, remoteBridgeAddress common.Address) (*big.Int, error) {
-	return _TokenHome.Contract.BridgedBalances(&_TokenHome.CallOpts, remoteBlockchainID, remoteBridgeAddress)
+// Solidity: function bridgedBalances(bytes32 remoteBlockchainID, address remoteTokenTransfererAddress) view returns(uint256 balance)
+func (_TokenHome *TokenHomeCallerSession) BridgedBalances(remoteBlockchainID [32]byte, remoteTokenTransfererAddress common.Address) (*big.Int, error) {
+	return _TokenHome.Contract.BridgedBalances(&_TokenHome.CallOpts, remoteBlockchainID, remoteTokenTransfererAddress)
 }
 
 // GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
@@ -364,15 +364,15 @@ func (_TokenHome *TokenHomeCallerSession) Owner() (common.Address, error) {
 
 // RegisteredRemotes is a free data retrieval call binding the contract method 0xd536ec33.
 //
-// Solidity: function registeredRemotes(bytes32 remoteBlockchainID, address remoteBridgeAddress) view returns(bool registered, uint256 collateralNeeded, uint256 tokenMultiplier, bool multiplyOnRemote)
-func (_TokenHome *TokenHomeCaller) RegisteredRemotes(opts *bind.CallOpts, remoteBlockchainID [32]byte, remoteBridgeAddress common.Address) (struct {
+// Solidity: function registeredRemotes(bytes32 remoteBlockchainID, address remoteTokenTransfererAddress) view returns(bool registered, uint256 collateralNeeded, uint256 tokenMultiplier, bool multiplyOnRemote)
+func (_TokenHome *TokenHomeCaller) RegisteredRemotes(opts *bind.CallOpts, remoteBlockchainID [32]byte, remoteTokenTransfererAddress common.Address) (struct {
 	Registered       bool
 	CollateralNeeded *big.Int
 	TokenMultiplier  *big.Int
 	MultiplyOnRemote bool
 }, error) {
 	var out []interface{}
-	err := _TokenHome.contract.Call(opts, &out, "registeredRemotes", remoteBlockchainID, remoteBridgeAddress)
+	err := _TokenHome.contract.Call(opts, &out, "registeredRemotes", remoteBlockchainID, remoteTokenTransfererAddress)
 
 	outstruct := new(struct {
 		Registered       bool
@@ -395,26 +395,26 @@ func (_TokenHome *TokenHomeCaller) RegisteredRemotes(opts *bind.CallOpts, remote
 
 // RegisteredRemotes is a free data retrieval call binding the contract method 0xd536ec33.
 //
-// Solidity: function registeredRemotes(bytes32 remoteBlockchainID, address remoteBridgeAddress) view returns(bool registered, uint256 collateralNeeded, uint256 tokenMultiplier, bool multiplyOnRemote)
-func (_TokenHome *TokenHomeSession) RegisteredRemotes(remoteBlockchainID [32]byte, remoteBridgeAddress common.Address) (struct {
+// Solidity: function registeredRemotes(bytes32 remoteBlockchainID, address remoteTokenTransfererAddress) view returns(bool registered, uint256 collateralNeeded, uint256 tokenMultiplier, bool multiplyOnRemote)
+func (_TokenHome *TokenHomeSession) RegisteredRemotes(remoteBlockchainID [32]byte, remoteTokenTransfererAddress common.Address) (struct {
 	Registered       bool
 	CollateralNeeded *big.Int
 	TokenMultiplier  *big.Int
 	MultiplyOnRemote bool
 }, error) {
-	return _TokenHome.Contract.RegisteredRemotes(&_TokenHome.CallOpts, remoteBlockchainID, remoteBridgeAddress)
+	return _TokenHome.Contract.RegisteredRemotes(&_TokenHome.CallOpts, remoteBlockchainID, remoteTokenTransfererAddress)
 }
 
 // RegisteredRemotes is a free data retrieval call binding the contract method 0xd536ec33.
 //
-// Solidity: function registeredRemotes(bytes32 remoteBlockchainID, address remoteBridgeAddress) view returns(bool registered, uint256 collateralNeeded, uint256 tokenMultiplier, bool multiplyOnRemote)
-func (_TokenHome *TokenHomeCallerSession) RegisteredRemotes(remoteBlockchainID [32]byte, remoteBridgeAddress common.Address) (struct {
+// Solidity: function registeredRemotes(bytes32 remoteBlockchainID, address remoteTokenTransfererAddress) view returns(bool registered, uint256 collateralNeeded, uint256 tokenMultiplier, bool multiplyOnRemote)
+func (_TokenHome *TokenHomeCallerSession) RegisteredRemotes(remoteBlockchainID [32]byte, remoteTokenTransfererAddress common.Address) (struct {
 	Registered       bool
 	CollateralNeeded *big.Int
 	TokenMultiplier  *big.Int
 	MultiplyOnRemote bool
 }, error) {
-	return _TokenHome.Contract.RegisteredRemotes(&_TokenHome.CallOpts, remoteBlockchainID, remoteBridgeAddress)
+	return _TokenHome.Contract.RegisteredRemotes(&_TokenHome.CallOpts, remoteBlockchainID, remoteTokenTransfererAddress)
 }
 
 // TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
@@ -995,28 +995,28 @@ func (it *TokenHomeCollateralAddedIterator) Close() error {
 
 // TokenHomeCollateralAdded represents a CollateralAdded event raised by the TokenHome contract.
 type TokenHomeCollateralAdded struct {
-	RemoteBlockchainID  [32]byte
-	RemoteBridgeAddress common.Address
-	Amount              *big.Int
-	Remaining           *big.Int
-	Raw                 types.Log // Blockchain specific contextual infos
+	RemoteBlockchainID           [32]byte
+	RemoteTokenTransfererAddress common.Address
+	Amount                       *big.Int
+	Remaining                    *big.Int
+	Raw                          types.Log // Blockchain specific contextual infos
 }
 
 // FilterCollateralAdded is a free log retrieval operation binding the contract event 0x6769a5f9bfc8b6e0db839ab981cbf9239274ae72d2d035081a9157d43bd33cb6.
 //
-// Solidity: event CollateralAdded(bytes32 indexed remoteBlockchainID, address indexed remoteBridgeAddress, uint256 amount, uint256 remaining)
-func (_TokenHome *TokenHomeFilterer) FilterCollateralAdded(opts *bind.FilterOpts, remoteBlockchainID [][32]byte, remoteBridgeAddress []common.Address) (*TokenHomeCollateralAddedIterator, error) {
+// Solidity: event CollateralAdded(bytes32 indexed remoteBlockchainID, address indexed remoteTokenTransfererAddress, uint256 amount, uint256 remaining)
+func (_TokenHome *TokenHomeFilterer) FilterCollateralAdded(opts *bind.FilterOpts, remoteBlockchainID [][32]byte, remoteTokenTransfererAddress []common.Address) (*TokenHomeCollateralAddedIterator, error) {
 
 	var remoteBlockchainIDRule []interface{}
 	for _, remoteBlockchainIDItem := range remoteBlockchainID {
 		remoteBlockchainIDRule = append(remoteBlockchainIDRule, remoteBlockchainIDItem)
 	}
-	var remoteBridgeAddressRule []interface{}
-	for _, remoteBridgeAddressItem := range remoteBridgeAddress {
-		remoteBridgeAddressRule = append(remoteBridgeAddressRule, remoteBridgeAddressItem)
+	var remoteTokenTransfererAddressRule []interface{}
+	for _, remoteTokenTransfererAddressItem := range remoteTokenTransfererAddress {
+		remoteTokenTransfererAddressRule = append(remoteTokenTransfererAddressRule, remoteTokenTransfererAddressItem)
 	}
 
-	logs, sub, err := _TokenHome.contract.FilterLogs(opts, "CollateralAdded", remoteBlockchainIDRule, remoteBridgeAddressRule)
+	logs, sub, err := _TokenHome.contract.FilterLogs(opts, "CollateralAdded", remoteBlockchainIDRule, remoteTokenTransfererAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1025,19 +1025,19 @@ func (_TokenHome *TokenHomeFilterer) FilterCollateralAdded(opts *bind.FilterOpts
 
 // WatchCollateralAdded is a free log subscription operation binding the contract event 0x6769a5f9bfc8b6e0db839ab981cbf9239274ae72d2d035081a9157d43bd33cb6.
 //
-// Solidity: event CollateralAdded(bytes32 indexed remoteBlockchainID, address indexed remoteBridgeAddress, uint256 amount, uint256 remaining)
-func (_TokenHome *TokenHomeFilterer) WatchCollateralAdded(opts *bind.WatchOpts, sink chan<- *TokenHomeCollateralAdded, remoteBlockchainID [][32]byte, remoteBridgeAddress []common.Address) (event.Subscription, error) {
+// Solidity: event CollateralAdded(bytes32 indexed remoteBlockchainID, address indexed remoteTokenTransfererAddress, uint256 amount, uint256 remaining)
+func (_TokenHome *TokenHomeFilterer) WatchCollateralAdded(opts *bind.WatchOpts, sink chan<- *TokenHomeCollateralAdded, remoteBlockchainID [][32]byte, remoteTokenTransfererAddress []common.Address) (event.Subscription, error) {
 
 	var remoteBlockchainIDRule []interface{}
 	for _, remoteBlockchainIDItem := range remoteBlockchainID {
 		remoteBlockchainIDRule = append(remoteBlockchainIDRule, remoteBlockchainIDItem)
 	}
-	var remoteBridgeAddressRule []interface{}
-	for _, remoteBridgeAddressItem := range remoteBridgeAddress {
-		remoteBridgeAddressRule = append(remoteBridgeAddressRule, remoteBridgeAddressItem)
+	var remoteTokenTransfererAddressRule []interface{}
+	for _, remoteTokenTransfererAddressItem := range remoteTokenTransfererAddress {
+		remoteTokenTransfererAddressRule = append(remoteTokenTransfererAddressRule, remoteTokenTransfererAddressItem)
 	}
 
-	logs, sub, err := _TokenHome.contract.WatchLogs(opts, "CollateralAdded", remoteBlockchainIDRule, remoteBridgeAddressRule)
+	logs, sub, err := _TokenHome.contract.WatchLogs(opts, "CollateralAdded", remoteBlockchainIDRule, remoteTokenTransfererAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1071,7 +1071,7 @@ func (_TokenHome *TokenHomeFilterer) WatchCollateralAdded(opts *bind.WatchOpts, 
 
 // ParseCollateralAdded is a log parse operation binding the contract event 0x6769a5f9bfc8b6e0db839ab981cbf9239274ae72d2d035081a9157d43bd33cb6.
 //
-// Solidity: event CollateralAdded(bytes32 indexed remoteBlockchainID, address indexed remoteBridgeAddress, uint256 amount, uint256 remaining)
+// Solidity: event CollateralAdded(bytes32 indexed remoteBlockchainID, address indexed remoteTokenTransfererAddress, uint256 amount, uint256 remaining)
 func (_TokenHome *TokenHomeFilterer) ParseCollateralAdded(log types.Log) (*TokenHomeCollateralAdded, error) {
 	event := new(TokenHomeCollateralAdded)
 	if err := _TokenHome.contract.UnpackLog(event, "CollateralAdded", log); err != nil {
@@ -1456,28 +1456,28 @@ func (it *TokenHomeRemoteRegisteredIterator) Close() error {
 
 // TokenHomeRemoteRegistered represents a RemoteRegistered event raised by the TokenHome contract.
 type TokenHomeRemoteRegistered struct {
-	RemoteBlockchainID      [32]byte
-	RemoteBridgeAddress     common.Address
-	InitialCollateralNeeded *big.Int
-	TokenDecimals           uint8
-	Raw                     types.Log // Blockchain specific contextual infos
+	RemoteBlockchainID           [32]byte
+	RemoteTokenTransfererAddress common.Address
+	InitialCollateralNeeded      *big.Int
+	TokenDecimals                uint8
+	Raw                          types.Log // Blockchain specific contextual infos
 }
 
 // FilterRemoteRegistered is a free log retrieval operation binding the contract event 0xf229b02a51a4c8d5ef03a096ae0dd727d7b48b710d21b50ebebb560eef739b90.
 //
-// Solidity: event RemoteRegistered(bytes32 indexed remoteBlockchainID, address indexed remoteBridgeAddress, uint256 initialCollateralNeeded, uint8 tokenDecimals)
-func (_TokenHome *TokenHomeFilterer) FilterRemoteRegistered(opts *bind.FilterOpts, remoteBlockchainID [][32]byte, remoteBridgeAddress []common.Address) (*TokenHomeRemoteRegisteredIterator, error) {
+// Solidity: event RemoteRegistered(bytes32 indexed remoteBlockchainID, address indexed remoteTokenTransfererAddress, uint256 initialCollateralNeeded, uint8 tokenDecimals)
+func (_TokenHome *TokenHomeFilterer) FilterRemoteRegistered(opts *bind.FilterOpts, remoteBlockchainID [][32]byte, remoteTokenTransfererAddress []common.Address) (*TokenHomeRemoteRegisteredIterator, error) {
 
 	var remoteBlockchainIDRule []interface{}
 	for _, remoteBlockchainIDItem := range remoteBlockchainID {
 		remoteBlockchainIDRule = append(remoteBlockchainIDRule, remoteBlockchainIDItem)
 	}
-	var remoteBridgeAddressRule []interface{}
-	for _, remoteBridgeAddressItem := range remoteBridgeAddress {
-		remoteBridgeAddressRule = append(remoteBridgeAddressRule, remoteBridgeAddressItem)
+	var remoteTokenTransfererAddressRule []interface{}
+	for _, remoteTokenTransfererAddressItem := range remoteTokenTransfererAddress {
+		remoteTokenTransfererAddressRule = append(remoteTokenTransfererAddressRule, remoteTokenTransfererAddressItem)
 	}
 
-	logs, sub, err := _TokenHome.contract.FilterLogs(opts, "RemoteRegistered", remoteBlockchainIDRule, remoteBridgeAddressRule)
+	logs, sub, err := _TokenHome.contract.FilterLogs(opts, "RemoteRegistered", remoteBlockchainIDRule, remoteTokenTransfererAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1486,19 +1486,19 @@ func (_TokenHome *TokenHomeFilterer) FilterRemoteRegistered(opts *bind.FilterOpt
 
 // WatchRemoteRegistered is a free log subscription operation binding the contract event 0xf229b02a51a4c8d5ef03a096ae0dd727d7b48b710d21b50ebebb560eef739b90.
 //
-// Solidity: event RemoteRegistered(bytes32 indexed remoteBlockchainID, address indexed remoteBridgeAddress, uint256 initialCollateralNeeded, uint8 tokenDecimals)
-func (_TokenHome *TokenHomeFilterer) WatchRemoteRegistered(opts *bind.WatchOpts, sink chan<- *TokenHomeRemoteRegistered, remoteBlockchainID [][32]byte, remoteBridgeAddress []common.Address) (event.Subscription, error) {
+// Solidity: event RemoteRegistered(bytes32 indexed remoteBlockchainID, address indexed remoteTokenTransfererAddress, uint256 initialCollateralNeeded, uint8 tokenDecimals)
+func (_TokenHome *TokenHomeFilterer) WatchRemoteRegistered(opts *bind.WatchOpts, sink chan<- *TokenHomeRemoteRegistered, remoteBlockchainID [][32]byte, remoteTokenTransfererAddress []common.Address) (event.Subscription, error) {
 
 	var remoteBlockchainIDRule []interface{}
 	for _, remoteBlockchainIDItem := range remoteBlockchainID {
 		remoteBlockchainIDRule = append(remoteBlockchainIDRule, remoteBlockchainIDItem)
 	}
-	var remoteBridgeAddressRule []interface{}
-	for _, remoteBridgeAddressItem := range remoteBridgeAddress {
-		remoteBridgeAddressRule = append(remoteBridgeAddressRule, remoteBridgeAddressItem)
+	var remoteTokenTransfererAddressRule []interface{}
+	for _, remoteTokenTransfererAddressItem := range remoteTokenTransfererAddress {
+		remoteTokenTransfererAddressRule = append(remoteTokenTransfererAddressRule, remoteTokenTransfererAddressItem)
 	}
 
-	logs, sub, err := _TokenHome.contract.WatchLogs(opts, "RemoteRegistered", remoteBlockchainIDRule, remoteBridgeAddressRule)
+	logs, sub, err := _TokenHome.contract.WatchLogs(opts, "RemoteRegistered", remoteBlockchainIDRule, remoteTokenTransfererAddressRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1532,7 +1532,7 @@ func (_TokenHome *TokenHomeFilterer) WatchRemoteRegistered(opts *bind.WatchOpts,
 
 // ParseRemoteRegistered is a log parse operation binding the contract event 0xf229b02a51a4c8d5ef03a096ae0dd727d7b48b710d21b50ebebb560eef739b90.
 //
-// Solidity: event RemoteRegistered(bytes32 indexed remoteBlockchainID, address indexed remoteBridgeAddress, uint256 initialCollateralNeeded, uint8 tokenDecimals)
+// Solidity: event RemoteRegistered(bytes32 indexed remoteBlockchainID, address indexed remoteTokenTransfererAddress, uint256 initialCollateralNeeded, uint8 tokenDecimals)
 func (_TokenHome *TokenHomeFilterer) ParseRemoteRegistered(log types.Log) (*TokenHomeRemoteRegistered, error) {
 	event := new(TokenHomeRemoteRegistered)
 	if err := _TokenHome.contract.UnpackLog(event, "RemoteRegistered", log); err != nil {

@@ -86,9 +86,9 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress
+        address remoteTokenTransfererAddress
     ) external payable {
-        _addCollateral(remoteBlockchainID, remoteTokenTransferAddress, msg.value);
+        _addCollateral(remoteBlockchainID, remoteTokenTransfererAddress, msg.value);
     }
 
     /**

@@ -28,7 +28,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
 
     event CollateralAdded(
         bytes32 indexed remoteBlockchainID,
-        address indexed remoteTokenTransferAddress,
+        address indexed remoteTokenTransfererAddress,
         uint256 amount,
         uint256 remaining
     );
@@ -789,7 +789,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
 
     function _addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress,
+        address remoteTokenTransfererAddress,
         uint256 amount
     ) internal virtual;
 
@@ -803,17 +803,17 @@ abstract contract TokenHomeTest is TokenTransfererTest {
 
     function _setUpRegisteredRemote(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress,
+        address remoteTokenTransfererAddress,
         uint256 initialReserveImbalance
     ) internal virtual override {
         _setUpRegisteredRemote(
-            remoteBlockchainID, remoteTokenTransferAddress, initialReserveImbalance, 1, true
+            remoteBlockchainID, remoteTokenTransfererAddress, initialReserveImbalance, 1, true
         );
     }
 
     function _setUpRegisteredRemote(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress,
+        address remoteTokenTransfererAddress,
         uint256 initialReserveImbalance,
         uint256 tokenMultiplier,
         bool multiplyOnRemote
@@ -834,7 +834,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
         });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
-            remoteBlockchainID, remoteTokenTransferAddress, abi.encode(message)
+            remoteBlockchainID, remoteTokenTransfererAddress, abi.encode(message)
         );
     }
 

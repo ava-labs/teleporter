@@ -73,10 +73,10 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransferAddress,
+        address remoteTokenTransfererAddress,
         uint256 amount
     ) external {
-        _addCollateral(remoteBlockchainID, remoteTokenTransferAddress, amount);
+        _addCollateral(remoteBlockchainID, remoteTokenTransfererAddress, amount);
     }
 
     /**

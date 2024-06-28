@@ -90,13 +90,13 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 	{
 		input := nativetokenhome.SendTokensInput{
-			DestinationBlockchainID:  subnetAInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenRemoteAddress,
-			Recipient:                recipientAddress,
-			PrimaryFeeTokenAddress:   cChainWAVAXAddress,
-			PrimaryFee:               big.NewInt(1e18),
-			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+			DestinationBlockchainID:           subnetAInfo.BlockchainID,
+			DestinationTokenTransfererAddress: nativeTokenRemoteAddress,
+			Recipient:                         recipientAddress,
+			PrimaryFeeTokenAddress:            cChainWAVAXAddress,
+			PrimaryFee:                        big.NewInt(1e18),
+			SecondaryFee:                      big.NewInt(0),
+			RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 		}
 
 		// Send initialReserveImbalance tokens to fully collateralize token transferer and mint the remainder.
@@ -130,13 +130,13 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 	// Send tokens on Subnet A back for native tokens on C-Chain
 	{
 		input_A := nativetokenremote.SendTokensInput{
-			DestinationBlockchainID:  cChainInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenHomeAddress,
-			Recipient:                recipientAddress,
-			PrimaryFeeTokenAddress:   nativeTokenRemoteAddress,
-			PrimaryFee:               big.NewInt(1e18),
-			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+			DestinationBlockchainID:           cChainInfo.BlockchainID,
+			DestinationTokenTransfererAddress: nativeTokenHomeAddress,
+			Recipient:                         recipientAddress,
+			PrimaryFeeTokenAddress:            nativeTokenRemoteAddress,
+			PrimaryFee:                        big.NewInt(1e18),
+			SecondaryFee:                      big.NewInt(0),
+			RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 		}
 
 		// Send half of the tokens back to C-Chain

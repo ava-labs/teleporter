@@ -106,13 +106,13 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 
 	// Send tokens from C-Chain to Subnet A
 	input := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenRemoteAddressA,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   exampleERC20Address,
-		PrimaryFee:               big.NewInt(1e18),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:           subnetAInfo.BlockchainID,
+		DestinationTokenTransfererAddress: nativeTokenRemoteAddressA,
+		Recipient:                         recipientAddress,
+		PrimaryFeeTokenAddress:            exampleERC20Address,
+		PrimaryFee:                        big.NewInt(1e18),
+		SecondaryFee:                      big.NewInt(0),
+		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 	}
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
@@ -141,13 +141,13 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 
 	// Send back to the home chain and check that ERC20TokenHome received the tokens
 	input_A := nativetokenremote.SendTokensInput{
-		DestinationBlockchainID:  cChainInfo.BlockchainID,
-		DestinationBridgeAddress: erc20TokenHomeAddress,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   nativeTokenRemoteAddressA,
-		PrimaryFee:               big.NewInt(1e10),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:           cChainInfo.BlockchainID,
+		DestinationTokenTransfererAddress: erc20TokenHomeAddress,
+		Recipient:                         recipientAddress,
+		PrimaryFeeTokenAddress:            nativeTokenRemoteAddressA,
+		PrimaryFee:                        big.NewInt(1e10),
+		SecondaryFee:                      big.NewInt(0),
+		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 	}
 	// Send half of the received amount to account for gas expenses
 	amountToSendA := new(big.Int).Div(bridgedAmount, big.NewInt(2))
