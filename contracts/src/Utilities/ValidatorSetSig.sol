@@ -12,7 +12,12 @@ import {
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 
 /**
- * @dev Message format for the Warp message payload to be forwarded to the target contract
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
+
+/**
+ * @dev Message format for the WarpMessage payload to be forwarded to the target contract
  *
  * validatorSetSigAddress: Address of the ValidatorSetSig contract this message is intended for
  * targetContractAddress: Address of the contract that the payload should be forwarded to
@@ -37,6 +42,8 @@ struct ValidatorSetSigMessage {
  * This is intended to be used for safe off-chain governance of enabled contracts. An example usecase would be
  * to deploy a `Ownable` target contract that is owned by an instance of this contract and adding the
  * `onlyOwner` modifier to the functions that should be governed.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 contract ValidatorSetSig is ReentrancyGuard {
     /**
@@ -75,8 +82,8 @@ contract ValidatorSetSig is ReentrancyGuard {
      */
     event Delivered(address indexed targetContractAddress, uint256 indexed nonce);
 
-    constructor(bytes32 validatorBlockChainID) {
-        validatorBlockchainID = validatorBlockChainID;
+    constructor(bytes32 validatorBlockchainID_) {
+        validatorBlockchainID = validatorBlockchainID_;
         blockchainID = WARP_MESSENGER.getBlockchainID();
     }
 
