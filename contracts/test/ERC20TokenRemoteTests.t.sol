@@ -150,7 +150,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransfererTest, TokenRemoteTest {
                 IERC20.transferFrom, (address(this), address(tokenTransferer), feeAmount)
             )
         );
-        // Increase the allowance of the bridge to transfer the funds from the user
+        // Increase the allowance of the token transferer to transfer the funds from the user
         bridgedToken.safeIncreaseAllowance(address(tokenTransferer), amount);
 
         vm.expectEmit(true, true, true, true, address(bridgedToken));
@@ -193,7 +193,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransfererTest, TokenRemoteTest {
         bool targetHasCode,
         bool expectSuccess
     ) internal override {
-        // The bridge tokens will be minted to the contract itself
+        // The transferred tokens will be minted to the contract itself
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(tokenRemote), amount);
 
@@ -249,12 +249,12 @@ contract ERC20TokenRemoteTest is ERC20TokenTransfererTest, TokenRemoteTest {
     }
 
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
-        // Transfer the fee to the bridge if it is greater than 0
+        // Transfer the fee to the token transferer if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
         }
 
-        // Increase the allowance of the bridge to transfer the funds from the user
+        // Increase the allowance of the token transferer to transfer the funds from the user
         bridgedToken.safeIncreaseAllowance(address(tokenTransferer), amount);
 
         uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenTransferer));

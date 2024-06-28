@@ -74,7 +74,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
     function sendAndCall(SendAndCallInput calldata input) external payable {
         _sendAndCall({
             sourceBlockchainID: blockchainID,
-            originBridgeAddress: address(this),
+            originTokenTransfererAddress: address(this),
             originSenderAddress: _msgSender(),
             input: input,
             amount: msg.value
@@ -86,9 +86,9 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteBridgeAddress
+        address remoteTokenTransferAddress
     ) external payable {
-        _addCollateral(remoteBlockchainID, remoteBridgeAddress, msg.value);
+        _addCollateral(remoteBlockchainID, remoteTokenTransferAddress, msg.value);
     }
 
     /**
@@ -130,7 +130,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
             INativeSendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originBridgeAddress,
+                message.originTokenTransfererAddress,
                 message.originSenderAddress,
                 message.recipientPayload
             )

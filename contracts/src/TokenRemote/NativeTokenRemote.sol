@@ -13,8 +13,8 @@ import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    BridgeMessageType,
-    BridgeMessage,
+    TokenTransferType,
+    TokenTransferMessage,
     SingleHopSendMessage,
     SingleHopCallMessage
 } from "../interfaces/ITokenTransferer.sol";
@@ -47,13 +47,13 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
     address public constant BURNED_TX_FEES_ADDRESS = 0x0100000000000000000000000000000000000000;
 
     /**
-     * @notice The address where native tokens are sent in order to be burned to bridge to other chains.
+     * @notice The address where native tokens are sent in order to be burned to transfer to other chains.
      *
      * @dev This address is distinct from {BURNED_TX_FEES_ADDRESS} so that the amount of burned transaction
      * fees and burned transferred amounts can be tracked separately.
      * This address was chosen arbitrarily.
      */
-    address public constant BURNED_FOR_BRIDGE_ADDRESS = 0x0100000000000000000000000000000000010203;
+    address public constant BURNED_FOR_TRANSFER_ADDRESS = 0x0100000000000000000000000000000000010203;
 
     /**
      * @notice Address used to blackhole funds on the home chain, effectively burning them.
@@ -178,8 +178,8 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
         );
 
         // Report the burned amount to the TokenHome instance.
-        BridgeMessage memory message = BridgeMessage({
-            messageType: BridgeMessageType.SINGLE_HOP_SEND,
+        TokenTransferMessage memory message = TokenTransferMessage({
+            messageType: TokenTransferType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: HOME_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
                 )
@@ -205,7 +205,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * Note: {IWrappedNativeToken-withdraw} should not be confused with {TokenRemote-_withdraw}.
      * {IWrappedNativeToken-withdraw} is the external method to redeem a wrapped native token (ERC20) balance
      * for the native token itself. {TokenRemote-_withdraw} is the internal method used when
-     * processing bridge transfers.
+     * processing token transfers.
      */
     function withdraw(uint256 amount) external {
         emit Withdrawal(_msgSender(), amount);
@@ -219,7 +219,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * Note: {IWrappedNativeToken-deposit} should not be confused with {TokenRemote-_deposit}.
      * {IWrappedNativeToken-deposit} is the public method for converting native tokens into the wrapped native
      * token (ERC20) representation. {TokenRemote-_deposit} is the internal method used when
-     * processing bridge transfers.
+     * processing token transfers.
      */
     function deposit() public payable {
         emit Deposit(_msgSender(), msg.value);
@@ -238,7 +238,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * that is represented as an ERC20.
      */
     function totalNativeAssetSupply() public view returns (uint256) {
-        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURNED_FOR_BRIDGE_ADDRESS.balance;
+        uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURNED_FOR_TRANSFER_ADDRESS.balance;
         uint256 created = totalMinted + initialReserveImbalance;
         return created - burned;
     }
@@ -254,12 +254,12 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
     /**
      * @dev See {TokenRemote-_burn}
      *
-     * This is the internal {_burn} method called when bridging tokens to another chain.
+     * This is the internal {_burn} method called when transferring tokens to another chain.
      * The tokens to be burnt are already held by this contract. To burn the tokens, send the
-     * native token amount to the BURNED_FOR_BRIDGE_ADDRESS.
+     * native token amount to the BURNED_FOR_TRANSFER_ADDRESS.
      */
     function _burn(uint256 amount) internal virtual override returns (uint256) {
-        payable(BURNED_FOR_BRIDGE_ADDRESS).sendValue(amount);
+        payable(BURNED_FOR_TRANSFER_ADDRESS).sendValue(amount);
         return amount;
     }
 
@@ -286,7 +286,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
             INativeSendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originBridgeAddress,
+                message.originTokenTransfererAddress,
                 message.originSenderAddress,
                 message.recipientPayload
             )

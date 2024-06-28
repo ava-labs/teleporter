@@ -26,7 +26,7 @@ contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
      */
     event TokensReceived(
         bytes32 indexed sourceBlockchainID,
-        address indexed originBridgeAddress,
+        address indexed originTokenTransfererAddress,
         address indexed originSenderAddress,
         uint256 amount,
         bytes payload
@@ -37,7 +37,7 @@ contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
      */
     function receiveTokens(
         bytes32 sourceBlockchainID,
-        address originBridgeAddress,
+        address originTokenTransfererAddress,
         address originSenderAddress,
         bytes calldata payload
     ) external payable {
@@ -46,7 +46,11 @@ contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
             "MockNativeSendAndCallReceiver: sender blocked"
         );
         emit TokensReceived(
-            sourceBlockchainID, originBridgeAddress, originSenderAddress, msg.value, payload
+            sourceBlockchainID,
+            originTokenTransfererAddress,
+            originSenderAddress,
+            msg.value,
+            payload
         );
 
         require(payload.length != 0, "MockNativeSendAndCallReceiver: empty payload");

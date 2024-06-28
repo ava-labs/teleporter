@@ -27,7 +27,7 @@ import {CallUtils} from "../utils/CallUtils.sol";
 contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;
 
-    /// @notice The ERC20 token this home contract bridges to TokenRemote instances.
+    /// @notice The ERC20 token this home contract transfers to TokenRemote instances.
     IERC20 public immutable token;
 
     /**
@@ -61,7 +61,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
         _sendAndCall({
             sourceBlockchainID: blockchainID,
-            originBridgeAddress: address(this),
+            originTokenTransfererAddress: address(this),
             originSenderAddress: _msgSender(),
             input: input,
             amount: amount
@@ -73,10 +73,10 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteBridgeAddress,
+        address remoteTokenTransferAddress,
         uint256 amount
     ) external {
-        _addCollateral(remoteBlockchainID, remoteBridgeAddress, amount);
+        _addCollateral(remoteBlockchainID, remoteTokenTransferAddress, amount);
     }
 
     /**
@@ -114,7 +114,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
             IERC20SendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originBridgeAddress,
+                message.originTokenTransfererAddress,
                 message.originSenderAddress,
                 address(token),
                 amount,

@@ -35,7 +35,7 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 		"AVAX",
 	)
 
-	// Create a NativeTokenHome for bridging the native token
+	// Create a NativeTokenHome for transferring the native token
 	nativeTokenHomeAddress, nativeTokenHome := utils.DeployNativeTokenHome(
 		ctx,
 		fundedKey,

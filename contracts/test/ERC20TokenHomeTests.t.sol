@@ -135,12 +135,16 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
         // Raw amount sent over wire should be multipled by 1e2.
         uint256 tokenMultiplier = 1e2;
         _setUpRegisteredRemote(
-            input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, true
+            input.destinationBlockchainID,
+            input.destinationTokenTransfererAddress,
+            0,
+            tokenMultiplier,
+            true
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
         TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationBridgeAddress,
+            destinationAddress: input.destinationTokenTransfererAddress,
             feeInfo: TeleporterFeeInfo({
                 feeTokenAddress: address(bridgedToken),
                 amount: input.primaryFee
@@ -224,14 +228,14 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
 
     function _addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteBridgeAddress,
+        address remoteTokenTransferAddress,
         uint256 amount
     ) internal override {
-        app.addCollateral(remoteBlockchainID, remoteBridgeAddress, amount);
+        app.addCollateral(remoteBlockchainID, remoteTokenTransferAddress, amount);
     }
 
     function _setUpDeposit(uint256 amount) internal virtual override {
-        // Increase the allowance of the bridge to transfer the funds from the user
+        // Increase the allowance of the token transferer to transfer the funds from the user
         bridgedToken.safeIncreaseAllowance(address(tokenTransferer), amount);
     }
 
@@ -240,7 +244,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
     }
 
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
-        // Transfer the fee to the bridge if it is greater than 0
+        // Transfer the fee to the token transferer if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
             vm.expectCall(
@@ -250,10 +254,10 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
                 )
             );
         }
-        // Increase the allowance of the bridge to transfer the funds from the user
+        // Increase the allowance of the token transferer to transfer the funds from the user
         bridgedToken.safeIncreaseAllowance(address(tokenTransferer), amount);
 
-        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
+        // Check that transferFrom is called to deposit the funds sent from the user to the token transferer
         // This is the case because for the {ERC20TokenHome) is not the fee token itself
         vm.expectCall(
             address(bridgedToken),

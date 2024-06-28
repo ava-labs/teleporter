@@ -50,7 +50,7 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Create an ERC20TokenHome for bridging the ERC20 token
+	// Create an ERC20TokenHome for transferring the ERC20 token
 	erc20TokenHomeAddress, erc20TokenHome := utils.DeployERC20TokenHome(
 		ctx,
 		fundedKey,

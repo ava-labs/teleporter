@@ -8,23 +8,23 @@ pragma solidity 0.8.18;
 import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 
 /**
- * @notice Input parameters for bridging tokens to another chain as part of a simple transfer.
+ * @notice Input parameters for transferring tokens to another chain as part of a simple transfer.
  * @param destinationBlockchainID Blockchain ID of the destination
- * @param destinationBridgeAddress Address of the destination token transferer instance
+ * @param destinationTokenTransfererAddress Address of the destination token transferer instance
  * @param recipient Address of the recipient on the destination chain
  * @param primaryFeeTokenAddress Address of the ERC20 contract to optionally pay a Teleporter message fee
  * @param primaryFee Amount of tokens to pay as the optional Teleporter message fee
  * @param secondaryFee Amount of tokens to pay for Teleporter fee if a multi-hop is needed
  * @param requiredGasLimit Gas limit requirement for sending to a token transferer.
  * This is required because the gas requirement varies based on the token transferer instance
- * specified by {destinationBlockchainID} and {destinationBridgeAddress}.
+ * specified by {destinationBlockchainID} and {destinationTokenTransfererAddress}.
  * @param multiHopFallback In the case of a multi-hop transfer, the address where the tokens
  * are sent on the home chain if the transfer is unable to be routed to its final destination.
  * Note that this address must be able to receive the tokens held as collateral in the home contract.
  */
 struct SendTokensInput {
     bytes32 destinationBlockchainID;
-    address destinationBridgeAddress;
+    address destinationTokenTransfererAddress;
     address recipient;
     address primaryFeeTokenAddress;
     uint256 primaryFee;
@@ -34,9 +34,9 @@ struct SendTokensInput {
 }
 
 /**
- * @notice Input parameters for bridging tokens to another chain as part of a transfer with a contract call.
+ * @notice Input parameters for transferring tokens to another chain as part of a transfer with a contract call.
  * @param destinationBlockchainID BlockchainID of the destination
- * @param destinationBridgeAddress Address of the destination token transferer instance
+ * @param destinationTokenTransfererAddress Address of the destination token transferer instance
  * @param recipientContract The contract on the destination chain that will be called
  * @param recipientPayload The payload that will be provided to the recipient contract on the destination chain
  * @param requiredGasLimit The required amount of gas needed to deliver the message on its destination chain,
@@ -55,7 +55,7 @@ struct SendTokensInput {
  */
 struct SendAndCallInput {
     bytes32 destinationBlockchainID;
-    address destinationBridgeAddress;
+    address destinationTokenTransfererAddress;
     address recipientContract;
     bytes recipientPayload;
     uint256 requiredGasLimit;
@@ -67,7 +67,7 @@ struct SendAndCallInput {
     uint256 secondaryFee;
 }
 
-enum BridgeMessageType {
+enum TokenTransferType {
     REGISTER_REMOTE,
     SINGLE_HOP_SEND,
     SINGLE_HOP_CALL,
@@ -76,16 +76,16 @@ enum BridgeMessageType {
 }
 
 /**
- * @dev The BridgeMessage struct is used to wrap messages between two bridge contracts
- * with their message type so that the receiving bridge contract can decode the payload.
+ * @dev The TokenTransferMessage struct is used to wrap messages between two token transferer contracts
+ * with their message type so that the receiving token transferer can decode the payload.
  */
-struct BridgeMessage {
-    BridgeMessageType messageType;
+struct TokenTransferMessage {
+    TokenTransferType messageType;
     bytes payload;
 }
 
 /**
- * @dev Register remote message payloads are sent to the home bridge contract to register a new remote contract
+ * @dev Register remote message payloads are sent to the home token transferer contract to register a new remote contract
  * instance on another chain.
  * @param initialReserveImbalance The initial reserve imbalance of the remote contract to calculate
  * associated collateral needed on home contract.
@@ -100,7 +100,7 @@ struct RegisterRemoteMessage {
 
 /**
  * @dev Single hop send message payloads include the recipient address and transferred amount.
- * The destination chain and bridge address for the transfer are defined by the Teleporter message.
+ * The destination chain and token transferer address for the transfer are defined by the Teleporter message.
  */
 struct SingleHopSendMessage {
     address recipient;
@@ -109,13 +109,13 @@ struct SingleHopSendMessage {
 
 /**
  * @dev Single hop call message payloads include the required information to call
- * the target contract on the destination chain. The destination chain and bridge
+ * the target contract on the destination chain. The destination chain and token transferer
  * address are defined by the Teleporter message. The message also includes the
  * blockchain ID and address of the original sender.
  */
 struct SingleHopCallMessage {
     bytes32 sourceBlockchainID;
-    address originBridgeAddress;
+    address originTokenTransfererAddress;
     address originSenderAddress;
     address recipientContract;
     uint256 amount;
@@ -126,12 +126,12 @@ struct SingleHopCallMessage {
 
 /**
  * @dev Multi hop send message payloads include the recipient address as well as all
- * the information the intermediate (home) chain bridge contract needs to route
+ * the information the intermediate (home) chain token transferer contract needs to route
  * the send message on to its final destination.
  */
 struct MultiHopSendMessage {
     bytes32 destinationBlockchainID;
-    address destinationBridgeAddress;
+    address destinationTokenTransfererAddress;
     address recipient;
     uint256 amount;
     uint256 secondaryFee;
@@ -141,7 +141,7 @@ struct MultiHopSendMessage {
 
 /**
  * @dev Multi hop call message payloads include the required information to call the target contract on the
- * destination chain, as well as the information the intermediate (home) chain bridge contract needs to route
+ * destination chain, as well as the information the intermediate (home) chain token transferer contract needs to route
  * the call message on to its final destination. This includes the {secondaryRequiredGasLimit}, which is the
  * required gas limit set for the second Teleporter message. The {secondaryRequiredGasLimit} should be sufficient
  * to cover the destination token operations as well as the call to the recipient contract, and will always be
@@ -151,7 +151,7 @@ struct MultiHopSendMessage {
 struct MultiHopCallMessage {
     address originSenderAddress;
     bytes32 destinationBlockchainID;
-    address destinationBridgeAddress;
+    address destinationTokenTransfererAddress;
     address recipientContract;
     uint256 amount;
     bytes recipientPayload;

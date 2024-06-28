@@ -49,7 +49,7 @@ contract ERC20TokenRemote is IERC20TokenTransferer, ERC20, TokenRemote {
      *
      * Note: For transfers to an {input.destinationBlockchainID} that is not the {tokenHomeBlockchainID},
      * a multi-hop transfer is performed, where the tokens are sent back to the token TokenHome instance
-     * first to check for bridge balance, and then routed to the final destination TokenRemote instance.
+     * first to check for token transfer balance, and then routed to the final destination TokenRemote instance.
      */
     function send(SendTokensInput calldata input, uint256 amount) external {
         _send(input, amount);
@@ -117,7 +117,7 @@ contract ERC20TokenRemote is IERC20TokenTransferer, ERC20, TokenRemote {
             IERC20SendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originBridgeAddress,
+                message.originTokenTransfererAddress,
                 message.originSenderAddress,
                 address(this),
                 amount,

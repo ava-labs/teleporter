@@ -48,7 +48,7 @@ func scaleTokens(
 }
 
 // GetScaledAmountFromERC20TokenHome returns the scaled amount of remote tokens that
-// will be sent to the remote bridge for an amount of home tokens.
+// will be sent to the remote token transferer for an amount of home tokens.
 func GetScaledAmountFromERC20TokenHome(
 	erc20TokenHome *erc20tokenhome.ERC20TokenHome,
 	remoteBlockchainID ids.ID,
@@ -70,7 +70,7 @@ func GetScaledAmountFromERC20TokenHome(
 }
 
 // GetScaledAmountFromNativeTokenHome returns the scaled amount of tokens that will be sent to
-// the remote bridge for corresponding amount of home tokens.
+// the remote token transferer for corresponding amount of home tokens.
 func GetScaledAmountFromNativeTokenHome(
 	nativeTokenHome *nativetokenhome.NativeTokenHome,
 	remoteBlockchainID ids.ID,

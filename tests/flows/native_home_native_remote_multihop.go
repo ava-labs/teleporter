@@ -16,7 +16,7 @@ import (
  * Deploy a NativeTokenHome on the primary network
  * Deploys NativeTokenRemote to Subnet A and Subnet B
  * Transfers native tokens from the C-Chain to Subnet A as Subnet A's native token
- * Transfers native tokens from the C-Chain to Subnet B as Subnet B's native token to collateralize the Subnet B bridge
+ * Transfers native tokens from the C-Chain to Subnet B as Subnet B's native token to collateralize the Subnet B token transferer
  * Transfer tokens from Subnet A to Subnet B through multi-hop
  * Transfer back tokens from Subnet B to Subnet A through multi-hop
  */

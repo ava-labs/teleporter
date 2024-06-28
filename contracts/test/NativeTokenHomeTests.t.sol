@@ -106,7 +106,7 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
 
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal override {
         wavax.deposit{value: feeAmount}();
-        // Transfer the fee to the bridge if it is greater than 0
+        // Transfer the fee to the token transferer if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
             vm.expectCall(
@@ -128,9 +128,9 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
 
     function _addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteBridgeAddress,
+        address remoteTokenTransferAddress,
         uint256 amount
     ) internal override {
-        app.addCollateral{value: amount}(remoteBlockchainID, remoteBridgeAddress);
+        app.addCollateral{value: amount}(remoteBlockchainID, remoteTokenTransferAddress);
     }
 }

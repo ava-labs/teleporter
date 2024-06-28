@@ -18,7 +18,7 @@ import (
  * Deploy an ERC20TokenHome on the primary network
  * Deploys ERC20TokenRemote to Subnet A
  * Transfers C-Chain example ERC20 tokens to Subnet A and calls contract on Subnet A using sendAndCall
- * Transfers C-Chain example ERC20 to EOA on Subnet A, and then bridge tokens from Subnet A back
+ * Transfers C-Chain example ERC20 to EOA on Subnet A, and then transfer tokens from Subnet A back
  * C-Chain and calls contract on the C-Chain using sendAndCall
  */
 func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
@@ -39,7 +39,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Create an ERC20TokenHome for bridging the ERC20 token
+	// Create an ERC20TokenHome for transferring the ERC20 token
 	erc20TokenHomeAddress, erc20TokenHome := utils.DeployERC20TokenHome(
 		ctx,
 		fundedKey,

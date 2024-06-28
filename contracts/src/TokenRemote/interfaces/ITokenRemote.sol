@@ -27,8 +27,8 @@ struct TokenRemoteSettings {
 }
 
 /**
- * @dev Interface for a remote bridge contract that mints a representation token on its chain, and allows
- * for burning that token to redeem the backing asset on the home chain, or bridging to other remotes.
+ * @dev Interface for a remote token transfer contract that mints a representation token on its chain, and allows
+ * for burning that token to redeem the backing asset on the home chain, or transferring to other remotes.
  */
 interface ITokenRemote is ITokenTransferer {
     /**

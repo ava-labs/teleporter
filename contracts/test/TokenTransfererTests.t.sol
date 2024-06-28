@@ -16,8 +16,8 @@ import {
     ITokenTransferer,
     SendTokensInput,
     SendAndCallInput,
-    BridgeMessageType,
-    BridgeMessage,
+    TokenTransferType,
+    TokenTransferMessage,
     SingleHopSendMessage,
     SingleHopCallMessage,
     MultiHopSendMessage,
@@ -160,7 +160,9 @@ abstract contract TokenTransfererTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = primaryFee;
 
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+        );
         vm.expectRevert("ERC20: insufficient allowance");
         _send(input, amount);
     }
@@ -172,7 +174,9 @@ abstract contract TokenTransfererTest is Test {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = primaryFee;
 
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+        );
         vm.expectRevert("ERC20: insufficient allowance");
         _sendAndCall(input, amount);
     }
@@ -237,7 +241,9 @@ abstract contract TokenTransfererTest is Test {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+        );
         _setUpExpectedDeposit(amount, input.primaryFee);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(tokenTransferer));
@@ -249,7 +255,9 @@ abstract contract TokenTransfererTest is Test {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         input.primaryFee = feeAmount;
 
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+        );
         _setUpExpectedDeposit(amount, input.primaryFee);
         OriginSenderInfo memory originInfo;
         originInfo.bridgeAddress = address(tokenTransferer);
@@ -266,7 +274,7 @@ abstract contract TokenTransfererTest is Test {
 
     function _setUpRegisteredRemote(
         bytes32 remoteBlockchainID,
-        address remoteBridgeAddress,
+        address remoteTokenTransferAddress,
         uint256 initialReserveImbalance
     ) internal virtual;
 
@@ -322,7 +330,7 @@ abstract contract TokenTransfererTest is Test {
     ) internal pure returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationBridgeAddress,
+            destinationAddress: input.destinationTokenTransfererAddress,
             feeInfo: TeleporterFeeInfo({
                 feeTokenAddress: address(input.primaryFeeTokenAddress),
                 amount: input.primaryFee
@@ -341,7 +349,7 @@ abstract contract TokenTransfererTest is Test {
     ) internal pure returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationBridgeAddress,
+            destinationAddress: input.destinationTokenTransfererAddress,
             feeInfo: TeleporterFeeInfo({
                 feeTokenAddress: address(input.primaryFeeTokenAddress),
                 amount: input.primaryFee
@@ -373,8 +381,8 @@ abstract contract TokenTransfererTest is Test {
         address recipient
     ) internal pure returns (bytes memory) {
         return abi.encode(
-            BridgeMessage({
-                messageType: BridgeMessageType.SINGLE_HOP_SEND,
+            TokenTransferMessage({
+                messageType: TokenTransferType.SINGLE_HOP_SEND,
                 payload: abi.encode(SingleHopSendMessage({recipient: recipient, amount: amount}))
             })
         );
@@ -390,12 +398,12 @@ abstract contract TokenTransfererTest is Test {
         address fallbackRecipient
     ) internal pure returns (bytes memory) {
         return abi.encode(
-            BridgeMessage({
-                messageType: BridgeMessageType.SINGLE_HOP_CALL,
+            TokenTransferMessage({
+                messageType: TokenTransferType.SINGLE_HOP_CALL,
                 payload: abi.encode(
                     SingleHopCallMessage({
                         sourceBlockchainID: sourceBlockchainID,
-                        originBridgeAddress: originInfo.bridgeAddress,
+                        originTokenTransfererAddress: originInfo.bridgeAddress,
                         originSenderAddress: originInfo.senderAddress,
                         recipientContract: recipientContract,
                         amount: amount,
@@ -411,19 +419,19 @@ abstract contract TokenTransfererTest is Test {
     function _encodeMultiHopSendMessage(
         uint256 amount,
         bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
+        address destinationTokenTransfererAddress,
         address recipient,
         uint256 secondaryFee,
         uint256 secondaryGasLimit,
         address multiHopFallback
     ) internal pure returns (bytes memory) {
         return abi.encode(
-            BridgeMessage({
-                messageType: BridgeMessageType.MULTI_HOP_SEND,
+            TokenTransferMessage({
+                messageType: TokenTransferType.MULTI_HOP_SEND,
                 payload: abi.encode(
                     MultiHopSendMessage({
                         destinationBlockchainID: destinationBlockchainID,
-                        destinationBridgeAddress: destinationBridgeAddress,
+                        destinationTokenTransfererAddress: destinationTokenTransfererAddress,
                         recipient: recipient,
                         amount: amount,
                         secondaryFee: secondaryFee,
@@ -439,7 +447,7 @@ abstract contract TokenTransfererTest is Test {
         address originSenderAddress,
         uint256 amount,
         bytes32 destinationBlockchainID,
-        address destinationBridgeAddress,
+        address destinationTokenTransfererAddress,
         address recipientContract,
         bytes memory recipientPayload,
         uint256 recipientGasLimit,
@@ -449,13 +457,13 @@ abstract contract TokenTransfererTest is Test {
         uint256 secondaryFee
     ) internal pure returns (bytes memory) {
         return abi.encode(
-            BridgeMessage({
-                messageType: BridgeMessageType.MULTI_HOP_CALL,
+            TokenTransferMessage({
+                messageType: TokenTransferType.MULTI_HOP_CALL,
                 payload: abi.encode(
                     MultiHopCallMessage({
                         originSenderAddress: originSenderAddress,
                         destinationBlockchainID: destinationBlockchainID,
-                        destinationBridgeAddress: destinationBridgeAddress,
+                        destinationTokenTransfererAddress: destinationTokenTransfererAddress,
                         recipientContract: recipientContract,
                         amount: amount,
                         recipientPayload: recipientPayload,

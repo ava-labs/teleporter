@@ -17,7 +17,7 @@ import (
  * Deploy a ERC20TokenHome on the primary network
  * Deploys NativeTokenRemote to Subnet A and Subnet B
  * Transfers C-Chain example ERC20 tokens to Subnet A as Subnet A's native token
- * Transfers C-Chain example ERC20 tokens to Subnet B as Subnet B's native token to collateralize the bridge on Subnet B
+ * Transfers C-Chain example ERC20 tokens to Subnet B as Subnet B's native token to collateralize the token transferer on Subnet B
  * Transfer tokens from Subnet A to Subnet B through multi-hop
  * Transfer back tokens from Subnet B to Subnet A through multi-hop
  */
@@ -131,7 +131,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// These are set during the initial bridging, and used in the multi-hop transfers
+	// These are set during the initial transferring, and used in the multi-hop transfers
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
 
 	// Send tokens from C-Chain to Subnet A

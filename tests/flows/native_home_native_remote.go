@@ -86,7 +86,7 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-Chain to recipient on subnet A that fully collateralize bridge with leftover tokens.
+	// Send tokens from C-Chain to recipient on subnet A that fully collateralize token transferer with leftover tokens.
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 	{
 		input := nativetokenhome.SendTokensInput{
@@ -99,7 +99,7 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
 		}
 
-		// Send initialReserveImbalance tokens to fully collateralize bridge and mint the remainder.
+		// Send initialReserveImbalance tokens to fully collateralize token transferer and mint the remainder.
 		receipt, _ := utils.SendNativeTokenHome(
 			ctx,
 			cChainInfo,

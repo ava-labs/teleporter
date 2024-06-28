@@ -17,7 +17,9 @@ abstract contract NativeTokenTransfererTest is TokenTransfererTest {
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+        );
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
     }

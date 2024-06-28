@@ -38,7 +38,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		erc20TokenHomeDecimals,
 	)
 
-	// Create an ERC20TokenHome for bridging the ERC20 token
+	// Create an ERC20TokenHome for transferring the ERC20 token
 	erc20TokenHomeAddress, erc20TokenHome := utils.DeployERC20TokenHome(
 		ctx,
 		fundedKey,

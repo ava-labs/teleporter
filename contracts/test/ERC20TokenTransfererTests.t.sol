@@ -18,7 +18,9 @@ abstract contract ERC20TokenTransfererTest is TokenTransfererTest {
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+        );
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
     }
@@ -27,7 +29,9 @@ abstract contract ERC20TokenTransfererTest is TokenTransfererTest {
         uint256 amount = 2e15;
 
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+        );
         vm.expectRevert("ERC20: insufficient allowance");
         _send(input, amount);
     }
@@ -36,7 +40,9 @@ abstract contract ERC20TokenTransfererTest is TokenTransfererTest {
         uint256 amount = 2e15;
 
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+        );
         vm.expectRevert("ERC20: insufficient allowance");
         _sendAndCall(input, amount);
     }

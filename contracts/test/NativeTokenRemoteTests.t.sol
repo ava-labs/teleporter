@@ -175,7 +175,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         assertEq(app.totalNativeAssetSupply(), initialExpectedBalance);
 
         // Mock tokens being transferred out by crediting them to the native token remote contract
-        vm.deal(app.BURNED_FOR_BRIDGE_ADDRESS(), initialExpectedBalance - 1);
+        vm.deal(app.BURNED_FOR_TRANSFER_ADDRESS(), initialExpectedBalance - 1);
         assertEq(app.totalNativeAssetSupply(), 1);
 
         // Depositing native tokens into the contract to be wrapped native tokens shouldn't affect the supply
@@ -198,7 +198,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationBridgeAddress,
+            destinationAddress: input.destinationTokenTransfererAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(app), amount: input.primaryFee}),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
@@ -259,7 +259,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationBridgeAddress: app.tokenHomeAddress(),
+                destinationTokenTransfererAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
@@ -286,7 +286,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationBridgeAddress: app.tokenHomeAddress(),
+                destinationTokenTransfererAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: expectedReward,
@@ -324,7 +324,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationBridgeAddress: app.tokenHomeAddress(),
+                destinationTokenTransfererAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(bridgedToken),
                 primaryFee: 0,
@@ -452,7 +452,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
 
     function _setUpExpectedDeposit(uint256, uint256 feeAmount) internal override {
         app.deposit{value: feeAmount}();
-        // Transfer the fee to the bridge if it is greater than 0
+        // Transfer the fee to the token transferer if it is greater than 0
         if (feeAmount > 0) {
             bridgedToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
         }

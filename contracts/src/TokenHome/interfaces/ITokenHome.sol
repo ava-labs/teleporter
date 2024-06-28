@@ -22,7 +22,7 @@ interface ITokenHome is ITokenTransferer {
      */
     event CollateralAdded(
         bytes32 indexed remoteBlockchainID,
-        address indexed remoteBridgeAddress,
+        address indexed remoteTokenTransferAddress,
         uint256 amount,
         uint256 remaining
     );
@@ -32,7 +32,7 @@ interface ITokenHome is ITokenTransferer {
      */
     event RemoteRegistered(
         bytes32 indexed remoteBlockchainID,
-        address indexed remoteBridgeAddress,
+        address indexed remoteTokenTransferAddress,
         uint256 initialCollateralNeeded,
         uint8 tokenDecimals
     );
