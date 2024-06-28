@@ -40,9 +40,9 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         tokenRemote = app;
         nativeTokenTransferer = app;
         tokenTransferer = app;
-        bridgedToken = app;
+        transferredToken = app;
         assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
-        _collateralizeBridge();
+        _collateralizeTokenTransferer();
     }
 
     function testZeroInitialReserveImbalance() public {
@@ -115,13 +115,13 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         tokenRemote = app;
         nativeTokenTransferer = app;
         tokenTransferer = app;
-        bridgedToken = app;
+        transferredToken = app;
 
         vm.expectRevert("NativeTokenRemote: contract undercollateralized");
         app.send{value: 1e17}(_createDefaultSendTokensInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
-        _collateralizeBridge();
+        _collateralizeTokenTransferer();
         _sendSingleHopSendSuccess(1e17, 0);
     }
 
@@ -131,13 +131,13 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         tokenRemote = app;
         nativeTokenTransferer = app;
         tokenTransferer = app;
-        bridgedToken = app;
+        transferredToken = app;
 
         vm.expectRevert("NativeTokenRemote: contract undercollateralized");
         app.sendAndCall{value: 1e15}(_createDefaultSendAndCallInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
-        _collateralizeBridge();
+        _collateralizeTokenTransferer();
         _sendSingleHopSendSuccess(1e15, 0);
     }
 
@@ -217,7 +217,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(app);
+        originInfo.tokenTransfererAddress = address(app);
         originInfo.senderAddress = address(this);
         bytes memory message = _encodeSingleHopCallMessage({
             sourceBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
@@ -261,7 +261,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
                 destinationTokenTransfererAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
-                primaryFeeTokenAddress: address(bridgedToken),
+                primaryFeeTokenAddress: address(transferredToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -288,7 +288,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
                 destinationTokenTransfererAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
-                primaryFeeTokenAddress: address(bridgedToken),
+                primaryFeeTokenAddress: address(transferredToken),
                 primaryFee: expectedReward,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -317,7 +317,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         tokenRemote = app;
         nativeTokenTransferer = app;
         tokenTransferer = app;
-        bridgedToken = app;
+        transferredToken = app;
 
         uint256 burnedTxFeeAmount = 1e15;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
@@ -326,7 +326,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
                 destinationTokenTransfererAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
-                primaryFeeTokenAddress: address(bridgedToken),
+                primaryFeeTokenAddress: address(transferredToken),
                 primaryFee: 0,
                 secondaryFee: 0,
                 requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -428,7 +428,12 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
 
             bytes memory expectedCalldata = abi.encodeCall(
                 INativeSendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, payload)
+                (
+                    sourceBlockchainID,
+                    originInfo.tokenTransfererAddress,
+                    originInfo.senderAddress,
+                    payload
+                )
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, amount, expectedCalldata, new bytes(0));
@@ -454,14 +459,15 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         app.deposit{value: feeAmount}();
         // Transfer the fee to the token transferer if it is greater than 0
         if (feeAmount > 0) {
-            bridgedToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
+            transferredToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
         }
-        uint256 currentAllowance = bridgedToken.allowance(address(this), address(tokenTransferer));
+        uint256 currentAllowance =
+            transferredToken.allowance(address(this), address(tokenTransferer));
 
         if (feeAmount > 0) {
-            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            vm.expectEmit(true, true, true, true, address(transferredToken));
             emit Approval(address(this), address(tokenTransferer), currentAllowance - feeAmount);
-            vm.expectEmit(true, true, true, true, address(bridgedToken));
+            vm.expectEmit(true, true, true, true, address(transferredToken));
             emit Transfer(address(this), address(tokenTransferer), feeAmount);
         }
     }
@@ -477,7 +483,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
     // The native token remote contract is considered collateralized once it has received
     // a message from its configured home to mint tokens. Until then, the home contract is
     // still assumed to have insufficient collateral.
-    function _collateralizeBridge() private {
+    function _collateralizeTokenTransferer() private {
         assertFalse(app.isCollateralized());
         uint256 amount = 10e18;
         _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);

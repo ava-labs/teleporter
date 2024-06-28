@@ -147,7 +147,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 	}
 
-	receipt, bridgedAmountA := utils.SendERC20TokenHome(
+	receipt, transferredAmountA := utils.SendERC20TokenHome(
 		ctx,
 		cChainInfo,
 		erc20TokenHome,
@@ -168,7 +168,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmountA, subnetAInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountA, subnetAInfo.RPCClient)
 
 	// Send tokens from C-Chain to Subnet B
 	inputB := erc20tokenhome.SendTokensInput{
@@ -181,7 +181,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 	}
 
-	receipt, bridgedAmountB := utils.SendERC20TokenHome(
+	receipt, transferredAmountB := utils.SendERC20TokenHome(
 		ctx,
 		cChainInfo,
 		erc20TokenHome,
@@ -202,11 +202,11 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmountB, subnetBInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountB, subnetBInfo.RPCClient)
 
 	// Multi-hop transfer to Subnet B
 	// Send half of the received amount to account for gas expenses
-	amountToSend := new(big.Int).Div(bridgedAmountA, big.NewInt(2))
+	amountToSend := new(big.Int).Div(transferredAmountA, big.NewInt(2))
 
 	utils.SendNativeMultiHopAndVerify(
 		ctx,

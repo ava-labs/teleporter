@@ -116,7 +116,7 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 	}
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
-	receipt, bridgedAmount := utils.SendERC20TokenHome(
+	receipt, transferredAmount := utils.SendERC20TokenHome(
 		ctx,
 		cChainInfo,
 		erc20TokenHome,
@@ -137,7 +137,7 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, subnetAInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmount, subnetAInfo.RPCClient)
 
 	// Send back to the home chain and check that ERC20TokenHome received the tokens
 	input_A := nativetokenremote.SendTokensInput{
@@ -150,8 +150,8 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 	}
 	// Send half of the received amount to account for gas expenses
-	amountToSendA := new(big.Int).Div(bridgedAmount, big.NewInt(2))
-	receipt, bridgedAmount = utils.SendNativeTokenRemote(
+	amountToSendA := new(big.Int).Div(transferredAmount, big.NewInt(2))
+	receipt, transferredAmount = utils.SendNativeTokenRemote(
 		ctx,
 		subnetAInfo,
 		nativeTokenRemoteA,
@@ -170,7 +170,7 @@ func ERC20TokenHomeNativeTokenRemote(network interfaces.Network) {
 	)
 
 	// Check that the recipient received the tokens
-	scaledAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnRemote, bridgedAmount)
+	scaledAmount := utils.RemoveTokenScaling(tokenMultiplier, multiplyOnRemote, transferredAmount)
 	utils.CheckERC20TokenHomeWithdrawal(
 		ctx,
 		erc20TokenHomeAddress,

@@ -93,7 +93,7 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 
 	// Send the tokens and verify expected events
 	amount := big.NewInt(2e18)
-	receipt, bridgedAmount := utils.SendNativeTokenHome(
+	receipt, transferredAmount := utils.SendNativeTokenHome(
 		ctx,
 		cChainInfo,
 		nativeTokenHome,
@@ -118,13 +118,13 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 		erc20TokenRemote,
 		receipt,
 		recipientAddress,
-		bridgedAmount,
+		transferredAmount,
 	)
 
 	// Check that the recipient received the tokens
 	balance, err := erc20TokenRemote.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
+	Expect(balance).Should(Equal(transferredAmount))
 
 	// Fund recipient with gas tokens on subnet A
 	teleporterUtils.SendNativeTransfer(
@@ -145,13 +145,13 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 	}
 
 	// Send tokens on Subnet A back for native tokens on C-Chain
-	receipt, bridgedAmount = utils.SendERC20TokenRemote(
+	receipt, transferredAmount = utils.SendERC20TokenRemote(
 		ctx,
 		subnetAInfo,
 		erc20TokenRemote,
 		erc20TokenRemoteAddress,
 		inputA,
-		teleporterUtils.BigIntSub(bridgedAmount, inputA.PrimaryFee),
+		teleporterUtils.BigIntSub(transferredAmount, inputA.PrimaryFee),
 		recipientKey,
 	)
 
@@ -169,8 +169,8 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 		nativeTokenHomeAddress,
 		wavax,
 		receipt,
-		bridgedAmount,
+		transferredAmount,
 	)
 
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, cChainInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmount, cChainInfo.RPCClient)
 }

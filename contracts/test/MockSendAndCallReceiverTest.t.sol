@@ -18,7 +18,7 @@ contract MockERC20SendAndCallReceiverTest is Test {
     bytes32 public constant DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     address internal _originSenderAddress = vm.addr(0x1);
-    address internal _originBridgeAddress = vm.addr(0x2);
+    address internal _originTokenTransfererAddress = vm.addr(0x2);
 
     event TokensReceived(
         bytes32 indexed sourceBlockchainID,
@@ -53,7 +53,7 @@ contract MockERC20SendAndCallReceiverTest is Test {
         vm.expectEmit(true, true, true, true, address(erc20SendAndCallReceiver));
         emit TokensReceived({
             sourceBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
-            originTokenTransfererAddress: _originBridgeAddress,
+            originTokenTransfererAddress: _originTokenTransfererAddress,
             originSenderAddress: _originSenderAddress,
             token: address(erc20),
             amount: amount,
@@ -61,7 +61,7 @@ contract MockERC20SendAndCallReceiverTest is Test {
         });
         erc20SendAndCallReceiver.receiveTokens({
             sourceBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
-            originTokenTransfererAddress: _originBridgeAddress,
+            originTokenTransfererAddress: _originTokenTransfererAddress,
             originSenderAddress: _originSenderAddress,
             token: address(erc20),
             amount: amount,
@@ -85,7 +85,7 @@ contract MockERC20SendAndCallReceiverTest is Test {
         vm.expectRevert("MockERC20SendAndCallReceiver: sender blocked");
         erc20SendAndCallReceiver.receiveTokens({
             sourceBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
-            originTokenTransfererAddress: _originBridgeAddress,
+            originTokenTransfererAddress: _originTokenTransfererAddress,
             originSenderAddress: _originSenderAddress,
             token: address(erc20),
             amount: amount,
@@ -101,7 +101,7 @@ contract MockNativeSendAndCallReceiverTest is Test {
     bytes32 public constant DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     address internal _originSenderAddress = vm.addr(0x1);
-    address internal _originBridgeAddress = vm.addr(0x2);
+    address internal _originTokenTransfererAddress = vm.addr(0x2);
 
     event TokensReceived(
         bytes32 indexed sourceBlockchainID,
@@ -128,13 +128,16 @@ contract MockNativeSendAndCallReceiverTest is Test {
         vm.expectEmit(true, true, true, true, address(nativeSendAndCallReceiver));
         emit TokensReceived(
             DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
-            _originBridgeAddress,
+            _originTokenTransfererAddress,
             _originSenderAddress,
             amount,
             payload
         );
         nativeSendAndCallReceiver.receiveTokens{value: amount}(
-            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, payload
+            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+            _originTokenTransfererAddress,
+            _originSenderAddress,
+            payload
         );
         assertEq(address(nativeSendAndCallReceiver).balance, amount);
     }
@@ -154,7 +157,10 @@ contract MockNativeSendAndCallReceiverTest is Test {
 
         vm.expectRevert("MockNativeSendAndCallReceiver: sender blocked");
         nativeSendAndCallReceiver.receiveTokens{value: amount}(
-            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID, _originBridgeAddress, _originSenderAddress, payload
+            DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+            _originTokenTransfererAddress,
+            _originSenderAddress,
+            payload
         );
         assertEq(address(nativeSendAndCallReceiver).balance, 0);
     }

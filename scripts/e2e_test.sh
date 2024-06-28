@@ -4,13 +4,13 @@
 
 set -e
 
-TELEPORTER_TOKEN_BRIDGE_PATH=$(
+AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
 
-source "$TELEPORTER_TOKEN_BRIDGE_PATH"/scripts/constants.sh
-source "$TELEPORTER_TOKEN_BRIDGE_PATH"/scripts/versions.sh
+source "$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH"/scripts/constants.sh
+source "$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH"/scripts/versions.sh
 
 BASEDIR=${BASEDIR:-"$HOME/.avalanche-interchain-token-transfer-deps"}
 
@@ -32,7 +32,7 @@ else
   FORGE_COMMAND="$HOME/.foundry/bin/forge build"
 fi
 
-cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts
+cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts
 $FORGE_COMMAND
 
 cd $TELEPORTER_PATH/contracts

@@ -14,7 +14,7 @@ import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC
 abstract contract ERC20TokenTransfererTest is TokenTransfererTest {
     using SafeERC20 for IERC20;
 
-    IERC20TokenTransferer public erc20Bridge;
+    IERC20TokenTransferer public erc20TokenTransferer;
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
@@ -48,13 +48,13 @@ abstract contract ERC20TokenTransfererTest is TokenTransfererTest {
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
-        erc20Bridge.send(input, amount);
+        erc20TokenTransferer.send(input, amount);
     }
 
     function _sendAndCall(
         SendAndCallInput memory input,
         uint256 amount
     ) internal virtual override {
-        erc20Bridge.sendAndCall(input, amount);
+        erc20TokenTransferer.sendAndCall(input, amount);
     }
 }

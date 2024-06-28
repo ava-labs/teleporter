@@ -36,7 +36,7 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
         tokenHome = app;
         nativeTokenTransferer = app;
         tokenTransferer = app;
-        bridgedToken = wavax;
+        transferredToken = wavax;
         tokenHomeDecimals = 18;
     }
 
@@ -82,7 +82,12 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
 
             bytes memory expectedCalldata = abi.encodeCall(
                 INativeSendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, payload)
+                (
+                    sourceBlockchainID,
+                    originInfo.tokenTransfererAddress,
+                    originInfo.senderAddress,
+                    payload
+                )
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, amount, expectedCalldata, new bytes(0));
@@ -108,17 +113,17 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
         wavax.deposit{value: feeAmount}();
         // Transfer the fee to the token transferer if it is greater than 0
         if (feeAmount > 0) {
-            bridgedToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
+            transferredToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
             vm.expectCall(
-                address(bridgedToken),
+                address(transferredToken),
                 abi.encodeCall(
                     IERC20.transferFrom, (address(this), address(tokenTransferer), feeAmount)
                 )
             );
         }
 
-        vm.expectCall(address(bridgedToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
-        vm.expectEmit(true, true, true, true, address(bridgedToken));
+        vm.expectCall(address(transferredToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
+        vm.expectEmit(true, true, true, true, address(transferredToken));
         emit Deposit(address(nativeTokenTransferer), amount);
     }
 

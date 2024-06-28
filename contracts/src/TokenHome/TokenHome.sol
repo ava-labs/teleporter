@@ -57,7 +57,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
     bytes32 public immutable blockchainID;
 
     /**
-     * @notice The token address this home contract bridges to TokenRemote instances.
+     * @notice The token address this home contract transfers to TokenRemote instances.
      * For multi-hop transfers, this {tokenAddress} is always used to pay for the secondary message fees.
      * If the token is an ERC20 token, the contract address is directly passed in.
      * If the token is a native asset, the contract address is the wrapped token contract.
@@ -81,13 +81,13 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
     /**
      * @notice Tracks the balances of tokens sent to TokenRemote instances.
      * Balances are represented in the remote token's denomination,
-     * and bridges are not allowed to unwrap more than has been sent to them.
+     * and token transferers are not allowed to unwrap more than has been sent to them.
      * @dev (remoteBlockchainID, remoteTokenTransfererAddress) -> balance
      */
     mapping(
         bytes32 remoteBlockchainID
             => mapping(address remoteTokenTransfererAddress => uint256 balance)
-    ) public bridgedBalances;
+    ) public transferredBalances;
 
     /**
      * @notice Initializes this home token transferer instance to send tokens to TokenRemote instances on other chains.
@@ -676,7 +676,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         }
 
         // Increase the balance of the TokenRemote instance by the scaled amount.
-        bridgedBalances[remoteBlockchainID][remoteTokenTransfererAddress] += scaledAmount;
+        transferredBalances[remoteBlockchainID][remoteTokenTransfererAddress] += scaledAmount;
 
         return scaledAmount;
     }
@@ -715,7 +715,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         require(scaledAmount > 0, "TokenHome: zero scaled amount");
 
         // Increase the balance of the TokenRemote instance by the scaled amount.
-        bridgedBalances[remoteBlockchainID][remoteTokenTransfererAddress] += scaledAmount;
+        transferredBalances[remoteBlockchainID][remoteTokenTransfererAddress] += scaledAmount;
 
         return (scaledAmount, feeAmount);
     }
@@ -725,9 +725,11 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address remoteTokenTransfererAddress,
         uint256 amount
     ) private {
-        uint256 senderBalance = bridgedBalances[remoteBlockchainID][remoteTokenTransfererAddress];
+        uint256 senderBalance =
+            transferredBalances[remoteBlockchainID][remoteTokenTransfererAddress];
         require(senderBalance >= amount, "TokenHome: insufficient token transfer balance");
-        bridgedBalances[remoteBlockchainID][remoteTokenTransfererAddress] = senderBalance - amount;
+        transferredBalances[remoteBlockchainID][remoteTokenTransfererAddress] =
+            senderBalance - amount;
     }
 
     function _validateSendAndCallInput(SendAndCallInput memory input) private pure {

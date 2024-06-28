@@ -104,7 +104,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(13))
 	primaryFee := big.NewInt(1e18)
-	bridgedAmount := teleporterUtils.BigIntSub(amount, primaryFee)
+	transferredAmount := teleporterUtils.BigIntSub(amount, primaryFee)
 
 	// Send tokens from C-Chain to Mock contract on subnet A
 	{
@@ -121,7 +121,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			SecondaryFee:                      big.NewInt(0),
 		}
 
-		receipt, bridgedAmount := utils.SendAndCallERC20TokenHome(
+		receipt, transferredAmount := utils.SendAndCallERC20TokenHome(
 			ctx,
 			cChainInfo,
 			erc20TokenHome,
@@ -144,17 +144,17 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 		event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenRemote.ParseCallSucceeded)
 		Expect(err).Should(BeNil())
 		Expect(event.RecipientContract).Should(Equal(input.RecipientContract))
-		Expect(event.Amount).Should(Equal(bridgedAmount))
+		Expect(event.Amount).Should(Equal(transferredAmount))
 
 		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, remoteMockERC20SACR.ParseTokensReceived)
 		Expect(err).Should(BeNil())
-		Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
+		Expect(receiverEvent.Amount).Should(Equal(transferredAmount))
 		Expect(receiverEvent.Payload).Should(Equal(input.RecipientPayload))
 
 		// Check that the contract received the tokens
 		balance, err := erc20TokenRemote.BalanceOf(&bind.CallOpts{}, remoteMockERC20SACRAddress)
 		Expect(err).Should(BeNil())
-		Expect(balance).Should(Equal(bridgedAmount))
+		Expect(balance).Should(Equal(transferredAmount))
 	}
 
 	// Transfer ERC20 tokens to account on subnet A
@@ -170,7 +170,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			RequiredGasLimit:                  utils.DefaultERC20RequiredGas,
 		}
 
-		receipt, bridgedAmount := utils.SendERC20TokenHome(
+		receipt, transferredAmount := utils.SendERC20TokenHome(
 			ctx,
 			cChainInfo,
 			erc20TokenHome,
@@ -195,13 +195,13 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			erc20TokenRemote,
 			receipt,
 			recipientAddress,
-			bridgedAmount,
+			transferredAmount,
 		)
 
 		// Check that the recipient received the tokens
 		balance, err := erc20TokenRemote.BalanceOf(&bind.CallOpts{}, recipientAddress)
 		Expect(err).Should(BeNil())
-		Expect(balance).Should(Equal(bridgedAmount))
+		Expect(balance).Should(Equal(transferredAmount))
 	}
 
 	// Send tokens to mock contract on C-Chain using sendAndCall
@@ -228,13 +228,13 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			SecondaryFee:                      big.NewInt(0),
 		}
 
-		receipt, bridgedAmount := utils.SendAndCallERC20TokenRemote(
+		receipt, transferredAmount := utils.SendAndCallERC20TokenRemote(
 			ctx,
 			subnetAInfo,
 			erc20TokenRemote,
 			erc20TokenRemoteAddress,
 			inputB,
-			teleporterUtils.BigIntSub(bridgedAmount, inputB.PrimaryFee),
+			teleporterUtils.BigIntSub(transferredAmount, inputB.PrimaryFee),
 			recipientKey,
 		)
 
@@ -249,16 +249,16 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 		homeEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseCallSucceeded)
 		Expect(err).Should(BeNil())
 		Expect(homeEvent.RecipientContract).Should(Equal(inputB.RecipientContract))
-		Expect(homeEvent.Amount).Should(Equal(bridgedAmount))
+		Expect(homeEvent.Amount).Should(Equal(transferredAmount))
 
 		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, homeMockERC20SACR.ParseTokensReceived)
 		Expect(err).Should(BeNil())
-		Expect(receiverEvent.Amount).Should(Equal(bridgedAmount))
+		Expect(receiverEvent.Amount).Should(Equal(transferredAmount))
 		Expect(receiverEvent.Payload).Should(Equal(inputB.RecipientPayload))
 
 		// Check that the recipient received the tokens
 		balance, err := exampleERC20.BalanceOf(&bind.CallOpts{}, homeMockERC20SACRAddress)
 		Expect(err).Should(BeNil())
-		Expect(balance).Should(Equal(bridgedAmount))
+		Expect(balance).Should(Equal(transferredAmount))
 	}
 }

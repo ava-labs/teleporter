@@ -116,7 +116,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 
 	// Send the tokens and verify expected events
 	amount := big.NewInt(2e18)
-	receipt, bridgedAmount := utils.SendNativeTokenHome(
+	receipt, transferredAmount := utils.SendNativeTokenHome(
 		ctx,
 		cChainInfo,
 		nativeTokenHome,
@@ -141,16 +141,16 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenRemoteA,
 		receipt,
 		recipientAddress,
-		bridgedAmount,
+		transferredAmount,
 	)
 
 	// Check that the recipient received the tokens
 	balance, err := erc20TokenRemoteA.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
+	Expect(balance).Should(Equal(transferredAmount))
 
 	// Send tokens from subnet A to recipient on subnet B through a multi-hop
-	secondaryFeeAmount := new(big.Int).Div(bridgedAmount, big.NewInt(4))
+	secondaryFeeAmount := new(big.Int).Div(transferredAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
 		network,
@@ -164,7 +164,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenRemoteB,
 		erc20TokenRemoteAddressB,
 		cChainInfo,
-		bridgedAmount,
+		transferredAmount,
 		secondaryFeeAmount,
 	)
 }

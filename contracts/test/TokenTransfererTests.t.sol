@@ -31,7 +31,7 @@ abstract contract TokenTransfererTest is Test {
 
     // convenience struct to reduce stack usage
     struct OriginSenderInfo {
-        address bridgeAddress;
+        address tokenTransfererAddress;
         address senderAddress;
     }
 
@@ -77,7 +77,7 @@ abstract contract TokenTransfererTest is Test {
      * @notice The token that is transferred by the token transferer.
      * For native assets, the wrapped token contract is used.
      */
-    IERC20 public bridgedToken;
+    IERC20 public transferredToken;
 
     event TokensSent(
         bytes32 indexed teleporterMessageID,
@@ -105,7 +105,7 @@ abstract contract TokenTransfererTest is Test {
     function testSendZeroRecipient() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.recipient = address(0);
-        bridgedToken.approve(address(tokenTransferer), _DEFAULT_TRANSFER_AMOUNT);
+        transferredToken.approve(address(tokenTransferer), _DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("zero recipient address"));
         _send(input, 0);
     }
@@ -120,7 +120,7 @@ abstract contract TokenTransfererTest is Test {
     function testSendZeroRequiredGasLimit() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.requiredGasLimit = 0;
-        bridgedToken.approve(address(tokenTransferer), _DEFAULT_TRANSFER_AMOUNT);
+        transferredToken.approve(address(tokenTransferer), _DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("zero required gas limit"));
         _send(input, 0);
     }
@@ -260,7 +260,7 @@ abstract contract TokenTransfererTest is Test {
         );
         _setUpExpectedDeposit(amount, input.primaryFee);
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(tokenTransferer);
+        originInfo.tokenTransfererAddress = address(tokenTransferer);
         originInfo.senderAddress = address(this);
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopCallTeleporterMessageInput(
@@ -326,7 +326,7 @@ abstract contract TokenTransfererTest is Test {
 
     function _createSingleHopTeleporterMessageInput(
         SendTokensInput memory input,
-        uint256 bridgeAmount
+        uint256 transferAmount
     ) internal pure returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
@@ -337,7 +337,7 @@ abstract contract TokenTransfererTest is Test {
             }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
-            message: _encodeSingleHopSendMessage(bridgeAmount, input.recipient)
+            message: _encodeSingleHopSendMessage(transferAmount, input.recipient)
         });
     }
 
@@ -345,7 +345,7 @@ abstract contract TokenTransfererTest is Test {
         bytes32 sourceBlockchainID,
         OriginSenderInfo memory originInfo,
         SendAndCallInput memory input,
-        uint256 bridgeAmount
+        uint256 transferAmount
     ) internal pure returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
@@ -359,7 +359,7 @@ abstract contract TokenTransfererTest is Test {
             message: _encodeSingleHopCallMessage({
                 sourceBlockchainID: sourceBlockchainID,
                 originInfo: originInfo,
-                amount: bridgeAmount,
+                amount: transferAmount,
                 recipientContract: input.recipientContract,
                 recipientPayload: input.recipientPayload,
                 recipientGasLimit: input.recipientGasLimit,
@@ -403,7 +403,7 @@ abstract contract TokenTransfererTest is Test {
                 payload: abi.encode(
                     SingleHopCallMessage({
                         sourceBlockchainID: sourceBlockchainID,
-                        originTokenTransfererAddress: originInfo.bridgeAddress,
+                        originTokenTransfererAddress: originInfo.tokenTransfererAddress,
                         originSenderAddress: originInfo.senderAddress,
                         recipientContract: recipientContract,
                         amount: amount,

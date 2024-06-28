@@ -96,7 +96,7 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 	}
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 
-	receipt, bridgedAmount := utils.SendERC20TokenHome(
+	receipt, transferredAmount := utils.SendERC20TokenHome(
 		ctx,
 		cChainInfo,
 		erc20TokenHome,
@@ -121,13 +121,13 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 		erc20TokenRemote,
 		receipt,
 		recipientAddress,
-		bridgedAmount,
+		transferredAmount,
 	)
 
 	// Check that the recipient received the tokens
 	balance, err := erc20TokenRemote.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
+	Expect(balance).Should(Equal(transferredAmount))
 
 	// Transfer back to home chain
 	// Fund recipient with gas tokens on subnet A
@@ -148,13 +148,13 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 		RequiredGasLimit:                  utils.DefaultERC20RequiredGas,
 	}
 
-	receipt, bridgedAmount = utils.SendERC20TokenRemote(
+	receipt, transferredAmount = utils.SendERC20TokenRemote(
 		ctx,
 		subnetAInfo,
 		erc20TokenRemote,
 		erc20TokenRemoteAddress,
 		inputB,
-		teleporterUtils.BigIntSub(bridgedAmount, inputB.PrimaryFee),
+		teleporterUtils.BigIntSub(transferredAmount, inputB.PrimaryFee),
 		recipientKey,
 	)
 
@@ -172,11 +172,11 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 		exampleERC20,
 		receipt,
 		recipientAddress,
-		bridgedAmount,
+		transferredAmount,
 	)
 
 	// Check that the recipient received the tokens
 	balance, err = exampleERC20.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
+	Expect(balance).Should(Equal(transferredAmount))
 }

@@ -141,7 +141,7 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 
 		// Send half of the tokens back to C-Chain
 		amount := big.NewInt(0).Div(amount, big.NewInt(2))
-		receipt, bridgedAmount := utils.SendNativeTokenRemote(
+		receipt, transferredAmount := utils.SendNativeTokenRemote(
 			ctx,
 			subnetAInfo,
 			nativeTokenRemote,
@@ -160,7 +160,7 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 		)
 
 		// Check that the recipient received the tokens
-		homeAmount := bridgedAmount
+		homeAmount := transferredAmount
 		utils.CheckNativeTokenHomeWithdrawal(
 			ctx,
 			nativeTokenHomeAddress,

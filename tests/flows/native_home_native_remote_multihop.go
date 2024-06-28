@@ -143,7 +143,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 	}
 
-	receipt, bridgedAmountA := utils.SendNativeTokenHome(
+	receipt, transferredAmountA := utils.SendNativeTokenHome(
 		ctx,
 		cChainInfo,
 		nativeTokenHome,
@@ -164,7 +164,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmountA, subnetAInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountA, subnetAInfo.RPCClient)
 
 	// Send tokens from C-Chain to Subnet B
 	inputB := nativetokenhome.SendTokensInput{
@@ -176,7 +176,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		SecondaryFee:                      big.NewInt(0),
 		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
 	}
-	receipt, bridgedAmountB := utils.SendNativeTokenHome(
+	receipt, transferredAmountB := utils.SendNativeTokenHome(
 		ctx,
 		cChainInfo,
 		nativeTokenHome,
@@ -197,11 +197,11 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmountB, subnetBInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountB, subnetBInfo.RPCClient)
 
 	// Multi-hop transfer to Subnet B
 	// Send half of the received amount to account for gas expenses
-	amountToSendA := new(big.Int).Div(bridgedAmountA, big.NewInt(2))
+	amountToSendA := new(big.Int).Div(transferredAmountA, big.NewInt(2))
 
 	utils.SendNativeMultiHopAndVerify(
 		ctx,

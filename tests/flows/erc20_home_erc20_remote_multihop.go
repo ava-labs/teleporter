@@ -119,7 +119,7 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 	}
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 
-	receipt, bridgedAmount := utils.SendERC20TokenHome(
+	receipt, transferredAmount := utils.SendERC20TokenHome(
 		ctx,
 		cChainInfo,
 		erc20TokenHome,
@@ -144,17 +144,17 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenRemoteA,
 		receipt,
 		recipientAddress,
-		bridgedAmount,
+		transferredAmount,
 	)
 
 	// Check that the recipient received the tokens
 	balance, err := erc20TokenRemoteA.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
+	Expect(balance).Should(Equal(transferredAmount))
 
 	// Multi-hop transfer to Subnet B
-	bridgedAmount = big.NewInt(0).Div(bridgedAmount, big.NewInt(2))
-	secondaryFeeAmount := big.NewInt(0).Div(bridgedAmount, big.NewInt(4))
+	transferredAmount = big.NewInt(0).Div(transferredAmount, big.NewInt(2))
+	secondaryFeeAmount := big.NewInt(0).Div(transferredAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
 		network,
@@ -168,13 +168,13 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenRemoteB,
 		erc20TokenRemoteAddressB,
 		cChainInfo,
-		bridgedAmount,
+		transferredAmount,
 		secondaryFeeAmount,
 	)
 
 	// Multi-hop transfer back to Subnet A
-	bridgedAmount = big.NewInt(0).Sub(bridgedAmount, secondaryFeeAmount)
-	secondaryFeeAmount = big.NewInt(0).Div(bridgedAmount, big.NewInt(4))
+	transferredAmount = big.NewInt(0).Sub(transferredAmount, secondaryFeeAmount)
+	secondaryFeeAmount = big.NewInt(0).Div(transferredAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
 		network,
@@ -188,7 +188,7 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenRemoteA,
 		erc20TokenRemoteAddressA,
 		cChainInfo,
-		bridgedAmount,
+		transferredAmount,
 		secondaryFeeAmount,
 	)
 }
