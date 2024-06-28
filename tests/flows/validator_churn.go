@@ -16,7 +16,7 @@ import (
 
 const (
 	nodesPerSubnet = 5
-	newNodeCount   = 5
+	newNodeCount   = 1
 )
 
 func ValidatorChurn(network interfaces.LocalNetwork) {
