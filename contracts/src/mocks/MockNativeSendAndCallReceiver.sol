@@ -26,7 +26,7 @@ contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
      */
     event TokensReceived(
         bytes32 indexed sourceBlockchainID,
-        address indexed originTokenTransfererAddress,
+        address indexed originTokenTransferrerAddress,
         address indexed originSenderAddress,
         uint256 amount,
         bytes payload
@@ -37,7 +37,7 @@ contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
      */
     function receiveTokens(
         bytes32 sourceBlockchainID,
-        address originTokenTransfererAddress,
+        address originTokenTransferrerAddress,
         address originSenderAddress,
         bytes calldata payload
     ) external payable {
@@ -47,7 +47,7 @@ contract MockNativeSendAndCallReceiver is INativeSendAndCallReceiver {
         );
         emit TokensReceived(
             sourceBlockchainID,
-            originTokenTransfererAddress,
+            originTokenTransferrerAddress,
             originSenderAddress,
             msg.value,
             payload

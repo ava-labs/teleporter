@@ -7,24 +7,24 @@ pragma solidity 0.8.18;
 
 import {TokenRemote} from "./TokenRemote.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
-import {IERC20TokenTransferer} from "../interfaces/IERC20TokenTransferer.sol";
+import {IERC20TokenTransferrer} from "../interfaces/IERC20TokenTransferrer.sol";
 import {IERC20SendAndCallReceiver} from "../interfaces/IERC20SendAndCallReceiver.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
     SingleHopCallMessage
-} from "../interfaces/ITokenTransferer.sol";
+} from "../interfaces/ITokenTransferrer.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
  * @title ERC20TokenRemote
- * @notice This contract is an {IERC20TokenTransferer} that receives tokens from its specifed {TokenHome} instance,
+ * @notice This contract is an {IERC20TokenTransferrer} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens with an ERC20 token on this chain.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract ERC20TokenRemote is IERC20TokenTransferer, ERC20, TokenRemote {
+contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20, TokenRemote {
     uint8 private immutable _decimals;
 
     /**
@@ -45,7 +45,7 @@ contract ERC20TokenRemote is IERC20TokenTransferer, ERC20, TokenRemote {
     }
 
     /**
-     * @dev See {IERC20TokenTransferer-send}
+     * @dev See {IERC20TokenTransferrer-send}
      *
      * Note: For transfers to an {input.destinationBlockchainID} that is not the {tokenHomeBlockchainID},
      * a multi-hop transfer is performed, where the tokens are sent back to the token TokenHome instance
@@ -56,7 +56,7 @@ contract ERC20TokenRemote is IERC20TokenTransferer, ERC20, TokenRemote {
     }
 
     /**
-     * @dev See {IERC20TokenTransferer-sendAndCall}
+     * @dev See {IERC20TokenTransferrer-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
         _sendAndCall(input, amount);
@@ -117,7 +117,7 @@ contract ERC20TokenRemote is IERC20TokenTransferer, ERC20, TokenRemote {
             IERC20SendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originTokenTransfererAddress,
+                message.originTokenTransferrerAddress,
                 message.originSenderAddress,
                 address(this),
                 amount,

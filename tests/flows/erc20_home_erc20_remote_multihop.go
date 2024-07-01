@@ -109,13 +109,13 @@ func ERC20TokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 
 	// Send tokens from C-Chain to Subnet A
 	input := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:           subnetAInfo.BlockchainID,
-		DestinationTokenTransfererAddress: erc20TokenRemoteAddressA,
-		Recipient:                         recipientAddress,
-		PrimaryFeeTokenAddress:            exampleERC20Address,
-		PrimaryFee:                        big.NewInt(1e18),
-		SecondaryFee:                      big.NewInt(0),
-		RequiredGasLimit:                  utils.DefaultERC20RequiredGas,
+		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: erc20TokenRemoteAddressA,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             exampleERC20Address,
+		PrimaryFee:                         big.NewInt(1e18),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultERC20RequiredGas,
 	}
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 

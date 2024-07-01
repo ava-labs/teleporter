@@ -9,14 +9,14 @@ import {ITokenRemote, TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    TransfererMessageType,
-    TransfererMessage,
+    TransferrerMessageType,
+    TransferrerMessage,
     SingleHopSendMessage,
     SingleHopCallMessage,
     MultiHopSendMessage,
     MultiHopCallMessage,
     RegisterRemoteMessage
-} from "../interfaces/ITokenTransferer.sol";
+} from "../interfaces/ITokenTransferrer.sol";
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IWarpMessenger} from
@@ -26,7 +26,7 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 
 /**
  * @title TokenRemote
- * @dev Abstract contract for a token transferer remote that receives tokens from its specified token TokenHome instance, and
+ * @dev Abstract contract for a token transferrer remote that receives tokens from its specified token TokenHome instance, and
  * allows for burning that token to redeem the backing asset on the home chain, or transferring to other remotes.
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
@@ -172,8 +172,8 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             homeTokenDecimals: homeTokenDecimals,
             remoteTokenDecimals: tokenDecimals
         });
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.REGISTER_REMOTE,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.REGISTER_REMOTE,
             payload: abi.encode(registerMessage)
         });
 
@@ -253,7 +253,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
         require(
             originSenderAddress == tokenHomeAddress, "TokenRemote: invalid origin sender address"
         );
-        TransfererMessage memory transfererMessage = abi.decode(message, (TransfererMessage));
+        TransferrerMessage memory transferrerMessage = abi.decode(message, (TransferrerMessage));
 
         // If the contract was not previously known to be registered or collateralized, it is now given that
         // the home has sent a message to mint funds.
@@ -264,17 +264,17 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
 
         // Remote contracts should only ever receive single-hop messages because
         // multi-hop messages are always routed through the home contract.
-        if (transfererMessage.messageType == TransfererMessageType.SINGLE_HOP_SEND) {
+        if (transferrerMessage.messageType == TransferrerMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
-                abi.decode(transfererMessage.payload, (SingleHopSendMessage));
+                abi.decode(transferrerMessage.payload, (SingleHopSendMessage));
             _withdraw(payload.recipient, payload.amount);
-        } else if (transfererMessage.messageType == TransfererMessageType.SINGLE_HOP_CALL) {
+        } else if (transferrerMessage.messageType == TransferrerMessageType.SINGLE_HOP_CALL) {
             // The {sourceBlockchainID}, and {originSenderAddress} specified in the message
             // payload will not match the sender of this Teleporter message in the case of a
             // multi-hop message. Since Teleporter messages are only received from the specified
             // token TokenHome instance, no additional authentication is needed on the payload values.
             SingleHopCallMessage memory payload =
-                abi.decode(transfererMessage.payload, (SingleHopCallMessage));
+                abi.decode(transferrerMessage.payload, (SingleHopCallMessage));
             _handleSendAndCall(payload, payload.amount);
         } else {
             revert("TokenRemote: invalid message type");
@@ -356,7 +356,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      */
     function _processSend(SendTokensInput calldata input, uint256 amount) private {
         _validateSingleHopInput(
-            input.destinationTokenTransfererAddress, input.secondaryFee, input.multiHopFallback
+            input.destinationTokenTransferrerAddress, input.secondaryFee, input.multiHopFallback
         );
 
         uint256 primaryFee;
@@ -367,8 +367,8 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             secondaryFee: input.secondaryFee
         });
 
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.SINGLE_HOP_SEND,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(SingleHopSendMessage({recipient: input.recipient, amount: amount}))
         });
 
@@ -395,7 +395,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     function _processSendMultiHop(SendTokensInput calldata input, uint256 amount) private {
         _validateMultiHopInput(
             input.destinationBlockchainID,
-            input.destinationTokenTransfererAddress,
+            input.destinationTokenTransferrerAddress,
             input.multiHopFallback
         );
 
@@ -407,12 +407,12 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             secondaryFee: input.secondaryFee
         });
 
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.MULTI_HOP_SEND,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.MULTI_HOP_SEND,
             payload: abi.encode(
                 MultiHopSendMessage({
                     destinationBlockchainID: input.destinationBlockchainID,
-                    destinationTokenTransfererAddress: input.destinationTokenTransfererAddress,
+                    destinationTokenTransferrerAddress: input.destinationTokenTransferrerAddress,
                     recipient: input.recipient,
                     amount: amount,
                     secondaryFee: input.secondaryFee,
@@ -445,7 +445,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      */
     function _processSendAndCall(SendAndCallInput calldata input, uint256 amount) private {
         _validateSingleHopInput(
-            input.destinationTokenTransfererAddress, input.secondaryFee, input.multiHopFallback
+            input.destinationTokenTransferrerAddress, input.secondaryFee, input.multiHopFallback
         );
 
         uint256 primaryFee;
@@ -456,12 +456,12 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             secondaryFee: input.secondaryFee
         });
 
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.SINGLE_HOP_CALL,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.SINGLE_HOP_CALL,
             payload: abi.encode(
                 SingleHopCallMessage({
                     sourceBlockchainID: blockchainID,
-                    originTokenTransfererAddress: address(this),
+                    originTokenTransferrerAddress: address(this),
                     originSenderAddress: _msgSender(),
                     recipientContract: input.recipientContract,
                     amount: amount,
@@ -497,7 +497,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     function _processSendAndCallMultiHop(SendAndCallInput calldata input, uint256 amount) private {
         _validateMultiHopInput(
             input.destinationBlockchainID,
-            input.destinationTokenTransfererAddress,
+            input.destinationTokenTransferrerAddress,
             input.multiHopFallback
         );
 
@@ -509,13 +509,13 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             secondaryFee: input.secondaryFee
         });
 
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.MULTI_HOP_CALL,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.MULTI_HOP_CALL,
             payload: abi.encode(
                 MultiHopCallMessage({
                     originSenderAddress: _msgSender(),
                     destinationBlockchainID: input.destinationBlockchainID,
-                    destinationTokenTransfererAddress: input.destinationTokenTransfererAddress,
+                    destinationTokenTransferrerAddress: input.destinationTokenTransferrerAddress,
                     recipientContract: input.recipientContract,
                     amount: amount,
                     recipientPayload: input.recipientPayload,
@@ -553,13 +553,13 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     }
 
     function _validateSingleHopInput(
-        address destinationTokenTransfererAddress,
+        address destinationTokenTransferrerAddress,
         uint256 secondaryFee,
         address multiHopFallback
     ) private view {
         require(
-            destinationTokenTransfererAddress == tokenHomeAddress,
-            "TokenRemote: invalid destination token transferer address"
+            destinationTokenTransferrerAddress == tokenHomeAddress,
+            "TokenRemote: invalid destination token transferrer address"
         );
         require(secondaryFee == 0, "TokenRemote: non-zero secondary fee");
         require(multiHopFallback == address(0), "TokenRemote: non-zero multi-hop fallback");
@@ -567,16 +567,16 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
 
     function _validateMultiHopInput(
         bytes32 destinationBlockchainID,
-        address destinationTokenTransfererAddress,
+        address destinationTokenTransferrerAddress,
         address multiHopFallback
     ) private view {
         // If the destination blockchain ID is this blockchain, the destination
-        // token transferer address must be a different contract. This is a multi-hop case to
+        // token transferrer address must be a different contract. This is a multi-hop case to
         // a different token transfer contract on this chain.
         if (destinationBlockchainID == blockchainID) {
             require(
-                destinationTokenTransfererAddress != address(this),
-                "TokenRemote: invalid destination token transferer address"
+                destinationTokenTransferrerAddress != address(this),
+                "TokenRemote: invalid destination token transferrer address"
             );
         }
         require(multiHopFallback != address(0), "TokenRemote: zero multi-hop fallback");
@@ -590,8 +590,8 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             "TokenRemote: zero destination blockchain ID"
         );
         require(
-            input.destinationTokenTransfererAddress != address(0),
-            "TokenRemote: zero destination token transferer address"
+            input.destinationTokenTransferrerAddress != address(0),
+            "TokenRemote: zero destination token transferrer address"
         );
     }
 
@@ -601,8 +601,8 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             "TokenRemote: zero destination blockchain ID"
         );
         require(
-            input.destinationTokenTransfererAddress != address(0),
-            "TokenRemote: zero destination token transferer address"
+            input.destinationTokenTransferrerAddress != address(0),
+            "TokenRemote: zero destination token transferrer address"
         );
         require(
             input.recipientContract != address(0), "TokenRemote: zero recipient contract address"

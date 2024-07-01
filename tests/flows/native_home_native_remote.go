@@ -86,20 +86,20 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-Chain to recipient on subnet A that fully collateralize token transferer with leftover tokens.
+	// Send tokens from C-Chain to recipient on subnet A that fully collateralize token transferrer with leftover tokens.
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 	{
 		input := nativetokenhome.SendTokensInput{
-			DestinationBlockchainID:           subnetAInfo.BlockchainID,
-			DestinationTokenTransfererAddress: nativeTokenRemoteAddress,
-			Recipient:                         recipientAddress,
-			PrimaryFeeTokenAddress:            cChainWAVAXAddress,
-			PrimaryFee:                        big.NewInt(1e18),
-			SecondaryFee:                      big.NewInt(0),
-			RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
+			DestinationBlockchainID:            subnetAInfo.BlockchainID,
+			DestinationTokenTransferrerAddress: nativeTokenRemoteAddress,
+			Recipient:                          recipientAddress,
+			PrimaryFeeTokenAddress:             cChainWAVAXAddress,
+			PrimaryFee:                         big.NewInt(1e18),
+			SecondaryFee:                       big.NewInt(0),
+			RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 		}
 
-		// Send initialReserveImbalance tokens to fully collateralize token transferer and mint the remainder.
+		// Send initialReserveImbalance tokens to fully collateralize token transferrer and mint the remainder.
 		receipt, _ := utils.SendNativeTokenHome(
 			ctx,
 			cChainInfo,
@@ -130,13 +130,13 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 	// Send tokens on Subnet A back for native tokens on C-Chain
 	{
 		input_A := nativetokenremote.SendTokensInput{
-			DestinationBlockchainID:           cChainInfo.BlockchainID,
-			DestinationTokenTransfererAddress: nativeTokenHomeAddress,
-			Recipient:                         recipientAddress,
-			PrimaryFeeTokenAddress:            nativeTokenRemoteAddress,
-			PrimaryFee:                        big.NewInt(1e18),
-			SecondaryFee:                      big.NewInt(0),
-			RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
+			DestinationBlockchainID:            cChainInfo.BlockchainID,
+			DestinationTokenTransferrerAddress: nativeTokenHomeAddress,
+			Recipient:                          recipientAddress,
+			PrimaryFeeTokenAddress:             nativeTokenRemoteAddress,
+			PrimaryFee:                         big.NewInt(1e18),
+			SecondaryFee:                       big.NewInt(0),
+			RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 		}
 
 		// Send half of the tokens back to C-Chain

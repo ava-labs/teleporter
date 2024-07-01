@@ -32,7 +32,7 @@ contract MockERC20SendAndCallReceiver is Context, IERC20SendAndCallReceiver {
      */
     event TokensReceived(
         bytes32 indexed sourceBlockchainID,
-        address indexed originTokenTransfererAddress,
+        address indexed originTokenTransferrerAddress,
         address indexed originSenderAddress,
         address token,
         uint256 amount,
@@ -44,7 +44,7 @@ contract MockERC20SendAndCallReceiver is Context, IERC20SendAndCallReceiver {
      */
     function receiveTokens(
         bytes32 sourceBlockchainID,
-        address originTokenTransfererAddress,
+        address originTokenTransferrerAddress,
         address originSenderAddress,
         address token,
         uint256 amount,
@@ -56,7 +56,7 @@ contract MockERC20SendAndCallReceiver is Context, IERC20SendAndCallReceiver {
         );
         emit TokensReceived({
             sourceBlockchainID: sourceBlockchainID,
-            originTokenTransfererAddress: originTokenTransfererAddress,
+            originTokenTransferrerAddress: originTokenTransferrerAddress,
             originSenderAddress: originSenderAddress,
             token: token,
             amount: amount,

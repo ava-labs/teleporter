@@ -18,7 +18,7 @@ import (
   - Deploys NativeTokenRemote to Subnet A and Subnet B
   - Transfers native tokens from the C-Chain to Subnet A as Subnet A's native token
   - Transfers native tokens from the C-Chain to Subnet B as Subnet B's native token
-    to collateralize the Subnet B token transferer
+    to collateralize the Subnet B token transferrer
   - Transfer tokens from Subnet A to Subnet B through multi-hop
   - Transfer back tokens from Subnet B to Subnet A through multi-hop
 */
@@ -134,13 +134,13 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 
 	// Send tokens from C-Chain to Subnet A
 	inputA := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:           subnetAInfo.BlockchainID,
-		DestinationTokenTransfererAddress: nativeTokenRemoteAddressA,
-		Recipient:                         recipientAddress,
-		PrimaryFeeTokenAddress:            wavaxAddress,
-		PrimaryFee:                        big.NewInt(1e18),
-		SecondaryFee:                      big.NewInt(0),
-		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             wavaxAddress,
+		PrimaryFee:                         big.NewInt(1e18),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 	}
 
 	receipt, transferredAmountA := utils.SendNativeTokenHome(
@@ -168,13 +168,13 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 
 	// Send tokens from C-Chain to Subnet B
 	inputB := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:           subnetBInfo.BlockchainID,
-		DestinationTokenTransfererAddress: nativeTokenRemoteAddressB,
-		Recipient:                         recipientAddress,
-		PrimaryFeeTokenAddress:            wavaxAddress,
-		PrimaryFee:                        big.NewInt(1e18),
-		SecondaryFee:                      big.NewInt(0),
-		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:            subnetBInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressB,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             wavaxAddress,
+		PrimaryFee:                         big.NewInt(1e18),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 	}
 	receipt, transferredAmountB := utils.SendNativeTokenHome(
 		ctx,

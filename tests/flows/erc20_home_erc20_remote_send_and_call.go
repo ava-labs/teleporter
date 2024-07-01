@@ -109,16 +109,16 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 	// Send tokens from C-Chain to Mock contract on subnet A
 	{
 		input := erc20tokenhome.SendAndCallInput{
-			DestinationBlockchainID:           subnetAInfo.BlockchainID,
-			DestinationTokenTransfererAddress: erc20TokenRemoteAddress,
-			RecipientContract:                 remoteMockERC20SACRAddress,
-			RecipientPayload:                  []byte{1},
-			RequiredGasLimit:                  teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
-			RecipientGasLimit:                 teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
-			FallbackRecipient:                 fallbackAddress,
-			PrimaryFeeTokenAddress:            exampleERC20Address,
-			PrimaryFee:                        big.NewInt(1e18),
-			SecondaryFee:                      big.NewInt(0),
+			DestinationBlockchainID:            subnetAInfo.BlockchainID,
+			DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
+			RecipientContract:                  remoteMockERC20SACRAddress,
+			RecipientPayload:                   []byte{1},
+			RequiredGasLimit:                   teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
+			RecipientGasLimit:                  teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
+			FallbackRecipient:                  fallbackAddress,
+			PrimaryFeeTokenAddress:             exampleERC20Address,
+			PrimaryFee:                         big.NewInt(1e18),
+			SecondaryFee:                       big.NewInt(0),
 		}
 
 		receipt, transferredAmount := utils.SendAndCallERC20TokenHome(
@@ -161,13 +161,13 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 	{
 		// Send ERC20 tokens from C-Chain to recipient on subnet A
 		input := erc20tokenhome.SendTokensInput{
-			DestinationBlockchainID:           subnetAInfo.BlockchainID,
-			DestinationTokenTransfererAddress: erc20TokenRemoteAddress,
-			Recipient:                         recipientAddress,
-			PrimaryFeeTokenAddress:            exampleERC20Address,
-			PrimaryFee:                        big.NewInt(1e18),
-			SecondaryFee:                      big.NewInt(0),
-			RequiredGasLimit:                  utils.DefaultERC20RequiredGas,
+			DestinationBlockchainID:            subnetAInfo.BlockchainID,
+			DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
+			Recipient:                          recipientAddress,
+			PrimaryFeeTokenAddress:             exampleERC20Address,
+			PrimaryFee:                         big.NewInt(1e18),
+			SecondaryFee:                       big.NewInt(0),
+			RequiredGasLimit:                   utils.DefaultERC20RequiredGas,
 		}
 
 		receipt, transferredAmount := utils.SendERC20TokenHome(
@@ -216,16 +216,16 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 		)
 
 		inputB := erc20tokenremote.SendAndCallInput{
-			DestinationBlockchainID:           cChainInfo.BlockchainID,
-			DestinationTokenTransfererAddress: erc20TokenHomeAddress,
-			RecipientContract:                 homeMockERC20SACRAddress,
-			RecipientPayload:                  []byte{1},
-			RequiredGasLimit:                  teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
-			RecipientGasLimit:                 teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
-			FallbackRecipient:                 fallbackAddress,
-			PrimaryFeeTokenAddress:            erc20TokenRemoteAddress,
-			PrimaryFee:                        big.NewInt(1e10),
-			SecondaryFee:                      big.NewInt(0),
+			DestinationBlockchainID:            cChainInfo.BlockchainID,
+			DestinationTokenTransferrerAddress: erc20TokenHomeAddress,
+			RecipientContract:                  homeMockERC20SACRAddress,
+			RecipientPayload:                   []byte{1},
+			RequiredGasLimit:                   teleporterUtils.BigIntMul(big.NewInt(10), utils.DefaultERC20RequiredGas),
+			RecipientGasLimit:                  teleporterUtils.BigIntMul(big.NewInt(5), utils.DefaultERC20RequiredGas),
+			FallbackRecipient:                  fallbackAddress,
+			PrimaryFeeTokenAddress:             erc20TokenRemoteAddress,
+			PrimaryFee:                         big.NewInt(1e10),
+			SecondaryFee:                       big.NewInt(0),
 		}
 
 		receipt, transferredAmount := utils.SendAndCallERC20TokenRemote(

@@ -82,13 +82,13 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 
 	// Send tokens from C-Chain to recipient on subnet A
 	input := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:           subnetAInfo.BlockchainID,
-		DestinationTokenTransfererAddress: erc20TokenRemoteAddress,
-		Recipient:                         recipientAddress,
-		PrimaryFeeTokenAddress:            wavaxAddress,
-		PrimaryFee:                        big.NewInt(1e18),
-		SecondaryFee:                      big.NewInt(0),
-		RequiredGasLimit:                  utils.DefaultERC20RequiredGas,
+		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             wavaxAddress,
+		PrimaryFee:                         big.NewInt(1e18),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultERC20RequiredGas,
 	}
 
 	// Send the tokens and verify expected events
@@ -135,13 +135,13 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 		big.NewInt(1e18),
 	)
 	inputA := erc20tokenremote.SendTokensInput{
-		DestinationBlockchainID:           cChainInfo.BlockchainID,
-		DestinationTokenTransfererAddress: nativeTokenHomeAddress,
-		Recipient:                         recipientAddress,
-		PrimaryFeeTokenAddress:            erc20TokenRemoteAddress,
-		PrimaryFee:                        big.NewInt(1e10),
-		SecondaryFee:                      big.NewInt(0),
-		RequiredGasLimit:                  utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:            cChainInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: nativeTokenHomeAddress,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             erc20TokenRemoteAddress,
+		PrimaryFee:                         big.NewInt(1e10),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 	}
 
 	// Send tokens on Subnet A back for native tokens on C-Chain

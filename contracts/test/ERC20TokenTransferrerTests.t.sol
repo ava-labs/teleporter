@@ -5,21 +5,21 @@
 
 pragma solidity 0.8.18;
 
-import {TokenTransfererTest} from "./TokenTransfererTests.t.sol";
-import {IERC20TokenTransferer} from "../src/interfaces/IERC20TokenTransferer.sol";
-import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenTransferer.sol";
+import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
+import {IERC20TokenTransferrer} from "../src/interfaces/IERC20TokenTransferrer.sol";
+import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract ERC20TokenTransfererTest is TokenTransfererTest {
+abstract contract ERC20TokenTransferrerTest is TokenTransferrerTest {
     using SafeERC20 for IERC20;
 
-    IERC20TokenTransferer public erc20TokenTransferer;
+    IERC20TokenTransferrer public erc20TokenTransferrer;
 
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         _setUpRegisteredRemote(
-            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+            input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
@@ -30,7 +30,7 @@ abstract contract ERC20TokenTransfererTest is TokenTransfererTest {
 
         SendTokensInput memory input = _createDefaultSendTokensInput();
         _setUpRegisteredRemote(
-            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+            input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
         vm.expectRevert("ERC20: insufficient allowance");
         _send(input, amount);
@@ -41,20 +41,20 @@ abstract contract ERC20TokenTransfererTest is TokenTransfererTest {
 
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
         _setUpRegisteredRemote(
-            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+            input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
         vm.expectRevert("ERC20: insufficient allowance");
         _sendAndCall(input, amount);
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
-        erc20TokenTransferer.send(input, amount);
+        erc20TokenTransferrer.send(input, amount);
     }
 
     function _sendAndCall(
         SendAndCallInput memory input,
         uint256 amount
     ) internal virtual override {
-        erc20TokenTransferer.sendAndCall(input, amount);
+        erc20TokenTransferrer.sendAndCall(input, amount);
     }
 }

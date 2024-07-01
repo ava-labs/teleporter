@@ -5,14 +5,14 @@
 
 pragma solidity 0.8.18;
 
-import {ITokenTransferer, SendTokensInput, SendAndCallInput} from "./ITokenTransferer.sol";
+import {ITokenTransferrer, SendTokensInput, SendAndCallInput} from "./ITokenTransferrer.sol";
 
 /**
- * @notice Interface for an Avalanche interchain token transferer that sends ERC20 tokens to another chain.
+ * @notice Interface for an Avalanche interchain token transferrer that sends ERC20 tokens to another chain.
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-interface IERC20TokenTransferer is ITokenTransferer {
+interface IERC20TokenTransferrer is ITokenTransferrer {
     /**
      * @notice Sends ERC20 tokens to the specified destination.
      * @param input Specifies information for delivery of the tokens

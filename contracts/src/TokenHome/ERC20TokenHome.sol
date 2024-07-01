@@ -12,7 +12,7 @@ import {
     SendTokensInput,
     SendAndCallInput,
     SingleHopCallMessage
-} from "../interfaces/ITokenTransferer.sol";
+} from "../interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
@@ -49,19 +49,19 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     }
 
     /**
-     * @dev See {IERC20TokenTransferer-send}
+     * @dev See {IERC20TokenTransferrer-send}
      */
     function send(SendTokensInput calldata input, uint256 amount) external {
         _send(input, amount);
     }
 
     /**
-     * @dev See {IERC20TokenTransferer-sendAndCall}
+     * @dev See {IERC20TokenTransferrer-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
         _sendAndCall({
             sourceBlockchainID: blockchainID,
-            originTokenTransfererAddress: address(this),
+            originTokenTransferrerAddress: address(this),
             originSenderAddress: _msgSender(),
             input: input,
             amount: amount
@@ -73,10 +73,10 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount
     ) external {
-        _addCollateral(remoteBlockchainID, remoteTokenTransfererAddress, amount);
+        _addCollateral(remoteBlockchainID, remoteTokenTransferrerAddress, amount);
     }
 
     /**
@@ -114,7 +114,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
             IERC20SendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originTokenTransfererAddress,
+                message.originTokenTransferrerAddress,
                 message.originSenderAddress,
                 address(token),
                 amount,

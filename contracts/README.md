@@ -1,30 +1,30 @@
 # Contract Structure
 
-The ERC20 and native token transferers built on top of Teleporter are composed of interfaces and abstract contracts that make them extendable to new implementations in the future.
+The ERC20 and native token transferrers built on top of Teleporter are composed of interfaces and abstract contracts that make them extendable to new implementations in the future.
 
-### `ITokenTransferer`
+### `ITokenTransferrer`
 
 Interface that defines the events token transfer contract implementations must emit. Also defines the message types and formats of messages between all implementations.
 
-### `IERC20TokenTransferer` and `INativeTokenTransferer`
+### `IERC20TokenTransferrer` and `INativeTokenTransferrer`
 
-Interfaces that define the external functions for interacting with token transfer contract implementations of each type. ERC20 and native token transferer interfaces vary from each other in that the native token transferer functions are `payable` and do not take an explicit amount parameter (it is implied by `msg.value`), while the ERC20 token transferer functions are not `payable` and require the explicit amount parameter. Otherwise, they include the same functions.
+Interfaces that define the external functions for interacting with token transfer contract implementations of each type. ERC20 and native token transferrer interfaces vary from each other in that the native token transferrer functions are `payable` and do not take an explicit amount parameter (it is implied by `msg.value`), while the ERC20 token transferrer functions are not `payable` and require the explicit amount parameter. Otherwise, they include the same functions.
 
 ### `TokenHome`
 
-An abstract implementation of `ITokenTransferer` for a token transfer contract on the "home" chain with the asset to be transferred. Each `TokenHome` instance supports transferring exactly one token type (ERC20 or native) on its chain to arbitrarily many "remote" instances on other chains. It handles locking tokens to be sent to `TokenRemote` instances, as well as receiving token transfer messages to either redeem tokens it holds as collateral (i.e. unlock), or route them to other `TokenRemote` instances (i.e. "multi-hop"). In the case of a multi-hop transfer, the `TokenHome` already has the collateral locked from when the tokens were originally transferred to the first `TokenRemote` instance, so it simply updates the accounting of the transferred balances to each respective `TokenRemote` instance. Remote contracts must first be registered with a `TokenHome` instance before the home contract will allow for sending tokens to them. This is to prevent tokens from being transferred to invalid remote addresses. Anyone is able to deploy and register remote contracts, which may have been modified from this repository. It is the responsibility of the users of the home contract to independently evaluate each remote for its security and correctness.
+An abstract implementation of `ITokenTransferrer` for a token transfer contract on the "home" chain with the asset to be transferred. Each `TokenHome` instance supports transferring exactly one token type (ERC20 or native) on its chain to arbitrarily many "remote" instances on other chains. It handles locking tokens to be sent to `TokenRemote` instances, as well as receiving token transfer messages to either redeem tokens it holds as collateral (i.e. unlock), or route them to other `TokenRemote` instances (i.e. "multi-hop"). In the case of a multi-hop transfer, the `TokenHome` already has the collateral locked from when the tokens were originally transferred to the first `TokenRemote` instance, so it simply updates the accounting of the transferred balances to each respective `TokenRemote` instance. Remote contracts must first be registered with a `TokenHome` instance before the home contract will allow for sending tokens to them. This is to prevent tokens from being transferred to invalid remote addresses. Anyone is able to deploy and register remote contracts, which may have been modified from this repository. It is the responsibility of the users of the home contract to independently evaluate each remote for its security and correctness.
 
 ### `ERC20TokenHome`
 
-A concrete implementation of `TokenHome` and `IERC20TokenTransferer` that handles the locking and releasing of an ERC20 token.
+A concrete implementation of `TokenHome` and `IERC20TokenTransferrer` that handles the locking and releasing of an ERC20 token.
 
 ### `NativeTokenHome`
 
-A concrete implementation of `TokenHome` and `INativeTokenTransferer` that handles the locking and release of the native EVM asset.
+A concrete implementation of `TokenHome` and `INativeTokenTransferrer` that handles the locking and release of the native EVM asset.
 
 ### `TokenRemote`
 
-An abstract implementation of `ITokenTransferer` for a token transfer contract on a "remote" chain that receives transferred assets from a specific `TokenHome` instance. Each `TokenRemote` instance has a single `TokenHome` instance that it receives token transfers from to mint tokens. It also handles sending messages (and correspondingly burning tokens) to route tokens back to other chains (either its `TokenHome`, or other `TokenRemote` instances). Once deployed, a `TokenRemote` instance must be registered with its specified `TokenHome` contract. This is done by calling `registerWithHome` on the remote contract, which will send a Teleporter message to the home contract with the information to register.
+An abstract implementation of `ITokenTransferrer` for a token transfer contract on a "remote" chain that receives transferred assets from a specific `TokenHome` instance. Each `TokenRemote` instance has a single `TokenHome` instance that it receives token transfers from to mint tokens. It also handles sending messages (and correspondingly burning tokens) to route tokens back to other chains (either its `TokenHome`, or other `TokenRemote` instances). Once deployed, a `TokenRemote` instance must be registered with its specified `TokenHome` contract. This is done by calling `registerWithHome` on the remote contract, which will send a Teleporter message to the home contract with the information to register.
 
 All messages sent by `TokenRemote` instances are sent to the specified `TokenHome` contract, whether they are to redeem the collateral from the `TokenHome` instance or route the tokens to another `TokenRemote` instance. Routing tokens from one `TokenRemote` instance to another is referred to as a "multi-hop", where the tokens are first sent back to their `TokenHome` contract to update its accounting, and then automatically routed on to their intended destination `TokenRemote` instance.
 
@@ -32,13 +32,13 @@ TokenRemote contracts allow for scaling token amounts, which should be used when
 
 ### `ERC20TokenRemote`
 
-A concrete implementation of `TokenRemote`, `IERC20TokenTransferer`, and `IERC20` that handles the minting and burning of an ERC20 asset. Note that the `ERC20TokenRemote` contract is an ERC20 implementation itself, which is why it takes the `tokenName`, `tokenSymbol`, and `tokenDecimals` in its constructor. All of the ERC20 interface implementations are inherited from the standard OpenZeppelin ERC20 implementation, and can be overriden in other implementations if desired.
+A concrete implementation of `TokenRemote`, `IERC20TokenTransferrer`, and `IERC20` that handles the minting and burning of an ERC20 asset. Note that the `ERC20TokenRemote` contract is an ERC20 implementation itself, which is why it takes the `tokenName`, `tokenSymbol`, and `tokenDecimals` in its constructor. All of the ERC20 interface implementations are inherited from the standard OpenZeppelin ERC20 implementation, and can be overriden in other implementations if desired.
 
 ### `NativeTokenRemote`
 
-A concrete implementation of `TokenRemote`, `INativeTokenTransferer`, and `IWrappedNativeToken` that handles the minting and burning of the native EVM asset on its chain using the native minter precompile. Deployments of this contract must be given the permission to mint native coins in the chain's configuration. Note that the `NativeTokenRemote` is also an implementation of `IWrappedNativeToken` itself, which is why the `nativeAssetSymbol` must be provided in its constructor. `NativeTokenRemote` instances always have a denomination of 18, which is the denomination of the native asset of EVM chains.
+A concrete implementation of `TokenRemote`, `INativeTokenTransferrer`, and `IWrappedNativeToken` that handles the minting and burning of the native EVM asset on its chain using the native minter precompile. Deployments of this contract must be given the permission to mint native coins in the chain's configuration. Note that the `NativeTokenRemote` is also an implementation of `IWrappedNativeToken` itself, which is why the `nativeAssetSymbol` must be provided in its constructor. `NativeTokenRemote` instances always have a denomination of 18, which is the denomination of the native asset of EVM chains.
 
-The [native minter precompile](https://docs.avax.network/build/subnet/upgrade/customize-a-subnet#minting-native-coins) must be configured to allow the contract address of the `NativeTokenRemote` instance to call `mintNativeCoin`. The correctness of a native token transferer implemented using `NativeTokenRemote` relies on no other accounts being allowed to call `mintNativeCoin`, which could result in the token transferer becoming undercollateralized. Example initialization steps for a `NativeTokenRemote` instance are shown below.
+The [native minter precompile](https://docs.avax.network/build/subnet/upgrade/customize-a-subnet#minting-native-coins) must be configured to allow the contract address of the `NativeTokenRemote` instance to call `mintNativeCoin`. The correctness of a native token transferrer implemented using `NativeTokenRemote` relies on no other accounts being allowed to call `mintNativeCoin`, which could result in the token transferrer becoming undercollateralized. Example initialization steps for a `NativeTokenRemote` instance are shown below.
 
 Since the native minter precompile does not provide an interface for burning the native EVM asset, the "burn" functionality is implemented by transferring the native coins to an unowned address. The contract also provides a `reportBurnedTxFees` interface in order to burn the collateral in the `TokenHome` instance that should be made unredeemable to account for native tokens burnt on the chain with the `NativeTokenRemote` instance to pay for transaction fees.
 

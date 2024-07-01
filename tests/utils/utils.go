@@ -376,7 +376,7 @@ func RegisterTokenRemoteOnHome(
 	registerEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, tokenHome.ParseRemoteRegistered)
 	Expect(err).Should(BeNil())
 	Expect(registerEvent.RemoteBlockchainID[:]).Should(Equal(remoteSubnet.BlockchainID[:]))
-	Expect(registerEvent.RemoteTokenTransfererAddress).Should(Equal(remoteAddress))
+	Expect(registerEvent.RemoteTokenTransferrerAddress).Should(Equal(remoteAddress))
 
 	// Based on the initial reserve balance of the TokenRemote instance,
 	// calculate the collateral amount of home tokens needed to collateralize the remote.
@@ -428,7 +428,7 @@ func AddCollateralToERC20TokenHome(
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseCollateralAdded)
 	Expect(err).Should(BeNil())
 	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
-	Expect(event.RemoteTokenTransfererAddress).Should(Equal(remoteAddress))
+	Expect(event.RemoteTokenTransferrerAddress).Should(Equal(remoteAddress))
 
 	remoteSettings, err := erc20TokenHome.RegisteredRemotes(
 		&bind.CallOpts{},
@@ -470,7 +470,7 @@ func AddCollateralToNativeTokenHome(
 	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, nativeTokenHome.ParseCollateralAdded)
 	Expect(err).Should(BeNil())
 	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
-	Expect(event.RemoteTokenTransfererAddress).Should(Equal(remoteAddress))
+	Expect(event.RemoteTokenTransferrerAddress).Should(Equal(remoteAddress))
 	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
 		&bind.CallOpts{},
 		remoteBlockchainID,
@@ -522,7 +522,7 @@ func SendERC20TokenHome(
 	scaledAmount := GetScaledAmountFromERC20TokenHome(
 		erc20TokenHome,
 		input.DestinationBlockchainID,
-		input.DestinationTokenTransfererAddress,
+		input.DestinationTokenTransferrerAddress,
 		amount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
@@ -568,7 +568,7 @@ func SendNativeTokenHome(
 	scaledAmount := GetScaledAmountFromNativeTokenHome(
 		nativeTokenHome,
 		input.DestinationBlockchainID,
-		input.DestinationTokenTransfererAddress,
+		input.DestinationTokenTransferrerAddress,
 		amount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
@@ -689,7 +689,7 @@ func SendAndCallERC20TokenHome(
 	scaledAmount := GetScaledAmountFromERC20TokenHome(
 		erc20TokenHome,
 		input.DestinationBlockchainID,
-		input.DestinationTokenTransfererAddress,
+		input.DestinationTokenTransferrerAddress,
 		amount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
@@ -724,7 +724,7 @@ func SendAndCallNativeTokenHome(
 	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
 		&bind.CallOpts{},
 		input.DestinationBlockchainID,
-		input.DestinationTokenTransfererAddress)
+		input.DestinationTokenTransferrerAddress)
 	Expect(err).Should(BeNil())
 
 	scaledAmount := ApplyTokenScaling(
@@ -805,9 +805,9 @@ func SendAndCallERC20TokenRemote(
 	return receipt, event.Amount
 }
 
-// Send a native token from fromTokenTransferer to toTokenTransferer via multi-hop through the C-Chain
-// Requires that both fromTokenTransferer and toTokenTransferer are fully collateralized
-// Requires that both fromTokenTransferer and toTokenTransferer have the same tokenMultiplier and multiplyOnRemote
+// Send a native token from fromTokenTransferrer to toTokenTransferrer via multi-hop through the C-Chain
+// Requires that both fromTokenTransferrer and toTokenTransferrer are fully collateralized
+// Requires that both fromTokenTransferrer and toTokenTransferrer have the same tokenMultiplier and multiplyOnRemote
 // with respect to the original asset on the C-Chain
 func SendNativeMultiHopAndVerify(
 	ctx context.Context,
@@ -815,32 +815,32 @@ func SendNativeMultiHopAndVerify(
 	sendingKey *ecdsa.PrivateKey,
 	recipientAddress common.Address,
 	fromSubnet interfaces.SubnetTestInfo,
-	fromTokenTransferer *nativetokenremote.NativeTokenRemote,
-	fromTokenTransfererAddress common.Address,
+	fromTokenTransferrer *nativetokenremote.NativeTokenRemote,
+	fromTokenTransferrerAddress common.Address,
 	toSubnet interfaces.SubnetTestInfo,
-	toTokenTransferer *nativetokenremote.NativeTokenRemote,
-	toTokenTransfererAddress common.Address,
+	toTokenTransferrer *nativetokenremote.NativeTokenRemote,
+	toTokenTransferrerAddress common.Address,
 	cChainInfo interfaces.SubnetTestInfo,
 	amount *big.Int,
 	secondaryFeeAmount *big.Int,
 ) {
 	input := nativetokenremote.SendTokensInput{
-		DestinationBlockchainID:           toSubnet.BlockchainID,
-		DestinationTokenTransfererAddress: toTokenTransfererAddress,
-		Recipient:                         recipientAddress,
-		PrimaryFeeTokenAddress:            fromTokenTransfererAddress,
-		PrimaryFee:                        big.NewInt(0),
-		SecondaryFee:                      secondaryFeeAmount,
-		RequiredGasLimit:                  DefaultNativeTokenRequiredGas,
-		MultiHopFallback:                  recipientAddress,
+		DestinationBlockchainID:            toSubnet.BlockchainID,
+		DestinationTokenTransferrerAddress: toTokenTransferrerAddress,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             fromTokenTransferrerAddress,
+		PrimaryFee:                         big.NewInt(0),
+		SecondaryFee:                       secondaryFeeAmount,
+		RequiredGasLimit:                   DefaultNativeTokenRequiredGas,
+		MultiHopFallback:                   recipientAddress,
 	}
 
 	// Send tokens through a multi-hop transfer
 	originReceipt, amount := SendNativeTokenRemote(
 		ctx,
 		fromSubnet,
-		fromTokenTransferer,
-		fromTokenTransfererAddress,
+		fromTokenTransferrer,
+		fromTokenTransferrerAddress,
 		input,
 		amount,
 		sendingKey,
@@ -886,11 +886,11 @@ func SendERC20TokenMultiHopAndVerify(
 	sendingKey *ecdsa.PrivateKey,
 	recipientAddress common.Address,
 	fromSubnet interfaces.SubnetTestInfo,
-	fromTokenTransferer *erc20tokenremote.ERC20TokenRemote,
-	fromTokenTransfererAddress common.Address,
+	fromTokenTransferrer *erc20tokenremote.ERC20TokenRemote,
+	fromTokenTransferrerAddress common.Address,
 	toSubnet interfaces.SubnetTestInfo,
-	toTokenTransferer *erc20tokenremote.ERC20TokenRemote,
-	toTokenTransfererAddress common.Address,
+	toTokenTransferrer *erc20tokenremote.ERC20TokenRemote,
+	toTokenTransferrerAddress common.Address,
 	cChainInfo interfaces.SubnetTestInfo,
 	amount *big.Int,
 	secondaryFeeAmount *big.Int,
@@ -904,22 +904,22 @@ func SendERC20TokenMultiHopAndVerify(
 		big.NewInt(1e18),
 	)
 	input := erc20tokenremote.SendTokensInput{
-		DestinationBlockchainID:           toSubnet.BlockchainID,
-		DestinationTokenTransfererAddress: toTokenTransfererAddress,
-		Recipient:                         recipientAddress,
-		PrimaryFeeTokenAddress:            common.Address{},
-		PrimaryFee:                        big.NewInt(0),
-		SecondaryFee:                      secondaryFeeAmount,
-		RequiredGasLimit:                  DefaultERC20RequiredGas,
-		MultiHopFallback:                  recipientAddress,
+		DestinationBlockchainID:            toSubnet.BlockchainID,
+		DestinationTokenTransferrerAddress: toTokenTransferrerAddress,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             common.Address{},
+		PrimaryFee:                         big.NewInt(0),
+		SecondaryFee:                       secondaryFeeAmount,
+		RequiredGasLimit:                   DefaultERC20RequiredGas,
+		MultiHopFallback:                   recipientAddress,
 	}
 
 	// Send tokens through a multi-hop transfer
 	originReceipt, amount := SendERC20TokenRemote(
 		ctx,
 		fromSubnet,
-		fromTokenTransferer,
-		fromTokenTransfererAddress,
+		fromTokenTransferrer,
+		fromTokenTransferrerAddress,
 		input,
 		amount,
 		sendingKey,
@@ -942,7 +942,7 @@ func SendERC20TokenMultiHopAndVerify(
 		teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo, intermediateReceipt.TxHash)
 	}
 
-	initialBalance, err := toTokenTransferer.BalanceOf(&bind.CallOpts{}, recipientAddress)
+	initialBalance, err := toTokenTransferrer.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
 
 	// When we relay the above message to the home chain, a multi-hop transfer
@@ -963,13 +963,13 @@ func SendERC20TokenMultiHopAndVerify(
 	transferredAmount := big.NewInt(0).Sub(amount, input.SecondaryFee)
 	CheckERC20TokenRemoteWithdrawal(
 		ctx,
-		toTokenTransferer,
+		toTokenTransferrer,
 		remoteReceipt,
 		recipientAddress,
 		transferredAmount,
 	)
 
-	balance, err := toTokenTransferer.BalanceOf(&bind.CallOpts{}, recipientAddress)
+	balance, err := toTokenTransferrer.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
 	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, transferredAmount))
 }

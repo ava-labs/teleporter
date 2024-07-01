@@ -11,14 +11,14 @@ import {ITokenHome} from "./interfaces/ITokenHome.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    TransfererMessageType,
-    TransfererMessage,
+    TransferrerMessageType,
+    TransferrerMessage,
     SingleHopSendMessage,
     SingleHopCallMessage,
     MultiHopSendMessage,
     MultiHopCallMessage,
     RegisterRemoteMessage
-} from "../interfaces/ITokenTransferer.sol";
+} from "../interfaces/ITokenTransferrer.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
@@ -29,14 +29,14 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 /**
  * @notice Each TokenRemote instance registers with the home contract, and provides settings for transferring
  * to the remote token transfer contract.
- * @param registered Whether the remote token transferer is registered
+ * @param registered Whether the remote token transferrer is registered
  * @param collateralNeeded The amount of tokens that must be first added as collateral,
- * through {addCollateral} calls, before tokens can be transferred to the remote token transferer.
+ * through {addCollateral} calls, before tokens can be transferred to the remote token transferrer.
  * @param tokenMultiplier The scaling factor for the amount of tokens to be transferred to the remote.
  * @param multiplyOnRemote Whether the {tokenMultiplier} should be applied when transferring tokens to
  * the remote (multiplyOnRemote=true), or when transferring tokens back to the home (multiplyOnRemote=false).
  */
-struct RemoteTokenTransfererSettings {
+struct RemoteTokenTransferrerSettings {
     bool registered;
     uint256 collateralNeeded;
     uint256 tokenMultiplier;
@@ -45,7 +45,7 @@ struct RemoteTokenTransfererSettings {
 
 /**
  * @title TokenHome
- * @dev Abstract contract for a token transferer home that sends its specified token to {TokenRemote} instances.
+ * @dev Abstract contract for a token transferrer home that sends its specified token to {TokenRemote} instances.
  *
  * This contract also handles multi-hop transfers, where tokens sent from a {TokenRemote}
  * instance are forwarded to another {TokenRemote} instance.
@@ -67,30 +67,31 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
     uint8 public immutable tokenDecimals;
 
     /**
-     * @notice Tracks the settings for each remote token transferer instance. TokenRemote instances
+     * @notice Tracks the settings for each remote token transferrer instance. TokenRemote instances
      * must register with their {TokenHome} contracts via Teleporter message to be able to
      * receive tokens from this contract.
      */
     mapping(
         bytes32 remoteBlockchainID
             => mapping(
-                address remoteTokenTransfererAddress => RemoteTokenTransfererSettings remoteSettings
+                address remoteTokenTransferrerAddress
+                    => RemoteTokenTransferrerSettings remoteSettings
             )
     ) public registeredRemotes;
 
     /**
      * @notice Tracks the balances of tokens sent to TokenRemote instances.
      * Balances are represented in the remote token's denomination,
-     * and token transferers are not allowed to unwrap more than has been sent to them.
-     * @dev (remoteBlockchainID, remoteTokenTransfererAddress) -> balance
+     * and token transferrers are not allowed to unwrap more than has been sent to them.
+     * @dev (remoteBlockchainID, remoteTokenTransferrerAddress) -> balance
      */
     mapping(
         bytes32 remoteBlockchainID
-            => mapping(address remoteTokenTransfererAddress => uint256 balance)
+            => mapping(address remoteTokenTransferrerAddress => uint256 balance)
     ) public transferredBalances;
 
     /**
-     * @notice Initializes this home token transferer instance to send tokens to TokenRemote instances on other chains.
+     * @notice Initializes this home token transferrer instance to send tokens to TokenRemote instances on other chains.
      */
     constructor(
         address teleporterRegistryAddress,
@@ -110,7 +111,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
     function _registerRemote(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         RegisterRemoteMessage memory message
     ) internal {
         require(remoteBlockchainID != bytes32(0), "TokenHome: zero remote blockchain ID");
@@ -118,11 +119,11 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             remoteBlockchainID != blockchainID, "TokenHome: cannot register remote on same chain"
         );
         require(
-            remoteTokenTransfererAddress != address(0),
-            "TokenHome: zero remote token transferer address"
+            remoteTokenTransferrerAddress != address(0),
+            "TokenHome: zero remote token transferrer address"
         );
         require(
-            !registeredRemotes[remoteBlockchainID][remoteTokenTransfererAddress].registered,
+            !registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress].registered,
             "TokenHome: remote already registered"
         );
         require(
@@ -148,8 +149,8 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             collateralNeeded += 1;
         }
 
-        registeredRemotes[remoteBlockchainID][remoteTokenTransfererAddress] =
-        RemoteTokenTransfererSettings({
+        registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress] =
+        RemoteTokenTransferrerSettings({
             registered: true,
             collateralNeeded: collateralNeeded,
             tokenMultiplier: tokenMultiplier,
@@ -158,21 +159,21 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
         emit RemoteRegistered(
             remoteBlockchainID,
-            remoteTokenTransfererAddress,
+            remoteTokenTransferrerAddress,
             collateralNeeded,
             message.remoteTokenDecimals
         );
     }
 
     /**
-     * @notice Sends tokens to the specified remote token transferer instance.
+     * @notice Sends tokens to the specified remote token transferrer instance.
      *
-     * @dev Increases the balance sent to the remote token transferer instance,
+     * @dev Increases the balance sent to the remote token transferrer instance,
      * and uses Teleporter to send a cross chain message. The amount passed is assumed to
      * be already scaled to the local denomination for this token home.
      * Requirements:
      *
-     * - The TokenRemote instance specified by {input.destinationBlockchainID} and {input.destinationTokenTransfererAddress} must
+     * - The TokenRemote instance specified by {input.destinationBlockchainID} and {input.destinationTokenTransferrerAddress} must
      *   be registered with this contract.
      * - {input.recipient} cannot be the zero address
      * - {amount} must be greater than 0
@@ -184,14 +185,14 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
         (uint256 adjustedAmount, uint256 feeAmount) = _prepareSend({
             remoteBlockchainID: input.destinationBlockchainID,
-            remoteTokenTransfererAddress: input.destinationTokenTransfererAddress,
+            remoteTokenTransferrerAddress: input.destinationTokenTransferrerAddress,
             amount: amount,
             primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             feeAmount: input.primaryFee
         });
 
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.SINGLE_HOP_SEND,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
                 )
@@ -201,7 +202,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
-                destinationAddress: input.destinationTokenTransfererAddress,
+                destinationAddress: input.destinationTokenTransferrerAddress,
                 feeInfo: TeleporterFeeInfo({
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: feeAmount
@@ -216,14 +217,14 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
     }
 
     /**
-     * @notice Routes tokens from a multi-hop message to the specified remote token transferer instance.
+     * @notice Routes tokens from a multi-hop message to the specified remote token transferrer instance.
      *
-     * @dev Increases the balance sent to the remote token transferer instance,
+     * @dev Increases the balance sent to the remote token transferrer instance,
      * and uses Teleporter to send a cross chain message. The amount passed is assumed to
      * be already scaled to the local denomination for this token home.
      * Requirements:
      *
-     * - The TokenRemote instance specified by {input.destinationBlockchainID} and {input.destinationTokenTransfererAddress} must
+     * - The TokenRemote instance specified by {input.destinationBlockchainID} and {input.destinationTokenTransferrerAddress} must
      *   be registered with this contract.
      * - {input.recipient} cannot be the zero address
      * - {amount} must be greater than 0
@@ -236,7 +237,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
         uint256 adjustedAmount = _prepareMultiHopRouting(
             input.destinationBlockchainID,
-            input.destinationTokenTransfererAddress,
+            input.destinationTokenTransferrerAddress,
             amount,
             input.primaryFee
         );
@@ -248,8 +249,8 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             return;
         }
 
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.SINGLE_HOP_SEND,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
                 )
@@ -259,7 +260,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
-                destinationAddress: input.destinationTokenTransfererAddress,
+                destinationAddress: input.destinationTokenTransferrerAddress,
                 feeInfo: TeleporterFeeInfo({
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: input.primaryFee
@@ -275,7 +276,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
     function _sendAndCall(
         bytes32 sourceBlockchainID,
-        address originTokenTransfererAddress,
+        address originTokenTransferrerAddress,
         address originSenderAddress,
         SendAndCallInput memory input,
         uint256 amount
@@ -287,18 +288,18 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
         (uint256 adjustedAmount, uint256 feeAmount) = _prepareSend({
             remoteBlockchainID: input.destinationBlockchainID,
-            remoteTokenTransfererAddress: input.destinationTokenTransfererAddress,
+            remoteTokenTransferrerAddress: input.destinationTokenTransferrerAddress,
             amount: amount,
             primaryFeeTokenAddress: input.primaryFeeTokenAddress,
             feeAmount: input.primaryFee
         });
 
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.SINGLE_HOP_CALL,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.SINGLE_HOP_CALL,
             payload: abi.encode(
                 SingleHopCallMessage({
                     sourceBlockchainID: sourceBlockchainID,
-                    originTokenTransfererAddress: originTokenTransfererAddress,
+                    originTokenTransferrerAddress: originTokenTransferrerAddress,
                     originSenderAddress: originSenderAddress,
                     recipientContract: input.recipientContract,
                     amount: adjustedAmount,
@@ -313,7 +314,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
-                destinationAddress: input.destinationTokenTransfererAddress,
+                destinationAddress: input.destinationTokenTransferrerAddress,
                 feeInfo: TeleporterFeeInfo({
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: feeAmount
@@ -329,7 +330,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
     function _routeMultiHopSendAndCall(
         bytes32 sourceBlockchainID,
-        address originTokenTransfererAddress,
+        address originTokenTransferrerAddress,
         address originSenderAddress,
         SendAndCallInput memory input,
         uint256 amount
@@ -337,7 +338,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         _validateSendAndCallInput(input);
         uint256 adjustedAmount = _prepareMultiHopRouting(
             input.destinationBlockchainID,
-            input.destinationTokenTransfererAddress,
+            input.destinationTokenTransferrerAddress,
             amount,
             input.primaryFee
         );
@@ -349,12 +350,12 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             return;
         }
 
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.SINGLE_HOP_CALL,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.SINGLE_HOP_CALL,
             payload: abi.encode(
                 SingleHopCallMessage({
                     sourceBlockchainID: sourceBlockchainID,
-                    originTokenTransfererAddress: originTokenTransfererAddress,
+                    originTokenTransferrerAddress: originTokenTransferrerAddress,
                     originSenderAddress: originSenderAddress,
                     recipientContract: input.recipientContract,
                     amount: adjustedAmount,
@@ -369,7 +370,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: input.destinationBlockchainID,
-                destinationAddress: input.destinationTokenTransfererAddress,
+                destinationAddress: input.destinationTokenTransferrerAddress,
                 feeInfo: TeleporterFeeInfo({
                     feeTokenAddress: input.primaryFeeTokenAddress,
                     amount: input.primaryFee
@@ -388,11 +389,11 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
      */
     function _addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount
     ) internal sendNonReentrant {
-        RemoteTokenTransfererSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransfererAddress];
+        RemoteTokenTransferrerSettings memory remoteSettings =
+            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
         require(remoteSettings.registered, "TokenHome: remote not registered");
         require(remoteSettings.collateralNeeded > 0, "TokenHome: zero collateral needed");
 
@@ -412,10 +413,10 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         }
 
         // Update the remaining collateral needed.
-        registeredRemotes[remoteBlockchainID][remoteTokenTransfererAddress].collateralNeeded =
+        registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress].collateralNeeded =
             remainingCollateralNeeded;
         emit CollateralAdded(
-            remoteBlockchainID, remoteTokenTransfererAddress, amount, remainingCollateralNeeded
+            remoteBlockchainID, remoteTokenTransferrerAddress, amount, remainingCollateralNeeded
         );
 
         // If there is excess amount, send it back to the sender.
@@ -436,10 +437,10 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address originSenderAddress,
         bytes memory message
     ) internal override {
-        TransfererMessage memory transfererMessage = abi.decode(message, (TransfererMessage));
-        if (transfererMessage.messageType == TransfererMessageType.SINGLE_HOP_SEND) {
+        TransferrerMessage memory transferrerMessage = abi.decode(message, (TransferrerMessage));
+        if (transferrerMessage.messageType == TransferrerMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
-                abi.decode(transfererMessage.payload, (SingleHopSendMessage));
+                abi.decode(transferrerMessage.payload, (SingleHopSendMessage));
 
             uint256 homeAmount =
                 _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
@@ -447,29 +448,29 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             // Send the tokens to the recipient.
             _withdraw(payload.recipient, homeAmount);
             return;
-        } else if (transfererMessage.messageType == TransfererMessageType.SINGLE_HOP_CALL) {
+        } else if (transferrerMessage.messageType == TransferrerMessageType.SINGLE_HOP_CALL) {
             SingleHopCallMessage memory payload =
-                abi.decode(transfererMessage.payload, (SingleHopCallMessage));
+                abi.decode(transferrerMessage.payload, (SingleHopCallMessage));
 
             uint256 homeAmount =
                 _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
 
-            // Verify that the payload's source blockchain ID and origin token transferer address matches the source blockchain ID
+            // Verify that the payload's source blockchain ID and origin token transferrer address matches the source blockchain ID
             // and origin sender address passed from Teleporter.
             require(
                 payload.sourceBlockchainID == sourceBlockchainID,
                 "TokenHome: mismatched source blockchain ID"
             );
             require(
-                payload.originTokenTransfererAddress == originSenderAddress,
+                payload.originTokenTransferrerAddress == originSenderAddress,
                 "TokenHome: mismatched origin sender address"
             );
 
             _handleSendAndCall(payload, homeAmount);
             return;
-        } else if (transfererMessage.messageType == TransfererMessageType.MULTI_HOP_SEND) {
+        } else if (transferrerMessage.messageType == TransferrerMessageType.MULTI_HOP_SEND) {
             MultiHopSendMessage memory payload =
-                abi.decode(transfererMessage.payload, (MultiHopSendMessage));
+                abi.decode(transferrerMessage.payload, (MultiHopSendMessage));
 
             (uint256 homeAmount, uint256 fee) = _processMultiHopTransfer(
                 sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
@@ -482,7 +483,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             _routeMultiHop(
                 SendTokensInput({
                     destinationBlockchainID: payload.destinationBlockchainID,
-                    destinationTokenTransfererAddress: payload.destinationTokenTransfererAddress,
+                    destinationTokenTransferrerAddress: payload.destinationTokenTransferrerAddress,
                     recipient: payload.recipient,
                     primaryFeeTokenAddress: tokenAddress,
                     primaryFee: fee,
@@ -493,9 +494,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                 homeAmount
             );
             return;
-        } else if (transfererMessage.messageType == TransfererMessageType.MULTI_HOP_CALL) {
+        } else if (transferrerMessage.messageType == TransferrerMessageType.MULTI_HOP_CALL) {
             MultiHopCallMessage memory payload =
-                abi.decode(transfererMessage.payload, (MultiHopCallMessage));
+                abi.decode(transferrerMessage.payload, (MultiHopCallMessage));
 
             (uint256 homeAmount, uint256 fee) = _processMultiHopTransfer(
                 sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
@@ -507,11 +508,11 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             // For native assets, the contract address is the wrapped token contract.
             _routeMultiHopSendAndCall({
                 sourceBlockchainID: sourceBlockchainID,
-                originTokenTransfererAddress: originSenderAddress,
+                originTokenTransferrerAddress: originSenderAddress,
                 originSenderAddress: payload.originSenderAddress,
                 input: SendAndCallInput({
                     destinationBlockchainID: payload.destinationBlockchainID,
-                    destinationTokenTransfererAddress: payload.destinationTokenTransfererAddress,
+                    destinationTokenTransferrerAddress: payload.destinationTokenTransferrerAddress,
                     recipientContract: payload.recipientContract,
                     recipientPayload: payload.recipientPayload,
                     requiredGasLimit: payload.secondaryRequiredGasLimit,
@@ -525,9 +526,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                 amount: homeAmount
             });
             return;
-        } else if (transfererMessage.messageType == TransfererMessageType.REGISTER_REMOTE) {
+        } else if (transferrerMessage.messageType == TransferrerMessageType.REGISTER_REMOTE) {
             RegisterRemoteMessage memory payload =
-                abi.decode(transfererMessage.payload, (RegisterRemoteMessage));
+                abi.decode(transferrerMessage.payload, (RegisterRemoteMessage));
             _registerRemote(sourceBlockchainID, originSenderAddress, payload);
         }
     }
@@ -563,20 +564,20 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
      * Validates that the message is sent from a registered TokenRemote instance,
      * and is already collateralized.
      * @param remoteBlockchainID The blockchain ID of the TokenRemote instance.
-     * @param remoteTokenTransfererAddress The address of the TokenRemote instance.
+     * @param remoteTokenTransferrerAddress The address of the TokenRemote instance.
      * @param amount The amount of tokens sent back from remote, denominated by the
      * remote's token scale amount.
      */
     function _processSingleHopTransfer(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount
     ) private returns (uint256) {
-        RemoteTokenTransfererSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransfererAddress];
+        RemoteTokenTransferrerSettings memory remoteSettings =
+            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
 
         return _processReceivedTransfer(
-            remoteSettings, remoteBlockchainID, remoteTokenTransfererAddress, amount
+            remoteSettings, remoteBlockchainID, remoteTokenTransferrerAddress, amount
         );
     }
 
@@ -585,22 +586,22 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
      * Validates that the message is sent from a registered TokenRemote instance,
      * and is already collateralized.
      * @param remoteBlockchainID The blockchain ID of the TokenRemote instance.
-     * @param remoteTokenTransfererAddress The address of the TokenRemote instance.
+     * @param remoteTokenTransferrerAddress The address of the TokenRemote instance.
      * @param amount The amount of tokens sent back from remote, denominated by the
      * remote's token scale amount.
      * @param secondaryFee The Teleporter fee for the second hop of the mutihop transfer
      */
     function _processMultiHopTransfer(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount,
         uint256 secondaryFee
     ) private returns (uint256, uint256) {
-        RemoteTokenTransfererSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransfererAddress];
+        RemoteTokenTransferrerSettings memory remoteSettings =
+            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
 
         uint256 transferAmount = _processReceivedTransfer(
-            remoteSettings, remoteBlockchainID, remoteTokenTransfererAddress, amount
+            remoteSettings, remoteBlockchainID, remoteTokenTransferrerAddress, amount
         );
 
         uint256 fee = TokenScalingUtils.removeTokenScale(
@@ -615,16 +616,16 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
      * Deducts the balance transferred to the given TokenRemote instance.
      * Removes the token scaling of the remote, checks the associated home token
      * amount is greater than zero, and returns the home token amount.
-     * @param remoteSettings The token transferer settings for the TokenRemote instance we received the transfer from.
+     * @param remoteSettings The token transferrer settings for the TokenRemote instance we received the transfer from.
      * @param remoteBlockchainID The blockchain ID of the TokenRemote instance.
-     * @param remoteTokenTransfererAddress The address of the TokenRemote instance.
+     * @param remoteTokenTransferrerAddress The address of the TokenRemote instance.
      * @param amount The amount of tokens sent back from remote, denominated by the
      * remote's token scale amount.
      */
     function _processReceivedTransfer(
-        RemoteTokenTransfererSettings memory remoteSettings,
+        RemoteTokenTransferrerSettings memory remoteSettings,
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount
     ) private returns (uint256) {
         // Require that the remote is registered and has no collateral needed.
@@ -632,7 +633,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         require(remoteSettings.collateralNeeded == 0, "TokenHome: remote not collateralized");
 
         // Deduct the balance transferred to the given TokenRemote instance prior to scaling the amount.
-        _deductSenderBalance(remoteBlockchainID, remoteTokenTransfererAddress, amount);
+        _deductSenderBalance(remoteBlockchainID, remoteTokenTransferrerAddress, amount);
 
         // Remove the token scaling of the remote and get home token amount.
         uint256 homeAmount = TokenScalingUtils.removeTokenScale(
@@ -652,12 +653,12 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
      */
     function _prepareMultiHopRouting(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount,
         uint256 fee
     ) private returns (uint256) {
-        RemoteTokenTransfererSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransfererAddress];
+        RemoteTokenTransferrerSettings memory remoteSettings =
+            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
         if (!remoteSettings.registered || remoteSettings.collateralNeeded > 0) {
             return 0;
         }
@@ -675,7 +676,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         }
 
         // Increase the balance of the TokenRemote instance by the scaled amount.
-        transferredBalances[remoteBlockchainID][remoteTokenTransfererAddress] += scaledAmount;
+        transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress] += scaledAmount;
 
         return scaledAmount;
     }
@@ -687,17 +688,17 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
      */
     function _prepareSend(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount,
         address primaryFeeTokenAddress,
         uint256 feeAmount
     ) private returns (uint256, uint256) {
-        RemoteTokenTransfererSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransfererAddress];
+        RemoteTokenTransferrerSettings memory remoteSettings =
+            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
         require(remoteSettings.registered, "TokenHome: remote not registered");
         require(remoteSettings.collateralNeeded == 0, "TokenHome: collateral needed for remote");
 
-        // Deposit the funds sent from the user to the token transferer,
+        // Deposit the funds sent from the user to the token transferrer,
         // and set to adjusted amount after deposit.
         amount = _deposit(amount);
 
@@ -714,20 +715,20 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         require(scaledAmount > 0, "TokenHome: zero scaled amount");
 
         // Increase the balance of the TokenRemote instance by the scaled amount.
-        transferredBalances[remoteBlockchainID][remoteTokenTransfererAddress] += scaledAmount;
+        transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress] += scaledAmount;
 
         return (scaledAmount, feeAmount);
     }
 
     function _deductSenderBalance(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount
     ) private {
         uint256 senderBalance =
-            transferredBalances[remoteBlockchainID][remoteTokenTransfererAddress];
+            transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress];
         require(senderBalance >= amount, "TokenHome: insufficient token transfer balance");
-        transferredBalances[remoteBlockchainID][remoteTokenTransfererAddress] =
+        transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress] =
             senderBalance - amount;
     }
 

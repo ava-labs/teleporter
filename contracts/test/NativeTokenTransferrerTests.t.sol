@@ -5,12 +5,12 @@
 
 pragma solidity 0.8.18;
 
-import {TokenTransfererTest} from "./TokenTransfererTests.t.sol";
-import {INativeTokenTransferer} from "../src/interfaces/INativeTokenTransferer.sol";
-import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenTransferer.sol";
+import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
+import {INativeTokenTransferrer} from "../src/interfaces/INativeTokenTransferrer.sol";
+import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenTransferrer.sol";
 
-abstract contract NativeTokenTransfererTest is TokenTransfererTest {
-    INativeTokenTransferer public nativeTokenTransferer;
+abstract contract NativeTokenTransferrerTest is TokenTransferrerTest {
+    INativeTokenTransferrer public nativeTokenTransferrer;
 
     event Deposit(address indexed sender, uint256 amount);
     event Withdrawal(address indexed sender, uint256 amount);
@@ -18,20 +18,20 @@ abstract contract NativeTokenTransfererTest is TokenTransfererTest {
     function testZeroSendAmount() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         _setUpRegisteredRemote(
-            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 0
+            input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
         _setUpExpectedZeroAmountRevert();
         _send(input, 0);
     }
 
     function _send(SendTokensInput memory input, uint256 amount) internal virtual override {
-        nativeTokenTransferer.send{value: amount}(input);
+        nativeTokenTransferrer.send{value: amount}(input);
     }
 
     function _sendAndCall(
         SendAndCallInput memory input,
         uint256 amount
     ) internal virtual override {
-        nativeTokenTransferer.sendAndCall{value: amount}(input);
+        nativeTokenTransferrer.sendAndCall{value: amount}(input);
     }
 }

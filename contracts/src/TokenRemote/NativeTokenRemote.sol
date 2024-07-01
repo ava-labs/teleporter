@@ -13,11 +13,11 @@ import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    TransfererMessageType,
-    TransfererMessage,
+    TransferrerMessageType,
+    TransferrerMessage,
     SingleHopSendMessage,
     SingleHopCallMessage
-} from "../interfaces/ITokenTransferer.sol";
+} from "../interfaces/ITokenTransferrer.sol";
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
@@ -135,14 +135,14 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
     }
 
     /**
-     * @dev See {INativeTokenTransferer-send}.
+     * @dev See {INativeTokenTransferrer-send}.
      */
     function send(SendTokensInput calldata input) external payable onlyWhenCollateralized {
         _send(input, msg.value);
     }
 
     /**
-     * @dev See {INativeTokenTransferer-sendAndCall}
+     * @dev See {INativeTokenTransferrer-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input) external payable onlyWhenCollateralized {
         _sendAndCall(input, msg.value);
@@ -178,8 +178,8 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
         );
 
         // Report the burned amount to the TokenHome instance.
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.SINGLE_HOP_SEND,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: HOME_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
                 )
@@ -286,7 +286,7 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
             INativeSendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originTokenTransfererAddress,
+                message.originTokenTransferrerAddress,
                 message.originSenderAddress,
                 message.recipientPayload
             )

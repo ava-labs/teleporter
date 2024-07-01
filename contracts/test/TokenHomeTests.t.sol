@@ -5,17 +5,17 @@
 
 pragma solidity 0.8.18;
 
-import {TokenTransfererTest} from "./TokenTransfererTests.t.sol";
+import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
 import {TokenHome, IWarpMessenger} from "../src/TokenHome/TokenHome.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    TransfererMessageType,
-    TransfererMessage,
+    TransferrerMessageType,
+    TransferrerMessage,
     MultiHopSendMessage,
     RegisterRemoteMessage
-} from "../src/interfaces/ITokenTransferer.sol";
+} from "../src/interfaces/ITokenTransferrer.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessageInput,
@@ -23,12 +23,12 @@ import {
 } from "@teleporter/ITeleporterMessenger.sol";
 import {Math} from "@openzeppelin/contracts@4.8.1/utils/math/Math.sol";
 
-abstract contract TokenHomeTest is TokenTransfererTest {
+abstract contract TokenHomeTest is TokenTransferrerTest {
     TokenHome public tokenHome;
 
     event CollateralAdded(
         bytes32 indexed remoteBlockchainID,
-        address indexed remoteTokenTransfererAddress,
+        address indexed remoteTokenTransferrerAddress,
         uint256 amount,
         uint256 remaining
     );
@@ -133,7 +133,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
     function testSendDestinationNotCollateralized() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         _setUpRegisteredRemote(
-            input.destinationBlockchainID, input.destinationTokenTransfererAddress, 1
+            input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 1
         );
         vm.expectRevert(_formatErrorMessage("collateral needed for remote"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
@@ -260,7 +260,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
 
         bytes32 sourceBlockchainID = DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID;
         OriginSenderInfo memory originInfo;
-        originInfo.tokenTransfererAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        originInfo.tokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         originInfo.senderAddress = address(this);
         bytes memory payload = hex"DEADBEEF";
         _setUpExpectedSendAndCall({
@@ -286,7 +286,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
-            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo.tokenTransfererAddress, message
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo.tokenTransferrerAddress, message
         );
     }
 
@@ -297,7 +297,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
 
         bytes32 sourceBlockchainID = DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID;
         OriginSenderInfo memory originInfo;
-        originInfo.tokenTransfererAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        originInfo.tokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         originInfo.senderAddress = address(this);
         bytes memory payload = hex"DEADBEEF";
         _setUpExpectedSendAndCall({
@@ -323,7 +323,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
-            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo.tokenTransfererAddress, message
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo.tokenTransferrerAddress, message
         );
     }
 
@@ -334,7 +334,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
         _sendSingleHopSendSuccess(amount, 0);
 
         OriginSenderInfo memory originInfo;
-        originInfo.tokenTransfererAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        originInfo.tokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         originInfo.senderAddress = address(this);
 
         bytes memory message = _encodeSingleHopCallMessage({
@@ -354,19 +354,19 @@ abstract contract TokenHomeTest is TokenTransfererTest {
         );
     }
 
-    function testReceiveWrongOriginTokenTransfererAddress() public {
+    function testReceiveWrongOriginTokenTransferrerAddress() public {
         // First send to remote instance to increase the token transfer balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        address originTokenTransfererAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        address originTokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         bytes memory payload = hex"DEADBEEF";
 
         address wrongAddress = address(0x1);
-        assertNotEq(originTokenTransfererAddress, wrongAddress);
+        assertNotEq(originTokenTransferrerAddress, wrongAddress);
 
         OriginSenderInfo memory originInfo;
-        originInfo.tokenTransfererAddress = wrongAddress;
+        originInfo.tokenTransferrerAddress = wrongAddress;
         originInfo.senderAddress = address(this);
 
         bytes memory message = _encodeSingleHopCallMessage({
@@ -382,7 +382,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectRevert(_formatErrorMessage("mismatched origin sender address"));
         tokenHome.receiveTeleporterMessage(
-            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originTokenTransfererAddress, message
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originTokenTransferrerAddress, message
         );
     }
 
@@ -401,7 +401,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
@@ -427,7 +427,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
@@ -453,7 +453,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
@@ -471,7 +471,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
         uint256 transferAmount = amount - feeAmount;
         SendTokensInput memory input = SendTokensInput({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFeeTokenAddress: address(transferredToken),
             primaryFee: feeAmount,
@@ -493,7 +493,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: input.destinationBlockchainID,
-                destinationTokenTransfererAddress: input.destinationTokenTransfererAddress,
+                destinationTokenTransferrerAddress: input.destinationTokenTransferrerAddress,
                 recipient: input.recipient,
                 secondaryFee: input.primaryFee,
                 secondaryGasLimit: input.requiredGasLimit,
@@ -514,7 +514,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
         // Fail due to insufficient amount to cover fees
         MultiHopSendMessage memory message = MultiHopSendMessage({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             amount: amount,
             secondaryFee: amount,
@@ -530,7 +530,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: message.destinationBlockchainID,
-                destinationTokenTransfererAddress: message.destinationTokenTransfererAddress,
+                destinationTokenTransferrerAddress: message.destinationTokenTransferrerAddress,
                 recipient: message.recipient,
                 secondaryFee: message.secondaryFee,
                 secondaryGasLimit: message.secondaryGasLimit,
@@ -564,7 +564,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
                 originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
@@ -595,7 +595,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
                 originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
@@ -626,7 +626,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
                 originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
@@ -646,11 +646,11 @@ abstract contract TokenHomeTest is TokenTransfererTest {
         uint256 feeAmount = 1;
         uint256 transferAmount = amount - feeAmount;
         OriginSenderInfo memory originInfo;
-        originInfo.tokenTransfererAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        originInfo.tokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         originInfo.senderAddress = address(this);
         SendAndCallInput memory input = SendAndCallInput({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: hex"65465465",
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -678,7 +678,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
                 originSenderAddress: originInfo.senderAddress,
                 amount: amount,
                 destinationBlockchainID: input.destinationBlockchainID,
-                destinationTokenTransfererAddress: input.destinationTokenTransfererAddress,
+                destinationTokenTransferrerAddress: input.destinationTokenTransferrerAddress,
                 recipientContract: input.recipientContract,
                 recipientPayload: input.recipientPayload,
                 recipientGasLimit: input.recipientGasLimit,
@@ -702,7 +702,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
     }
 
     function testRegisterRemoteZeroAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero remote token transferer address"));
+        vm.expectRevert(_formatErrorMessage("zero remote token transferrer address"));
         _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, address(0), 0);
     }
 
@@ -727,8 +727,8 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             homeTokenDecimals: tokenHomeDecimals + 1,
             remoteTokenDecimals: uint8(remoteTokenDecimals)
         });
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.REGISTER_REMOTE,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.REGISTER_REMOTE,
             payload: abi.encode(payload)
         });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -753,7 +753,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
         input.primaryFee = feeAmount;
         _setUpRegisteredRemote(
             input.destinationBlockchainID,
-            input.destinationTokenTransfererAddress,
+            input.destinationTokenTransferrerAddress,
             0,
             tokenMultiplier,
             false
@@ -761,7 +761,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
         _setUpExpectedDeposit(amount, input.primaryFee);
         TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationTokenTransfererAddress,
+            destinationAddress: input.destinationTokenTransferrerAddress,
             feeInfo: TeleporterFeeInfo({
                 feeTokenAddress: address(transferredToken),
                 amount: input.primaryFee
@@ -771,7 +771,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             message: _encodeSingleHopSendMessage(amount / tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
         });
         _checkExpectedTeleporterCallsForSend(expectedMessage);
-        vm.expectEmit(true, true, true, true, address(tokenTransferer));
+        vm.expectEmit(true, true, true, true, address(tokenTransferrer));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount / tokenMultiplier);
         _send(input, amount);
     }
@@ -789,7 +789,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
 
     function _addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount
     ) internal virtual;
 
@@ -803,17 +803,17 @@ abstract contract TokenHomeTest is TokenTransfererTest {
 
     function _setUpRegisteredRemote(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 initialReserveImbalance
     ) internal virtual override {
         _setUpRegisteredRemote(
-            remoteBlockchainID, remoteTokenTransfererAddress, initialReserveImbalance, 1, true
+            remoteBlockchainID, remoteTokenTransferrerAddress, initialReserveImbalance, 1, true
         );
     }
 
     function _setUpRegisteredRemote(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 initialReserveImbalance,
         uint256 tokenMultiplier,
         bool multiplyOnRemote
@@ -828,13 +828,13 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             homeTokenDecimals: tokenHomeDecimals,
             remoteTokenDecimals: remoteTokenDecimals
         });
-        TransfererMessage memory message = TransfererMessage({
-            messageType: TransfererMessageType.REGISTER_REMOTE,
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.REGISTER_REMOTE,
             payload: abi.encode(payload)
         });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
-            remoteBlockchainID, remoteTokenTransfererAddress, abi.encode(message)
+            remoteBlockchainID, remoteTokenTransferrerAddress, abi.encode(message)
         );
     }
 
@@ -846,7 +846,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
     {
         return SendTokensInput({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFeeTokenAddress: address(transferredToken),
             primaryFee: 0,
@@ -864,7 +864,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
     {
         return SendAndCallInput({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationTokenTransfererAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: new bytes(16),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -880,7 +880,7 @@ abstract contract TokenHomeTest is TokenTransfererTest {
     function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
         return SendTokensInput({
             destinationBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
-            destinationTokenTransfererAddress: address(tokenHome),
+            destinationTokenTransferrerAddress: address(tokenHome),
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             primaryFeeTokenAddress: address(transferredToken),
             primaryFee: 0,

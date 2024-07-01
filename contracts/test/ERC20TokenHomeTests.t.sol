@@ -5,10 +5,10 @@
 
 pragma solidity 0.8.18;
 
-import {ERC20TokenTransfererTest} from "./ERC20TokenTransfererTests.t.sol";
+import {ERC20TokenTransferrerTest} from "./ERC20TokenTransferrerTests.t.sol";
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
-import {SendTokensInput} from "../src/interfaces/ITokenTransferer.sol";
+import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {ERC20TokenHome} from "../src/TokenHome/ERC20TokenHome.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
@@ -16,7 +16,7 @@ import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 
-contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
+contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
 
     ERC20TokenHome public app;
@@ -33,9 +33,9 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
             address(mockERC20),
             tokenHomeDecimals
         );
-        erc20TokenTransferer = app;
+        erc20TokenTransferrer = app;
         tokenHome = app;
-        tokenTransferer = app;
+        tokenTransferrer = app;
 
         transferredToken = mockERC20;
     }
@@ -100,7 +100,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopTeleporterMessageInput(input, scaledAmount)
         );
-        vm.expectEmit(true, true, true, true, address(tokenTransferer));
+        vm.expectEmit(true, true, true, true, address(tokenTransferrer));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledAmount);
         _send(input, amount);
 
@@ -136,7 +136,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
         uint256 tokenMultiplier = 1e2;
         _setUpRegisteredRemote(
             input.destinationBlockchainID,
-            input.destinationTokenTransfererAddress,
+            input.destinationTokenTransferrerAddress,
             0,
             tokenMultiplier,
             true
@@ -144,7 +144,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
         _setUpExpectedDeposit(amount, input.primaryFee);
         TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationTokenTransfererAddress,
+            destinationAddress: input.destinationTokenTransferrerAddress,
             feeInfo: TeleporterFeeInfo({
                 feeTokenAddress: address(transferredToken),
                 amount: input.primaryFee
@@ -154,7 +154,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
             message: _encodeSingleHopSendMessage(amount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
         });
         _checkExpectedTeleporterCallsForSend(expectedMessage);
-        vm.expectEmit(true, true, true, true, address(tokenTransferer));
+        vm.expectEmit(true, true, true, true, address(tokenTransferrer));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount * tokenMultiplier);
         _send(input, amount);
     }
@@ -190,7 +190,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
                 IERC20SendAndCallReceiver.receiveTokens,
                 (
                     sourceBlockchainID,
-                    originInfo.tokenTransfererAddress,
+                    originInfo.tokenTransferrerAddress,
                     originInfo.senderAddress,
                     address(mockERC20),
                     amount,
@@ -228,15 +228,15 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
 
     function _addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount
     ) internal override {
-        app.addCollateral(remoteBlockchainID, remoteTokenTransfererAddress, amount);
+        app.addCollateral(remoteBlockchainID, remoteTokenTransferrerAddress, amount);
     }
 
     function _setUpDeposit(uint256 amount) internal virtual override {
-        // Increase the allowance of the token transferer to transfer the funds from the user
-        transferredToken.safeIncreaseAllowance(address(tokenTransferer), amount);
+        // Increase the allowance of the token transferrer to transfer the funds from the user
+        transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
     }
 
     function _setUpExpectedZeroAmountRevert() internal override {
@@ -244,26 +244,26 @@ contract ERC20TokenHomeTest is ERC20TokenTransfererTest, TokenHomeTest {
     }
 
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
-        // Transfer the fee to the token transferer if it is greater than 0
+        // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            transferredToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
+            transferredToken.safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
             vm.expectCall(
                 address(transferredToken),
                 abi.encodeCall(
-                    IERC20.transferFrom, (address(this), address(tokenTransferer), feeAmount)
+                    IERC20.transferFrom, (address(this), address(tokenTransferrer), feeAmount)
                 )
             );
         }
-        // Increase the allowance of the token transferer to transfer the funds from the user
-        transferredToken.safeIncreaseAllowance(address(tokenTransferer), amount);
+        // Increase the allowance of the token transferrer to transfer the funds from the user
+        transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
 
-        // Check that transferFrom is called to deposit the funds sent from the user to the token transferer
+        // Check that transferFrom is called to deposit the funds sent from the user to the token transferrer
         // This is the case because for the {ERC20TokenHome) is not the fee token itself
         vm.expectCall(
             address(transferredToken),
-            abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenTransferer), amount))
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenTransferrer), amount))
         );
         vm.expectEmit(true, true, true, true, address(transferredToken));
-        emit Transfer(address(this), address(tokenTransferer), amount);
+        emit Transfer(address(this), address(tokenTransferrer), amount);
     }
 }

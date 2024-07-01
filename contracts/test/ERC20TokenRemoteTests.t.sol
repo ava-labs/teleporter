@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {ERC20TokenTransfererTest} from "./ERC20TokenTransfererTests.t.sol";
+import {ERC20TokenTransferrerTest} from "./ERC20TokenTransferrerTests.t.sol";
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
@@ -14,9 +14,9 @@ import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
-import {SendTokensInput} from "../src/interfaces/ITokenTransferer.sol";
+import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 
-contract ERC20TokenRemoteTest is ERC20TokenTransfererTest, TokenRemoteTest {
+contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
 
     string public constant MOCK_TOKEN_NAME = "Test Token";
@@ -31,9 +31,9 @@ contract ERC20TokenRemoteTest is ERC20TokenTransfererTest, TokenRemoteTest {
         tokenHomeDecimals = 18;
         app = ERC20TokenRemote(address(_createNewRemoteInstance()));
 
-        erc20TokenTransferer = app;
+        erc20TokenTransferrer = app;
         tokenRemote = app;
-        tokenTransferer = app;
+        tokenTransferrer = app;
         transferredToken = IERC20(app);
 
         vm.expectEmit(true, true, true, true, address(app));
@@ -143,20 +143,20 @@ contract ERC20TokenRemoteTest is ERC20TokenTransfererTest, TokenRemoteTest {
         input.primaryFeeTokenAddress = address(separateFeeAsset);
         input.primaryFee = feeAmount;
 
-        IERC20(separateFeeAsset).safeIncreaseAllowance(address(tokenTransferer), feeAmount);
+        IERC20(separateFeeAsset).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         vm.expectCall(
             address(separateFeeAsset),
             abi.encodeCall(
-                IERC20.transferFrom, (address(this), address(tokenTransferer), feeAmount)
+                IERC20.transferFrom, (address(this), address(tokenTransferrer), feeAmount)
             )
         );
-        // Increase the allowance of the token transferer to transfer the funds from the user
-        transferredToken.safeIncreaseAllowance(address(tokenTransferer), amount);
+        // Increase the allowance of the token transferrer to transfer the funds from the user
+        transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
 
         vm.expectEmit(true, true, true, true, address(transferredToken));
         emit Transfer(address(this), address(0), amount);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
-        vm.expectEmit(true, true, true, true, address(tokenTransferer));
+        vm.expectEmit(true, true, true, true, address(tokenTransferrer));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount);
         _send(input, amount);
     }
@@ -208,7 +208,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransfererTest, TokenRemoteTest {
                 IERC20SendAndCallReceiver.receiveTokens,
                 (
                     sourceBlockchainID,
-                    originInfo.tokenTransfererAddress,
+                    originInfo.tokenTransferrerAddress,
                     originInfo.senderAddress,
                     address(app),
                     amount,
@@ -249,25 +249,25 @@ contract ERC20TokenRemoteTest is ERC20TokenTransfererTest, TokenRemoteTest {
     }
 
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
-        // Transfer the fee to the token transferer if it is greater than 0
+        // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            transferredToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
+            transferredToken.safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
 
-        // Increase the allowance of the token transferer to transfer the funds from the user
-        transferredToken.safeIncreaseAllowance(address(tokenTransferer), amount);
+        // Increase the allowance of the token transferrer to transfer the funds from the user
+        transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
 
         uint256 currentAllowance =
-            transferredToken.allowance(address(this), address(tokenTransferer));
+            transferredToken.allowance(address(this), address(tokenTransferrer));
         if (feeAmount > 0) {
             vm.expectEmit(true, true, true, true, address(transferredToken));
-            emit Approval(address(this), address(tokenTransferer), currentAllowance - feeAmount);
+            emit Approval(address(this), address(tokenTransferrer), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(transferredToken));
-            emit Transfer(address(this), address(tokenTransferer), feeAmount);
+            emit Transfer(address(this), address(tokenTransferrer), feeAmount);
         }
         vm.expectEmit(true, true, true, true, address(transferredToken));
         emit Approval(
-            address(this), address(tokenTransferer), currentAllowance - feeAmount - amount
+            address(this), address(tokenTransferrer), currentAllowance - feeAmount - amount
         );
         vm.expectEmit(true, true, true, true, address(transferredToken));
         emit Transfer(address(this), address(0), amount);

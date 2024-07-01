@@ -12,7 +12,7 @@ import {
     SendTokensInput,
     SendAndCallInput,
     SingleHopCallMessage
-} from "../interfaces/ITokenTransferer.sol";
+} from "../interfaces/ITokenTransferrer.sol";
 import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDeposit.sol";
@@ -52,7 +52,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
 
     /**
      * @notice Receives native tokens transferred to this contract.
-     * @dev This function is called when the token transferer is withdrawing native tokens to
+     * @dev This function is called when the token transferrer is withdrawing native tokens to
      * transfer to the recipient. The caller must be the wrapped native token contract.
      */
     receive() external payable {
@@ -62,19 +62,19 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
     }
 
     /**
-     * @dev See {INativeTokenTransferer-send}
+     * @dev See {INativeTokenTransferrer-send}
      */
     function send(SendTokensInput calldata input) external payable {
         _send(input, msg.value);
     }
 
     /**
-     * @dev See {INativeTokenTransferer-sendAndCall}
+     * @dev See {INativeTokenTransferrer-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input) external payable {
         _sendAndCall({
             sourceBlockchainID: blockchainID,
-            originTokenTransfererAddress: address(this),
+            originTokenTransferrerAddress: address(this),
             originSenderAddress: _msgSender(),
             input: input,
             amount: msg.value
@@ -86,9 +86,9 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress
+        address remoteTokenTransferrerAddress
     ) external payable {
-        _addCollateral(remoteBlockchainID, remoteTokenTransfererAddress, msg.value);
+        _addCollateral(remoteBlockchainID, remoteTokenTransferrerAddress, msg.value);
     }
 
     /**
@@ -130,7 +130,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
             INativeSendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originTokenTransfererAddress,
+                message.originTokenTransferrerAddress,
                 message.originSenderAddress,
                 message.recipientPayload
             )

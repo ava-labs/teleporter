@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
-import {NativeTokenTransfererTest} from "./NativeTokenTransfererTests.t.sol";
+import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
 import {
@@ -18,12 +18,12 @@ import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.so
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
-import {SendTokensInput} from "../src/interfaces/ITokenTransferer.sol";
+import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
-contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
+contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
 
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
@@ -38,11 +38,11 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         tokenHomeDecimals = 6;
         app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
-        nativeTokenTransferer = app;
-        tokenTransferer = app;
+        nativeTokenTransferrer = app;
+        tokenTransferrer = app;
         transferredToken = app;
         assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
-        _collateralizeTokenTransferer();
+        _collateralizeTokenTransferrer();
     }
 
     function testZeroInitialReserveImbalance() public {
@@ -113,15 +113,15 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
-        nativeTokenTransferer = app;
-        tokenTransferer = app;
+        nativeTokenTransferrer = app;
+        tokenTransferrer = app;
         transferredToken = app;
 
         vm.expectRevert("NativeTokenRemote: contract undercollateralized");
         app.send{value: 1e17}(_createDefaultSendTokensInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
-        _collateralizeTokenTransferer();
+        _collateralizeTokenTransferrer();
         _sendSingleHopSendSuccess(1e17, 0);
     }
 
@@ -129,15 +129,15 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
-        nativeTokenTransferer = app;
-        tokenTransferer = app;
+        nativeTokenTransferrer = app;
+        tokenTransferrer = app;
         transferredToken = app;
 
         vm.expectRevert("NativeTokenRemote: contract undercollateralized");
         app.sendAndCall{value: 1e15}(_createDefaultSendAndCallInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
-        _collateralizeTokenTransferer();
+        _collateralizeTokenTransferrer();
         _sendSingleHopSendSuccess(1e15, 0);
     }
 
@@ -198,7 +198,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationTokenTransfererAddress,
+            destinationAddress: input.destinationTokenTransferrerAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(app), amount: input.primaryFee}),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
@@ -217,7 +217,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
         OriginSenderInfo memory originInfo;
-        originInfo.tokenTransfererAddress = address(app);
+        originInfo.tokenTransferrerAddress = address(app);
         originInfo.senderAddress = address(this);
         bytes memory message = _encodeSingleHopCallMessage({
             sourceBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
@@ -259,7 +259,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationTokenTransfererAddress: app.tokenHomeAddress(),
+                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(transferredToken),
                 primaryFee: expectedReward,
@@ -286,7 +286,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationTokenTransfererAddress: app.tokenHomeAddress(),
+                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(transferredToken),
                 primaryFee: expectedReward,
@@ -315,8 +315,8 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
             burnedFeesReportingRewardPercentage_: 0}
         );
         tokenRemote = app;
-        nativeTokenTransferer = app;
-        tokenTransferer = app;
+        nativeTokenTransferrer = app;
+        tokenTransferrer = app;
         transferredToken = app;
 
         uint256 burnedTxFeeAmount = 1e15;
@@ -324,7 +324,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationTokenTransfererAddress: app.tokenHomeAddress(),
+                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(transferredToken),
                 primaryFee: 0,
@@ -430,7 +430,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
                 INativeSendAndCallReceiver.receiveTokens,
                 (
                     sourceBlockchainID,
-                    originInfo.tokenTransfererAddress,
+                    originInfo.tokenTransferrerAddress,
                     originInfo.senderAddress,
                     payload
                 )
@@ -457,18 +457,18 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
 
     function _setUpExpectedDeposit(uint256, uint256 feeAmount) internal override {
         app.deposit{value: feeAmount}();
-        // Transfer the fee to the token transferer if it is greater than 0
+        // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            transferredToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
+            transferredToken.safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
         uint256 currentAllowance =
-            transferredToken.allowance(address(this), address(tokenTransferer));
+            transferredToken.allowance(address(this), address(tokenTransferrer));
 
         if (feeAmount > 0) {
             vm.expectEmit(true, true, true, true, address(transferredToken));
-            emit Approval(address(this), address(tokenTransferer), currentAllowance - feeAmount);
+            emit Approval(address(this), address(tokenTransferrer), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(transferredToken));
-            emit Transfer(address(this), address(tokenTransferer), feeAmount);
+            emit Transfer(address(this), address(tokenTransferrer), feeAmount);
         }
     }
 
@@ -483,7 +483,7 @@ contract NativeTokenRemoteTest is NativeTokenTransfererTest, TokenRemoteTest {
     // The native token remote contract is considered collateralized once it has received
     // a message from its configured home to mint tokens. Until then, the home contract is
     // still assumed to have insufficient collateral.
-    function _collateralizeTokenTransferer() private {
+    function _collateralizeTokenTransferrer() private {
         assertFalse(app.isCollateralized());
         uint256 amount = 10e18;
         _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);

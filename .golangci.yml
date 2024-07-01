@@ -30,4 +30,4 @@ linters-settings:
     simplify: true
   misspell:
     ignore-words:
-      - transferer
+      - transferrer

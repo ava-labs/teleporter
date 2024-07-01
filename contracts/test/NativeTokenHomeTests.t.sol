@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
-import {NativeTokenTransfererTest} from "./NativeTokenTransfererTests.t.sol";
+import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
 import {NativeTokenHome} from "../src/TokenHome/NativeTokenHome.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
@@ -14,7 +14,7 @@ import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
-contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
+contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
 
     NativeTokenHome public app;
@@ -34,8 +34,8 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
             address(wavax)
         );
         tokenHome = app;
-        nativeTokenTransferer = app;
-        tokenTransferer = app;
+        nativeTokenTransferrer = app;
+        tokenTransferrer = app;
         transferredToken = wavax;
         tokenHomeDecimals = 18;
     }
@@ -84,7 +84,7 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
                 INativeSendAndCallReceiver.receiveTokens,
                 (
                     sourceBlockchainID,
-                    originInfo.tokenTransfererAddress,
+                    originInfo.tokenTransferrerAddress,
                     originInfo.senderAddress,
                     payload
                 )
@@ -111,20 +111,20 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
 
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal override {
         wavax.deposit{value: feeAmount}();
-        // Transfer the fee to the token transferer if it is greater than 0
+        // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            transferredToken.safeIncreaseAllowance(address(tokenTransferer), feeAmount);
+            transferredToken.safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
             vm.expectCall(
                 address(transferredToken),
                 abi.encodeCall(
-                    IERC20.transferFrom, (address(this), address(tokenTransferer), feeAmount)
+                    IERC20.transferFrom, (address(this), address(tokenTransferrer), feeAmount)
                 )
             );
         }
 
         vm.expectCall(address(transferredToken), abi.encodeCall(IWrappedNativeToken.deposit, ()));
         vm.expectEmit(true, true, true, true, address(transferredToken));
-        emit Deposit(address(nativeTokenTransferer), amount);
+        emit Deposit(address(nativeTokenTransferrer), amount);
     }
 
     function _setUpExpectedZeroAmountRevert() internal override {
@@ -133,9 +133,9 @@ contract NativeTokenHomeTest is NativeTokenTransfererTest, TokenHomeTest {
 
     function _addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount
     ) internal override {
-        app.addCollateral{value: amount}(remoteBlockchainID, remoteTokenTransfererAddress);
+        app.addCollateral{value: amount}(remoteBlockchainID, remoteTokenTransferrerAddress);
     }
 }

@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {INativeTokenTransferer} from "../../interfaces/INativeTokenTransferer.sol";
+import {INativeTokenTransferrer} from "../../interfaces/INativeTokenTransferrer.sol";
 import {ITokenHome} from "./ITokenHome.sol";
 
 /**
@@ -14,16 +14,16 @@ import {ITokenHome} from "./ITokenHome.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-interface INativeTokenHome is INativeTokenTransferer, ITokenHome {
+interface INativeTokenHome is INativeTokenTransferrer, ITokenHome {
     /**
      * @notice Adds collateral to the home token transfer contract for the specified TokenRemote instance. If more value is provided
      * than the amount of collateral needed, the excess amount is returned to the caller.
      * @param remoteBlockchainID The blockchain ID of the remote token transfer contract to add collateral for.
-     * @param remoteTokenTransfererAddress The address of the remote token transfer contract to add collateral for on
+     * @param remoteTokenTransferrerAddress The address of the remote token transfer contract to add collateral for on
      * the {remoteBlockchainID}.
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteTokenTransfererAddress
+        address remoteTokenTransferrerAddress
     ) external payable;
 }
