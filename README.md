@@ -1,4 +1,4 @@
-# Avalanche Interchain Token Transfer
+# Avalanche Interchain Token Transfer (ICTT)
 
 ## Upgradeability
 
