@@ -67,7 +67,7 @@ struct SendAndCallInput {
     uint256 secondaryFee;
 }
 
-enum TokenTransferType {
+enum TransfererMessageType {
     REGISTER_REMOTE,
     SINGLE_HOP_SEND,
     SINGLE_HOP_CALL,
@@ -76,11 +76,11 @@ enum TokenTransferType {
 }
 
 /**
- * @dev The TokenTransferMessage struct is used to wrap messages between two token transferer contracts
+ * @dev The TransfererMessage struct is used to wrap messages between two token transferer contracts
  * with their message type so that the receiving token transferer can decode the payload.
  */
-struct TokenTransferMessage {
-    TokenTransferType messageType;
+struct TransfererMessage {
+    TransfererMessageType messageType;
     bytes payload;
 }
 

@@ -13,8 +13,8 @@ import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    TokenTransferType,
-    TokenTransferMessage,
+    TransfererMessageType,
+    TransfererMessage,
     SingleHopSendMessage,
     SingleHopCallMessage
 } from "../interfaces/ITokenTransferer.sol";
@@ -178,8 +178,8 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
         );
 
         // Report the burned amount to the TokenHome instance.
-        TokenTransferMessage memory message = TokenTransferMessage({
-            messageType: TokenTransferType.SINGLE_HOP_SEND,
+        TransfererMessage memory message = TransfererMessage({
+            messageType: TransfererMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: HOME_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
                 )

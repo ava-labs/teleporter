@@ -15,8 +15,8 @@ import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    TokenTransferType,
-    TokenTransferMessage,
+    TransfererMessageType,
+    TransfererMessage,
     RegisterRemoteMessage
 } from "../src/interfaces/ITokenTransferer.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
@@ -430,8 +430,8 @@ abstract contract TokenRemoteTest is TokenTransfererTest {
             )
         );
 
-        TokenTransferMessage memory expectedTokenTransfer = TokenTransferMessage({
-            messageType: TokenTransferType.REGISTER_REMOTE,
+        TransfererMessage memory expectedTokenTransfer = TransfererMessage({
+            messageType: TransfererMessageType.REGISTER_REMOTE,
             payload: abi.encode(
                 RegisterRemoteMessage({
                     initialReserveImbalance: tokenRemote.initialReserveImbalance(),

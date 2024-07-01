@@ -11,8 +11,8 @@ import {ITokenHome} from "./interfaces/ITokenHome.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    TokenTransferType,
-    TokenTransferMessage,
+    TransfererMessageType,
+    TransfererMessage,
     SingleHopSendMessage,
     SingleHopCallMessage,
     MultiHopSendMessage,
@@ -190,8 +190,8 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             feeAmount: input.primaryFee
         });
 
-        TokenTransferMessage memory message = TokenTransferMessage({
-            messageType: TokenTransferType.SINGLE_HOP_SEND,
+        TransfererMessage memory message = TransfererMessage({
+            messageType: TransfererMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
                 )
@@ -248,8 +248,8 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             return;
         }
 
-        TokenTransferMessage memory message = TokenTransferMessage({
-            messageType: TokenTransferType.SINGLE_HOP_SEND,
+        TransfererMessage memory message = TransfererMessage({
+            messageType: TransfererMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
                 )
@@ -293,8 +293,8 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             feeAmount: input.primaryFee
         });
 
-        TokenTransferMessage memory message = TokenTransferMessage({
-            messageType: TokenTransferType.SINGLE_HOP_CALL,
+        TransfererMessage memory message = TransfererMessage({
+            messageType: TransfererMessageType.SINGLE_HOP_CALL,
             payload: abi.encode(
                 SingleHopCallMessage({
                     sourceBlockchainID: sourceBlockchainID,
@@ -349,8 +349,8 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             return;
         }
 
-        TokenTransferMessage memory message = TokenTransferMessage({
-            messageType: TokenTransferType.SINGLE_HOP_CALL,
+        TransfererMessage memory message = TransfererMessage({
+            messageType: TransfererMessageType.SINGLE_HOP_CALL,
             payload: abi.encode(
                 SingleHopCallMessage({
                     sourceBlockchainID: sourceBlockchainID,
@@ -436,11 +436,10 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address originSenderAddress,
         bytes memory message
     ) internal override {
-        TokenTransferMessage memory tokenTransferMessage =
-            abi.decode(message, (TokenTransferMessage));
-        if (tokenTransferMessage.messageType == TokenTransferType.SINGLE_HOP_SEND) {
+        TransfererMessage memory transfererMessage = abi.decode(message, (TransfererMessage));
+        if (transfererMessage.messageType == TransfererMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
-                abi.decode(tokenTransferMessage.payload, (SingleHopSendMessage));
+                abi.decode(transfererMessage.payload, (SingleHopSendMessage));
 
             uint256 homeAmount =
                 _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
@@ -448,9 +447,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             // Send the tokens to the recipient.
             _withdraw(payload.recipient, homeAmount);
             return;
-        } else if (tokenTransferMessage.messageType == TokenTransferType.SINGLE_HOP_CALL) {
+        } else if (transfererMessage.messageType == TransfererMessageType.SINGLE_HOP_CALL) {
             SingleHopCallMessage memory payload =
-                abi.decode(tokenTransferMessage.payload, (SingleHopCallMessage));
+                abi.decode(transfererMessage.payload, (SingleHopCallMessage));
 
             uint256 homeAmount =
                 _processSingleHopTransfer(sourceBlockchainID, originSenderAddress, payload.amount);
@@ -468,9 +467,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
 
             _handleSendAndCall(payload, homeAmount);
             return;
-        } else if (tokenTransferMessage.messageType == TokenTransferType.MULTI_HOP_SEND) {
+        } else if (transfererMessage.messageType == TransfererMessageType.MULTI_HOP_SEND) {
             MultiHopSendMessage memory payload =
-                abi.decode(tokenTransferMessage.payload, (MultiHopSendMessage));
+                abi.decode(transfererMessage.payload, (MultiHopSendMessage));
 
             (uint256 homeAmount, uint256 fee) = _processMultiHopTransfer(
                 sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
@@ -494,9 +493,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                 homeAmount
             );
             return;
-        } else if (tokenTransferMessage.messageType == TokenTransferType.MULTI_HOP_CALL) {
+        } else if (transfererMessage.messageType == TransfererMessageType.MULTI_HOP_CALL) {
             MultiHopCallMessage memory payload =
-                abi.decode(tokenTransferMessage.payload, (MultiHopCallMessage));
+                abi.decode(transfererMessage.payload, (MultiHopCallMessage));
 
             (uint256 homeAmount, uint256 fee) = _processMultiHopTransfer(
                 sourceBlockchainID, originSenderAddress, payload.amount, payload.secondaryFee
@@ -526,9 +525,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                 amount: homeAmount
             });
             return;
-        } else if (tokenTransferMessage.messageType == TokenTransferType.REGISTER_REMOTE) {
+        } else if (transfererMessage.messageType == TransfererMessageType.REGISTER_REMOTE) {
             RegisterRemoteMessage memory payload =
-                abi.decode(tokenTransferMessage.payload, (RegisterRemoteMessage));
+                abi.decode(transfererMessage.payload, (RegisterRemoteMessage));
             _registerRemote(sourceBlockchainID, originSenderAddress, payload);
         }
     }

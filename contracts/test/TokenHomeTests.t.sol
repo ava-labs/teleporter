@@ -11,8 +11,8 @@ import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    TokenTransferType,
-    TokenTransferMessage,
+    TransfererMessageType,
+    TransfererMessage,
     MultiHopSendMessage,
     RegisterRemoteMessage
 } from "../src/interfaces/ITokenTransferer.sol";
@@ -727,8 +727,8 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             homeTokenDecimals: tokenHomeDecimals + 1,
             remoteTokenDecimals: uint8(remoteTokenDecimals)
         });
-        TokenTransferMessage memory message = TokenTransferMessage({
-            messageType: TokenTransferType.REGISTER_REMOTE,
+        TransfererMessage memory message = TransfererMessage({
+            messageType: TransfererMessageType.REGISTER_REMOTE,
             payload: abi.encode(payload)
         });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
@@ -828,8 +828,8 @@ abstract contract TokenHomeTest is TokenTransfererTest {
             homeTokenDecimals: tokenHomeDecimals,
             remoteTokenDecimals: remoteTokenDecimals
         });
-        TokenTransferMessage memory message = TokenTransferMessage({
-            messageType: TokenTransferType.REGISTER_REMOTE,
+        TransfererMessage memory message = TransfererMessage({
+            messageType: TransfererMessageType.REGISTER_REMOTE,
             payload: abi.encode(payload)
         });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);

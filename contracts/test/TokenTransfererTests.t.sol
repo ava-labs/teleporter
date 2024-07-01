@@ -16,8 +16,8 @@ import {
     ITokenTransferer,
     SendTokensInput,
     SendAndCallInput,
-    TokenTransferType,
-    TokenTransferMessage,
+    TransfererMessageType,
+    TransfererMessage,
     SingleHopSendMessage,
     SingleHopCallMessage,
     MultiHopSendMessage,
@@ -381,8 +381,8 @@ abstract contract TokenTransfererTest is Test {
         address recipient
     ) internal pure returns (bytes memory) {
         return abi.encode(
-            TokenTransferMessage({
-                messageType: TokenTransferType.SINGLE_HOP_SEND,
+            TransfererMessage({
+                messageType: TransfererMessageType.SINGLE_HOP_SEND,
                 payload: abi.encode(SingleHopSendMessage({recipient: recipient, amount: amount}))
             })
         );
@@ -398,8 +398,8 @@ abstract contract TokenTransfererTest is Test {
         address fallbackRecipient
     ) internal pure returns (bytes memory) {
         return abi.encode(
-            TokenTransferMessage({
-                messageType: TokenTransferType.SINGLE_HOP_CALL,
+            TransfererMessage({
+                messageType: TransfererMessageType.SINGLE_HOP_CALL,
                 payload: abi.encode(
                     SingleHopCallMessage({
                         sourceBlockchainID: sourceBlockchainID,
@@ -426,8 +426,8 @@ abstract contract TokenTransfererTest is Test {
         address multiHopFallback
     ) internal pure returns (bytes memory) {
         return abi.encode(
-            TokenTransferMessage({
-                messageType: TokenTransferType.MULTI_HOP_SEND,
+            TransfererMessage({
+                messageType: TransfererMessageType.MULTI_HOP_SEND,
                 payload: abi.encode(
                     MultiHopSendMessage({
                         destinationBlockchainID: destinationBlockchainID,
@@ -457,8 +457,8 @@ abstract contract TokenTransfererTest is Test {
         uint256 secondaryFee
     ) internal pure returns (bytes memory) {
         return abi.encode(
-            TokenTransferMessage({
-                messageType: TokenTransferType.MULTI_HOP_CALL,
+            TransfererMessage({
+                messageType: TransfererMessageType.MULTI_HOP_CALL,
                 payload: abi.encode(
                     MultiHopCallMessage({
                         originSenderAddress: originSenderAddress,
