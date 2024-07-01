@@ -17,7 +17,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// Deploy ValidatorSetSig contract to contract subnet to be validated from validator subnet
 	// Deploy a mock ERC20 contract to contract subnet
 	// Construct ValidatorSetSig message with mock ERC20 as the target contract
-	// Create a OffChainWarp Message using the ValidatorSetSig message to be signed by the validator subnet
+	// Create an OffChainWarp Message using the ValidatorSetSig message to be signed by the validator subnet
 	// Confirm the event is emitted
 
 	cChainInfo := network.GetPrimaryNetworkInfo()
