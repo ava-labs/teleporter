@@ -18,4 +18,4 @@ Please use the most recently released version to perform testing and to validate
 
 ## Audit Reports
 
-All complete audit reports for `teleporter-token-bridge` can be found in the [audits](./audits/) directory.
+All complete audit reports for `avalanche-interchain-token-transfer` can be found in the [audits](./audits/) directory.

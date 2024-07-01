@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
+	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
+	erc20tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/ERC20TokenRemote"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	nativetokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/NativeTokenHome"
-	erc20tokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/ERC20TokenRemote"
-	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -17,8 +17,8 @@ import (
 /**
  * Deploy a NativeTokenHome on the primary network
  * Deploys ERC20TokenRemote to Subnet A
- * Bridges C-Chain native tokens to Subnet A
- * Bridge back tokens from Subnet A to C-Chain
+ * Transfers C-Chain native tokens to Subnet A
+ * Transfer back tokens from Subnet A to C-Chain
  */
 func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
@@ -35,7 +35,7 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 		"AVAX",
 	)
 
-	// Create a NativeTokenHome for bridging the native token
+	// Create a NativeTokenHome for transferring the native token
 	nativeTokenHomeAddress, nativeTokenHome := utils.DeployNativeTokenHome(
 		ctx,
 		fundedKey,
@@ -75,25 +75,25 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 		erc20TokenRemoteAddress,
 	)
 
-	// Generate new recipient to receive bridged tokens
+	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
 	// Send tokens from C-Chain to recipient on subnet A
 	input := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: erc20TokenRemoteAddress,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   wavaxAddress,
-		PrimaryFee:               big.NewInt(1e18),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
+		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             wavaxAddress,
+		PrimaryFee:                         big.NewInt(1e18),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultERC20RequiredGas,
 	}
 
 	// Send the tokens and verify expected events
 	amount := big.NewInt(2e18)
-	receipt, bridgedAmount := utils.SendNativeTokenHome(
+	receipt, transferredAmount := utils.SendNativeTokenHome(
 		ctx,
 		cChainInfo,
 		nativeTokenHome,
@@ -118,13 +118,13 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 		erc20TokenRemote,
 		receipt,
 		recipientAddress,
-		bridgedAmount,
+		transferredAmount,
 	)
 
 	// Check that the recipient received the tokens
 	balance, err := erc20TokenRemote.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
+	Expect(balance).Should(Equal(transferredAmount))
 
 	// Fund recipient with gas tokens on subnet A
 	teleporterUtils.SendNativeTransfer(
@@ -135,23 +135,23 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 		big.NewInt(1e18),
 	)
 	inputA := erc20tokenremote.SendTokensInput{
-		DestinationBlockchainID:  cChainInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenHomeAddress,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   erc20TokenRemoteAddress,
-		PrimaryFee:               big.NewInt(1e10),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:            cChainInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: nativeTokenHomeAddress,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             erc20TokenRemoteAddress,
+		PrimaryFee:                         big.NewInt(1e10),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 	}
 
 	// Send tokens on Subnet A back for native tokens on C-Chain
-	receipt, bridgedAmount = utils.SendERC20TokenRemote(
+	receipt, transferredAmount = utils.SendERC20TokenRemote(
 		ctx,
 		subnetAInfo,
 		erc20TokenRemote,
 		erc20TokenRemoteAddress,
 		inputA,
-		teleporterUtils.BigIntSub(bridgedAmount, inputA.PrimaryFee),
+		teleporterUtils.BigIntSub(transferredAmount, inputA.PrimaryFee),
 		recipientKey,
 	)
 
@@ -169,8 +169,8 @@ func NativeTokenHomeERC20TokenRemote(network interfaces.Network) {
 		nativeTokenHomeAddress,
 		wavax,
 		receipt,
-		bridgedAmount,
+		transferredAmount,
 	)
 
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmount, cChainInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmount, cChainInfo.RPCClient)
 }

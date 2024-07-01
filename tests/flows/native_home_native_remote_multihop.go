@@ -4,22 +4,24 @@ import (
 	"context"
 	"math/big"
 
-	nativetokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/NativeTokenHome"
-	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
+	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
 
-/**
- * Deploy a NativeTokenHome on the primary network
- * Deploys NativeTokenRemote to Subnet A and Subnet B
- * Bridges native tokens from the C-Chain to Subnet A as Subnet A's native token
- * Bridges native tokens from the C-Chain to Subnet B as Subnet B's native token to collateralize the Subnet B bridge
- * Bridge tokens from Subnet A to Subnet B through multi-hop
- * Bridge back tokens from Subnet B to Subnet A through multi-hop
- */
+/*
+*
+  - Deploy a NativeTokenHome on the primary network
+  - Deploys NativeTokenRemote to Subnet A and Subnet B
+  - Transfers native tokens from the C-Chain to Subnet A as Subnet A's native token
+  - Transfers native tokens from the C-Chain to Subnet B as Subnet B's native token
+    to collateralize the Subnet B token transferrer
+  - Transfer tokens from Subnet A to Subnet B through multi-hop
+  - Transfer back tokens from Subnet B to Subnet A through multi-hop
+*/
 func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, subnetBInfo := teleporterUtils.GetTwoSubnets(network)
@@ -123,7 +125,7 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		fundedKey,
 	)
 
-	// Generate new recipient to receive bridged tokens
+	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
@@ -132,16 +134,16 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 
 	// Send tokens from C-Chain to Subnet A
 	inputA := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenRemoteAddressA,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   wavaxAddress,
-		PrimaryFee:               big.NewInt(1e18),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             wavaxAddress,
+		PrimaryFee:                         big.NewInt(1e18),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 	}
 
-	receipt, bridgedAmountA := utils.SendNativeTokenHome(
+	receipt, transferredAmountA := utils.SendNativeTokenHome(
 		ctx,
 		cChainInfo,
 		nativeTokenHome,
@@ -162,19 +164,19 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmountA, subnetAInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountA, subnetAInfo.RPCClient)
 
 	// Send tokens from C-Chain to Subnet B
 	inputB := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:  subnetBInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenRemoteAddressB,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   wavaxAddress,
-		PrimaryFee:               big.NewInt(1e18),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:            subnetBInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressB,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             wavaxAddress,
+		PrimaryFee:                         big.NewInt(1e18),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 	}
-	receipt, bridgedAmountB := utils.SendNativeTokenHome(
+	receipt, transferredAmountB := utils.SendNativeTokenHome(
 		ctx,
 		cChainInfo,
 		nativeTokenHome,
@@ -195,11 +197,11 @@ func NativeTokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	)
 
 	// Verify the recipient received the tokens
-	teleporterUtils.CheckBalance(ctx, recipientAddress, bridgedAmountB, subnetBInfo.RPCClient)
+	teleporterUtils.CheckBalance(ctx, recipientAddress, transferredAmountB, subnetBInfo.RPCClient)
 
 	// Multi-hop transfer to Subnet B
 	// Send half of the received amount to account for gas expenses
-	amountToSendA := new(big.Int).Div(bridgedAmountA, big.NewInt(2))
+	amountToSendA := new(big.Int).Div(transferredAmountA, big.NewInt(2))
 
 	utils.SendNativeMultiHopAndVerify(
 		ctx,

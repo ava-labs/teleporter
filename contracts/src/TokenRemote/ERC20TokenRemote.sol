@@ -7,22 +7,24 @@ pragma solidity 0.8.18;
 
 import {TokenRemote} from "./TokenRemote.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
-import {IERC20TokenBridge} from "../interfaces/IERC20TokenBridge.sol";
+import {IERC20TokenTransferrer} from "../interfaces/IERC20TokenTransferrer.sol";
 import {IERC20SendAndCallReceiver} from "../interfaces/IERC20SendAndCallReceiver.sol";
 import {
-    SendTokensInput, SendAndCallInput, SingleHopCallMessage
-} from "../interfaces/ITokenBridge.sol";
+    SendTokensInput,
+    SendAndCallInput,
+    SingleHopCallMessage
+} from "../interfaces/ITokenTransferrer.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
  * @title ERC20TokenRemote
- * @notice This contract is an {IERC20TokenBridge} that receives tokens from its specifed {TokenHome} instance,
+ * @notice This contract is an {IERC20TokenTransferrer} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens with an ERC20 token on this chain.
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract ERC20TokenRemote is IERC20TokenBridge, ERC20, TokenRemote {
+contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20, TokenRemote {
     uint8 private immutable _decimals;
 
     /**
@@ -43,18 +45,18 @@ contract ERC20TokenRemote is IERC20TokenBridge, ERC20, TokenRemote {
     }
 
     /**
-     * @dev See {IERC20TokenBridge-send}
+     * @dev See {IERC20TokenTransferrer-send}
      *
      * Note: For transfers to an {input.destinationBlockchainID} that is not the {tokenHomeBlockchainID},
      * a multi-hop transfer is performed, where the tokens are sent back to the token TokenHome instance
-     * first to check for bridge balance, and then routed to the final destination TokenRemote instance.
+     * first to check for token transfer balance, and then routed to the final destination TokenRemote instance.
      */
     function send(SendTokensInput calldata input, uint256 amount) external {
         _send(input, amount);
     }
 
     /**
-     * @dev See {IERC20TokenBridge-sendAndCall}
+     * @dev See {IERC20TokenTransferrer-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
         _sendAndCall(input, amount);
@@ -115,7 +117,7 @@ contract ERC20TokenRemote is IERC20TokenBridge, ERC20, TokenRemote {
             IERC20SendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originBridgeAddress,
+                message.originTokenTransferrerAddress,
                 message.originSenderAddress,
                 address(this),
                 amount,

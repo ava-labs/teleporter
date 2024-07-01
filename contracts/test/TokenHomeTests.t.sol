@@ -5,25 +5,32 @@
 
 pragma solidity 0.8.18;
 
-import {TokenBridgeTest} from "./TokenBridgeTests.t.sol";
+import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
 import {TokenHome, IWarpMessenger} from "../src/TokenHome/TokenHome.sol";
 import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
-    BridgeMessageType,
-    BridgeMessage,
+    TransferrerMessageType,
+    TransferrerMessage,
     MultiHopSendMessage,
     RegisterRemoteMessage
-} from "../src/interfaces/ITokenBridge.sol";
-import {ITeleporterMessenger, TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
+} from "../src/interfaces/ITokenTransferrer.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 import {Math} from "@openzeppelin/contracts@4.8.1/utils/math/Math.sol";
 
-abstract contract TokenHomeTest is TokenBridgeTest {
+abstract contract TokenHomeTest is TokenTransferrerTest {
     TokenHome public tokenHome;
 
     event CollateralAdded(
-        bytes32 indexed remoteBlockchainID, address indexed remoteBridgeAddress, uint256 amount, uint256 remaining
+        bytes32 indexed remoteBlockchainID,
+        address indexed remoteTokenTransferrerAddress,
+        uint256 amount,
+        uint256 remaining
     );
 
     function setUp() public virtual {
@@ -37,13 +44,17 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
             abi.encode(DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID)
         );
-        vm.expectCall(WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector));
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
+        );
 
         _initMockTeleporterRegistry();
 
         vm.expectCall(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            abi.encodeWithSelector(TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector)
+            abi.encodeWithSelector(
+                TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
+            )
         );
     }
 
@@ -61,7 +72,11 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     function testAddCollateralPartialAmount() public {
         uint256 initialReserveImbalance = 100;
         uint256 collateralAmount = 50;
-        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, initialReserveImbalance);
+        _setUpRegisteredRemote(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_REMOTE_ADDRESS,
+            initialReserveImbalance
+        );
         _setUpExpectedDeposit(collateralAmount, 0);
         vm.expectEmit(true, true, true, true, address(tokenHome));
         emit CollateralAdded(
@@ -70,26 +85,41 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             collateralAmount,
             initialReserveImbalance - collateralAmount
         );
-        _addCollateral(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount);
-        (, uint256 updateReserveImbalance,,) =
-            tokenHome.registeredRemotes(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS);
+        _addCollateral(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount
+        );
+        (, uint256 updateReserveImbalance,,) = tokenHome.registeredRemotes(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
+        );
         assertEq(updateReserveImbalance, initialReserveImbalance - collateralAmount);
     }
 
     function testAddCollateralMoreThanFullAmount() public {
         uint256 initialReserveImbalance = 100;
         uint256 collateralAmount = 150;
-        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, initialReserveImbalance);
+        _setUpRegisteredRemote(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_REMOTE_ADDRESS,
+            initialReserveImbalance
+        );
         _setUpExpectedDeposit(collateralAmount, 0);
         vm.expectEmit(true, true, true, true, address(tokenHome));
-        emit CollateralAdded(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, initialReserveImbalance, 0);
+        emit CollateralAdded(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_REMOTE_ADDRESS,
+            initialReserveImbalance,
+            0
+        );
 
         uint256 excessAmount = collateralAmount - initialReserveImbalance;
         _checkExpectedWithdrawal(address(this), excessAmount);
 
-        _addCollateral(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount);
-        (, uint256 updateReserveImbalance,,) =
-            tokenHome.registeredRemotes(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS);
+        _addCollateral(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount
+        );
+        (, uint256 updateReserveImbalance,,) = tokenHome.registeredRemotes(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
+        );
         assertEq(updateReserveImbalance, 0);
         assertTrue(address(this).balance > 0);
     }
@@ -102,13 +132,17 @@ abstract contract TokenHomeTest is TokenBridgeTest {
 
     function testSendDestinationNotCollateralized() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 1);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 1
+        );
         vm.expectRevert(_formatErrorMessage("collateral needed for remote"));
         _send(input, _DEFAULT_TRANSFER_AMOUNT);
     }
 
     function testSendZeroScaledAmount() public {
-        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 0, 100_000, false);
+        _setUpRegisteredRemote(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 0, 100_000, false
+        );
         SendTokensInput memory input = _createDefaultSendTokensInput();
         uint256 amount = 10_000; // Amount is less than the token multiplier, so will be rounded down to zero.
         _setUpDeposit(amount);
@@ -163,7 +197,9 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     }
 
     function testReceiveFromNonCollateralizedRemote() public {
-        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 100);
+        _setUpRegisteredRemote(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 100
+        );
         vm.expectRevert(_formatErrorMessage("remote not collateralized"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
@@ -173,12 +209,16 @@ abstract contract TokenHomeTest is TokenBridgeTest {
         );
     }
 
-    function testReceiveInsufficientBridgeBalance() public {
+    function testReceiveInsufficientTokenTransferBalance() public {
         uint256 collateralAmount = 100;
-        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount);
+        _setUpRegisteredRemote(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount
+        );
         _setUpExpectedDeposit(collateralAmount, 0);
-        _addCollateral(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount);
-        vm.expectRevert(_formatErrorMessage("insufficient bridge balance"));
+        _addCollateral(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount
+        );
+        vm.expectRevert(_formatErrorMessage("insufficient token transfer balance"));
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
             DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
@@ -192,7 +232,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
         uint256 feeAmount = 10;
         _sendSingleHopSendSuccess(amount, feeAmount);
 
-        // Withdraw an amount less than bridged amount
+        // Withdraw an amount less than transferred amount
         uint256 withdrawAmount = amount / 2;
 
         _checkExpectedWithdrawal(DEFAULT_RECIPIENT_ADDRESS, withdrawAmount);
@@ -203,21 +243,24 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             _encodeSingleHopSendMessage(withdrawAmount, DEFAULT_RECIPIENT_ADDRESS)
         );
 
-        // Make sure the bridge balance is correct. Only the remaining amount remains locked in the home
+        // Make sure the balance is correct. Only the remaining amount remains locked in the home
         // contract. The rest is withdrawn.
         assertEq(
-            tokenHome.bridgedBalances(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS), withdrawAmount
+            tokenHome.transferredBalances(
+                DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
+            ),
+            withdrawAmount
         );
     }
 
     function testReceiveSendAndCallSuccess() public {
-        // First send to ç to increase the bridge balance
+        // First send to ç to increase the token transfer balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
         bytes32 sourceBlockchainID = DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID;
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        originInfo.tokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         originInfo.senderAddress = address(this);
         bytes memory payload = hex"DEADBEEF";
         _setUpExpectedSendAndCall({
@@ -242,17 +285,19 @@ abstract contract TokenHomeTest is TokenBridgeTest {
         });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenHome.receiveTeleporterMessage(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo.bridgeAddress, message);
+        tokenHome.receiveTeleporterMessage(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo.tokenTransferrerAddress, message
+        );
     }
 
     function testReceiveSendAndCallFailure() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 2;
         _sendSingleHopSendSuccess(amount, 0);
 
         bytes32 sourceBlockchainID = DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID;
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        originInfo.tokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         originInfo.senderAddress = address(this);
         bytes memory payload = hex"DEADBEEF";
         _setUpExpectedSendAndCall({
@@ -277,17 +322,19 @@ abstract contract TokenHomeTest is TokenBridgeTest {
         });
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenHome.receiveTeleporterMessage(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo.bridgeAddress, message);
+        tokenHome.receiveTeleporterMessage(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo.tokenTransferrerAddress, message
+        );
     }
 
     function testReceiveMismatchedSourceBlockchainID() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 200_000;
         bytes memory payload = hex"DEADBEEF";
         _sendSingleHopSendSuccess(amount, 0);
 
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        originInfo.tokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         originInfo.senderAddress = address(this);
 
         bytes memory message = _encodeSingleHopCallMessage({
@@ -302,22 +349,24 @@ abstract contract TokenHomeTest is TokenBridgeTest {
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectRevert(_formatErrorMessage("mismatched source blockchain ID"));
-        tokenHome.receiveTeleporterMessage(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, message);
+        tokenHome.receiveTeleporterMessage(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, message
+        );
     }
 
-    function testReceiveWrongOriginBridgeAddress() public {
-        // First send to remote instance to increase the bridge balance
+    function testReceiveWrongOriginTokenTransferrerAddress() public {
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
-        address originBridgeAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        address originTokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         bytes memory payload = hex"DEADBEEF";
 
         address wrongAddress = address(0x1);
-        assertNotEq(originBridgeAddress, wrongAddress);
+        assertNotEq(originTokenTransferrerAddress, wrongAddress);
 
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = wrongAddress;
+        originInfo.tokenTransferrerAddress = wrongAddress;
         originInfo.senderAddress = address(this);
 
         bytes memory message = _encodeSingleHopCallMessage({
@@ -332,11 +381,13 @@ abstract contract TokenHomeTest is TokenBridgeTest {
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         vm.expectRevert(_formatErrorMessage("mismatched origin sender address"));
-        tokenHome.receiveTeleporterMessage(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originBridgeAddress, message);
+        tokenHome.receiveTeleporterMessage(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originTokenTransferrerAddress, message
+        );
     }
 
     function testMultiHopInvalidDestinationSendsToFallback() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
@@ -350,7 +401,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
@@ -360,7 +411,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     }
 
     function testMultiHopDestinationNotCollateralized() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
@@ -376,7 +427,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
@@ -386,7 +437,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     }
 
     function testMultiHopDestinationAmountScaledToZero() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 1_000;
         _sendSingleHopSendSuccess(amount, 0);
 
@@ -402,7 +453,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipient: DEFAULT_RECIPIENT_ADDRESS,
                 secondaryFee: 0,
                 secondaryGasLimit: 500_000,
@@ -412,26 +463,28 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     }
 
     function testMultiHopSendSuccess() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
         uint256 feeAmount = 1;
-        uint256 bridgeAmount = amount - feeAmount;
+        uint256 transferAmount = amount - feeAmount;
         SendTokensInput memory input = SendTokensInput({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
-            primaryFeeTokenAddress: address(bridgedToken),
+            primaryFeeTokenAddress: address(transferredToken),
             primaryFee: feeAmount,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS
         });
-        _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, bridgeAmount));
+        _checkExpectedTeleporterCallsForSend(
+            _createSingleHopTeleporterMessageInput(input, transferAmount)
+        );
 
         vm.expectEmit(true, true, true, true, address(tokenHome));
-        emit TokensRouted(_MOCK_MESSAGE_ID, input, bridgeAmount);
+        emit TokensRouted(_MOCK_MESSAGE_ID, input, transferAmount);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
@@ -440,7 +493,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: input.destinationBlockchainID,
-                destinationBridgeAddress: input.destinationBridgeAddress,
+                destinationTokenTransferrerAddress: input.destinationTokenTransferrerAddress,
                 recipient: input.recipient,
                 secondaryFee: input.primaryFee,
                 secondaryGasLimit: input.requiredGasLimit,
@@ -450,17 +503,18 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     }
 
     function testMultiHopSendInsufficientFees() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 2;
         _sendSingleHopSendSuccess(amount, 0);
-        uint256 balanceBefore =
-            tokenHome.bridgedBalances(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS);
+        uint256 balanceBefore = tokenHome.transferredBalances(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
+        );
         assertEq(balanceBefore, amount);
 
         // Fail due to insufficient amount to cover fees
         MultiHopSendMessage memory message = MultiHopSendMessage({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
             amount: amount,
             secondaryFee: amount,
@@ -476,7 +530,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             _encodeMultiHopSendMessage({
                 amount: amount,
                 destinationBlockchainID: message.destinationBlockchainID,
-                destinationBridgeAddress: message.destinationBridgeAddress,
+                destinationTokenTransferrerAddress: message.destinationTokenTransferrerAddress,
                 recipient: message.recipient,
                 secondaryFee: message.secondaryFee,
                 secondaryGasLimit: message.secondaryGasLimit,
@@ -484,14 +538,17 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             })
         );
 
-        // Make sure the bridge balance is still the same
+        // Make sure the token transfer balance is still the same
         assertEq(
-            tokenHome.bridgedBalances(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS), balanceBefore
+            tokenHome.transferredBalances(
+                DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
+            ),
+            balanceBefore
         );
     }
 
     function testMultiHopCallInvalidDestination() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
@@ -507,7 +564,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
                 originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
@@ -520,7 +577,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     }
 
     function testMultiHopCallDestinationNotCollateralized() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
@@ -538,7 +595,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
                 originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
@@ -551,7 +608,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     }
 
     function testMultiHopCallAmountScaledToZero() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 1_000;
         _sendSingleHopSendSuccess(amount, 0);
 
@@ -569,7 +626,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
                 originSenderAddress: originSenderAddress,
                 amount: amount,
                 destinationBlockchainID: OTHER_BLOCKCHAIN_ID,
-                destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+                destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
                 recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
                 recipientPayload: new bytes(16),
                 recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
@@ -582,36 +639,36 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     }
 
     function testMultiHopCallSuccess() public {
-        // First send to remote instance to increase the bridge balance
+        // First send to remote instance to increase the token transfer balance
         uint256 amount = 200_000;
         _sendSingleHopSendSuccess(amount, 0);
 
         uint256 feeAmount = 1;
-        uint256 bridgeAmount = amount - feeAmount;
+        uint256 transferAmount = amount - feeAmount;
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
+        originInfo.tokenTransferrerAddress = DEFAULT_TOKEN_REMOTE_ADDRESS;
         originInfo.senderAddress = address(this);
         SendAndCallInput memory input = SendAndCallInput({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: hex"65465465",
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
-            primaryFeeTokenAddress: address(bridgedToken),
+            primaryFeeTokenAddress: address(transferredToken),
             multiHopFallback: DEFAULT_MULTIHOP_FALLBACK_ADDRESS,
             primaryFee: feeAmount,
             secondaryFee: 0
         });
         _checkExpectedTeleporterCallsForSend(
             _createSingleHopCallTeleporterMessageInput(
-                DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo, input, bridgeAmount
+                DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, originInfo, input, transferAmount
             )
         );
 
         vm.expectEmit(true, true, true, true, address(tokenHome));
-        emit TokensAndCallRouted(_MOCK_MESSAGE_ID, input, bridgeAmount);
+        emit TokensAndCallRouted(_MOCK_MESSAGE_ID, input, transferAmount);
 
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
@@ -621,7 +678,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
                 originSenderAddress: originInfo.senderAddress,
                 amount: amount,
                 destinationBlockchainID: input.destinationBlockchainID,
-                destinationBridgeAddress: input.destinationBridgeAddress,
+                destinationTokenTransferrerAddress: input.destinationTokenTransferrerAddress,
                 recipientContract: input.recipientContract,
                 recipientPayload: input.recipientPayload,
                 recipientGasLimit: input.recipientGasLimit,
@@ -645,7 +702,7 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     }
 
     function testRegisterRemoteZeroAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero remote bridge address"));
+        vm.expectRevert(_formatErrorMessage("zero remote token transferrer address"));
         _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, address(0), 0);
     }
 
@@ -657,7 +714,9 @@ abstract contract TokenHomeTest is TokenBridgeTest {
 
     function testRegisterRemoteTokenDecimalsTooHigh() public {
         vm.expectRevert(_formatErrorMessage("remote token decimals too high"));
-        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 0, 1e19, true);
+        _setUpRegisteredRemote(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 0, 1e19, true
+        );
     }
 
     function testRegisterInvalidHomeTokenDecimals() public {
@@ -668,8 +727,10 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             homeTokenDecimals: tokenHomeDecimals + 1,
             remoteTokenDecimals: uint8(remoteTokenDecimals)
         });
-        BridgeMessage memory message =
-            BridgeMessage({messageType: BridgeMessageType.REGISTER_REMOTE, payload: abi.encode(payload)});
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.REGISTER_REMOTE,
+            payload: abi.encode(payload)
+        });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenHome.receiveTeleporterMessage(
             DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, abi.encode(message)
@@ -690,18 +751,27 @@ abstract contract TokenHomeTest is TokenBridgeTest {
         feeAmount = 0;
         input.destinationBlockchainID = OTHER_BLOCKCHAIN_ID;
         input.primaryFee = feeAmount;
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, false);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID,
+            input.destinationTokenTransferrerAddress,
+            0,
+            tokenMultiplier,
+            false
+        );
         _setUpExpectedDeposit(amount, input.primaryFee);
         TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(bridgedToken), amount: input.primaryFee}),
+            destinationAddress: input.destinationTokenTransferrerAddress,
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(transferredToken),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopSendMessage(amount / tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
         });
         _checkExpectedTeleporterCallsForSend(expectedMessage);
-        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        vm.expectEmit(true, true, true, true, address(tokenTransferrer));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount / tokenMultiplier);
         _send(input, amount);
     }
@@ -717,7 +787,11 @@ abstract contract TokenHomeTest is TokenBridgeTest {
         bool expectSuccess
     ) internal virtual;
 
-    function _addCollateral(bytes32 remoteBlockchainID, address remoteBridgeAddress, uint256 amount) internal virtual;
+    function _addCollateral(
+        bytes32 remoteBlockchainID,
+        address remoteTokenTransferrerAddress,
+        uint256 amount
+    ) internal virtual;
 
     /**
      * @notice Set up necessary calls to deposit funds and call `send` or `sendAndCall`
@@ -729,15 +803,17 @@ abstract contract TokenHomeTest is TokenBridgeTest {
 
     function _setUpRegisteredRemote(
         bytes32 remoteBlockchainID,
-        address remoteBridgeAddress,
+        address remoteTokenTransferrerAddress,
         uint256 initialReserveImbalance
     ) internal virtual override {
-        _setUpRegisteredRemote(remoteBlockchainID, remoteBridgeAddress, initialReserveImbalance, 1, true);
+        _setUpRegisteredRemote(
+            remoteBlockchainID, remoteTokenTransferrerAddress, initialReserveImbalance, 1, true
+        );
     }
 
     function _setUpRegisteredRemote(
         bytes32 remoteBlockchainID,
-        address remoteBridgeAddress,
+        address remoteTokenTransferrerAddress,
         uint256 initialReserveImbalance,
         uint256 tokenMultiplier,
         bool multiplyOnRemote
@@ -752,18 +828,27 @@ abstract contract TokenHomeTest is TokenBridgeTest {
             homeTokenDecimals: tokenHomeDecimals,
             remoteTokenDecimals: remoteTokenDecimals
         });
-        BridgeMessage memory message =
-            BridgeMessage({messageType: BridgeMessageType.REGISTER_REMOTE, payload: abi.encode(payload)});
+        TransferrerMessage memory message = TransferrerMessage({
+            messageType: TransferrerMessageType.REGISTER_REMOTE,
+            payload: abi.encode(payload)
+        });
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
-        tokenHome.receiveTeleporterMessage(remoteBlockchainID, remoteBridgeAddress, abi.encode(message));
+        tokenHome.receiveTeleporterMessage(
+            remoteBlockchainID, remoteTokenTransferrerAddress, abi.encode(message)
+        );
     }
 
-    function _createDefaultSendTokensInput() internal view override returns (SendTokensInput memory) {
+    function _createDefaultSendTokensInput()
+        internal
+        view
+        override
+        returns (SendTokensInput memory)
+    {
         return SendTokensInput({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipient: DEFAULT_RECIPIENT_ADDRESS,
-            primaryFeeTokenAddress: address(bridgedToken),
+            primaryFeeTokenAddress: address(transferredToken),
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
@@ -771,17 +856,22 @@ abstract contract TokenHomeTest is TokenBridgeTest {
         });
     }
 
-    function _createDefaultSendAndCallInput() internal view override returns (SendAndCallInput memory) {
+    function _createDefaultSendAndCallInput()
+        internal
+        view
+        override
+        returns (SendAndCallInput memory)
+    {
         return SendAndCallInput({
             destinationBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
-            destinationBridgeAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
+            destinationTokenTransferrerAddress: DEFAULT_TOKEN_REMOTE_ADDRESS,
             recipientContract: DEFAULT_RECIPIENT_CONTRACT_ADDRESS,
             recipientPayload: new bytes(16),
             requiredGasLimit: DEFAULT_REQUIRED_GAS_LIMIT,
             recipientGasLimit: DEFAULT_RECIPIENT_GAS_LIMIT,
             fallbackRecipient: DEFAULT_FALLBACK_RECIPIENT_ADDRESS,
             multiHopFallback: address(0),
-            primaryFeeTokenAddress: address(bridgedToken),
+            primaryFeeTokenAddress: address(transferredToken),
             primaryFee: 0,
             secondaryFee: 0
         });
@@ -790,9 +880,9 @@ abstract contract TokenHomeTest is TokenBridgeTest {
     function _createDefaultReceiveTokensInput() internal view returns (SendTokensInput memory) {
         return SendTokensInput({
             destinationBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
-            destinationBridgeAddress: address(tokenHome),
+            destinationTokenTransferrerAddress: address(tokenHome),
             recipient: DEFAULT_RECIPIENT_ADDRESS,
-            primaryFeeTokenAddress: address(bridgedToken),
+            primaryFeeTokenAddress: address(transferredToken),
             primaryFee: 0,
             secondaryFee: 0,
             requiredGasLimit: 0,
@@ -804,7 +894,12 @@ abstract contract TokenHomeTest is TokenBridgeTest {
         return DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID;
     }
 
-    function _formatErrorMessage(string memory message) internal pure override returns (bytes memory) {
+    function _formatErrorMessage(string memory message)
+        internal
+        pure
+        override
+        returns (bytes memory)
+    {
         return bytes(string.concat("TokenHome: ", message));
     }
 }

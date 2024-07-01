@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 /**
- * @dev Abstract contract that helps implement reentrancy guards for Teleporter token bridge {_send} and {_sendAndCall}
+ * @dev Abstract contract that helps implement reentrancy guards for Avalanche interchain token transfer {_send} and {_sendAndCall}
  * functions.
  *
  * The send methods must not allow reentry given that can make calls to external contracts such as {safeTransferFrom}
@@ -14,7 +14,7 @@ pragma solidity 0.8.18;
  * as a part of processing a multi-hop transfer, or as a part of an external call made to process a "sendAndCall"
  * message.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 abstract contract SendReentrancyGuard {
     uint256 internal constant _NOT_ENTERED = 1;

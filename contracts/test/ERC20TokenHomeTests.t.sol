@@ -5,10 +5,10 @@
 
 pragma solidity 0.8.18;
 
-import {ERC20TokenBridgeTest} from "./ERC20TokenBridgeTests.t.sol";
+import {ERC20TokenTransferrerTest} from "./ERC20TokenTransferrerTests.t.sol";
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
-import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
+import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {ERC20TokenHome} from "../src/TokenHome/ERC20TokenHome.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
@@ -16,7 +16,7 @@ import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 
-contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
+contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
 
     ERC20TokenHome public app;
@@ -33,11 +33,11 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
             address(mockERC20),
             tokenHomeDecimals
         );
-        erc20Bridge = app;
+        erc20TokenTransferrer = app;
         tokenHome = app;
-        tokenBridge = app;
+        tokenTransferrer = app;
 
-        bridgedToken = mockERC20;
+        transferredToken = mockERC20;
     }
 
     /**
@@ -82,7 +82,13 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
         // Set up a registered remote that will scale down the received amount
         // to zero home tokens.
         uint256 tokenMultiplier = 100_000;
-        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 0, tokenMultiplier, true);
+        _setUpRegisteredRemote(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
+            DEFAULT_TOKEN_REMOTE_ADDRESS,
+            0,
+            tokenMultiplier,
+            true
+        );
 
         // Send over home token to the remote
         // and check for expected calls for scaled amount of tokens sent.
@@ -91,8 +97,10 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
         _setUpExpectedDeposit(amount, input.primaryFee);
 
         uint256 scaledAmount = tokenMultiplier * amount;
-        _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, scaledAmount));
-        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        _checkExpectedTeleporterCallsForSend(
+            _createSingleHopTeleporterMessageInput(input, scaledAmount)
+        );
+        vm.expectEmit(true, true, true, true, address(tokenTransferrer));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, scaledAmount);
         _send(input, amount);
 
@@ -108,9 +116,12 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
     }
 
     function testRegisterDestinationRoundUpCollateralNeeded() public {
-        _setUpRegisteredRemote(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 11, 10, true);
-        (, uint256 collateralNeeded,,) =
-            tokenHome.registeredRemotes(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS);
+        _setUpRegisteredRemote(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 11, 10, true
+        );
+        (, uint256 collateralNeeded,,) = tokenHome.registeredRemotes(
+            DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
+        );
         assertEq(collateralNeeded, 2);
     }
 
@@ -123,18 +134,27 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
 
         // Raw amount sent over wire should be multipled by 1e2.
         uint256 tokenMultiplier = 1e2;
-        _setUpRegisteredRemote(input.destinationBlockchainID, input.destinationBridgeAddress, 0, tokenMultiplier, true);
+        _setUpRegisteredRemote(
+            input.destinationBlockchainID,
+            input.destinationTokenTransferrerAddress,
+            0,
+            tokenMultiplier,
+            true
+        );
         _setUpExpectedDeposit(amount, input.primaryFee);
         TeleporterMessageInput memory expectedMessage = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationBridgeAddress,
-            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(bridgedToken), amount: input.primaryFee}),
+            destinationAddress: input.destinationTokenTransferrerAddress,
+            feeInfo: TeleporterFeeInfo({
+                feeTokenAddress: address(transferredToken),
+                amount: input.primaryFee
+            }),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
             message: _encodeSingleHopSendMessage(amount * tokenMultiplier, DEFAULT_RECIPIENT_ADDRESS)
         });
         _checkExpectedTeleporterCallsForSend(expectedMessage);
-        vm.expectEmit(true, true, true, true, address(tokenBridge));
+        vm.expectEmit(true, true, true, true, address(tokenTransferrer));
         emit TokensSent(_MOCK_MESSAGE_ID, address(this), input, amount * tokenMultiplier);
         _send(input, amount);
     }
@@ -142,7 +162,9 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
         vm.expectEmit(true, true, true, true, address(tokenHome));
         emit TokensWithdrawn(recipient, amount);
-        vm.expectCall(address(mockERC20), abi.encodeCall(IERC20.transfer, (address(recipient), amount)));
+        vm.expectCall(
+            address(mockERC20), abi.encodeCall(IERC20.transfer, (address(recipient), amount))
+        );
         vm.expectEmit(true, true, true, true, address(mockERC20));
         emit Transfer(address(app), recipient, amount);
     }
@@ -168,7 +190,7 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
                 IERC20SendAndCallReceiver.receiveTokens,
                 (
                     sourceBlockchainID,
-                    originInfo.bridgeAddress,
+                    originInfo.tokenTransferrerAddress,
                     originInfo.senderAddress,
                     address(mockERC20),
                     amount,
@@ -204,16 +226,17 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
         }
     }
 
-    function _addCollateral(bytes32 remoteBlockchainID, address remoteBridgeAddress, uint256 amount)
-        internal
-        override
-    {
-        app.addCollateral(remoteBlockchainID, remoteBridgeAddress, amount);
+    function _addCollateral(
+        bytes32 remoteBlockchainID,
+        address remoteTokenTransferrerAddress,
+        uint256 amount
+    ) internal override {
+        app.addCollateral(remoteBlockchainID, remoteTokenTransferrerAddress, amount);
     }
 
     function _setUpDeposit(uint256 amount) internal virtual override {
-        // Increase the allowance of the bridge to transfer the funds from the user
-        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
+        // Increase the allowance of the token transferrer to transfer the funds from the user
+        transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
     }
 
     function _setUpExpectedZeroAmountRevert() internal override {
@@ -221,23 +244,26 @@ contract ERC20TokenHomeTest is ERC20TokenBridgeTest, TokenHomeTest {
     }
 
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
-        // Transfer the fee to the bridge if it is greater than 0
+        // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            bridgedToken.safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            transferredToken.safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
             vm.expectCall(
-                address(bridgedToken),
-                abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), feeAmount))
+                address(transferredToken),
+                abi.encodeCall(
+                    IERC20.transferFrom, (address(this), address(tokenTransferrer), feeAmount)
+                )
             );
         }
-        // Increase the allowance of the bridge to transfer the funds from the user
-        bridgedToken.safeIncreaseAllowance(address(tokenBridge), amount);
+        // Increase the allowance of the token transferrer to transfer the funds from the user
+        transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
 
-        // Check that transferFrom is called to deposit the funds sent from the user to the bridge
+        // Check that transferFrom is called to deposit the funds sent from the user to the token transferrer
         // This is the case because for the {ERC20TokenHome) is not the fee token itself
         vm.expectCall(
-            address(bridgedToken), abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenBridge), amount))
+            address(transferredToken),
+            abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenTransferrer), amount))
         );
-        vm.expectEmit(true, true, true, true, address(bridgedToken));
-        emit Transfer(address(this), address(tokenBridge), amount);
+        vm.expectEmit(true, true, true, true, address(transferredToken));
+        emit Transfer(address(this), address(tokenTransferrer), amount);
     }
 }

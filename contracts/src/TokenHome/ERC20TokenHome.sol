@@ -9,8 +9,10 @@ import {TokenHome} from "./TokenHome.sol";
 import {IERC20TokenHome} from "./interfaces/IERC20TokenHome.sol";
 import {IERC20SendAndCallReceiver} from "../interfaces/IERC20SendAndCallReceiver.sol";
 import {
-    SendTokensInput, SendAndCallInput, SingleHopCallMessage
-} from "../interfaces/ITokenBridge.sol";
+    SendTokensInput,
+    SendAndCallInput,
+    SingleHopCallMessage
+} from "../interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
@@ -20,12 +22,12 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * @title ERC20TokenHome
  * @notice An {IERC20TokenHome} implementation that locks a specified ERC20 token to be sent to
  * TokenRemote instances on other chains.
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;
 
-    /// @notice The ERC20 token this home contract bridges to TokenRemote instances.
+    /// @notice The ERC20 token this home contract transfers to TokenRemote instances.
     IERC20 public immutable token;
 
     /**
@@ -34,7 +36,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
-     * @param tokenAddress_ The ERC20 token contract address to be bridged by the home.
+     * @param tokenAddress_ The ERC20 token contract address to be transferred by the home.
      * @param tokenDecimals_ The number of decimals for the ERC20 token
      */
     constructor(
@@ -47,19 +49,19 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     }
 
     /**
-     * @dev See {IERC20TokenBridge-send}
+     * @dev See {IERC20TokenTransferrer-send}
      */
     function send(SendTokensInput calldata input, uint256 amount) external {
         _send(input, amount);
     }
 
     /**
-     * @dev See {IERC20TokenBridge-sendAndCall}
+     * @dev See {IERC20TokenTransferrer-sendAndCall}
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
         _sendAndCall({
             sourceBlockchainID: blockchainID,
-            originBridgeAddress: address(this),
+            originTokenTransferrerAddress: address(this),
             originSenderAddress: _msgSender(),
             input: input,
             amount: amount
@@ -71,10 +73,10 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
      */
     function addCollateral(
         bytes32 remoteBlockchainID,
-        address remoteBridgeAddress,
+        address remoteTokenTransferrerAddress,
         uint256 amount
     ) external {
-        _addCollateral(remoteBlockchainID, remoteBridgeAddress, amount);
+        _addCollateral(remoteBlockchainID, remoteTokenTransferrerAddress, amount);
     }
 
     /**
@@ -112,7 +114,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
             IERC20SendAndCallReceiver.receiveTokens,
             (
                 message.sourceBlockchainID,
-                message.originBridgeAddress,
+                message.originTokenTransferrerAddress,
                 message.originSenderAddress,
                 address(token),
                 amount,

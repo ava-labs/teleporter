@@ -4,9 +4,9 @@ import (
 	"context"
 	"math/big"
 
+	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	nativetokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/NativeTokenHome"
-	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -17,8 +17,8 @@ import (
 /**
  * Deploy a NativeTokenHome on the primary network
  * Deploys ERC20TokenRemote to Subnet A and Subnet B
- * Bridges C-Chain native tokens to Subnet A
- * Bridge tokens from Subnet A to Subnet B through multi-hop
+ * Transfers C-Chain native tokens to Subnet A
+ * Transfer tokens from Subnet A to Subnet B through multi-hop
  * Brige back tokens from Subnet B to Subnet A through multi-hop
  */
 func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
@@ -98,25 +98,25 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenRemoteAddressB,
 	)
 
-	// Generate new recipient to receive bridged tokens
+	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
 	// Send tokens from C-Chain to recipient on subnet A
 	input := nativetokenhome.SendTokensInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: erc20TokenRemoteAddressA,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   wavaxAddress,
-		PrimaryFee:               big.NewInt(1e10),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultERC20RequiredGas,
+		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: erc20TokenRemoteAddressA,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             wavaxAddress,
+		PrimaryFee:                         big.NewInt(1e10),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultERC20RequiredGas,
 	}
 
 	// Send the tokens and verify expected events
 	amount := big.NewInt(2e18)
-	receipt, bridgedAmount := utils.SendNativeTokenHome(
+	receipt, transferredAmount := utils.SendNativeTokenHome(
 		ctx,
 		cChainInfo,
 		nativeTokenHome,
@@ -141,16 +141,16 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenRemoteA,
 		receipt,
 		recipientAddress,
-		bridgedAmount,
+		transferredAmount,
 	)
 
 	// Check that the recipient received the tokens
 	balance, err := erc20TokenRemoteA.BalanceOf(&bind.CallOpts{}, recipientAddress)
 	Expect(err).Should(BeNil())
-	Expect(balance).Should(Equal(bridgedAmount))
+	Expect(balance).Should(Equal(transferredAmount))
 
 	// Send tokens from subnet A to recipient on subnet B through a multi-hop
-	secondaryFeeAmount := new(big.Int).Div(bridgedAmount, big.NewInt(4))
+	secondaryFeeAmount := new(big.Int).Div(transferredAmount, big.NewInt(4))
 	utils.SendERC20TokenMultiHopAndVerify(
 		ctx,
 		network,
@@ -164,7 +164,7 @@ func NativeTokenHomeERC20TokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenRemoteB,
 		erc20TokenRemoteAddressB,
 		cChainInfo,
-		bridgedAmount,
+		transferredAmount,
 		secondaryFeeAmount,
 	)
 }

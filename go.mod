@@ -1,4 +1,4 @@
-module github.com/ava-labs/teleporter-token-bridge
+module github.com/ava-labs/avalanche-interchain-token-transfer
 
 go 1.21.11
 
