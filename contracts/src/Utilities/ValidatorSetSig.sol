@@ -35,7 +35,7 @@ struct ValidatorSetSigMessage {
 
 /**
  * @dev Contract that verifies that a set threshold of validators from a given blockchainID
- * have signed an off-chain Warp message and forwards the payload to the target contract specified in the payload.
+ * have signed an off-chain Warp message and forwards the payload to the target contract specified in the ValidatorSetSigMessage.
  * The threshold itself is set by the validator themselves in their Warp configs:
  * https://github.com/ava-labs/subnet-evm/blob/master/precompile/contracts/warp/config.go#L50
  *
