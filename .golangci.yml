@@ -28,6 +28,3 @@ linters:
 linters-settings:
   gofmt:
     simplify: true
-  misspell:
-    ignore-words:
-      - transferrer
