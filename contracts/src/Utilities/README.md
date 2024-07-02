@@ -7,7 +7,7 @@ This contract provides an alternative to traditional multi-signature contracts w
 The contract leverages off-chain [Avalanche Warp Messages](https://docs.avax.network/build/cross-chain/awm/overview), which are manually approved for signing  by a chain's validators. It requires these messages to have the source address set to the zero address to enforce this.
 
 Note:
-1. The blockchain validating the message may or may not be the same chain where the target contract and the ValidatorSetSig contract are deployed.
+1. The blockchain validating the message may or may not be the same chain where the target contract and the `ValidatorSetSig` contract are deployed.
 2. [Off-Chain Warp messages](https://github.com/ava-labs/subnet-evm/issues/729) are described in the linked issue. They are Warp messages that validators can include in their config to indicate that they are willing to sign them even though they are not a result of on-chain activity.
 
 #### Creating a valid Off-chain Warp Message for interaction with the ValidatorSetSig Contract
