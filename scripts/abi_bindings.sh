@@ -4,13 +4,13 @@
 
 set -e
 
-TELEPORTER_TOKEN_BRIDGE_PATH=$(
+AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
 
-source $TELEPORTER_TOKEN_BRIDGE_PATH/scripts/constants.sh
-source $TELEPORTER_TOKEN_BRIDGE_PATH/scripts/versions.sh
+source $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/scripts/constants.sh
+source $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/scripts/versions.sh
 
 export ARCH=$(uname -m)
 [ $ARCH = x86_64 ] && ARCH=amd64
@@ -43,7 +43,7 @@ if [ "$HELP" = true ]; then
 fi
 
 if ! command -v forge &> /dev/null; then
-    echo "forge not found. You can install by calling $TELEPORTER_TOKEN_BRIDGE_PATH/scripts/install_foundry.sh" && exit 1
+    echo "forge not found. You can install by calling $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/scripts/install_foundry.sh" && exit 1
 fi
 
 echo "Building subnet-evm abigen"
@@ -52,7 +52,7 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 # Force recompile of all contracts to prevent against using previous
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
-cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts
+cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts
 forge build --skip test --force --extra-output-files abi bin
 
 function convertToLower() {
@@ -76,32 +76,32 @@ generate_bindings() {
     do
         path=$(find . -name $contract_name.sol)
         dir=$(dirname $path)
-        abi_file=$TELEPORTER_TOKEN_BRIDGE_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
+        abi_file=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
         if ! [ -f $abi_file ]; then
             echo "Error: Contract $contract_name abi file not found"
             exit 1
         fi
 
         echo "Generating Go bindings for $contract_name..."
-        gen_path=$TELEPORTER_TOKEN_BRIDGE_PATH/abi-bindings/go/$dir/$contract_name
+        gen_path=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/abi-bindings/go/$dir/$contract_name
         mkdir -p $gen_path
         $GOPATH/bin/abigen --abi $abi_file \
                            --pkg $(convertToLower $contract_name) \
-                           --bin $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
+                           --bin $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
                            --type $contract_name \
                            --out $gen_path/$contract_name.go
         echo "Done generating Go bindings for $contract_name."
     done
 }
 
-cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/src
+cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/src
 generate_bindings "${contract_names[@]}"
 
 contract_names=($PROXY_LIST)
-cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts
+cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts
 forge build --skip test --force --extra-output-files abi bin --contracts lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
 
-cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
+cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
 generate_bindings "${contract_names[@]}"
 
 exit 0

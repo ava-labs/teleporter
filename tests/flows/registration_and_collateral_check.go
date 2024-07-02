@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
+	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/errors"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	erc20tokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/ERC20TokenHome"
-	"github.com/ava-labs/teleporter-token-bridge/tests/errors"
-	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -30,7 +30,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 
 	ctx := context.Background()
 
-	// Deploy an ExampleERC20 on subnet A as the token to be bridged
+	// Deploy an ExampleERC20 on subnet A as the token to be transferred
 	exampleERC20Address, exampleERC20 := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
@@ -38,7 +38,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		erc20TokenHomeDecimals,
 	)
 
-	// Create an ERC20TokenHome for bridging the ERC20 token
+	// Create an ERC20TokenHome for transferring the ERC20 token
 	erc20TokenHomeAddress, _, erc20TokenHome := utils.DeployERC20TokenHome(
 		ctx,
 		fundedKey,
@@ -61,20 +61,20 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 		burnedFeesReportingRewardPercentage,
 	)
 
-	// Generate new recipient to receive bridged tokens
+	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
 	// Send tokens from C-Chain to Subnet A
 	input := erc20tokenhome.SendTokensInput{
-		DestinationBlockchainID:  subnetAInfo.BlockchainID,
-		DestinationBridgeAddress: nativeTokenRemoteAddressA,
-		Recipient:                recipientAddress,
-		PrimaryFeeTokenAddress:   exampleERC20Address,
-		PrimaryFee:               big.NewInt(1e18),
-		SecondaryFee:             big.NewInt(0),
-		RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+		DestinationBlockchainID:            subnetAInfo.BlockchainID,
+		DestinationTokenTransferrerAddress: nativeTokenRemoteAddressA,
+		Recipient:                          recipientAddress,
+		PrimaryFeeTokenAddress:             exampleERC20Address,
+		PrimaryFee:                         big.NewInt(1e18),
+		SecondaryFee:                       big.NewInt(0),
+		RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 	}
 
 	amount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(10))
@@ -169,12 +169,12 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	scaledAmount := utils.GetScaledAmountFromERC20TokenHome(
 		erc20TokenHome,
 		input.DestinationBlockchainID,
-		input.DestinationBridgeAddress,
+		input.DestinationTokenTransferrerAddress,
 		amount,
 	)
 	teleporterUtils.ExpectBigEqual(event.Amount, scaledAmount)
 
-	// Check the balance of the ERC20TokenHome increased by the bridged amount
+	// Check the balance of the ERC20TokenHome increased by the transferred amount
 	balance, err = exampleERC20.BalanceOf(&bind.CallOpts{}, erc20TokenHomeAddress)
 	Expect(err).Should(BeNil())
 	teleporterUtils.ExpectBigEqual(balance, big.NewInt(0).Add(initialBalance, amount))

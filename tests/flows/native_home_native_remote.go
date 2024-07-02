@@ -4,9 +4,9 @@ import (
 	"context"
 	"math/big"
 
-	nativetokenhome "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenHome/NativeTokenHome"
-	nativetokenremote "github.com/ava-labs/teleporter-token-bridge/abi-bindings/go/TokenRemote/NativeTokenRemote"
-	"github.com/ava-labs/teleporter-token-bridge/tests/utils"
+	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
+	nativetokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/NativeTokenRemote"
+	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -16,8 +16,8 @@ import (
 /**
  * Deploy a NativeTokenHome on the primary network
  * Deploys a NativeTokenRemote to Subnet A
- * Bridges C-Chain native tokens to Subnet A
- * Bridge back tokens from Subnet A to C-Chain
+ * Transfers C-Chain native tokens to Subnet A
+ * Transfer back tokens from Subnet A to C-Chain
  */
 func NativeTokenHomeNativeDestination(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
@@ -80,25 +80,25 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 		fundedKey,
 	)
 
-	// Generate new recipient to receive bridged tokens
+	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-Chain to recipient on subnet A that fully collateralize bridge with leftover tokens.
+	// Send tokens from C-Chain to recipient on subnet A that fully collateralize token transferrer with leftover tokens.
 	amount := new(big.Int).Mul(big.NewInt(1e18), big.NewInt(13))
 	{
 		input := nativetokenhome.SendTokensInput{
-			DestinationBlockchainID:  subnetAInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenRemoteAddress,
-			Recipient:                recipientAddress,
-			PrimaryFeeTokenAddress:   cChainWAVAXAddress,
-			PrimaryFee:               big.NewInt(1e18),
-			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+			DestinationBlockchainID:            subnetAInfo.BlockchainID,
+			DestinationTokenTransferrerAddress: nativeTokenRemoteAddress,
+			Recipient:                          recipientAddress,
+			PrimaryFeeTokenAddress:             cChainWAVAXAddress,
+			PrimaryFee:                         big.NewInt(1e18),
+			SecondaryFee:                       big.NewInt(0),
+			RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 		}
 
-		// Send initialReserveImbalance tokens to fully collateralize bridge and mint the remainder.
+		// Send initialReserveImbalance tokens to fully collateralize token transferrer and mint the remainder.
 		receipt, _ := utils.SendNativeTokenHome(
 			ctx,
 			cChainInfo,
@@ -129,18 +129,18 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 	// Send tokens on Subnet A back for native tokens on C-Chain
 	{
 		input_A := nativetokenremote.SendTokensInput{
-			DestinationBlockchainID:  cChainInfo.BlockchainID,
-			DestinationBridgeAddress: nativeTokenHomeAddress,
-			Recipient:                recipientAddress,
-			PrimaryFeeTokenAddress:   nativeTokenRemoteAddress,
-			PrimaryFee:               big.NewInt(1e18),
-			SecondaryFee:             big.NewInt(0),
-			RequiredGasLimit:         utils.DefaultNativeTokenRequiredGas,
+			DestinationBlockchainID:            cChainInfo.BlockchainID,
+			DestinationTokenTransferrerAddress: nativeTokenHomeAddress,
+			Recipient:                          recipientAddress,
+			PrimaryFeeTokenAddress:             nativeTokenRemoteAddress,
+			PrimaryFee:                         big.NewInt(1e18),
+			SecondaryFee:                       big.NewInt(0),
+			RequiredGasLimit:                   utils.DefaultNativeTokenRequiredGas,
 		}
 
 		// Send half of the tokens back to C-Chain
 		amount := big.NewInt(0).Div(amount, big.NewInt(2))
-		receipt, bridgedAmount := utils.SendNativeTokenRemote(
+		receipt, transferredAmount := utils.SendNativeTokenRemote(
 			ctx,
 			subnetAInfo,
 			nativeTokenRemote,
@@ -159,7 +159,7 @@ func NativeTokenHomeNativeDestination(network interfaces.Network) {
 		)
 
 		// Check that the recipient received the tokens
-		homeAmount := bridgedAmount
+		homeAmount := transferredAmount
 		utils.CheckNativeTokenHomeWithdrawal(
 			ctx,
 			nativeTokenHomeAddress,

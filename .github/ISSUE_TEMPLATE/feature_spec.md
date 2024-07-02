@@ -1,6 +1,6 @@
 ---
 name: Feature specification
-about: Discussion on design and implementation of new features for teleporter-token-bridge.
+about: Discussion on design and implementation of new features for avalanche-interchain-token-transfer.
 title: ""
 labels: enhancement
 assignees: ""

@@ -4,29 +4,29 @@
 
 set -e
 
-TELEPORTER_TOKEN_BRIDGE_PATH=$(
+AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
 )
 
-source $TELEPORTER_TOKEN_BRIDGE_PATH/scripts/versions.sh
+source $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/scripts/versions.sh
 
 function solFormat() {
     # format solidity contracts
     echo "Formatting Solidity contracts..."
-    forge fmt --root $TELEPORTER_TOKEN_BRIDGE_PATH/contracts $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/src/**
+    forge fmt --root $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/src/**
 }
 
 function solFormatCheck() {
     # format solidity contracts
     echo "Checking formatting of Solidity contracts..."
-    forge fmt --check --root $TELEPORTER_TOKEN_BRIDGE_PATH/contracts $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/src/**
+    forge fmt --check --root $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/src/**
 }
 
 function solLinter() {
     # lint solidity contracts
     echo "Linting Solidity contracts..."
-    cd $TELEPORTER_TOKEN_BRIDGE_PATH/contracts/
+    cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/
     # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
     # in subdirectories. The former only checks sol files in the current directory and directories one level down.
     solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
@@ -37,8 +37,8 @@ function golangLinter() {
     go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
 
     echo "Linting Golang code..."
-    cd $TELEPORTER_TOKEN_BRIDGE_PATH
-    golangci-lint run --config=$TELEPORTER_TOKEN_BRIDGE_PATH/.golangci.yml ./...
+    cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH
+    golangci-lint run --config=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/.golangci.yml ./...
 }
 
 function runAll() {

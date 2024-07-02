@@ -13,7 +13,7 @@ import {IERC20Upgradeable} from
  * @notice Interface for a wrapped native token
  * @dev Implements the {IERC20} interface, and adds deposit and withdraw functions.
  *
- * @custom:security-contact https://github.com/ava-labs/teleporter-token-bridge/blob/main/SECURITY.md
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 interface IWrappedNativeToken is IERC20Upgradeable {
     /**

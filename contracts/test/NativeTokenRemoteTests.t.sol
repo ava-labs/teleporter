@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
-import {NativeTokenBridgeTest} from "./NativeTokenBridgeTests.t.sol";
+import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
 import {
@@ -18,7 +18,7 @@ import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.so
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
-import {SendTokensInput} from "../src/interfaces/ITokenBridge.sol";
+import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {SafeERC20Upgradeable} from
@@ -27,7 +27,7 @@ import {IERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/IERC20Upgradeable.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
-contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
+contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -43,10 +43,10 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         tokenHomeDecimals = 6;
         app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
-        nativeTokenBridge = app;
-        tokenBridge = app;
+        nativeTokenTransferrer = app;
+        tokenTransferrer = app;
         assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
-        _collateralizeBridge();
+        _collateralizeTokenTransferrer();
     }
 
     function testZeroInitialReserveImbalance() public {
@@ -117,14 +117,14 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
-        nativeTokenBridge = app;
-        tokenBridge = app;
+        nativeTokenTransferrer = app;
+        tokenTransferrer = app;
 
         vm.expectRevert("NativeTokenRemote: contract undercollateralized");
         app.send{value: 1e17}(_createDefaultSendTokensInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
-        _collateralizeBridge();
+        _collateralizeTokenTransferrer();
         _sendSingleHopSendSuccess(1e17, 0);
     }
 
@@ -132,14 +132,14 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         // Need a new instance since the default set up pre-collateralizes the contract.
         app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
-        nativeTokenBridge = app;
-        tokenBridge = app;
+        nativeTokenTransferrer = app;
+        tokenTransferrer = app;
 
         vm.expectRevert("NativeTokenRemote: contract undercollateralized");
         app.sendAndCall{value: 1e15}(_createDefaultSendAndCallInput());
 
         // Now mark the contract as collateralized and confirm sending is enabled.
-        _collateralizeBridge();
+        _collateralizeTokenTransferrer();
         _sendSingleHopSendSuccess(1e15, 0);
     }
 
@@ -176,8 +176,8 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), 0);
         assertEq(app.totalNativeAssetSupply(), initialExpectedBalance);
 
-        // Mock tokens being bridged out by crediting them to the native token remote contract
-        vm.deal(app.BURNED_FOR_BRIDGE_ADDRESS(), initialExpectedBalance - 1);
+        // Mock tokens being transferred out by crediting them to the native token remote contract
+        vm.deal(app.BURNED_FOR_TRANSFER_ADDRESS(), initialExpectedBalance - 1);
         assertEq(app.totalNativeAssetSupply(), 1);
 
         // Depositing native tokens into the contract to be wrapped native tokens shouldn't affect the supply
@@ -200,7 +200,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
 
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
             destinationBlockchainID: input.destinationBlockchainID,
-            destinationAddress: input.destinationBridgeAddress,
+            destinationAddress: input.destinationTokenTransferrerAddress,
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(app), amount: input.primaryFee}),
             requiredGasLimit: input.requiredGasLimit,
             allowedRelayerAddresses: new address[](0),
@@ -219,7 +219,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         uint256 amount = 200;
         bytes memory payload = hex"DEADBEEF";
         OriginSenderInfo memory originInfo;
-        originInfo.bridgeAddress = address(app);
+        originInfo.tokenTransferrerAddress = address(app);
         originInfo.senderAddress = address(this);
         bytes memory message = _encodeSingleHopCallMessage({
             sourceBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
@@ -261,7 +261,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationBridgeAddress: app.tokenHomeAddress(),
+                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(app),
                 primaryFee: expectedReward,
@@ -288,7 +288,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
         expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationBridgeAddress: app.tokenHomeAddress(),
+                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(app),
                 primaryFee: expectedReward,
@@ -318,15 +318,15 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
             burnedFeesReportingRewardPercentage_: 0
         });
         tokenRemote = app;
-        nativeTokenBridge = app;
-        tokenBridge = app;
+        nativeTokenTransferrer = app;
+        tokenTransferrer = app;
 
         uint256 burnedTxFeeAmount = 1e15;
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
                 destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationBridgeAddress: app.tokenHomeAddress(),
+                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(app),
                 primaryFee: 0,
@@ -432,7 +432,12 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
 
             bytes memory expectedCalldata = abi.encodeCall(
                 INativeSendAndCallReceiver.receiveTokens,
-                (sourceBlockchainID, originInfo.bridgeAddress, originInfo.senderAddress, payload)
+                (
+                    sourceBlockchainID,
+                    originInfo.tokenTransferrerAddress,
+                    originInfo.senderAddress,
+                    payload
+                )
             );
             if (expectSuccess) {
                 vm.mockCall(recipient, amount, expectedCalldata, new bytes(0));
@@ -456,17 +461,17 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
 
     function _setUpExpectedDeposit(uint256, uint256 feeAmount) internal override {
         app.deposit{value: feeAmount}();
-        // Transfer the fee to the bridge if it is greater than 0
+        // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenBridge), feeAmount);
+            IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
-        uint256 currentAllowance = app.allowance(address(this), address(tokenBridge));
+        uint256 currentAllowance = app.allowance(address(this), address(tokenTransferrer));
 
         if (feeAmount > 0) {
             vm.expectEmit(true, true, true, true, address(app));
-            emit Approval(address(this), address(tokenBridge), currentAllowance - feeAmount);
+            emit Approval(address(this), address(tokenTransferrer), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(app));
-            emit Transfer(address(this), address(tokenBridge), feeAmount);
+            emit Transfer(address(this), address(tokenTransferrer), feeAmount);
         }
     }
 
@@ -481,7 +486,7 @@ contract NativeTokenRemoteTest is NativeTokenBridgeTest, TokenRemoteTest {
     // The native token remote contract is considered collateralized once it has received
     // a message from its configured home to mint tokens. Until then, the home contract is
     // still assumed to have insufficient collateral.
-    function _collateralizeBridge() private {
+    function _collateralizeTokenTransferrer() private {
         assertFalse(app.isCollateralized());
         uint256 amount = 10e18;
         _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);
