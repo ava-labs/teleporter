@@ -50,14 +50,7 @@ contract ValidatorSetSigTest is Test {
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
-            abi.encode(
-                WarpMessage({
-                    sourceChainID: _MOCK_BLOCKCHAIN_ID,
-                    originSenderAddress: address(0),
-                    payload: ""
-                }),
-                false
-            )
+            abi.encode(_getValidWarpMessage(), false)
         );
         vm.expectRevert("ValidatorSetSig: invalid warp message");
         validatorSetSig.executeCall(0);
