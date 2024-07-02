@@ -20,7 +20,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// Deploy ValidatorSetSig expecting signatures from subetB instances to both subnets
 	// Deploy exampleERC20 instance to  both subnets
 	// Construct ValidatorSetSig message with mock ERC20 as the target contract
-	// Create OffChainWarp Messages using the ValidatorSetSig message to be signed by the subnetB
+	// Create off-chain Warp messages using the ValidatorSetSig message to be signed by the subnetB
 	// ************************************************************************************************
 	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)
 	// ************************************************************************************************
