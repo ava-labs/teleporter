@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -546,6 +547,16 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 
 func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 	for chainIdStr, chainConfig := range chainConfigs {
+		if chainIdStr == utils.CChainPathSpecifier {
+			var cfg tmpnet.FlagsMap
+			err := json.Unmarshal([]byte(chainConfig), &cfg)
+			if err != nil {
+				log.Error("failed to write network", "error", err)
+			}
+			n.tmpnet.ChainConfigs[utils.CChainPathSpecifier] = cfg
+			continue
+		}
+
 		for _, subnet := range n.tmpnet.Subnets {
 			for _, chain := range subnet.Chains {
 				if chain.ChainID.String() == chainIdStr {
@@ -553,6 +564,14 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 				}
 			}
 		}
+	}
+	err := n.tmpnet.Write()
+	if err != nil {
+		log.Error("failed to write network", "error", err)
+	}
+	err = n.tmpnet.WriteSubnets()
+	if err != nil {
+		log.Error("failed to write subnets", "error", err)
 	}
 }
 
@@ -644,7 +663,7 @@ func (n *LocalNetwork) GetSignedMessage(
 		BeNil(),
 		"nodeURI: %s; subnetID: %s; blockchainID: %s\n",
 		source.NodeURIs[0],
-		source.SubnetID,
+		signingSubnetID,
 		source.BlockchainID.String(),
 	)
 
