@@ -1037,7 +1037,7 @@ func InitOffChainMessageChainConfig(
 		"messageID", unsignedMessage.ID(),
 		"blockchainID", subnet.BlockchainID.String())
 
-	return unsignedMessage, GetWarpEnabledChainConfig([]avalancheWarp.UnsignedMessage{*unsignedMessage})
+	return unsignedMessage, GetChainConfigWithOffChainMessages([]avalancheWarp.UnsignedMessage{*unsignedMessage})
 }
 
 // Creates an off-chain Warp message that registers a Teleporter protocol version with TeleporterRegistry
@@ -1075,7 +1075,7 @@ func InitOffChainMessageChainConfigValidatorSetSig(
 			"messageID", unsignedMessage.ID(),
 			"blockchainID", subnet.BlockchainID.String())
 	}
-	return unsignedMessages, GetWarpEnabledChainConfig(unsignedMessages)
+	return unsignedMessages, GetChainConfigWithOffChainMessages(unsignedMessages)
 }
 
 // Creates an off-chain Warp message pointing to a function, contract and payload to be executed
@@ -1148,7 +1148,7 @@ func ParseTeleporterMessage(unsignedMessage avalancheWarp.UnsignedMessage) *tele
 	return teleporterMessage
 }
 
-func GetWarpEnabledChainConfig(offChainMessages []avalancheWarp.UnsignedMessage) string {
+func GetChainConfigWithOffChainMessages(offChainMessages []avalancheWarp.UnsignedMessage) string {
 	// Convert messages to hex
 	hexOffChainMessages := []string{}
 	for _, message := range offChainMessages {

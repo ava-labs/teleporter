@@ -17,36 +17,60 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// Deploy ValidatorSetSig contract to contract subnet to be validated from validator subnet
 	// Deploy a mock ERC20 contract to contract subnet
 	// Construct ValidatorSetSig message with mock ERC20 as the target contract
-	// Create an OffChainWarp Message using the ValidatorSetSig message to be signed by the validator subnet
+	// Create a OffChainWarp Message using the ValidatorSetSig message to be signed by the validator subnet
 	// Confirm the event is emitted
+	// Retry the same message and confirm it fails
+	// Send a new message with incremented nonce and confirm it is accepted.
+	// Deploy a new mock ERC20 contract to the validator subnet
+	// Send a new message with the new ERC20 contract as the target contract and confirm it is accepted
 
-	cChainInfo := network.GetPrimaryNetworkInfo()
 	contractSubnet, validatorSubnet := utils.GetTwoSubnets(network)
 	_, fundedKey := network.GetFundedAccountInfo()
 
 	ctx := context.Background()
 
-	// Deploy a ValidatorSetSigContract to contract subnet
+	// Deploy a ValidatorSetSigContract to contractSubnet
 	validatorSetSigContractAddress, validatorSetSig := utils.DeployValidatorSetSig(
 		ctx,
 		fundedKey,
 		contractSubnet,
 		validatorSubnet,
 	)
+	// Deploy a ValidatorSetSigContract to validatorSubnet
+	validatorSetSigContractAddress2, validatorSetSig2 := utils.DeployValidatorSetSig(
+		ctx,
+		fundedKey,
+		validatorSubnet,
+		validatorSubnet,
+	)
 
 	// Deploy a mock ERC20 contract to contract subnet
-	exampleERC20ContractAddress, exampleErc20 := utils.DeployExampleERC20(
+	exampleERC20ContractAddressContractSubnet, exampleErc20ContractSubnet := utils.DeployExampleERC20(
 		ctx,
 		fundedKey,
 		contractSubnet,
 	)
+
+	// Deploy a new example ERC20 contract this time to the same subnet as the validator.
+	exampleERC20ContractAddressValidatorSubnet, exampleErc20ValidatorSubnet := utils.DeployExampleERC20(
+		ctx,
+		fundedKey,
+		validatorSubnet,
+	)
+
 	erc20ABI, err := exampleerc20.ExampleERC20MetaData.GetAbi()
 	Expect(err).Should(BeNil())
 
-	// Confirm that the validatorContract has a balance of 0 to begin with
-	startingBalance, err := exampleErc20.BalanceOf(&bind.CallOpts{}, validatorSetSigContractAddress)
+	// Confirm that the validatorContract has a balance of 0 on the example erc20 contracts on both subnets
+	startingBalanceContractSubnet, err := exampleErc20ContractSubnet.BalanceOf(
+		&bind.CallOpts{}, validatorSetSigContractAddress)
 	Expect(err).Should(BeNil())
-	Expect(startingBalance.Cmp(big.NewInt(0))).Should(BeZero())
+	Expect(startingBalanceContractSubnet.Cmp(big.NewInt(0))).Should(BeZero())
+
+	startingBalanceValidatorSubnet, err := exampleErc20ValidatorSubnet.BalanceOf(
+		&bind.CallOpts{}, validatorSetSigContractAddress2)
+	Expect(err).Should(BeNil())
+	Expect(startingBalanceValidatorSubnet.Cmp(big.NewInt(0))).Should(BeZero())
 
 	// Construct a ValidatorSetSig message with mock ERC20 as the target contract
 	// and mint 100 tokens as the TxPayload
@@ -55,7 +79,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 
 	vssMessage1 := validatorsetsig.ValidatorSetSigMessage{
 		ValidatorSetSigAddress: validatorSetSigContractAddress,
-		TargetContractAddress:  exampleERC20ContractAddress,
+		TargetContractAddress:  exampleERC20ContractAddressContractSubnet,
 		TargetBlockchainID:     contractSubnet.BlockchainID,
 		Nonce:                  big.NewInt(1),
 		Payload:                callData,
@@ -67,27 +91,32 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	vssMessage2 := validatorsetsig.ValidatorSetSigMessage{
 		ValidatorSetSigAddress: validatorSetSigContractAddress,
-		TargetContractAddress:  exampleERC20ContractAddress,
+		TargetContractAddress:  exampleERC20ContractAddressContractSubnet,
 		TargetBlockchainID:     contractSubnet.BlockchainID,
 		Nonce:                  big.NewInt(2),
 		Payload:                callData2,
 	}
 
-	networkID := network.GetNetworkID()
+	// Create a message for the case where validatorSetSig contract and targetContract are on the same chain.
+	vssMessage3 := validatorsetsig.ValidatorSetSigMessage{
+		ValidatorSetSigAddress: validatorSetSigContractAddress2,
+		TargetContractAddress:  exampleERC20ContractAddressValidatorSubnet,
+		TargetBlockchainID:     validatorSubnet.BlockchainID,
+		Nonce:                  big.NewInt(1),
+		Payload:                callData,
+	}
 
-	noMessageWarpEnabledChainConfig := utils.GetWarpEnabledChainConfig(nil)
 	// Create chain config file with off chain validatorsetsig message
+	networkID := network.GetNetworkID()
 	offchainMessages, warpEnabledChainConfigWithMsg := utils.InitOffChainMessageChainConfigValidatorSetSig(
 		networkID,
 		validatorSubnet,
 		validatorSetSigContractAddress,
-		[]validatorsetsig.ValidatorSetSigMessage{vssMessage1, vssMessage2})
+		[]validatorsetsig.ValidatorSetSigMessage{vssMessage1, vssMessage2, vssMessage3})
 
 	// Create chain config with off chain messages
 	chainConfigs := make(map[string]string)
-	utils.SetChainConfig(chainConfigs, cChainInfo, noMessageWarpEnabledChainConfig)
 	utils.SetChainConfig(chainConfigs, validatorSubnet, warpEnabledChainConfigWithMsg)
-	utils.SetChainConfig(chainConfigs, contractSubnet, noMessageWarpEnabledChainConfig)
 
 	// Restart nodes with new chain config
 	nodeNames := network.GetAllNodeNames()
@@ -108,10 +137,10 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// Confirm that the Delivered event is emitted and that validatorSetSig contract has a balance of 100 of ERC20
 	deliveredEvent, err := utils.GetEventFromLogs(receipt.Logs, validatorSetSig.ParseDelivered)
 	Expect(err).Should(BeNil())
-	Expect(deliveredEvent.TargetContractAddress).Should(Equal(exampleERC20ContractAddress))
+	Expect(deliveredEvent.TargetContractAddress).Should(Equal(exampleERC20ContractAddressContractSubnet))
 	Expect(deliveredEvent.Nonce).Should(Equal(big.NewInt(1)))
 
-	endingBalance, err := exampleErc20.BalanceOf(nil, validatorSetSigContractAddress)
+	endingBalance, err := exampleErc20ContractSubnet.BalanceOf(nil, validatorSetSigContractAddress)
 	Expect(err).Should(BeNil())
 	Expect(endingBalance).Should(Equal(big.NewInt(100)))
 
@@ -129,11 +158,11 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	)
 
 	// Confirm that the validatorSetSig contract still has a balance of 100 of ERC20
-	endingBalance, err = exampleErc20.BalanceOf(nil, validatorSetSigContractAddress)
+	endingBalance, err = exampleErc20ContractSubnet.BalanceOf(nil, validatorSetSigContractAddress)
 	Expect(err).Should(BeNil())
 	Expect(endingBalance).Should(Equal(big.NewInt(100)))
 
-	// Finally send another valid transaction with the incremented nonce
+	// Send another valid transaction with the incremented nonce
 	receipt2 := utils.ExecuteValidatorSetSigCallAndVerify(
 		ctx,
 		network,
@@ -148,10 +177,38 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// Confirm that the Delivered event is emitted and that validatorSetSig contract has a balance of 150 of ERC20
 	deliveredEvent2, err := utils.GetEventFromLogs(receipt2.Logs, validatorSetSig.ParseDelivered)
 	Expect(err).Should(BeNil())
-	Expect(deliveredEvent2.TargetContractAddress).Should(Equal(exampleERC20ContractAddress))
+	Expect(deliveredEvent2.TargetContractAddress).Should(Equal(exampleERC20ContractAddressContractSubnet))
 	Expect(deliveredEvent2.Nonce).Should(Equal(big.NewInt(2)))
 
-	endingBalance, err = exampleErc20.BalanceOf(nil, validatorSetSigContractAddress)
+	endingBalance, err = exampleErc20ContractSubnet.BalanceOf(nil, validatorSetSigContractAddress)
 	Expect(err).Should(BeNil())
 	Expect(endingBalance).Should(Equal(big.NewInt(150)))
+
+	startingBalanceValidatorSubnet, err = exampleErc20ValidatorSubnet.BalanceOf(
+		&bind.CallOpts{}, validatorSetSigContractAddress)
+	Expect(err).Should(BeNil())
+	Expect(startingBalanceValidatorSubnet.Cmp(big.NewInt(0))).Should(BeZero())
+
+	// Send the third transaction where the contract is on the same chain as the validatorSetSig contract
+	receipt3 := utils.ExecuteValidatorSetSigCallAndVerify(
+		ctx,
+		network,
+		validatorSubnet,
+		validatorSubnet,
+		validatorSetSigContractAddress2,
+		fundedKey,
+		&offchainMessages[2],
+		true,
+	)
+
+	// Confirm that the Delivered event is emitted and that validatorSetSig contract has a balance
+	// of 100 of ERC20 on the validator chain.
+	deliveredEvent3, err := utils.GetEventFromLogs(receipt3.Logs, validatorSetSig2.ParseDelivered)
+	Expect(err).Should(BeNil())
+	Expect(deliveredEvent3.TargetContractAddress).Should(Equal(exampleERC20ContractAddressValidatorSubnet))
+	Expect(deliveredEvent3.Nonce).Should(Equal(big.NewInt(1)))
+
+	endingBalance, err = exampleErc20ValidatorSubnet.BalanceOf(nil, validatorSetSigContractAddress2)
+	Expect(err).Should(BeNil())
+	Expect(endingBalance).Should(Equal(big.NewInt(100)))
 }

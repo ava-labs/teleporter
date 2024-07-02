@@ -110,6 +110,7 @@ contract ValidatorSetSig is ReentrancyGuard {
 
         nonces[validatorSetSigMessage.targetContractAddress] = validatorSetSigMessage.nonce;
 
+        // We don't need to protect against return bomb vectors below here since the caller is expected to have full control over the contract called.
         (bool success,) =
         // solhint-disable-next-line avoid-low-level-calls
          validatorSetSigMessage.targetContractAddress.call(validatorSetSigMessage.payload);
