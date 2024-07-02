@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/ava-labs/avalanchego/api/info"
+	"github.com/ava-labs/avalanchego/config"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
 	"github.com/ava-labs/avalanchego/utils/constants"
@@ -86,17 +87,20 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	_, err = os.Stat(warpGenesisFile)
 	Expect(err).Should(BeNil())
 
+	subnetChainConfig := subnetEvmTestUtils.DefaultChainConfig
+	subnetChainConfig[config.ProposerVMUseCurrentHeightKey] = true
+
 	subnetA := subnetEvmTestUtils.NewTmpnetSubnet(
 		"A",
 		warpGenesisFile,
-		subnetEvmTestUtils.DefaultChainConfig,
+		subnetChainConfig,
 		subnetANodes...,
 	)
 
 	subnetB := subnetEvmTestUtils.NewTmpnetSubnet(
 		"B",
 		warpGenesisFile,
-		subnetEvmTestUtils.DefaultChainConfig,
+		subnetChainConfig,
 		subnetBNodes...,
 	)
 
