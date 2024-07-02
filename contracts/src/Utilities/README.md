@@ -8,7 +8,7 @@ The contract leverages off-chain [Avalanche Warp Messages](https://docs.avax.net
 
 Note:
 1. The blockchain validating the message may or may not be the same chain where the target contract and the `ValidatorSetSig` contract are deployed.
-2. [Off-Chain Warp messages](https://github.com/ava-labs/subnet-evm/issues/729) are described in the linked issue. They are Warp messages that validators can include in their config to indicate that they are willing to sign them even though they are not a result of on-chain activity.
+2. [Off-Chain Warp messages](https://github.com/ava-labs/subnet-evm/issues/729) are Warp messages that validators can include in their config to indicate that they are willing to sign them even though they are not a result of on-chain activity.
 
 #### Creating a valid Off-chain Warp Message for interaction with the ValidatorSetSig Contract
 
