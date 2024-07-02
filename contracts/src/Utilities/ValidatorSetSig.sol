@@ -88,7 +88,7 @@ contract ValidatorSetSig is ReentrancyGuard {
     }
 
     function executeCall(uint32 messageIndex) external nonReentrant {
-        // Get the WarpMessage from the WarpMessenger pre-compile and verify that it is valid
+        // Get the WarpMessage from the WarpMessenger precompile and verify that it is valid
         (WarpMessage memory message, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         require(valid, "ValidatorSetSig: invalid warp message");
