@@ -115,7 +115,7 @@ contract ValidatorSetSig is ReentrancyGuard {
         // solhint-disable-next-line avoid-low-level-calls
          validatorSetSigMessage.targetContractAddress.call(validatorSetSigMessage.payload);
 
-        // Use require to revert the transaction if the call fails. This is to prevent consuming the nonce if the call fails due to OOG
+        // Use require to revert the transaction if the call fails. This is to prevent consuming the nonce if the call fails due to out of gas
         // and requiring re-signing of the message with a new nonce.
         require(success, "ValidatorSetSig: call failed");
         emit Delivered(validatorSetSigMessage.targetContractAddress, validatorSetSigMessage.nonce);
