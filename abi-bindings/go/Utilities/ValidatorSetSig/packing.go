@@ -18,9 +18,9 @@ func init() {
 	// so we must manually keep this up-to-date with the struct defined in the contract.
 	var err error
 	validatorSetSigMessageType, err = abi.NewType("tuple", "struct Overloader.F", []abi.ArgumentMarshaling{
+		{Name: "targetBlockchainID", Type: "bytes32"},
 		{Name: "validatorSetSigAddress", Type: "address"},
 		{Name: "targetContractAddress", Type: "address"},
-		{Name: "targetBlockchainID", Type: "bytes32"},
 		{Name: "nonce", Type: "uint256"},
 		{Name: "payload", Type: "bytes"},
 	})
