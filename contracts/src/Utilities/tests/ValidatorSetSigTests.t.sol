@@ -118,8 +118,8 @@ contract ValidatorSetSigTest is Test {
     function testNonces() public {
         WarpMessage memory warpMessage = _getValidWarpMessage();
         ValidatorSetSigMessage memory validatorSetSigMessage = _getValidValidatorSetSigMessage();
-        // Set nonce to invalid value, since first message should have nonce 1
-        validatorSetSigMessage.nonce = 0;
+        // Set nonce to invalid value, since first message should have nonce 0
+        validatorSetSigMessage.nonce = 1;
         warpMessage.payload = abi.encode(validatorSetSigMessage);
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -139,8 +139,8 @@ contract ValidatorSetSigTest is Test {
         vm.expectRevert("ValidatorSetSig: invalid nonce");
         validatorSetSig.executeCall(0);
 
-        // Set nonce to 1 which is valid
-        validatorSetSigMessage.nonce = 1;
+        // Set nonce to 0 which is valid
+        validatorSetSigMessage.nonce = 0;
         warpMessage.payload = abi.encode(validatorSetSigMessage);
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -151,8 +151,8 @@ contract ValidatorSetSigTest is Test {
         validatorSetSig.executeCall(0);
         assertEq(validatorSetSig.nonces(_DEFAULT_TARGET_ADDRESS), 1);
 
-        // Set nonce to 2 which is valid
-        validatorSetSigMessage.nonce = 2;
+        // Set nonce to 1 which is valid
+        validatorSetSigMessage.nonce = 1;
         warpMessage.payload = abi.encode(validatorSetSigMessage);
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -164,7 +164,7 @@ contract ValidatorSetSigTest is Test {
 
         // finally test different target address
         validatorSetSigMessage.targetContractAddress = _OTHER_TARGET_ADDRESS;
-        validatorSetSigMessage.nonce = 1;
+        validatorSetSigMessage.nonce = 0;
         warpMessage.payload = abi.encode(validatorSetSigMessage);
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -228,10 +228,10 @@ contract ValidatorSetSigTest is Test {
         returns (ValidatorSetSigMessage memory)
     {
         return ValidatorSetSigMessage({
+            targetBlockchainID: _MOCK_BLOCKCHAIN_ID,
             validatorSetSigAddress: address(validatorSetSig),
             targetContractAddress: _DEFAULT_TARGET_ADDRESS,
-            targetBlockchainID: _MOCK_BLOCKCHAIN_ID,
-            nonce: 1,
+            nonce: 0,
             payload: ""
         });
     }

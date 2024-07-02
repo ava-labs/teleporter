@@ -19,16 +19,16 @@ import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/Reentrancy
 /**
  * @dev Message format for the WarpMessage payload to be forwarded to the target contract
  *
+ * targetBlockchainID: Blockchain ID of the chain the message is intended for
  * validatorSetSigAddress: Address of the ValidatorSetSig contract this message is intended for
  * targetContractAddress: Address of the contract that the payload should be forwarded to
- * targetBlockchainID: Blockchain ID of the chain the message is intended for
  * nonce: Unique nonce for the target contract address to provide replay protection
  * payload: Payload to be forwarded to the target contract. Usually ABI encoded function call with parameters.
  */
 struct ValidatorSetSigMessage {
+    bytes32 targetBlockchainID;
     address validatorSetSigAddress;
     address targetContractAddress;
-    bytes32 targetBlockchainID;
     uint256 nonce;
     bytes payload;
 }
@@ -108,7 +108,7 @@ contract ValidatorSetSig is ReentrancyGuard {
 
         validateMessage(validatorSetSigMessage);
 
-        nonces[validatorSetSigMessage.targetContractAddress] = validatorSetSigMessage.nonce;
+        nonces[validatorSetSigMessage.targetContractAddress] = validatorSetSigMessage.nonce + 1;
 
         // We don't need to protect against return bomb vectors below here since the caller is expected to have full control over the contract called.
         (bool success,) =
@@ -123,16 +123,15 @@ contract ValidatorSetSig is ReentrancyGuard {
 
     function validateMessage(ValidatorSetSigMessage memory message) public view {
         require(
-            message.validatorSetSigAddress == address(this),
-            "ValidatorSetSig: invalid validatorSetSigAddress"
-        );
-        require(
             message.targetBlockchainID == blockchainID,
             "ValidatorSetSig: invalid targetBlockchainID"
         );
         require(
-            nonces[message.targetContractAddress] + 1 == message.nonce,
-            "ValidatorSetSig: invalid nonce"
+            message.validatorSetSigAddress == address(this),
+            "ValidatorSetSig: invalid validatorSetSigAddress"
+        );
+        require(
+            nonces[message.targetContractAddress] == message.nonce, "ValidatorSetSig: invalid nonce"
         );
     }
 }
