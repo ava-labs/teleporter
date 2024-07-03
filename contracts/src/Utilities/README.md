@@ -4,7 +4,7 @@
 
 This contract provides an alternative to traditional multi-signature contracts where instead of requiring signatures from `K` of `N` pre-specified signers, an aggregate signature is required from a quorum of the current validators for a given blockchain.
 
-The contract leverages off-chain [Avalanche Warp Messages](https://docs.avax.network/build/cross-chain/awm/overview), which are manually approved for signing  by a chain's validators. It requires these messages to have the source address set to the zero address to enforce this.
+The contract leverages off-chain [Avalanche Warp Messages](https://docs.avax.network/build/cross-chain/awm/overview), which are manually approved for signing by a chain's validators. It requires these messages to have the source address set to the zero address to enforce this.
 
 Note:
 1. The blockchain validating the message may or may not be the same chain where the target contract and the `ValidatorSetSig` contract are deployed.
