@@ -402,7 +402,7 @@ func AddProtocolVersionAndWaitForAcceptance(
 }
 
 // Returns Receipt for the transaction unlike TeleporterRegistry version since this is a non-teleporter case
-// and we don't want to add the  ValidatorSetSig ABI to the subnetInfo
+// and we don't want to add the ValidatorSetSig ABI to the subnetInfo
 func ExecuteValidatorSetSigCallAndVerify(
 	ctx context.Context,
 	network interfaces.Network,
@@ -1066,7 +1066,8 @@ func InitOffChainMessageChainConfigValidatorSetSig(
 	networkID uint32,
 	subnet interfaces.SubnetTestInfo,
 	validatorSetSigAddress common.Address,
-	validatorSetSigMessages []validatorsetsig.ValidatorSetSigMessage) ([]avalancheWarp.UnsignedMessage, string) {
+	validatorSetSigMessages []validatorsetsig.ValidatorSetSigMessage,
+) ([]avalancheWarp.UnsignedMessage, string) {
 	unsignedMessages := []avalancheWarp.UnsignedMessage{}
 	for _, message := range validatorSetSigMessages {
 		unsignedMessage := CreateOffChainValidatorSetSigMessage(networkID, subnet, message)

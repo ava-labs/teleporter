@@ -17,21 +17,21 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	// ************************************************************************************************
 	// Setup
 	// ************************************************************************************************
-	// Deploy ValidatorSetSig expecting signatures from subetB instances to both subnets
-	// Deploy exampleERC20 instance to  both subnets
+	// Deploy ValidatorSetSig expecting signatures from subnetB instances to both subnets
+	// Deploy exampleERC20 instance to both subnets
 	// Construct ValidatorSetSig message with mock ERC20 as the target contract
 	// Create off-chain Warp messages using the ValidatorSetSig message to be signed by the subnetB
 	// ************************************************************************************************
 	// Test Case 1: validatorChain (subnetB) != targetChain (subnetA)
 	// ************************************************************************************************
-	// Send the off chain message to subnetA instance of ValidatorSetSig and confirm it is accepted.
+	// Send the off-chain message to subnetA instance of ValidatorSetSig and confirm it is accepted.
 	// Confirm the event is emitted
 	// Retry the same message and confirm it fails
 	// Send a new message with incremented nonce and confirm it is accepted.
 	// ************************************************************************************************
 	// Test Case 2: validatorChain (subnetB) == targetChain (subnetB)
 	// ************************************************************************************************
-	// Send a new message to subnetB instance of ValidatorSetSig and  and confirm it is accepted
+	// Send a new message to subnetB instance of ValidatorSetSig and confirm it is accepted
 
 	// ************************************************************************************************
 	// Setup
@@ -118,15 +118,16 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 		Payload:                callData,
 	}
 
-	// Create chain config file with off chain validatorsetsig message
+	// Create chain config file with off-chain validatorsetsig message
 	networkID := network.GetNetworkID()
 	offchainMessages, warpEnabledChainConfigWithMsg := utils.InitOffChainMessageChainConfigValidatorSetSig(
 		networkID,
 		subnetB,
 		validatorSetSigContractAddress,
-		[]validatorsetsig.ValidatorSetSigMessage{vssMessage1, vssMessage2, vssMessage3})
+		[]validatorsetsig.ValidatorSetSigMessage{vssMessage1, vssMessage2, vssMessage3},
+	)
 
-	// Create chain config with off chain messages
+	// Create chain config with off-chain messages
 	chainConfigs := make(map[string]string)
 	utils.SetChainConfig(chainConfigs, subnetB, warpEnabledChainConfigWithMsg)
 
