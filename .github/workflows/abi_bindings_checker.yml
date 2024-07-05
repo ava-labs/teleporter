@@ -19,15 +19,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Set Go version
-        run: |
-          source ./scripts/versions.sh
-          echo GO_VERSION=$GO_VERSION >> $GITHUB_ENV
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: 'go.mod'
 
       - name: Install Foundry
         run: ./scripts/install_foundry.sh
