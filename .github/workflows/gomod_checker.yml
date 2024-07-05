@@ -18,9 +18,6 @@ jobs:
         with:
           submodules: recursive
 
-      - run: |
-          source ./scripts/versions.sh
-
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
