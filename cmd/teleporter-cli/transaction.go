@@ -74,11 +74,8 @@ func printTeleporterLogs(cmd *cobra.Command, log *types.Log) {
 	out, err := teleportermessenger.FilterTeleporterEvents(log.Topics, log.Data, event.Name)
 	cobra.CheckErr(err)
 
-	outJson, err := json.MarshalIndent(out, "", "  ")
-	cobra.CheckErr(err)
-
 	cmd.Println(event.Name + " Log:")
-	cmd.Println(string(outJson) + "\n")
+	cmd.Println(out.String() + "\n")
 }
 
 func printWarpLogs(cmd *cobra.Command, log *types.Log) {
@@ -102,11 +99,8 @@ func printWarpLogs(cmd *cobra.Command, log *types.Log) {
 	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpPayload.Payload)
 	cobra.CheckErr(err)
 
-	teleporterMessageJson, err := json.MarshalIndent(teleporterMessage, "", "  ")
-	cobra.CheckErr(err)
-
 	cmd.Println("Teleporter Message:")
-	cmd.Println(string(teleporterMessageJson))
+	cmd.Println(teleporterMessage.String())
 }
 
 func traceTransaction(cmd *cobra.Command, txHash common.Hash) {

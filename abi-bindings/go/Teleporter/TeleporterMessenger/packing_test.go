@@ -34,27 +34,6 @@ func createTestTeleporterMessage(messageNonce *big.Int) TeleporterMessage {
 	return m
 }
 
-func createTestReadableTeleporterMessage(messageNonce *big.Int) ReadableTeleporterMessage {
-	m := ReadableTeleporterMessage{
-		MessageNonce:            messageNonce,
-		OriginSenderAddress:     common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		DestinationBlockchainID: ids.ID{1, 2, 3, 4},
-		DestinationAddress:      common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		RequiredGasLimit:        big.NewInt(2),
-		AllowedRelayerAddresses: []common.Address{
-			common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-		},
-		Receipts: []TeleporterMessageReceipt{
-			{
-				ReceivedMessageNonce: big.NewInt(1),
-				RelayerRewardAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
-			},
-		},
-		Message: []byte{1, 2, 3, 4},
-	}
-	return m
-}
-
 func TestPackUnpackTeleporterMessage(t *testing.T) {
 	message := createTestTeleporterMessage(big.NewInt(4))
 
@@ -86,7 +65,7 @@ func TestUnpackEvent(t *testing.T) {
 	mockBlockchainID := ids.ID{1, 2, 3, 4}
 	mockMessageNonce := big.NewInt(5)
 	mockMessageID := common.Hash{9, 10, 11, 12}
-	message := createTestReadableTeleporterMessage(mockMessageNonce)
+	message := createTestTeleporterMessage(mockMessageNonce)
 	feeInfo := TeleporterFeeInfo{
 		FeeTokenAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 		Amount:          big.NewInt(1),
@@ -111,8 +90,8 @@ func TestUnpackEvent(t *testing.T) {
 					message,
 					feeInfo,
 				},
-				out: new(ReadableTeleporterMessengerSendCrossChainMessage),
-				expected: &ReadableTeleporterMessengerSendCrossChainMessage{
+				out: new(TeleporterMessengerSendCrossChainMessage),
+				expected: &TeleporterMessengerSendCrossChainMessage{
 					DestinationBlockchainID: mockBlockchainID,
 					MessageID:               mockMessageID,
 					Message:                 message,
@@ -128,8 +107,8 @@ func TestUnpackEvent(t *testing.T) {
 					deliverer,
 					message,
 				},
-				out: new(ReadableTeleporterMessengerReceiveCrossChainMessage),
-				expected: &ReadableTeleporterMessengerReceiveCrossChainMessage{
+				out: new(TeleporterMessengerReceiveCrossChainMessage),
+				expected: &TeleporterMessengerReceiveCrossChainMessage{
 					SourceBlockchainID: mockBlockchainID,
 					MessageID:          mockMessageID,
 					Deliverer:          deliverer,
@@ -143,8 +122,8 @@ func TestUnpackEvent(t *testing.T) {
 					mockMessageID,
 					mockBlockchainID,
 				},
-				out: new(ReadableTeleporterMessengerMessageExecuted),
-				expected: &ReadableTeleporterMessengerMessageExecuted{
+				out: new(TeleporterMessengerMessageExecuted),
+				expected: &TeleporterMessengerMessageExecuted{
 					MessageID:          mockMessageID,
 					SourceBlockchainID: mockBlockchainID,
 				},
