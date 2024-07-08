@@ -51,7 +51,7 @@ contract TestMessenger is ReentrancyGuardUpgradeable, TeleporterOwnerUpgradeable
         bytes32 indexed sourceBlockchainID, address indexed originSenderAddress, string message
     );
 
-    constructor(address teleporterRegistryAddress, address teleporterManager) {
+    constructor(address teleporterRegistryAddress, address teleporterManager) initializer {
         __ReentrancyGuard_init();
         __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
     }
