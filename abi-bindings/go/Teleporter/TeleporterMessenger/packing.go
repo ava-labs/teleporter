@@ -88,7 +88,8 @@ func PackRetryMessageExecution(sourceBlockchainID ids.ID, message TeleporterMess
 	return abi.Pack("retryMessageExecution", sourceBlockchainID, message)
 }
 
-// PackReceiveCrossChainMessage packs a ReceiveCrossChainMessageInput to form a call to the receiveCrossChainMessage function
+// PackReceiveCrossChainMessage packs a ReceiveCrossChainMessageInput to form
+// a call to the receiveCrossChainMessage function
 func PackReceiveCrossChainMessage(messageIndex uint32, relayerRewardAddress common.Address) ([]byte, error) {
 	abi, err := TeleporterMessengerMetaData.GetAbi()
 	if err != nil {
