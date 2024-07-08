@@ -10,10 +10,12 @@ import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
-    constructor(
+    function initialize(
         address teleporterRegistryAddress,
         address teleporterManager
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {}
+    ) public initializer {
+        __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+    }
 
     function checkTeleporterUpgradeAccess() external view {
         _checkTeleporterUpgradeAccess();
@@ -33,8 +35,8 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
     function setUp() public virtual override {
         TeleporterUpgradeableTest.setUp();
-        ownerApp =
-            new ExampleOwnerUpgradeableApp(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
+        ownerApp = new ExampleOwnerUpgradeableApp();
+        ownerApp.initialize(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
     }
 
     function testOwnerUpdateMinTeleporterVersion() public {
@@ -144,8 +146,8 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
     function testInitalOwner() public {
         // Create a new Ownable app with a passed in teleporterManager
-        ExampleOwnerUpgradeableApp newOwnerApp =
-            new ExampleOwnerUpgradeableApp(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
+        ExampleOwnerUpgradeableApp newOwnerApp = new ExampleOwnerUpgradeableApp();
+        newOwnerApp.initialize(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
 
         // Check that the teleporterManager is set correctly
         assertEq(newOwnerApp.owner(), DEFAULT_OWNER_ADDRESS);

@@ -14,6 +14,8 @@ import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/security/ReentrancyGuardUpgradeable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable@4.9.6/proxy/utils/Initializable.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
@@ -26,6 +28,7 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 abstract contract TeleporterUpgradeable is
+    Initializable,
     ContextUpgradeable,
     ITeleporterReceiver,
     ReentrancyGuardUpgradeable
@@ -66,6 +69,8 @@ abstract contract TeleporterUpgradeable is
      * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
      * instance and setting `_minTeleporterVersion`.
      */
+    // solhint-disable ordering
+    // solhint-disable-next-line func-name-mixedcase
     function __TeleporterUpgradeable_init(address teleporterRegistryAddress)
         internal
         onlyInitializing
@@ -187,6 +192,7 @@ abstract contract TeleporterUpgradeable is
     {
         return _pausedTeleporterAddresses[teleporterAddress];
     }
+    // solhint-enable ordering
 
     /**
      * @dev Sets the minimum Teleporter version allowed for delivering Teleporter messages.

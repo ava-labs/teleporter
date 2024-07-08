@@ -16,6 +16,7 @@ import {OwnableUpgradeable} from
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
 abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, OwnableUpgradeable {
+    // solhint-disable-next-line func-name-mixedcase
     function __TeleporterOwnerUpgradeable_init(
         address teleporterRegistryAddress,
         address initialOwner

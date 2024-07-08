@@ -52,7 +52,8 @@ contract SendTeleporterMessageTest is TeleporterUpgradeableTest {
         );
 
         // Create a new app with the new Teleporter registry
-        ExampleUpgradeableApp app = new ExampleUpgradeableApp(address(teleporterRegistry));
+        ExampleUpgradeableApp app = new ExampleUpgradeableApp();
+        app.initialize(address(teleporterRegistry));
 
         // Check that the app reverts when trying to send a message with no registered Teleporter
         vm.expectRevert(_formatRegistryErrorMessage("zero version"));
