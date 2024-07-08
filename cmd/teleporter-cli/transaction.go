@@ -34,7 +34,7 @@ var transactionCmd = &cobra.Command{
 	Long: `Given a transaction this command looks through the transaction's receipt
 for Teleporter and Warp log events. When corresponding log events are found,
 the command parses to log event fields to a more human readable format. Optionally pass -d 
-or --debug for extra transaction output. This may require debug enpoints enable on your RPC node`,
+or --debug for extra transaction output. This may require enabling debug enpoints on your RPC node`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := common.HexToHash(args[0])
