@@ -196,14 +196,6 @@ func DeployNativeTokenRemote(
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	// proxyAddress, _, nativeTokenRemote := DeployTransparentUpgradeableProxy(
-	// 	ctx,
-	// 	subnet,
-	// 	senderKey,
-	// 	implAddress,
-	// 	nativetokenremote.NewNativeTokenRemote,
-	// )
-
 	tx, err = nativeTokenRemote.Initialize(
 		opts,
 		nativetokenremote.TokenRemoteSettings{
@@ -276,7 +268,8 @@ func DeployWrappedNativeToken(
 
 	// Deploy mock WAVAX contract
 	address, tx, token, err := wrappednativetoken.DeployWrappedNativeToken(opts, subnet.RPCClient)
-	Expect(err).Should(BeNil()) // Wait for the transaction to be mined
+	Expect(err).Should(BeNil())
+	// Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	tx, err = token.Initialize(

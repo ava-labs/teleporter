@@ -134,11 +134,6 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 
 	// Upgrade the TransparentUpgradeableProxy contract to use the new logic contract
-	opts, err = bind.NewKeyedTransactorWithChainID(
-		fundedKey,
-		cChainInfo.EVMChainID,
-	)
-	Expect(err).Should(BeNil())
 	tx, err = proxyAdmin.Upgrade(opts, erc20TokenHomeAddress, newLogic)
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
