@@ -19,6 +19,7 @@ import (
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/tests/TestMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
+	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/Utilities/ValidatorSetSig"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 
@@ -333,6 +334,36 @@ func CreateAddProtocolVersionTransaction(
 	return SignTransaction(destinationTx, senderKey, subnetInfo.EVMChainID)
 }
 
+func CreateExecuteCallPredicateTransaction(
+	ctx context.Context,
+	signedMessage *avalancheWarp.Message,
+	validatorSetSigAddress common.Address,
+	senderKey *ecdsa.PrivateKey,
+	subnetInfo interfaces.SubnetTestInfo,
+) *types.Transaction {
+	log.Info("Constructing executeCall transaction for the destination chain")
+
+	callData, err := validatorsetsig.PackExecuteCall(0)
+	Expect(err).Should(BeNil())
+
+	gasFeeCap, gasTipCap, nonce := CalculateTxParams(ctx, subnetInfo, PrivateKeyToAddress(senderKey))
+
+	destinationTx := predicateutils.NewPredicateTx(
+		subnetInfo.EVMChainID,
+		nonce,
+		&validatorSetSigAddress,
+		500_000,
+		gasFeeCap,
+		gasTipCap,
+		big.NewInt(0),
+		callData,
+		types.AccessList{},
+		warp.ContractAddress,
+		signedMessage.Bytes(),
+	)
+	return SignTransaction(destinationTx, senderKey, subnetInfo.EVMChainID)
+}
+
 func AddProtocolVersionAndWaitForAcceptance(
 	ctx context.Context,
 	network interfaces.Network,
@@ -368,6 +399,36 @@ func AddProtocolVersionAndWaitForAcceptance(
 	Expect(err).Should(BeNil())
 	Expect(versionUpdatedEvent.OldVersion.Cmp(curLatestVersion)).Should(Equal(0))
 	Expect(versionUpdatedEvent.NewVersion.Cmp(expectedLatestVersion)).Should(Equal(0))
+}
+
+// Returns Receipt for the transaction unlike TeleporterRegistry version since this is a non-teleporter case
+// and we don't want to add the ValidatorSetSig ABI to the subnetInfo
+func ExecuteValidatorSetSigCallAndVerify(
+	ctx context.Context,
+	network interfaces.Network,
+	source interfaces.SubnetTestInfo,
+	destination interfaces.SubnetTestInfo,
+	validatorSetSigAddress common.Address,
+	senderKey *ecdsa.PrivateKey,
+	unsignedMessage *avalancheWarp.UnsignedMessage,
+	expectSuccess bool,
+) *types.Receipt {
+	signedWarpMsg := network.GetSignedMessage(ctx, source, destination, unsignedMessage.ID())
+	log.Info("Got signed warp message", "messageID", signedWarpMsg.ID())
+
+	signedPredicateTx := CreateExecuteCallPredicateTransaction(
+		ctx,
+		signedWarpMsg,
+		validatorSetSigAddress,
+		senderKey,
+		destination,
+	)
+
+	// Wait for tx to be accepted and verify events emitted
+	if expectSuccess {
+		return SendTransactionAndWaitForSuccess(ctx, destination, signedPredicateTx)
+	}
+	return SendTransactionAndWaitForFailure(ctx, destination, signedPredicateTx)
 }
 
 func CreateNativeTransferTransaction(
@@ -854,6 +915,27 @@ func DeployTestMessenger(
 	return address, exampleMessenger
 }
 
+func DeployValidatorSetSig(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	contractSubnet interfaces.SubnetTestInfo,
+	validatorSubnet interfaces.SubnetTestInfo,
+) (common.Address, *validatorsetsig.ValidatorSetSig) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, contractSubnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, validatorSetSig, err := validatorsetsig.DeployValidatorSetSig(
+		opts,
+		contractSubnet.RPCClient,
+		validatorSubnet.BlockchainID,
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	WaitForTransactionSuccess(ctx, contractSubnet, tx.Hash())
+
+	return address, validatorSetSig
+}
+
 func GetTwoSubnets(network interfaces.Network) (
 	interfaces.SubnetTestInfo,
 	interfaces.SubnetTestInfo,
@@ -951,20 +1033,11 @@ func InitOffChainMessageChainConfig(
 		Version:         big.NewInt(int64(version)),
 		ProtocolAddress: teleporterAddress,
 	})
-	offChainMessage := hexutil.Encode(unsignedMessage.Bytes())
 	log.Info("Adding off-chain message to Warp chain config",
 		"messageID", unsignedMessage.ID(),
 		"blockchainID", subnet.BlockchainID.String())
 
-	return unsignedMessage, fmt.Sprintf(`{
-    "warp-api-enabled": true, 
-    "warp-off-chain-messages": ["%s"],
-	"log-level": "debug",
-    "eth-apis":["eth","eth-filter","net","admin","web3",
-                "internal-eth","internal-blockchain","internal-transaction",
-                "internal-debug","internal-account","internal-personal",
-                "debug","debug-tracer","debug-file-tracer","debug-handler"]
-	}`, offChainMessage)
+	return unsignedMessage, GetChainConfigWithOffChainMessages([]avalancheWarp.UnsignedMessage{*unsignedMessage})
 }
 
 // Creates an off-chain Warp message that registers a Teleporter protocol version with TeleporterRegistry
@@ -975,6 +1048,46 @@ func CreateOffChainRegistryMessage(
 ) *avalancheWarp.UnsignedMessage {
 	sourceAddress := []byte{}
 	payloadBytes, err := teleporterregistry.PackTeleporterRegistryWarpPayload(entry, subnet.TeleporterRegistryAddress)
+	Expect(err).Should(BeNil())
+
+	addressedPayload, err := payload.NewAddressedCall(sourceAddress, payloadBytes)
+	Expect(err).Should(BeNil())
+
+	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
+		networkID,
+		subnet.BlockchainID,
+		addressedPayload.Bytes())
+	Expect(err).Should(BeNil())
+
+	return unsignedMessage
+}
+
+func InitOffChainMessageChainConfigValidatorSetSig(
+	networkID uint32,
+	subnet interfaces.SubnetTestInfo,
+	validatorSetSigAddress common.Address,
+	validatorSetSigMessages []validatorsetsig.ValidatorSetSigMessage,
+) ([]avalancheWarp.UnsignedMessage, string) {
+	unsignedMessages := []avalancheWarp.UnsignedMessage{}
+	for _, message := range validatorSetSigMessages {
+		unsignedMessage := CreateOffChainValidatorSetSigMessage(networkID, subnet, message)
+		unsignedMessages = append(unsignedMessages, *unsignedMessage)
+		log.Info("Adding validatorSetSig off-chain message to Warp chain config",
+			"messageID", unsignedMessage.ID(),
+			"blockchainID", subnet.BlockchainID.String())
+	}
+	return unsignedMessages, GetChainConfigWithOffChainMessages(unsignedMessages)
+}
+
+// Creates an off-chain Warp message pointing to a function, contract and payload to be executed
+// if the validator set signs this message
+func CreateOffChainValidatorSetSigMessage(
+	networkID uint32,
+	subnet interfaces.SubnetTestInfo,
+	message validatorsetsig.ValidatorSetSigMessage,
+) *avalancheWarp.UnsignedMessage {
+	sourceAddress := []byte{}
+	payloadBytes, err := validatorsetsig.PackValidatorSetSigWarpPayload(message)
 	Expect(err).Should(BeNil())
 
 	addressedPayload, err := payload.NewAddressedCall(sourceAddress, payloadBytes)
@@ -1034,4 +1147,31 @@ func ParseTeleporterMessage(unsignedMessage avalancheWarp.UnsignedMessage) *tele
 	Expect(err).Should(BeNil())
 
 	return teleporterMessage
+}
+
+func GetChainConfigWithOffChainMessages(offChainMessages []avalancheWarp.UnsignedMessage) string {
+	// Convert messages to hex
+	hexOffChainMessages := []string{}
+	for _, message := range offChainMessages {
+		hexOffChainMessages = append(hexOffChainMessages, hexutil.Encode(message.Bytes()))
+	}
+
+	// Create a map to represent the JSON structure
+	jsonMap := map[string]interface{}{
+		"warp-api-enabled":        true,
+		"warp-off-chain-messages": hexOffChainMessages,
+		"log-level":               "debug",
+		"eth-apis": []string{
+			"eth", "eth-filter", "net", "admin", "web3",
+			"internal-eth", "internal-blockchain", "internal-transaction",
+			"internal-debug", "internal-account", "internal-personal",
+			"debug", "debug-tracer", "debug-file-tracer", "debug-handler",
+		},
+	}
+
+	// Marshal the map to JSON
+	offChainMessageJson, err := json.Marshal(jsonMap)
+	Expect(err).Should(BeNil())
+
+	return string(offChainMessageJson)
 }
