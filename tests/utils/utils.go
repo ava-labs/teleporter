@@ -1130,12 +1130,14 @@ func DeployNewTeleporterVersion(
 	return teleporterContractAddress
 }
 
+type ChainConfigMap map[string]string
+
 // Sets the chain config in customChainConfigs for the specified subnet
-func SetChainConfig(customChainConfigs map[string]string, subnet interfaces.SubnetTestInfo, chainConfig string) {
+func (m ChainConfigMap) Add(subnet interfaces.SubnetTestInfo, chainConfig string) {
 	if subnet.SubnetID == constants.PrimaryNetworkID {
-		customChainConfigs[CChainPathSpecifier] = chainConfig
+		m[CChainPathSpecifier] = chainConfig
 	} else {
-		customChainConfigs[subnet.BlockchainID.String()] = chainConfig
+		m[subnet.BlockchainID.String()] = chainConfig
 	}
 }
 

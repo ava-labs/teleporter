@@ -127,8 +127,8 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 	)
 
 	// Create chain config with off-chain messages
-	chainConfigs := make(map[string]string)
-	utils.SetChainConfig(chainConfigs, subnetB, warpEnabledChainConfigWithMsg)
+	chainConfigs := make(utils.ChainConfigMap)
+	chainConfigs.Add(subnetB, warpEnabledChainConfigWithMsg)
 
 	// Restart nodes with new chain config
 	network.SetChainConfigs(chainConfigs)

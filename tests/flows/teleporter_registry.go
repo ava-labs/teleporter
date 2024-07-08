@@ -69,10 +69,10 @@ func TeleporterRegistry(network interfaces.LocalNetwork) {
 	)
 
 	// Create chain config with off chain messages
-	chainConfigs := make(map[string]string)
-	utils.SetChainConfig(chainConfigs, cChainInfo, warpEnabledChainConfigC)
-	utils.SetChainConfig(chainConfigs, subnetBInfo, warpEnabledChainConfigB)
-	utils.SetChainConfig(chainConfigs, subnetAInfo, warpEnabledChainConfigA)
+	chainConfigs := make(utils.ChainConfigMap)
+	chainConfigs.Add(cChainInfo, warpEnabledChainConfigC)
+	chainConfigs.Add(subnetBInfo, warpEnabledChainConfigB)
+	chainConfigs.Add(subnetAInfo, warpEnabledChainConfigA)
 
 	// Restart nodes with new chain config
 	nodeIDs := network.GetAllNodeIDs()
