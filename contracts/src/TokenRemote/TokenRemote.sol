@@ -117,7 +117,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     /**
      * @notice Fixed gas cost for registering the remote contract on the home contract.
      */
-    uint256 public constant REGISTER_REMOTE_REQUIRED_GAS = 115_000;
+    uint256 public constant REGISTER_REMOTE_REQUIRED_GAS = 130_000;
 
     /**
      * @notice Initializes this token TokenRemote instance.
@@ -426,7 +426,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
                     secondaryGasLimit: input.requiredGasLimit,
                     multiHopFallback: input.multiHopFallback
                 })
-            )
+                )
         });
 
         bytes32 messageID = _sendTeleporterMessage(
@@ -476,7 +476,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
                     recipientGasLimit: input.recipientGasLimit,
                     fallbackRecipient: input.fallbackRecipient
                 })
-            )
+                )
         });
 
         // Send message to the token TokenHome instance.
@@ -532,7 +532,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
                     secondaryRequiredGasLimit: input.requiredGasLimit,
                     secondaryFee: input.secondaryFee
                 })
-            )
+                )
         });
 
         // The required gas limit for the first message sent back to the TokenHome instance
