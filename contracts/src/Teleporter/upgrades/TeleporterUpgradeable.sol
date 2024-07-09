@@ -35,7 +35,7 @@ abstract contract TeleporterUpgradeable is
 {
     using SafeERC20 for IERC20;
 
-    /// @custom:storage-location erc7201:teleporter.storage.teleporter-upgradeable
+    /// @custom:storage-location erc7201:teleporter.storage.TeleporterUpgradeable
     struct TeleporterUpgradeableStorage {
         // The Teleporter registry contract manages different Teleporter contract versions.
         TeleporterRegistry _teleporterRegistry;
@@ -50,9 +50,9 @@ abstract contract TeleporterUpgradeable is
         uint256 _minTeleporterVersion;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("teleporter.storage.teleporter-upgradeable")) - 1)) & ~bytes32(uint256(0xff));
+    // keccak256(abi.encode(uint256(keccak256("teleporter.storage.TeleporterUpgradeable")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant TeleporterUpgradeableStorageLocation =
-        0x0e99831dd45acc7d77dfc3672423f52eacc50ed00ab167cef8c9431c1e242200;
+        0xc73953669262a2bc0a821c7b2e84a2e293b7a32ca3f8016446f20efff9161600;
 
     function _getStorage() private pure returns (TeleporterUpgradeableStorage storage $) {
         assembly {
