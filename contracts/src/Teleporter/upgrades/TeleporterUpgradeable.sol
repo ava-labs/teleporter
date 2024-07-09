@@ -35,18 +35,30 @@ abstract contract TeleporterUpgradeable is
 {
     using SafeERC20 for IERC20;
 
-    // The Teleporter registry contract manages different Teleporter contract versions.
-    TeleporterRegistry public teleporterRegistry;
-    /**
-     * @dev A mapping that keeps track of paused Teleporter addresses.
-     */
-    mapping(address teleporterAddress => bool paused) private _pausedTeleporterAddresses;
+    /// @custom:storage-location erc7201:teleporter.storage.teleporter-upgradeable
+    struct TeleporterUpgradeableStorage {
+        // The Teleporter registry contract manages different Teleporter contract versions.
+        TeleporterRegistry _teleporterRegistry;
+        /**
+         * @dev A mapping that keeps track of paused Teleporter addresses.
+         */
+        mapping(address teleporterAddress => bool paused) _pausedTeleporterAddresses;
+        /**
+         * @dev The minimum required Teleporter version that the contract is allowed
+         * to receive messages from. Should only be updated by `_setMinTeleporterVersion`
+         */
+        uint256 _minTeleporterVersion;
+    }
 
-    /**
-     * @dev The minimum required Teleporter version that the contract is allowed
-     * to receive messages from. Should only be updated by `_setMinTeleporterVersion`
-     */
-    uint256 private _minTeleporterVersion;
+    // keccak256(abi.encode(uint256(keccak256("teleporter.storage.teleporter-upgradeable")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant TeleporterUpgradeableStorageLocation =
+        0x0e99831dd45acc7d77dfc3672423f52eacc50ed00ab167cef8c9431c1e242200;
+
+    function _getStorage() private pure returns (TeleporterUpgradeableStorage storage $) {
+        assembly {
+            $.slot := TeleporterUpgradeableStorageLocation
+        }
+    }
 
     /**
      * @dev Emitted when `minTeleporterVersion` is updated.
@@ -75,14 +87,23 @@ abstract contract TeleporterUpgradeable is
         internal
         onlyInitializing
     {
-        __ReentrancyGuard_init();
+        __ReentrancyGuard_init_unchained();
+        __TeleporterUpgradeable_init_unchained(teleporterRegistryAddress);
+    }
+
+    function __TeleporterUpgradeable_init_unchained(address teleporterRegistryAddress)
+        internal
+        onlyInitializing
+    {
         require(
             teleporterRegistryAddress != address(0),
             "TeleporterUpgradeable: zero teleporter registry address"
         );
 
-        teleporterRegistry = TeleporterRegistry(teleporterRegistryAddress);
-        _minTeleporterVersion = teleporterRegistry.latestVersion();
+        TeleporterUpgradeableStorage storage $ = _getStorage();
+        TeleporterRegistry registry = TeleporterRegistry(teleporterRegistryAddress);
+        $._teleporterRegistry = registry;
+        $._minTeleporterVersion = registry.latestVersion();
     }
 
     /**
@@ -100,9 +121,10 @@ abstract contract TeleporterUpgradeable is
         address originSenderAddress,
         bytes calldata message
     ) external nonReentrant {
+        TeleporterUpgradeableStorage storage $ = _getStorage();
         // Checks that `_msgSender()` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
         require(
-            teleporterRegistry.getVersionFromAddress(_msgSender()) >= _minTeleporterVersion,
+            $._teleporterRegistry.getVersionFromAddress(_msgSender()) >= $._minTeleporterVersion,
             "TeleporterUpgradeable: invalid Teleporter sender"
         );
 
@@ -147,7 +169,8 @@ abstract contract TeleporterUpgradeable is
             !isTeleporterAddressPaused(teleporterAddress),
             "TeleporterUpgradeable: address already paused"
         );
-        _pausedTeleporterAddresses[teleporterAddress] = true;
+        TeleporterUpgradeableStorage storage $ = _getStorage();
+        $._pausedTeleporterAddresses[teleporterAddress] = true;
         emit TeleporterAddressPaused(teleporterAddress);
     }
 
@@ -170,15 +193,17 @@ abstract contract TeleporterUpgradeable is
             isTeleporterAddressPaused(teleporterAddress),
             "TeleporterUpgradeable: address not paused"
         );
+        TeleporterUpgradeableStorage storage $ = _getStorage();
+        $._pausedTeleporterAddresses[teleporterAddress] = false;
         emit TeleporterAddressUnpaused(teleporterAddress);
-        _pausedTeleporterAddresses[teleporterAddress] = false;
     }
 
     /**
      * @dev Public getter for `_minTeleporterVersion`.
      */
     function getMinTeleporterVersion() public view returns (uint256) {
-        return _minTeleporterVersion;
+        TeleporterUpgradeableStorage storage $ = _getStorage();
+        return $._minTeleporterVersion;
     }
 
     /**
@@ -190,7 +215,8 @@ abstract contract TeleporterUpgradeable is
         virtual
         returns (bool)
     {
-        return _pausedTeleporterAddresses[teleporterAddress];
+        TeleporterUpgradeableStorage storage $ = _getStorage();
+        return $._pausedTeleporterAddresses[teleporterAddress];
     }
     // solhint-enable ordering
 
@@ -204,8 +230,9 @@ abstract contract TeleporterUpgradeable is
      *
      */
     function _setMinTeleporterVersion(uint256 version) internal virtual {
-        uint256 latestTeleporterVersion = teleporterRegistry.latestVersion();
-        uint256 oldMinTeleporterVersion = _minTeleporterVersion;
+        TeleporterUpgradeableStorage storage $ = _getStorage();
+        uint256 latestTeleporterVersion = $._teleporterRegistry.latestVersion();
+        uint256 oldMinTeleporterVersion = $._minTeleporterVersion;
 
         require(
             version <= latestTeleporterVersion, "TeleporterUpgradeable: invalid Teleporter version"
@@ -215,7 +242,7 @@ abstract contract TeleporterUpgradeable is
             "TeleporterUpgradeable: not greater than current minimum version"
         );
 
-        _minTeleporterVersion = version;
+        $._minTeleporterVersion = version;
         emit MinTeleporterVersionUpdated(oldMinTeleporterVersion, version);
     }
 
@@ -273,7 +300,8 @@ abstract contract TeleporterUpgradeable is
      * return a Teleporter messenger of a specific version.
      */
     function _getTeleporterMessenger() internal view virtual returns (ITeleporterMessenger) {
-        ITeleporterMessenger teleporter = teleporterRegistry.getLatestTeleporter();
+        TeleporterUpgradeableStorage storage $ = _getStorage();
+        ITeleporterMessenger teleporter = $._teleporterRegistry.getLatestTeleporter();
         require(
             !isTeleporterAddressPaused(address(teleporter)),
             "TeleporterUpgradeable: Teleporter sending paused"
