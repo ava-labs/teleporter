@@ -11,7 +11,7 @@ import {console2} from "forge-std/Console2.sol";
 contract ComputeSlotTest is Test {
     function testTokenHomeSlot() public {
         bytes32 slot = keccak256(
-            abi.encode(uint256(keccak256("teleporter.storage.TeleporterUpgradeable")) - 1)
+            abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenHome")) - 1)
         ) & ~bytes32(uint256(0xff));
         console2.logBytes32(slot);
     }

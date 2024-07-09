@@ -76,7 +76,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
     bytes32 private constant TokenHomeStorageLocation =
         0x9316912b5a9db88acbe872c934fdd0a46c436c6dcba332d649c4d57c7bc9e600;
 
-    function _getStorage() private pure returns (TokenHomeStorage storage $) {
+    function _getTokenHomeStorage() private pure returns (TokenHomeStorage storage $) {
         assembly {
             $.slot := TokenHomeStorageLocation
         }
@@ -111,7 +111,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TokenHome: token decimals too high"
         );
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         $._blockchainID =
             IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
         $._tokenAddress = tokenAddress_;
@@ -122,7 +122,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         bytes32 remoteBlockchainID,
         address remoteTokenTransferrerAddress
     ) public view returns (RemoteTokenTransferrerSettings memory) {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         return $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
     }
 
@@ -130,17 +130,17 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         bytes32 remoteBlockchainID,
         address remoteTokenTransferrerAddress
     ) public view returns (uint256) {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         return $._transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress];
     }
 
     function getTokenAddress() public view returns (address) {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         return $._tokenAddress;
     }
 
     function getBlockchainID() public view returns (bytes32) {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         return $._blockchainID;
     }
 
@@ -149,7 +149,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address remoteTokenTransferrerAddress,
         RegisterRemoteMessage memory message
     ) internal {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         require(remoteBlockchainID != bytes32(0), "TokenHome: zero remote blockchain ID");
         require(
             remoteBlockchainID != $._blockchainID, "TokenHome: cannot register remote on same chain"
@@ -428,7 +428,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address remoteTokenTransferrerAddress,
         uint256 amount
     ) internal sendNonReentrant {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
             $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
         require(remoteSettings.registered, "TokenHome: remote not registered");
@@ -474,7 +474,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address originSenderAddress,
         bytes memory message
     ) internal override {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         TransferrerMessage memory transferrerMessage = abi.decode(message, (TransferrerMessage));
         if (transferrerMessage.messageType == TransferrerMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
@@ -611,7 +611,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address remoteTokenTransferrerAddress,
         uint256 amount
     ) private returns (uint256) {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
             $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
 
@@ -636,7 +636,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         uint256 amount,
         uint256 secondaryFee
     ) private returns (uint256, uint256) {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
             $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
 
@@ -697,7 +697,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         uint256 amount,
         uint256 fee
     ) private returns (uint256) {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
             $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
         if (!remoteSettings.registered || remoteSettings.collateralNeeded > 0) {
@@ -734,7 +734,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address primaryFeeTokenAddress,
         uint256 feeAmount
     ) private returns (uint256, uint256) {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
             $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
         require(remoteSettings.registered, "TokenHome: remote not registered");
@@ -767,7 +767,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address remoteTokenTransferrerAddress,
         uint256 amount
     ) private {
-        TokenHomeStorage storage $ = _getStorage();
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         uint256 senderBalance =
             $._transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress];
         require(senderBalance >= amount, "TokenHome: insufficient token transfer balance");

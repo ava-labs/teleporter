@@ -27,8 +27,21 @@ import {CallUtils} from "../utils/CallUtils.sol";
 contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;
 
-    /// @notice The ERC20 token this home contract transfers to TokenRemote instances.
-    IERC20 public token;
+    /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenHome
+    struct ERC20TokenHomeStorage {
+        /// @notice The ERC20 token this home contract transfers to TokenRemote instances.
+        IERC20 _token;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenHome")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant ERC20TokenHomeStorageLocation =
+        0x914a9547f6c3ddce1d5efbd9e687708f0d1d408ce129e8e1a88bce4f40e29500;
+
+    function _getERC20TokenHomeStorage() private pure returns (ERC20TokenHomeStorage storage $) {
+        assembly {
+            $.slot := ERC20TokenHomeStorageLocation
+        }
+    }
 
     /**
      * @notice Initializes the token TokenHome instance to send ERC20 tokens to TokenRemote instances on other chains.
@@ -45,10 +58,26 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
         address tokenAddress_,
         uint8 tokenDecimals_
     ) public initializer {
+        __ERC20TokenHome_init(
+            teleporterRegistryAddress, teleporterManager, tokenAddress_, tokenDecimals_
+        );
+    }
+
+    function __ERC20TokenHome_init(
+        address teleporterRegistryAddress,
+        address teleporterManager,
+        address tokenAddress_,
+        uint8 tokenDecimals_
+    ) internal onlyInitializing {
         __TokenHome_init(
             teleporterRegistryAddress, teleporterManager, tokenAddress_, tokenDecimals_
         );
-        token = IERC20(getTokenAddress());
+        __ERC20TokenHome_init_unchained(tokenAddress_);
+    }
+
+    function __ERC20TokenHome_init_unchained(address tokenAddress_) internal onlyInitializing {
+        ERC20TokenHomeStorage storage $ = _getERC20TokenHomeStorage();
+        $._token = IERC20(tokenAddress_);
     }
 
     /**
@@ -86,15 +115,17 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
      * @dev See {TokenHome-_deposit}
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return SafeERC20TransferFrom.safeTransferFrom(token, _msgSender(), amount);
+        ERC20TokenHomeStorage storage $ = _getERC20TokenHomeStorage();
+        return SafeERC20TransferFrom.safeTransferFrom($._token, _msgSender(), amount);
     }
 
     /**
      * @dev See {TokenHome-_withdraw}
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
+        ERC20TokenHomeStorage storage $ = _getERC20TokenHomeStorage();
         emit TokensWithdrawn(recipient, amount);
-        token.safeTransfer(recipient, amount);
+        $._token.safeTransfer(recipient, amount);
     }
 
     /**
@@ -109,8 +140,10 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
         SingleHopCallMessage memory message,
         uint256 amount
     ) internal virtual override {
+        ERC20TokenHomeStorage storage $ = _getERC20TokenHomeStorage();
+        IERC20 token = $._token;
         // Approve the recipient contract to spend the amount from the collateral.
-        SafeERC20.safeIncreaseAllowance(token, message.recipientContract, amount);
+        SafeERC20.safeIncreaseAllowance($._token, message.recipientContract, amount);
 
         // Encode the call to {IERC20SendAndCallReceiver-receiveTokens}
         bytes memory payload = abi.encodeCall(

@@ -26,11 +26,24 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
  */
 contract NativeTokenHome is INativeTokenHome, TokenHome {
     using Address for address payable;
+    /// @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenHome
 
-    /**
-     * @notice The wrapped native token contract that represents the native tokens on this chain.
-     */
-    IWrappedNativeToken public wrappedToken;
+    struct NativeTokenHomeStorage {
+        /**
+         * @notice The wrapped native token contract that represents the native tokens on this chain.
+         */
+        IWrappedNativeToken _wrappedToken;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenHome")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant NativeTokenHomeStorageLocation =
+        0x3b5030f10c94fcbdaa3022348ff0b82dbd4c0c71339e41ff59d0bdc92179d600;
+
+    function _getNativeTokenHomeStorage() private pure returns (NativeTokenHomeStorage storage $) {
+        assembly {
+            $.slot := NativeTokenHomeStorageLocation
+        }
+    }
 
     /**
      * @notice Initializes this token TokenHome instance to send native tokens to TokenRemote instances on other chains.
@@ -47,8 +60,24 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
         address teleporterManager,
         address wrappedTokenAddress
     ) public initializer {
+        __NativeTokenHome_init(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress);
+    }
+
+    function __NativeTokenHome_init(
+        address teleporterRegistryAddress,
+        address teleporterManager,
+        address wrappedTokenAddress
+    ) internal onlyInitializing {
         __TokenHome_init(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18);
-        wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
+        __NativeTokenHome_init_unchained(wrappedTokenAddress);
+    }
+
+    function __NativeTokenHome_init_unchained(address wrappedTokenAddress)
+        internal
+        onlyInitializing
+    {
+        NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
+        $._wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
 
     /**
@@ -97,7 +126,8 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      * Deposits the native tokens sent to this contract
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return SafeWrappedNativeTokenDeposit.safeDeposit(wrappedToken, amount);
+        NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
+        return SafeWrappedNativeTokenDeposit.safeDeposit($._wrappedToken, amount);
     }
 
     /**
@@ -106,8 +136,9 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      * and sends them to the recipient.
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
+        NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
         emit TokensWithdrawn(recipient, amount);
-        wrappedToken.withdraw(amount);
+        $._wrappedToken.withdraw(amount);
         payable(recipient).sendValue(amount);
     }
 
@@ -123,8 +154,9 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
         SingleHopCallMessage memory message,
         uint256 amount
     ) internal virtual override {
+        NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
         // Withdraw the native token from the wrapped native token contract.
-        wrappedToken.withdraw(amount);
+        $._wrappedToken.withdraw(amount);
 
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
         bytes memory payload = abi.encodeCall(
