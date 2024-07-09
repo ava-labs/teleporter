@@ -64,7 +64,7 @@ func TestPackUnpackTeleporterMessage(t *testing.T) {
 func TestUnpackEvent(t *testing.T) {
 	mockBlockchainID := ids.ID{1, 2, 3, 4}
 	mockMessageNonce := big.NewInt(5)
-	mockMessageID := ids.ID{9, 10, 11, 12}
+	mockMessageID := common.Hash{9, 10, 11, 12}
 	message := createTestTeleporterMessage(mockMessageNonce)
 	feeInfo := TeleporterFeeInfo{
 		FeeTokenAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
