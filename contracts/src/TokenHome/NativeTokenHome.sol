@@ -59,7 +59,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
     receive() external payable {
         // The caller here is expected to be {tokenAddress} directly, and not through a meta-transaction,
         // so we check for `msg.sender` instead of `_msgSender()`.
-        require(msg.sender == tokenAddress, "NativeTokenHome: invalid receive payable sender");
+        require(msg.sender == getTokenAddress(), "NativeTokenHome: invalid receive payable sender");
     }
 
     /**
@@ -74,7 +74,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      */
     function sendAndCall(SendAndCallInput calldata input) external payable {
         _sendAndCall({
-            sourceBlockchainID: blockchainID,
+            sourceBlockchainID: getBlockchainID(),
             originTokenTransferrerAddress: address(this),
             originSenderAddress: _msgSender(),
             input: input,

@@ -48,7 +48,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
         __TokenHome_init(
             teleporterRegistryAddress, teleporterManager, tokenAddress_, tokenDecimals_
         );
-        token = IERC20(tokenAddress);
+        token = IERC20(getTokenAddress());
     }
 
     /**
@@ -63,7 +63,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
      */
     function sendAndCall(SendAndCallInput calldata input, uint256 amount) external {
         _sendAndCall({
-            sourceBlockchainID: blockchainID,
+            sourceBlockchainID: getBlockchainID(),
             originTokenTransferrerAddress: address(this),
             originSenderAddress: _msgSender(),
             input: input,
