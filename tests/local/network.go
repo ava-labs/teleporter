@@ -193,13 +193,7 @@ func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
 		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
 	)]
 
-	blockchainID := subnet.Chains[slices.IndexFunc(
-		subnet.Chains,
-		func(c *tmpnet.Chain) bool {
-			// pick the chain ID for the chain that's not the c-chain
-			return c.ChainID.String() != "11111111111111111111111111111111LpoYY"
-		},
-	)].ChainID
+	blockchainID := subnet.Chains[0].ChainID
 
 	var chainNodeURIs []string
 	for _, validatorID := range subnet.ValidatorIDs {

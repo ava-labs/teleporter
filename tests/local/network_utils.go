@@ -23,13 +23,7 @@ func setupProposerVM(ctx context.Context, fundedKey *ecdsa.PrivateKey, network *
 		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
 	)]
 
-	chainID := subnetDetails.Chains[slices.IndexFunc(
-		subnetDetails.Chains,
-		func(c *tmpnet.Chain) bool {
-			// pick the chain that's NOT the C-Chain:
-			return c.ChainID.String() != "11111111111111111111111111111111LpoYY"
-		},
-	)].ChainID
+	chainID := subnetDetails.Chains[0].ChainID
 
 	nodeURI, err := network.GetURIForNodeID(subnetDetails.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
