@@ -133,6 +133,8 @@ Using specific version:
 
 ## Managing a TeleporterUpgradeable dApp
 
+dApps that implement `TeleporterUpgradeable` automatically use the latest Teleporter version registered with the `TeleporterRegistry`. Interaction with underlying `TeleporterMessenger` versions can be managed by setting the minimum Teleporter version, and pausing and unpausing specific versions.
+
 ### Managing the Minimum Teleporter version
 
 The `TeleporterUpgradeable` contract constructor saves the Teleporter registry in a state variable used by the inheriting dApp contract, and initializes a `minTeleporterVersion` to the highest `TeleporterMessenger` version registered in `TeleporterRegistry`. `minTeleporterVersion` is used to allow dApp's to specify the Teleporter versions allowed to interact with it.
