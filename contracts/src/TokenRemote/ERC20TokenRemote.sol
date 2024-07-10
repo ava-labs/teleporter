@@ -27,7 +27,24 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemote {
-    uint8 private _decimals;
+    /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenRemote
+    struct ERC20TokenRemoteStorage {
+        uint8 _decimals;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant ERC20TokenRemoteStorageLocation =
+        0x69a5f7616543528c4fbe43f410b1034bd6da4ba06c25bedf04617268014cf500;
+
+    function _getERC20TokenRemoteStorage()
+        private
+        pure
+        returns (ERC20TokenRemoteStorage storage $)
+    {
+        assembly {
+            $.slot := ERC20TokenRemoteStorageLocation
+        }
+    }
 
     /**
      * @notice Initializes this token TokenRemote instance to receive tokens from the specified TokenHome instance,
@@ -43,9 +60,23 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
         string memory tokenSymbol,
         uint8 tokenDecimals_
     ) public initializer {
+        __ERC20TokenRemote_init(settings, tokenName, tokenSymbol, tokenDecimals_);
+    }
+
+    function __ERC20TokenRemote_init(
+        TokenRemoteSettings memory settings,
+        string memory tokenName,
+        string memory tokenSymbol,
+        uint8 tokenDecimals_
+    ) internal onlyInitializing {
         __ERC20_init(tokenName, tokenSymbol);
         __TokenRemote_init(settings, 0, tokenDecimals_);
-        _decimals = tokenDecimals;
+        __ERC20TokenRemote_init_unchained(tokenDecimals_);
+    }
+
+    function __ERC20TokenRemote_init_unchained(uint8 tokenDecimals_) internal {
+        ERC20TokenRemoteStorage storage $ = _getERC20TokenRemoteStorage();
+        $._decimals = tokenDecimals_;
     }
 
     /**
@@ -70,7 +101,8 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
      * @dev See {ERC20-decimals}
      */
     function decimals() public view override returns (uint8) {
-        return _decimals;
+        ERC20TokenRemoteStorage storage $ = _getERC20TokenRemoteStorage();
+        return $._decimals;
     }
 
     /**

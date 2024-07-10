@@ -164,7 +164,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     }
 
     function testTotalNativeAssetSupply() public {
-        uint256 initialTotalMinted = app.totalMinted();
+        uint256 initialTotalMinted = app.getTotalMinted();
         uint256 initialExpectedBalance = _DEFAULT_INITIAL_RESERVE_IMBALANCE + initialTotalMinted;
         assertEq(app.totalNativeAssetSupply(), initialExpectedBalance);
 
@@ -260,8 +260,8 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         _setUpMockMint(address(app), expectedReward);
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
-                destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
+                destinationBlockchainID: app.getTokenHomeBlockchainID(),
+                destinationTokenTransferrerAddress: app.getTokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(app),
                 primaryFee: expectedReward,
@@ -287,8 +287,8 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         _setUpMockMint(address(app), expectedReward);
         expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
-                destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
+                destinationBlockchainID: app.getTokenHomeBlockchainID(),
+                destinationTokenTransferrerAddress: app.getTokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(app),
                 primaryFee: expectedReward,
@@ -325,8 +325,8 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
-                destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
+                destinationBlockchainID: app.getTokenHomeBlockchainID(),
+                destinationTokenTransferrerAddress: app.getTokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(app),
                 primaryFee: 0,
@@ -487,16 +487,16 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     // a message from its configured home to mint tokens. Until then, the home contract is
     // still assumed to have insufficient collateral.
     function _collateralizeTokenTransferrer() private {
-        assertFalse(app.isCollateralized());
+        assertFalse(app.getIsCollateralized());
         uint256 amount = 10e18;
         _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         app.receiveTeleporterMessage(
-            app.tokenHomeBlockchainID(),
-            app.tokenHomeAddress(),
+            app.getTokenHomeBlockchainID(),
+            app.getTokenHomeAddress(),
             _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
         );
-        assertTrue(app.isCollateralized());
+        assertTrue(app.getIsCollateralized());
     }
 
     function _invalidInitialization(
