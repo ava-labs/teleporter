@@ -3,7 +3,6 @@ package local
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"os"
@@ -15,7 +14,6 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/tests/fixture/tmpnet"
 	"github.com/ava-labs/avalanchego/utils/constants"
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 	"github.com/ava-labs/avalanchego/vms/platformvm"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
@@ -120,12 +118,6 @@ func NewLocalNetwork(warpGenesisTemplateFile string) *LocalNetwork {
 	)
 	defer cancelBootstrap()
 	Expect(err).Should(BeNil())
-
-	fundedKeyBytes, err := hex.DecodeString(fundedKeyStr)
-	Expect(err).Should(BeNil())
-	fundedKeySecp256k1, err := secp256k1.ToPrivateKey(fundedKeyBytes)
-	Expect(err).Should(BeNil())
-	network.PreFundedKeys = append(network.PreFundedKeys, fundedKeySecp256k1)
 
 	globalFundedKey, err := crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
