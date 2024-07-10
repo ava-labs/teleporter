@@ -160,7 +160,7 @@ The Teleporter address corresponding to a Teleporter version can be fetched from
 >cast send <DAPP_ADDRESS> "pauseTeleporterAddress(address)" $versionThreeAddress
 >```
 
-#### Pause all Teleporter interaction
+#### Pause all Teleporter interactions
 
 To pause all Teleporter interaction, `TeleporterUpgradeable.pauseTeleporterAddress` must be called for every Teleporter version from the `minTeleporterVersion` to the latest Teleporter version registered in `TeleporterRegistry`. The latest Teleporter version can be obtained by inspecting the public variable `TeleporterRegistry.latestVersion`. The `minTeleporterVersion` can be obtained by calling `TeleporterUpgradeable.getMinTeleporterVersion`.
 
