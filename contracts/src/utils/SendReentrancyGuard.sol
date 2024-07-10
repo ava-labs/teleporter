@@ -20,20 +20,44 @@ import {Initializable} from
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 abstract contract SendReentrancyGuard is Initializable {
+    /// @custom:storage-location erc7201:avalanche-ictt.storage.SendReentrancyGuard
+    struct SendReentrancyGuardStorage {
+        uint256 _sendEntered;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.SendReentrancyGuard")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant SendReentrancyGuardStorageLocation =
+        0xd2f1ed38b7d242bfb8b41862afb813a15193219a4bc717f2056607593e6c7500;
+
+    function _getSendReentrancyGuardStorage()
+        private
+        pure
+        returns (SendReentrancyGuardStorage storage $)
+    {
+        assembly {
+            $.slot := SendReentrancyGuardStorageLocation
+        }
+    }
+
     uint256 internal constant _NOT_ENTERED = 1;
     uint256 internal constant _ENTERED = 2;
-    uint256 private _sendEntered;
 
     // sendNonReentrant modifier makes sure there is not reentry between {_send} or {_sendAndCall} calls.
     modifier sendNonReentrant() {
-        require(_sendEntered == _NOT_ENTERED, "SendReentrancyGuard: send reentrancy");
-        _sendEntered = _ENTERED;
+        SendReentrancyGuardStorage storage $ = _getSendReentrancyGuardStorage();
+        require($._sendEntered == _NOT_ENTERED, "SendReentrancyGuard: send reentrancy");
+        $._sendEntered = _ENTERED;
         _;
-        _sendEntered = _NOT_ENTERED;
+        $._sendEntered = _NOT_ENTERED;
     }
 
     //solhint-disable-next-line func-name-mixedcase
     function __SendReentrancyGuard_init() internal onlyInitializing {
-        _sendEntered = _NOT_ENTERED;
+        __SendReentrnacyGuard_init_unchained();
+    }
+
+    function __SendReentrnacyGuard_init_unchained() internal {
+        SendReentrancyGuardStorage storage $ = _getSendReentrancyGuardStorage();
+        $._sendEntered = _NOT_ENTERED;
     }
 }
