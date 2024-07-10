@@ -19,6 +19,12 @@ import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
 /**
+ * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
+ * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
+ * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
+ */
+
+/**
  * @title ERC20TokenRemote
  * @notice This contract is an {IERC20TokenTransferrer} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens with an ERC20 token on this chain.

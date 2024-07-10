@@ -9,6 +9,12 @@ import {INativeTokenTransferrer} from "../../interfaces/INativeTokenTransferrer.
 import {ITokenHome} from "./ITokenHome.sol";
 
 /**
+ * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
+ * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
+ * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
+ */
+
+/**
  * @notice Interface for a native token "home" contract that locks the native token
  * on its chain to be transferred to supported remote token transfer contracts on other chains.
  *

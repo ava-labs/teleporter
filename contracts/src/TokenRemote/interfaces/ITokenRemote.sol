@@ -9,6 +9,12 @@ import {ITokenTransferrer} from "../../interfaces/ITokenTransferrer.sol";
 import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 
 /**
+ * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
+ * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
+ * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
+ */
+
+/**
  * @notice Settings for constructing a {ITokenRemote} contract.
  * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
  * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades.

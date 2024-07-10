@@ -9,6 +9,12 @@ import {INativeTokenTransferrer} from "../../interfaces/INativeTokenTransferrer.
 import {ITokenRemote} from "./ITokenRemote.sol";
 
 /**
+ * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
+ * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
+ * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
+ */
+
+/**
  * @dev Interface that describes functionalities for a contract that can mint native tokens when
  * paired with a {ITokenHome} contract that will lock tokens on another chain.
  */

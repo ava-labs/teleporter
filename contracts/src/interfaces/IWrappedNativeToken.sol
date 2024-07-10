@@ -8,6 +8,12 @@ pragma solidity 0.8.18;
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 
 /**
+ * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
+ * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
+ * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
+ */
+
+/**
  * @title IWrappedNativeToken
  * @notice Interface for a wrapped native token
  * @dev Implements the {IERC20} interface, and adds deposit and withdraw functions.

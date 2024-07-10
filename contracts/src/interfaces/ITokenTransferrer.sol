@@ -8,6 +8,12 @@ pragma solidity 0.8.18;
 import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 
 /**
+ * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
+ * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
+ * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
+ */
+
+/**
  * @notice Input parameters for transferring tokens to another chain as part of a simple transfer.
  * @param destinationBlockchainID Blockchain ID of the destination
  * @param destinationTokenTransferrerAddress Address of the destination token transferrer instance

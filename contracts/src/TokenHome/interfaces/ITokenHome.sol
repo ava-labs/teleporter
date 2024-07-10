@@ -12,6 +12,12 @@ import {
 } from "../../interfaces/ITokenTransferrer.sol";
 
 /**
+ * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
+ * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
+ * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
+ */
+
+/**
  * @dev Interface for a "home" token transferrer contract that locks a specific token
  * on its chain to be transferred to supported "remote" token transferrer contracts on other chains.
  */
