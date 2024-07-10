@@ -43,7 +43,8 @@ type LocalNetwork struct {
 	teleporterContractAddress common.Address
 	primaryNetworkInfo        *interfaces.SubnetTestInfo
 	subnetsInfo               map[ids.ID]*interfaces.SubnetTestInfo
-	extraNodes                []*tmpnet.Node
+
+	extraNodes []*tmpnet.Node // to add as more subnet vaidators in the tests
 
 	globalFundedKey *ecdsa.PrivateKey
 
