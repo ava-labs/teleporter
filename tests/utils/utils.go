@@ -15,11 +15,11 @@ import (
 	"strings"
 	"time"
 
-	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/Mocks/ExampleERC20"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/tests/TestMessenger"
-	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
-	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/Utilities/ValidatorSetSig"
+	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
+	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/tests/TestMessenger"
+	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/utilities/upgrades/TeleporterRegistry"
+	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/utilities/validators/ValidatorSetSig"
 	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
 

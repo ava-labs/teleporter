@@ -7,7 +7,7 @@ import (
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -23,8 +23,10 @@ func DeliverToWrongChain(network interfaces.Network) {
 	//
 	// Get the expected teleporter message ID for Subnet C
 	//
-	expectedAtoCMessageID, err :=
-		subnetAInfo.TeleporterMessenger.GetNextMessageID(&bind.CallOpts{}, subnetCInfo.BlockchainID)
+	expectedAtoCMessageID, err := subnetAInfo.TeleporterMessenger.GetNextMessageID(
+		&bind.CallOpts{},
+		subnetCInfo.BlockchainID,
+	)
 	Expect(err).Should(BeNil())
 
 	//
