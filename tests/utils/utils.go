@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/ecdsa"
@@ -11,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -1176,4 +1178,41 @@ func GetChainConfigWithOffChainMessages(offChainMessages []avalancheWarp.Unsigne
 	Expect(err).Should(BeNil())
 
 	return string(offChainMessageJson)
+}
+
+// read in the template file, make the substitutions declared at the beginning
+// of the function, write out the instantiation to a temp file, and then return
+// the path to that temp file.
+func InstantiateGenesisTemplate(
+	templateFileName string,
+	chainID uint64,
+) string {
+	substitutions := []struct {
+		Target string
+		Value  string
+	}{
+		{
+			"<EVM_CHAIN_ID>",
+			strconv.FormatUint(chainID, 10),
+		},
+	}
+
+	templateFile, err := os.Open(templateFileName)
+	Expect(err).Should(BeNil())
+
+	subnetGenesisFile, err := os.CreateTemp(os.TempDir(), "")
+	Expect(err).Should(BeNil())
+
+	scanner := bufio.NewScanner(templateFile)
+	for scanner.Scan() {
+		var replaced string
+		replaced = scanner.Text()
+		for _, s := range substitutions {
+			replaced = strings.Replace(replaced, s.Target, s.Value, 1)
+		}
+
+		subnetGenesisFile.WriteString(replaced)
+	}
+
+	return subnetGenesisFile.Name()
 }

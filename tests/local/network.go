@@ -67,7 +67,7 @@ const (
 	timeout = 60 * time.Second
 )
 
-func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
+func NewLocalNetwork(warpGenesisTemplateFile string) *LocalNetwork {
 	ctx := context.Background()
 	var err error
 
@@ -83,20 +83,16 @@ func NewLocalNetwork(warpGenesisFile string) *LocalNetwork {
 	Expect(err).Should(BeNil())
 	warpChainConfigPath := f.Name()
 
-	// Make sure that the warp genesis file exists
-	_, err = os.Stat(warpGenesisFile)
-	Expect(err).Should(BeNil())
-
 	subnetA := subnetEvmTestUtils.NewTmpnetSubnet(
 		"A",
-		warpGenesisFile,
+		utils.InstantiateGenesisTemplate(warpGenesisTemplateFile, 12345),
 		subnetEvmTestUtils.DefaultChainConfig,
 		subnetANodes...,
 	)
 
 	subnetB := subnetEvmTestUtils.NewTmpnetSubnet(
 		"B",
-		warpGenesisFile,
+		utils.InstantiateGenesisTemplate(warpGenesisTemplateFile, 54321),
 		subnetEvmTestUtils.DefaultChainConfig,
 		subnetBNodes...,
 	)

@@ -16,7 +16,8 @@ import (
 
 const (
 	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
-	warpGenesisFile        = "./tests/utils/warp-genesis.json"
+
+	warpGenesisTemplateFile = "./tests/utils/warp-genesis-template.json"
 
 	teleporterMessengerLabel = "TeleporterMessenger"
 	upgradeabilityLabel      = "upgradeability"
@@ -40,7 +41,7 @@ func TestE2E(t *testing.T) {
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
 	// Create the local network instance
-	LocalNetworkInstance = NewLocalNetwork(warpGenesisFile)
+	LocalNetworkInstance = NewLocalNetwork(warpGenesisTemplateFile)
 
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
