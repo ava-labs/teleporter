@@ -131,11 +131,11 @@ Using specific version:
 
 `TeleporterUpgradeable` also provides an initial implementation of [ITeleporterReceiver.receiveTeleporterMessage](../ITeleporterReceiver.sol) that ensures `_msgSender` is a `TeleporterMessenger` contract with a version greater than or equal to `minTeleporterVersion`. This supports the case where a dApp wants to upgrade to a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract.The dApp can override `_receiveTeleporterMessage` to implement its own logic for receiving messages from Teleporter contracts.
 
-## Managing a TeleporterUpgradeable contract
+## Managing a TeleporterUpgradeable dApp
 
 ### Managing the Minimum Teleporter version
 
-The `TeleporterUpgradeable` contract constructor saves the Teleporter registry in a state variable used by the inheriting contract, and initializes a `minTeleporterVersion` to the highest `TeleporterMessenger` version registered in `TeleporterRegistry`. `minTeleporterVersion` is used to allow dApp's to specify the Teleporter versions allowed to interact with it.
+The `TeleporterUpgradeable` contract constructor saves the Teleporter registry in a state variable used by the inheriting dApp contract, and initializes a `minTeleporterVersion` to the highest `TeleporterMessenger` version registered in `TeleporterRegistry`. `minTeleporterVersion` is used to allow dApp's to specify the Teleporter versions allowed to interact with it.
 
 #### Updating `minTeleporterVersion`
 
@@ -148,7 +148,7 @@ The `TeleporterUpgradeable.updateMinTeleporterVersion` function updates the `min
 
 ### Pausing Teleporter version interactions
 
-Dapps that inherit from `TeleporterUpgradeable` can pause Teleporter interactions by calling `TeleporterUpgradeable.pauseTeleporterAddress`. This function prevents the contract from interacting with the paused Teleporter address when sending or receiving Teleporter messages.
+Dapps that inherit from `TeleporterUpgradeable` can pause Teleporter interactions by calling `TeleporterUpgradeable.pauseTeleporterAddress`. This function prevents the dApp contract from interacting with the paused Teleporter address when sending or receiving Teleporter messages.
 
 `pauseTeleporterAddress` can only be called by addresses with the dApp's upgrade access, checked through `TeleporterUpgradeable._checkTeleporterUpgradeAccess`.
 
