@@ -37,7 +37,6 @@ jobs:
       - name: Run Slither
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
-          cd contracts
           slither ./ --fail-none --sarif ./results.sarif
 
       - name: Upload SARIF file
