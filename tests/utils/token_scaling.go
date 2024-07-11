@@ -55,7 +55,7 @@ func GetScaledAmountFromERC20TokenHome(
 	remoteAddress common.Address,
 	homeTokenAmount *big.Int,
 ) *big.Int {
-	remoteSettings, err := erc20TokenHome.RegisteredRemotes(
+	remoteSettings, err := erc20TokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		remoteBlockchainID,
 		remoteAddress,
@@ -77,7 +77,7 @@ func GetScaledAmountFromNativeTokenHome(
 	remoteAddress common.Address,
 	amount *big.Int,
 ) *big.Int {
-	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
+	remoteSettings, err := nativeTokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		remoteBlockchainID,
 		remoteAddress,

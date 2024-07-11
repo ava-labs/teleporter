@@ -521,7 +521,7 @@ func AddCollateralToERC20TokenHome(
 	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
 	Expect(event.RemoteTokenTransferrerAddress).Should(Equal(remoteAddress))
 
-	remoteSettings, err := erc20TokenHome.RegisteredRemotes(
+	remoteSettings, err := erc20TokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		remoteBlockchainID,
 		remoteAddress)
@@ -562,7 +562,7 @@ func AddCollateralToNativeTokenHome(
 	Expect(err).Should(BeNil())
 	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
 	Expect(event.RemoteTokenTransferrerAddress).Should(Equal(remoteAddress))
-	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
+	remoteSettings, err := nativeTokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		remoteBlockchainID,
 		remoteAddress)
@@ -812,7 +812,7 @@ func SendAndCallNativeTokenHome(
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 
 	// Compute the scaled amount
-	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
+	remoteSettings, err := nativeTokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		input.DestinationBlockchainID,
 		input.DestinationTokenTransferrerAddress)
