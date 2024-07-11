@@ -87,6 +87,8 @@ abstract contract TeleporterUpgradeable is
         internal
         onlyInitializing
     {
+        // TODO: figure out whether best practice to call ContextUpgradeable init, even though it's empty
+        // OZ Ownable inherits ContextUpgradeable but does not call ContextUpgradeable init
         __ReentrancyGuard_init_unchained();
         __TeleporterUpgradeable_init_unchained(teleporterRegistryAddress);
     }
