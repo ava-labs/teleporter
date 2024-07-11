@@ -9,6 +9,6 @@
 	url = https://github.com/openzeppelin/openzeppelin-contracts
 	ignore = dirty
 [submodule "lib/subnet-evm"]
-	branch = v0.6.2
+	branch = v0.6.1
 	path = lib/subnet-evm
 	url = https://github.com/ava-labs/subnet-evm
