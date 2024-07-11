@@ -19,9 +19,9 @@ import {
     ITeleporterMessenger
 } from "./ITeleporterMessenger.sol";
 import {ReceiptQueue} from "./ReceiptQueue.sol";
-import {SafeERC20TransferFrom} from "./SafeERC20TransferFrom.sol";
+import {SafeERC20TransferFrom} from "@utilities/utils/SafeERC20TransferFrom.sol";
 import {ITeleporterReceiver} from "./ITeleporterReceiver.sol";
-import {ReentrancyGuards} from "./ReentrancyGuards.sol";
+import {ReentrancyGuards} from "@utilities/utils/ReentrancyGuards.sol";
 
 /**
  * @dev Implementation of the {ITeleporterMessenger} interface.
