@@ -6,10 +6,10 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
-import {console2} from "forge-std/Console2.sol";
+import {console2} from "forge-std/console2.sol";
 
 contract ComputeSlotTest is Test {
-    function testTokenHomeSlot() public {
+    function testComputeStorageSlot() public {
         bytes32 slot = keccak256(
             abi.encode(uint256(keccak256("avalanche-ictt.storage.SendReentrancyGuard")) - 1)
         ) & ~bytes32(uint256(0xff));
