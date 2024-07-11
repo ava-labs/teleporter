@@ -9,7 +9,7 @@ import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
 import {OwnableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/access/OwnableUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
     function initialize(

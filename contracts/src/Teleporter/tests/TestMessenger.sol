@@ -8,9 +8,9 @@ pragma solidity 0.8.20;
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "@teleporter/SafeERC20TransferFrom.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ReentrancyGuardUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/utils/ReentrancyGuardUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.

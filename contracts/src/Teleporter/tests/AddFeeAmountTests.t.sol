@@ -11,7 +11,7 @@ import {
     TeleporterMessageReceipt,
     IERC20
 } from "./TeleporterMessengerTest.t.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 
 contract AddFeeAmountTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each

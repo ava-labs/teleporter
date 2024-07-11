@@ -11,8 +11,8 @@ import {
     TeleporterMessageReceipt,
     WarpMessage
 } from "./TeleporterMessengerTest.t.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 
 contract RedeemRelayerRewardsTest is TeleporterMessengerTest {
     struct FeeRewardInfo {
