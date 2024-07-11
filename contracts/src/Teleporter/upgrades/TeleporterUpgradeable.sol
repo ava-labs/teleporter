@@ -11,7 +11,7 @@ import {ITeleporterMessenger, TeleporterMessageInput} from "../ITeleporterMessen
 import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@4.9.6/utils/ContextUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/security/ReentrancyGuardUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@4.9.6/utils/ReentrancyGuardUpgradeable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {Initializable} from

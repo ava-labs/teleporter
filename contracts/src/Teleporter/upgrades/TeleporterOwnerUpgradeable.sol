@@ -22,16 +22,10 @@ abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, OwnableUp
         address initialOwner
     ) internal onlyInitializing {
         __TeleporterUpgradeable_init(teleporterRegistryAddress);
-        __Ownable_init_unchained();
-        _TeleporterOwnerUpgradeable_init_unchained(initialOwner);
+        __Ownable_init_unchained(initialOwner);
     }
 
-    function _TeleporterOwnerUpgradeable_init_unchained(address initialOwner)
-        internal
-        onlyInitializing
-    {
-        transferOwnership(initialOwner);
-    }
+    function _TeleporterOwnerUpgradeable_init_unchained() internal onlyInitializing {}
 
     /**
      * @dev See {TeleporterUpgradeable-_checkTeleporterUpgradeAccess}
