@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {Test} from "forge-std/Test.sol";
+import {Test} from "@forge-std/Test.sol";
 import {TeleporterRegistry, ProtocolRegistryEntry} from "../TeleporterRegistry.sol";
 import {TeleporterMessenger, IWarpMessenger, WarpMessage} from "../../TeleporterMessenger.sol";
 
