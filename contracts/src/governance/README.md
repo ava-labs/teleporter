@@ -1,4 +1,4 @@
-# ValidatorSetSig Contract
+# Governance Contracts
 
 ## Overview
 
