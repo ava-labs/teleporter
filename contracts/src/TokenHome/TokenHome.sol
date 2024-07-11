@@ -36,6 +36,7 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReentrancyGuard {
+    // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-ictt.storage.TokenHome
     struct TokenHomeStorage {
         /// @notice The blockchain ID of the chain this contract is deployed on.
@@ -59,7 +60,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     address remoteTokenTransferrerAddress
                         => RemoteTokenTransferrerSettings remoteSettings
                 )
-            ) _registeredRemotes;
+        ) _registeredRemotes;
         /**
          * @notice Tracks the balances of tokens sent to TokenRemote instances.
          * Balances are represented in the remote token's denomination,
@@ -69,16 +70,19 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         mapping(
             bytes32 remoteBlockchainID
                 => mapping(address remoteTokenTransferrerAddress => uint256 balance)
-            ) _transferredBalances;
+        ) _transferredBalances;
     }
+    // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.TokenHome")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant TokenHomeStorageLocation =
+    bytes32 private constant _TOKEN_HOME_STORAGE_LOCATION =
         0x9316912b5a9db88acbe872c934fdd0a46c436c6dcba332d649c4d57c7bc9e600;
 
+    // solhint-disable ordering
     function _getTokenHomeStorage() private pure returns (TokenHomeStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := TokenHomeStorageLocation
+            $.slot := _TOKEN_HOME_STORAGE_LOCATION
         }
     }
 
@@ -102,6 +106,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         __TokenHome_init_unchained(tokenAddress_, tokenDecimals_);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __TokenHome_init_unchained(
         address tokenAddress_,
         uint8 tokenDecimals_
@@ -117,6 +122,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         $._tokenAddress = tokenAddress_;
         $._tokenDecimals = tokenDecimals_;
     }
+    // solhint-enable ordering
 
     function getRemoteTokenTransferrerSettings(
         bytes32 remoteBlockchainID,
@@ -231,7 +237,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
-                )
+            )
         });
 
         // Send message to the TokenRemote instance
@@ -289,7 +295,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
-                )
+            )
         });
 
         // Send message to the TokenRemote instance.
@@ -343,7 +349,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     recipientGasLimit: input.recipientGasLimit,
                     fallbackRecipient: input.fallbackRecipient
                 })
-                )
+            )
         });
 
         // Send message to the TokenRemote instance.
@@ -399,7 +405,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     recipientGasLimit: input.recipientGasLimit,
                     fallbackRecipient: input.fallbackRecipient
                 })
-                )
+            )
         });
 
         // Send message to the TokenRemote instance.

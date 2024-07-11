@@ -43,6 +43,7 @@ contract NativeTokenRemote is
 {
     using Address for address payable;
 
+    // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenRemote
     struct NativeTokenRemoteStorage {
         /**
@@ -59,18 +60,21 @@ contract NativeTokenRemote is
          */
         uint256 _lastestBurnedFeesReported;
     }
+    // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenRemote")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant NativeTokenRemoteStorageLocation =
+    bytes32 private constant _NATIVE_TOKEN_REMOTE_STORAGE_LOCATION =
         0x914a9547f6c3ddce1d5efbd9e687708f0d1d408ce129e8e1a88bce4f40e29500;
 
+    // solhint-disable ordering
     function _getNativeTokenRemoteStorage()
         private
         pure
         returns (NativeTokenRemoteStorage storage $)
     {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := NativeTokenRemoteStorageLocation
+            $.slot := _NATIVE_TOKEN_REMOTE_STORAGE_LOCATION
         }
     }
 
@@ -140,6 +144,7 @@ contract NativeTokenRemote is
         );
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __NativeTokenRemote_init(
         TokenRemoteSettings memory settings,
         string memory nativeAssetSymbol,
@@ -152,6 +157,7 @@ contract NativeTokenRemote is
         __NativeTokenRemote_init_unchained(burnedFeesReportingRewardPercentage_);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __NativeTokenRemote_init_unchained(uint256 burnedFeesReportingRewardPercentage_)
         internal
         onlyInitializing
@@ -160,6 +166,7 @@ contract NativeTokenRemote is
         require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenRemote: invalid percentage");
         $._burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
     }
+    // solhint-enable ordering
 
     /**
      * @dev Receives native token with no calldata provided. The tokens are credited to the sender's
@@ -228,7 +235,7 @@ contract NativeTokenRemote is
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: HOME_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
-                )
+            )
         });
 
         bytes32 messageID = _sendTeleporterMessage(

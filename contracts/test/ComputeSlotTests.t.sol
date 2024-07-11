@@ -6,6 +6,7 @@
 pragma solidity 0.8.18;
 
 import {Test} from "forge-std/Test.sol";
+// solhint-disable no-console
 import {console2} from "forge-std/console2.sol";
 
 contract ComputeSlotTest is Test {
@@ -15,4 +16,5 @@ contract ComputeSlotTest is Test {
         ) & ~bytes32(uint256(0xff));
         console2.logBytes32(slot);
     }
+    // solhint-enable no-console
 }
