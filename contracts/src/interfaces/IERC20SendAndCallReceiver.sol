@@ -6,12 +6,6 @@
 pragma solidity 0.8.18;
 
 /**
- * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
- * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
- * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
- */
-
-/**
  * @notice Interface for contracts that are called to receive token transfers.
  */
 interface IERC20SendAndCallReceiver {

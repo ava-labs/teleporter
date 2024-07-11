@@ -1,5 +1,9 @@
 # Avalanche Interchain Token Transfer (ICTT)
 
+## Audits
+Some contracts in this repository have been audited. The `main` branch may contain unaudited code. Please check [here](./audits/README.md) for which versions of each contract have been audited.
+DO NOT USE UN-AUDITED CODE IN PRODUCTION!
+
 ## Upgradeability
 
 The avalanche-interchain-token-transfer contracts are non-upgradeable and cannot be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging.

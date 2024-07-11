@@ -4,12 +4,6 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.18;
 
-/**
- * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
- * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
- * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
- */
-
 library CallUtils {
     /**
      * @dev calls target address with exactly gasAmount gas and data as calldata

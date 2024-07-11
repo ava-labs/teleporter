@@ -9,12 +9,6 @@ import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
 import {ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
-/**
- * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
- * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
- * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
- */
-
 contract WrappedNativeToken is IWrappedNativeToken, ERC20 {
     using Address for address payable;
 

@@ -27,12 +27,6 @@ import {IWarpMessenger} from
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
 
 /**
- * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
- * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
- * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
- */
-
-/**
  * @notice Each TokenRemote instance registers with the home contract, and provides settings for transferring
  * to the remote token transfer contract.
  * @param registered Whether the remote token transferrer is registered

@@ -19,12 +19,6 @@ import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDepo
 import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 
 /**
- * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
- * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
- * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
- */
-
-/**
  * @title NativeTokenHome
  * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be transferred to
  * TokenRemote instances on other chains.

@@ -4,12 +4,6 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.18;
 
-/**
- * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
- * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
- * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
- */
-
 library TokenScalingUtils {
     uint256 public constant MAX_TOKEN_DECIMALS = 18;
 

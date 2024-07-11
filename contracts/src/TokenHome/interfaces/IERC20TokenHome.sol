@@ -9,12 +9,6 @@ import {IERC20TokenTransferrer} from "../../interfaces/IERC20TokenTransferrer.so
 import {ITokenHome} from "./ITokenHome.sol";
 
 /**
- * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
- * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
- * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
- */
-
-/**
  * @notice Interface for a ERC20 token "home" contract that locks its specified ERC20
  * token on its chain to be transferred to supported remote token transfer contracts on other chains.
  *

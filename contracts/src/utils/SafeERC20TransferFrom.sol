@@ -9,12 +9,6 @@ import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
 
 /**
- * THIS CONTRACT HAS BEEN AUDITED, BUT MAY CONTAIN UN-AUDITED CHANGES.
- * PLEASE CHECK `audits/README.md` FOR INFORMATION ON AUDITED VERSIONS OF THIS CONTRACT.
- * DO NOT USE UN-AUDITED CODE IN PRODUCTION.
- */
-
-/**
  * @dev Provides a wrapper used for calling an ERC20 transferFrom method to receive tokens to a contract
  * from a specified sender. Differs from the "SafeERC20TransferFrom" implementation found here
  * https://github.com/ava-labs/teleporter/blob/main/contracts/src/Teleporter/SafeERC20TransferFrom.sol in that
