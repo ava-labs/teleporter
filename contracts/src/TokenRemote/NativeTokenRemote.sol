@@ -235,7 +235,7 @@ contract NativeTokenRemote is
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: HOME_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
-            )
+                )
         });
 
         bytes32 messageID = _sendTeleporterMessage(
