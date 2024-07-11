@@ -5,7 +5,7 @@
 	branch = v1.3.0
 [submodule "contracts/lib/openzeppelin-contracts"]
 	path = contracts/lib/openzeppelin-contracts
-	url = https://github.com/openzeppelin/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 [submodule "contracts/lib/subnet-evm"]
 	path = contracts/lib/subnet-evm
 	url = https://github.com/ava-labs/subnet-evm
