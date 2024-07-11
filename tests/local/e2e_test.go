@@ -41,7 +41,21 @@ func TestE2E(t *testing.T) {
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
 	// Create the local network instance
-	LocalNetworkInstance = NewLocalNetwork(warpGenesisTemplateFile)
+	LocalNetworkInstance = NewLocalNetwork(
+		warpGenesisTemplateFile,
+		[]SubnetSpec{
+			{
+				Name:       "A",
+				EVMChainID: 12345,
+				NodeCount:  5,
+			},
+			{
+				Name:       "B",
+				EVMChainID: 54321,
+				NodeCount:  5,
+			},
+		},
+	)
 
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=

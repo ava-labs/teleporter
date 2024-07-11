@@ -66,14 +66,17 @@ const (
 	timeout = 60 * time.Second
 )
 
-func NewLocalNetwork(warpGenesisTemplateFile string) *LocalNetwork {
+type SubnetSpec struct {
+	Name       string
+	EVMChainID uint64
+	NodeCount  int
+}
+
+func NewLocalNetwork(warpGenesisTemplateFile string, subnetSpecs []SubnetSpec) *LocalNetwork {
 	ctx := context.Background()
 	var err error
 
-	// Declare 10 new validators (which should have BLS key registered)
-	subnetANodes := subnetEvmTestUtils.NewTmpnetNodes(5)
-	subnetBNodes := subnetEvmTestUtils.NewTmpnetNodes(5)
-	// and some extra nodes to be used to add more validators later:
+	// declare some extra nodes to be used to add more validators later:
 	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(5)
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
@@ -82,26 +85,30 @@ func NewLocalNetwork(warpGenesisTemplateFile string) *LocalNetwork {
 	Expect(err).Should(BeNil())
 	warpChainConfigPath := f.Name()
 
-	subnetA := subnetEvmTestUtils.NewTmpnetSubnet(
-		"A",
-		utils.InstantiateGenesisTemplate(warpGenesisTemplateFile, 12345),
-		subnetEvmTestUtils.DefaultChainConfig,
-		subnetANodes...,
-	)
+	allNodes := slices.Clone(extraNodes) // to be appended w/ subnet validators
 
-	subnetB := subnetEvmTestUtils.NewTmpnetSubnet(
-		"B",
-		utils.InstantiateGenesisTemplate(warpGenesisTemplateFile, 54321),
-		subnetEvmTestUtils.DefaultChainConfig,
-		subnetBNodes...,
-	)
+	var subnets []*tmpnet.Subnet
+	for _, subnetSpec := range subnetSpecs {
+		nodes := subnetEvmTestUtils.NewTmpnetNodes(subnetSpec.NodeCount)
+		allNodes = append(allNodes, nodes...)
+
+		subnet := subnetEvmTestUtils.NewTmpnetSubnet(
+			subnetSpec.Name,
+			utils.InstantiateGenesisTemplate(
+				warpGenesisTemplateFile,
+				subnetSpec.EVMChainID,
+			),
+			subnetEvmTestUtils.DefaultChainConfig,
+			nodes...,
+		)
+		subnets = append(subnets, subnet)
+	}
 
 	network := subnetEvmTestUtils.NewTmpnetNetwork(
 		"teleporter-test-local-network",
-		append(subnetANodes, append(subnetBNodes, extraNodes...)...),
+		allNodes,
 		tmpnet.FlagsMap{},
-		subnetA,
-		subnetB,
+		subnets...,
 	)
 	Expect(network).ShouldNot(BeNil())
 
@@ -123,12 +130,10 @@ func NewLocalNetwork(warpGenesisTemplateFile string) *LocalNetwork {
 	globalFundedKey, err := crypto.HexToECDSA(fundedKeyStr)
 	Expect(err).Should(BeNil())
 
-	subnetAID := network.GetSubnet("A").SubnetID
-	subnetBID := network.GetSubnet("B").SubnetID
-
 	// Issue transactions to activate the proposerVM fork on the chains
-	setupProposerVM(ctx, globalFundedKey, network, subnetAID)
-	setupProposerVM(ctx, globalFundedKey, network, subnetBID)
+	for _, subnet := range network.Subnets {
+		setupProposerVM(ctx, globalFundedKey, network, subnet.SubnetID)
+	}
 
 	res := &LocalNetwork{
 		primaryNetworkInfo:  &interfaces.SubnetTestInfo{},
@@ -138,8 +143,9 @@ func NewLocalNetwork(warpGenesisTemplateFile string) *LocalNetwork {
 		tmpnet:              network,
 		warpChainConfigPath: warpChainConfigPath,
 	}
-	res.setSubnetValues(subnetAID)
-	res.setSubnetValues(subnetBID)
+	for _, subnet := range network.Subnets {
+		res.setSubnetValues(subnet.SubnetID)
+	}
 	res.setPrimaryNetworkValues()
 	return res
 }
