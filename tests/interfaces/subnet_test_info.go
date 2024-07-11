@@ -6,7 +6,7 @@ import (
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/utilities/upgrades/TeleporterRegistry"
+	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/upgrades/TeleporterRegistry"
 	"github.com/ethereum/go-ethereum/common"
 )
 

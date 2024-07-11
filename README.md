@@ -130,7 +130,7 @@ The Teleporter contract is non-upgradeable and can not be changed once it is dep
 
 `TeleporterRegistry` **is not mandatory** for dApps built on top of Teleporter, but dApp's are recommended to leverage the registry to ensure they use the latest Teleporter version available. Another recommendation standard is to have a single canonical `TeleporterRegistry` for each Subnet chain, and unlike the Teleporter contract, the registry does not need to be deployed to the same address on every chain. This means the registry does not need a Nick's method deployment, and can be at different contract addresses on different chains.
 
-For more information on the registry and how to integrate with Teleporter dApps, see the [Upgradeability doc](./contracts/src/utilities/upgrades/README.md).
+For more information on the registry and how to integrate with Teleporter dApps, see the [Upgradeability doc](./contracts/src/teleporter/upgrades/README.md).
 
 ## Deploy Teleporter to a Subnet
 
@@ -184,7 +184,7 @@ The auto-generated bindings should be written under the `abi-bindings/` director
 - [Teleporter Protocol Overview](./contracts/src/teleporter/README.md)
 - [Cross Chain Applications](./contracts/src/CrossChainApplications/README.md)
 - [Getting Started](./contracts/src/CrossChainApplications/GETTING_STARTED.md)
-- [Teleporter Upgradeability](./contracts/src/utilities/upgrades/README.md)
+- [Teleporter Upgradeability](./contracts/src/teleporter/upgrades/README.md)
 - [Contract Deployment](./utils/contract-deployment/README.md)
 - [Teleporter CLI](./cmd/teleporter-cli/README.md)
 

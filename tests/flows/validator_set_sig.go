@@ -6,8 +6,8 @@ import (
 
 	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
+	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
-	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/utilities/validators/ValidatorSetSig"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"

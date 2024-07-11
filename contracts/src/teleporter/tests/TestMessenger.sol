@@ -6,8 +6,8 @@
 pragma solidity 0.8.18;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
-import {SafeERC20TransferFrom, SafeERC20} from "@utilities/utils/SafeERC20TransferFrom.sol";
-import {TeleporterOwnerUpgradeable} from "@utilities/upgrades/TeleporterOwnerUpgradeable.sol";
+import {SafeERC20TransferFrom, SafeERC20} from "@utilities/SafeERC20TransferFrom.sol";
+import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 
