@@ -49,12 +49,12 @@ jobs:
       - name: Create Artifacts
         id: artifacts
         run: |
-          go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json
+          go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx out/TeleporterMessenger.sol/TeleporterMessenger.json
           mv UniversalTeleporterDeployerTransaction.txt ${{ env.deployment_tx_fn }}
           mv UniversalTeleporterDeployerAddress.txt ${{ env.deployer_addr_fn }}
           mv UniversalTeleporterMessengerContractAddress.txt ${{ env.contract_addr_fn }}
-          mv contracts/out/TeleporterMessenger.sol/TeleporterMessenger.bin ${{ env.teleporter_messenger_bytecode_fn }}
-          mv contracts/out/TeleporterRegistry.sol/TeleporterRegistry.bin ${{ env.teleporter_registry_bytecode_fn }}
+          mv out/TeleporterMessenger.sol/TeleporterMessenger.bin ${{ env.teleporter_messenger_bytecode_fn }}
+          mv out/TeleporterRegistry.sol/TeleporterRegistry.bin ${{ env.teleporter_registry_bytecode_fn }}
 
       - name: Create release
         uses: softprops/action-gh-release@v2

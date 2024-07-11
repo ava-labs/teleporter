@@ -25,7 +25,7 @@ echo "Copied ${BASEDIR}/subnet-evm/subnet-evm binary to ${BASEDIR}/avalanchego/p
 
 export AVALANCHEGO_BUILD_PATH=$BASEDIR/avalanchego
 
-cd $TELEPORTER_PATH/contracts
+cd $TELEPORTER_PATH
 if command -v forge &> /dev/null; then
   forge build
 else
