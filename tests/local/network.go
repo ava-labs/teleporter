@@ -76,12 +76,13 @@ func NewLocalNetwork(
 	name string,
 	warpGenesisTemplateFile string,
 	subnetSpecs []SubnetSpec,
+	extraNodeCount int, // for use by tests, eg to add new subnet validators
 ) *LocalNetwork {
 	ctx := context.Background()
 	var err error
 
 	// declare some extra nodes to be used to add more validators later:
-	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(5)
+	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(extraNodeCount)
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
 	Expect(err).Should(BeNil())

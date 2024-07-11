@@ -56,6 +56,7 @@ var _ = ginkgo.BeforeSuite(func() {
 				NodeCount:  5,
 			},
 		},
+		5,
 	)
 
 	// Generate the Teleporter deployment values
