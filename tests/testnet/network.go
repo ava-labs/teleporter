@@ -19,7 +19,7 @@ import (
 	"github.com/ava-labs/subnet-evm/rpc"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
-	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/upgrades/TeleporterRegistry"
+	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/registry/TeleporterRegistry"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
