@@ -5,21 +5,24 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 
 	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
+	"github.com/ava-labs/subnet-evm/core/types"
+	"github.com/ava-labs/subnet-evm/eth/tracers"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 )
 
 const (
-	warpPrecompileAddress = "0x0200000000000000000000000000000000000005"
+	warpPrecompileAddressHex = "0x0200000000000000000000000000000000000005"
 )
 
 var (
+	debug             bool
 	rpcEndpoint       string
 	teleporterAddress common.Address
 	client            ethclient.Client
@@ -30,44 +33,97 @@ var transactionCmd = &cobra.Command{
 	Short: "Parses relevant Teleporter logs from a transaction",
 	Long: `Given a transaction this command looks through the transaction's receipt
 for Teleporter and Warp log events. When corresponding log events are found,
-the command parses to log event fields to a more human readable format.`,
+the command parses to log event fields to a more human readable format. Optionally pass -d 
+or --debug for extra transaction output. This may require enabling debug enpoints on your RPC node`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		receipt, err := client.TransactionReceipt(context.Background(),
-			common.HexToHash(args[0]))
-		cobra.CheckErr(err)
-
-		for _, log := range receipt.Logs {
-			if log.Address == teleporterAddress {
-				logger.Info("Processing Teleporter log", zap.Any("log", log))
-
-				event, err := teleporterABI.EventByID(log.Topics[0])
-				cobra.CheckErr(err)
-
-				out, err := teleportermessenger.FilterTeleporterEvents(log.Topics, log.Data, event.Name)
-				cobra.CheckErr(err)
-				logger.Info("Parsed Teleporter event", zap.String("name", event.Name), zap.Any("event", out))
-			}
-
-			if log.Address == common.HexToAddress(warpPrecompileAddress) {
-				logger.Debug("Processing Warp log", zap.Any("log", log))
-
-				unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(log.Data)
-				cobra.CheckErr(err)
-
-				warpPayload, err := warpPayload.ParseAddressedCall(unsignedMsg.Payload)
-				cobra.CheckErr(err)
-
-				teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpPayload.Payload)
-				cobra.CheckErr(err)
-				logger.Info("Parsed Teleporter message",
-					zap.String("warpMessageID", unsignedMsg.ID().Hex()),
-					zap.String("teleporterMessageNonce", teleporterMessage.MessageNonce.String()),
-					zap.Any("message", teleporterMessage))
-			}
+		txHash := common.HexToHash(args[0])
+		if debug {
+			printTransaction(cmd, txHash)
+			traceTransaction(cmd, txHash)
 		}
+		checkReceipt(cmd, txHash)
 		cmd.Println("Transaction command ran successfully")
 	},
+}
+
+func checkReceipt(cmd *cobra.Command, txHash common.Hash) {
+	receipt, err := client.TransactionReceipt(context.Background(), txHash)
+	cobra.CheckErr(err)
+
+	warpPrecompileAddress := common.HexToAddress(warpPrecompileAddressHex)
+	for _, log := range receipt.Logs {
+		switch log.Address {
+		case teleporterAddress:
+			printTeleporterLogs(cmd, log)
+		case warpPrecompileAddress:
+			printWarpLogs(cmd, log)
+		}
+	}
+}
+
+func printTeleporterLogs(cmd *cobra.Command, log *types.Log) {
+	logJson, err := json.MarshalIndent(log, "", "  ")
+	cobra.CheckErr(err)
+
+	cmd.Println("Teleporter Log:\n" + string(logJson) + "\n")
+
+	event, err := teleporterABI.EventByID(log.Topics[0])
+	cobra.CheckErr(err)
+
+	out, err := teleportermessenger.FilterTeleporterEvents(log.Topics, log.Data, event.Name)
+	cobra.CheckErr(err)
+
+	cmd.Println(event.Name + " Log:")
+	cmd.Println(out.String() + "\n")
+}
+
+func printWarpLogs(cmd *cobra.Command, log *types.Log) {
+	logJson, err := json.MarshalIndent(log, "", "  ")
+	cobra.CheckErr(err)
+
+	cmd.Println("Warp Log:\n" + string(logJson) + "\n")
+
+	unsignedMsg, err := warp.UnpackSendWarpEventDataToMessage(log.Data)
+	cobra.CheckErr(err)
+	cmd.Println("Warp Message ID: " + unsignedMsg.ID().Hex())
+
+	warpPayload, err := warpPayload.ParseAddressedCall(unsignedMsg.Payload)
+	cobra.CheckErr(err)
+
+	warpPayloadJson, err := json.MarshalIndent(warpPayload, "", "  ")
+	cobra.CheckErr(err)
+	cmd.Println("Warp Payload:")
+	cmd.Println(string(warpPayloadJson))
+
+	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpPayload.Payload)
+	cobra.CheckErr(err)
+
+	cmd.Println("Teleporter Message:")
+	cmd.Println(teleporterMessage.String())
+}
+
+func traceTransaction(cmd *cobra.Command, txHash common.Hash) {
+	var result interface{}
+	ct := "callTracer"
+	err := client.Client().Call(&result, "debug_traceTransaction", txHash.String(), tracers.TraceConfig{Tracer: &ct})
+	if err != nil {
+		cmd.PrintErr("Error calling debug_traceTransaction: " + err.Error())
+		return
+	}
+	json, err := json.MarshalIndent(result, "", "  ")
+	cobra.CheckErr(err)
+
+	cmd.Println("Transaction Trace:\n" + string(json) + "\n")
+}
+
+func printTransaction(cmd *cobra.Command, txHash common.Hash) {
+	tx, _, err := client.TransactionByHash(context.Background(), txHash)
+	cobra.CheckErr(err)
+	json, err := json.MarshalIndent(tx, "", "  ")
+	cobra.CheckErr(err)
+
+	cmd.Println("Transaction:\n" + string(json) + "\n")
 }
 
 func init() {
@@ -78,6 +134,7 @@ func init() {
 	cobra.CheckErr(err)
 	err = transactionCmd.MarkPersistentFlagRequired("teleporter-address")
 	cobra.CheckErr(err)
+	transactionCmd.Flags().BoolVarP(&debug, "debug", "d", false, "default: false.")
 	transactionCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		return transactionPreRunE(cmd, args, address)
 	}
@@ -95,5 +152,5 @@ func transactionPreRunE(cmd *cobra.Command, args []string, address *string) erro
 	}
 
 	client = c
-	return err
+	return nil
 }
