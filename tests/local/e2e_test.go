@@ -42,6 +42,7 @@ func TestE2E(t *testing.T) {
 var _ = ginkgo.BeforeSuite(func() {
 	// Create the local network instance
 	LocalNetworkInstance = NewLocalNetwork(
+		"teleporter-test-local-network",
 		warpGenesisTemplateFile,
 		[]SubnetSpec{
 			{

@@ -72,7 +72,11 @@ type SubnetSpec struct {
 	NodeCount  int
 }
 
-func NewLocalNetwork(warpGenesisTemplateFile string, subnetSpecs []SubnetSpec) *LocalNetwork {
+func NewLocalNetwork(
+	name string,
+	warpGenesisTemplateFile string,
+	subnetSpecs []SubnetSpec,
+) *LocalNetwork {
 	ctx := context.Background()
 	var err error
 
@@ -105,7 +109,7 @@ func NewLocalNetwork(warpGenesisTemplateFile string, subnetSpecs []SubnetSpec) *
 	}
 
 	network := subnetEvmTestUtils.NewTmpnetNetwork(
-		"teleporter-test-local-network",
+		name,
 		allNodes,
 		tmpnet.FlagsMap{},
 		subnets...,
