@@ -1,13 +1,5 @@
 # Avalanche Interchain Token Transfer (ICTT)
 
-## Audits
-Some contracts in this repository have been audited. The `main` branch may contain unaudited code. Please check [here](./audits/README.md) for which versions of each contract have been audited.
-DO NOT USE UN-AUDITED CODE IN PRODUCTION!
-
-## Upgradeability
-
-The avalanche-interchain-token-transfer contracts are non-upgradeable and cannot be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging.
-
 ## Overview
 
 Avalanche Interchain Token Transfer (ICTT) is an application that allows users to transfer tokens between Subnets. The implementation is a set of smart contracts that are deployed across multiple Subnets, and leverages [Teleporter](https://github.com/ava-labs/teleporter) for cross-chain communication.
@@ -28,6 +20,14 @@ The token transferrer also supports "multi-hop" transfers, where tokens can be t
 In addition to supporting basic token transfers, the token transferrer contracts offer a `sendAndCall` interface for transferring tokens and using them in a smart contract interaction all within a single Teleporter message. If the call to the recipient smart contract fails, the transferred tokens are sent to a fallback recipient address on the destination chain of the transfer. The `sendAndCall` interface enables the direct use of transferred tokens in dApps on other chains, such as performing swaps, using the tokens to pay for fees when invoking services, etc.
 
 A breakdown of the structure of the contracts that implement this function can be found under `./contracts` [here](./contracts/README.md).
+
+## Audits
+Some contracts in this repository have been audited. The `main` branch may contain unaudited code. Please check [here](./audits/README.md) for which versions of each contract have been audited.
+DO NOT USE UN-AUDITED CODE IN PRODUCTION!
+
+## Upgradeability
+
+The avalanche-interchain-token-transfer contracts are non-upgradeable and cannot be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging.
 
 ## Setup
 
