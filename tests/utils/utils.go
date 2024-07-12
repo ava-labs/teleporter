@@ -1205,8 +1205,7 @@ func InstantiateGenesisTemplate(
 
 	scanner := bufio.NewScanner(templateFile)
 	for scanner.Scan() {
-		var replaced string
-		replaced = scanner.Text()
+		replaced := scanner.Text()
 		for _, s := range substitutions {
 			replaced = strings.Replace(replaced, s.Target, s.Value, 1)
 		}

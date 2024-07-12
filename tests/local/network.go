@@ -81,7 +81,7 @@ func NewLocalNetwork(
 	ctx := context.Background()
 	var err error
 
-	// declare some extra nodes to be used to add more validators later:
+	// Create extra nodes to be used to add more validators later
 	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(extraNodeCount)
 
 	f, err := os.CreateTemp(os.TempDir(), "config.json")
@@ -537,8 +537,8 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 }
 
 func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
-	for chainIdStr, chainConfig := range chainConfigs {
-		if chainIdStr == utils.CChainPathSpecifier {
+	for chainIDStr, chainConfig := range chainConfigs {
+		if chainIDStr == utils.CChainPathSpecifier {
 			var cfg tmpnet.FlagsMap
 			err := json.Unmarshal([]byte(chainConfig), &cfg)
 			if err != nil {
@@ -554,7 +554,7 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 
 		for _, subnet := range n.tmpnet.Subnets {
 			for _, chain := range subnet.Chains {
-				if chain.ChainID.String() == chainIdStr {
+				if chain.ChainID.String() == chainIDStr {
 					chain.Config = chainConfig
 				}
 			}
