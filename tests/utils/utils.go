@@ -4,7 +4,6 @@
 package utils
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"crypto/ecdsa"
@@ -1197,21 +1196,19 @@ func InstantiateGenesisTemplate(
 		},
 	}
 
-	templateFile, err := os.Open(templateFileName)
+	templateFileBytes, err := os.ReadFile(templateFileName)
 	Expect(err).Should(BeNil())
 
 	subnetGenesisFile, err := os.CreateTemp(os.TempDir(), "")
+	defer subnetGenesisFile.Close()
 	Expect(err).Should(BeNil())
 
-	scanner := bufio.NewScanner(templateFile)
-	for scanner.Scan() {
-		replaced := scanner.Text()
-		for _, s := range substitutions {
-			replaced = strings.Replace(replaced, s.Target, s.Value, 1)
-		}
-
-		subnetGenesisFile.WriteString(replaced)
+	var replaced string = string(templateFileBytes[:])
+	for _, s := range substitutions {
+		replaced = strings.Replace(replaced, s.Target, s.Value, 1)
 	}
+
+	subnetGenesisFile.WriteString(replaced)
 
 	return subnetGenesisFile.Name()
 }
