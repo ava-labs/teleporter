@@ -26,6 +26,7 @@ abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, OwnableUp
         _TeleporterOwnerUpgradeable_init_unchained(initialOwner);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function _TeleporterOwnerUpgradeable_init_unchained(address initialOwner)
         internal
         onlyInitializing
