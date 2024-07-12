@@ -143,7 +143,7 @@ The `TeleporterUpgradeable` contract constructor saves the Teleporter registry i
 
 #### Updating `minTeleporterVersion`
 
-The `TeleporterUpgradeable.updateMinTeleporterVersion` function updates the `minTeleporterVersion` used to check which Teleporter versions can deliver messages to the dApp, and emits the `MinTeleporterVersionUpdated` event. The `updateMinTeleporterVersion` function should **ONLY** be called by the dApp when it completes delivery of messages from the old Teleporter contract, and now wants to update the `minTeleporterVersion` to only allow the new Teleporter version. By default, `updateMinTeleporterVersion` can only be called with a version greater than the current `minTeleporterVersion` and less than `latestVersion` in the Teleporter registry. So once this function is called, the dApp will no longer be able to receive messages from the old Teleporter contract version, unless the old version's Teleporter address was registered in the registry again with a new version.
+The `TeleporterUpgradeable.updateMinTeleporterVersion` function updates the `minTeleporterVersion` used to check which Teleporter versions can be used for sending and receiving messages. **Once the `minTeleporterVersion` is increased, any undelivered messages sent by other chains using older versions of Teleporter will never be able to be received**. The `updateMinTeleporterVersion` function can only be called with a version greater than the current `minTeleporterVersion` and less than `latestVersion` in the Teleporter registry.
 
 > Example: Update the minimum Teleporter version to 2
 >```
