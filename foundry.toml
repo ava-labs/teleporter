@@ -4,6 +4,7 @@ out = 'out'
 libs = ['lib']
 solc_version = '0.8.18'
 test = 'tests'
+ignored_warnings_from = ["contracts/Teleporter/tests", "contracts/Teleporter/upgrades/tests"]
 
 [fmt]
 line_length = 100
