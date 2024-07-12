@@ -149,7 +149,7 @@ func NewLocalNetwork(
 		warpChainConfigPath: warpChainConfigPath,
 	}
 	for _, subnet := range network.Subnets {
-		res.setSubnetValues(subnet.SubnetID)
+		res.setSubnetValues(subnet)
 	}
 	res.setPrimaryNetworkValues()
 	return res
@@ -198,12 +198,7 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
 }
 
-func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
-	subnet := n.tmpnet.Subnets[slices.IndexFunc(
-		n.tmpnet.Subnets,
-		func(s *tmpnet.Subnet) bool { return s.SubnetID == subnetID },
-	)]
-
+func (n *LocalNetwork) setSubnetValues(subnet *tmpnet.Subnet) {
 	blockchainID := subnet.Chains[0].ChainID
 
 	var chainNodeURIs []string
@@ -216,6 +211,8 @@ func (n *LocalNetwork) setSubnetValues(subnetID ids.ID) {
 
 	chainWSURI := utils.HttpToWebsocketURI(chainNodeURIs[0], blockchainID.String())
 	chainRPCURI := utils.HttpToRPCURI(chainNodeURIs[0], blockchainID.String())
+
+	subnetID := subnet.SubnetID
 
 	if n.subnetsInfo[subnetID] != nil && n.subnetsInfo[subnetID].WSClient != nil {
 		n.subnetsInfo[subnetID].WSClient.Close()
@@ -433,8 +430,8 @@ func (n *LocalNetwork) setAllSubnetValues() {
 	subnetIDs := n.GetSubnetsInfo()
 	Expect(len(subnetIDs)).Should(Equal(2))
 
-	n.setSubnetValues(n.tmpnet.GetSubnet("A").SubnetID)
-	n.setSubnetValues(n.tmpnet.GetSubnet("B").SubnetID)
+	n.setSubnetValues(n.tmpnet.GetSubnet("A"))
+	n.setSubnetValues(n.tmpnet.GetSubnet("B"))
 
 	n.setPrimaryNetworkValues()
 }
