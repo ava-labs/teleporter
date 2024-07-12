@@ -135,6 +135,8 @@ Using specific version:
 
 dApps that implement `TeleporterUpgradeable` automatically use the latest Teleporter version registered with the `TeleporterRegistry`. Interaction with underlying `TeleporterMessenger` versions can be managed by setting the minimum Teleporter version, and pausing and unpausing specific versions.
 
+The following sections include example `cast send` commands for issuing transactions that call contract functions. See the [Foundry Book](https://book.getfoundry.sh/reference/cast/cast-send) for details on how to issue transactions using common wallet options.
+
 ### Managing the Minimum Teleporter version
 
 The `TeleporterUpgradeable` contract constructor saves the Teleporter registry in a state variable used by the inheriting dApp contract, and initializes a `minTeleporterVersion` to the highest `TeleporterMessenger` version registered in `TeleporterRegistry`. `minTeleporterVersion` is used to allow dApp's to specify the Teleporter versions allowed to interact with it.
@@ -150,9 +152,9 @@ The `TeleporterUpgradeable.updateMinTeleporterVersion` function updates the `min
 
 ### Pausing Teleporter version interactions
 
-Dapps that inherit from `TeleporterUpgradeable` can pause Teleporter interactions by calling `TeleporterUpgradeable.pauseTeleporterAddress`. This function prevents the dApp contract from interacting with the paused Teleporter address when sending or receiving Teleporter messages.
+dApps that inherit from `TeleporterUpgradeable` can pause Teleporter interactions by calling `TeleporterUpgradeable.pauseTeleporterAddress`. This function prevents the dApp contract from interacting with the paused Teleporter address when sending or receiving Teleporter messages.
 
-`pauseTeleporterAddress` can only be called by addresses with the dApp's upgrade access, checked through `TeleporterUpgradeable._checkTeleporterUpgradeAccess`.
+`pauseTeleporterAddress` can only be called by addresses with the dApps upgrade access, checked through `TeleporterUpgradeable._checkTeleporterUpgradeAccess`.
 
 The Teleporter address corresponding to a Teleporter version can be fetched from the registry with `TeleporterRegistry.getAddressFromVersion`
 
@@ -164,7 +166,7 @@ The Teleporter address corresponding to a Teleporter version can be fetched from
 
 #### Pause all Teleporter interactions
 
-To pause all Teleporter interactions, `TeleporterUpgradeable.pauseTeleporterAddress` must be called for every Teleporter version from the `minTeleporterVersion` to the latest Teleporter version registered in `TeleporterRegistry`. The latest Teleporter version can be obtained by inspecting the public variable `TeleporterRegistry.latestVersion`. The `minTeleporterVersion` can be obtained by calling `TeleporterUpgradeable.getMinTeleporterVersion`.
+To pause all Teleporter interactions, `TeleporterUpgradeable.pauseTeleporterAddress` must be called for every Teleporter version from the `minTeleporterVersion` to the latest Teleporter version registered in `TeleporterRegistry`. Note that there may be gaps in Teleporter versions registered with `TeleporterRegistry`, but they will always be in increasing order. The latest Teleporter version can be obtained by inspecting the public variable `TeleporterRegistry.latestVersion`. The `minTeleporterVersion` can be obtained by calling `TeleporterUpgradeable.getMinTeleporterVersion`.
 
 > Example: Pause all registered Teleporter versions
 >```
@@ -177,10 +179,18 @@ To pause all Teleporter interactions, `TeleporterUpgradeable.pauseTeleporterAddr
 ># Pause all registered versions
 >for ((version=minVersion; version<=latestVersion; version++))
 >do
+>  # Fetch the version address if it's registered
 >  versionAddress=$(cast call <REGISTRY_ADDRESS> "getAddressFromVersion(uint256)(address)" $version)
->  cast send <DAPP_ADDRESS> "pauseTeleporterAddress(address)" $versionAddress
->done
 >
+>  if [ $? -eq 0 ]; then
+>    # If cast call is successful, proceed to cast send
+>    cast send <DAPP_ADDRESS> "pauseTeleporterAddress(address)" $versionAddress
+>  else
+>    # If cast call fails, print an error message and skip to the next iteration
+>    echo "Version $version not registered. Skipping."
+>  fi
+>done
+>```
 
 #### Unpausing Teleporter version interactions
 
