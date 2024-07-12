@@ -317,7 +317,7 @@ contract TeleporterRegistryTest is Test {
             payload: abi.encode(
                 ProtocolRegistryEntry({version: version, protocolAddress: protocolAddress}),
                 registryAddress
-                )
+            )
         });
     }
 
