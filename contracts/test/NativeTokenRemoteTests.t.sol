@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
@@ -21,15 +21,10 @@ import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITelepor
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
-import {SafeERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import {IERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/IERC20Upgradeable.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
 contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
     string public constant DEFAULT_SYMBOL = "XYZ";
@@ -463,7 +458,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         app.deposit{value: feeAmount}();
         // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
+            IERC20(address(app)).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
         uint256 currentAllowance = app.allowance(address(this), address(tokenTransferrer));
 

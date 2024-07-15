@@ -3,19 +3,18 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {IWrappedNativeToken} from "./interfaces/IWrappedNativeToken.sol";
-import {ERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 
-contract WrappedNativeToken is IWrappedNativeToken, ERC20Upgradeable {
+contract WrappedNativeToken is IWrappedNativeToken, ERC20 {
     using Address for address payable;
 
-    function initialize(string memory symbol) public initializer {
-        __ERC20_init(string.concat("Wrapped ", symbol), string.concat("W", symbol));
-    }
+    constructor(string memory symbol)
+        ERC20(string.concat("Wrapped ", symbol), string.concat("W", symbol))
+    {}
 
     receive() external payable {
         deposit();

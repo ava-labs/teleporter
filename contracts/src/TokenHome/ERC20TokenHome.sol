@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenHome} from "./TokenHome.sol";
 import {IERC20TokenHome} from "./interfaces/IERC20TokenHome.sol";
@@ -174,7 +174,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
 
         // Reset the recipient contract allowance to 0.
         // Use of {safeApprove} is okay to reset the allowance to 0.
-        SafeERC20.safeApprove(token, message.recipientContract, 0);
+        SafeERC20.forceApprove(token, message.recipientContract, 0);
 
         if (success) {
             emit CallSucceeded(message.recipientContract, amount);
