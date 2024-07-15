@@ -9,7 +9,6 @@ pragma solidity 0.8.18;
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
-
 import {ExampleERC20} from "@teleporter-mocks/ExampleERC20.sol";
 
 contract ExampleERC20Decimals is ExampleERC20 {

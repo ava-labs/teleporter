@@ -20,22 +20,26 @@ import {Initializable} from
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 abstract contract SendReentrancyGuard is Initializable {
+    // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-ictt.storage.SendReentrancyGuard
     struct SendReentrancyGuardStorage {
         uint256 _sendEntered;
     }
+    // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.SendReentrancyGuard")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant SendReentrancyGuardStorageLocation =
+    bytes32 private constant _SEND_REENTRANCY_GUARD_STORAGE_LOCATION =
         0xd2f1ed38b7d242bfb8b41862afb813a15193219a4bc717f2056607593e6c7500;
 
+    // solhint-disable ordering
     function _getSendReentrancyGuardStorage()
         private
         pure
         returns (SendReentrancyGuardStorage storage $)
     {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := SendReentrancyGuardStorageLocation
+            $.slot := _SEND_REENTRANCY_GUARD_STORAGE_LOCATION
         }
     }
 
@@ -56,8 +60,10 @@ abstract contract SendReentrancyGuard is Initializable {
         __SendReentrnacyGuard_init_unchained();
     }
 
+    //solhint-disable-next-line func-name-mixedcase
     function __SendReentrnacyGuard_init_unchained() internal {
         SendReentrancyGuardStorage storage $ = _getSendReentrancyGuardStorage();
         $._sendEntered = _NOT_ENTERED;
     }
+    // solhint-enable ordering
 }

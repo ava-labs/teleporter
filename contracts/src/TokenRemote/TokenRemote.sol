@@ -32,6 +32,7 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendReentrancyGuard {
+    // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-ictt.storage.TokenRemote
     struct TokenRemoteStorage {
         /// @notice The blockchain ID of the chain this contract is deployed on.
@@ -85,14 +86,17 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
          */
         bool _isRegistered;
     }
+    // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant TokenRemoteStorageLocation =
+    bytes32 private constant _TOKEN_REMOTE_STORAGE_LOCATION =
         0x600d6a9b283d1eda563de594ce4843869b6f128a4baa222422ed94a60b0cef00;
 
+    // solhint-disable ordering
     function _getTokenRemoteStorage() private pure returns (TokenRemoteStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := TokenRemoteStorageLocation
+            $.slot := _TOKEN_REMOTE_STORAGE_LOCATION
         }
     }
 
@@ -143,6 +147,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
         __TokenRemote_init_unchained(settings, initialReserveImbalance_, tokenDecimals_);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __TokenRemote_init_unchained(
         TokenRemoteSettings memory settings,
         uint256 initialReserveImbalance_,
@@ -178,6 +183,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             settings.tokenHomeDecimals, tokenDecimals_
         );
     }
+    // solhint-enable ordering
 
     /**
      * @notice Sends a message to the contract's specified token TokenHome instance to register this remote

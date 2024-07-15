@@ -27,19 +27,23 @@ import {CallUtils} from "../utils/CallUtils.sol";
 contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;
 
+    // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenHome
     struct ERC20TokenHomeStorage {
         /// @notice The ERC20 token this home contract transfers to TokenRemote instances.
         IERC20 _token;
     }
+    // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenHome")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant ERC20TokenHomeStorageLocation =
+    bytes32 private constant _ERC20_TOKEN_HOME_STORAGE_LOCATION =
         0x914a9547f6c3ddce1d5efbd9e687708f0d1d408ce129e8e1a88bce4f40e29500;
 
+    // solhint-disable ordering
     function _getERC20TokenHomeStorage() private pure returns (ERC20TokenHomeStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := ERC20TokenHomeStorageLocation
+            $.slot := _ERC20_TOKEN_HOME_STORAGE_LOCATION
         }
     }
 
@@ -63,6 +67,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
         );
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __ERC20TokenHome_init(
         address teleporterRegistryAddress,
         address teleporterManager,
@@ -75,10 +80,12 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
         __ERC20TokenHome_init_unchained(tokenAddress_);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __ERC20TokenHome_init_unchained(address tokenAddress_) internal onlyInitializing {
         ERC20TokenHomeStorage storage $ = _getERC20TokenHomeStorage();
         $._token = IERC20(tokenAddress_);
     }
+    // solhint-enable ordering
 
     /**
      * @dev See {IERC20TokenTransferrer-send}

@@ -27,22 +27,26 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemote {
+    // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenRemote
     struct ERC20TokenRemoteStorage {
         uint8 _decimals;
     }
+    // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant ERC20TokenRemoteStorageLocation =
+    bytes32 private constant _ERC20_TOKEN_REMOTE_STORAGE_LOCATION =
         0x69a5f7616543528c4fbe43f410b1034bd6da4ba06c25bedf04617268014cf500;
 
+    // solhint-disable ordering
     function _getERC20TokenRemoteStorage()
         private
         pure
         returns (ERC20TokenRemoteStorage storage $)
     {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := ERC20TokenRemoteStorageLocation
+            $.slot := _ERC20_TOKEN_REMOTE_STORAGE_LOCATION
         }
     }
 
@@ -63,6 +67,7 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
         __ERC20TokenRemote_init(settings, tokenName, tokenSymbol, tokenDecimals_);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __ERC20TokenRemote_init(
         TokenRemoteSettings memory settings,
         string memory tokenName,
@@ -74,10 +79,12 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
         __ERC20TokenRemote_init_unchained(tokenDecimals_);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __ERC20TokenRemote_init_unchained(uint8 tokenDecimals_) internal {
         ERC20TokenRemoteStorage storage $ = _getERC20TokenRemoteStorage();
         $._decimals = tokenDecimals_;
     }
+    // solhint-enable ordering
 
     /**
      * @dev See {IERC20TokenTransferrer-send}

@@ -26,6 +26,8 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
  */
 contract NativeTokenHome is INativeTokenHome, TokenHome {
     using Address for address payable;
+
+    // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenHome
 
     struct NativeTokenHomeStorage {
@@ -34,14 +36,17 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
          */
         IWrappedNativeToken _wrappedToken;
     }
+    // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenHome")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant NativeTokenHomeStorageLocation =
+    bytes32 private constant _NATIVE_TOKEN_HOME_STORAGE_LOCATION =
         0x3b5030f10c94fcbdaa3022348ff0b82dbd4c0c71339e41ff59d0bdc92179d600;
 
+    // solhint-disable ordering
     function _getNativeTokenHomeStorage() private pure returns (NativeTokenHomeStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := NativeTokenHomeStorageLocation
+            $.slot := _NATIVE_TOKEN_HOME_STORAGE_LOCATION
         }
     }
 
@@ -63,6 +68,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
         __NativeTokenHome_init(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __NativeTokenHome_init(
         address teleporterRegistryAddress,
         address teleporterManager,
@@ -72,6 +78,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
         __NativeTokenHome_init_unchained(wrappedTokenAddress);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __NativeTokenHome_init_unchained(address wrappedTokenAddress)
         internal
         onlyInitializing
@@ -79,6 +86,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
         NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
         $._wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
+    // solhint-enable ordering
 
     /**
      * @notice Receives native tokens transferred to this contract.
