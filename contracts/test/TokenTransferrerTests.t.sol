@@ -23,7 +23,7 @@ import {
     MultiHopSendMessage,
     MultiHopCallMessage
 } from "../src/interfaces/ITokenTransferrer.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 
 abstract contract TokenTransferrerTest is Test {
     // convenience struct to reduce stack usage

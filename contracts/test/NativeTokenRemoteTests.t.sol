@@ -19,12 +19,12 @@ import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {SafeERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/IERC20Upgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/IERC20Upgradeable.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
 contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {

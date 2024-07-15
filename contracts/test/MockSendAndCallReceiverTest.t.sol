@@ -8,7 +8,7 @@ pragma solidity 0.8.18;
 import {Test} from "forge-std/Test.sol";
 import {MockERC20SendAndCallReceiver} from "../src/mocks/MockERC20SendAndCallReceiver.sol";
 import {MockNativeSendAndCallReceiver} from "../src/mocks/MockNativeSendAndCallReceiver.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 
 contract MockERC20SendAndCallReceiverTest is Test {

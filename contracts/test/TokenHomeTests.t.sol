@@ -22,8 +22,8 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-import {Math} from "@openzeppelin/contracts@4.8.1/utils/math/Math.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {Math} from "@openzeppelin/contracts@5.0.2/utils/math/Math.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 
 abstract contract TokenHomeTest is TokenTransferrerTest {
     TokenHome public tokenHome;

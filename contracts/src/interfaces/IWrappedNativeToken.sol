@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {IERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
 
 /**
  * @title IWrappedNativeToken

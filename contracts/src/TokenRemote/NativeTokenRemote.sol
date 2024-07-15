@@ -21,10 +21,10 @@ import {
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 import {ERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
-import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
+import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";

@@ -14,9 +14,9 @@ import {
     SendAndCallInput,
     SingleHopCallMessage
 } from "../interfaces/ITokenTransferrer.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 import {ERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 

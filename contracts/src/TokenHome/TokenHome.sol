@@ -24,7 +24,7 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 
 /**
  * @title TokenHome

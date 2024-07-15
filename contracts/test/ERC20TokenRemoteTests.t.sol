@@ -11,12 +11,12 @@ import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallRece
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
 import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/IERC20Upgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/IERC20Upgradeable.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 
