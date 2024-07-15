@@ -6,7 +6,7 @@ package main
 import (
 	"encoding/hex"
 
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )

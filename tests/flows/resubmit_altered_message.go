@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -40,8 +40,7 @@ func ResubmitAlteredMessage(network interfaces.Network) {
 	receipt = network.RelayMessage(ctx, receipt, subnetAInfo, subnetBInfo, true)
 
 	log.Info("Checking the message was received on the destination")
-	delivered, err :=
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
+	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeTrue())
 
@@ -62,8 +61,7 @@ func ResubmitAlteredMessage(network interfaces.Network) {
 	log.Info("Submitting the altered Teleporter message on the source chain")
 	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 	Expect(err).Should(BeNil())
-	tx, err :=
-		subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(opts, teleporterMessage)
+	tx, err := subnetAInfo.TeleporterMessenger.RetrySendCrossChainMessage(opts, teleporterMessage)
 	Expect(err).ShouldNot(BeNil())
 
 	// We expect the tx to be nil because the Warp message failed verification, which happens in the predicate
