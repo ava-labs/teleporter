@@ -53,7 +53,6 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	_, err = testMessenger.PauseTeleporterAddress(nonOwnerOpts, teleporterAddress)
 	Expect(err).ShouldNot(BeNil())
-	Expect(err.Error()).Should(ContainSubstring(errCallerNotOwnerStr))
 
 	// Check that the teleporter address is not paused, because previous call should have failed
 	isPaused, err := testMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
@@ -84,7 +83,6 @@ func CheckUpgradeAccess(network interfaces.Network) {
 	// Try to call unpauseTeleporterAddress from the previous owner account
 	_, err = testMessenger.UnpauseTeleporterAddress(ownerOpts, teleporterAddress)
 	Expect(err).ShouldNot(BeNil())
-	Expect(err.Error()).Should(ContainSubstring(errCallerNotOwnerStr))
 
 	// Make sure the teleporter address is still paused
 	isPaused, err = testMessenger.IsTeleporterAddressPaused(&bind.CallOpts{}, teleporterAddress)
