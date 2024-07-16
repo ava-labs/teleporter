@@ -27,8 +27,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     function setUp() public override {
         TokenHomeTest.setUp();
 
-        WrappedNativeToken token = new WrappedNativeToken();
-        token.initialize("AVAX");
+        WrappedNativeToken token = new WrappedNativeToken("AVAX");
         wavax = token;
         app = new NativeTokenHome();
         app.initialize(

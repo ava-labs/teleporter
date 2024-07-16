@@ -13,8 +13,7 @@ contract WrappedNativeTokenTest is Test {
     WrappedNativeToken public wavax;
 
     function setUp() public virtual {
-        wavax = new WrappedNativeToken();
-        wavax.initialize("AVAX");
+        wavax = new WrappedNativeToken("AVAX");
     }
 
     function testFallback() public {
