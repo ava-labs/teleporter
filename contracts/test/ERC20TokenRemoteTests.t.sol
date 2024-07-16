@@ -259,19 +259,14 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
         // Increase the allowance of the token transferrer to transfer the funds from the user
         IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), amount);
 
-        uint256 currentAllowance = app.allowance(address(this), address(tokenTransferrer));
+        // Account for the burn before sending
+        vm.expectEmit(true, true, true, true, address(app));
+        emit Transfer(address(this), address(0), amount);
+
         if (feeAmount > 0) {
-            vm.expectEmit(true, true, true, true, address(app));
-            emit Approval(address(this), address(tokenTransferrer), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(this), address(tokenTransferrer), feeAmount);
         }
-        vm.expectEmit(true, true, true, true, address(app));
-        emit Approval(
-            address(this), address(tokenTransferrer), currentAllowance - feeAmount - amount
-        );
-        vm.expectEmit(true, true, true, true, address(app));
-        emit Transfer(address(this), address(0), amount);
     }
 
     function _getTotalSupply() internal view override returns (uint256) {

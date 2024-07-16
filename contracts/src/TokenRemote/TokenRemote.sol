@@ -399,13 +399,14 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
         uint256 secondaryFee
     ) private returns (uint256, uint256) {
         TokenRemoteStorage storage $ = _getTokenRemoteStorage();
+
+        // Burn the amount of tokens that will be transferred.
+        amount = _burn(amount);
+
         // Transfer the primary fee to pay for fees on the first hop.
         // The user can specify this contract as {primaryFeeTokenAddress},
         // in which case the fee will be paid on top of the transferred amount.
         primaryFee = _handleFees(primaryFeeTokenAddress, primaryFee);
-
-        // Burn the amount of tokens that will be transferred.
-        amount = _burn(amount);
 
         // The transferred amount must cover the secondary fee, because the secondary fee
         // is directly subtracted from the transferred amount on the intermediate (home) chain

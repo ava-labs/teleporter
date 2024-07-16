@@ -460,11 +460,8 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         if (feeAmount > 0) {
             IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
-        uint256 currentAllowance = app.allowance(address(this), address(tokenTransferrer));
 
         if (feeAmount > 0) {
-            vm.expectEmit(true, true, true, true, address(app));
-            emit Approval(address(this), address(tokenTransferrer), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(this), address(tokenTransferrer), feeAmount);
         }

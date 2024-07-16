@@ -269,11 +269,6 @@ contract NativeTokenRemote is
 
     /**
      * @dev See {IWrappedNativeToken-deposit}.
-     *
-     * Note: {IWrappedNativeToken-deposit} should not be confused with {TokenRemote-_deposit}.
-     * {IWrappedNativeToken-deposit} is the public method for converting native tokens into the wrapped native
-     * token (ERC20) representation. {TokenRemote-_deposit} is the internal method used when
-     * processing token transfers.
      */
     function deposit() public payable {
         emit Deposit(_msgSender(), msg.value);
