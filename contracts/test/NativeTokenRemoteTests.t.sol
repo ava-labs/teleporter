@@ -458,7 +458,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         app.deposit{value: feeAmount}();
         // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            IERC20(address(app)).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
+            IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
         uint256 currentAllowance = app.allowance(address(this), address(tokenTransferrer));
 

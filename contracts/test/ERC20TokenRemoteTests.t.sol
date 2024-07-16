@@ -15,6 +15,7 @@ import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
+import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 
 contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
@@ -77,7 +78,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
             tokenDecimals,
-            "Ownable: new owner is the zero address"
+            abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0))
         );
     }
 
@@ -150,7 +151,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             )
         );
         // Increase the allowance of the token transferrer to transfer the funds from the user
-        IERC20(address(app)).safeIncreaseAllowance(address(tokenTransferrer), amount);
+        IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), amount);
 
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(this), address(0), amount);
@@ -252,11 +253,11 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
         // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            IERC20(address(app)).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
+            IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
 
         // Increase the allowance of the token transferrer to transfer the funds from the user
-        IERC20(address(app)).safeIncreaseAllowance(address(tokenTransferrer), amount);
+        IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), amount);
 
         uint256 currentAllowance = app.allowance(address(this), address(tokenTransferrer));
         if (feeAmount > 0) {

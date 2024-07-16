@@ -13,6 +13,7 @@ import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallRe
 import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 
 contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
@@ -36,7 +37,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
         tokenHome = app;
         nativeTokenTransferrer = app;
         tokenTransferrer = app;
-        transferredToken = IERC20(address(wavax));
+        transferredToken = IERC20(wavax);
         tokenHomeDecimals = 18;
     }
 
@@ -57,7 +58,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
             address(wavax),
-            "Ownable: new owner is the zero address"
+            abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0))
         );
     }
 

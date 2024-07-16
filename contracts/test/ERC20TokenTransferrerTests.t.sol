@@ -10,6 +10,7 @@ import {IERC20TokenTransferrer} from "../src/interfaces/IERC20TokenTransferrer.s
 import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Errors} from "@openzeppelin/contracts@5.0.2/interfaces/draft-IERC6093.sol";
 
 abstract contract ERC20TokenTransferrerTest is TokenTransferrerTest {
     using SafeERC20 for IERC20;
@@ -32,7 +33,11 @@ abstract contract ERC20TokenTransferrerTest is TokenTransferrerTest {
         _setUpRegisteredRemote(
             input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
-        vm.expectRevert("ERC20: insufficient allowance");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector, erc20TokenTransferrer, 0, amount
+            )
+        );
         _send(input, amount);
     }
 
@@ -43,7 +48,11 @@ abstract contract ERC20TokenTransferrerTest is TokenTransferrerTest {
         _setUpRegisteredRemote(
             input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
-        vm.expectRevert("ERC20: insufficient allowance");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector, erc20TokenTransferrer, 0, amount
+            )
+        );
         _sendAndCall(input, amount);
     }
 

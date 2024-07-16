@@ -24,6 +24,7 @@ import {
     MultiHopCallMessage
 } from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {IERC20Errors} from "@openzeppelin/contracts@5.0.2/interfaces/draft-IERC6093.sol";
 
 abstract contract TokenTransferrerTest is Test {
     // convenience struct to reduce stack usage
@@ -152,7 +153,12 @@ abstract contract TokenTransferrerTest is Test {
         _setUpRegisteredRemote(
             input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
-        vm.expectRevert("ERC20: insufficient allowance");
+        _setUpExpectedDeposit(amount, 0);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector, tokenTransferrer, 0, primaryFee
+            )
+        );
         _send(input, amount);
     }
 
@@ -166,7 +172,12 @@ abstract contract TokenTransferrerTest is Test {
         _setUpRegisteredRemote(
             input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
-        vm.expectRevert("ERC20: insufficient allowance");
+        _setUpExpectedDeposit(amount, 0);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector, tokenTransferrer, 0, primaryFee
+            )
+        );
         _sendAndCall(input, amount);
     }
 
