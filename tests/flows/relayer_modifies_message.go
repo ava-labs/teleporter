@@ -11,7 +11,7 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	predicateutils "github.com/ava-labs/subnet-evm/predicate"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	gasUtils "github.com/ava-labs/teleporter/utils/gas-utils"
@@ -55,8 +55,7 @@ func RelayerModifiesMessage(network interfaces.LocalNetwork) {
 		network)
 
 	// Check Teleporter message was not received on the destination
-	delivered, err :=
-		subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
+	delivered, err := subnetBInfo.TeleporterMessenger.MessageReceived(&bind.CallOpts{}, messageID)
 	Expect(err).Should(BeNil())
 	Expect(delivered).Should(BeFalse())
 }
@@ -69,8 +68,7 @@ func relayAlteredMessage(
 	network interfaces.LocalNetwork,
 ) {
 	// Fetch the Teleporter message from the logs
-	sendEvent, err :=
-		utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
+	sendEvent, err := utils.GetEventFromLogs(sourceReceipt.Logs, source.TeleporterMessenger.ParseSendCrossChainMessage)
 	Expect(err).Should(BeNil())
 
 	signedWarpMessage := network.ConstructSignedWarpMessage(ctx, sourceReceipt, source, destination)

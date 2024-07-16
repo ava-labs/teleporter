@@ -18,8 +18,8 @@ import (
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
 	"github.com/ava-labs/subnet-evm/rpc"
 	warpBackend "github.com/ava-labs/subnet-evm/warp"
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
-	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/upgrades/TeleporterRegistry"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
+	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/registry/TeleporterRegistry"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -49,9 +49,7 @@ const (
 	privateKeyHexLength = 64
 )
 
-var (
-	errInvalidPrivateKeyString = errors.New("invalid private key string")
-)
+var errInvalidPrivateKeyString = errors.New("invalid private key string")
 
 var _ interfaces.Network = &testNetwork{}
 
@@ -276,7 +274,8 @@ func (n *testNetwork) getMessageDeliveryTransactionReceipt(
 	ctx context.Context,
 	sourceBlockchainID ids.ID,
 	destination interfaces.SubnetTestInfo,
-	teleporterMessageID ids.ID) (*types.Receipt, error) {
+	teleporterMessageID ids.ID,
+) (*types.Receipt, error) {
 	// Wait until the message is delivered.
 	queryTicker := time.NewTicker(time.Millisecond * 500)
 	defer queryTicker.Stop()
