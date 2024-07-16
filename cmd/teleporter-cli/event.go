@@ -4,7 +4,7 @@
 package main
 
 import (
-	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/TeleporterMessenger"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -36,7 +36,7 @@ func eventRun(cmd *cobra.Command, args []string) {
 
 	out, err := teleportermessenger.FilterTeleporterEvents(topics, data, event.Name)
 	cobra.CheckErr(err)
-	logger.Info("Parsed Teleporter event", zap.String("name", event.Name), zap.Any("event", out))
+	logger.Info("Parsed Teleporter event", zap.String("name", event.Name), zap.String("event", out.String()))
 	cmd.Println("Event command ran successfully for", event.Name)
 }
 

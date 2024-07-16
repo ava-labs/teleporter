@@ -1,7 +1,7 @@
 ## Teleporter Messenger Contract
 This directory contains Solidity contracts implementing the Teleporter messaging protocol.
 
-This directory is set up as a [Foundry](https://github.com/foundry-rs/foundry) project. Use the `scripts/install_foundry.sh` to install the correct version of the ava-labs fork of foundry. Further documentation about given contracts can be found in`src/Teleporter/`.
+This directory is set up as a [Foundry](https://github.com/foundry-rs/foundry) project. Use the `scripts/install_foundry.sh` to install the correct version of the ava-labs fork of foundry. Further documentation about given contracts can be found in`src/teleporter/`.
 
 ## Building and Running
 - To compile the contracts run `forge build` from this directory.
