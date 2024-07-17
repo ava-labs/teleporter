@@ -21,6 +21,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
+          cache: false
 
       - run: go mod tidy
       - run: git --no-pager diff -- go.mod go.sum  # This prints the diff
