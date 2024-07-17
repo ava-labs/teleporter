@@ -49,6 +49,12 @@ interface IStakingManager {
     event ValidationPeriodEnded(bytes32 indexed validationID);
 
     /**
+     * @notice Resubmits a validator registration message to be sent to P-Chain to the Warp precompile.
+     * Only necessary if the original message can't be delivered due to validator churn.
+     */
+    function resendRegisterValidatorMessage(bytes32 validationID) external;
+
+    /**
      * @notice Completes the validator registration process by returning an acknowledgement of the registration of a
      * validationID from the P-Chain.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
@@ -72,11 +78,22 @@ interface IStakingManager {
     ) external;
 
     /**
+     * @notice Resubmits a validator end message to be sent to P-Chain to the Warp precompile.
+     * Only necessary if the original message can't be delivered due to validator churn.
+     */
+    function resendEndValidatorMessage(bytes32 validationID) external;
+
+    /**
      * @notice Completes the process of ending a validation period by receiving an acknowledgement from the P-Chain
      * that the validation ID is not active and will never be active in the future. Returns the the stake associated
      * with the validation. Note that this function can be used for successful validation periods that have been explicitly
      * ended by calling {initializeEndValidation} or for validation periods that never began on the P-Chain due to the
      * {registrationExpiry} being reached.
+     * @param messageIndex The index of the Warp message to be received providing the proof the validation is not active
+     * and never will be active on the P-Chain.
+     * @param setWeightMessageType Whether or not the message type is a SetValidatorWeight message, or a
+     * SubnetValidatorRegistration message (with valid set to false). Both message types are valid for ending
+     * a validation period.
      */
-    function completeEndValidation(uint32 messageIndex) external;
+    function completeEndValidation(uint32 messageIndex, bool setWeightMessageType) external;
 }

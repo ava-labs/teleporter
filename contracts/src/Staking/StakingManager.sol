@@ -20,7 +20,8 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
         PendingAdded,
         Active,
         PendingRemoved,
-        Completed
+        Completed,
+        Invalidated
     }
 
     struct Validator {
@@ -225,6 +226,22 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
     }
 
     /**
+     * @notice Resubmits a validator registration message to be sent to P-Chain to the Warp precompile.
+     * Only necessary if the original message can't be delivered due to validator churn.
+     */
+    function resendRegisterValidatorMessage(bytes32 validationID) external {
+        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        require(
+            $._pendingRegisterValidationMessages[validationID].length > 0
+                && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
+            "StakingManager: Invalid validation ID"
+        );
+
+        // Submit the message to the Warp precompile.
+        $._warpMessenger.sendWarpMessage($._pendingRegisterValidationMessages[validationID]);
+    }
+
+    /**
      * @notice Completes the validator registration process by returning an acknowledgement of the registration of a
      * validationID from the P-Chain.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
@@ -333,13 +350,71 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
     }
 
     /**
+     * @notice Resubmits a validator end message to be sent to P-Chain to the Warp precompile.
+     * Only necessary if the original message can't be delivered due to validator churn.
+     */
+    function resendEndValidatorMessage(bytes32 validationID) external {
+        // TODO: Allow for these messages to be resent.
+    }
+
+    /**
      * @notice Completes the process of ending a validation period by receiving an acknowledgement from the P-Chain
      * that the validation ID is not active and will never be active in the future. Returns the the stake associated
      * with the validation. Note that this function can be used for successful validation periods that have been explicitly
      * ended by calling {initializeEndValidation} or for validation periods that never began on the P-Chain due to the
      * {registrationExpiry} being reached.
+     * @param setWeightMessageType Whether or not the message type is a SetValidatorWeight message, or a
+     * SubnetValidatorRegistration message (with valid set to false). Both message types are valid for ending
+     * a validation period.
      */
-    function completeEndValidation(uint32 messageIndex) external {}
+    function completeEndValidation(uint32 messageIndex, bool setWeightMessageType) external {
+        StakingManagerStorage storage $ = _getTokenHomeStorage();
+
+        // Get the Warp message.
+        (WarpMessage memory warpMessage, bool valid) =
+            $._warpMessenger.getVerifiedWarpMessage(messageIndex);
+        require(valid, "StakingManager: Invalid warp message");
+
+        bytes32 validationID;
+        if (setWeightMessageType) {
+            uint64 weight;
+            (validationID,, weight) =
+                StakingMessages.unpackSetSubnetValidatorWeightMessage(warpMessage.payload);
+            require(weight == 0, "StakingManager: Weight must be 0");
+        } else {
+            bool validRegistration;
+            (validationID, validRegistration) =
+                StakingMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
+            require(!validRegistration, "StakingManager: Registration still valid");
+        }
+
+        // Note: The validation status is not necessarily PendingRemoved here. It could be PendingAdded if the
+        // registration was never successfully registered on the P-Chain, or it could be Active if the validator
+        // removed themselves directly on the P-Chain without going through the contract.
+        Validator memory validator = $._validationPeriods[validationID];
+        // TODO: Support use of contexts and _msgSender() instead of msg.sender
+        require(msg.sender == validator.owner, "StakingManager: Sender not validator owner");
+
+        ValidatorStatus endStatus;
+        if (
+            validator.status == ValidatorStatus.PendingRemoved
+                || validator.status == ValidatorStatus.Active
+        ) {
+            // Remove the validator from the active validators mapping.
+            delete $._activeValidators[validator.nodeID];
+            endStatus = ValidatorStatus.Completed;
+        } else {
+            endStatus = ValidatorStatus.Invalidated;
+        }
+
+        $._validationPeriods[validationID] = validator;
+
+        // Unlock the stake.
+
+        // Calculate the reward for the validator.
+
+        // Emit event.
+    }
 
     /**
      * @notice Helper function to check if the stake amount to be added or removed would exceed the maximum stake churn

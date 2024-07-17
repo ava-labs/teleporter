@@ -26,6 +26,9 @@ library StakingMessages {
         bytes signature;
     }
 
+    // TODO: The implemenation of these packing and unpacking functions is neither tested or optimzied at all.
+    // Full test coverage should be provided, and the implementation should be optimized for gas efficiency.
+
     /**
      * @notice Packs a RegisterSubnetValidator message into a byte array.
      * The message format specification is:
