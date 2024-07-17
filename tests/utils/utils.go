@@ -356,11 +356,11 @@ func DeployTransparentUpgradeableProxy[T any](
 	)
 	Expect(err).Should((BeNil()))
 
-	senderAdderss := crypto.PubkeyToAddress(senderKey.PublicKey)
+	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
 	proxyAdminAddress, tx, proxyAdmin, err := proxyadmin.DeployProxyAdmin(
 		opts,
 		subnet.RPCClient,
-		senderAdderss,
+		senderAddress,
 	)
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
