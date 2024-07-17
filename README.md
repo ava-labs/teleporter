@@ -55,7 +55,7 @@ Release versions follow the [semver](https://semver.org/) convention of incompat
 - [Ginkgo](https://onsi.github.io/ginkgo/#installing-ginkgo) for running the end-to-end tests.
 - Docker and Docker Compose v2 for running the local test network.
   - The docker image installs the following:
-    - [Foundry](https://book.getfoundry.sh/) Use `/scripts/install_foundry.sh` to install the ava-labs fork.
+    - [Foundry](https://book.getfoundry.sh/) Use `/scripts/install_foundry.sh` to install the Ava Labs [fork](https://github.com/ava-labs/foundry).
     - [Python3](https://www.python.org/downloads/)
 
 ## Structure
