@@ -12,15 +12,12 @@ The Teleporter protocol, on the other hand, is implemented at the smart contract
 
 To get started with using Teleporter, see [How to Deploy Teleporter Enabled Subnets on a Local Network](https://docs.avax.network/tooling/cli-cross-chain/teleporter-on-local-networks)
 
-- [Deployed Addresses](#deployed-addresses-for-latest-major-version)
+- [Deployed Addresses](#deployed-addresses)
 - [A Note on Versioning](#a-note-on-versioning)
 - [Setup](#setup)
   - [Initialize the repository](#initialize-the-repository)
   - [Dependencies](#dependencies)
 - [Structure](#structure)
-- [Run a local testnet in Docker](#run-a-local-testnet-in-docker)
-  - [Start up the local testnet](#start-up-the-local-testnet)
-  - [Additional notes](#additional-notes)
 - [E2E tests](#e2e-tests)
   - [Run specific E2E tests](#run-specific-e2e-tests)
   - [Run the E2E tests on another network](#run-the-e2e-tests-on-another-network)
@@ -55,10 +52,10 @@ Release versions follow the [semver](https://semver.org/) convention of incompat
 
 ### Dependencies
 
-- [Ginkgo](https://onsi.github.io/ginkgo/#installing-ginkgo) for running the end-to-end tests
-- Docker and Docker Compose v2 for running the local test network
+- [Ginkgo](https://onsi.github.io/ginkgo/#installing-ginkgo) for running the end-to-end tests.
+- Docker and Docker Compose v2 for running the local test network.
   - The docker image installs the following:
-    - [Foundry](https://book.getfoundry.sh/getting-started/installation)
+    - [Foundry](https://book.getfoundry.sh/) Use `/scripts/install_foundry.sh` to install the ava-labs fork.
     - [Python3](https://www.python.org/downloads/)
 
 ## Structure
