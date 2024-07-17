@@ -90,7 +90,7 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 	warpChainConfigPath := f.Name()
 
-	allNodes := slices.Clone(extraNodes) // to be appended w/ subnet validators
+	allNodes := extraNodes // to be appended w/ subnet validators
 
 	var subnets []*tmpnet.Subnet
 	for _, subnetSpec := range subnetSpecs {
@@ -561,9 +561,11 @@ func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
 	if err != nil {
 		log.Error("failed to write network", "error", err)
 	}
-	err = n.tmpnet.WriteSubnets()
-	if err != nil {
-		log.Error("failed to write subnets", "error", err)
+	for _, subnet := range n.tmpnet.Subnets {
+		err := subnet.Write(n.tmpnet.GetSubnetDir(), n.tmpnet.GetChainConfigDir())
+		if err != nil {
+			log.Error("failed to write subnets", "error", err)
+		}
 	}
 }
 
