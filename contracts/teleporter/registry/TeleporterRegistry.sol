@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.18;
 
-import {ITeleporterMessenger} from "../ITeleporterMessenger.sol";
+import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 import {
     IWarpMessenger,
     WarpMessage

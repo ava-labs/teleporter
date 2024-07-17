@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
-import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
+import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
 contract UnpauseTeleporterAddressTest is TeleporterUpgradeableTest {
     function setUp() public virtual override {

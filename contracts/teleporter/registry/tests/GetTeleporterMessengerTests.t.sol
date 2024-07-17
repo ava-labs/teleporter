@@ -6,8 +6,8 @@
 pragma solidity 0.8.18;
 
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
-import {ITeleporterMessenger} from "../../ITeleporterMessenger.sol";
-import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
+import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
 contract GetTeleporterMessengerTest is TeleporterUpgradeableTest {
     function setUp() public virtual override {

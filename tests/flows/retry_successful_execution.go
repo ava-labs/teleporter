@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/Teleporter/tests/TestMessenger"
+	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/tests/TestMessenger"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
 	. "github.com/onsi/gomega"

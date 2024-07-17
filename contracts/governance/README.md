@@ -1,6 +1,6 @@
-## Utility Contracts
+# Governance Contracts
 
-### ValidatorSetSig Contract
+## Overview
 
 This contract provides an alternative to traditional multi-signature contracts where instead of requiring signatures from `K` of `N` pre-specified signers, an aggregate signature is required from a quorum of the current validators for a given blockchain.
 

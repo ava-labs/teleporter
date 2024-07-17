@@ -6,8 +6,8 @@
 pragma solidity 0.8.18;
 
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
-import {ITeleporterReceiver} from "../ITeleporterReceiver.sol";
-import {ITeleporterMessenger, TeleporterMessageInput} from "../ITeleporterMessenger.sol";
+import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
+import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";

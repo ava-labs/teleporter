@@ -11,10 +11,10 @@ import {
     ITeleporterMessenger,
     TeleporterMessage,
     TeleporterMessageReceipt
-} from "../../ITeleporterMessenger.sol";
+} from "@teleporter/ITeleporterMessenger.sol";
 import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
+import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
 uint32 constant warpMessageIndex = 2;
 

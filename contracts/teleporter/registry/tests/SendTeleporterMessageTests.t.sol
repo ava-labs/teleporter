@@ -12,9 +12,9 @@ import {
     ITeleporterMessenger,
     TeleporterMessageInput,
     TeleporterFeeInfo
-} from "../../ITeleporterMessenger.sol";
+} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterRegistry, ProtocolRegistryEntry} from "../TeleporterRegistry.sol";
-import {IERC20} from "../../TeleporterMessenger.sol";
+import {IERC20} from "@teleporter/TeleporterMessenger.sol";
 import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 
 contract SendTeleporterMessageTest is TeleporterUpgradeableTest {

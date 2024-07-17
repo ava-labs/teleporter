@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
-import {TeleporterMessenger, WarpMessage} from "../../TeleporterMessenger.sol";
+import {TeleporterMessenger, WarpMessage} from "@teleporter/TeleporterMessenger.sol";
 
 contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
     function setUp() public virtual override {

@@ -7,8 +7,8 @@ pragma solidity 0.8.18;
 
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterRegistryTest} from "./TeleporterRegistryTests.t.sol";
-import {ITeleporterMessenger, TeleporterMessageInput} from "../../ITeleporterMessenger.sol";
-import {TeleporterMessenger} from "../../TeleporterMessenger.sol";
+import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
+import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
     constructor(address teleporterRegistryAddress)
