@@ -12,6 +12,8 @@ jobs:
   gomod_check:
     name: Check go.mod
     runs-on: ubuntu-22.04
+    env:
+      GONOPROXY: "github.com/ava-labs/*"
 
     steps:
       - uses: actions/checkout@v4
