@@ -6,7 +6,7 @@
 pragma solidity 0.8.18;
 
 import {Test} from "@forge-std/Test.sol";
-import {ReentrancyGuards} from "../ReentrancyGuards.sol";
+import {ReentrancyGuards} from "@utilities/ReentrancyGuards.sol";
 
 contract ReentrancyGuardsTests is Test {
     SampleMessenger internal _sampleMessenger;
