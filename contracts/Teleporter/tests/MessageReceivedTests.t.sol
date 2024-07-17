@@ -32,7 +32,7 @@ contract MessageReceivedTest is TeleporterMessengerTest {
         assertEq(teleporterMessenger.messageReceived(messageID), true);
     }
 
-    function testUnreceivedMessage() public {
+    function testUnreceivedMessage() public view {
         assertEq(
             teleporterMessenger.messageReceived(
                 teleporterMessenger.calculateMessageID(

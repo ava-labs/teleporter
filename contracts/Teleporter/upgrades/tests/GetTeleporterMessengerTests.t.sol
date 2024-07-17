@@ -14,14 +14,6 @@ contract GetTeleporterMessengerTest is TeleporterUpgradeableTest {
         TeleporterUpgradeableTest.setUp();
     }
 
-    function testGetTeleporterMessengerBasic() public {
-        ITeleporterMessenger messenger = app.getTeleporterMessenger();
-        assertEq(
-            teleporterRegistry.getVersionFromAddress(address(messenger)),
-            teleporterRegistry.latestVersion()
-        );
-    }
-
     function testGetPausedTeleporterMessenger() public {
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter sending paused"));
@@ -67,6 +59,14 @@ contract GetTeleporterMessengerTest is TeleporterUpgradeableTest {
         // Make sure we can still get the latest version of Teleporter for sending
         ITeleporterMessenger messenger = app.getTeleporterMessenger();
         assertEq(address(messenger), newTeleporterAddress);
+        assertEq(
+            teleporterRegistry.getVersionFromAddress(address(messenger)),
+            teleporterRegistry.latestVersion()
+        );
+    }
+
+    function testGetTeleporterMessengerBasic() public view {
+        ITeleporterMessenger messenger = app.getTeleporterMessenger();
         assertEq(
             teleporterRegistry.getVersionFromAddress(address(messenger)),
             teleporterRegistry.latestVersion()

@@ -65,7 +65,7 @@ contract GetFeeInfoTest is TeleporterMessengerTest {
         assertEq(actualFeeAmount, 0);
     }
 
-    function testInvalidMessage() public {
+    function testInvalidMessage() public view {
         bytes32 fakeMessageID = bytes32(uint256(4646));
 
         // Get the fee info to make sure it is zero since the message doesn't exist.
