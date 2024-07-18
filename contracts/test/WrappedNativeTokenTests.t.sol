@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
@@ -13,8 +13,7 @@ contract WrappedNativeTokenTest is Test {
     WrappedNativeToken public wavax;
 
     function setUp() public virtual {
-        wavax = new WrappedNativeToken();
-        wavax.initialize("AVAX");
+        wavax = new WrappedNativeToken("AVAX");
     }
 
     function testFallback() public {

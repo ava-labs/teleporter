@@ -56,8 +56,8 @@ Unit test coverage of the contracts can be viewed using `forge coverage`:
 ```
 $ forge coverage
 [⠢] Compiling...
-[⠒] Compiling 78 files with 0.8.18
-[⠆] Solc 0.8.18 finished in 3.92s
+[⠒] Compiling 78 files with 0.8.20
+[⠆] Solc 0.8.20 finished in 3.92s
 Compiler run successful!
 Analysing contracts...
 Running tests...

@@ -3,11 +3,12 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
 import {TokenHome, IWarpMessenger} from "../src/TokenHome/TokenHome.sol";
-import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
+import {RemoteTokenTransferrerSettings} from "../src/TokenHome/interfaces/ITokenHome.sol";
+import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
@@ -21,8 +22,8 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-import {Math} from "@openzeppelin/contracts@4.8.1/utils/math/Math.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {Math} from "@openzeppelin/contracts@5.0.2/utils/math/Math.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 
 abstract contract TokenHomeTest is TokenTransferrerTest {
     TokenHome public tokenHome;
@@ -95,10 +96,10 @@ abstract contract TokenHomeTest is TokenTransferrerTest {
         _addCollateral(
             DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount
         );
-        (, uint256 updateReserveImbalance,,) = tokenHome.registeredRemotes(
+        RemoteTokenTransferrerSettings memory settings = tokenHome.getRemoteTokenTransferrerSettings(
             DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
         );
-        assertEq(updateReserveImbalance, initialReserveImbalance - collateralAmount);
+        assertEq(settings.collateralNeeded, initialReserveImbalance - collateralAmount);
     }
 
     function testAddCollateralMoreThanFullAmount() public {
@@ -124,10 +125,10 @@ abstract contract TokenHomeTest is TokenTransferrerTest {
         _addCollateral(
             DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, collateralAmount
         );
-        (, uint256 updateReserveImbalance,,) = tokenHome.registeredRemotes(
+        RemoteTokenTransferrerSettings memory settings = tokenHome.getRemoteTokenTransferrerSettings(
             DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
         );
-        assertEq(updateReserveImbalance, 0);
+        assertEq(settings.collateralNeeded, 0);
         assertTrue(address(this).balance > 0);
     }
 
@@ -253,7 +254,7 @@ abstract contract TokenHomeTest is TokenTransferrerTest {
         // Make sure the balance is correct. Only the remaining amount remains locked in the home
         // contract. The rest is withdrawn.
         assertEq(
-            tokenHome.transferredBalances(
+            tokenHome.getTransferredBalance(
                 DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
             ),
             withdrawAmount
@@ -513,7 +514,7 @@ abstract contract TokenHomeTest is TokenTransferrerTest {
         // First send to remote instance to increase the token transfer balance
         uint256 amount = 2;
         _sendSingleHopSendSuccess(amount, 0);
-        uint256 balanceBefore = tokenHome.transferredBalances(
+        uint256 balanceBefore = tokenHome.getTransferredBalance(
             DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
         );
         assertEq(balanceBefore, amount);
@@ -547,7 +548,7 @@ abstract contract TokenHomeTest is TokenTransferrerTest {
 
         // Make sure the token transfer balance is still the same
         assertEq(
-            tokenHome.transferredBalances(
+            tokenHome.getTransferredBalance(
                 DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
             ),
             balanceBefore
@@ -703,7 +704,7 @@ abstract contract TokenHomeTest is TokenTransferrerTest {
     }
 
     function testRegisterRemoteSameChain() public {
-        bytes32 localBlockchainID = tokenHome.blockchainID();
+        bytes32 localBlockchainID = tokenHome.getBlockchainID();
         vm.expectRevert(_formatErrorMessage("cannot register remote on same chain"));
         _setUpRegisteredRemote(localBlockchainID, DEFAULT_TOKEN_REMOTE_ADDRESS, 0);
     }

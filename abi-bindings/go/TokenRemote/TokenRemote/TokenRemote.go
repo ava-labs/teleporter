@@ -64,7 +64,7 @@ type TeleporterFeeInfo struct {
 
 // TokenRemoteMetaData contains all meta data concerning the TokenRemote contract.
 var TokenRemoteMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"CallFailed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"CallSucceeded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"TeleporterAddressPaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"TeleporterAddressUnpaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationTokenTransferrerAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"recipientPayload\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"recipientGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"fallbackRecipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structSendAndCallInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensAndCallSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationTokenTransferrerAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"}],\"indexed\":false,\"internalType\":\"structSendTokensInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensWithdrawn\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MULTI_HOP_CALL_GAS_PER_WORD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MULTI_HOP_CALL_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MULTI_HOP_SEND_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"REGISTER_REMOTE_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"blockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"payloadSize\",\"type\":\"uint256\"}],\"name\":\"calculateNumWords\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"homeTokenDecimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"initialReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isCollateralized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isRegistered\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"isTeleporterAddressPaused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"multiplyOnRemote\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"pauseTeleporterAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"}],\"name\":\"registerWithHome\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"teleporterRegistry\",\"outputs\":[{\"internalType\":\"contractTeleporterRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenDecimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenHomeAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenHomeBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenMultiplier\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"unpauseTeleporterAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"AddressEmptyCode\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"AddressInsufficientBalance\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FailedInnerCall\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ReentrancyGuardReentrantCall\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"SafeERC20FailedOperation\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"CallFailed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"CallSucceeded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"oldMinTeleporterVersion\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"newMinTeleporterVersion\",\"type\":\"uint256\"}],\"name\":\"MinTeleporterVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"TeleporterAddressPaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"TeleporterAddressUnpaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationTokenTransferrerAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipientContract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"recipientPayload\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"recipientGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"fallbackRecipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structSendAndCallInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensAndCallSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"teleporterMessageID\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"destinationBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"destinationTokenTransferrerAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"primaryFeeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"primaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondaryFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"multiHopFallback\",\"type\":\"address\"}],\"indexed\":false,\"internalType\":\"structSendTokensInput\",\"name\":\"input\",\"type\":\"tuple\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensWithdrawn\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MULTI_HOP_CALL_GAS_PER_WORD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MULTI_HOP_CALL_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MULTI_HOP_SEND_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"REGISTER_REMOTE_REQUIRED_GAS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"payloadSize\",\"type\":\"uint256\"}],\"name\":\"calculateNumWords\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getInitialReserveImbalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getIsCollateralized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinTeleporterVersion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMultiplyOnRemote\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getTokenHomeAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getTokenHomeBlockchainID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getTokenMultiplier\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"isTeleporterAddressPaused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"pauseTeleporterAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"sourceBlockchainID\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"originSenderAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"receiveTeleporterMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"feeTokenAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"structTeleporterFeeInfo\",\"name\":\"feeInfo\",\"type\":\"tuple\"}],\"name\":\"registerWithHome\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"teleporterAddress\",\"type\":\"address\"}],\"name\":\"unpauseTeleporterAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"version\",\"type\":\"uint256\"}],\"name\":\"updateMinTeleporterVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // TokenRemoteABI is the input ABI used to generate the binding from.
@@ -337,37 +337,6 @@ func (_TokenRemote *TokenRemoteCallerSession) REGISTERREMOTEREQUIREDGAS() (*big.
 	return _TokenRemote.Contract.REGISTERREMOTEREQUIREDGAS(&_TokenRemote.CallOpts)
 }
 
-// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
-//
-// Solidity: function blockchainID() view returns(bytes32)
-func (_TokenRemote *TokenRemoteCaller) BlockchainID(opts *bind.CallOpts) ([32]byte, error) {
-	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "blockchainID")
-
-	if err != nil {
-		return *new([32]byte), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
-
-	return out0, err
-
-}
-
-// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
-//
-// Solidity: function blockchainID() view returns(bytes32)
-func (_TokenRemote *TokenRemoteSession) BlockchainID() ([32]byte, error) {
-	return _TokenRemote.Contract.BlockchainID(&_TokenRemote.CallOpts)
-}
-
-// BlockchainID is a free data retrieval call binding the contract method 0xd127dc9b.
-//
-// Solidity: function blockchainID() view returns(bytes32)
-func (_TokenRemote *TokenRemoteCallerSession) BlockchainID() ([32]byte, error) {
-	return _TokenRemote.Contract.BlockchainID(&_TokenRemote.CallOpts)
-}
-
 // CalculateNumWords is a free data retrieval call binding the contract method 0xf3f981d8.
 //
 // Solidity: function calculateNumWords(uint256 payloadSize) pure returns(uint256)
@@ -397,6 +366,99 @@ func (_TokenRemote *TokenRemoteSession) CalculateNumWords(payloadSize *big.Int) 
 // Solidity: function calculateNumWords(uint256 payloadSize) pure returns(uint256)
 func (_TokenRemote *TokenRemoteCallerSession) CalculateNumWords(payloadSize *big.Int) (*big.Int, error) {
 	return _TokenRemote.Contract.CalculateNumWords(&_TokenRemote.CallOpts, payloadSize)
+}
+
+// GetBlockchainID is a free data retrieval call binding the contract method 0x4213cf78.
+//
+// Solidity: function getBlockchainID() view returns(bytes32)
+func (_TokenRemote *TokenRemoteCaller) GetBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _TokenRemote.contract.Call(opts, &out, "getBlockchainID")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// GetBlockchainID is a free data retrieval call binding the contract method 0x4213cf78.
+//
+// Solidity: function getBlockchainID() view returns(bytes32)
+func (_TokenRemote *TokenRemoteSession) GetBlockchainID() ([32]byte, error) {
+	return _TokenRemote.Contract.GetBlockchainID(&_TokenRemote.CallOpts)
+}
+
+// GetBlockchainID is a free data retrieval call binding the contract method 0x4213cf78.
+//
+// Solidity: function getBlockchainID() view returns(bytes32)
+func (_TokenRemote *TokenRemoteCallerSession) GetBlockchainID() ([32]byte, error) {
+	return _TokenRemote.Contract.GetBlockchainID(&_TokenRemote.CallOpts)
+}
+
+// GetInitialReserveImbalance is a free data retrieval call binding the contract method 0xef793e2a.
+//
+// Solidity: function getInitialReserveImbalance() view returns(uint256)
+func (_TokenRemote *TokenRemoteCaller) GetInitialReserveImbalance(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _TokenRemote.contract.Call(opts, &out, "getInitialReserveImbalance")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetInitialReserveImbalance is a free data retrieval call binding the contract method 0xef793e2a.
+//
+// Solidity: function getInitialReserveImbalance() view returns(uint256)
+func (_TokenRemote *TokenRemoteSession) GetInitialReserveImbalance() (*big.Int, error) {
+	return _TokenRemote.Contract.GetInitialReserveImbalance(&_TokenRemote.CallOpts)
+}
+
+// GetInitialReserveImbalance is a free data retrieval call binding the contract method 0xef793e2a.
+//
+// Solidity: function getInitialReserveImbalance() view returns(uint256)
+func (_TokenRemote *TokenRemoteCallerSession) GetInitialReserveImbalance() (*big.Int, error) {
+	return _TokenRemote.Contract.GetInitialReserveImbalance(&_TokenRemote.CallOpts)
+}
+
+// GetIsCollateralized is a free data retrieval call binding the contract method 0x02a30c7d.
+//
+// Solidity: function getIsCollateralized() view returns(bool)
+func (_TokenRemote *TokenRemoteCaller) GetIsCollateralized(opts *bind.CallOpts) (bool, error) {
+	var out []interface{}
+	err := _TokenRemote.contract.Call(opts, &out, "getIsCollateralized")
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
+}
+
+// GetIsCollateralized is a free data retrieval call binding the contract method 0x02a30c7d.
+//
+// Solidity: function getIsCollateralized() view returns(bool)
+func (_TokenRemote *TokenRemoteSession) GetIsCollateralized() (bool, error) {
+	return _TokenRemote.Contract.GetIsCollateralized(&_TokenRemote.CallOpts)
+}
+
+// GetIsCollateralized is a free data retrieval call binding the contract method 0x02a30c7d.
+//
+// Solidity: function getIsCollateralized() view returns(bool)
+func (_TokenRemote *TokenRemoteCallerSession) GetIsCollateralized() (bool, error) {
+	return _TokenRemote.Contract.GetIsCollateralized(&_TokenRemote.CallOpts)
 }
 
 // GetMinTeleporterVersion is a free data retrieval call binding the contract method 0xd2cc7a70.
@@ -430,43 +492,105 @@ func (_TokenRemote *TokenRemoteCallerSession) GetMinTeleporterVersion() (*big.In
 	return _TokenRemote.Contract.GetMinTeleporterVersion(&_TokenRemote.CallOpts)
 }
 
-// HomeTokenDecimals is a free data retrieval call binding the contract method 0x5e0208fd.
+// GetMultiplyOnRemote is a free data retrieval call binding the contract method 0x7ee3779a.
 //
-// Solidity: function homeTokenDecimals() view returns(uint8)
-func (_TokenRemote *TokenRemoteCaller) HomeTokenDecimals(opts *bind.CallOpts) (uint8, error) {
+// Solidity: function getMultiplyOnRemote() view returns(bool)
+func (_TokenRemote *TokenRemoteCaller) GetMultiplyOnRemote(opts *bind.CallOpts) (bool, error) {
 	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "homeTokenDecimals")
+	err := _TokenRemote.contract.Call(opts, &out, "getMultiplyOnRemote")
 
 	if err != nil {
-		return *new(uint8), err
+		return *new(bool), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
 
 	return out0, err
 
 }
 
-// HomeTokenDecimals is a free data retrieval call binding the contract method 0x5e0208fd.
+// GetMultiplyOnRemote is a free data retrieval call binding the contract method 0x7ee3779a.
 //
-// Solidity: function homeTokenDecimals() view returns(uint8)
-func (_TokenRemote *TokenRemoteSession) HomeTokenDecimals() (uint8, error) {
-	return _TokenRemote.Contract.HomeTokenDecimals(&_TokenRemote.CallOpts)
+// Solidity: function getMultiplyOnRemote() view returns(bool)
+func (_TokenRemote *TokenRemoteSession) GetMultiplyOnRemote() (bool, error) {
+	return _TokenRemote.Contract.GetMultiplyOnRemote(&_TokenRemote.CallOpts)
 }
 
-// HomeTokenDecimals is a free data retrieval call binding the contract method 0x5e0208fd.
+// GetMultiplyOnRemote is a free data retrieval call binding the contract method 0x7ee3779a.
 //
-// Solidity: function homeTokenDecimals() view returns(uint8)
-func (_TokenRemote *TokenRemoteCallerSession) HomeTokenDecimals() (uint8, error) {
-	return _TokenRemote.Contract.HomeTokenDecimals(&_TokenRemote.CallOpts)
+// Solidity: function getMultiplyOnRemote() view returns(bool)
+func (_TokenRemote *TokenRemoteCallerSession) GetMultiplyOnRemote() (bool, error) {
+	return _TokenRemote.Contract.GetMultiplyOnRemote(&_TokenRemote.CallOpts)
 }
 
-// InitialReserveImbalance is a free data retrieval call binding the contract method 0x8ac7dd20.
+// GetTokenHomeAddress is a free data retrieval call binding the contract method 0xc3cd6927.
 //
-// Solidity: function initialReserveImbalance() view returns(uint256)
-func (_TokenRemote *TokenRemoteCaller) InitialReserveImbalance(opts *bind.CallOpts) (*big.Int, error) {
+// Solidity: function getTokenHomeAddress() view returns(address)
+func (_TokenRemote *TokenRemoteCaller) GetTokenHomeAddress(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "initialReserveImbalance")
+	err := _TokenRemote.contract.Call(opts, &out, "getTokenHomeAddress")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetTokenHomeAddress is a free data retrieval call binding the contract method 0xc3cd6927.
+//
+// Solidity: function getTokenHomeAddress() view returns(address)
+func (_TokenRemote *TokenRemoteSession) GetTokenHomeAddress() (common.Address, error) {
+	return _TokenRemote.Contract.GetTokenHomeAddress(&_TokenRemote.CallOpts)
+}
+
+// GetTokenHomeAddress is a free data retrieval call binding the contract method 0xc3cd6927.
+//
+// Solidity: function getTokenHomeAddress() view returns(address)
+func (_TokenRemote *TokenRemoteCallerSession) GetTokenHomeAddress() (common.Address, error) {
+	return _TokenRemote.Contract.GetTokenHomeAddress(&_TokenRemote.CallOpts)
+}
+
+// GetTokenHomeBlockchainID is a free data retrieval call binding the contract method 0xe0fd9cb8.
+//
+// Solidity: function getTokenHomeBlockchainID() view returns(bytes32)
+func (_TokenRemote *TokenRemoteCaller) GetTokenHomeBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _TokenRemote.contract.Call(opts, &out, "getTokenHomeBlockchainID")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// GetTokenHomeBlockchainID is a free data retrieval call binding the contract method 0xe0fd9cb8.
+//
+// Solidity: function getTokenHomeBlockchainID() view returns(bytes32)
+func (_TokenRemote *TokenRemoteSession) GetTokenHomeBlockchainID() ([32]byte, error) {
+	return _TokenRemote.Contract.GetTokenHomeBlockchainID(&_TokenRemote.CallOpts)
+}
+
+// GetTokenHomeBlockchainID is a free data retrieval call binding the contract method 0xe0fd9cb8.
+//
+// Solidity: function getTokenHomeBlockchainID() view returns(bytes32)
+func (_TokenRemote *TokenRemoteCallerSession) GetTokenHomeBlockchainID() ([32]byte, error) {
+	return _TokenRemote.Contract.GetTokenHomeBlockchainID(&_TokenRemote.CallOpts)
+}
+
+// GetTokenMultiplier is a free data retrieval call binding the contract method 0x0733c8c8.
+//
+// Solidity: function getTokenMultiplier() view returns(uint256)
+func (_TokenRemote *TokenRemoteCaller) GetTokenMultiplier(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _TokenRemote.contract.Call(opts, &out, "getTokenMultiplier")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -478,80 +602,18 @@ func (_TokenRemote *TokenRemoteCaller) InitialReserveImbalance(opts *bind.CallOp
 
 }
 
-// InitialReserveImbalance is a free data retrieval call binding the contract method 0x8ac7dd20.
+// GetTokenMultiplier is a free data retrieval call binding the contract method 0x0733c8c8.
 //
-// Solidity: function initialReserveImbalance() view returns(uint256)
-func (_TokenRemote *TokenRemoteSession) InitialReserveImbalance() (*big.Int, error) {
-	return _TokenRemote.Contract.InitialReserveImbalance(&_TokenRemote.CallOpts)
+// Solidity: function getTokenMultiplier() view returns(uint256)
+func (_TokenRemote *TokenRemoteSession) GetTokenMultiplier() (*big.Int, error) {
+	return _TokenRemote.Contract.GetTokenMultiplier(&_TokenRemote.CallOpts)
 }
 
-// InitialReserveImbalance is a free data retrieval call binding the contract method 0x8ac7dd20.
+// GetTokenMultiplier is a free data retrieval call binding the contract method 0x0733c8c8.
 //
-// Solidity: function initialReserveImbalance() view returns(uint256)
-func (_TokenRemote *TokenRemoteCallerSession) InitialReserveImbalance() (*big.Int, error) {
-	return _TokenRemote.Contract.InitialReserveImbalance(&_TokenRemote.CallOpts)
-}
-
-// IsCollateralized is a free data retrieval call binding the contract method 0x49e3284e.
-//
-// Solidity: function isCollateralized() view returns(bool)
-func (_TokenRemote *TokenRemoteCaller) IsCollateralized(opts *bind.CallOpts) (bool, error) {
-	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "isCollateralized")
-
-	if err != nil {
-		return *new(bool), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
-
-	return out0, err
-
-}
-
-// IsCollateralized is a free data retrieval call binding the contract method 0x49e3284e.
-//
-// Solidity: function isCollateralized() view returns(bool)
-func (_TokenRemote *TokenRemoteSession) IsCollateralized() (bool, error) {
-	return _TokenRemote.Contract.IsCollateralized(&_TokenRemote.CallOpts)
-}
-
-// IsCollateralized is a free data retrieval call binding the contract method 0x49e3284e.
-//
-// Solidity: function isCollateralized() view returns(bool)
-func (_TokenRemote *TokenRemoteCallerSession) IsCollateralized() (bool, error) {
-	return _TokenRemote.Contract.IsCollateralized(&_TokenRemote.CallOpts)
-}
-
-// IsRegistered is a free data retrieval call binding the contract method 0x22366844.
-//
-// Solidity: function isRegistered() view returns(bool)
-func (_TokenRemote *TokenRemoteCaller) IsRegistered(opts *bind.CallOpts) (bool, error) {
-	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "isRegistered")
-
-	if err != nil {
-		return *new(bool), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
-
-	return out0, err
-
-}
-
-// IsRegistered is a free data retrieval call binding the contract method 0x22366844.
-//
-// Solidity: function isRegistered() view returns(bool)
-func (_TokenRemote *TokenRemoteSession) IsRegistered() (bool, error) {
-	return _TokenRemote.Contract.IsRegistered(&_TokenRemote.CallOpts)
-}
-
-// IsRegistered is a free data retrieval call binding the contract method 0x22366844.
-//
-// Solidity: function isRegistered() view returns(bool)
-func (_TokenRemote *TokenRemoteCallerSession) IsRegistered() (bool, error) {
-	return _TokenRemote.Contract.IsRegistered(&_TokenRemote.CallOpts)
+// Solidity: function getTokenMultiplier() view returns(uint256)
+func (_TokenRemote *TokenRemoteCallerSession) GetTokenMultiplier() (*big.Int, error) {
+	return _TokenRemote.Contract.GetTokenMultiplier(&_TokenRemote.CallOpts)
 }
 
 // IsTeleporterAddressPaused is a free data retrieval call binding the contract method 0x97314297.
@@ -585,37 +647,6 @@ func (_TokenRemote *TokenRemoteCallerSession) IsTeleporterAddressPaused(teleport
 	return _TokenRemote.Contract.IsTeleporterAddressPaused(&_TokenRemote.CallOpts, teleporterAddress)
 }
 
-// MultiplyOnRemote is a free data retrieval call binding the contract method 0xa0bdf905.
-//
-// Solidity: function multiplyOnRemote() view returns(bool)
-func (_TokenRemote *TokenRemoteCaller) MultiplyOnRemote(opts *bind.CallOpts) (bool, error) {
-	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "multiplyOnRemote")
-
-	if err != nil {
-		return *new(bool), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
-
-	return out0, err
-
-}
-
-// MultiplyOnRemote is a free data retrieval call binding the contract method 0xa0bdf905.
-//
-// Solidity: function multiplyOnRemote() view returns(bool)
-func (_TokenRemote *TokenRemoteSession) MultiplyOnRemote() (bool, error) {
-	return _TokenRemote.Contract.MultiplyOnRemote(&_TokenRemote.CallOpts)
-}
-
-// MultiplyOnRemote is a free data retrieval call binding the contract method 0xa0bdf905.
-//
-// Solidity: function multiplyOnRemote() view returns(bool)
-func (_TokenRemote *TokenRemoteCallerSession) MultiplyOnRemote() (bool, error) {
-	return _TokenRemote.Contract.MultiplyOnRemote(&_TokenRemote.CallOpts)
-}
-
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
@@ -645,161 +676,6 @@ func (_TokenRemote *TokenRemoteSession) Owner() (common.Address, error) {
 // Solidity: function owner() view returns(address)
 func (_TokenRemote *TokenRemoteCallerSession) Owner() (common.Address, error) {
 	return _TokenRemote.Contract.Owner(&_TokenRemote.CallOpts)
-}
-
-// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
-//
-// Solidity: function teleporterRegistry() view returns(address)
-func (_TokenRemote *TokenRemoteCaller) TeleporterRegistry(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "teleporterRegistry")
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
-//
-// Solidity: function teleporterRegistry() view returns(address)
-func (_TokenRemote *TokenRemoteSession) TeleporterRegistry() (common.Address, error) {
-	return _TokenRemote.Contract.TeleporterRegistry(&_TokenRemote.CallOpts)
-}
-
-// TeleporterRegistry is a free data retrieval call binding the contract method 0x1a7f5bec.
-//
-// Solidity: function teleporterRegistry() view returns(address)
-func (_TokenRemote *TokenRemoteCallerSession) TeleporterRegistry() (common.Address, error) {
-	return _TokenRemote.Contract.TeleporterRegistry(&_TokenRemote.CallOpts)
-}
-
-// TokenDecimals is a free data retrieval call binding the contract method 0x3b97e856.
-//
-// Solidity: function tokenDecimals() view returns(uint8)
-func (_TokenRemote *TokenRemoteCaller) TokenDecimals(opts *bind.CallOpts) (uint8, error) {
-	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "tokenDecimals")
-
-	if err != nil {
-		return *new(uint8), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
-
-	return out0, err
-
-}
-
-// TokenDecimals is a free data retrieval call binding the contract method 0x3b97e856.
-//
-// Solidity: function tokenDecimals() view returns(uint8)
-func (_TokenRemote *TokenRemoteSession) TokenDecimals() (uint8, error) {
-	return _TokenRemote.Contract.TokenDecimals(&_TokenRemote.CallOpts)
-}
-
-// TokenDecimals is a free data retrieval call binding the contract method 0x3b97e856.
-//
-// Solidity: function tokenDecimals() view returns(uint8)
-func (_TokenRemote *TokenRemoteCallerSession) TokenDecimals() (uint8, error) {
-	return _TokenRemote.Contract.TokenDecimals(&_TokenRemote.CallOpts)
-}
-
-// TokenHomeAddress is a free data retrieval call binding the contract method 0x8788cbac.
-//
-// Solidity: function tokenHomeAddress() view returns(address)
-func (_TokenRemote *TokenRemoteCaller) TokenHomeAddress(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "tokenHomeAddress")
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// TokenHomeAddress is a free data retrieval call binding the contract method 0x8788cbac.
-//
-// Solidity: function tokenHomeAddress() view returns(address)
-func (_TokenRemote *TokenRemoteSession) TokenHomeAddress() (common.Address, error) {
-	return _TokenRemote.Contract.TokenHomeAddress(&_TokenRemote.CallOpts)
-}
-
-// TokenHomeAddress is a free data retrieval call binding the contract method 0x8788cbac.
-//
-// Solidity: function tokenHomeAddress() view returns(address)
-func (_TokenRemote *TokenRemoteCallerSession) TokenHomeAddress() (common.Address, error) {
-	return _TokenRemote.Contract.TokenHomeAddress(&_TokenRemote.CallOpts)
-}
-
-// TokenHomeBlockchainID is a free data retrieval call binding the contract method 0xa40634ab.
-//
-// Solidity: function tokenHomeBlockchainID() view returns(bytes32)
-func (_TokenRemote *TokenRemoteCaller) TokenHomeBlockchainID(opts *bind.CallOpts) ([32]byte, error) {
-	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "tokenHomeBlockchainID")
-
-	if err != nil {
-		return *new([32]byte), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
-
-	return out0, err
-
-}
-
-// TokenHomeBlockchainID is a free data retrieval call binding the contract method 0xa40634ab.
-//
-// Solidity: function tokenHomeBlockchainID() view returns(bytes32)
-func (_TokenRemote *TokenRemoteSession) TokenHomeBlockchainID() ([32]byte, error) {
-	return _TokenRemote.Contract.TokenHomeBlockchainID(&_TokenRemote.CallOpts)
-}
-
-// TokenHomeBlockchainID is a free data retrieval call binding the contract method 0xa40634ab.
-//
-// Solidity: function tokenHomeBlockchainID() view returns(bytes32)
-func (_TokenRemote *TokenRemoteCallerSession) TokenHomeBlockchainID() ([32]byte, error) {
-	return _TokenRemote.Contract.TokenHomeBlockchainID(&_TokenRemote.CallOpts)
-}
-
-// TokenMultiplier is a free data retrieval call binding the contract method 0xba3f5a12.
-//
-// Solidity: function tokenMultiplier() view returns(uint256)
-func (_TokenRemote *TokenRemoteCaller) TokenMultiplier(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _TokenRemote.contract.Call(opts, &out, "tokenMultiplier")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// TokenMultiplier is a free data retrieval call binding the contract method 0xba3f5a12.
-//
-// Solidity: function tokenMultiplier() view returns(uint256)
-func (_TokenRemote *TokenRemoteSession) TokenMultiplier() (*big.Int, error) {
-	return _TokenRemote.Contract.TokenMultiplier(&_TokenRemote.CallOpts)
-}
-
-// TokenMultiplier is a free data retrieval call binding the contract method 0xba3f5a12.
-//
-// Solidity: function tokenMultiplier() view returns(uint256)
-func (_TokenRemote *TokenRemoteCallerSession) TokenMultiplier() (*big.Int, error) {
-	return _TokenRemote.Contract.TokenMultiplier(&_TokenRemote.CallOpts)
 }
 
 // PauseTeleporterAddress is a paid mutator transaction binding the contract method 0x2b0d8f18.
@@ -1308,13 +1184,13 @@ func (it *TokenRemoteInitializedIterator) Close() error {
 
 // TokenRemoteInitialized represents a Initialized event raised by the TokenRemote contract.
 type TokenRemoteInitialized struct {
-	Version uint8
+	Version uint64
 	Raw     types.Log // Blockchain specific contextual infos
 }
 
-// FilterInitialized is a free log retrieval operation binding the contract event 0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498.
+// FilterInitialized is a free log retrieval operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
 //
-// Solidity: event Initialized(uint8 version)
+// Solidity: event Initialized(uint64 version)
 func (_TokenRemote *TokenRemoteFilterer) FilterInitialized(opts *bind.FilterOpts) (*TokenRemoteInitializedIterator, error) {
 
 	logs, sub, err := _TokenRemote.contract.FilterLogs(opts, "Initialized")
@@ -1324,9 +1200,9 @@ func (_TokenRemote *TokenRemoteFilterer) FilterInitialized(opts *bind.FilterOpts
 	return &TokenRemoteInitializedIterator{contract: _TokenRemote.contract, event: "Initialized", logs: logs, sub: sub}, nil
 }
 
-// WatchInitialized is a free log subscription operation binding the contract event 0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498.
+// WatchInitialized is a free log subscription operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
 //
-// Solidity: event Initialized(uint8 version)
+// Solidity: event Initialized(uint64 version)
 func (_TokenRemote *TokenRemoteFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *TokenRemoteInitialized) (event.Subscription, error) {
 
 	logs, sub, err := _TokenRemote.contract.WatchLogs(opts, "Initialized")
@@ -1361,9 +1237,9 @@ func (_TokenRemote *TokenRemoteFilterer) WatchInitialized(opts *bind.WatchOpts, 
 	}), nil
 }
 
-// ParseInitialized is a log parse operation binding the contract event 0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498.
+// ParseInitialized is a log parse operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
 //
-// Solidity: event Initialized(uint8 version)
+// Solidity: event Initialized(uint64 version)
 func (_TokenRemote *TokenRemoteFilterer) ParseInitialized(log types.Log) (*TokenRemoteInitialized, error) {
 	event := new(TokenRemoteInitialized)
 	if err := _TokenRemote.contract.UnpackLog(event, "Initialized", log); err != nil {

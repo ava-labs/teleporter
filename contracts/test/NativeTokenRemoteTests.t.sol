@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
@@ -19,17 +19,12 @@ import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {SafeERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import {IERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/IERC20Upgradeable.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
 
 contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
     string public constant DEFAULT_SYMBOL = "XYZ";
@@ -164,7 +159,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     }
 
     function testTotalNativeAssetSupply() public {
-        uint256 initialTotalMinted = app.totalMinted();
+        uint256 initialTotalMinted = app.getTotalMinted();
         uint256 initialExpectedBalance = _DEFAULT_INITIAL_RESERVE_IMBALANCE + initialTotalMinted;
         assertEq(app.totalNativeAssetSupply(), initialExpectedBalance);
 
@@ -260,8 +255,8 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         _setUpMockMint(address(app), expectedReward);
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
-                destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
+                destinationBlockchainID: app.getTokenHomeBlockchainID(),
+                destinationTokenTransferrerAddress: app.getTokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(app),
                 primaryFee: expectedReward,
@@ -287,8 +282,8 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         _setUpMockMint(address(app), expectedReward);
         expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
-                destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
+                destinationBlockchainID: app.getTokenHomeBlockchainID(),
+                destinationTokenTransferrerAddress: app.getTokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(app),
                 primaryFee: expectedReward,
@@ -325,8 +320,8 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         vm.deal(app.BURNED_TX_FEES_ADDRESS(), burnedTxFeeAmount);
         TeleporterMessageInput memory expectedMessageInput = _createSingleHopTeleporterMessageInput(
             SendTokensInput({
-                destinationBlockchainID: app.tokenHomeBlockchainID(),
-                destinationTokenTransferrerAddress: app.tokenHomeAddress(),
+                destinationBlockchainID: app.getTokenHomeBlockchainID(),
+                destinationTokenTransferrerAddress: app.getTokenHomeAddress(),
                 recipient: app.HOME_CHAIN_BURN_ADDRESS(),
                 primaryFeeTokenAddress: address(app),
                 primaryFee: 0,
@@ -463,13 +458,10 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         app.deposit{value: feeAmount}();
         // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
+            IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
-        uint256 currentAllowance = app.allowance(address(this), address(tokenTransferrer));
 
         if (feeAmount > 0) {
-            vm.expectEmit(true, true, true, true, address(app));
-            emit Approval(address(this), address(tokenTransferrer), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(this), address(tokenTransferrer), feeAmount);
         }
@@ -487,16 +479,16 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     // a message from its configured home to mint tokens. Until then, the home contract is
     // still assumed to have insufficient collateral.
     function _collateralizeTokenTransferrer() private {
-        assertFalse(app.isCollateralized());
+        assertFalse(app.getIsCollateralized());
         uint256 amount = 10e18;
         _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         app.receiveTeleporterMessage(
-            app.tokenHomeBlockchainID(),
-            app.tokenHomeAddress(),
+            app.getTokenHomeBlockchainID(),
+            app.getTokenHomeAddress(),
             _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
         );
-        assertTrue(app.isCollateralized());
+        assertTrue(app.getIsCollateralized());
     }
 
     function _invalidInitialization(

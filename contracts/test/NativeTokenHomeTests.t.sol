@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
@@ -11,8 +11,9 @@ import {NativeTokenHome} from "../src/TokenHome/NativeTokenHome.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 
 contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
@@ -27,8 +28,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     function setUp() public override {
         TokenHomeTest.setUp();
 
-        WrappedNativeToken token = new WrappedNativeToken();
-        token.initialize("AVAX");
+        WrappedNativeToken token = new WrappedNativeToken("AVAX");
         wavax = token;
         app = new NativeTokenHome();
         app.initialize(
@@ -37,7 +37,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
         tokenHome = app;
         nativeTokenTransferrer = app;
         tokenTransferrer = app;
-        transferredToken = IERC20(address(wavax));
+        transferredToken = IERC20(wavax);
         tokenHomeDecimals = 18;
     }
 
@@ -58,7 +58,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             address(0),
             address(wavax),
-            "Ownable: new owner is the zero address"
+            abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0))
         );
     }
 

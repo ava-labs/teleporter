@@ -3,18 +3,20 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {ERC20TokenTransferrerTest} from "./ERC20TokenTransferrerTests.t.sol";
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {ERC20TokenHome} from "../src/TokenHome/ERC20TokenHome.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
+import {RemoteTokenTransferrerSettings} from "../src/TokenHome/interfaces/ITokenHome.sol";
+import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 
 contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
@@ -60,7 +62,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
             address(0),
             address(mockERC20),
             tokenHomeDecimals,
-            "Ownable: new owner is the zero address"
+            abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0))
         );
     }
 
@@ -125,10 +127,10 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
         _setUpRegisteredRemote(
             DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 11, 10, true
         );
-        (, uint256 collateralNeeded,,) = tokenHome.registeredRemotes(
+        RemoteTokenTransferrerSettings memory settings = tokenHome.getRemoteTokenTransferrerSettings(
             DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS
         );
-        assertEq(collateralNeeded, 2);
+        assertEq(settings.collateralNeeded, 2);
     }
 
     function testSendScaledUpAmount() public {

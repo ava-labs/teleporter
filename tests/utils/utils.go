@@ -267,16 +267,13 @@ func DeployWrappedNativeToken(
 	Expect(err).Should(BeNil())
 
 	// Deploy mock WAVAX contract
-	address, tx, token, err := wrappednativetoken.DeployWrappedNativeToken(opts, subnet.RPCClient)
-	Expect(err).Should(BeNil())
-	// Wait for the transaction to be mined
-	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	tx, err = token.Initialize(
+	address, tx, token, err := wrappednativetoken.DeployWrappedNativeToken(
 		opts,
+		subnet.RPCClient,
 		tokenSymbol,
 	)
 	Expect(err).Should(BeNil())
+	// Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	return address, token
@@ -359,7 +356,12 @@ func DeployTransparentUpgradeableProxy[T any](
 	)
 	Expect(err).Should((BeNil()))
 
-	proxyAdminAddress, tx, proxyAdmin, err := proxyadmin.DeployProxyAdmin(opts, subnet.RPCClient)
+	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
+	proxyAdminAddress, tx, proxyAdmin, err := proxyadmin.DeployProxyAdmin(
+		opts,
+		subnet.RPCClient,
+		senderAddress,
+	)
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
@@ -521,7 +523,7 @@ func AddCollateralToERC20TokenHome(
 	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
 	Expect(event.RemoteTokenTransferrerAddress).Should(Equal(remoteAddress))
 
-	remoteSettings, err := erc20TokenHome.RegisteredRemotes(
+	remoteSettings, err := erc20TokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		remoteBlockchainID,
 		remoteAddress)
@@ -562,7 +564,7 @@ func AddCollateralToNativeTokenHome(
 	Expect(err).Should(BeNil())
 	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
 	Expect(event.RemoteTokenTransferrerAddress).Should(Equal(remoteAddress))
-	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
+	remoteSettings, err := nativeTokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		remoteBlockchainID,
 		remoteAddress)
@@ -812,7 +814,7 @@ func SendAndCallNativeTokenHome(
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 
 	// Compute the scaled amount
-	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
+	remoteSettings, err := nativeTokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		input.DestinationBlockchainID,
 		input.DestinationTokenTransferrerAddress)

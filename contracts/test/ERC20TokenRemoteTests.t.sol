@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {ERC20TokenTransferrerTest} from "./ERC20TokenTransferrerTests.t.sol";
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
@@ -11,18 +11,14 @@ import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallRece
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
 import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import {IERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/IERC20Upgradeable.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
+import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 
 contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     string public constant MOCK_TOKEN_NAME = "Test Token";
     string public constant MOCK_TOKEN_SYMBOL = "TST";
@@ -82,7 +78,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
             tokenDecimals,
-            "Ownable: new owner is the zero address"
+            abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0))
         );
     }
 
@@ -155,7 +151,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             )
         );
         // Increase the allowance of the token transferrer to transfer the funds from the user
-        IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenTransferrer), amount);
+        IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), amount);
 
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(this), address(0), amount);
@@ -257,25 +253,20 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
         // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
+            IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
 
         // Increase the allowance of the token transferrer to transfer the funds from the user
-        IERC20Upgradeable(app).safeIncreaseAllowance(address(tokenTransferrer), amount);
+        IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), amount);
 
-        uint256 currentAllowance = app.allowance(address(this), address(tokenTransferrer));
+        // Account for the burn before sending
+        vm.expectEmit(true, true, true, true, address(app));
+        emit Transfer(address(this), address(0), amount);
+
         if (feeAmount > 0) {
-            vm.expectEmit(true, true, true, true, address(app));
-            emit Approval(address(this), address(tokenTransferrer), currentAllowance - feeAmount);
             vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(this), address(tokenTransferrer), feeAmount);
         }
-        vm.expectEmit(true, true, true, true, address(app));
-        emit Approval(
-            address(this), address(tokenTransferrer), currentAllowance - feeAmount - amount
-        );
-        vm.expectEmit(true, true, true, true, address(app));
-        emit Transfer(address(this), address(0), amount);
     }
 
     function _getTotalSupply() internal view override returns (uint256) {

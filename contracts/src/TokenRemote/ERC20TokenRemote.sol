@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenRemote} from "./TokenRemote.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
@@ -14,9 +14,9 @@ import {
     SendAndCallInput,
     SingleHopCallMessage
 } from "../interfaces/ITokenTransferrer.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 import {ERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
@@ -27,7 +27,28 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemote {
-    uint8 private _decimals;
+    // solhint-disable private-vars-leading-underscore
+    /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenRemote
+    struct ERC20TokenRemoteStorage {
+        uint8 _decimals;
+    }
+    // solhint-enable private-vars-leading-underscore
+
+    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant _ERC20_TOKEN_REMOTE_STORAGE_LOCATION =
+        0x69a5f7616543528c4fbe43f410b1034bd6da4ba06c25bedf04617268014cf500;
+
+    // solhint-disable ordering
+    function _getERC20TokenRemoteStorage()
+        private
+        pure
+        returns (ERC20TokenRemoteStorage storage $)
+    {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            $.slot := _ERC20_TOKEN_REMOTE_STORAGE_LOCATION
+        }
+    }
 
     /**
      * @notice Initializes this token TokenRemote instance to receive tokens from the specified TokenHome instance,
@@ -43,10 +64,27 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
         string memory tokenSymbol,
         uint8 tokenDecimals_
     ) public initializer {
+        __ERC20TokenRemote_init(settings, tokenName, tokenSymbol, tokenDecimals_);
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function __ERC20TokenRemote_init(
+        TokenRemoteSettings memory settings,
+        string memory tokenName,
+        string memory tokenSymbol,
+        uint8 tokenDecimals_
+    ) internal onlyInitializing {
         __ERC20_init(tokenName, tokenSymbol);
         __TokenRemote_init(settings, 0, tokenDecimals_);
-        _decimals = tokenDecimals;
+        __ERC20TokenRemote_init_unchained(tokenDecimals_);
     }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function __ERC20TokenRemote_init_unchained(uint8 tokenDecimals_) internal {
+        ERC20TokenRemoteStorage storage $ = _getERC20TokenRemoteStorage();
+        $._decimals = tokenDecimals_;
+    }
+    // solhint-enable ordering
 
     /**
      * @dev See {IERC20TokenTransferrer-send}
@@ -70,7 +108,8 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
      * @dev See {ERC20-decimals}
      */
     function decimals() public view override returns (uint8) {
-        return _decimals;
+        ERC20TokenRemoteStorage storage $ = _getERC20TokenRemoteStorage();
+        return $._decimals;
     }
 
     /**

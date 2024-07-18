@@ -3,12 +3,12 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
 import {TokenRemote, IWarpMessenger} from "../src/TokenRemote/TokenRemote.sol";
-import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
+import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";
 import {SendTokensInput, SendAndCallInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
@@ -19,9 +19,9 @@ import {
     TransferrerMessage,
     RegisterRemoteMessage
 } from "../src/interfaces/ITokenTransferrer.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract TokenRemoteTest is TokenTransferrerTest {
     using SafeERC20 for IERC20;
@@ -122,7 +122,7 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
 
     function testSendingToSameInstance() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.destinationBlockchainID = tokenRemote.blockchainID();
+        input.destinationBlockchainID = tokenRemote.getBlockchainID();
         input.destinationTokenTransferrerAddress = address(tokenRemote);
         input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
         vm.expectRevert(_formatErrorMessage("invalid destination token transferrer address"));
@@ -130,12 +130,12 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
     }
 
     function testSendingToOtherInstanceOnSameChain() public {
-        _sendMultiHopSendSuccess(tokenRemote.blockchainID(), 1e18, 999, 555);
+        _sendMultiHopSendSuccess(tokenRemote.getBlockchainID(), 1e18, 999, 555);
     }
 
     function testSendAndCallingToSameInstance() public {
         SendAndCallInput memory input = _createDefaultSendAndCallInput();
-        input.destinationBlockchainID = tokenRemote.blockchainID();
+        input.destinationBlockchainID = tokenRemote.getBlockchainID();
         input.destinationTokenTransferrerAddress = address(tokenRemote);
         input.multiHopFallback = DEFAULT_MULTIHOP_FALLBACK_ADDRESS;
         vm.expectRevert(_formatErrorMessage("invalid destination token transferrer address"));
@@ -143,7 +143,7 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
     }
 
     function testSendAndCallingToOtherInstanceOnSameChain() public {
-        _sendMultiHopCallSuccess(tokenRemote.blockchainID(), 1e18, 999, 555);
+        _sendMultiHopCallSuccess(tokenRemote.getBlockchainID(), 1e18, 999, 555);
     }
 
     function testSendZeroAmountAfterRemoveScaling() public {
@@ -154,7 +154,7 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
 
         if (
             TokenScalingUtils.removeTokenScale(
-                tokenRemote.tokenMultiplier(), tokenRemote.multiplyOnRemote(), amount
+                tokenRemote.getTokenMultiplier(), tokenRemote.getMultiplyOnRemote(), amount
             ) != 0
         ) {
             return;
@@ -168,7 +168,7 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
     function testSendToSameBlockchainDifferentDestination() public {
         uint256 amount = 2e15;
         SendTokensInput memory input = _createDefaultSendTokensInput();
-        input.destinationBlockchainID = tokenRemote.blockchainID();
+        input.destinationBlockchainID = tokenRemote.getBlockchainID();
         // Set the desintation token transferrer address to an address different than the token remote contract.
         input.destinationTokenTransferrerAddress = address(0x55);
 
@@ -433,15 +433,15 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
             messageType: TransferrerMessageType.REGISTER_REMOTE,
             payload: abi.encode(
                 RegisterRemoteMessage({
-                    initialReserveImbalance: tokenRemote.initialReserveImbalance(),
+                    initialReserveImbalance: tokenRemote.getInitialReserveImbalance(),
                     remoteTokenDecimals: tokenDecimals,
                     homeTokenDecimals: tokenHomeDecimals
                 })
                 )
         });
         TeleporterMessageInput memory expectedMessageInput = TeleporterMessageInput({
-            destinationBlockchainID: tokenRemote.tokenHomeBlockchainID(),
-            destinationAddress: tokenRemote.tokenHomeAddress(),
+            destinationBlockchainID: tokenRemote.getTokenHomeBlockchainID(),
+            destinationAddress: tokenRemote.getTokenHomeAddress(),
             feeInfo: feeInfo,
             requiredGasLimit: tokenRemote.REGISTER_REMOTE_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
@@ -467,8 +467,8 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
         _setUpMockMint(DEFAULT_RECIPIENT_ADDRESS, amount);
         vm.prank(MOCK_TELEPORTER_MESSENGER_ADDRESS);
         tokenRemote.receiveTeleporterMessage(
-            tokenRemote.tokenHomeBlockchainID(),
-            tokenRemote.tokenHomeAddress(),
+            tokenRemote.getTokenHomeBlockchainID(),
+            tokenRemote.getTokenHomeAddress(),
             _encodeSingleHopSendMessage(amount, DEFAULT_RECIPIENT_ADDRESS)
         );
 
@@ -552,8 +552,8 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
         uint256 transferAmount
     ) internal view returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
-            destinationBlockchainID: tokenRemote.tokenHomeBlockchainID(),
-            destinationAddress: tokenRemote.tokenHomeAddress(),
+            destinationBlockchainID: tokenRemote.getTokenHomeBlockchainID(),
+            destinationAddress: tokenRemote.getTokenHomeAddress(),
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(tokenRemote), amount: input.primaryFee}),
             requiredGasLimit: tokenRemote.MULTI_HOP_SEND_REQUIRED_GAS(),
             allowedRelayerAddresses: new address[](0),
@@ -575,8 +575,8 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
         uint256 transferAmount
     ) internal view returns (TeleporterMessageInput memory) {
         return TeleporterMessageInput({
-            destinationBlockchainID: tokenRemote.tokenHomeBlockchainID(),
-            destinationAddress: tokenRemote.tokenHomeAddress(),
+            destinationBlockchainID: tokenRemote.getTokenHomeBlockchainID(),
+            destinationAddress: tokenRemote.getTokenHomeAddress(),
             feeInfo: TeleporterFeeInfo({feeTokenAddress: address(tokenRemote), amount: input.primaryFee}),
             requiredGasLimit: tokenRemote.MULTI_HOP_CALL_REQUIRED_GAS()
                 + (

@@ -3,10 +3,10 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {Initializable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
 /**
  * @dev Abstract contract that helps implement reentrancy guards for Avalanche interchain token transfer {_send} and {_sendAndCall}
@@ -20,20 +20,50 @@ import {Initializable} from
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 abstract contract SendReentrancyGuard is Initializable {
+    // solhint-disable private-vars-leading-underscore
+    /// @custom:storage-location erc7201:avalanche-ictt.storage.SendReentrancyGuard
+    struct SendReentrancyGuardStorage {
+        uint256 _sendEntered;
+    }
+    // solhint-enable private-vars-leading-underscore
+
+    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.SendReentrancyGuard")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant _SEND_REENTRANCY_GUARD_STORAGE_LOCATION =
+        0xd2f1ed38b7d242bfb8b41862afb813a15193219a4bc717f2056607593e6c7500;
+
+    // solhint-disable ordering
+    function _getSendReentrancyGuardStorage()
+        private
+        pure
+        returns (SendReentrancyGuardStorage storage $)
+    {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            $.slot := _SEND_REENTRANCY_GUARD_STORAGE_LOCATION
+        }
+    }
+
     uint256 internal constant _NOT_ENTERED = 1;
     uint256 internal constant _ENTERED = 2;
-    uint256 private _sendEntered;
 
     // sendNonReentrant modifier makes sure there is not reentry between {_send} or {_sendAndCall} calls.
     modifier sendNonReentrant() {
-        require(_sendEntered == _NOT_ENTERED, "SendReentrancyGuard: send reentrancy");
-        _sendEntered = _ENTERED;
+        SendReentrancyGuardStorage storage $ = _getSendReentrancyGuardStorage();
+        require($._sendEntered == _NOT_ENTERED, "SendReentrancyGuard: send reentrancy");
+        $._sendEntered = _ENTERED;
         _;
-        _sendEntered = _NOT_ENTERED;
+        $._sendEntered = _NOT_ENTERED;
     }
 
     //solhint-disable-next-line func-name-mixedcase
     function __SendReentrancyGuard_init() internal onlyInitializing {
-        _sendEntered = _NOT_ENTERED;
+        __SendReentrnacyGuard_init_unchained();
     }
+
+    //solhint-disable-next-line func-name-mixedcase
+    function __SendReentrnacyGuard_init_unchained() internal {
+        SendReentrancyGuardStorage storage $ = _getSendReentrancyGuardStorage();
+        $._sendEntered = _NOT_ENTERED;
+    }
+    // solhint-enable ordering
 }
