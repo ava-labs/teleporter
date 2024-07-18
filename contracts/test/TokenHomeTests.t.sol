@@ -3,12 +3,12 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
 import {TokenHome, IWarpMessenger} from "../src/TokenHome/TokenHome.sol";
 import {RemoteTokenTransferrerSettings} from "../src/TokenHome/interfaces/ITokenHome.sol";
-import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
+import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
@@ -22,8 +22,8 @@ import {
     TeleporterMessageInput,
     TeleporterFeeInfo
 } from "@teleporter/ITeleporterMessenger.sol";
-import {Math} from "@openzeppelin/contracts@4.8.1/utils/math/Math.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {Math} from "@openzeppelin/contracts@5.0.2/utils/math/Math.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 
 abstract contract TokenHomeTest is TokenTransferrerTest {
     TokenHome public tokenHome;

@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenHome} from "./TokenHome.sol";
 import {IERC20TokenHome} from "./interfaces/IERC20TokenHome.sol";
@@ -13,8 +13,8 @@ import {
     SendAndCallInput,
     SingleHopCallMessage
 } from "../interfaces/ITokenTransferrer.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 
@@ -173,8 +173,8 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
         uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
 
         // Reset the recipient contract allowance to 0.
-        // Use of {safeApprove} is okay to reset the allowance to 0.
-        SafeERC20.safeApprove(token, message.recipientContract, 0);
+        // Use of {forceApprove} is okay to reset the allowance to 0.
+        SafeERC20.forceApprove(token, message.recipientContract, 0);
 
         if (success) {
             emit CallSucceeded(message.recipientContract, amount);

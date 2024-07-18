@@ -3,10 +3,9 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
-import {IERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 
 /**
  * @title IWrappedNativeToken
@@ -15,7 +14,7 @@ import {IERC20Upgradeable} from
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-interface IWrappedNativeToken is IERC20Upgradeable {
+interface IWrappedNativeToken is IERC20 {
     /**
      * @notice Emitted when native tokens are deposited.
      * @param sender Address that deposited the native tokens

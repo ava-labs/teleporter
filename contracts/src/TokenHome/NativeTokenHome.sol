@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenHome} from "./TokenHome.sol";
 import {INativeTokenHome} from "./interfaces/INativeTokenHome.sol";
@@ -16,7 +16,7 @@ import {
 import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDeposit.sol";
-import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
+import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 
 /**
  * @title NativeTokenHome

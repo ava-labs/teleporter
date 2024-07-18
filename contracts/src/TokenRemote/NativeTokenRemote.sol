@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TokenRemote} from "./TokenRemote.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
@@ -21,10 +21,10 @@ import {
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 import {ERC20Upgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/token/ERC20/ERC20Upgradeable.sol";
-import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
+import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
@@ -35,6 +35,7 @@ import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
  * and represents the received tokens as the native token on this chain.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
+
 contract NativeTokenRemote is
     INativeTokenRemote,
     IWrappedNativeToken,
@@ -268,11 +269,6 @@ contract NativeTokenRemote is
 
     /**
      * @dev See {IWrappedNativeToken-deposit}.
-     *
-     * Note: {IWrappedNativeToken-deposit} should not be confused with {TokenRemote-_deposit}.
-     * {IWrappedNativeToken-deposit} is the public method for converting native tokens into the wrapped native
-     * token (ERC20) representation. {TokenRemote-_deposit} is the internal method used when
-     * processing token transfers.
      */
     function deposit() public payable {
         emit Deposit(_msgSender(), msg.value);

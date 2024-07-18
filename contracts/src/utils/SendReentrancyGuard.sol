@@ -3,10 +3,10 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {Initializable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
 /**
  * @dev Abstract contract that helps implement reentrancy guards for Avalanche interchain token transfer {_send} and {_sendAndCall}

@@ -3,10 +3,10 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
+import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessageInput,
@@ -23,7 +23,8 @@ import {
     MultiHopSendMessage,
     MultiHopCallMessage
 } from "../src/interfaces/ITokenTransferrer.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {IERC20Errors} from "@openzeppelin/contracts@5.0.2/interfaces/draft-IERC6093.sol";
 
 abstract contract TokenTransferrerTest is Test {
     // convenience struct to reduce stack usage
@@ -152,7 +153,12 @@ abstract contract TokenTransferrerTest is Test {
         _setUpRegisteredRemote(
             input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
-        vm.expectRevert("ERC20: insufficient allowance");
+        _setUpExpectedDeposit(amount, 0);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector, tokenTransferrer, 0, primaryFee
+            )
+        );
         _send(input, amount);
     }
 
@@ -166,7 +172,12 @@ abstract contract TokenTransferrerTest is Test {
         _setUpRegisteredRemote(
             input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
-        vm.expectRevert("ERC20: insufficient allowance");
+        _setUpExpectedDeposit(amount, 0);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector, tokenTransferrer, 0, primaryFee
+            )
+        );
         _sendAndCall(input, amount);
     }
 
