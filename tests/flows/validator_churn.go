@@ -2,7 +2,6 @@ package flows
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
@@ -63,7 +62,7 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	//
 
 	// Add new nodes to the validator set
-	network.AddSubnetValidators(ctx, subnetAInfo.SubnetID, constructNodesToAddNames(network))
+	network.AddSubnetValidators(ctx, subnetAInfo.SubnetID, newNodeCount)
 
 	// Refresh the subnet info
 	subnetAInfo, subnetBInfo = utils.GetTwoSubnets(network)
@@ -127,17 +126,4 @@ func ValidatorChurn(network interfaces.LocalNetwork) {
 	// The test cases now do not require any specific nodes to be validators, so leave the validator set as is.
 	// If this changes in the future, this test will need to perform cleanup by removing the nodes that were added
 	// and re-adding the nodes that were removed.
-}
-
-// Each subnet is assumed to have {nodesPerSubnet} nodes named nodeN-bls, where
-// N is unique across each subnet. Nodes to be added should thus be named nodeN-bls
-// where N starts one greater than the current total number of nodes.
-func constructNodesToAddNames(network interfaces.Network) []string {
-	startingNodeId := len(network.GetSubnetsInfo())*nodesPerSubnet + 1
-	var nodesToAdd []string
-	for i := startingNodeId; i < startingNodeId+newNodeCount; i++ {
-		n := fmt.Sprintf("node%d-bls", i)
-		nodesToAdd = append(nodesToAdd, n)
-	}
-	return nodesToAdd
 }

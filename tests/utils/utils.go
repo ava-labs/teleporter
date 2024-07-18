@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -1130,12 +1131,14 @@ func DeployNewTeleporterVersion(
 	return teleporterContractAddress
 }
 
+type ChainConfigMap map[string]string
+
 // Sets the chain config in customChainConfigs for the specified subnet
-func SetChainConfig(customChainConfigs map[string]string, subnet interfaces.SubnetTestInfo, chainConfig string) {
+func (m ChainConfigMap) Add(subnet interfaces.SubnetTestInfo, chainConfig string) {
 	if subnet.SubnetID == constants.PrimaryNetworkID {
-		customChainConfigs[CChainPathSpecifier] = chainConfig
+		m[CChainPathSpecifier] = chainConfig
 	} else {
-		customChainConfigs[subnet.BlockchainID.String()] = chainConfig
+		m[subnet.BlockchainID.String()] = chainConfig
 	}
 }
 
@@ -1174,4 +1177,38 @@ func GetChainConfigWithOffChainMessages(offChainMessages []avalancheWarp.Unsigne
 	Expect(err).Should(BeNil())
 
 	return string(offChainMessageJson)
+}
+
+// read in the template file, make the substitutions declared at the beginning
+// of the function, write out the instantiation to a temp file, and then return
+// the path to that temp file.
+func InstantiateGenesisTemplate(
+	templateFileName string,
+	chainID uint64,
+) string {
+	substitutions := []struct {
+		Target string
+		Value  string
+	}{
+		{
+			"<EVM_CHAIN_ID>",
+			strconv.FormatUint(chainID, 10),
+		},
+	}
+
+	templateFileBytes, err := os.ReadFile(templateFileName)
+	Expect(err).Should(BeNil())
+
+	subnetGenesisFile, err := os.CreateTemp(os.TempDir(), "")
+	defer subnetGenesisFile.Close()
+	Expect(err).Should(BeNil())
+
+	var replaced string = string(templateFileBytes[:])
+	for _, s := range substitutions {
+		replaced = strings.Replace(replaced, s.Target, s.Value, 1)
+	}
+
+	subnetGenesisFile.WriteString(replaced)
+
+	return subnetGenesisFile.Name()
 }
