@@ -2,7 +2,7 @@
 
 ## Setup
 
-To start developing on Teleporter, you'll need Solidity >= v0.8.20. [Foundry](https://book.getfoundry.sh/getting-started/installation) is the recommended development toolkit for working with Teleporter, and it comes bundled with the required Solidity version. To run the tests and linter locally, you'll need the dependencies described in [Setup](./README.md#setup), as well as [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+To start developing on Teleporter, you'll need Solidity >= v0.8.23. [Foundry](https://book.getfoundry.sh/getting-started/installation) is the recommended development toolkit for working with Teleporter, and it comes bundled with the required Solidity version. To run the tests and linter locally, you'll need the dependencies described in [Setup](./README.md#setup), as well as [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 
 ## Issues
 

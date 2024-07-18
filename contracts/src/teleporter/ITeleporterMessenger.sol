@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 // A message receipt identifies the message that was delivered by its nonce,
 // and the address that can redeem the reward for that message.
