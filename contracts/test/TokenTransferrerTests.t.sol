@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 import {Test} from "forge-std/Test.sol";
 import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";

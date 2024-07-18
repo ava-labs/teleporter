@@ -2,7 +2,7 @@
 // See the file LICENSE for licensing terms.
 
 // SPDX-License-Identifier: Ecosystem
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 library CallUtils {
     /**
