@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 /**
  * @dev Abstract contract that helps implement reentrancy guards between functions for sending and receiving.
