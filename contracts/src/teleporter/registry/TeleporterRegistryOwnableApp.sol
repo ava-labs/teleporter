@@ -7,37 +7,27 @@ pragma solidity 0.8.20;
 
 import {TeleporterRegistryApp} from "./TeleporterRegistryApp.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
-import {Context} from "@openzeppelin/contracts@5.0.2/utils/Context.sol";
-import {ContextUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 
+/**
+ * @dev Contract that inherits {TeleporterRegistryApp} and allows
+ * only owners of the contract to update the minimum Teleporter version.
+ *
+ * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
+ */
 abstract contract TeleporterRegistryOwnableApp is TeleporterRegistryApp, Ownable {
     constructor(
         address teleporterRegistryAddress,
         address initialOwner
-    ) TeleporterRegistryApp(teleporterRegistryAddress) Ownable(initialOwner) {
-        // solhint-disable-previous-line no-empty-blocks
+    ) TeleporterRegistryApp(teleporterRegistryAddress) {
+        transferOwnership(initialOwner);
     }
 
-    function _contextSuffixLength()
-        internal
-        view
-        override (ContextUpgradeable, Context)
-        returns (uint256)
-    {
-        return Context._contextSuffixLength();
-    }
-
-    function _msgData()
-        internal
-        view
-        override (ContextUpgradeable, Context)
-        returns (bytes calldata)
-    {
-        return Context._msgData();
-    }
-
-    function _msgSender() internal view override (ContextUpgradeable, Context) returns (address) {
-        return Context._msgSender();
+    /**
+     * @dev See {TeleporterRegistryApp-_checkTeleporterUpgradeAccess}
+     *
+     * Checks that the caller is the owner of the contract for upgrade access.
+     */
+    function _checkTeleporterUpgradeAccess() internal view virtual override {
+        _checkOwner();
     }
 }
