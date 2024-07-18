@@ -48,9 +48,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
          * If the token is a native asset, the contract address is the wrapped token contract.
          */
         address _tokenAddress;
-        
         uint8 _tokenDecimals;
-        
         /**
          * @notice Tracks the settings for each remote token transferrer instance. TokenRemote instances
          * must register with their {TokenHome} contracts via Teleporter message to be able to
@@ -63,7 +61,6 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                         => RemoteTokenTransferrerSettings remoteSettings
                 )
             ) _registeredRemotes;
-            
         /**
          * @notice Tracks the balances of tokens sent to TokenRemote instances.
          * Balances are represented in the remote token's denomination,
