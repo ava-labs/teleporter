@@ -9,7 +9,7 @@ import {ERC20TokenTransferrerTest} from "./ERC20TokenTransferrerTests.t.sol";
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
-import {ERC20TokenHome} from "../src/TokenHome/ERC20TokenHome.sol";
+import {ERC20TokenHomeUpgradeable} from "../src/TokenHome/ERC20TokenHomeUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
@@ -21,7 +21,7 @@ import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
 
-    ERC20TokenHome public app;
+    ERC20TokenHomeUpgradeable public app;
     IERC20 public mockERC20;
 
     function setUp() public override {
@@ -29,7 +29,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
 
         mockERC20 = new ExampleERC20();
         tokenHomeDecimals = 6;
-        app = new ERC20TokenHome();
+        app = new ERC20TokenHomeUpgradeable();
         app.initialize(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -266,7 +266,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
         transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
 
         // Check that transferFrom is called to deposit the funds sent from the user to the token transferrer
-        // This is the case because for the {ERC20TokenHome) is not the fee token itself
+        // This is the case because for the {ERC20TokenHomeUpgradeable) is not the fee token itself
         vm.expectCall(
             address(transferredToken),
             abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenTransferrer), amount))
@@ -282,7 +282,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
         uint8 tokenDecimals,
         bytes memory expectedErrorMessage
     ) private {
-        app = new ERC20TokenHome();
+        app = new ERC20TokenHomeUpgradeable();
         vm.expectRevert(expectedErrorMessage);
         app.initialize(
             teleporterRegistryAddress, teleporterManagerAddress, feeTokenAddress, tokenDecimals

@@ -19,12 +19,12 @@ import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDepo
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 
 /**
- * @title NativeTokenHome
+ * @title NativeTokenHomeUpgradeable
  * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be transferred to
  * TokenRemote instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract NativeTokenHome is INativeTokenHome, TokenHome {
+contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
     using Address for address payable;
 
     // solhint-disable private-vars-leading-underscore

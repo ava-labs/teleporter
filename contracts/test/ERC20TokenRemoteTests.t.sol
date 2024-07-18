@@ -10,7 +10,7 @@ import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
-import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
+import {ERC20TokenRemoteUpgradeable} from "../src/TokenRemote/ERC20TokenRemoteUpgradeable.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
@@ -23,14 +23,14 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     string public constant MOCK_TOKEN_NAME = "Test Token";
     string public constant MOCK_TOKEN_SYMBOL = "TST";
 
-    ERC20TokenRemote public app;
+    ERC20TokenRemoteUpgradeable public app;
 
     function setUp() public virtual override {
         TokenRemoteTest.setUp();
 
         tokenDecimals = 14;
         tokenHomeDecimals = 18;
-        app = ERC20TokenRemote(address(_createNewRemoteInstance()));
+        app = ERC20TokenRemoteUpgradeable(address(_createNewRemoteInstance()));
 
         erc20TokenTransferrer = app;
         tokenRemote = app;
@@ -162,7 +162,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     }
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
-        ERC20TokenRemote instance = new ERC20TokenRemote();
+        ERC20TokenRemoteUpgradeable instance = new ERC20TokenRemoteUpgradeable();
         instance.initialize(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -274,7 +274,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     }
 
     function _setUpMockMint(address, uint256) internal pure override {
-        // Don't need to mock the minting of an ERC20TokenRemote since it is an internal call
+        // Don't need to mock the minting of an ERC20TokenRemoteUpgradeable since it is an internal call
         // on the remote contract.
         return;
     }
@@ -286,7 +286,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
         uint8 tokenDecimals_,
         bytes memory expectedErrorMessage
     ) private {
-        app = new ERC20TokenRemote();
+        app = new ERC20TokenRemoteUpgradeable();
         vm.expectRevert(expectedErrorMessage);
         app.initialize(settings, tokenName, tokenSymbol, tokenDecimals_);
     }

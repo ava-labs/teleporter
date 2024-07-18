@@ -30,13 +30,13 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 
 /**
- * @title NativeTokenRemote
+ * @title NativeTokenRemoteUpgradeable
  * @notice This contract is an {INativeTokenRemote} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens as the native token on this chain.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 
-contract NativeTokenRemote is
+contract NativeTokenRemoteUpgradeable is
     INativeTokenRemote,
     IWrappedNativeToken,
     ERC20Upgradeable,

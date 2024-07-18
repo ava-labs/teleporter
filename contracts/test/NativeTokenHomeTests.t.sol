@@ -7,7 +7,7 @@ pragma solidity 0.8.20;
 
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
-import {NativeTokenHome} from "../src/TokenHome/NativeTokenHome.sol";
+import {NativeTokenHomeUpgradeable} from "../src/TokenHome/NativeTokenHomeUpgradeable.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
@@ -18,7 +18,7 @@ import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
 
-    NativeTokenHome public app;
+    NativeTokenHomeUpgradeable public app;
     IWrappedNativeToken public wavax;
 
     receive() external payable {
@@ -30,7 +30,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
 
         WrappedNativeToken token = new WrappedNativeToken("AVAX");
         wavax = token;
-        app = new NativeTokenHome();
+        app = new NativeTokenHomeUpgradeable();
         app.initialize(
             MOCK_TELEPORTER_REGISTRY_ADDRESS, MOCK_TELEPORTER_MESSENGER_ADDRESS, address(wavax)
         );
@@ -158,7 +158,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
         address wrappedTokenAddress,
         bytes memory expectedErrorMessage
     ) private {
-        app = new NativeTokenHome();
+        app = new NativeTokenHomeUpgradeable();
         vm.expectRevert(expectedErrorMessage);
         app.initialize(teleporterRegistryAddress, teleporterManagerAddress, wrappedTokenAddress);
     }

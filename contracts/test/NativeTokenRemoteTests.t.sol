@@ -10,10 +10,10 @@ import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
 import {
-    NativeTokenRemote,
+    NativeTokenRemoteUpgradeable,
     TeleporterMessageInput,
     TeleporterFeeInfo
-} from "../src/TokenRemote/NativeTokenRemote.sol";
+} from "../src/TokenRemote/NativeTokenRemoteUpgradeable.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
@@ -28,7 +28,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
     string public constant DEFAULT_SYMBOL = "XYZ";
-    NativeTokenRemote public app;
+    NativeTokenRemoteUpgradeable public app;
 
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
@@ -36,7 +36,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         TokenRemoteTest.setUp();
 
         tokenHomeDecimals = 6;
-        app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
+        app = NativeTokenRemoteUpgradeable(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
         nativeTokenTransferrer = app;
         tokenTransferrer = app;
@@ -110,7 +110,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function testSendBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
-        app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
+        app = NativeTokenRemoteUpgradeable(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
         nativeTokenTransferrer = app;
         tokenTransferrer = app;
@@ -125,7 +125,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function testSendAndCallBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
-        app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
+        app = NativeTokenRemoteUpgradeable(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
         nativeTokenTransferrer = app;
         tokenTransferrer = app;
@@ -299,7 +299,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function testReportBurnFeesNoRewardSuccess() public {
         // Create a new TokenRemote instance with no rewards for reporting burned fees.
-        app = new NativeTokenRemote();
+        app = new NativeTokenRemoteUpgradeable();
         app.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -354,7 +354,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     }
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
-        NativeTokenRemote instance = new NativeTokenRemote();
+        NativeTokenRemoteUpgradeable instance = new NativeTokenRemoteUpgradeable();
         instance.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -498,7 +498,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         uint256 burnedFeesReportingRewardPercentage_,
         bytes memory expectedErrorMessage
     ) private {
-        app = new NativeTokenRemote();
+        app = new NativeTokenRemoteUpgradeable();
         vm.expectRevert(expectedErrorMessage);
         app.initialize(
             settings,
