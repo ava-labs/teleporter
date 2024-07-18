@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 
-	runner_sdk "github.com/ava-labs/avalanche-network-runner/client"
 	"github.com/ava-labs/avalanchego/ids"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -13,15 +12,16 @@ import (
 
 type LocalNetwork interface {
 	Network
-	AddSubnetValidators(ctx context.Context, subnetID ids.ID, nodeNames []string)
+	AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint)
 	ConstructSignedWarpMessage(
 		ctx context.Context,
 		sourceReceipt *types.Receipt,
 		source SubnetTestInfo,
 		destination SubnetTestInfo,
 	) *avalancheWarp.Message
-	GetAllNodeNames() []string
-	RestartNodes(ctx context.Context, nodeNames []string, opts ...runner_sdk.OpOption)
+	GetAllNodeIDs() []ids.NodeID
+	SetChainConfigs(chainConfigs map[string]string)
+	RestartNodes(ctx context.Context, nodeIDs []ids.NodeID)
 	DeployTeleporterContracts(
 		transactionBytes []byte,
 		deployerAddress common.Address,
