@@ -47,9 +47,8 @@ contract SendTeleporterMessageTest is TeleporterUpgradeableTest {
 
     function testNoRegisteredTeleporterSend() public {
         // Create a new Teleporter registry with no registered Teleporters
-        TeleporterRegistry teleporterRegistry = new TeleporterRegistry(
-            new ProtocolRegistryEntry[](0)
-        );
+        TeleporterRegistry teleporterRegistry =
+            new TeleporterRegistry(new ProtocolRegistryEntry[](0));
 
         // Create a new app with the new Teleporter registry
         ExampleUpgradeableApp app = new ExampleUpgradeableApp();

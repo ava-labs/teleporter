@@ -86,9 +86,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
     // each time after deployment.
     function setUp() public virtual override {
         TeleporterMessengerTest.setUp();
-        destinationContract = new SampleMessageReceiver(
-            address(teleporterMessenger)
-        );
+        destinationContract = new SampleMessageReceiver(address(teleporterMessenger));
     }
 
     function testSuccess() public {

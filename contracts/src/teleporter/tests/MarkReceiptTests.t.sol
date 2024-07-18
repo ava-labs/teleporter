@@ -46,9 +46,8 @@ contract MarkReceiptTest is TeleporterMessengerTest {
         }
 
         // Mock receiving a message with the 3 receipts from the mock messages sent above.
-        TeleporterMessageReceipt[] memory receipts = new TeleporterMessageReceipt[](
-                feeRewardInfos.length
-            );
+        TeleporterMessageReceipt[] memory receipts =
+            new TeleporterMessageReceipt[](feeRewardInfos.length);
         for (uint256 i; i < receipts.length; ++i) {
             receipts[i] = TeleporterMessageReceipt({
                 receivedMessageNonce: messageNonces[i],

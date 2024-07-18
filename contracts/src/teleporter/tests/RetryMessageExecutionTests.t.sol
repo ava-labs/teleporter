@@ -90,9 +90,7 @@ contract RetryMessageExecutionTest is TeleporterMessengerTest {
     // each time after deployment.
     function setUp() public virtual override {
         TeleporterMessengerTest.setUp();
-        destinationContract = new FlakyMessageReceiver(
-            address(teleporterMessenger)
-        );
+        destinationContract = new FlakyMessageReceiver(address(teleporterMessenger));
     }
 
     function testSuccess() public {

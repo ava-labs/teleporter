@@ -28,9 +28,7 @@ contract TeleporterRegistryTest is Test {
             abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
             abi.encode(MOCK_BLOCK_CHAIN_ID)
         );
-        teleporterRegistry = new TeleporterRegistry(
-            new ProtocolRegistryEntry[](0)
-        );
+        teleporterRegistry = new TeleporterRegistry(new ProtocolRegistryEntry[](0));
         assertEq(0, teleporterRegistry.latestVersion());
 
         teleporterAddress = address(new TeleporterMessenger());
@@ -321,7 +319,7 @@ contract TeleporterRegistryTest is Test {
             payload: abi.encode(
                 ProtocolRegistryEntry({version: version, protocolAddress: protocolAddress}),
                 registryAddress
-                )
+            )
         });
     }
 
