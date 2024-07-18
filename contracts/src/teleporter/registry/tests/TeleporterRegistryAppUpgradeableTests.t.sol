@@ -5,14 +5,14 @@
 
 pragma solidity 0.8.20;
 
-import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
+import {TeleporterRegistryAppUpgradeable} from "../TeleporterRegistryAppUpgradeable.sol";
 import {TeleporterRegistryTest} from "./TeleporterRegistryTests.t.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
-contract ExampleUpgradeableApp is TeleporterUpgradeable {
+contract ExampleUpgradeableApp is TeleporterRegistryAppUpgradeable {
     function initialize(address teleporterRegistryAddress) public initializer {
-        __TeleporterUpgradeable_init(teleporterRegistryAddress);
+        __TeleporterRegistryAppUpgradeable_init(teleporterRegistryAddress);
     }
 
     function setMinTeleporterVersion(uint256 version) public {
@@ -37,7 +37,7 @@ contract ExampleUpgradeableApp is TeleporterUpgradeable {
     function _checkTeleporterUpgradeAccess() internal override {}
 }
 
-contract TeleporterUpgradeableTest is TeleporterRegistryTest {
+contract TeleporterRegistryAppUpgradeableTest is TeleporterRegistryTest {
     ExampleUpgradeableApp public app;
     bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
         bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
@@ -64,7 +64,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     function testInvalidRegistryAddress() public {
         app = new ExampleUpgradeableApp();
         vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage("zero teleporter registry address")
+            _formatTeleporterRegistryAppUpgradeableErrorMessage("zero teleporter registry address")
         );
         app.initialize(address(0));
     }
@@ -96,7 +96,9 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter sender"));
+        vm.expectRevert(
+            _formatTeleporterRegistryAppUpgradeableErrorMessage("invalid Teleporter sender")
+        );
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
@@ -109,14 +111,18 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         uint256 latestVersion = teleporterRegistry.latestVersion();
 
         // Check setting for a version > latest version fails
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter version"));
+        vm.expectRevert(
+            _formatTeleporterRegistryAppUpgradeableErrorMessage("invalid Teleporter version")
+        );
         app.setMinTeleporterVersion(latestVersion + 1);
 
         // Check setting for a version <= min version fails
         uint256 minVersion = app.getMinTeleporterVersion();
         assertEq(minVersion, teleporterRegistry.latestVersion());
         vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage("not greater than current minimum version")
+            _formatTeleporterRegistryAppUpgradeableErrorMessage(
+                "not greater than current minimum version"
+            )
         );
         app.setMinTeleporterVersion(minVersion);
 
@@ -131,7 +137,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function _updateMinTeleporterVersionSuccess(
-        TeleporterUpgradeable app_,
+        TeleporterRegistryAppUpgradeable app_,
         uint256 newMinTeleporterVersion
     ) internal virtual {
         vm.expectEmit(true, true, true, true, address(app_));
@@ -140,7 +146,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function _pauseTeleporterAddressSuccess(
-        TeleporterUpgradeable app_,
+        TeleporterRegistryAppUpgradeable app_,
         address teleporterAddress_
     ) internal virtual {
         vm.expectEmit(true, true, true, true, address(app_));
@@ -149,7 +155,7 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     }
 
     function _unpauseTeleporterAddressSuccess(
-        TeleporterUpgradeable app_,
+        TeleporterRegistryAppUpgradeable app_,
         address teleporterAddress_
     ) internal virtual {
         vm.expectEmit(true, true, true, true, address(app_));
@@ -157,11 +163,11 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
         app_.unpauseTeleporterAddress(teleporterAddress_);
     }
 
-    function _formatTeleporterUpgradeableErrorMessage(string memory errorMessage)
+    function _formatTeleporterRegistryAppUpgradeableErrorMessage(string memory errorMessage)
         internal
         pure
         returns (bytes memory)
     {
-        return bytes(string.concat("TeleporterUpgradeable: ", errorMessage));
+        return bytes(string.concat("TeleporterRegistryAppUpgradeable: ", errorMessage));
     }
 }

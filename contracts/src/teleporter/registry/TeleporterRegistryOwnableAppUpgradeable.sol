@@ -5,31 +5,34 @@
 
 pragma solidity 0.8.20;
 
-import {TeleporterUpgradeable} from "./TeleporterUpgradeable.sol";
+import {TeleporterRegistryAppUpgradeable} from "./TeleporterRegistryAppUpgradeable.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
 /**
- * @dev Contract that inherits {TeleporterUpgradeable} and allows
+ * @dev Contract that inherits {TeleporterRegistryAppUpgradeable} and allows
  * only owners of the contract to update the minimum Teleporter version.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, OwnableUpgradeable {
+abstract contract TeleporterRegistryOwnableAppUpgradeable is
+    TeleporterRegistryAppUpgradeable,
+    OwnableUpgradeable
+{
     // solhint-disable-next-line func-name-mixedcase
-    function __TeleporterOwnerUpgradeable_init(
+    function __TeleporterRegistryOwnableAppUpgradeable_init(
         address teleporterRegistryAddress,
         address initialOwner
     ) internal onlyInitializing {
-        __TeleporterUpgradeable_init(teleporterRegistryAddress);
+        __TeleporterRegistryAppUpgradeable_init(teleporterRegistryAddress);
         __Ownable_init_unchained(initialOwner);
     }
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks, func-name-mixedcase
-    function _TeleporterOwnerUpgradeable_init_unchained() internal onlyInitializing {}
+    function _TeleporterRegistryOwnableAppUpgradeable_init_unchained() internal onlyInitializing {}
 
     /**
-     * @dev See {TeleporterUpgradeable-_checkTeleporterUpgradeAccess}
+     * @dev See {TeleporterRegistryAppUpgradeable-_checkTeleporterUpgradeAccess}
      *
      * Checks that the caller is the owner of the contract for upgrade access.
      */

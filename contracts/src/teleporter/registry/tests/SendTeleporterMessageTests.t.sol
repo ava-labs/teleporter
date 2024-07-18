@@ -6,8 +6,8 @@
 pragma solidity 0.8.20;
 
 import {
-    TeleporterUpgradeableTest, ExampleUpgradeableApp
-} from "./TeleporterUpgradeableTests.t.sol";
+    TeleporterRegistryAppUpgradeableTest, ExampleUpgradeableApp
+} from "./TeleporterRegistryAppUpgradeableTests.t.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessageInput,
@@ -17,11 +17,11 @@ import {TeleporterRegistry, ProtocolRegistryEntry} from "../TeleporterRegistry.s
 import {IERC20} from "@teleporter/TeleporterMessenger.sol";
 import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 
-contract SendTeleporterMessageTest is TeleporterUpgradeableTest {
+contract SendTeleporterMessageTest is TeleporterRegistryAppUpgradeableTest {
     UnitTestMockERC20 internal _mockFeeAsset;
 
     function setUp() public virtual override {
-        TeleporterUpgradeableTest.setUp();
+        TeleporterRegistryAppUpgradeableTest.setUp();
 
         _mockFeeAsset = new UnitTestMockERC20();
     }
@@ -32,7 +32,7 @@ contract SendTeleporterMessageTest is TeleporterUpgradeableTest {
         _pauseTeleporterAddressSuccess(app, teleporter);
 
         // Check that the app reverts when trying to send a message with paused Teleporter
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter sending paused"));
+        vm.expectRevert(_formatTeleporterRegistryAppUpgradeableErrorMessage("Teleporter sending paused"));
         app.sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -150,7 +150,7 @@ contract SendTeleporterMessageTest is TeleporterUpgradeableTest {
             message: new bytes(0)
         });
 
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("zero fee token address"));
+        vm.expectRevert(_formatTeleporterRegistryAppUpgradeableErrorMessage("zero fee token address"));
         app.sendTeleporterMessage(messageInput);
     }
 }

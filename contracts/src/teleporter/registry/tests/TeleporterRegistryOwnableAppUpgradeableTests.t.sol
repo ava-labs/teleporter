@@ -5,18 +5,19 @@
 
 pragma solidity 0.8.20;
 
-import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
-import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
-import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
+import {TeleporterRegistryOwnableAppUpgradeable} from
+    "../TeleporterRegistryOwnableAppUpgradeable.sol";
+import {TeleporterRegistryAppUpgradeable} from "../TeleporterRegistryAppUpgradeable.sol";
+import {TeleporterRegistryAppUpgradeableTest} from "./TeleporterRegistryAppUpgradeableTests.t.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
-contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
+contract ExampleOwnerUpgradeableApp is TeleporterRegistryOwnableAppUpgradeable {
     function initialize(
         address teleporterRegistryAddress,
         address teleporterManager
     ) public initializer {
-        __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+        __TeleporterRegistryOwnableAppUpgradeable_init(teleporterRegistryAddress, teleporterManager);
     }
 
     function checkTeleporterUpgradeAccess() external view {
@@ -30,13 +31,13 @@ contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
     ) internal override {}
 }
 
-contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
+contract TeleporterRegistryOwnableAppUpgradeableTest is TeleporterRegistryAppUpgradeableTest {
     ExampleOwnerUpgradeableApp public ownerApp;
     address public constant MOCK_INVALID_OWNER_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_OWNER_ADDRESS = 0x1234512345123451234512345123451234512345;
 
     function setUp() public virtual override {
-        TeleporterUpgradeableTest.setUp();
+        TeleporterRegistryAppUpgradeableTest.setUp();
         ownerApp = new ExampleOwnerUpgradeableApp();
         ownerApp.initialize(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
     }
@@ -152,7 +153,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that the Teleporter address is still paused
         vm.prank(teleporterAddress);
-        vm.expectRevert("TeleporterUpgradeable: Teleporter address paused");
+        vm.expectRevert("TeleporterRegistryAppUpgradeable: Teleporter address paused");
         ownerApp.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Unpause the Teleporter address from owner account
@@ -200,7 +201,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
     }
 
     function _updateMinTeleporterVersionSuccess(
-        TeleporterUpgradeable app_,
+        TeleporterRegistryAppUpgradeable app_,
         uint256 newMinTeleporterVersion
     ) internal virtual override {
         vm.expectEmit(true, true, true, true, address(app_));

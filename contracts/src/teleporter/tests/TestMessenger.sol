@@ -7,7 +7,8 @@ pragma solidity 0.8.20;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "@utilities/SafeERC20TransferFrom.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/registry/TeleporterOwnerUpgradeable.sol";
+import {TeleporterRegistryOwnableAppUpgradeable} from
+    "@teleporter/registry/TeleporterRegistryOwnableAppUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
@@ -21,7 +22,7 @@ import {ReentrancyGuardUpgradeable} from
  * @dev TestMessenger is test fixture contract that exercises sending and receiving
  * messages cross chain.
  */
-contract TestMessenger is ReentrancyGuardUpgradeable, TeleporterOwnerUpgradeable {
+contract TestMessenger is ReentrancyGuardUpgradeable, TeleporterRegistryOwnableAppUpgradeable {
     using SafeERC20 for IERC20;
 
     // Messages sent to this contract.
@@ -53,7 +54,7 @@ contract TestMessenger is ReentrancyGuardUpgradeable, TeleporterOwnerUpgradeable
 
     constructor(address teleporterRegistryAddress, address teleporterManager) initializer {
         __ReentrancyGuard_init();
-        __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+        __TeleporterRegistryOwnableAppUpgradeable_init(teleporterRegistryAddress, teleporterManager);
     }
 
     /**
@@ -109,7 +110,7 @@ contract TestMessenger is ReentrancyGuardUpgradeable, TeleporterOwnerUpgradeable
     }
 
     /**
-     * @dev See {TeleporterUpgradeable-receiveTeleporterMessage}.
+     * @dev See {TeleporterRegistryAppUpgradeable-receiveTeleporterMessage}.
      *
      * Receives a message from another chain.
      */

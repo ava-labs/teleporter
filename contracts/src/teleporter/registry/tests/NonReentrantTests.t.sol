@@ -5,8 +5,8 @@
 
 pragma solidity 0.8.20;
 
-import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
-import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
+import {TeleporterRegistryAppUpgradeable} from "../TeleporterRegistryAppUpgradeable.sol";
+import {TeleporterRegistryAppUpgradeableTest} from "./TeleporterRegistryAppUpgradeableTests.t.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessage,
@@ -18,9 +18,9 @@ import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
 uint32 constant warpMessageIndex = 2;
 
-contract NonReentrantUpgradeableApp is TeleporterUpgradeable {
+contract NonReentrantUpgradeableApp is TeleporterRegistryAppUpgradeable {
     function initialize(address teleporterRegistryAddress) public initializer {
-        __TeleporterUpgradeable_init(teleporterRegistryAddress);
+        __TeleporterRegistryAppUpgradeable_init(teleporterRegistryAddress);
     }
 
     function setMinTeleporterVersion(uint256 version) public {
@@ -33,7 +33,7 @@ contract NonReentrantUpgradeableApp is TeleporterUpgradeable {
 
     // Calls receiveCrossChainMessage on the latest TeleporterMessenger Contract.
     // The Warp Precompile is mocked to return a message that will call
-    // TeleporterUpgradeable.receiveTeleporterMessage which should revert because it is
+    // TeleporterRegistryAppUpgradeable.receiveTeleporterMessage which should revert because it is
     // non-reentrant.
     function _receiveTeleporterMessage(bytes32, address, bytes memory) internal override {
         // Call `receiveCrossChainMessage` of the latest version of Teleporter
@@ -50,8 +50,8 @@ contract NonReentrantUpgradeableApp is TeleporterUpgradeable {
 // TeleporterMessenger::receiveCrossChainMessage ->
 // NonreentrantUpgradeableApp::receiveTeleporterMessage
 // The last step should revert because receiveTeleporterMessage (contained in
-// TeleporterUpgradeable) is non-reentrant.
-contract NonReentrantTest is TeleporterUpgradeableTest {
+// TeleporterRegistryAppUpgradeable) is non-reentrant.
+contract NonReentrantTest is TeleporterRegistryAppUpgradeableTest {
     bytes public constant DEFAULT_MESSAGE = bytes(hex"1234");
     uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 1e6;
 
@@ -64,7 +64,7 @@ contract NonReentrantTest is TeleporterUpgradeableTest {
     event MessageExecuted(bytes32 indexed messageID, bytes32 indexed originBlockchainID);
 
     function setUp() public virtual override {
-        TeleporterUpgradeableTest.setUp();
+        TeleporterRegistryAppUpgradeableTest.setUp();
         TeleporterMessenger(teleporterAddress).initializeBlockchainID();
 
         nonReentrantApp = new NonReentrantUpgradeableApp();
