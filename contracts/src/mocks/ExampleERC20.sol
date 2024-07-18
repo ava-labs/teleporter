@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -13,7 +13,7 @@ pragma solidity 0.8.18;
 import {
     ERC20Burnable,
     ERC20
-} from "@openzeppelin/contracts@4.8.1/token/ERC20/extensions/ERC20Burnable.sol";
+} from "@openzeppelin/contracts@5.0.2/token/ERC20/extensions/ERC20Burnable.sol";
 
 contract ExampleERC20 is ERC20Burnable {
     string private constant _TOKEN_NAME = "Mock Token";

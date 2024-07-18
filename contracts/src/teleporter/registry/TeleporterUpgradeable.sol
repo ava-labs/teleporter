@@ -3,19 +3,19 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
 import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {ContextUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/utils/ContextUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/security/ReentrancyGuardUpgradeable.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {Initializable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
 /**
  * @dev TeleporterUpgradeable provides upgrade utility for applications built on top

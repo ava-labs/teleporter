@@ -3,11 +3,13 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
+import {OwnableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
 contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
     function initialize(
@@ -45,7 +47,11 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that call to update minimum Teleporter version reverts for non-owners
         vm.prank(MOCK_INVALID_OWNER_ADDRESS);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, MOCK_INVALID_OWNER_ADDRESS
+            )
+        );
         ownerApp.updateMinTeleporterVersion(minTeleporterVersion + 1);
 
         // Check that minimum Teleporter version was not updated
@@ -63,7 +69,11 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that call to transfer ownership reverts for non-owners
         vm.prank(MOCK_INVALID_OWNER_ADDRESS);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, MOCK_INVALID_OWNER_ADDRESS
+            )
+        );
         ownerApp.transferOwnership(address(0));
 
         // Check that ownership was not transferred
@@ -71,7 +81,11 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that call for non owners reverts
         vm.prank(MOCK_INVALID_OWNER_ADDRESS);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, MOCK_INVALID_OWNER_ADDRESS
+            )
+        );
         ownerApp.updateMinTeleporterVersion(minTeleporterVersion + 1);
 
         // Check that after ownership transfer call succeeds
@@ -83,14 +97,22 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that call with old owner reverts
         vm.prank(DEFAULT_OWNER_ADDRESS);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, DEFAULT_OWNER_ADDRESS
+            )
+        );
         ownerApp.updateMinTeleporterVersion(minTeleporterVersion + 1);
     }
 
     function testRenounceOwnership() public {
         // Check that call to renounce ownership reverts for non-owners
         vm.prank(MOCK_INVALID_OWNER_ADDRESS);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, MOCK_INVALID_OWNER_ADDRESS
+            )
+        );
         ownerApp.renounceOwnership();
 
         // Check that ownership was not renounced
@@ -104,9 +126,14 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
         // Check that after ownership renounce call reverts
         vm.prank(DEFAULT_OWNER_ADDRESS);
         ownerApp.renounceOwnership();
-        vm.expectRevert("Ownable: caller is not the owner");
+
+        vm.prank(DEFAULT_OWNER_ADDRESS);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, DEFAULT_OWNER_ADDRESS
+            )
+        );
         ownerApp.updateMinTeleporterVersion(latestVersion);
-        vm.stopPrank();
     }
 
     function testPauseTeleporterAccess() public {
@@ -116,7 +143,11 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Try to unpause the Teleporter address from non-owner account
         vm.prank(MOCK_INVALID_OWNER_ADDRESS);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, MOCK_INVALID_OWNER_ADDRESS
+            )
+        );
         ownerApp.unpauseTeleporterAddress(teleporterAddress);
 
         // Check that the Teleporter address is still paused
@@ -136,7 +167,11 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
     function testOwnerUpgradeAccess() public {
         // Check that call to check upgrade access reverts for non-owners
         vm.prank(MOCK_INVALID_OWNER_ADDRESS);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, MOCK_INVALID_OWNER_ADDRESS
+            )
+        );
         ownerApp.checkTeleporterUpgradeAccess();
 
         // Check that call to check upgrade access succeeds for owners
@@ -156,7 +191,11 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that address(this) as the caller is not by default owner
         assertFalse(newOwnerApp.owner() == address(this));
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(this)
+            )
+        );
         newOwnerApp.checkTeleporterUpgradeAccess();
     }
 

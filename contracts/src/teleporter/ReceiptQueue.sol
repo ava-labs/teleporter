@@ -3,9 +3,9 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
-import {Math} from "@openzeppelin/contracts@4.8.1/utils/math/Math.sol";
+import {Math} from "@openzeppelin/contracts@5.0.2/utils/math/Math.sol";
 import {TeleporterMessageReceipt} from "./ITeleporterMessenger.sol";
 
 /**

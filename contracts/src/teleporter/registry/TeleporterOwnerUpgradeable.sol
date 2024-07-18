@@ -3,11 +3,11 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.20;
 
 import {TeleporterUpgradeable} from "./TeleporterUpgradeable.sol";
 import {OwnableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@4.9.6/access/OwnableUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
 /**
  * @dev Contract that inherits {TeleporterUpgradeable} and allows
@@ -22,17 +22,11 @@ abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, OwnableUp
         address initialOwner
     ) internal onlyInitializing {
         __TeleporterUpgradeable_init(teleporterRegistryAddress);
-        __Ownable_init_unchained();
-        _TeleporterOwnerUpgradeable_init_unchained(initialOwner);
+        __Ownable_init_unchained(initialOwner);
     }
 
-    // solhint-disable-next-line func-name-mixedcase
-    function _TeleporterOwnerUpgradeable_init_unchained(address initialOwner)
-        internal
-        onlyInitializing
-    {
-        transferOwnership(initialOwner);
-    }
+    // solhint-disable-next-line func-name-mixedcase, no-empty-blocks, func-name-mixedcase
+    function _TeleporterOwnerUpgradeable_init_unchained() internal onlyInitializing {}
 
     /**
      * @dev See {TeleporterUpgradeable-_checkTeleporterUpgradeAccess}
