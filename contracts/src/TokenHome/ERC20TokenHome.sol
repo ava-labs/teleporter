@@ -173,7 +173,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
         uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
 
         // Reset the recipient contract allowance to 0.
-        // Use of {safeApprove} is okay to reset the allowance to 0.
+        // Use of {forceApprove} is okay to reset the allowance to 0.
         SafeERC20.forceApprove(token, message.recipientContract, 0);
 
         if (success) {
