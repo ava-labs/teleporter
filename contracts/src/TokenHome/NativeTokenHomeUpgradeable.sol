@@ -17,6 +17,7 @@ import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDeposit.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
+import {Initializable} from "../utils/Initializable.sol";
 
 /**
  * @title NativeTokenHomeUpgradeable
@@ -47,6 +48,12 @@ contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := _NATIVE_TOKEN_HOME_STORAGE_LOCATION
+        }
+    }
+
+    constructor(Initializable init) {
+        if (init == Initializable.Disallowed) {
+            _disableInitializers();
         }
     }
 

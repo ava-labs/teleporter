@@ -17,6 +17,7 @@ import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporter
 import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 import {RemoteTokenTransferrerSettings} from "../src/TokenHome/interfaces/ITokenHome.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
+import {Initializable} from "../src/utils/Initializable.sol";
 
 contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
@@ -29,7 +30,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
 
         mockERC20 = new ExampleERC20();
         tokenHomeDecimals = 6;
-        app = new ERC20TokenHomeUpgradeable();
+        app = new ERC20TokenHomeUpgradeable(Initializable.Allowed);
         app.initialize(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -282,7 +283,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
         uint8 tokenDecimals,
         bytes memory expectedErrorMessage
     ) private {
-        app = new ERC20TokenHomeUpgradeable();
+        app = new ERC20TokenHomeUpgradeable(Initializable.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(
             teleporterRegistryAddress, teleporterManagerAddress, feeTokenAddress, tokenDecimals

@@ -16,6 +16,7 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
+import {Initializable} from "../src/utils/Initializable.sol";
 
 contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
@@ -162,7 +163,8 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     }
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
-        ERC20TokenRemoteUpgradeable instance = new ERC20TokenRemoteUpgradeable();
+        ERC20TokenRemoteUpgradeable instance =
+            new ERC20TokenRemoteUpgradeable(Initializable.Allowed);
         instance.initialize(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -286,7 +288,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
         uint8 tokenDecimals_,
         bytes memory expectedErrorMessage
     ) private {
-        app = new ERC20TokenRemoteUpgradeable();
+        app = new ERC20TokenRemoteUpgradeable(Initializable.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(settings, tokenName, tokenSymbol, tokenDecimals_);
     }

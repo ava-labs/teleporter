@@ -28,6 +28,7 @@ import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
+import {Initializable} from "../utils/Initializable.sol";
 
 /**
  * @title NativeTokenRemoteUpgradeable
@@ -120,6 +121,12 @@ contract NativeTokenRemoteUpgradeable is
     modifier onlyWhenCollateralized() {
         require(getIsCollateralized(), "NativeTokenRemote: contract undercollateralized");
         _;
+    }
+
+    constructor(Initializable init) {
+        if (init == Initializable.Disallowed) {
+            _disableInitializers();
+        }
     }
 
     /**

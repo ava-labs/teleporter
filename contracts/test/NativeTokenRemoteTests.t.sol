@@ -22,6 +22,7 @@ import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
+import {Initializable} from "../src/utils/Initializable.sol";
 
 contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
@@ -299,7 +300,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function testReportBurnFeesNoRewardSuccess() public {
         // Create a new TokenRemote instance with no rewards for reporting burned fees.
-        app = new NativeTokenRemoteUpgradeable();
+        app = new NativeTokenRemoteUpgradeable(Initializable.Allowed);
         app.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -354,7 +355,8 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     }
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
-        NativeTokenRemoteUpgradeable instance = new NativeTokenRemoteUpgradeable();
+        NativeTokenRemoteUpgradeable instance =
+            new NativeTokenRemoteUpgradeable(Initializable.Allowed);
         instance.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -498,7 +500,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         uint256 burnedFeesReportingRewardPercentage_,
         bytes memory expectedErrorMessage
     ) private {
-        app = new NativeTokenRemoteUpgradeable();
+        app = new NativeTokenRemoteUpgradeable(Initializable.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(
             settings,
