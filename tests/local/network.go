@@ -647,3 +647,7 @@ func (n *LocalNetwork) GetSignedMessage(
 func (n *LocalNetwork) GetNetworkID() uint32 {
 	return n.tmpnet.Genesis.NetworkID
 }
+
+func (n *LocalNetwork) Dir() string {
+	return n.tmpnet.Dir
+}
