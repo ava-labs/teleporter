@@ -1205,7 +1205,7 @@ func InstantiateGenesisTemplate(
 
 	var replaced string = string(templateFileBytes[:])
 	for _, s := range substitutions {
-		replaced = strings.Replace(replaced, s.Target, s.Value, 1)
+		replaced = strings.ReplaceAll(replaced, s.Target, s.Value)
 	}
 
 	subnetGenesisFile.WriteString(replaced)
