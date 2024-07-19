@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 import {TokenRemote} from "./TokenRemote.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
@@ -36,7 +36,6 @@ import {Initializable} from "../utils/Initializable.sol";
  * and represents the received tokens as the native token on this chain.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-
 contract NativeTokenRemoteUpgradeable is
     INativeTokenRemote,
     IWrappedNativeToken,
@@ -243,7 +242,7 @@ contract NativeTokenRemoteUpgradeable is
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: HOME_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
-                )
+            )
         });
 
         bytes32 messageID = _sendTeleporterMessage(

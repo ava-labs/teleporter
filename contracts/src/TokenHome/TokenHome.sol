@@ -60,7 +60,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     address remoteTokenTransferrerAddress
                         => RemoteTokenTransferrerSettings remoteSettings
                 )
-            ) _registeredRemotes;
+        ) _registeredRemotes;
         /**
          * @notice Tracks the balances of tokens sent to TokenRemote instances.
          * Balances are represented in the remote token's denomination,
@@ -70,7 +70,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         mapping(
             bytes32 remoteBlockchainID
                 => mapping(address remoteTokenTransferrerAddress => uint256 balance)
-            ) _transferredBalances;
+        ) _transferredBalances;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -237,7 +237,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
-                )
+            )
         });
 
         // Send message to the TokenRemote instance
@@ -295,7 +295,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
-                )
+            )
         });
 
         // Send message to the TokenRemote instance.
@@ -349,7 +349,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     recipientGasLimit: input.recipientGasLimit,
                     fallbackRecipient: input.fallbackRecipient
                 })
-                )
+            )
         });
 
         // Send message to the TokenRemote instance.
@@ -405,7 +405,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     recipientGasLimit: input.recipientGasLimit,
                     fallbackRecipient: input.fallbackRecipient
                 })
-                )
+            )
         });
 
         // Send message to the TokenRemote instance.
