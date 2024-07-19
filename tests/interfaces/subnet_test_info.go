@@ -12,6 +12,7 @@ import (
 
 // Tracks information about a test subnet used for executing tests against.
 type SubnetTestInfo struct {
+	SubnetName          string
 	SubnetID            ids.ID
 	BlockchainID        ids.ID
 	NodeURIs            []string

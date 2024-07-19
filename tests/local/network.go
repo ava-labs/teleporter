@@ -160,8 +160,9 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 	// Get the C-Chain node URIs.
 	// All subnet nodes validate the C-Chain, so we can include them all here
 	var nodeURIs []string
-	nodeURIs = append(nodeURIs, n.subnetsInfo[n.tmpnet.GetSubnet("A").SubnetID].NodeURIs...)
-	nodeURIs = append(nodeURIs, n.subnetsInfo[n.tmpnet.GetSubnet("B").SubnetID].NodeURIs...)
+	for _, subnetInfo := range n.subnetsInfo {
+		nodeURIs = append(nodeURIs, subnetInfo.NodeURIs...)
+	}
 	for _, extraNode := range n.extraNodes {
 		uri, err := n.tmpnet.GetURIForNodeID(extraNode.NodeID)
 		Expect(err).Should(BeNil())
@@ -231,6 +232,7 @@ func (n *LocalNetwork) setSubnetValues(subnet *tmpnet.Subnet) {
 	if n.subnetsInfo[subnetID] == nil {
 		n.subnetsInfo[subnetID] = &interfaces.SubnetTestInfo{}
 	}
+	n.subnetsInfo[subnetID].SubnetName = subnet.Name
 	n.subnetsInfo[subnetID].SubnetID = subnetID
 	n.subnetsInfo[subnetID].BlockchainID = blockchainID
 	n.subnetsInfo[subnetID].NodeURIs = chainNodeURIs
@@ -336,10 +338,11 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 }
 
 func (n *LocalNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
-	return []interfaces.SubnetTestInfo{
-		*n.subnetsInfo[n.tmpnet.GetSubnet("A").SubnetID],
-		*n.subnetsInfo[n.tmpnet.GetSubnet("B").SubnetID],
+	subnetsInfo := make([]interfaces.SubnetTestInfo, 0, len(n.subnetsInfo))
+	for _, subnetInfo := range n.subnetsInfo {
+		subnetsInfo = append(subnetsInfo, *subnetInfo)
 	}
+	return subnetsInfo
 }
 
 func (n *LocalNetwork) GetPrimaryNetworkInfo() interfaces.SubnetTestInfo {
@@ -430,8 +433,11 @@ func (n *LocalNetwork) setAllSubnetValues() {
 	subnetIDs := n.GetSubnetsInfo()
 	Expect(len(subnetIDs)).Should(Equal(2))
 
-	n.setSubnetValues(n.tmpnet.GetSubnet("A"))
-	n.setSubnetValues(n.tmpnet.GetSubnet("B"))
+	for _, subnetInfo := range n.subnetsInfo {
+		subnet := n.tmpnet.GetSubnet(subnetInfo.SubnetName)
+		Expect(subnet).ShouldNot(BeNil())
+		n.setSubnetValues(n.tmpnet.GetSubnet(subnetInfo.SubnetName))
+	}
 
 	n.setPrimaryNetworkValues()
 }
@@ -640,4 +646,8 @@ func (n *LocalNetwork) GetSignedMessage(
 
 func (n *LocalNetwork) GetNetworkID() uint32 {
 	return n.tmpnet.Genesis.NetworkID
+}
+
+func (n *LocalNetwork) Dir() string {
+	return n.tmpnet.Dir
 }

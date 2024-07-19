@@ -29,4 +29,5 @@ type LocalNetwork interface {
 		fundedKey *ecdsa.PrivateKey,
 		updateNetworkTeleporter bool)
 	GetNetworkID() uint32
+	Dir() string
 }
