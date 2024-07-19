@@ -338,7 +338,7 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 }
 
 func (n *LocalNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
-	subnetsInfo := make([]interfaces.SubnetTestInfo, 0)
+	subnetsInfo := make([]interfaces.SubnetTestInfo, 0, len(n.subnetsInfo))
 	for _, subnetInfo := range n.subnetsInfo {
 		subnetsInfo = append(subnetsInfo, *subnetInfo)
 	}
