@@ -24,6 +24,7 @@ To start developing on Teleporter, you'll need Solidity >= v0.8.18. [Foundry](ht
 ## Pull Request Guidelines
 
 - Open a new GitHub pull request containing your changes.
+- All commits must be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).
 - Ensure the PR description clearly describes the problem and solution, and how the change was tested. Include the relevant issue number if applicable.
 - If your PR isn't ready to be reviewed just yet, you can open it as a draft to collect early feedback on your changes.
 - Once the PR is ready for review, mark it as ready-for-review and request review from one of the maintainers.
