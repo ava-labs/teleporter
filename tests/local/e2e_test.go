@@ -82,7 +82,7 @@ var _ = ginkgo.BeforeSuite(func() {
 
 	ginkgo.AddReportEntry(
 		"network directory with has node logs & configs; useful in the case of failures",
-		LocalNetworkInstance.tmpnet.Dir,
+		LocalNetworkInstance.Dir(),
 		ginkgo.ReportEntryVisibilityFailureOrVerbose,
 	)
 })
