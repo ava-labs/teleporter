@@ -22,7 +22,7 @@ abstract contract TeleporterOwnerUpgradeable is TeleporterUpgradeable, OwnableUp
         address initialOwner
     ) internal onlyInitializing {
         __TeleporterUpgradeable_init(teleporterRegistryAddress);
-        __Ownable_init_unchained(initialOwner);
+        __Ownable_init(initialOwner);
     }
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks, func-name-mixedcase
