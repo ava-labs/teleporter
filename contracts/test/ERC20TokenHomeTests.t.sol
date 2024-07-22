@@ -10,6 +10,7 @@ import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {ERC20TokenHomeUpgradeable} from "../src/TokenHome/ERC20TokenHomeUpgradeable.sol";
+import {ERC20TokenHome} from "../src/TokenHome/ERC20TokenHome.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
@@ -17,7 +18,8 @@ import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporter
 import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 import {RemoteTokenTransferrerSettings} from "../src/TokenHome/interfaces/ITokenHome.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
-import {Initializable} from "../src/utils/Initializable.sol";
+import {Initializable as Initialization} from "../src/utils/Initializable.sol";
+import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
@@ -30,7 +32,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
 
         mockERC20 = new ExampleERC20();
         tokenHomeDecimals = 6;
-        app = new ERC20TokenHomeUpgradeable(Initializable.Allowed);
+        app = new ERC20TokenHomeUpgradeable(Initialization.Allowed);
         app.initialize(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -47,6 +49,21 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
     /**
      * Initialization unit tests
      */
+    function testNonUpgradeableInitialization() public {
+        app = new ERC20TokenHome(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(mockERC20), tokenHomeDecimals
+        );
+        assertEq(app.getBlockchainID(), DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID);
+    }
+
+    function testDisableInitialization() public {
+        app = new ERC20TokenHomeUpgradeable(Initialization.Disallowed);
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
+        app.initialize(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(mockERC20), tokenHomeDecimals
+        );
+    }
+
     function testZeroTeleporterRegistryAddress() public {
         _invalidInitialization(
             address(0),
@@ -283,7 +300,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
         uint8 tokenDecimals,
         bytes memory expectedErrorMessage
     ) private {
-        app = new ERC20TokenHomeUpgradeable(Initializable.Allowed);
+        app = new ERC20TokenHomeUpgradeable(Initialization.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(
             teleporterRegistryAddress, teleporterManagerAddress, feeTokenAddress, tokenDecimals

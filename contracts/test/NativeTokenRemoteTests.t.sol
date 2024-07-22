@@ -9,20 +9,22 @@ import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
-import {
-    NativeTokenRemoteUpgradeable,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "../src/TokenRemote/NativeTokenRemoteUpgradeable.sol";
+import {NativeTokenRemoteUpgradeable} from "../src/TokenRemote/NativeTokenRemoteUpgradeable.sol";
+import {NativeTokenRemote} from "../src/TokenRemote/NativeTokenRemote.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
-import {Initializable} from "../src/utils/Initializable.sol";
+import {Initializable as Initialization} from "../src/utils/Initializable.sol";
+import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
@@ -43,6 +45,42 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         tokenTransferrer = app;
         assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
         _collateralizeTokenTransferrer();
+    }
+
+    /**
+     * Initialization unit tests
+     */
+    function testNonUpgradeableInitialization() public {
+        app = new NativeTokenRemote({
+            settings: TokenRemoteSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
+                tokenHomeDecimals: tokenHomeDecimals
+            }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
+            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
+        });
+        assertEq(app.getBlockchainID(), DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID);
+    }
+
+    function testDisableInitialization() public {
+        app = new NativeTokenRemoteUpgradeable(Initialization.Disallowed);
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
+        app.initialize({
+            settings: TokenRemoteSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
+                tokenHomeDecimals: tokenHomeDecimals
+            }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
+            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
+        });
     }
 
     function testZeroInitialReserveImbalance() public {
@@ -300,7 +338,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function testReportBurnFeesNoRewardSuccess() public {
         // Create a new TokenRemote instance with no rewards for reporting burned fees.
-        app = new NativeTokenRemoteUpgradeable(Initializable.Allowed);
+        app = new NativeTokenRemoteUpgradeable(Initialization.Allowed);
         app.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -356,7 +394,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
         NativeTokenRemoteUpgradeable instance =
-            new NativeTokenRemoteUpgradeable(Initializable.Allowed);
+            new NativeTokenRemoteUpgradeable(Initialization.Allowed);
         instance.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -500,7 +538,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         uint256 burnedFeesReportingRewardPercentage_,
         bytes memory expectedErrorMessage
     ) private {
-        app = new NativeTokenRemoteUpgradeable(Initializable.Allowed);
+        app = new NativeTokenRemoteUpgradeable(Initialization.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(
             settings,

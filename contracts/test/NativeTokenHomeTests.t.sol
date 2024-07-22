@@ -8,13 +8,15 @@ pragma solidity 0.8.23;
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
 import {NativeTokenHomeUpgradeable} from "../src/TokenHome/NativeTokenHomeUpgradeable.sol";
+import {NativeTokenHome} from "../src/TokenHome/NativeTokenHome.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
-import {Initializable} from "../src/utils/Initializable.sol";
+import {Initializable as Initialization} from "../src/utils/Initializable.sol";
+import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
@@ -31,7 +33,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
 
         WrappedNativeToken token = new WrappedNativeToken("AVAX");
         wavax = token;
-        app = new NativeTokenHomeUpgradeable(Initializable.Allowed);
+        app = new NativeTokenHomeUpgradeable(Initialization.Allowed);
         app.initialize(
             MOCK_TELEPORTER_REGISTRY_ADDRESS, MOCK_TELEPORTER_MESSENGER_ADDRESS, address(wavax)
         );
@@ -45,6 +47,17 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     /**
      * Initialization unit tests
      */
+    function testNonUpgradeableInitialization() public {
+        app = new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(wavax));
+        assertEq(app.getBlockchainID(), DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID);
+    }
+
+    function testDisableInitialization() public {
+        app = new NativeTokenHomeUpgradeable(Initialization.Disallowed);
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
+        app.initialize(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(wavax));
+    }
+
     function testZeroTeleporterRegistryAddress() public {
         _invalidInitialization(
             address(0),
@@ -159,7 +172,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
         address wrappedTokenAddress,
         bytes memory expectedErrorMessage
     ) private {
-        app = new NativeTokenHomeUpgradeable(Initializable.Allowed);
+        app = new NativeTokenHomeUpgradeable(Initialization.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(teleporterRegistryAddress, teleporterManagerAddress, wrappedTokenAddress);
     }
