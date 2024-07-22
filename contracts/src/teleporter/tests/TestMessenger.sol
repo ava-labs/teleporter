@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "@utilities/SafeERC20TransferFrom.sol";

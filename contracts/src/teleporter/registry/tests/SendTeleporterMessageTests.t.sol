@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 import {
     TeleporterRegistryAppUpgradeableTest, ExampleUpgradeableApp
@@ -47,9 +47,8 @@ contract SendTeleporterMessageTest is TeleporterRegistryAppUpgradeableTest {
 
     function testNoRegisteredTeleporterSend() public {
         // Create a new Teleporter registry with no registered Teleporters
-        TeleporterRegistry teleporterRegistry = new TeleporterRegistry(
-            new ProtocolRegistryEntry[](0)
-        );
+        TeleporterRegistry teleporterRegistry =
+            new TeleporterRegistry(new ProtocolRegistryEntry[](0));
 
         // Create a new app with the new Teleporter registry
         ExampleUpgradeableApp app = new ExampleUpgradeableApp();

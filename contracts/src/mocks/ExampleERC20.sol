@@ -3,13 +3,12 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
-
 import {
     ERC20Burnable,
     ERC20

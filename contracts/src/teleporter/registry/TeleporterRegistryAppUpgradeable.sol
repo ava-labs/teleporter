@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 import {TeleporterRegistry} from "./TeleporterRegistry.sol";
 import {ITeleporterReceiver} from "@teleporter/ITeleporterReceiver.sol";
@@ -94,9 +94,8 @@ abstract contract TeleporterRegistryAppUpgradeable is
         internal
         onlyInitializing
     {
-        // TODO: figure out whether best practice to call ContextUpgradeable init, even though it's empty
-        // OZ Ownable inherits ContextUpgradeable but does not call ContextUpgradeable init
-        __ReentrancyGuard_init_unchained();
+        __ReentrancyGuard_init();
+        __Context_init();
         __TeleporterRegistryAppUpgradeable_init_unchained(teleporterRegistryAddress);
     }
 

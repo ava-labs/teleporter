@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 import {TeleporterRegistryAppUpgradeable} from "./TeleporterRegistryAppUpgradeable.sol";
 import {OwnableUpgradeable} from
@@ -25,7 +25,7 @@ abstract contract TeleporterRegistryOwnableAppUpgradeable is
         address initialOwner
     ) internal onlyInitializing {
         __TeleporterRegistryAppUpgradeable_init(teleporterRegistryAddress);
-        __Ownable_init_unchained(initialOwner);
+        __Ownable_init(initialOwner);
     }
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks, func-name-mixedcase
