@@ -6,7 +6,8 @@
 pragma solidity 0.8.23;
 
 import {
-    TeleporterRegistryAppUpgradeableTest, ExampleUpgradeableApp
+    TeleporterRegistryAppUpgradeableTest,
+    ExampleUpgradeableApp
 } from "./TeleporterRegistryAppUpgradeableTests.t.sol";
 import {
     ITeleporterMessenger,
@@ -32,7 +33,9 @@ contract SendTeleporterMessageTest is TeleporterRegistryAppUpgradeableTest {
         _pauseTeleporterAddressSuccess(app, teleporter);
 
         // Check that the app reverts when trying to send a message with paused Teleporter
-        vm.expectRevert(_formatTeleporterRegistryAppUpgradeableErrorMessage("Teleporter sending paused"));
+        vm.expectRevert(
+            _formatTeleporterRegistryAppUpgradeableErrorMessage("Teleporter sending paused")
+        );
         app.sendTeleporterMessage(
             TeleporterMessageInput({
                 destinationBlockchainID: DEFAULT_DESTINATION_BLOCKCHAIN_ID,
@@ -149,7 +152,9 @@ contract SendTeleporterMessageTest is TeleporterRegistryAppUpgradeableTest {
             message: new bytes(0)
         });
 
-        vm.expectRevert(_formatTeleporterRegistryAppUpgradeableErrorMessage("zero fee token address"));
+        vm.expectRevert(
+            _formatTeleporterRegistryAppUpgradeableErrorMessage("zero fee token address")
+        );
         app.sendTeleporterMessage(messageInput);
     }
 }
