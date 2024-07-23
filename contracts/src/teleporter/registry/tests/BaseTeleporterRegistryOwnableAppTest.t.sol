@@ -9,19 +9,36 @@ import {TeleporterRegistryOwnableAppUpgradeable} from
     "../TeleporterRegistryOwnableAppUpgradeable.sol";
 import {TeleporterRegistryOwnableApp} from "../TeleporterRegistryOwnableApp.sol";
 import {TeleporterRegistryApp} from "../TeleporterRegistryApp.sol";
-import {BaseTeleporterRegistryAppTest} from "./BaseTeleporterRegistryAppTests.t.sol";
+import {
+    BaseTeleporterRegistryAppTest,
+    ExampleRegistryApp,
+    ExampleRegistryAppUpgradeable
+} from "./BaseTeleporterRegistryAppTests.t.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
+import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 
 contract ExampleRegistryOwnableAppUpgradeable is TeleporterRegistryOwnableAppUpgradeable {
     function initialize(
         address teleporterRegistryAddress,
-        address teleporterManager
+        address initialOwner
     ) public initializer {
-        __TeleporterRegistryOwnableAppUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+        __TeleporterRegistryOwnableAppUpgradeable_init(teleporterRegistryAddress, initialOwner);
     }
 
-    function checkTeleporterUpgradeAccess() external view {
+    function setMinTeleporterVersion(uint256 version) public {
+        _setMinTeleporterVersion(version);
+    }
+
+    function sendTeleporterMessage(TeleporterMessageInput calldata messageInput) public {
+        _sendTeleporterMessage(messageInput);
+    }
+
+    function getTeleporterMessenger() public view returns (ITeleporterMessenger) {
+        return _getTeleporterMessenger();
+    }
+
+    function checkTeleporterUpgradeAccess() public view {
         _checkTeleporterUpgradeAccess();
     }
 
@@ -35,10 +52,22 @@ contract ExampleRegistryOwnableAppUpgradeable is TeleporterRegistryOwnableAppUpg
 contract ExampleRegistryOwnableApp is TeleporterRegistryOwnableApp {
     constructor(
         address teleporterRegistryAddress,
-        address teleporterManager
-    ) TeleporterRegistryOwnableApp(teleporterRegistryAddress, teleporterManager) {}
+        address initialOwner
+    ) TeleporterRegistryOwnableApp(teleporterRegistryAddress, initialOwner) {}
 
-    function checkTeleporterUpgradeAccess() external view {
+    function setMinTeleporterVersion(uint256 version) public {
+        _setMinTeleporterVersion(version);
+    }
+
+    function sendTeleporterMessage(TeleporterMessageInput calldata messageInput) public {
+        _sendTeleporterMessage(messageInput);
+    }
+
+    function getTeleporterMessenger() public view returns (ITeleporterMessenger) {
+        return _getTeleporterMessenger();
+    }
+
+    function checkTeleporterUpgradeAccess() public view {
         _checkTeleporterUpgradeAccess();
     }
 
@@ -49,16 +78,13 @@ contract ExampleRegistryOwnableApp is TeleporterRegistryOwnableApp {
     ) internal override {}
 }
 
-abstract contract TeleporterRegistryOwnableAppUpgradeableTest is BaseTeleporterRegistryAppTest {
+abstract contract BaseTeleporterRegistryOwnableAppTest is BaseTeleporterRegistryAppTest {
     ExampleRegistryOwnableApp public ownerApp;
     address public constant MOCK_INVALID_OWNER_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_OWNER_ADDRESS = 0x1234512345123451234512345123451234512345;
 
     function setUp() public virtual override {
         BaseTeleporterRegistryAppTest.setUp();
-        // TODO
-        // ownerApp = new ExampleRegistryOwnableApp();
-        // ownerApp.initialize(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
     }
 
     function testOwnerUpdateMinTeleporterVersion() public {
@@ -172,7 +198,7 @@ abstract contract TeleporterRegistryOwnableAppUpgradeableTest is BaseTeleporterR
 
         // Check that the Teleporter address is still paused
         vm.prank(teleporterAddress);
-        vm.expectRevert("TeleporterRegistryAppUpgradeable: Teleporter address paused");
+        vm.expectRevert(_formatErrorMessage("Teleporter address paused"));
         ownerApp.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Unpause the Teleporter address from owner account

@@ -65,8 +65,6 @@ abstract contract NonReentrantTest is BaseTeleporterRegistryAppTest {
 
     function setUp() public virtual override {
         BaseTeleporterRegistryAppTest.setUp();
-        TeleporterMessenger(teleporterAddress).initializeBlockchainID();
-
         nonReentrantApp = new NonReentrantUpgradeableApp();
         nonReentrantApp.initialize(address(teleporterRegistry));
     }

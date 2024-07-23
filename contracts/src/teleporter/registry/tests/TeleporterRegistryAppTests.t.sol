@@ -11,7 +11,10 @@ import {UpdateMinTeleporterVersionTest} from "./UpdateMinTeleporterVersionTests.
 import {SendTeleporterMessageTest} from "./SendTeleporterMessageTests.t.sol";
 import {UnpauseTeleporterAddressTest} from "./UnpauseTeleporterAddressTests.t.sol";
 import {BaseTeleporterRegistryAppTest} from "./BaseTeleporterRegistryAppTests.t.sol";
-import {ExampleRegistryApp} from "./BaseTeleporterRegistryAppTests.t.sol";
+import {
+    ExampleRegistryApp,
+    ExampleRegistryAppUpgradeable
+} from "./BaseTeleporterRegistryAppTests.t.sol";
 
 contract TeleporterRegistryAppTest is
     GetTeleporterMessengerTest,
@@ -33,5 +36,24 @@ contract TeleporterRegistryAppTest is
         returns (bytes memory)
     {
         return bytes(string.concat("TeleporterRegistryApp: ", errorMessage));
+    }
+}
+
+contract TeleporterRegistryAppUpgradeableTest is TeleporterRegistryAppTest {
+    function setUp() public virtual override {
+        TeleporterRegistryAppTest.setUp();
+        ExampleRegistryAppUpgradeable upgradeableApp = new ExampleRegistryAppUpgradeable();
+        upgradeableApp.initialize(address(teleporterRegistry));
+        app = ExampleRegistryApp(address(upgradeableApp));
+    }
+
+    function _formatErrorMessage(string memory errorMessage)
+        internal
+        pure
+        virtual
+        override
+        returns (bytes memory)
+    {
+        return bytes(string.concat("TeleporterRegistryAppUpgradeable: ", errorMessage));
     }
 }

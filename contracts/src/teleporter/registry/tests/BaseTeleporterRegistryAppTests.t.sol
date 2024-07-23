@@ -89,8 +89,7 @@ abstract contract BaseTeleporterRegistryAppTest is TeleporterRegistryTest {
         TeleporterRegistryTest.setUp();
         _addProtocolVersion(teleporterRegistry, teleporterAddress);
         _mockFeeAsset = new UnitTestMockERC20();
-        // app = new ExampleRegistryAppUpgradeable();
-        // app.initialize(address(teleporterRegistry));
+        TeleporterMessenger(teleporterAddress).initializeBlockchainID();
     }
 
     // TODO
@@ -122,10 +121,7 @@ abstract contract BaseTeleporterRegistryAppTest is TeleporterRegistryTest {
         address newTeleporterAddress = address(new TeleporterMessenger());
         _addProtocolVersion(teleporterRegistry, newTeleporterAddress);
 
-        vm.expectEmit(true, true, true, true, address(app));
-        emit MinTeleporterVersionUpdated(1, 2);
-
-        app.updateMinTeleporterVersion(teleporterRegistry.latestVersion());
+        _updateMinTeleporterVersionSuccess(app, teleporterRegistry.latestVersion());
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
