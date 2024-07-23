@@ -18,9 +18,7 @@ abstract contract TeleporterRegistryOwnableApp is TeleporterRegistryApp, Ownable
     constructor(
         address teleporterRegistryAddress,
         address initialOwner
-    ) TeleporterRegistryApp(teleporterRegistryAddress) {
-        transferOwnership(initialOwner);
-    }
+    ) TeleporterRegistryApp(teleporterRegistryAddress) Ownable(initialOwner) {}
 
     /**
      * @dev See {TeleporterRegistryApp-_checkTeleporterUpgradeAccess}

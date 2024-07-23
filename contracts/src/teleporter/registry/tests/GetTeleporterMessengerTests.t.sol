@@ -5,15 +5,11 @@
 
 pragma solidity 0.8.23;
 
-import {TeleporterRegistryAppUpgradeableTest} from "./TeleporterRegistryAppUpgradeableTests.t.sol";
+import {BaseTeleporterRegistryAppTest} from "./BaseTeleporterRegistryAppTests.t.sol";
 import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
-contract GetTeleporterMessengerTest is TeleporterRegistryAppUpgradeableTest {
-    function setUp() public virtual override {
-        TeleporterRegistryAppUpgradeableTest.setUp();
-    }
-
+abstract contract GetTeleporterMessengerTest is BaseTeleporterRegistryAppTest {
     function testGetTeleporterMessengerBasic() public {
         ITeleporterMessenger messenger = app.getTeleporterMessenger();
         assertEq(
@@ -24,17 +20,13 @@ contract GetTeleporterMessengerTest is TeleporterRegistryAppUpgradeableTest {
 
     function testGetPausedTeleporterMessenger() public {
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(
-            _formatTeleporterRegistryAppUpgradeableErrorMessage("Teleporter sending paused")
-        );
+        vm.expectRevert(_formatErrorMessage("Teleporter sending paused"));
         app.getTeleporterMessenger();
     }
 
     function testGetUnpausedTeleporterMessenger() public {
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(
-            _formatTeleporterRegistryAppUpgradeableErrorMessage("Teleporter sending paused")
-        );
+        vm.expectRevert(_formatErrorMessage("Teleporter sending paused"));
         app.getTeleporterMessenger();
 
         // Unpause the Teleporter address, and now we should getTeleporterMessenger successfully
@@ -46,9 +38,7 @@ contract GetTeleporterMessengerTest is TeleporterRegistryAppUpgradeableTest {
         // Pause the current latest version of Teleporter
 
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(
-            _formatTeleporterRegistryAppUpgradeableErrorMessage("Teleporter sending paused")
-        );
+        vm.expectRevert(_formatErrorMessage("Teleporter sending paused"));
         app.getTeleporterMessenger();
 
         // Add a new version of Teleporter, and make sure we can get

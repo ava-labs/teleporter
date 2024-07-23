@@ -6,7 +6,7 @@
 pragma solidity 0.8.23;
 
 import {TeleporterRegistryAppUpgradeable} from "../TeleporterRegistryAppUpgradeable.sol";
-import {TeleporterRegistryAppUpgradeableTest} from "./TeleporterRegistryAppUpgradeableTests.t.sol";
+import {BaseTeleporterRegistryAppTest} from "./BaseTeleporterRegistryAppTests.t.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessage,
@@ -51,7 +51,7 @@ contract NonReentrantUpgradeableApp is TeleporterRegistryAppUpgradeable {
 // NonreentrantUpgradeableApp::receiveTeleporterMessage
 // The last step should revert because receiveTeleporterMessage (contained in
 // TeleporterRegistryAppUpgradeable) is non-reentrant.
-contract NonReentrantTest is TeleporterRegistryAppUpgradeableTest {
+abstract contract NonReentrantTest is BaseTeleporterRegistryAppTest {
     bytes public constant DEFAULT_MESSAGE = bytes(hex"1234");
     uint256 public constant DEFAULT_REQUIRED_GAS_LIMIT = 1e6;
 
@@ -64,7 +64,7 @@ contract NonReentrantTest is TeleporterRegistryAppUpgradeableTest {
     event MessageExecuted(bytes32 indexed messageID, bytes32 indexed originBlockchainID);
 
     function setUp() public virtual override {
-        TeleporterRegistryAppUpgradeableTest.setUp();
+        BaseTeleporterRegistryAppTest.setUp();
         TeleporterMessenger(teleporterAddress).initializeBlockchainID();
 
         nonReentrantApp = new NonReentrantUpgradeableApp();
