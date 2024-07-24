@@ -36,6 +36,8 @@ abstract contract TeleporterRegistryAppUpgradeable is
     using SafeERC20 for IERC20;
 
     // solhint-disable private-vars-leading-underscore
+    /// @dev Namespace storage slots following the ERC-7201 standard to prevent
+    /// storage collisions between upgradeable contracts.
     /// @custom:storage-location erc7201:teleporter.storage.TeleporterRegistryAppUpgradeable
     struct TeleporterRegistryAppUpgradeableStorage {
         // The Teleporter registry contract manages different Teleporter contract versions.
@@ -52,7 +54,8 @@ abstract contract TeleporterRegistryAppUpgradeable is
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("teleporter.storage.TeleporterRegistryAppUpgradeable")) - 1)) & ~bytes32(uint256(0xff));
+    /// @dev Storage slot computed based off ERC-7201 formula
+    /// keccak256(abi.encode(uint256(keccak256("teleporter.storage.TeleporterRegistryAppUpgradeable")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant _TELEPORTER_UPGRADEABLE_STORAGE_LOCATION =
         0xc73953669262a2bc0a821c7b2e84a2e293b7a32ca3f8016446f20efff9161600;
 
@@ -142,11 +145,25 @@ abstract contract TeleporterRegistryAppUpgradeable is
 
         // Check against the paused Teleporter addresses.
         require(
-            !isTeleporterAddressPaused(_msgSender()),
+            !_isTeleporterAddressPaused($, _msgSender()),
             "TeleporterRegistryAppUpgradeable: Teleporter address paused"
         );
 
         _receiveTeleporterMessage(sourceBlockchainID, originSenderAddress, message);
+    }
+
+    /**
+     * @dev Checks if a Teleporter address is paused.
+     */
+    function isTeleporterAddressPaused(address teleporterAddress)
+        external
+        view
+        virtual
+        returns (bool)
+    {
+        TeleporterRegistryAppUpgradeableStorage storage $ =
+            _getTeleporterRegistryAppUpgradeableStorage();
+        return _isTeleporterAddressPaused($, teleporterAddress);
     }
 
     /**
@@ -175,17 +192,17 @@ abstract contract TeleporterRegistryAppUpgradeable is
      * - `teleporterAddress` is not already paused.
      */
     function pauseTeleporterAddress(address teleporterAddress) public virtual {
+        TeleporterRegistryAppUpgradeableStorage storage $ =
+            _getTeleporterRegistryAppUpgradeableStorage();
         _checkTeleporterUpgradeAccess();
         require(
             teleporterAddress != address(0),
             "TeleporterRegistryAppUpgradeable: zero Teleporter address"
         );
         require(
-            !isTeleporterAddressPaused(teleporterAddress),
+            !_isTeleporterAddressPaused($, teleporterAddress),
             "TeleporterRegistryAppUpgradeable: address already paused"
         );
-        TeleporterRegistryAppUpgradeableStorage storage $ =
-            _getTeleporterRegistryAppUpgradeableStorage();
         $._pausedTeleporterAddresses[teleporterAddress] = true;
         emit TeleporterAddressPaused(teleporterAddress);
     }
@@ -203,17 +220,17 @@ abstract contract TeleporterRegistryAppUpgradeable is
      * - `teleporterAddress` is already paused.
      */
     function unpauseTeleporterAddress(address teleporterAddress) public virtual {
+        TeleporterRegistryAppUpgradeableStorage storage $ =
+            _getTeleporterRegistryAppUpgradeableStorage();
         _checkTeleporterUpgradeAccess();
         require(
             teleporterAddress != address(0),
             "TeleporterRegistryAppUpgradeable: zero Teleporter address"
         );
         require(
-            isTeleporterAddressPaused(teleporterAddress),
+            _isTeleporterAddressPaused($, teleporterAddress),
             "TeleporterRegistryAppUpgradeable: address not paused"
         );
-        TeleporterRegistryAppUpgradeableStorage storage $ =
-            _getTeleporterRegistryAppUpgradeableStorage();
         $._pausedTeleporterAddresses[teleporterAddress] = false;
         emit TeleporterAddressUnpaused(teleporterAddress);
     }
@@ -225,20 +242,6 @@ abstract contract TeleporterRegistryAppUpgradeable is
         TeleporterRegistryAppUpgradeableStorage storage $ =
             _getTeleporterRegistryAppUpgradeableStorage();
         return $._minTeleporterVersion;
-    }
-
-    /**
-     * @dev Checks if a Teleporter address is paused.
-     */
-    function isTeleporterAddressPaused(address teleporterAddress)
-        public
-        view
-        virtual
-        returns (bool)
-    {
-        TeleporterRegistryAppUpgradeableStorage storage $ =
-            _getTeleporterRegistryAppUpgradeableStorage();
-        return $._pausedTeleporterAddresses[teleporterAddress];
     }
 
     /**
@@ -327,10 +330,17 @@ abstract contract TeleporterRegistryAppUpgradeable is
             _getTeleporterRegistryAppUpgradeableStorage();
         ITeleporterMessenger teleporter = $._teleporterRegistry.getLatestTeleporter();
         require(
-            !isTeleporterAddressPaused(address(teleporter)),
+            !_isTeleporterAddressPaused($, address(teleporter)),
             "TeleporterRegistryAppUpgradeable: Teleporter sending paused"
         );
 
         return teleporter;
+    }
+
+    function _isTeleporterAddressPaused(
+        TeleporterRegistryAppUpgradeableStorage storage $,
+        address teleporterAddress
+    ) internal view returns (bool) {
+        return $._pausedTeleporterAddresses[teleporterAddress];
     }
 }

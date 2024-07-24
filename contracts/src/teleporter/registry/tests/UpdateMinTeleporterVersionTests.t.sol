@@ -23,9 +23,7 @@ abstract contract UpdateMinTeleporterVersionTest is BaseTeleporterRegistryAppTes
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
-        vm.expectRevert(
-            _formatErrorMessage("invalid Teleporter sender")
-        );
+        vm.expectRevert(_formatErrorMessage("invalid Teleporter sender"));
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
@@ -67,9 +65,7 @@ abstract contract UpdateMinTeleporterVersionTest is BaseTeleporterRegistryAppTes
         assertEq(app.getMinTeleporterVersion(), skippedVersion);
 
         // Make sure that the old minimum Teleporter version can not deliver messages
-        vm.expectRevert(
-            _formatErrorMessage("invalid Teleporter sender")
-        );
+        vm.expectRevert(_formatErrorMessage("invalid Teleporter sender"));
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
@@ -86,11 +82,7 @@ abstract contract UpdateMinTeleporterVersionTest is BaseTeleporterRegistryAppTes
         assertEq(minTeleporterVersion, teleporterRegistry.latestVersion());
 
         // Try to update to current minimum version, should fail
-        vm.expectRevert(
-            _formatErrorMessage(
-                "not greater than current minimum version"
-            )
-        );
+        vm.expectRevert(_formatErrorMessage("not greater than current minimum version"));
         app.updateMinTeleporterVersion(minTeleporterVersion);
 
         // Check that minimum version is still the same
@@ -107,9 +99,7 @@ abstract contract UpdateMinTeleporterVersionTest is BaseTeleporterRegistryAppTes
         uint256 minTeleporterVersion = app.getMinTeleporterVersion();
 
         // Try to update to a version greater than the latest version, should fail
-        vm.expectRevert(
-            _formatErrorMessage("invalid Teleporter version")
-        );
+        vm.expectRevert(_formatErrorMessage("invalid Teleporter version"));
         app.updateMinTeleporterVersion(latestVersion + 1);
 
         // Check that minimum version is still the same
