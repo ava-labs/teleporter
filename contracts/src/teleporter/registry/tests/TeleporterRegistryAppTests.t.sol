@@ -15,17 +15,25 @@ import {
     ExampleRegistryApp,
     ExampleRegistryAppUpgradeable
 } from "./BaseTeleporterRegistryAppTests.t.sol";
+import {NonReentrantTest} from "./NonReentrantTests.t.sol";
 
 contract TeleporterRegistryAppTest is
     GetTeleporterMessengerTest,
     PauseTeleporterAddressTest,
     UpdateMinTeleporterVersionTest,
     SendTeleporterMessageTest,
-    UnpauseTeleporterAddressTest
+    UnpauseTeleporterAddressTest,
+    NonReentrantTest
 {
-    function setUp() public virtual override {
+    function setUp() public virtual override (BaseTeleporterRegistryAppTest, NonReentrantTest) {
         BaseTeleporterRegistryAppTest.setUp();
         app = new ExampleRegistryApp(address(teleporterRegistry));
+        NonReentrantTest.setUp();
+    }
+
+    function testInvalidRegistryAddress() public virtual {
+        vm.expectRevert(_formatErrorMessage("zero teleporter registry address"));
+        app = new ExampleRegistryApp(address(0));
     }
 
     function _formatErrorMessage(string memory errorMessage)
@@ -45,6 +53,12 @@ contract TeleporterRegistryAppUpgradeableTest is TeleporterRegistryAppTest {
         ExampleRegistryAppUpgradeable upgradeableApp = new ExampleRegistryAppUpgradeable();
         upgradeableApp.initialize(address(teleporterRegistry));
         app = ExampleRegistryApp(address(upgradeableApp));
+    }
+
+    function testInvalidRegistryAddress() public override {
+        ExampleRegistryAppUpgradeable upgradeableApp = new ExampleRegistryAppUpgradeable();
+        vm.expectRevert(_formatErrorMessage("zero teleporter registry address"));
+        upgradeableApp.initialize(address(0));
     }
 
     function _formatErrorMessage(string memory errorMessage)
