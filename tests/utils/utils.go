@@ -412,7 +412,7 @@ func RegisterTokenRemoteOnHome(
 		homeSubnet.TeleporterMessenger.ParseMessageExecuted,
 	)
 	if err != nil {
-		teleporterUtils.TraceTransactionAndExit(ctx, homeSubnet, receipt.TxHash)
+		teleporterUtils.TraceTransactionAndExit(ctx, homeSubnet.RPCClient, receipt.TxHash)
 	}
 
 	// Check that the remote registered event was emitted
