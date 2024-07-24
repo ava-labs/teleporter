@@ -6,7 +6,6 @@ import (
 
 	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
 	erc20tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/ERC20TokenRemote"
-	mockerc20sendandcallreceiver "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
 	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -142,8 +141,7 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			true,
 		)
 
-		var event *erc20tokenremote.ERC20TokenRemoteCallSucceeded
-		event, err = teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenRemote.ParseCallSucceeded)
+		event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenRemote.ParseCallSucceeded)
 		Expect(err).Should(BeNil())
 		Expect(event.RecipientContract).Should(Equal(input.RecipientContract))
 		Expect(event.Amount).Should(Equal(transferredAmount))
@@ -248,14 +246,12 @@ func ERC20TokenHomeERC20TokenRemoteSendAndCall(network interfaces.Network) {
 			true,
 		)
 
-		var homeEvent *erc20tokenhome.ERC20TokenHomeCallSucceeded
-		homeEvent, err = teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseCallSucceeded)
+		homeEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseCallSucceeded)
 		Expect(err).Should(BeNil())
 		Expect(homeEvent.RecipientContract).Should(Equal(inputB.RecipientContract))
 		Expect(homeEvent.Amount).Should(Equal(transferredAmount))
 
-		var receiverEvent *mockerc20sendandcallreceiver.MockERC20SendAndCallReceiverTokensReceived
-		receiverEvent, err = teleporterUtils.GetEventFromLogs(receipt.Logs, homeMockERC20SACR.ParseTokensReceived)
+		receiverEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, homeMockERC20SACR.ParseTokensReceived)
 		Expect(err).Should(BeNil())
 		Expect(receiverEvent.Amount).Should(Equal(transferredAmount))
 		Expect(receiverEvent.Payload).Should(Equal(inputB.RecipientPayload))

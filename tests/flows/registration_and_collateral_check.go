@@ -162,8 +162,7 @@ func RegistrationAndCollateralCheck(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 
 	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
-	var event *erc20tokenhome.ERC20TokenHomeTokensSent
-	event, err = teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseTokensSent)
+	event, err := teleporterUtils.GetEventFromLogs(receipt.Logs, erc20TokenHome.ParseTokensSent)
 	Expect(err).Should(BeNil())
 	Expect(event.Sender).Should(Equal(crypto.PubkeyToAddress(fundedKey.PublicKey)))
 
