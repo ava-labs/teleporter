@@ -140,11 +140,24 @@ abstract contract TeleporterUpgradeable is
 
         // Check against the paused Teleporter addresses.
         require(
-            !isTeleporterAddressPaused(_msgSender()),
+            !_isTeleporterAddressPaused($, _msgSender()),
             "TeleporterUpgradeable: Teleporter address paused"
         );
 
         _receiveTeleporterMessage(sourceBlockchainID, originSenderAddress, message);
+    }
+
+    /**
+     * @dev Checks if a Teleporter address is paused.
+     */
+    function isTeleporterAddressPaused(address teleporterAddress)
+        external
+        view
+        virtual
+        returns (bool)
+    {
+        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
+        return _isTeleporterAddressPaused($, teleporterAddress);
     }
 
     /**
@@ -173,13 +186,13 @@ abstract contract TeleporterUpgradeable is
      * - `teleporterAddress` is not already paused.
      */
     function pauseTeleporterAddress(address teleporterAddress) public virtual {
+        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
         _checkTeleporterUpgradeAccess();
         require(teleporterAddress != address(0), "TeleporterUpgradeable: zero Teleporter address");
         require(
-            !isTeleporterAddressPaused(teleporterAddress),
+            !_isTeleporterAddressPaused($, teleporterAddress),
             "TeleporterUpgradeable: address already paused"
         );
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
         $._pausedTeleporterAddresses[teleporterAddress] = true;
         emit TeleporterAddressPaused(teleporterAddress);
     }
@@ -197,13 +210,13 @@ abstract contract TeleporterUpgradeable is
      * - `teleporterAddress` is already paused.
      */
     function unpauseTeleporterAddress(address teleporterAddress) public virtual {
+        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
         _checkTeleporterUpgradeAccess();
         require(teleporterAddress != address(0), "TeleporterUpgradeable: zero Teleporter address");
         require(
-            isTeleporterAddressPaused(teleporterAddress),
+            _isTeleporterAddressPaused($, teleporterAddress),
             "TeleporterUpgradeable: address not paused"
         );
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
         $._pausedTeleporterAddresses[teleporterAddress] = false;
         emit TeleporterAddressUnpaused(teleporterAddress);
     }
@@ -214,19 +227,6 @@ abstract contract TeleporterUpgradeable is
     function getMinTeleporterVersion() public view returns (uint256) {
         TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
         return $._minTeleporterVersion;
-    }
-
-    /**
-     * @dev Checks if a Teleporter address is paused.
-     */
-    function isTeleporterAddressPaused(address teleporterAddress)
-        public
-        view
-        virtual
-        returns (bool)
-    {
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
-        return $._pausedTeleporterAddresses[teleporterAddress];
     }
 
     /**
@@ -312,10 +312,17 @@ abstract contract TeleporterUpgradeable is
         TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
         ITeleporterMessenger teleporter = $._teleporterRegistry.getLatestTeleporter();
         require(
-            !isTeleporterAddressPaused(address(teleporter)),
+            !_isTeleporterAddressPaused($, address(teleporter)),
             "TeleporterUpgradeable: Teleporter sending paused"
         );
 
         return teleporter;
+    }
+
+    function _isTeleporterAddressPaused(
+        TeleporterUpgradeableStorage storage $,
+        address teleporterAddress
+    ) internal view returns (bool) {
+        return $._pausedTeleporterAddresses[teleporterAddress];
     }
 }
