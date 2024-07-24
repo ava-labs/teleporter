@@ -8,11 +8,9 @@ import (
 	erc20tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/ERC20TokenRemote"
 	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
-	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	teleporterUtils "github.com/ava-labs/teleporter/tests/utils"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
@@ -137,15 +135,15 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 
 	// Upgrade the TransparentUpgradeableProxy contract to use the new logic contract
 	tx, err = proxyAdmin.UpgradeAndCall(opts, erc20TokenHomeAddress, newLogic, []byte{})
-	// Expect(err).Should(BeNil())
-	// teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
-	newHeads := make(chan *types.Header)
-	sub, err := cChainInfo.RPCClient.SubscribeNewHead(ctx, newHeads)
 	Expect(err).Should(BeNil())
-	defer sub.Unsubscribe()
-	header := <-newHeads
-	log.Debug("new head", "number", header.Number)
-	teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo, header.TxHash)
+	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
+	// newHeads := make(chan *types.Header)
+	// sub, err := cChainInfo.RPCClient.SubscribeNewHead(ctx, newHeads)
+	// Expect(err).Should(BeNil())
+	// defer sub.Unsubscribe()
+	// header := <-newHeads
+	// log.Debug("new head", "number", header.Number)
+	// teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo.RPCClient, header.TxHash)
 
 	// Send a transfer from Subnet A back to primary network
 	teleporterUtils.SendNativeTransfer(
