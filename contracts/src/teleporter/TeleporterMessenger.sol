@@ -424,9 +424,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 blockchainID_ = blockchainID;
 
         // Iterate through the specified message IDs and create teleporter receipts to send back.
-        TeleporterMessageReceipt[] memory receiptsToSend = new TeleporterMessageReceipt[](
-                messageIDs.length
-            );
+        TeleporterMessageReceipt[] memory receiptsToSend =
+            new TeleporterMessageReceipt[](messageIDs.length);
         uint256 length = messageIDs.length;
         for (uint256 i; i < length; ++i) {
             bytes32 receivedMessageID = messageIDs[i];
