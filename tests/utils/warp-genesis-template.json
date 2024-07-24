@@ -22,7 +22,7 @@
       "blockGasCostStep": 500000
     },
     "warpConfig": {
-      "blockTimestamp": 0
+      "blockTimestamp": 1719343601
     },
     "contractNativeMinterConfig": {
       "blockTimestamp": 0,
