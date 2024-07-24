@@ -63,7 +63,7 @@ const (
 					"debug","debug-tracer","debug-file-tracer","debug-handler"]
 	}`
 
-	timeout = 60 * time.Second
+	timeout = 180 * time.Second
 )
 
 type SubnetSpec struct {
