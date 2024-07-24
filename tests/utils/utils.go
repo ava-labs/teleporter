@@ -1032,7 +1032,7 @@ func SendERC20TokenMultiHopAndVerify(
 		cChainInfo.TeleporterMessenger.ParseMessageExecuted,
 	)
 	if err != nil {
-		teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo, intermediateReceipt.TxHash)
+		teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo.RPCClient, intermediateReceipt.TxHash)
 	}
 
 	initialBalance, err := toTokenTransferrer.BalanceOf(&bind.CallOpts{}, recipientAddress)
@@ -1050,7 +1050,7 @@ func SendERC20TokenMultiHopAndVerify(
 	)
 	_, err = teleporterUtils.GetEventFromLogs(remoteReceipt.Logs, toSubnet.TeleporterMessenger.ParseMessageExecuted)
 	if err != nil {
-		teleporterUtils.TraceTransactionAndExit(ctx, toSubnet, remoteReceipt.TxHash)
+		teleporterUtils.TraceTransactionAndExit(ctx, toSubnet.RPCClient, remoteReceipt.TxHash)
 	}
 
 	transferredAmount := big.NewInt(0).Sub(amount, input.SecondaryFee)
