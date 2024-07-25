@@ -93,7 +93,7 @@ abstract contract TeleporterUpgradeable is
 
     /**
      * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
-     * instance and setting `_minTeleporterVersion`. lkjl;kj;
+     * instance and setting `_minTeleporterVersion`.
      */
     // solhint-disable ordering
     // solhint-disable-next-line func-name-mixedcase
