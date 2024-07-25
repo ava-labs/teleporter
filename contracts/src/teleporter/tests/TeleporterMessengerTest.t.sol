@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {Test} from "forge-std/Test.sol";
 import {
@@ -16,7 +16,7 @@ import {
     WarpMessage
 } from "../TeleporterMessenger.sol";
 import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 
 // Parent contract for TeleporterMessenger tests. Deploys a TeleporterMessenger
 // instance in the test setup, and provides helper methods for sending and

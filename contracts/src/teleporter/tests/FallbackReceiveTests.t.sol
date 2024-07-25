@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {
     TeleporterMessengerTest,
@@ -66,10 +66,7 @@ contract FallbackReceiveTest is TeleporterMessengerTest {
 
     function setUp() public virtual override {
         TeleporterMessengerTest.setUp();
-        destinationContract = new FallbackReceiveApp(
-            DEFAULT_SOURCE_BLOCKCHAIN_ID,
-            address(this)
-        );
+        destinationContract = new FallbackReceiveApp(DEFAULT_SOURCE_BLOCKCHAIN_ID, address(this));
     }
 
     function testFallbackSuccess() public {
