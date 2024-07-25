@@ -1,0 +1,247 @@
+{
+  "compiler": {
+    "version": "0.8.25+commit.b61c2a91"
+  },
+  "language": "Solidity",
+  "output": {
+    "abi": [
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "validatorBlockchainID_",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "inputs": [],
+        "type": "error",
+        "name": "ReentrancyGuardReentrantCall"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "targetContractAddress",
+            "type": "address",
+            "indexed": true
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256",
+            "indexed": true
+          }
+        ],
+        "type": "event",
+        "name": "Delivered",
+        "anonymous": false
+      },
+      {
+        "inputs": [],
+        "stateMutability": "view",
+        "type": "function",
+        "name": "VALIDATORS_SOURCE_ADDRESS",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "inputs": [],
+        "stateMutability": "view",
+        "type": "function",
+        "name": "WARP_MESSENGER",
+        "outputs": [
+          {
+            "internalType": "contract IWarpMessenger",
+            "name": "",
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "inputs": [],
+        "stateMutability": "view",
+        "type": "function",
+        "name": "blockchainID",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "",
+            "type": "bytes32"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint32",
+            "name": "messageIndex",
+            "type": "uint32"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "name": "executeCall"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "targetContractAddress",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "name": "nonces",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "struct ValidatorSetSigMessage",
+            "name": "message",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "targetBlockchainID",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "address",
+                "name": "validatorSetSigAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "targetContractAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "nonce",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "payload",
+                "type": "bytes"
+              }
+            ]
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "name": "validateMessage"
+      },
+      {
+        "inputs": [],
+        "stateMutability": "view",
+        "type": "function",
+        "name": "validatorBlockchainID",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "",
+            "type": "bytes32"
+          }
+        ]
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "methods": {},
+      "version": 1
+    },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "VALIDATORS_SOURCE_ADDRESS()": {
+          "notice": "Address that the off-chain Warp message sets as the \"source\" address."
+        },
+        "WARP_MESSENGER()": {
+          "notice": "Warp precompile used for sending and receiving Warp messages."
+        },
+        "blockchainID()": {
+          "notice": "The blockchain ID of the chain the contract is deployed on."
+        },
+        "validatorBlockchainID()": {
+          "notice": "A blockchain ID whose validators need to sign the message for it to be considered valid."
+        }
+      },
+      "version": 1
+    }
+  },
+  "settings": {
+    "remappings": [
+      "@avalabs/subnet-evm-contracts@1.2.0/=lib/subnet-evm/contracts/",
+      "@mocks/=src/mocks/",
+      "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+      "@openzeppelin/contracts-upgradeable@5.0.2/=lib/openzeppelin-contracts-upgradeable/contracts/",
+      "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+      "@openzeppelin/contracts@5.0.2/=lib/openzeppelin-contracts/contracts/",
+      "@teleporter/=src/teleporter/",
+      "@utilities/=src/utilities/",
+      "ds-test/=lib/forge-std/lib/ds-test/src/",
+      "erc4626-tests/=lib/openzeppelin-contracts-upgradeable/lib/erc4626-tests/",
+      "forge-std/=lib/forge-std/src/",
+      "openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/",
+      "openzeppelin-contracts/=lib/openzeppelin-contracts/",
+      "subnet-evm/=lib/subnet-evm/"
+    ],
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "metadata": {
+      "bytecodeHash": "ipfs"
+    },
+    "compilationTarget": {
+      "src/governance/ValidatorSetSig.sol": "ValidatorSetSig"
+    },
+    "evmVersion": "shanghai",
+    "libraries": {}
+  },
+  "sources": {
+    "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol": {
+      "keccak256": "0xf980daa263b661ab8ddee7d4fd833c7da7e7995e2c359ff1f17e67e4112f2236",
+      "urls": [
+        "bzz-raw://7448ab095d6940130bcf76ba47a2eab14148c83119523b93dd89f6d84edd6c02",
+        "dweb:/ipfs/QmawrZ4voKQjH3oomXT3Kuheb3Mnmo2VvVpxg8Ne5UJUrd"
+      ],
+      "license": "MIT"
+    },
+    "lib/subnet-evm/contracts/contracts/interfaces/IWarpMessenger.sol": {
+      "keccak256": "0x9ae9c2289cf8ba1676de026faa06bc3c9c5364b4bf9e655aba2c8d5b15242338",
+      "urls": [
+        "bzz-raw://7d004bf60522e68b53edc8f25487c4ff1f6fa0c2bd1118ad8d40a5a4455f4ddb",
+        "dweb:/ipfs/QmVPz8GpQvm3BmoF1QJ2boSkt1dGVrY1PcnrRxZV9ZjcMo"
+      ],
+      "license": "MIT"
+    },
+    "src/governance/ValidatorSetSig.sol": {
+      "keccak256": "0x400938be14b0bfc7dd90f216dc9ed127dfc50d1f16fb210fcda75d37c8f21ee0",
+      "urls": [
+        "bzz-raw://8718ada44227f9710a1ccb80251f7710798466bb2b9f39a82c2dc67bcab88f9a",
+        "dweb:/ipfs/QmWD1dm81Yj9jRFKoZFKntyD3wh3LrNVbFPyk8vKwKDTAp"
+      ],
+      "license": "Ecosystem"
+    }
+  },
+  "version": 1
+}
