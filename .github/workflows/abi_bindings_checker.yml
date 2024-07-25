@@ -32,7 +32,6 @@ jobs:
           export PATH=$PATH:$HOME/.foundry/bin
           export GOPATH=$HOME/go
           export PATH="$PATH:$GOPATH/bin"
-          forge --version
           ./scripts/abi_bindings.sh
 
       - name: Print diff

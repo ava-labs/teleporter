@@ -36,9 +36,11 @@ abstract contract TeleporterRegistryAppUpgradeable is
     using SafeERC20 for IERC20;
 
     // solhint-disable private-vars-leading-underscore
-    /// @dev Namespace storage slots following the ERC-7201 standard to prevent
-    /// storage collisions between upgradeable contracts.
-    /// @custom:storage-location erc7201:teleporter.storage.TeleporterRegistryAppUpgradeable
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     * @custom:storage-location erc7201:teleporter.storage.TeleporterRegistryAppUpgradeable
+     */
     struct TeleporterRegistryAppUpgradeableStorage {
         // The Teleporter registry contract manages different Teleporter contract versions.
         TeleporterRegistry _teleporterRegistry;
@@ -54,8 +56,10 @@ abstract contract TeleporterRegistryAppUpgradeable is
     }
     // solhint-enable private-vars-leading-underscore
 
-    /// @dev Storage slot computed based off ERC-7201 formula
-    /// keccak256(abi.encode(uint256(keccak256("teleporter.storage.TeleporterRegistryAppUpgradeable")) - 1)) & ~bytes32(uint256(0xff));
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("teleporter.storage.TeleporterRegistryAppUpgradeable")) - 1)) & ~bytes32(uint256(0xff));
+     */
     bytes32 private constant _TELEPORTER_UPGRADEABLE_STORAGE_LOCATION =
         0xc73953669262a2bc0a821c7b2e84a2e293b7a32ca3f8016446f20efff9161600;
 
