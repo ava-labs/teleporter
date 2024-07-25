@@ -48,15 +48,15 @@ var _ = ginkgo.BeforeSuite(func() {
 			{
 				Name:       "A",
 				EVMChainID: 12345,
-				NodeCount:  5,
+				NodeCount:  2,
 			},
 			{
 				Name:       "B",
 				EVMChainID: 54321,
-				NodeCount:  5,
+				NodeCount:  2,
 			},
 		},
-		5,
+		2,
 	)
 
 	// Generate the Teleporter deployment values
