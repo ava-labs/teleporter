@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {TokenHome} from "./TokenHome.sol";
 import {INativeTokenHome} from "./interfaces/INativeTokenHome.sol";
@@ -16,7 +16,7 @@ import {
 import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDeposit.sol";
-import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
+import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 
 /**
  * @title NativeTokenHome
@@ -27,10 +27,35 @@ import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
 contract NativeTokenHome is INativeTokenHome, TokenHome {
     using Address for address payable;
 
+    // solhint-disable private-vars-leading-underscore
     /**
-     * @notice The wrapped native token contract that represents the native tokens on this chain.
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenHome
      */
-    IWrappedNativeToken public immutable wrappedToken;
+    struct NativeTokenHomeStorage {
+        /**
+         * @notice The wrapped native token contract that represents the native tokens on this chain.
+         */
+        IWrappedNativeToken _wrappedToken;
+    }
+    // solhint-enable private-vars-leading-underscore
+
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenHome")) - 1)) & ~bytes32(uint256(0xff));
+     */
+    bytes32 public constant NATIVE_TOKEN_HOME_STORAGE_LOCATION =
+        0x3b5030f10c94fcbdaa3022348ff0b82dbd4c0c71339e41ff59d0bdc92179d600;
+
+    // solhint-disable ordering
+    function _getNativeTokenHomeStorage() private pure returns (NativeTokenHomeStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            $.slot := NATIVE_TOKEN_HOME_STORAGE_LOCATION
+        }
+    }
 
     /**
      * @notice Initializes this token TokenHome instance to send native tokens to TokenRemote instances on other chains.
@@ -42,13 +67,32 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      * @param wrappedTokenAddress The wrapped native token contract address of the native asset
      * to be transferred to TokenRemote instances.
      */
-    constructor(
+    function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
         address wrappedTokenAddress
-    ) TokenHome(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18) {
-        wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
+    ) public initializer {
+        __NativeTokenHome_init(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress);
     }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function __NativeTokenHome_init(
+        address teleporterRegistryAddress,
+        address teleporterManager,
+        address wrappedTokenAddress
+    ) internal onlyInitializing {
+        __TokenHome_init(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18);
+        __NativeTokenHome_init_unchained(wrappedTokenAddress);
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function __NativeTokenHome_init_unchained(address wrappedTokenAddress)
+        internal
+        onlyInitializing
+    {
+        _getNativeTokenHomeStorage()._wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
+    }
+    // solhint-enable ordering
 
     /**
      * @notice Receives native tokens transferred to this contract.
@@ -58,7 +102,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
     receive() external payable {
         // The caller here is expected to be {tokenAddress} directly, and not through a meta-transaction,
         // so we check for `msg.sender` instead of `_msgSender()`.
-        require(msg.sender == tokenAddress, "NativeTokenHome: invalid receive payable sender");
+        require(msg.sender == getTokenAddress(), "NativeTokenHome: invalid receive payable sender");
     }
 
     /**
@@ -73,7 +117,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      */
     function sendAndCall(SendAndCallInput calldata input) external payable {
         _sendAndCall({
-            sourceBlockchainID: blockchainID,
+            sourceBlockchainID: getBlockchainID(),
             originTokenTransferrerAddress: address(this),
             originSenderAddress: _msgSender(),
             input: input,
@@ -96,7 +140,8 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      * Deposits the native tokens sent to this contract
      */
     function _deposit(uint256 amount) internal virtual override returns (uint256) {
-        return SafeWrappedNativeTokenDeposit.safeDeposit(wrappedToken, amount);
+        NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
+        return SafeWrappedNativeTokenDeposit.safeDeposit($._wrappedToken, amount);
     }
 
     /**
@@ -105,8 +150,9 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
      * and sends them to the recipient.
      */
     function _withdraw(address recipient, uint256 amount) internal virtual override {
+        NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
         emit TokensWithdrawn(recipient, amount);
-        wrappedToken.withdraw(amount);
+        $._wrappedToken.withdraw(amount);
         payable(recipient).sendValue(amount);
     }
 
@@ -122,8 +168,9 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
         SingleHopCallMessage memory message,
         uint256 amount
     ) internal virtual override {
+        NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
         // Withdraw the native token from the wrapped native token contract.
-        wrappedToken.withdraw(amount);
+        $._wrappedToken.withdraw(amount);
 
         // Encode the call to {INativeSendAndCallReceiver-receiveTokens}
         bytes memory payload = abi.encodeCall(

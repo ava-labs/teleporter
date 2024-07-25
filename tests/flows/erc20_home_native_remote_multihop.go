@@ -41,7 +41,7 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	erc20TokenHomeAddress, erc20TokenHome := utils.DeployERC20TokenHome(
+	erc20TokenHomeAddress, _, erc20TokenHome := utils.DeployERC20TokenHome(
 		ctx,
 		fundedKey,
 		cChainInfo,
@@ -60,7 +60,6 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenHomeAddress,
 		exampleERC20Decimals,
 		initialReserveImbalance,
-		multiplyOnRemote,
 		burnedFeesReportingRewardPercentage,
 	)
 
@@ -74,7 +73,6 @@ func ERC20TokenHomeNativeTokenRemoteMultiHop(network interfaces.Network) {
 		erc20TokenHomeAddress,
 		exampleERC20Decimals,
 		initialReserveImbalance,
-		multiplyOnRemote,
 		burnedFeesReportingRewardPercentage,
 	)
 

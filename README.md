@@ -22,6 +22,7 @@ In addition to supporting basic token transfers, the token transferrer contracts
 A breakdown of the structure of the contracts that implement this function can be found under `./contracts` [here](./contracts/README.md).
 
 ## Audits
+
 Some contracts in this repository have been audited. The `main` branch may contain unaudited code. Please check [here](./audits/README.md) for which versions of each contract have been audited.
 DO NOT USE UN-AUDITED CODE IN PRODUCTION!
 
@@ -60,8 +61,8 @@ Unit test coverage of the contracts can be viewed using `forge coverage`:
 ```
 $ forge coverage
 [⠢] Compiling...
-[⠒] Compiling 78 files with 0.8.18
-[⠆] Solc 0.8.18 finished in 3.92s
+[⠒] Compiling 78 files with 0.8.23
+[⠆] Solc 0.8.23 finished in 3.92s
 Compiler run successful!
 Analysing contracts...
 Running tests...

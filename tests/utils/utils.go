@@ -9,12 +9,14 @@ import (
 	"math"
 	"math/big"
 
+	proxyadmin "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/ProxyAdmin"
 	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
 	nativetokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/NativeTokenHome"
 	tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/TokenHome"
 	erc20tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/ERC20TokenRemote"
 	nativetokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/NativeTokenRemote"
 	tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/TokenRemote"
+	transparentupgradeableproxy "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TransparentUpgradeableProxy"
 	wrappednativetoken "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/WrappedNativeToken"
 	exampleerc20 "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/mocks/ExampleERC20Decimals"
 	mockERC20SACR "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/mocks/MockERC20SendAndCallReceiver"
@@ -77,25 +79,38 @@ func DeployERC20TokenHome(
 	teleporterManager common.Address,
 	tokenAddress common.Address,
 	tokenHomeDecimals uint8,
-) (common.Address, *erc20tokenhome.ERC20TokenHome) {
+) (common.Address, *proxyadmin.ProxyAdmin, *erc20tokenhome.ERC20TokenHome) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
 		senderKey,
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	address, tx, erc20TokenHome, err := erc20tokenhome.DeployERC20TokenHome(
+	implAddress, tx, _, err := erc20tokenhome.DeployERC20TokenHome(
 		opts,
 		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	proxyAddress, proxyAdmin, erc20TokenHome := DeployTransparentUpgradeableProxy(
+		ctx,
+		subnet,
+		senderKey,
+		implAddress,
+		erc20tokenhome.NewERC20TokenHome,
+	)
+
+	tx, err = erc20TokenHome.Initialize(
+		opts,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
 		tokenAddress,
 		tokenHomeDecimals,
 	)
 	Expect(err).Should(BeNil())
-
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, erc20TokenHome
+	return proxyAddress, proxyAdmin, erc20TokenHome
 }
 
 func DeployERC20TokenRemote(
@@ -115,9 +130,24 @@ func DeployERC20TokenRemote(
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	address, tx, erc20TokenRemote, err := erc20tokenremote.DeployERC20TokenRemote(
+	implAddress, tx, _, err := erc20tokenremote.DeployERC20TokenRemote(
 		opts,
 		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	proxyAddress, _, erc20TokenRemote := DeployTransparentUpgradeableProxy(
+		ctx,
+		subnet,
+		senderKey,
+		implAddress,
+		erc20tokenremote.NewERC20TokenRemote,
+	)
+
+	tx, err = erc20TokenRemote.Initialize(
+		opts,
 		erc20tokenremote.TokenRemoteSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
@@ -130,10 +160,9 @@ func DeployERC20TokenRemote(
 		tokenDecimals,
 	)
 	Expect(err).Should(BeNil())
-
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, erc20TokenRemote
+	return proxyAddress, erc20TokenRemote
 }
 
 func DeployNativeTokenRemote(
@@ -145,7 +174,6 @@ func DeployNativeTokenRemote(
 	tokenHomeAddress common.Address,
 	tokenHomeDecimals uint8,
 	initialReserveImbalance *big.Int,
-	multiplyOnRemote bool,
 	burnedFeesReportingRewardPercentage *big.Int,
 ) (common.Address, *nativetokenremote.NativeTokenRemote) {
 	// The NativeTokenRemote needs a unique deployer key, whose nonce 0 is used to deploy the contract.
@@ -161,9 +189,15 @@ func DeployNativeTokenRemote(
 	)
 	Expect(err).Should(BeNil())
 
-	address, tx, nativeTokenRemote, err := nativetokenremote.DeployNativeTokenRemote(
+	implAddress, tx, nativeTokenRemote, err := nativetokenremote.DeployNativeTokenRemote(
 		opts,
 		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	tx, err = nativeTokenRemote.Initialize(
+		opts,
 		nativetokenremote.TokenRemoteSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
@@ -176,13 +210,12 @@ func DeployNativeTokenRemote(
 		burnedFeesReportingRewardPercentage,
 	)
 	Expect(err).Should(BeNil())
-
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
 	// Increment to the next deployer key so that the next contract deployment succeeds
 	nativeTokenRemoteDeployerKeyIndex++
 
-	return address, nativeTokenRemote
+	return implAddress, nativeTokenRemote
 }
 
 func DeployNativeTokenHome(
@@ -197,18 +230,31 @@ func DeployNativeTokenHome(
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
-	address, tx, nativeTokenHome, err := nativetokenhome.DeployNativeTokenHome(
+	implAddress, tx, _, err := nativetokenhome.DeployNativeTokenHome(
 		opts,
 		subnet.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	proxyAddress, _, nativeTokenHome := DeployTransparentUpgradeableProxy(
+		ctx,
+		subnet,
+		senderKey,
+		implAddress,
+		nativetokenhome.NewNativeTokenHome,
+	)
+
+	tx, err = nativeTokenHome.Initialize(
+		opts,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
 		tokenAddress,
 	)
 	Expect(err).Should(BeNil())
-
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
-	return address, nativeTokenHome
+	return proxyAddress, nativeTokenHome
 }
 
 func DeployWrappedNativeToken(
@@ -221,10 +267,12 @@ func DeployWrappedNativeToken(
 	Expect(err).Should(BeNil())
 
 	// Deploy mock WAVAX contract
-	address, tx, token, err := wrappednativetoken.DeployWrappedNativeToken(opts, subnet.RPCClient, tokenSymbol)
+	address, tx, token, err := wrappednativetoken.DeployWrappedNativeToken(
+		opts,
+		subnet.RPCClient,
+		tokenSymbol,
+	)
 	Expect(err).Should(BeNil())
-	log.Info("Deployed WrappedNativeToken contract", "address", address.Hex(), "txHash", tx.Hash().Hex())
-
 	// Wait for the transaction to be mined
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
 
@@ -295,6 +343,41 @@ func DeployExampleERC20(
 	return address, token
 }
 
+func DeployTransparentUpgradeableProxy[T any](
+	ctx context.Context,
+	subnet interfaces.SubnetTestInfo,
+	senderKey *ecdsa.PrivateKey,
+	implAddress common.Address,
+	newInstance func(address common.Address, backend bind.ContractBackend) (*T, error),
+) (common.Address, *proxyadmin.ProxyAdmin, *T) {
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		senderKey,
+		subnet.EVMChainID,
+	)
+	Expect(err).Should((BeNil()))
+
+	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
+	proxyAddress, tx, proxy, err := transparentupgradeableproxy.DeployTransparentUpgradeableProxy(
+		opts,
+		subnet.RPCClient,
+		implAddress,
+		senderAddress,
+		[]byte{},
+	)
+	Expect(err).Should(BeNil())
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	proxyAdminEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, proxy.ParseAdminChanged)
+	Expect(err).Should(BeNil())
+
+	proxyAdmin, err := proxyadmin.NewProxyAdmin(proxyAdminEvent.NewAdmin, subnet.RPCClient)
+	Expect(err).Should(BeNil())
+
+	contract, err := newInstance(proxyAddress, subnet.RPCClient)
+	Expect(err).Should(BeNil())
+
+	return proxyAddress, proxyAdmin, contract
+}
+
 func RegisterERC20TokenRemoteOnHome(
 	ctx context.Context,
 	network interfaces.Network,
@@ -302,8 +385,8 @@ func RegisterERC20TokenRemoteOnHome(
 	homeAddress common.Address,
 	remoteSubnet interfaces.SubnetTestInfo,
 	remoteAddress common.Address,
-) *big.Int {
-	return RegisterTokenRemoteOnHome(
+) {
+	RegisterTokenRemoteOnHome(
 		ctx,
 		network,
 		homeSubnet,
@@ -369,6 +452,13 @@ func RegisterTokenRemoteOnHome(
 
 	// Relay the register message to the home
 	receipt = network.RelayMessage(ctx, receipt, remoteSubnet, homeSubnet, true)
+	_, err = teleporterUtils.GetEventFromLogs(
+		receipt.Logs,
+		homeSubnet.TeleporterMessenger.ParseMessageExecuted,
+	)
+	if err != nil {
+		teleporterUtils.TraceTransactionAndExit(ctx, homeSubnet.RPCClient, receipt.TxHash)
+	}
 
 	// Check that the remote registered event was emitted
 	tokenHome, err := tokenhome.NewTokenHome(homeAddress, homeSubnet.RPCClient)
@@ -430,7 +520,7 @@ func AddCollateralToERC20TokenHome(
 	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
 	Expect(event.RemoteTokenTransferrerAddress).Should(Equal(remoteAddress))
 
-	remoteSettings, err := erc20TokenHome.RegisteredRemotes(
+	remoteSettings, err := erc20TokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		remoteBlockchainID,
 		remoteAddress)
@@ -471,7 +561,7 @@ func AddCollateralToNativeTokenHome(
 	Expect(err).Should(BeNil())
 	Expect(event.RemoteBlockchainID[:]).Should(Equal(remoteBlockchainID[:]))
 	Expect(event.RemoteTokenTransferrerAddress).Should(Equal(remoteAddress))
-	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
+	remoteSettings, err := nativeTokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		remoteBlockchainID,
 		remoteAddress)
@@ -721,7 +811,7 @@ func SendAndCallNativeTokenHome(
 	Expect(event.Input.RecipientContract).Should(Equal(input.RecipientContract))
 
 	// Compute the scaled amount
-	remoteSettings, err := nativeTokenHome.RegisteredRemotes(
+	remoteSettings, err := nativeTokenHome.GetRemoteTokenTransferrerSettings(
 		&bind.CallOpts{},
 		input.DestinationBlockchainID,
 		input.DestinationTokenTransferrerAddress)

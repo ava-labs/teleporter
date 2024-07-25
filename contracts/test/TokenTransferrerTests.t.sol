@@ -3,10 +3,10 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {TeleporterRegistry} from "@teleporter/upgrades/TeleporterRegistry.sol";
+import {TeleporterRegistry} from "@teleporter/registry/TeleporterRegistry.sol";
 import {
     ITeleporterMessenger,
     TeleporterMessageInput,
@@ -23,12 +23,10 @@ import {
     MultiHopSendMessage,
     MultiHopCallMessage
 } from "../src/interfaces/ITokenTransferrer.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {IERC20Errors} from "@openzeppelin/contracts@5.0.2/interfaces/draft-IERC6093.sol";
 
 abstract contract TokenTransferrerTest is Test {
-    using SafeERC20 for IERC20;
-
     // convenience struct to reduce stack usage
     struct OriginSenderInfo {
         address tokenTransferrerAddress;
@@ -73,12 +71,6 @@ abstract contract TokenTransferrerTest is Test {
 
     ITokenTransferrer public tokenTransferrer;
 
-    /**
-     * @notice The token that is transferred by the token transferrer.
-     * For native assets, the wrapped token contract is used.
-     */
-    IERC20 public transferredToken;
-
     event TokensSent(
         bytes32 indexed teleporterMessageID,
         address indexed sender,
@@ -105,7 +97,6 @@ abstract contract TokenTransferrerTest is Test {
     function testSendZeroRecipient() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.recipient = address(0);
-        transferredToken.approve(address(tokenTransferrer), _DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("zero recipient address"));
         _send(input, 0);
     }
@@ -120,7 +111,6 @@ abstract contract TokenTransferrerTest is Test {
     function testSendZeroRequiredGasLimit() public {
         SendTokensInput memory input = _createDefaultSendTokensInput();
         input.requiredGasLimit = 0;
-        transferredToken.approve(address(tokenTransferrer), _DEFAULT_TRANSFER_AMOUNT);
         vm.expectRevert(_formatErrorMessage("zero required gas limit"));
         _send(input, 0);
     }
@@ -163,7 +153,12 @@ abstract contract TokenTransferrerTest is Test {
         _setUpRegisteredRemote(
             input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
-        vm.expectRevert("ERC20: insufficient allowance");
+        _setUpExpectedDeposit(amount, 0);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector, tokenTransferrer, 0, primaryFee
+            )
+        );
         _send(input, amount);
     }
 
@@ -177,7 +172,12 @@ abstract contract TokenTransferrerTest is Test {
         _setUpRegisteredRemote(
             input.destinationBlockchainID, input.destinationTokenTransferrerAddress, 0
         );
-        vm.expectRevert("ERC20: insufficient allowance");
+        _setUpExpectedDeposit(amount, 0);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector, tokenTransferrer, 0, primaryFee
+            )
+        );
         _sendAndCall(input, amount);
     }
 

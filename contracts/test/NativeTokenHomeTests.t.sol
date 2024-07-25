@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
@@ -11,8 +11,9 @@ import {NativeTokenHome} from "../src/TokenHome/NativeTokenHome.sol";
 import {IWrappedNativeToken} from "../src/interfaces/IWrappedNativeToken.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {WrappedNativeToken} from "../src/WrappedNativeToken.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 
 contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
@@ -28,15 +29,14 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
         TokenHomeTest.setUp();
 
         wavax = new WrappedNativeToken("AVAX");
-        app = new NativeTokenHome(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS,
-            MOCK_TELEPORTER_MESSENGER_ADDRESS,
-            address(wavax)
+        app = new NativeTokenHome();
+        app.initialize(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS, MOCK_TELEPORTER_MESSENGER_ADDRESS, address(wavax)
         );
         tokenHome = app;
         nativeTokenTransferrer = app;
         tokenTransferrer = app;
-        transferredToken = wavax;
+        transferredToken = IERC20(wavax);
         tokenHomeDecimals = 18;
     }
 
@@ -44,18 +44,30 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
      * Initialization unit tests
      */
     function testZeroTeleporterRegistryAddress() public {
-        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new NativeTokenHome(address(0), address(this), address(wavax));
+        _invalidInitialization(
+            address(0),
+            address(this),
+            address(wavax),
+            "TeleporterUpgradeable: zero teleporter registry address"
+        );
     }
 
     function testZeroTeleporterManagerAddress() public {
-        vm.expectRevert("Ownable: new owner is the zero address");
-        new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(0), address(wavax));
+        _invalidInitialization(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(0),
+            address(wavax),
+            abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0))
+        );
     }
 
     function testZeroFeeTokenAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero token address"));
-        new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(0));
+        _invalidInitialization(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS,
+            address(this),
+            address(0),
+            _formatErrorMessage("zero token address")
+        );
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
@@ -137,5 +149,16 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
         uint256 amount
     ) internal override {
         app.addCollateral{value: amount}(remoteBlockchainID, remoteTokenTransferrerAddress);
+    }
+
+    function _invalidInitialization(
+        address teleporterRegistryAddress,
+        address teleporterManagerAddress,
+        address wrappedTokenAddress,
+        bytes memory expectedErrorMessage
+    ) private {
+        app = new NativeTokenHome();
+        vm.expectRevert(expectedErrorMessage);
+        app.initialize(teleporterRegistryAddress, teleporterManagerAddress, wrappedTokenAddress);
     }
 }

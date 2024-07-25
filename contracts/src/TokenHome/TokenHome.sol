@@ -3,11 +3,11 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/upgrades/TeleporterOwnerUpgradeable.sol";
-import {ITokenHome} from "./interfaces/ITokenHome.sol";
+import {TeleporterOwnerUpgradeable} from "@teleporter/registry/TeleporterOwnerUpgradeable.sol";
+import {ITokenHome, RemoteTokenTransferrerSettings} from "./interfaces/ITokenHome.sol";
 import {
     SendTokensInput,
     SendAndCallInput,
@@ -24,24 +24,7 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-
-/**
- * @notice Each TokenRemote instance registers with the home contract, and provides settings for transferring
- * to the remote token transfer contract.
- * @param registered Whether the remote token transferrer is registered
- * @param collateralNeeded The amount of tokens that must be first added as collateral,
- * through {addCollateral} calls, before tokens can be transferred to the remote token transferrer.
- * @param tokenMultiplier The scaling factor for the amount of tokens to be transferred to the remote.
- * @param multiplyOnRemote Whether the {tokenMultiplier} should be applied when transferring tokens to
- * the remote (multiplyOnRemote=true), or when transferring tokens back to the home (multiplyOnRemote=false).
- */
-struct RemoteTokenTransferrerSettings {
-    bool registered;
-    uint256 collateralNeeded;
-    uint256 tokenMultiplier;
-    bool multiplyOnRemote;
-}
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
 
 /**
  * @title TokenHome
@@ -53,60 +36,126 @@ struct RemoteTokenTransferrerSettings {
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
 abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReentrancyGuard {
-    /// @notice The blockchain ID of the chain this contract is deployed on.
-    bytes32 public immutable blockchainID;
+    // solhint-disable private-vars-leading-underscore
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.TokenHome
+     */
+    struct TokenHomeStorage {
+        /// @notice The blockchain ID of the chain this contract is deployed on.
+        bytes32 _blockchainID;
+        /**
+         * @notice The token address this home contract transfers to TokenRemote instances.
+         * For multi-hop transfers, this {tokenAddress} is always used to pay for the secondary message fees.
+         * If the token is an ERC20 token, the contract address is directly passed in.
+         * If the token is a native asset, the contract address is the wrapped token contract.
+         */
+        address _tokenAddress;
+        uint8 _tokenDecimals;
+        /**
+         * @notice Tracks the settings for each remote token transferrer instance. TokenRemote instances
+         * must register with their {TokenHome} contracts via Teleporter message to be able to
+         * receive tokens from this contract.
+         */
+        mapping(
+            bytes32 remoteBlockchainID
+                => mapping(
+                    address remoteTokenTransferrerAddress
+                        => RemoteTokenTransferrerSettings remoteSettings
+                )
+        ) _registeredRemotes;
+        /**
+         * @notice Tracks the balances of tokens sent to TokenRemote instances.
+         * Balances are represented in the remote token's denomination,
+         * and token transferrers are not allowed to unwrap more than has been sent to them.
+         * @dev (remoteBlockchainID, remoteTokenTransferrerAddress) -> balance
+         */
+        mapping(
+            bytes32 remoteBlockchainID
+                => mapping(address remoteTokenTransferrerAddress => uint256 balance)
+        ) _transferredBalances;
+    }
+    // solhint-enable private-vars-leading-underscore
 
     /**
-     * @notice The token address this home contract transfers to TokenRemote instances.
-     * For multi-hop transfers, this {tokenAddress} is always used to pay for the secondary message fees.
-     * If the token is an ERC20 token, the contract address is directly passed in.
-     * If the token is a native asset, the contract address is the wrapped token contract.
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.TokenHome")) - 1)) & ~bytes32(uint256(0xff));
      */
-    address public immutable tokenAddress;
+    bytes32 public constant TOKEN_HOME_STORAGE_LOCATION =
+        0x9316912b5a9db88acbe872c934fdd0a46c436c6dcba332d649c4d57c7bc9e600;
 
-    uint8 public immutable tokenDecimals;
-
-    /**
-     * @notice Tracks the settings for each remote token transferrer instance. TokenRemote instances
-     * must register with their {TokenHome} contracts via Teleporter message to be able to
-     * receive tokens from this contract.
-     */
-    mapping(
-        bytes32 remoteBlockchainID
-            => mapping(
-                address remoteTokenTransferrerAddress
-                    => RemoteTokenTransferrerSettings remoteSettings
-            )
-    ) public registeredRemotes;
-
-    /**
-     * @notice Tracks the balances of tokens sent to TokenRemote instances.
-     * Balances are represented in the remote token's denomination,
-     * and token transferrers are not allowed to unwrap more than has been sent to them.
-     * @dev (remoteBlockchainID, remoteTokenTransferrerAddress) -> balance
-     */
-    mapping(
-        bytes32 remoteBlockchainID
-            => mapping(address remoteTokenTransferrerAddress => uint256 balance)
-    ) public transferredBalances;
+    // solhint-disable ordering
+    function _getTokenHomeStorage() private pure returns (TokenHomeStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            $.slot := TOKEN_HOME_STORAGE_LOCATION
+        }
+    }
 
     /**
      * @notice Initializes this home token transferrer instance to send tokens to TokenRemote instances on other chains.
+     * @param teleporterRegistryAddress The address of the TeleporterRegistry contract.
+     * @param teleporterManager Address that manages this contract's integration with the
+     * Teleporter registry and Teleporter versions.
+     * @param tokenAddress_ The token contract address to be transferredd by the home instance.
+     * @param tokenDecimals_ The number of decimals for the token being transferred.
      */
-    constructor(
+    // solhint-disable-next-line func-name-mixedcase
+    function __TokenHome_init(
         address teleporterRegistryAddress,
         address teleporterManager,
         address tokenAddress_,
         uint8 tokenDecimals_
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {
-        blockchainID = IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
+    ) internal virtual onlyInitializing {
+        __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+        __SendReentrancyGuard_init();
+        __TokenHome_init_unchained(tokenAddress_, tokenDecimals_);
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function __TokenHome_init_unchained(
+        address tokenAddress_,
+        uint8 tokenDecimals_
+    ) internal onlyInitializing {
         require(tokenAddress_ != address(0), "TokenHome: zero token address");
         require(
             tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TokenHome: token decimals too high"
         );
-        tokenAddress = tokenAddress_;
-        tokenDecimals = tokenDecimals_;
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
+        $._blockchainID =
+            IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
+        $._tokenAddress = tokenAddress_;
+        $._tokenDecimals = tokenDecimals_;
+    }
+    // solhint-enable ordering
+
+    function getRemoteTokenTransferrerSettings(
+        bytes32 remoteBlockchainID,
+        address remoteTokenTransferrerAddress
+    ) public view returns (RemoteTokenTransferrerSettings memory) {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
+        return $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
+    }
+
+    function getTransferredBalance(
+        bytes32 remoteBlockchainID,
+        address remoteTokenTransferrerAddress
+    ) public view returns (uint256) {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
+        return $._transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress];
+    }
+
+    function getTokenAddress() public view returns (address) {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
+        return $._tokenAddress;
+    }
+
+    function getBlockchainID() public view returns (bytes32) {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
+        return $._blockchainID;
     }
 
     function _registerRemote(
@@ -114,16 +163,17 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address remoteTokenTransferrerAddress,
         RegisterRemoteMessage memory message
     ) internal {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         require(remoteBlockchainID != bytes32(0), "TokenHome: zero remote blockchain ID");
         require(
-            remoteBlockchainID != blockchainID, "TokenHome: cannot register remote on same chain"
+            remoteBlockchainID != $._blockchainID, "TokenHome: cannot register remote on same chain"
         );
         require(
             remoteTokenTransferrerAddress != address(0),
             "TokenHome: zero remote token transferrer address"
         );
         require(
-            !registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress].registered,
+            !$._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress].registered,
             "TokenHome: remote already registered"
         );
         require(
@@ -131,11 +181,11 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             "TokenHome: remote token decimals too high"
         );
         require(
-            message.homeTokenDecimals == tokenDecimals, "TokenHome: invalid home token decimals"
+            message.homeTokenDecimals == $._tokenDecimals, "TokenHome: invalid home token decimals"
         );
 
         (uint256 tokenMultiplier, bool multiplyOnRemote) = TokenScalingUtils
-            .deriveTokenMultiplierValues(tokenDecimals, message.remoteTokenDecimals);
+            .deriveTokenMultiplierValues($._tokenDecimals, message.remoteTokenDecimals);
 
         // Calculate the collateral needed in home token denomination.
         uint256 collateralNeeded = TokenScalingUtils.removeTokenScale(
@@ -149,7 +199,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             collateralNeeded += 1;
         }
 
-        registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress] =
+        $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress] =
         RemoteTokenTransferrerSettings({
             registered: true,
             collateralNeeded: collateralNeeded,
@@ -195,7 +245,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
-                )
+            )
         });
 
         // Send message to the TokenRemote instance
@@ -253,7 +303,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: input.recipient, amount: adjustedAmount})
-                )
+            )
         });
 
         // Send message to the TokenRemote instance.
@@ -307,7 +357,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     recipientGasLimit: input.recipientGasLimit,
                     fallbackRecipient: input.fallbackRecipient
                 })
-                )
+            )
         });
 
         // Send message to the TokenRemote instance.
@@ -363,7 +413,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     recipientGasLimit: input.recipientGasLimit,
                     fallbackRecipient: input.fallbackRecipient
                 })
-                )
+            )
         });
 
         // Send message to the TokenRemote instance.
@@ -392,8 +442,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address remoteTokenTransferrerAddress,
         uint256 amount
     ) internal sendNonReentrant {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
+            $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
         require(remoteSettings.registered, "TokenHome: remote not registered");
         require(remoteSettings.collateralNeeded > 0, "TokenHome: zero collateral needed");
 
@@ -413,7 +464,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         }
 
         // Update the remaining collateral needed.
-        registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress].collateralNeeded =
+        $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress].collateralNeeded =
             remainingCollateralNeeded;
         emit CollateralAdded(
             remoteBlockchainID, remoteTokenTransferrerAddress, amount, remainingCollateralNeeded
@@ -437,6 +488,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address originSenderAddress,
         bytes memory message
     ) internal override {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         TransferrerMessage memory transferrerMessage = abi.decode(message, (TransferrerMessage));
         if (transferrerMessage.messageType == TransferrerMessageType.SINGLE_HOP_SEND) {
             SingleHopSendMessage memory payload =
@@ -485,7 +537,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     destinationBlockchainID: payload.destinationBlockchainID,
                     destinationTokenTransferrerAddress: payload.destinationTokenTransferrerAddress,
                     recipient: payload.recipient,
-                    primaryFeeTokenAddress: tokenAddress,
+                    primaryFeeTokenAddress: $._tokenAddress,
                     primaryFee: fee,
                     secondaryFee: 0,
                     requiredGasLimit: payload.secondaryGasLimit,
@@ -519,7 +571,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
                     recipientGasLimit: payload.recipientGasLimit,
                     multiHopFallback: payload.multiHopFallback,
                     fallbackRecipient: payload.fallbackRecipient,
-                    primaryFeeTokenAddress: tokenAddress,
+                    primaryFeeTokenAddress: $._tokenAddress,
                     primaryFee: fee,
                     secondaryFee: 0
                 }),
@@ -573,8 +625,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address remoteTokenTransferrerAddress,
         uint256 amount
     ) private returns (uint256) {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
+            $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
 
         return _processReceivedTransfer(
             remoteSettings, remoteBlockchainID, remoteTokenTransferrerAddress, amount
@@ -597,8 +650,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         uint256 amount,
         uint256 secondaryFee
     ) private returns (uint256, uint256) {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
+            $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
 
         uint256 transferAmount = _processReceivedTransfer(
             remoteSettings, remoteBlockchainID, remoteTokenTransferrerAddress, amount
@@ -657,8 +711,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         uint256 amount,
         uint256 fee
     ) private returns (uint256) {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
+            $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
         if (!remoteSettings.registered || remoteSettings.collateralNeeded > 0) {
             return 0;
         }
@@ -676,7 +731,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         }
 
         // Increase the balance of the TokenRemote instance by the scaled amount.
-        transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress] += scaledAmount;
+        $._transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress] += scaledAmount;
 
         return scaledAmount;
     }
@@ -693,8 +748,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address primaryFeeTokenAddress,
         uint256 feeAmount
     ) private returns (uint256, uint256) {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         RemoteTokenTransferrerSettings memory remoteSettings =
-            registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
+            $._registeredRemotes[remoteBlockchainID][remoteTokenTransferrerAddress];
         require(remoteSettings.registered, "TokenHome: remote not registered");
         require(remoteSettings.collateralNeeded == 0, "TokenHome: collateral needed for remote");
 
@@ -715,7 +771,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         require(scaledAmount > 0, "TokenHome: zero scaled amount");
 
         // Increase the balance of the TokenRemote instance by the scaled amount.
-        transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress] += scaledAmount;
+        $._transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress] += scaledAmount;
 
         return (scaledAmount, feeAmount);
     }
@@ -725,10 +781,11 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address remoteTokenTransferrerAddress,
         uint256 amount
     ) private {
+        TokenHomeStorage storage $ = _getTokenHomeStorage();
         uint256 senderBalance =
-            transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress];
+            $._transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress];
         require(senderBalance >= amount, "TokenHome: insufficient token transfer balance");
-        transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress] =
+        $._transferredBalances[remoteBlockchainID][remoteTokenTransferrerAddress] =
             senderBalance - amount;
     }
 

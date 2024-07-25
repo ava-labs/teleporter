@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {TokenRemote} from "./TokenRemote.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
@@ -21,8 +21,10 @@ import {
 import {TeleporterFeeInfo, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {IERC20, ERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/ERC20.sol";
-import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
+import {ERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
+import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
@@ -33,8 +35,56 @@ import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
  * and represents the received tokens as the native token on this chain.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, TokenRemote {
+contract NativeTokenRemote is
+    INativeTokenRemote,
+    IWrappedNativeToken,
+    ERC20Upgradeable,
+    TokenRemote
+{
     using Address for address payable;
+
+    // solhint-disable private-vars-leading-underscore
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenRemote
+     */
+    struct NativeTokenRemoteStorage {
+        /**
+         * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering
+         * the message created by calling calling reportBurnedTxFees().
+         */
+        uint256 _burnedFeesReportingRewardPercentage;
+        /**
+         * @notice Total number of tokens minted by this contract through the native minter precompile.
+         */
+        uint256 _totalMinted;
+        /**
+         * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the TokenHome instance.
+         */
+        uint256 _lastestBurnedFeesReported;
+    }
+    // solhint-enable private-vars-leading-underscore
+
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+     */
+    bytes32 public constant NATIVE_TOKEN_REMOTE_STORAGE_LOCATION =
+        0x69a5f7616543528c4fbe43f410b1034bd6da4ba06c25bedf04617268014cf500;
+
+    // solhint-disable ordering
+    function _getNativeTokenRemoteStorage()
+        private
+        pure
+        returns (NativeTokenRemoteStorage storage $)
+    {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            $.slot := NATIVE_TOKEN_REMOTE_STORAGE_LOCATION
+        }
+    }
 
     /**
      * @notice The address where the burned transaction fees are credited.
@@ -71,27 +121,11 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
         INativeMinter(0x0200000000000000000000000000000000000001);
 
     /**
-     * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering
-     * the message created by calling calling reportBurnedTxFees().
-     */
-    uint256 public immutable burnedFeesReportingRewardPercentage;
-
-    /**
-     * @notice Total number of tokens minted by this contract through the native minter precompile.
-     */
-    uint256 public totalMinted;
-
-    /**
-     * @notice The balance of BURNED_TX_FEES_ADDRESS the last time burned fees were reported to the TokenHome instance.
-     */
-    uint256 public lastestBurnedFeesReported;
-
-    /**
      * @dev When modifier is used, the function can only be called after the contract is fully collelateralized,
      * accounting for the initialReserveImbalance.
      */
     modifier onlyWhenCollateralized() {
-        require(isCollateralized, "NativeTokenRemote: contract undercollateralized");
+        require(getIsCollateralized(), "NativeTokenRemote: contract undercollateralized");
         _;
     }
 
@@ -104,19 +138,43 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
      * that will be rewarded to sender of the report.
      */
-    constructor(
+    function initialize(
         TokenRemoteSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
         uint256 burnedFeesReportingRewardPercentage_
-    )
-        ERC20(string.concat("Wrapped ", nativeAssetSymbol), nativeAssetSymbol)
-        TokenRemote(settings, initialReserveImbalance, 18)
-    {
-        require(initialReserveImbalance != 0, "NativeTokenRemote: zero initial reserve imbalance");
-        require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenRemote: invalid percentage");
-        burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
+    ) public initializer {
+        __NativeTokenRemote_init(
+            settings,
+            nativeAssetSymbol,
+            initialReserveImbalance,
+            burnedFeesReportingRewardPercentage_
+        );
     }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function __NativeTokenRemote_init(
+        TokenRemoteSettings memory settings,
+        string memory nativeAssetSymbol,
+        uint256 initialReserveImbalance,
+        uint256 burnedFeesReportingRewardPercentage_
+    ) internal onlyInitializing {
+        require(initialReserveImbalance != 0, "NativeTokenRemote: zero initial reserve imbalance");
+        __ERC20_init(nativeAssetSymbol, nativeAssetSymbol);
+        __TokenRemote_init(settings, initialReserveImbalance, 18);
+        __NativeTokenRemote_init_unchained(burnedFeesReportingRewardPercentage_);
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function __NativeTokenRemote_init_unchained(uint256 burnedFeesReportingRewardPercentage_)
+        internal
+        onlyInitializing
+    {
+        require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenRemote: invalid percentage");
+        _getNativeTokenRemoteStorage()._burnedFeesReportingRewardPercentage =
+            burnedFeesReportingRewardPercentage_;
+    }
+    // solhint-enable ordering
 
     /**
      * @dev Receives native token with no calldata provided. The tokens are credited to the sender's
@@ -152,16 +210,17 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * @dev See {INativeTokenRemote-reportBurnedTxFees}.
      */
     function reportBurnedTxFees(uint256 requiredGasLimit) external sendNonReentrant {
+        NativeTokenRemoteStorage storage $ = _getNativeTokenRemoteStorage();
         uint256 burnAddressBalance = BURNED_TX_FEES_ADDRESS.balance;
         require(
-            burnAddressBalance > lastestBurnedFeesReported,
+            burnAddressBalance > $._lastestBurnedFeesReported,
             "NativeTokenRemote: burn address balance not greater than last report"
         );
 
-        uint256 burnedDifference = burnAddressBalance - lastestBurnedFeesReported;
-        uint256 reward = (burnedDifference * burnedFeesReportingRewardPercentage) / 100;
+        uint256 burnedDifference = burnAddressBalance - $._lastestBurnedFeesReported;
+        uint256 reward = (burnedDifference * $._burnedFeesReportingRewardPercentage) / 100;
         uint256 burnedTxFees = burnedDifference - reward;
-        lastestBurnedFeesReported = burnAddressBalance;
+        $._lastestBurnedFeesReported = burnAddressBalance;
 
         if (reward > 0) {
             // Re-mint the native tokens to this contract, and then deposit them to be the wrapped
@@ -173,7 +232,9 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
 
         // Check that the scaled amount on the TokenHome instance will be non-zero.
         require(
-            TokenScalingUtils.removeTokenScale(tokenMultiplier, multiplyOnRemote, burnedTxFees) > 0,
+            TokenScalingUtils.removeTokenScale(
+                getTokenMultiplier(), getMultiplyOnRemote(), burnedTxFees
+            ) > 0,
             "NativeTokenRemote: zero scaled amount to report burn"
         );
 
@@ -182,13 +243,13 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
             messageType: TransferrerMessageType.SINGLE_HOP_SEND,
             payload: abi.encode(
                 SingleHopSendMessage({recipient: HOME_CHAIN_BURN_ADDRESS, amount: burnedTxFees})
-                )
+            )
         });
 
         bytes32 messageID = _sendTeleporterMessage(
             TeleporterMessageInput({
-                destinationBlockchainID: tokenHomeBlockchainID,
-                destinationAddress: tokenHomeAddress,
+                destinationBlockchainID: getTokenHomeBlockchainID(),
+                destinationAddress: getTokenHomeAddress(),
                 feeInfo: TeleporterFeeInfo({feeTokenAddress: address(this), amount: reward}),
                 requiredGasLimit: requiredGasLimit,
                 allowedRelayerAddresses: new address[](0),
@@ -215,11 +276,6 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
 
     /**
      * @dev See {IWrappedNativeToken-deposit}.
-     *
-     * Note: {IWrappedNativeToken-deposit} should not be confused with {TokenRemote-_deposit}.
-     * {IWrappedNativeToken-deposit} is the public method for converting native tokens into the wrapped native
-     * token (ERC20) representation. {TokenRemote-_deposit} is the internal method used when
-     * processing token transfers.
      */
     function deposit() public payable {
         emit Deposit(_msgSender(), msg.value);
@@ -238,9 +294,14 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * that is represented as an ERC20.
      */
     function totalNativeAssetSupply() public view returns (uint256) {
+        NativeTokenRemoteStorage storage $ = _getNativeTokenRemoteStorage();
         uint256 burned = BURNED_TX_FEES_ADDRESS.balance + BURNED_FOR_TRANSFER_ADDRESS.balance;
-        uint256 created = totalMinted + initialReserveImbalance;
+        uint256 created = $._totalMinted + getInitialReserveImbalance();
         return created - burned;
+    }
+
+    function getTotalMinted() external view returns (uint256) {
+        return _getNativeTokenRemoteStorage()._totalMinted;
     }
 
     /**
@@ -334,7 +395,8 @@ contract NativeTokenRemote is INativeTokenRemote, IWrappedNativeToken, ERC20, To
      * @dev Mints coins to the recipient through the NativeMinter precompile.
      */
     function _mintNativeCoin(address recipient, uint256 amount) private {
-        totalMinted += amount;
+        NativeTokenRemoteStorage storage $ = _getNativeTokenRemoteStorage();
+        $._totalMinted += amount;
         // Calls NativeMinter precompile through INativeMinter interface.
         NATIVE_MINTER.mintNativeCoin(recipient, amount);
     }

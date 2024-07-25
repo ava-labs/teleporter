@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {ERC20TokenTransferrerTest} from "./ERC20TokenTransferrerTests.t.sol";
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
@@ -11,10 +11,11 @@ import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallRece
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
 import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/src/Mocks/ExampleERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
+import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 
 contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
@@ -34,7 +35,6 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
         erc20TokenTransferrer = app;
         tokenRemote = app;
         tokenTransferrer = app;
-        transferredToken = IERC20(app);
 
         vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(0), address(this), 10e18);
@@ -51,8 +51,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
      * Initialization unit tests
      */
     function testZeroTeleporterRegistryAddress() public {
-        vm.expectRevert("TeleporterUpgradeable: zero teleporter registry address");
-        new ERC20TokenRemote(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: address(0),
                 teleporterManager: address(this),
@@ -62,13 +61,13 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            tokenDecimals
+            tokenDecimals,
+            "TeleporterUpgradeable: zero teleporter registry address"
         );
     }
 
     function testZeroTeleporterManagerAddress() public {
-        vm.expectRevert("Ownable: new owner is the zero address");
-        new ERC20TokenRemote(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(0),
@@ -78,13 +77,13 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            tokenDecimals
+            tokenDecimals,
+            abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0))
         );
     }
 
     function testZeroTokenHomeBlockchainID() public {
-        vm.expectRevert(_formatErrorMessage("zero token home blockchain ID"));
-        new ERC20TokenRemote(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -94,18 +93,13 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            tokenDecimals
+            tokenDecimals,
+            _formatErrorMessage("zero token home blockchain ID")
         );
     }
 
-    function testDecimals() public {
-        uint8 res = app.decimals();
-        assertEq(tokenDecimals, res);
-    }
-
     function testDeployToSameBlockchain() public {
-        vm.expectRevert(_formatErrorMessage("cannot deploy to same blockchain as token home"));
-        new ERC20TokenRemote(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -115,13 +109,13 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            tokenDecimals
+            tokenDecimals,
+            _formatErrorMessage("cannot deploy to same blockchain as token home")
         );
     }
 
     function testZeroTokenHomeAddress() public {
-        vm.expectRevert(_formatErrorMessage("zero token home address"));
-        new ERC20TokenRemote(
+        _invalidInitialization(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -131,8 +125,14 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             }),
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
-            18
+            18,
+            _formatErrorMessage("zero token home address")
         );
+    }
+
+    function testDecimals() public {
+        uint8 res = app.decimals();
+        assertEq(tokenDecimals, res);
     }
 
     function testSendWithSeparateFeeAsset() public {
@@ -151,9 +151,9 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             )
         );
         // Increase the allowance of the token transferrer to transfer the funds from the user
-        transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
+        IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), amount);
 
-        vm.expectEmit(true, true, true, true, address(transferredToken));
+        vm.expectEmit(true, true, true, true, address(app));
         emit Transfer(address(this), address(0), amount);
         _checkExpectedTeleporterCallsForSend(_createSingleHopTeleporterMessageInput(input, amount));
         vm.expectEmit(true, true, true, true, address(tokenTransferrer));
@@ -162,7 +162,8 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     }
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
-        return new ERC20TokenRemote(
+        ERC20TokenRemote instance = new ERC20TokenRemote();
+        instance.initialize(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
@@ -174,6 +175,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             MOCK_TOKEN_SYMBOL,
             tokenDecimals
         );
+        return instance;
     }
 
     function _checkExpectedWithdrawal(address recipient, uint256 amount) internal override {
@@ -251,26 +253,20 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     function _setUpExpectedDeposit(uint256 amount, uint256 feeAmount) internal virtual override {
         // Transfer the fee to the token transferrer if it is greater than 0
         if (feeAmount > 0) {
-            transferredToken.safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
+            IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), feeAmount);
         }
 
         // Increase the allowance of the token transferrer to transfer the funds from the user
-        transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
+        IERC20(app).safeIncreaseAllowance(address(tokenTransferrer), amount);
 
-        uint256 currentAllowance =
-            transferredToken.allowance(address(this), address(tokenTransferrer));
+        // Account for the burn before sending
+        vm.expectEmit(true, true, true, true, address(app));
+        emit Transfer(address(this), address(0), amount);
+
         if (feeAmount > 0) {
-            vm.expectEmit(true, true, true, true, address(transferredToken));
-            emit Approval(address(this), address(tokenTransferrer), currentAllowance - feeAmount);
-            vm.expectEmit(true, true, true, true, address(transferredToken));
+            vm.expectEmit(true, true, true, true, address(app));
             emit Transfer(address(this), address(tokenTransferrer), feeAmount);
         }
-        vm.expectEmit(true, true, true, true, address(transferredToken));
-        emit Approval(
-            address(this), address(tokenTransferrer), currentAllowance - feeAmount - amount
-        );
-        vm.expectEmit(true, true, true, true, address(transferredToken));
-        emit Transfer(address(this), address(0), amount);
     }
 
     function _getTotalSupply() internal view override returns (uint256) {
@@ -281,5 +277,17 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
         // Don't need to mock the minting of an ERC20TokenRemote since it is an internal call
         // on the remote contract.
         return;
+    }
+
+    function _invalidInitialization(
+        TokenRemoteSettings memory settings,
+        string memory tokenName,
+        string memory tokenSymbol,
+        uint8 tokenDecimals_,
+        bytes memory expectedErrorMessage
+    ) private {
+        app = new ERC20TokenRemote();
+        vm.expectRevert(expectedErrorMessage);
+        app.initialize(settings, tokenName, tokenSymbol, tokenDecimals_);
     }
 }

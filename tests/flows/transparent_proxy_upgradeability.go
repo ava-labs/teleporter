@@ -15,12 +15,18 @@ import (
 )
 
 /**
- * Deploy an ERC20TokenHome on the primary network
- * Deploys ERC20TokenRemote to Subnet A
- * Transfers C-Chain example ERC20 tokens to Subnet A
- * Transfer tokens from Subnet A to C-Chain
+ * Deploy an upgradeable ERC20TokenHome on the primary network
+ * Deploys a transparent upgradeable proxy that uses the ERC20TokenHome logic contract
+ * Deploys a proxy admin contract to manage the upgradeable proxy
+ * Deploy an ERC20TokenRemote to Subnet A
+ * Transfers example erc20 tokens from the primary network to Subnet A
+ * Deploy a new ERC20TokenHome logic contract on the primary network
+ * Upgrade the transparent upgradeable proxy to use the new logic contract
+ * Transfer tokens from Subnet A back to the primary network
+ * Check that the transfer was successful, and expected balances are correct
  */
-func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
+
+func TransparentUpgradeableProxy(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
 	fundedAddress, fundedKey := network.GetFundedAccountInfo()
@@ -35,20 +41,6 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 		erc20TokenHomeDecimals,
 	)
 
-	exampleERC20Decimals, err := exampleERC20.Decimals(&bind.CallOpts{})
-	Expect(err).Should(BeNil())
-
-	// Create an ERC20TokenHome for transferring the ERC20 token
-	erc20TokenHomeAddress, _, erc20TokenHome := utils.DeployERC20TokenHome(
-		ctx,
-		fundedKey,
-		cChainInfo,
-		fundedAddress,
-		exampleERC20Address,
-		exampleERC20Decimals,
-	)
-
-	// Token representation on subnet A will have same name, symbol, and decimals
 	tokenName, err := exampleERC20.Name(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 	tokenSymbol, err := exampleERC20.Symbol(&bind.CallOpts{})
@@ -56,7 +48,17 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 	tokenDecimals, err := exampleERC20.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Deploy an ERC20TokenRemote to Subnet A
+	// Deploy the ERC20TokenHome logic contract on primary network
+	erc20TokenHomeAddress, proxyAdmin, erc20TokenHome := utils.DeployERC20TokenHome(
+		ctx,
+		fundedKey,
+		cChainInfo,
+		fundedAddress,
+		exampleERC20Address,
+		tokenDecimals,
+	)
+
+	// Deploy the ERC20TokenRemote contract on Subnet A
 	erc20TokenRemoteAddress, erc20TokenRemote := utils.DeployERC20TokenRemote(
 		ctx,
 		fundedKey,
@@ -64,7 +66,7 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 		fundedAddress,
 		cChainInfo.BlockchainID,
 		erc20TokenHomeAddress,
-		exampleERC20Decimals,
+		tokenDecimals,
 		tokenName,
 		tokenSymbol,
 		tokenDecimals,
@@ -79,12 +81,12 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 		erc20TokenRemoteAddress,
 	)
 
+	// Send a transfer from primary network to Subnet A
 	// Generate new recipient to receive transferred tokens
 	recipientKey, err := crypto.GenerateKey()
 	Expect(err).Should(BeNil())
 	recipientAddress := crypto.PubkeyToAddress(recipientKey.PublicKey)
 
-	// Send tokens from C-Chain to recipient on subnet A
 	input := erc20tokenhome.SendTokensInput{
 		DestinationBlockchainID:            subnetAInfo.BlockchainID,
 		DestinationTokenTransferrerAddress: erc20TokenRemoteAddress,
@@ -107,7 +109,7 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 		fundedKey,
 	)
 
-	// Relay the message to Subnet A and check for message delivery
+	// Check that the transfer was successful, and expected balances are correct
 	receipt = network.RelayMessage(
 		ctx,
 		receipt,
@@ -129,8 +131,26 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 	Expect(err).Should(BeNil())
 	Expect(balance).Should(Equal(transferredAmount))
 
-	// Transfer back to home chain
-	// Fund recipient with gas tokens on subnet A
+	// Deploy a new ERC20TokenHome logic contract on primary network
+	opts, err := bind.NewKeyedTransactorWithChainID(
+		fundedKey,
+		cChainInfo.EVMChainID,
+	)
+	Expect(err).Should(BeNil())
+
+	newLogic, tx, _, err := erc20tokenhome.DeployERC20TokenHome(
+		opts,
+		cChainInfo.RPCClient,
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
+
+	// Upgrade the TransparentUpgradeableProxy contract to use the new logic contract
+	tx, err = proxyAdmin.UpgradeAndCall(opts, erc20TokenHomeAddress, newLogic, []byte{})
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
+
+	// Send a transfer from Subnet A back to primary network
 	teleporterUtils.SendNativeTransfer(
 		ctx,
 		subnetAInfo,
@@ -166,6 +186,7 @@ func ERC20TokenHomeERC20TokenRemote(network interfaces.Network) {
 		true,
 	)
 
+	// Check that the transfer was successful, and expected balances are correct
 	utils.CheckERC20TokenHomeWithdrawal(
 		ctx,
 		erc20TokenHomeAddress,

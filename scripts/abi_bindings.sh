@@ -3,6 +3,31 @@
 # See the file LICENSE for licensing terms.
 
 set -e
+set -o pipefail
+
+generate_bindings() {
+    local contract_names=("$@")
+    for contract_name in "${contract_names[@]}"
+    do
+        path=$(find . -name $contract_name.sol)
+        dir=$(dirname $path)
+        abi_file=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
+        if ! [ -f $abi_file ]; then
+            echo "Error: Contract $contract_name abi file not found"
+            exit 1
+        fi
+
+        echo "Generating Go bindings for $contract_name..."
+        gen_path=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/abi-bindings/go/$dir/$contract_name
+        mkdir -p $gen_path
+        $GOPATH/bin/abigen --abi $abi_file \
+                           --pkg $(echo $contract_name|tr '[:upper:]' '[:lower:]') \
+                           --bin $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
+                           --type $contract_name \
+                           --out $gen_path/$contract_name.go
+        echo "Done generating Go bindings for $contract_name."
+    done
+}
 
 AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -11,12 +36,11 @@ AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH=$(
 
 source $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/scripts/constants.sh
 source $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/scripts/versions.sh
-source $TELEPORTER_PATH/scripts/utils.sh
-
-setARCH
 
 # Contract names to generate Go bindings for
 DEFAULT_CONTRACT_LIST="TokenHome TokenRemote ERC20TokenHome ERC20TokenRemote NativeTokenHome NativeTokenRemote WrappedNativeToken MockERC20SendAndCallReceiver MockNativeSendAndCallReceiver ExampleERC20Decimals"
+
+PROXY_LIST="TransparentUpgradeableProxy ProxyAdmin"
 
 CONTRACT_LIST=
 HELP=
@@ -60,25 +84,13 @@ if [[ -z "${CONTRACT_LIST}" ]]; then
 fi
 
 cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/src
-for contract_name in "${contract_names[@]}"
-do
-    path=$(find . -name $contract_name.sol)
-    dir=$(dirname $path)
-    abi_file=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
-    if ! [ -f $abi_file ]; then
-        echo "Error: Contract $contract_name abi file not found"
-        exit 1
-    fi
+generate_bindings "${contract_names[@]}"
 
-    echo "Generating Go bindings for $contract_name..."
-    gen_path=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/abi-bindings/go/$dir/$contract_name
-    mkdir -p $gen_path
-    $GOPATH/bin/abigen --abi $abi_file \
-                       --pkg $(convertToLower $contract_name) \
-                       --bin $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
-                       --type $contract_name \
-                       --out $gen_path/$contract_name.go
-    echo "Done generating Go bindings for $contract_name."
-done
+contract_names=($PROXY_LIST)
+cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts
+forge build --skip test --force --extra-output-files abi bin --contracts lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
+
+cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
+generate_bindings "${contract_names[@]}"
 
 exit 0
