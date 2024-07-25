@@ -5,6 +5,30 @@
 set -e
 set -o pipefail
 
+generate_bindings() {
+    local contract_names=("$@")
+    for contract_name in "${contract_names[@]}"
+    do
+        path=$(find . -name $contract_name.sol)
+        dir=$(dirname $path)
+        abi_file=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
+        if ! [ -f $abi_file ]; then
+            echo "Error: Contract $contract_name abi file not found"
+            exit 1
+        fi
+
+        echo "Generating Go bindings for $contract_name..."
+        gen_path=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/abi-bindings/go/$dir/$contract_name
+        mkdir -p $gen_path
+        $GOPATH/bin/abigen --abi $abi_file \
+                           --pkg $(echo $contract_name|tr '[:upper:]' '[:lower:]') \
+                           --bin $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
+                           --type $contract_name \
+                           --out $gen_path/$contract_name.go
+        echo "Done generating Go bindings for $contract_name."
+    done
+}
+
 AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   cd .. && pwd
@@ -58,30 +82,6 @@ contract_names=($CONTRACT_LIST)
 if [[ -z "${CONTRACT_LIST}" ]]; then
     contract_names=($DEFAULT_CONTRACT_LIST)
 fi
-
-generate_bindings() {
-    local contract_names=("$@")
-    for contract_name in "${contract_names[@]}"
-    do
-        path=$(find . -name $contract_name.sol)
-        dir=$(dirname $path)
-        abi_file=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
-        if ! [ -f $abi_file ]; then
-            echo "Error: Contract $contract_name abi file not found"
-            exit 1
-        fi
-
-        echo "Generating Go bindings for $contract_name..."
-        gen_path=$AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/abi-bindings/go/$dir/$contract_name
-        mkdir -p $gen_path
-        $GOPATH/bin/abigen --abi $abi_file \
-                           --pkg $(echo $contract_name|tr '[:upper:]' '[:lower:]') \
-                           --bin $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
-                           --type $contract_name \
-                           --out $gen_path/$contract_name.go
-        echo "Done generating Go bindings for $contract_name."
-    done
-}
 
 cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/src
 generate_bindings "${contract_names[@]}"
