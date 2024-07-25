@@ -169,9 +169,9 @@ contract NativeTokenRemote is
         internal
         onlyInitializing
     {
-        NativeTokenRemoteStorage storage $ = _getNativeTokenRemoteStorage();
         require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenRemote: invalid percentage");
-        $._burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
+        _getNativeTokenRemoteStorage()._burnedFeesReportingRewardPercentage =
+            burnedFeesReportingRewardPercentage_;
     }
     // solhint-enable ordering
 

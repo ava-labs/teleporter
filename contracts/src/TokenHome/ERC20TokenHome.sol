@@ -89,8 +89,7 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
 
     // solhint-disable-next-line func-name-mixedcase
     function __ERC20TokenHome_init_unchained(address tokenAddress_) internal onlyInitializing {
-        ERC20TokenHomeStorage storage $ = _getERC20TokenHomeStorage();
-        $._token = IERC20(tokenAddress_);
+        _getERC20TokenHomeStorage()._token = IERC20(tokenAddress_);
     }
     // solhint-enable ordering
 
@@ -180,7 +179,6 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
         uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
 
         // Reset the recipient contract allowance to 0.
-        // Use of {forceApprove} is okay to reset the allowance to 0.
         SafeERC20.forceApprove(token, message.recipientContract, 0);
 
         if (success) {

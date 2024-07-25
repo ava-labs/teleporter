@@ -88,8 +88,7 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
 
     // solhint-disable-next-line func-name-mixedcase
     function __ERC20TokenRemote_init_unchained(uint8 tokenDecimals) internal {
-        ERC20TokenRemoteStorage storage $ = _getERC20TokenRemoteStorage();
-        $._decimals = tokenDecimals;
+        _getERC20TokenRemoteStorage()._decimals = tokenDecimals;
     }
     // solhint-enable ordering
 

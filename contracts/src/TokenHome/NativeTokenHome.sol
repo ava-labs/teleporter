@@ -90,8 +90,7 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
         internal
         onlyInitializing
     {
-        NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
-        $._wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
+        _getNativeTokenHomeStorage()._wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
     // solhint-enable ordering
 
