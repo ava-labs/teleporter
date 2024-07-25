@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
@@ -19,9 +19,9 @@ import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 uint32 constant warpMessageIndex = 2;
 
 contract NonReentrantUpgradeableApp is TeleporterUpgradeable {
-    constructor(address teleporterRegistryAddress)
-        TeleporterUpgradeable(teleporterRegistryAddress)
-    {}
+    function initialize(address teleporterRegistryAddress) public initializer {
+        __TeleporterUpgradeable_init(teleporterRegistryAddress);
+    }
 
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
@@ -67,7 +67,8 @@ contract NonReentrantTest is TeleporterUpgradeableTest {
         TeleporterUpgradeableTest.setUp();
         TeleporterMessenger(teleporterAddress).initializeBlockchainID();
 
-        nonReentrantApp = new NonReentrantUpgradeableApp(address(teleporterRegistry));
+        nonReentrantApp = new NonReentrantUpgradeableApp();
+        nonReentrantApp.initialize(address(teleporterRegistry));
     }
 
     function testNonReentrantSameTeleporter() public {

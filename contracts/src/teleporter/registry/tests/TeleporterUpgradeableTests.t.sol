@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
 import {TeleporterRegistryTest} from "./TeleporterRegistryTests.t.sol";
@@ -11,9 +11,9 @@ import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITelepor
 import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
 contract ExampleUpgradeableApp is TeleporterUpgradeable {
-    constructor(address teleporterRegistryAddress)
-        TeleporterUpgradeable(teleporterRegistryAddress)
-    {}
+    function initialize(address teleporterRegistryAddress) public initializer {
+        __TeleporterUpgradeable_init(teleporterRegistryAddress);
+    }
 
     function setMinTeleporterVersion(uint256 version) public {
         _setMinTeleporterVersion(version);
@@ -57,14 +57,16 @@ contract TeleporterUpgradeableTest is TeleporterRegistryTest {
     function setUp() public virtual override {
         TeleporterRegistryTest.setUp();
         _addProtocolVersion(teleporterRegistry, teleporterAddress);
-        app = new ExampleUpgradeableApp(address(teleporterRegistry));
+        app = new ExampleUpgradeableApp();
+        app.initialize(address(teleporterRegistry));
     }
 
     function testInvalidRegistryAddress() public {
+        app = new ExampleUpgradeableApp();
         vm.expectRevert(
             _formatTeleporterUpgradeableErrorMessage("zero teleporter registry address")
         );
-        new ExampleUpgradeableApp(address(0));
+        app.initialize(address(0));
     }
 
     function testOnlyAllowedTeleporter() public {

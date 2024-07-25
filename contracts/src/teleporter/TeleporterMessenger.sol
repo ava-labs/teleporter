@@ -3,10 +3,10 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -424,9 +424,8 @@ contract TeleporterMessenger is ITeleporterMessenger, ReentrancyGuards {
         bytes32 blockchainID_ = blockchainID;
 
         // Iterate through the specified message IDs and create teleporter receipts to send back.
-        TeleporterMessageReceipt[] memory receiptsToSend = new TeleporterMessageReceipt[](
-                messageIDs.length
-            );
+        TeleporterMessageReceipt[] memory receiptsToSend =
+            new TeleporterMessageReceipt[](messageIDs.length);
         uint256 length = messageIDs.length;
         for (uint256 i; i < length; ++i) {
             bytes32 receivedMessageID = messageIDs[i];

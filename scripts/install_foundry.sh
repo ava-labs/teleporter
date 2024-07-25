@@ -9,7 +9,7 @@ set -e
 export XDG_CONFIG_HOME=$HOME
 
 # This installs from ava-labs fork of the foundry repo.
-FOUNDRY_VERSION=v0.1.0
+FOUNDRY_VERSION=v0.2.1
 curl -L https://raw.githubusercontent.com/ava-labs/foundry/${FOUNDRY_VERSION}/foundryup/install > /tmp/foundry-install-script
 # Set the foundry version in the install script
 # Avoid using sed -i due to macos m1 incompatibility
