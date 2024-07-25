@@ -17,6 +17,7 @@ import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDeposit.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
+import {Initializable} from "../utils/Initializable.sol";
 
 /**
  * @title NativeTokenHome
@@ -24,7 +25,7 @@ import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
  * TokenRemote instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract NativeTokenHome is INativeTokenHome, TokenHome {
+contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
     using Address for address payable;
 
     // solhint-disable private-vars-leading-underscore
@@ -54,6 +55,12 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := NATIVE_TOKEN_HOME_STORAGE_LOCATION
+        }
+    }
+
+    constructor(Initializable init) {
+        if (init == Initializable.Disallowed) {
+            _disableInitializers();
         }
     }
 

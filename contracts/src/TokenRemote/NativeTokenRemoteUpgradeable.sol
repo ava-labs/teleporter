@@ -28,6 +28,7 @@ import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
+import {Initializable} from "../utils/Initializable.sol";
 
 /**
  * @title NativeTokenRemote
@@ -35,7 +36,7 @@ import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
  * and represents the received tokens as the native token on this chain.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract NativeTokenRemote is
+contract NativeTokenRemoteUpgradeable is
     INativeTokenRemote,
     IWrappedNativeToken,
     ERC20Upgradeable,
@@ -127,6 +128,12 @@ contract NativeTokenRemote is
     modifier onlyWhenCollateralized() {
         require(getIsCollateralized(), "NativeTokenRemote: contract undercollateralized");
         _;
+    }
+
+    constructor(Initializable init) {
+        if (init == Initializable.Disallowed) {
+            _disableInitializers();
+        }
     }
 
     /**

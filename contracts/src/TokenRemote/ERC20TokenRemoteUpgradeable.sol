@@ -19,6 +19,7 @@ import {ERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
+import {Initializable} from "../utils/Initializable.sol";
 
 /**
  * @title ERC20TokenRemote
@@ -26,7 +27,7 @@ import {CallUtils} from "../utils/CallUtils.sol";
  * and represents the received tokens with an ERC20 token on this chain.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemote {
+contract ERC20TokenRemoteUpgradeable is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemote {
     // solhint-disable private-vars-leading-underscore
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
@@ -55,6 +56,12 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
         // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := ERC20_TOKEN_REMOTE_STORAGE_LOCATION
+        }
+    }
+
+    constructor(Initializable init) {
+        if (init == Initializable.Disallowed) {
+            _disableInitializers();
         }
     }
 

@@ -56,6 +56,12 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
         }
     }
 
+    constructor(Initializable init) {
+        if (init == Initializable.Disallowed) {
+            _disableInitializers();
+        }
+    }
+
     /**
      * @notice Initializes the token TokenHome instance to send ERC20 tokens to TokenRemote instances on other chains.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
