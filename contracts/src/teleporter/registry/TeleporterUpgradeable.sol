@@ -39,8 +39,8 @@ abstract contract TeleporterUpgradeable is
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
      * storage collisions between upgradeable contracts.
+     * @custom:storage-location erc7201:teleporter.storage.TeleporterUpgradeable
      */
-    /// @custom:storage-location erc7201:teleporter.storage.TeleporterUpgradeable
     struct TeleporterUpgradeableStorage {
         // The Teleporter registry contract manages different Teleporter contract versions.
         TeleporterRegistry _teleporterRegistry;
