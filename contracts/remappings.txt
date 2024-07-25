@@ -3,3 +3,4 @@
 @avalabs/subnet-evm-contracts@1.2.0/=lib/teleporter/contracts/lib/subnet-evm/contracts/
 @teleporter/=lib/teleporter/contracts/src/teleporter/
 @teleporter-mocks/=lib/teleporter/contracts/src/mocks
+erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/
