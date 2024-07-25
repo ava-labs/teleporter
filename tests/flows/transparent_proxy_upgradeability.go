@@ -137,13 +137,6 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 	tx, err = proxyAdmin.UpgradeAndCall(opts, erc20TokenHomeAddress, newLogic, []byte{})
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
-	// newHeads := make(chan *types.Header)
-	// sub, err := cChainInfo.RPCClient.SubscribeNewHead(ctx, newHeads)
-	// Expect(err).Should(BeNil())
-	// defer sub.Unsubscribe()
-	// header := <-newHeads
-	// log.Debug("new head", "number", header.Number)
-	// teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo.RPCClient, header.TxHash)
 
 	// Send a transfer from Subnet A back to primary network
 	teleporterUtils.SendNativeTransfer(

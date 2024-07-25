@@ -146,7 +146,7 @@ var _ = ginkgo.Describe("[Avalanche Interchain Token Transfer integration tests]
 		func() {
 			flows.RegistrationAndCollateralCheck(LocalNetworkInstance)
 		})
-	ginkgo.FIt("Transparent proxy upgrade",
+	ginkgo.It("Transparent proxy upgrade",
 		ginkgo.Label(erc20TokenHomeLabel, erc20TokenRemoteLabel, upgradabilityLabel),
 		func() {
 			flows.TransparentUpgradeableProxy(LocalNetworkInstance)

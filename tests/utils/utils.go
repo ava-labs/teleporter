@@ -357,23 +357,20 @@ func DeployTransparentUpgradeableProxy[T any](
 	Expect(err).Should((BeNil()))
 
 	senderAddress := crypto.PubkeyToAddress(senderKey.PublicKey)
-	proxyAdminAddress, tx, proxyAdmin, err := proxyadmin.DeployProxyAdmin(
-		opts,
-		subnet.RPCClient,
-		senderAddress,
-	)
-	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
-
-	proxyAddress, tx, _, err := transparentupgradeableproxy.DeployTransparentUpgradeableProxy(
+	proxyAddress, tx, proxy, err := transparentupgradeableproxy.DeployTransparentUpgradeableProxy(
 		opts,
 		subnet.RPCClient,
 		implAddress,
-		proxyAdminAddress,
+		senderAddress,
 		[]byte{},
 	)
 	Expect(err).Should(BeNil())
-	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	receipt := teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+	proxyAdminEvent, err := teleporterUtils.GetEventFromLogs(receipt.Logs, proxy.ParseAdminChanged)
+	Expect(err).Should(BeNil())
+
+	proxyAdmin, err := proxyadmin.NewProxyAdmin(proxyAdminEvent.NewAdmin, subnet.RPCClient)
+	Expect(err).Should(BeNil())
 
 	contract, err := newInstance(proxyAddress, subnet.RPCClient)
 	Expect(err).Should(BeNil())
