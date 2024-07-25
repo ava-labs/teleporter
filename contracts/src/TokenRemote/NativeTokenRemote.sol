@@ -63,8 +63,8 @@ contract NativeTokenRemote is
     // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenRemote")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant _NATIVE_TOKEN_REMOTE_STORAGE_LOCATION =
-        0x914a9547f6c3ddce1d5efbd9e687708f0d1d408ce129e8e1a88bce4f40e29500;
+    bytes32 public constant NATIVE_TOKEN_REMOTE_STORAGE_LOCATION =
+        0x69a5f7616543528c4fbe43f410b1034bd6da4ba06c25bedf04617268014cf500;
 
     // solhint-disable ordering
     function _getNativeTokenRemoteStorage()
@@ -74,7 +74,7 @@ contract NativeTokenRemote is
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _NATIVE_TOKEN_REMOTE_STORAGE_LOCATION
+            $.slot := NATIVE_TOKEN_REMOTE_STORAGE_LOCATION
         }
     }
 

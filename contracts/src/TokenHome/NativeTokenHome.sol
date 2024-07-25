@@ -39,14 +39,14 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
     // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenHome")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant _NATIVE_TOKEN_HOME_STORAGE_LOCATION =
+    bytes32 public constant NATIVE_TOKEN_HOME_STORAGE_LOCATION =
         0x3b5030f10c94fcbdaa3022348ff0b82dbd4c0c71339e41ff59d0bdc92179d600;
 
     // solhint-disable ordering
     function _getNativeTokenHomeStorage() private pure returns (NativeTokenHomeStorage storage $) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _NATIVE_TOKEN_HOME_STORAGE_LOCATION
+            $.slot := NATIVE_TOKEN_HOME_STORAGE_LOCATION
         }
     }
 

@@ -35,8 +35,8 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
     // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant _ERC20_TOKEN_REMOTE_STORAGE_LOCATION =
-        0x69a5f7616543528c4fbe43f410b1034bd6da4ba06c25bedf04617268014cf500;
+    bytes32 public constant ERC20_TOKEN_REMOTE_STORAGE_LOCATION =
+        0x9b9029a3537fcf0e984763da4ac33bbf592a3462819171bf424e91cf62622300;
 
     // solhint-disable ordering
     function _getERC20TokenRemoteStorage()
@@ -46,7 +46,7 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _ERC20_TOKEN_REMOTE_STORAGE_LOCATION
+            $.slot := ERC20_TOKEN_REMOTE_STORAGE_LOCATION
         }
     }
 
@@ -56,15 +56,15 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
      * @param settings Constructor settings for this token TokenRemote instance.
      * @param tokenName The name of the ERC20 token.
      * @param tokenSymbol The symbol of the ERC20 token.
-     * @param tokenDecimals_ The number of decimals for the ERC20 token.
+     * @param tokenDecimals The number of decimals for the ERC20 token.
      */
     function initialize(
         TokenRemoteSettings memory settings,
         string memory tokenName,
         string memory tokenSymbol,
-        uint8 tokenDecimals_
+        uint8 tokenDecimals
     ) public initializer {
-        __ERC20TokenRemote_init(settings, tokenName, tokenSymbol, tokenDecimals_);
+        __ERC20TokenRemote_init(settings, tokenName, tokenSymbol, tokenDecimals);
     }
 
     // solhint-disable-next-line func-name-mixedcase
@@ -72,17 +72,17 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
         TokenRemoteSettings memory settings,
         string memory tokenName,
         string memory tokenSymbol,
-        uint8 tokenDecimals_
+        uint8 tokenDecimals
     ) internal onlyInitializing {
         __ERC20_init(tokenName, tokenSymbol);
-        __TokenRemote_init(settings, 0, tokenDecimals_);
-        __ERC20TokenRemote_init_unchained(tokenDecimals_);
+        __TokenRemote_init(settings, 0, tokenDecimals);
+        __ERC20TokenRemote_init_unchained(tokenDecimals);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ERC20TokenRemote_init_unchained(uint8 tokenDecimals_) internal {
+    function __ERC20TokenRemote_init_unchained(uint8 tokenDecimals) internal {
         ERC20TokenRemoteStorage storage $ = _getERC20TokenRemoteStorage();
-        $._decimals = tokenDecimals_;
+        $._decimals = tokenDecimals;
     }
     // solhint-enable ordering
 
