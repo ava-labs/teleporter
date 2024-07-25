@@ -13,8 +13,9 @@ import {
 import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
 import {StakingMessages} from "./StakingMessages.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
+import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
 
-abstract contract StakingManager is ReentrancyGuard, IStakingManager {
+abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
     enum ValidatorStatus {
         Unknown,
         PendingAdded,
@@ -36,7 +37,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
         uint64 messageNonce;
     }
 
-    struct ValidatorChrunPeriod {
+    struct ValidatorChurnPeriod {
         uint256 startedAt;
         uint64 initialStake;
         uint64 churnAmount;
@@ -54,7 +55,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
         IRewardCalculator _rewardCalculator;
         uint8 _maximumHourlyChurn;
         uint64 _remainingInitialStake;
-        ValidatorChrunPeriod _churnTracker;
+        ValidatorChurnPeriod _churnTracker;
         // Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
         // Maps the validationID to the validator information.
@@ -66,14 +67,14 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
     // solhint-enable private-vars-leading-underscore
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.StakingManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Update to correct storage slot
-    bytes32 private constant _NATIVE_TOKEN_STAKING_MANAGER_STORAGE_LOCATION =
+    bytes32 private constant _STAKING_MANAGER_STORAGE_LOCATION =
         0x8568826440873e37a96cb0aab773b28d8154d963d2f0e41bd9b5c15f63625f91;
 
     // solhint-disable ordering
-    function _getTokenHomeStorage() private pure returns (StakingManagerStorage storage $) {
+    function _getStakingManagerStorage() private pure returns (StakingManagerStorage storage $) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _NATIVE_TOKEN_STAKING_MANAGER_STORAGE_LOCATION
+            $.slot := _STAKING_MANAGER_STORAGE_LOCATION
         }
     }
 
@@ -94,7 +95,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
     }
 
     function initialize(StakingManagerSettings calldata settings) public {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
         $._warpMessenger = IWarpMessenger(0x0200000000000000000000000000000000000005);
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
@@ -128,7 +129,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      * @notice Modifier to ensure that the initial stake has been provided.
      */
     modifier onlyWhenInitialStakeProvided() {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
         require($._remainingInitialStake > 0, "StakingManager: Initial stake not provided");
         _;
     }
@@ -137,7 +138,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      * @notice Called to provide initial stake amount for original validators added prior to the contract's initialization.
      */
     function provideInitialStake() external payable {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
         uint64 remainingInitialStake = $._remainingInitialStake;
         require(
             msg.value <= remainingInitialStake,
@@ -163,7 +164,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
         uint64 registrationExpiry,
         bytes memory signature
     ) internal nonReentrant onlyWhenInitialStakeProvided returns (bytes32) {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
 
         // Ensure the registration expiry is in a valid range.
         require(
@@ -216,7 +217,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0,
             uptimeSeconds: 0,
-            owner: msg.sender,
+            owner: _msgSender(),
             rewarded: false,
             messageNonce: 0
         });
@@ -230,7 +231,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      * Only necessary if the original message can't be delivered due to validator churn.
      */
     function resendRegisterValidatorMessage(bytes32 validationID) external {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
                 && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
@@ -247,7 +248,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
     function completeValidatorRegistration(uint32 messageIndex) external {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
             $._warpMessenger.getVerifiedWarpMessage(messageIndex);
         require(valid, "StakingManager: Invalid warp message");
@@ -290,13 +291,12 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
         bool includeUptimeProof,
         uint32 messageIndex
     ) external onlyWhenInitialStakeProvided {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
 
         // Ensure the validation period is active.
         Validator memory validator = $._validationPeriods[validationID];
         require(validator.status == ValidatorStatus.Active, "StakingManager: Validator not active");
-        // TODO: Support use of contexts and _msgSender() instead of msg.sender
-        require(msg.sender == validator.owner, "StakingManager: Sender not validator owner");
+        require(_msgSender() == validator.owner, "StakingManager: Sender not validator owner");
 
         // Check that removing this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(validator.weight);
@@ -332,6 +332,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
             uptimeSeconds = uptime;
         }
         validator.uptimeSeconds = uptimeSeconds;
+        validator.messageNonce++;
 
         // Save the validator updates.
         // TODO: Optimize storage writes here (probably don't need to write the whole value).
@@ -354,7 +355,18 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      * Only necessary if the original message can't be delivered due to validator churn.
      */
     function resendEndValidatorMessage(bytes32 validationID) external {
-        // TODO: Allow for these messages to be resent.
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        Validator memory validator = $._validationPeriods[validationID];
+
+        require(
+            validator.status == ValidatorStatus.PendingRemoved,
+            "StakingManager: Validator not pending removal"
+        );
+
+        bytes memory setValidatorWeightPayload = StakingMessages.packSetSubnetValidatorWeightMessage(
+            validationID, validator.messageNonce, 0
+        );
+        $._warpMessenger.sendWarpMessage(setValidatorWeightPayload);
     }
 
     /**
@@ -368,7 +380,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      * a validation period.
      */
     function completeEndValidation(uint32 messageIndex, bool setWeightMessageType) external {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
 
         // Get the Warp message.
         (WarpMessage memory warpMessage, bool valid) =
@@ -392,8 +404,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
         // registration was never successfully registered on the P-Chain, or it could be Active if the validator
         // removed themselves directly on the P-Chain without going through the contract.
         Validator memory validator = $._validationPeriods[validationID];
-        // TODO: Support use of contexts and _msgSender() instead of msg.sender
-        require(msg.sender == validator.owner, "StakingManager: Sender not validator owner");
+        require(_msgSender() == validator.owner, "StakingManager: Sender not validator owner");
 
         ValidatorStatus endStatus;
         if (
@@ -422,8 +433,8 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      * the function will update the churn tracker with the new amount.
      */
     function _checkAndUpdateChurnTracker(uint64 amount) private {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
-        ValidatorChrunPeriod storage churnTracker = $._churnTracker;
+        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        ValidatorChurnPeriod storage churnTracker = $._churnTracker;
         uint256 currentTime = block.timestamp;
         if (currentTime - churnTracker.startedAt >= 1 hours) {
             churnTracker.churnAmount = amount;
