@@ -99,7 +99,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param tokenAddress_ The token contract address to be transferredd by the home instance.
-     * @param tokenDecimals_ The number of decimals for the token being transferredd.
+     * @param tokenDecimals_ The number of decimals for the token being transferred.
      */
     // solhint-disable-next-line func-name-mixedcase
     function __TokenHome_init(
