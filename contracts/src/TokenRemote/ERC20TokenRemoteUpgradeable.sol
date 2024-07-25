@@ -19,25 +19,32 @@ import {ERC20Upgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/token/ERC20/ERC20Upgradeable.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
-import {Initializable} from "../utils/Initializable.sol";
 
 /**
- * @title ERC20TokenRemoteUpgradeable
+ * @title ERC20TokenRemote
  * @notice This contract is an {IERC20TokenTransferrer} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens with an ERC20 token on this chain.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract ERC20TokenRemoteUpgradeable is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemote {
+contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemote {
     // solhint-disable private-vars-leading-underscore
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenRemote
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenRemote
+     */
     struct ERC20TokenRemoteStorage {
         uint8 _decimals;
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant _ERC20_TOKEN_REMOTE_STORAGE_LOCATION =
-        0x69a5f7616543528c4fbe43f410b1034bd6da4ba06c25bedf04617268014cf500;
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+     */
+    bytes32 public constant ERC20_TOKEN_REMOTE_STORAGE_LOCATION =
+        0x9b9029a3537fcf0e984763da4ac33bbf592a3462819171bf424e91cf62622300;
 
     // solhint-disable ordering
     function _getERC20TokenRemoteStorage()
@@ -47,13 +54,7 @@ contract ERC20TokenRemoteUpgradeable is IERC20TokenTransferrer, ERC20Upgradeable
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _ERC20_TOKEN_REMOTE_STORAGE_LOCATION
-        }
-    }
-
-    constructor(Initializable init) {
-        if (init == Initializable.Disallowed) {
-            _disableInitializers();
+            $.slot := ERC20_TOKEN_REMOTE_STORAGE_LOCATION
         }
     }
 
@@ -63,15 +64,15 @@ contract ERC20TokenRemoteUpgradeable is IERC20TokenTransferrer, ERC20Upgradeable
      * @param settings Constructor settings for this token TokenRemote instance.
      * @param tokenName The name of the ERC20 token.
      * @param tokenSymbol The symbol of the ERC20 token.
-     * @param tokenDecimals_ The number of decimals for the ERC20 token.
+     * @param tokenDecimals The number of decimals for the ERC20 token.
      */
     function initialize(
         TokenRemoteSettings memory settings,
         string memory tokenName,
         string memory tokenSymbol,
-        uint8 tokenDecimals_
+        uint8 tokenDecimals
     ) public initializer {
-        __ERC20TokenRemote_init(settings, tokenName, tokenSymbol, tokenDecimals_);
+        __ERC20TokenRemote_init(settings, tokenName, tokenSymbol, tokenDecimals);
     }
 
     // solhint-disable-next-line func-name-mixedcase
@@ -79,17 +80,16 @@ contract ERC20TokenRemoteUpgradeable is IERC20TokenTransferrer, ERC20Upgradeable
         TokenRemoteSettings memory settings,
         string memory tokenName,
         string memory tokenSymbol,
-        uint8 tokenDecimals_
+        uint8 tokenDecimals
     ) internal onlyInitializing {
         __ERC20_init(tokenName, tokenSymbol);
-        __TokenRemote_init(settings, 0, tokenDecimals_);
-        __ERC20TokenRemote_init_unchained(tokenDecimals_);
+        __TokenRemote_init(settings, 0, tokenDecimals);
+        __ERC20TokenRemote_init_unchained(tokenDecimals);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ERC20TokenRemote_init_unchained(uint8 tokenDecimals_) internal {
-        ERC20TokenRemoteStorage storage $ = _getERC20TokenRemoteStorage();
-        $._decimals = tokenDecimals_;
+    function __ERC20TokenRemote_init_unchained(uint8 tokenDecimals) internal {
+        _getERC20TokenRemoteStorage()._decimals = tokenDecimals;
     }
     // solhint-enable ordering
 

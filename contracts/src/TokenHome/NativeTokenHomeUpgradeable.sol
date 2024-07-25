@@ -17,20 +17,23 @@ import {IWrappedNativeToken} from "../interfaces/IWrappedNativeToken.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {SafeWrappedNativeTokenDeposit} from "../utils/SafeWrappedNativeTokenDeposit.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
-import {Initializable} from "../utils/Initializable.sol";
 
 /**
- * @title NativeTokenHomeUpgradeable
+ * @title NativeTokenHome
  * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be transferred to
  * TokenRemote instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
+contract NativeTokenHome is INativeTokenHome, TokenHome {
     using Address for address payable;
 
     // solhint-disable private-vars-leading-underscore
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenHome
-
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenHome
+     */
     struct NativeTokenHomeStorage {
         /**
          * @notice The wrapped native token contract that represents the native tokens on this chain.
@@ -39,21 +42,18 @@ contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenHome")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant _NATIVE_TOKEN_HOME_STORAGE_LOCATION =
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenHome")) - 1)) & ~bytes32(uint256(0xff));
+     */
+    bytes32 public constant NATIVE_TOKEN_HOME_STORAGE_LOCATION =
         0x3b5030f10c94fcbdaa3022348ff0b82dbd4c0c71339e41ff59d0bdc92179d600;
 
     // solhint-disable ordering
     function _getNativeTokenHomeStorage() private pure returns (NativeTokenHomeStorage storage $) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _NATIVE_TOKEN_HOME_STORAGE_LOCATION
-        }
-    }
-
-    constructor(Initializable init) {
-        if (init == Initializable.Disallowed) {
-            _disableInitializers();
+            $.slot := NATIVE_TOKEN_HOME_STORAGE_LOCATION
         }
     }
 
@@ -90,8 +90,7 @@ contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
         internal
         onlyInitializing
     {
-        NativeTokenHomeStorage storage $ = _getNativeTokenHomeStorage();
-        $._wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
+        _getNativeTokenHomeStorage()._wrappedToken = IWrappedNativeToken(wrappedTokenAddress);
     }
     // solhint-enable ordering
 

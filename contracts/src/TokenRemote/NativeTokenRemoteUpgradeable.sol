@@ -28,15 +28,14 @@ import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {CallUtils} from "../utils/CallUtils.sol";
 import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
-import {Initializable} from "../utils/Initializable.sol";
 
 /**
- * @title NativeTokenRemoteUpgradeable
+ * @title NativeTokenRemote
  * @notice This contract is an {INativeTokenRemote} that receives tokens from its specifed {TokenHome} instance,
  * and represents the received tokens as the native token on this chain.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-contract NativeTokenRemoteUpgradeable is
+contract NativeTokenRemote is
     INativeTokenRemote,
     IWrappedNativeToken,
     ERC20Upgradeable,
@@ -45,7 +44,12 @@ contract NativeTokenRemoteUpgradeable is
     using Address for address payable;
 
     // solhint-disable private-vars-leading-underscore
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenRemote
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenRemote
+     */
     struct NativeTokenRemoteStorage {
         /**
          * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering
@@ -63,9 +67,12 @@ contract NativeTokenRemoteUpgradeable is
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenRemote")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant _NATIVE_TOKEN_REMOTE_STORAGE_LOCATION =
-        0x914a9547f6c3ddce1d5efbd9e687708f0d1d408ce129e8e1a88bce4f40e29500;
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+     */
+    bytes32 public constant NATIVE_TOKEN_REMOTE_STORAGE_LOCATION =
+        0x69a5f7616543528c4fbe43f410b1034bd6da4ba06c25bedf04617268014cf500;
 
     // solhint-disable ordering
     function _getNativeTokenRemoteStorage()
@@ -75,7 +82,7 @@ contract NativeTokenRemoteUpgradeable is
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _NATIVE_TOKEN_REMOTE_STORAGE_LOCATION
+            $.slot := NATIVE_TOKEN_REMOTE_STORAGE_LOCATION
         }
     }
 
@@ -122,12 +129,6 @@ contract NativeTokenRemoteUpgradeable is
         _;
     }
 
-    constructor(Initializable init) {
-        if (init == Initializable.Disallowed) {
-            _disableInitializers();
-        }
-    }
-
     /**
      * @notice Initializes this token TokenRemote instance to receive tokens from the specified TokenHome instance,
      * and represents the received tokens with the native token on this chain.
@@ -169,9 +170,9 @@ contract NativeTokenRemoteUpgradeable is
         internal
         onlyInitializing
     {
-        NativeTokenRemoteStorage storage $ = _getNativeTokenRemoteStorage();
         require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenRemote: invalid percentage");
-        $._burnedFeesReportingRewardPercentage = burnedFeesReportingRewardPercentage_;
+        _getNativeTokenRemoteStorage()._burnedFeesReportingRewardPercentage =
+            burnedFeesReportingRewardPercentage_;
     }
     // solhint-enable ordering
 

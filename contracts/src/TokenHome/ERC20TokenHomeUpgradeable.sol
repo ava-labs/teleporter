@@ -29,28 +29,30 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;
 
     // solhint-disable private-vars-leading-underscore
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenHome
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenHome
+     */
     struct ERC20TokenHomeStorage {
         /// @notice The ERC20 token this home contract transfers to TokenRemote instances.
         IERC20 _token;
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenHome")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant _ERC20_TOKEN_HOME_STORAGE_LOCATION =
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenHome")) - 1)) & ~bytes32(uint256(0xff));
+     */
+    bytes32 public constant ERC20_TOKEN_HOME_STORAGE_LOCATION =
         0x914a9547f6c3ddce1d5efbd9e687708f0d1d408ce129e8e1a88bce4f40e29500;
 
     // solhint-disable ordering
     function _getERC20TokenHomeStorage() private pure returns (ERC20TokenHomeStorage storage $) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _ERC20_TOKEN_HOME_STORAGE_LOCATION
-        }
-    }
-
-    constructor(Initializable init) {
-        if (init == Initializable.Disallowed) {
-            _disableInitializers();
+            $.slot := ERC20_TOKEN_HOME_STORAGE_LOCATION
         }
     }
 
@@ -89,8 +91,7 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
 
     // solhint-disable-next-line func-name-mixedcase
     function __ERC20TokenHome_init_unchained(address tokenAddress_) internal onlyInitializing {
-        ERC20TokenHomeStorage storage $ = _getERC20TokenHomeStorage();
-        $._token = IERC20(tokenAddress_);
+        _getERC20TokenHomeStorage()._token = IERC20(tokenAddress_);
     }
     // solhint-enable ordering
 
@@ -180,7 +181,6 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
         uint256 remainingAllowance = token.allowance(address(this), message.recipientContract);
 
         // Reset the recipient contract allowance to 0.
-        // Use of {forceApprove} is okay to reset the allowance to 0.
         SafeERC20.forceApprove(token, message.recipientContract, 0);
 
         if (success) {

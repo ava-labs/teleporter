@@ -37,7 +37,12 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
  */
 abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReentrancyGuard {
     // solhint-disable private-vars-leading-underscore
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.TokenHome
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.TokenHome
+     */
     struct TokenHomeStorage {
         /// @notice The blockchain ID of the chain this contract is deployed on.
         bytes32 _blockchainID;
@@ -74,15 +79,18 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.TokenHome")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant _TOKEN_HOME_STORAGE_LOCATION =
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.TokenHome")) - 1)) & ~bytes32(uint256(0xff));
+     */
+    bytes32 public constant TOKEN_HOME_STORAGE_LOCATION =
         0x9316912b5a9db88acbe872c934fdd0a46c436c6dcba332d649c4d57c7bc9e600;
 
     // solhint-disable ordering
     function _getTokenHomeStorage() private pure returns (TokenHomeStorage storage $) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _TOKEN_HOME_STORAGE_LOCATION
+            $.slot := TOKEN_HOME_STORAGE_LOCATION
         }
     }
 
@@ -92,7 +100,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param tokenAddress_ The token contract address to be transferredd by the home instance.
-     * @param tokenDecimals_ The number of decimals for the token being transferredd.
+     * @param tokenDecimals_ The number of decimals for the token being transferred.
      */
     // solhint-disable-next-line func-name-mixedcase
     function __TokenHome_init(

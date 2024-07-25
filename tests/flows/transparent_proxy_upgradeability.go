@@ -15,6 +15,18 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+/**
+ * Deploy an upgradeable ERC20TokenHome on the primary network
+ * Deploys a transparent upgradeable proxy that uses the ERC20TokenHome logic contract
+ * Deploys a proxy admin contract to manage the upgradeable proxy
+ * Deploy an ERC20TokenRemote to Subnet A
+ * Transfers example erc20 tokens from the primary network to Subnet A
+ * Deploy a new ERC20TokenHome logic contract on the primary network
+ * Upgrade the transparent upgradeable proxy to use the new logic contract
+ * Transfer tokens from Subnet A back to the primary network
+ * Check that the transfer was successful, and expected balances are correct
+ */
+
 func TransparentUpgradeableProxy(network interfaces.Network) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := teleporterUtils.GetTwoSubnets(network)
@@ -155,13 +167,6 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 	tx, err = proxyAdmin.UpgradeAndCall(opts, erc20TokenHomeAddress, newLogic, []byte{})
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
-	// newHeads := make(chan *types.Header)
-	// sub, err := cChainInfo.RPCClient.SubscribeNewHead(ctx, newHeads)
-	// Expect(err).Should(BeNil())
-	// defer sub.Unsubscribe()
-	// header := <-newHeads
-	// log.Debug("new head", "number", header.Number)
-	// teleporterUtils.TraceTransactionAndExit(ctx, cChainInfo.RPCClient, header.TxHash)
 
 	// Send a transfer from Subnet A back to primary network
 	teleporterUtils.SendNativeTransfer(
