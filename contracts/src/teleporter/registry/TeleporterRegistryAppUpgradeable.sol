@@ -60,8 +60,8 @@ abstract contract TeleporterRegistryAppUpgradeable is
      * @dev Storage slot computed based off ERC-7201 formula
      * keccak256(abi.encode(uint256(keccak256("teleporter.storage.TeleporterRegistryAppUpgradeable")) - 1)) & ~bytes32(uint256(0xff));
      */
-    bytes32 private constant _TELEPORTER_UPGRADEABLE_STORAGE_LOCATION =
-        0xc73953669262a2bc0a821c7b2e84a2e293b7a32ca3f8016446f20efff9161600;
+    bytes32 public constant TELEPORTER_UPGRADEABLE_STORAGE_LOCATION =
+        0xc1fc4b87b563c4a3a05916de7ea0aefd61b2b671d557e2477f1f131eb4fecc00;
 
     /**
      * @dev Emitted when `minTeleporterVersion` is updated.
@@ -87,7 +87,7 @@ abstract contract TeleporterRegistryAppUpgradeable is
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _TELEPORTER_UPGRADEABLE_STORAGE_LOCATION
+            $.slot := TELEPORTER_UPGRADEABLE_STORAGE_LOCATION
         }
     }
 

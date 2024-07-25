@@ -61,6 +61,13 @@ contract TeleporterRegistryAppUpgradeableTest is TeleporterRegistryAppTest {
         upgradeableApp.initialize(address(0));
     }
 
+    function testStorageSlot() public {
+        assertEq(
+            _erc7201StorageSlot("TeleporterRegistryAppUpgradeable"),
+            new ExampleRegistryAppUpgradeable().TELEPORTER_UPGRADEABLE_STORAGE_LOCATION()
+        );
+    }
+
     function _formatErrorMessage(string memory errorMessage)
         internal
         pure
@@ -69,5 +76,13 @@ contract TeleporterRegistryAppUpgradeableTest is TeleporterRegistryAppTest {
         returns (bytes memory)
     {
         return bytes(string.concat("TeleporterRegistryAppUpgradeable: ", errorMessage));
+    }
+
+    function _erc7201StorageSlot(bytes memory storageName) private pure returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                uint256(keccak256(abi.encodePacked("avalanche-ictt.storage.", storageName))) - 1
+            )
+        ) & ~bytes32(uint256(0xff));
     }
 }
