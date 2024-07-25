@@ -7,40 +7,64 @@ pragma solidity 0.8.23;
 
 import {Test} from "forge-std/Test.sol";
 // solhint-disable no-console
-import {ERC20TokenHome} from "../src/TokenHome/ERC20TokenHome.sol";
-import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
-import {NativeTokenHome} from "../src/TokenHome/NativeTokenHome.sol";
-import {NativeTokenRemote} from "../src/TokenRemote/NativeTokenRemote.sol";
+import {ERC20TokenHomeUpgradeable} from "../src/TokenHome/ERC20TokenHomeUpgradeable.sol";
+import {ERC20TokenRemoteUpgradeable} from "../src/TokenRemote/ERC20TokenRemoteUpgradeable.sol";
+import {NativeTokenHomeUpgradeable} from "../src/TokenHome/NativeTokenHomeUpgradeable.sol";
+import {NativeTokenRemoteUpgradeable} from "../src/TokenRemote/NativeTokenRemoteUpgradeable.sol";
+import {Initializable} from "../src/utils/Initializable.sol";
 
 contract StorageSlotTest is Test {
     function testERC20TokenHomeStorageSlot() public {
         bytes32 slot = _erc7201StorageSlot("ERC20TokenHome");
-        assertEq(new ERC20TokenHome().ERC20_TOKEN_HOME_STORAGE_LOCATION(), slot);
+        assertEq(
+            new ERC20TokenHomeUpgradeable(Initializable.Disallowed)
+                .ERC20_TOKEN_HOME_STORAGE_LOCATION(),
+            slot
+        );
     }
 
     function testERC20TokenRemoteStorageSlot() public {
         bytes32 slot = _erc7201StorageSlot("ERC20TokenRemote");
-        assertEq(new ERC20TokenRemote().ERC20_TOKEN_REMOTE_STORAGE_LOCATION(), slot);
+        assertEq(
+            new ERC20TokenRemoteUpgradeable(Initializable.Disallowed)
+                .ERC20_TOKEN_REMOTE_STORAGE_LOCATION(),
+            slot
+        );
     }
 
     function testNativeTokenHomeStorageSlot() public {
         bytes32 slot = _erc7201StorageSlot("NativeTokenHome");
-        assertEq(new NativeTokenHome().NATIVE_TOKEN_HOME_STORAGE_LOCATION(), slot);
+        assertEq(
+            new NativeTokenHomeUpgradeable(Initializable.Disallowed)
+                .NATIVE_TOKEN_HOME_STORAGE_LOCATION(),
+            slot
+        );
     }
 
     function testNativeTokenRemoteStorageSlot() public {
         bytes32 slot = _erc7201StorageSlot("NativeTokenRemote");
-        assertEq(new NativeTokenRemote().NATIVE_TOKEN_REMOTE_STORAGE_LOCATION(), slot);
+        assertEq(
+            new NativeTokenRemoteUpgradeable(Initializable.Disallowed)
+                .NATIVE_TOKEN_REMOTE_STORAGE_LOCATION(),
+            slot
+        );
     }
 
     function testTokenHomeStorageSlot() public {
         bytes32 slot = _erc7201StorageSlot("TokenHome");
-        assertEq(new ERC20TokenHome().TOKEN_HOME_STORAGE_LOCATION(), slot);
+        assertEq(
+            new ERC20TokenHomeUpgradeable(Initializable.Disallowed).TOKEN_HOME_STORAGE_LOCATION(),
+            slot
+        );
     }
 
     function testTokenRemoteStorageSlot() public {
         bytes32 slot = _erc7201StorageSlot("TokenRemote");
-        assertEq(new NativeTokenRemote().TOKEN_REMOTE_STORAGE_LOCATION(), slot);
+        assertEq(
+            new NativeTokenRemoteUpgradeable(Initializable.Disallowed).TOKEN_REMOTE_STORAGE_LOCATION(
+            ),
+            slot
+        );
     }
 
     function _erc7201StorageSlot(bytes memory storageName) private pure returns (bytes32) {
