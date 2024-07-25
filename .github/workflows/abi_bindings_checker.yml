@@ -35,7 +35,7 @@ jobs:
           ./scripts/abi_bindings.sh
 
       - name: Print diff
-        run: git --no-pager diff -- abi-bindings/**.go
+        run: git --no-pager diff -- abi-bindings/**.go contracts/do-not-merge/**
 
       - name: Fail if diff exists
         run: git --no-pager diff --quiet -- abi-bindings/**.go

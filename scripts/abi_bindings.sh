@@ -2,7 +2,7 @@
 # Copyright (C) 2023, Ava Labs, Inc. All rights reserved.
 # See the file LICENSE for licensing terms.
 
-set -e
+set -eu
 
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -50,7 +50,10 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
 cd $TELEPORTER_PATH/contracts
-forge build --force --extra-output-files abi bin
+forge build --force --extra-output-files abi bin metadata
+
+# DO NOT MERGE
+cp "${TELEPORTER_PATH}/contracts/out/ValidatorSetSig.sol/ValidatorSetSig.metadata.json" "${TELEPORTER_PATH}/contracts/do-not-merge/";
 
 function convertToLower() {
     if [ "$ARCH" = 'arm64' ]; then
