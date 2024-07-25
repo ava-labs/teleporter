@@ -44,6 +44,10 @@ contract NativeTokenRemote is
     using Address for address payable;
 
     // solhint-disable private-vars-leading-underscore
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     */
     /// @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenRemote
     struct NativeTokenRemoteStorage {
         /**
@@ -62,7 +66,10 @@ contract NativeTokenRemote is
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.NativeTokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+     */
     bytes32 public constant NATIVE_TOKEN_REMOTE_STORAGE_LOCATION =
         0x69a5f7616543528c4fbe43f410b1034bd6da4ba06c25bedf04617268014cf500;
 

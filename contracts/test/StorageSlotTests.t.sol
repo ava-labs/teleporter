@@ -33,6 +33,16 @@ contract StorageSlotTest is Test {
         assertEq(new NativeTokenRemote().NATIVE_TOKEN_REMOTE_STORAGE_LOCATION(), slot);
     }
 
+    function testTokenHomeStorageSlot() public {
+        bytes32 slot = _erc7201StorageSlot("TokenHome");
+        assertEq(new ERC20TokenHome().TOKEN_HOME_STORAGE_LOCATION(), slot);
+    }
+
+    function testTokenRemoteStorageSlot() public {
+        bytes32 slot = _erc7201StorageSlot("TokenRemote");
+        assertEq(new NativeTokenRemote().TOKEN_REMOTE_STORAGE_LOCATION(), slot);
+    }
+
     function _erc7201StorageSlot(bytes memory storageName) private pure returns (bytes32) {
         return keccak256(
             abi.encode(

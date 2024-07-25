@@ -28,6 +28,10 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     using SafeERC20 for IERC20;
 
     // solhint-disable private-vars-leading-underscore
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     */
     /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenHome
     struct ERC20TokenHomeStorage {
         /// @notice The ERC20 token this home contract transfers to TokenRemote instances.
@@ -35,7 +39,10 @@ contract ERC20TokenHome is IERC20TokenHome, TokenHome {
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenHome")) - 1)) & ~bytes32(uint256(0xff));
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenHome")) - 1)) & ~bytes32(uint256(0xff));
+     */
     bytes32 public constant ERC20_TOKEN_HOME_STORAGE_LOCATION =
         0x914a9547f6c3ddce1d5efbd9e687708f0d1d408ce129e8e1a88bce4f40e29500;
 

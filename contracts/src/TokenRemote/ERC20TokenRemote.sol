@@ -28,13 +28,20 @@ import {CallUtils} from "../utils/CallUtils.sol";
  */
 contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemote {
     // solhint-disable private-vars-leading-underscore
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     */
     /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenRemote
     struct ERC20TokenRemoteStorage {
         uint8 _decimals;
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.ERC20TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+     */
     bytes32 public constant ERC20_TOKEN_REMOTE_STORAGE_LOCATION =
         0x9b9029a3537fcf0e984763da4ac33bbf592a3462819171bf424e91cf62622300;
 

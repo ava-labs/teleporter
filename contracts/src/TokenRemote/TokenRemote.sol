@@ -33,6 +33,10 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
  */
 abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendReentrancyGuard {
     // solhint-disable private-vars-leading-underscore
+    /**
+     * @dev Namespace storage slots following the ERC-7201 standard to prevent
+     * storage collisions between upgradeable contracts.
+     */
     /// @custom:storage-location erc7201:avalanche-ictt.storage.TokenRemote
     struct TokenRemoteStorage {
         /// @notice The blockchain ID of the chain this contract is deployed on.
@@ -88,15 +92,18 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant _TOKEN_REMOTE_STORAGE_LOCATION =
+    /**
+     * @dev Storage slot computed based off ERC-7201 formula
+     * keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.TokenRemote")) - 1)) & ~bytes32(uint256(0xff));
+     */
+    bytes32 public constant TOKEN_REMOTE_STORAGE_LOCATION =
         0x600d6a9b283d1eda563de594ce4843869b6f128a4baa222422ed94a60b0cef00;
 
     // solhint-disable ordering
     function _getTokenRemoteStorage() private pure returns (TokenRemoteStorage storage $) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _TOKEN_REMOTE_STORAGE_LOCATION
+            $.slot := TOKEN_REMOTE_STORAGE_LOCATION
         }
     }
 
