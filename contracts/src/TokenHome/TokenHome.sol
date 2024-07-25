@@ -40,8 +40,9 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
      * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.TokenHome
      */
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.TokenHome
     struct TokenHomeStorage {
         /// @notice The blockchain ID of the chain this contract is deployed on.
         bytes32 _blockchainID;

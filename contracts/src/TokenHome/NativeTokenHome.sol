@@ -31,9 +31,9 @@ contract NativeTokenHome is INativeTokenHome, TokenHome {
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
      * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenHome
      */
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenHome
-
     struct NativeTokenHomeStorage {
         /**
          * @notice The wrapped native token contract that represents the native tokens on this chain.

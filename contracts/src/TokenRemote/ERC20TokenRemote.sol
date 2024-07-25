@@ -31,8 +31,9 @@ contract ERC20TokenRemote is IERC20TokenTransferrer, ERC20Upgradeable, TokenRemo
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
      * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenRemote
      */
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.ERC20TokenRemote
     struct ERC20TokenRemoteStorage {
         uint8 _decimals;
     }

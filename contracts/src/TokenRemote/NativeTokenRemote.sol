@@ -47,8 +47,9 @@ contract NativeTokenRemote is
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
      * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenRemote
      */
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.NativeTokenRemote
     struct NativeTokenRemoteStorage {
         /**
          * @notice Percentage of burned transaction fees that will be rewarded to a relayer delivering

@@ -36,8 +36,9 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
      * storage collisions between upgradeable contracts.
+     *
+     * @custom:storage-location erc7201:avalanche-ictt.storage.TokenRemote
      */
-    /// @custom:storage-location erc7201:avalanche-ictt.storage.TokenRemote
     struct TokenRemoteStorage {
         /// @notice The blockchain ID of the chain this contract is deployed on.
         bytes32 _blockchainID;
