@@ -3,9 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-import {IStakingManager} from "./IStakingManager.sol";
-
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 interface IRewardCalculator {
     function calculateReward(

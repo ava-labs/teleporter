@@ -14,10 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const (
-	nodesPerSubnet = 5
-	newNodeCount   = 5
-)
+const newNodeCount = 2
 
 func ValidatorChurn(network interfaces.LocalNetwork) {
 	subnetAInfo, subnetBInfo := utils.GetTwoSubnets(network)

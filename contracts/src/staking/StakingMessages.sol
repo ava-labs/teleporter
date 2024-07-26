@@ -2,9 +2,19 @@
 // See the file LICENSE for licensing terms.
 
 // SPDX-License-Identifier: Ecosystem
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 library StakingMessages {
+    // The information that uniquely identifies a subnet validation period.
+    // The SHA-256 hash of the concatenation of these field is the validationID.
+    struct ValidationInfo {
+        bytes32 subnetID;
+        bytes32 nodeID;
+        uint64 weight;
+        uint64 registrationExpiry;
+        bytes signature;
+    }
+
     // Subnets send a RegisterSubnetValidator message to the P-Chain to register a validator.
     // The P-Chain responds with a RegisterSubnetValidator message indicating whether the registration was successful
     // for the given validation ID.
@@ -15,16 +25,6 @@ library StakingMessages {
     // The Subnet will self-sign a ValidationUptimeMessage to be provided when a validator is initiating
     // the end of their validation period.
     uint32 internal constant VALIDATION_UPTIME_MESSAGE_TYPE_ID = 3;
-
-    // The information that uniquely identifies a subnet validation period.
-    // The SHA-256 hash of the concatenation of these field is the validationID.
-    struct ValidationInfo {
-        bytes32 subnetID;
-        bytes32 nodeID;
-        uint64 weight;
-        uint64 registrationExpiry;
-        bytes signature;
-    }
 
     // TODO: The implemenation of these packing and unpacking functions is neither tested or optimzied at all.
     // Full test coverage should be provided, and the implementation should be optimized for gas efficiency.

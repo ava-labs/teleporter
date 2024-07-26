@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {
     TeleporterMessengerTest,
@@ -13,6 +13,7 @@ import {
     IWarpMessenger,
     IERC20
 } from "./TeleporterMessengerTest.t.sol";
+import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 
 contract SendCrossChainMessageTest is TeleporterMessengerTest {
     // The state of the contract gets reset before each
@@ -171,7 +172,11 @@ contract SendCrossChainMessageTest is TeleporterMessengerTest {
                 IERC20.transferFrom, (address(this), address(teleporterMessenger), feeAmount)
             )
         );
-        vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                SafeERC20.SafeERC20FailedOperation.selector, address(_mockFeeAsset)
+            )
+        );
         teleporterMessenger.sendCrossChainMessage(messageInput);
     }
 

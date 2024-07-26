@@ -3,10 +3,10 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
-import {Address} from "@openzeppelin/contracts@4.8.1/utils/Address.sol";
+import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {StakingManager} from "./StakingManager.sol";
 
 contract NativeTokenStakingManager is StakingManager, INativeTokenStakingManager {

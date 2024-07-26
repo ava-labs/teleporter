@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {
     TeleporterMessengerTest,
@@ -86,9 +86,7 @@ contract HandleInitialMessageExecutionTest is TeleporterMessengerTest {
     // each time after deployment.
     function setUp() public virtual override {
         TeleporterMessengerTest.setUp();
-        destinationContract = new SampleMessageReceiver(
-            address(teleporterMessenger)
-        );
+        destinationContract = new SampleMessageReceiver(address(teleporterMessenger));
     }
 
     function testSuccess() public {

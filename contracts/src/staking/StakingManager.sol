@@ -3,14 +3,14 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {IStakingManager} from "./interfaces/IStakingManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts@5.0.2/utils/ReentrancyGuard.sol";
 import {StakingMessages} from "./StakingMessages.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
@@ -354,6 +354,7 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
      * @notice Resubmits a validator end message to be sent to P-Chain to the Warp precompile.
      * Only necessary if the original message can't be delivered due to validator churn.
      */
+    // solhint-disable-next-line no-empty-blocks
     function resendEndValidatorMessage(bytes32 validationID) external {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
         Validator memory validator = $._validationPeriods[validationID];

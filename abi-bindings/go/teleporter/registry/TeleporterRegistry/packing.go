@@ -61,7 +61,8 @@ func UnpackTeleporterRegistryWarpPayload(entryBytes []byte) (ProtocolRegistryEnt
 	unpacked, err := args.Unpack(entryBytes)
 	fmt.Println("unpacked: ", unpacked)
 	if err != nil {
-		return ProtocolRegistryEntry{}, common.Address{}, fmt.Errorf("failed to unpack to Teleporter registry entry with err: %v", err)
+		return ProtocolRegistryEntry{}, common.Address{},
+			fmt.Errorf("failed to unpack to Teleporter registry entry with err: %v", err)
 	}
 	type teleporterRegistryWarpPayload struct {
 		ProtocolRegistryEntry ProtocolRegistryEntry `json:"protocolRegistryEntry"`
