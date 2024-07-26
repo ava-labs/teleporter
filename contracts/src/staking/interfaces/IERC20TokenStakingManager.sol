@@ -3,9 +3,9 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-import {IStakingManager} from "./IStakingManager.sol";
+pragma solidity 0.8.23;
 
-pragma solidity 0.8.18;
+import {IStakingManager} from "./IStakingManager.sol";
 
 interface IERC20TokenStakingManager is IStakingManager {
     /**
