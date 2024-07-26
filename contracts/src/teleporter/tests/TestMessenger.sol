@@ -3,13 +3,14 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 import {SafeERC20TransferFrom, SafeERC20} from "@utilities/SafeERC20TransferFrom.sol";
 import {TeleporterOwnerUpgradeable} from "@teleporter/registry/TeleporterOwnerUpgradeable.sol";
-import {IERC20} from "@openzeppelin/contracts@4.8.1/token/ERC20/IERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import {ReentrancyGuardUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
@@ -20,7 +21,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts@4.8.1/security/Reentrancy
  * @dev TestMessenger is test fixture contract that exercises sending and receiving
  * messages cross chain.
  */
-contract TestMessenger is ReentrancyGuard, TeleporterOwnerUpgradeable {
+contract TestMessenger is ReentrancyGuardUpgradeable, TeleporterOwnerUpgradeable {
     using SafeERC20 for IERC20;
 
     // Messages sent to this contract.
@@ -50,10 +51,10 @@ contract TestMessenger is ReentrancyGuard, TeleporterOwnerUpgradeable {
         bytes32 indexed sourceBlockchainID, address indexed originSenderAddress, string message
     );
 
-    constructor(
-        address teleporterRegistryAddress,
-        address teleporterManager
-    ) TeleporterOwnerUpgradeable(teleporterRegistryAddress, teleporterManager) {}
+    constructor(address teleporterRegistryAddress, address teleporterManager) initializer {
+        __ReentrancyGuard_init();
+        __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+    }
 
     /**
      * @dev Sends a message to another chain.
