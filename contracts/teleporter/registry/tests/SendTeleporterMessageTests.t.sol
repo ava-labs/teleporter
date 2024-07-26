@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.23;
 
 import {
     TeleporterUpgradeableTest, ExampleUpgradeableApp
@@ -51,7 +51,8 @@ contract SendTeleporterMessageTest is TeleporterUpgradeableTest {
             new TeleporterRegistry(new ProtocolRegistryEntry[](0));
 
         // Create a new app with the new Teleporter registry
-        ExampleUpgradeableApp app = new ExampleUpgradeableApp(address(teleporterRegistry));
+        ExampleUpgradeableApp app = new ExampleUpgradeableApp();
+        app.initialize(address(teleporterRegistry));
 
         // Check that the app reverts when trying to send a message with no registered Teleporter
         vm.expectRevert(_formatRegistryErrorMessage("zero version"));

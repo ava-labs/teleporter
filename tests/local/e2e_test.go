@@ -16,7 +16,8 @@ import (
 
 const (
 	teleporterByteCodeFile = "./out/TeleporterMessenger.sol/TeleporterMessenger.json"
-	warpGenesisFile        = "./tests/utils/warp-genesis.json"
+
+	warpGenesisTemplateFile = "./tests/utils/warp-genesis-template.json"
 
 	teleporterMessengerLabel = "TeleporterMessenger"
 	upgradeabilityLabel      = "upgradeability"
@@ -40,7 +41,23 @@ func TestE2E(t *testing.T) {
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
 	// Create the local network instance
-	LocalNetworkInstance = NewLocalNetwork(warpGenesisFile)
+	LocalNetworkInstance = NewLocalNetwork(
+		"teleporter-test-local-network",
+		warpGenesisTemplateFile,
+		[]SubnetSpec{
+			{
+				Name:       "A",
+				EVMChainID: 12345,
+				NodeCount:  2,
+			},
+			{
+				Name:       "B",
+				EVMChainID: 54321,
+				NodeCount:  2,
+			},
+		},
+		2,
+	)
 
 	// Generate the Teleporter deployment values
 	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
@@ -62,6 +79,12 @@ var _ = ginkgo.BeforeSuite(func() {
 
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
 	log.Info("Set up ginkgo before suite")
+
+	ginkgo.AddReportEntry(
+		"network directory with node logs & configs; useful in the case of failures",
+		LocalNetworkInstance.tmpnet.Dir,
+		ginkgo.ReportEntryVisibilityFailureOrVerbose,
+	)
 })
 
 var _ = ginkgo.AfterSuite(func() {
