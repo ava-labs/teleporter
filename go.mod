@@ -11,7 +11,7 @@ require (
 	github.com/ava-labs/subnet-evm v0.6.8-status-removal.0.20240718135117-a3d13a0c9366
 	github.com/ethereum/go-ethereum v1.13.8
 	github.com/onsi/ginkgo/v2 v2.19.0
-	github.com/onsi/gomega v1.33.1
+	github.com/onsi/gomega v1.34.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
