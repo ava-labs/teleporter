@@ -20,10 +20,11 @@ func TestPackUnpackValidatorSetSigMessage(t *testing.T) {
 		Nonce:                  big.NewInt(1),
 		Payload:                []byte{1, 2, 3, 4},
 	}
-	b, err := PackValidatorSetSigWarpPayload(msg)
+	b, err := msg.Pack()
 	require.NoError(t, err)
 
-	unpackedMsg, err := UnpackValidatorSetSigWarpPayload(b)
+	unpackedMsg := ValidatorSetSigMessage{}
+	err = unpackedMsg.Unpack(b)
 	require.NoError(t, err)
 
 	require.Equal(t, msg, unpackedMsg)

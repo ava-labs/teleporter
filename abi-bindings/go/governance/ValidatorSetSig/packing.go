@@ -29,17 +29,17 @@ func init() {
 	}
 }
 
-func PackValidatorSetSigWarpPayload(message ValidatorSetSigMessage) ([]byte, error) {
+func (m *ValidatorSetSigMessage) Pack() ([]byte, error) {
 	args := abi.Arguments{
 		{
 			Name: "validatorSetSigMessage",
 			Type: validatorSetSigMessageType,
 		},
 	}
-	return args.Pack(message)
+	return args.Pack(m)
 }
 
-func UnpackValidatorSetSigWarpPayload(messageBytes []byte) (ValidatorSetSigMessage, error) {
+func (m *ValidatorSetSigMessage) Unpack(messageBytes []byte) error {
 	args := abi.Arguments{
 		{
 			Name: "validatorSetSigMessage",
@@ -47,19 +47,15 @@ func UnpackValidatorSetSigWarpPayload(messageBytes []byte) (ValidatorSetSigMessa
 		},
 	}
 	unpacked, err := args.Unpack(messageBytes)
-	fmt.Println("unpacked: ", unpacked)
 	if err != nil {
-		return ValidatorSetSigMessage{}, fmt.Errorf("failed to unpack to ValidatorSetSigMessage with err: %v", err)
+		return fmt.Errorf("failed to unpack to ValidatorSetSigMessage with err: %v", err)
 	}
 	type validatorSetSigWarpPayload struct {
-		ValidatorSetSigMessage ValidatorSetSigMessage `json:"validatorSetSigMessage"`
+		ValidatorSetSigMessage *ValidatorSetSigMessage `json:"validatorSetSigMessage"`
 	}
-	var payload validatorSetSigWarpPayload
+	payload := validatorSetSigWarpPayload{ValidatorSetSigMessage: m}
 	err = args.Copy(&payload, unpacked)
-	if err != nil {
-		return ValidatorSetSigMessage{}, err
-	}
-	return payload.ValidatorSetSigMessage, nil
+	return err
 }
 
 // PackExecuteCall packs the input to form a call to the executeCall function

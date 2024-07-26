@@ -1088,7 +1088,7 @@ func CreateOffChainValidatorSetSigMessage(
 	message validatorsetsig.ValidatorSetSigMessage,
 ) *avalancheWarp.UnsignedMessage {
 	sourceAddress := []byte{}
-	payloadBytes, err := validatorsetsig.PackValidatorSetSigWarpPayload(message)
+	payloadBytes, err := message.Pack()
 	Expect(err).Should(BeNil())
 
 	addressedPayload, err := payload.NewAddressedCall(sourceAddress, payloadBytes)
