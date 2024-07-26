@@ -26,14 +26,6 @@ const packagePath = "../..."
 const currentPackagePath = "."
 
 var fs = token.NewFileSet()
-var typeInfo = &types.Info{
-	Types:      make(map[ast.Expr]types.TypeAndValue),
-	Defs:       make(map[*ast.Ident]types.Object),
-	Uses:       make(map[*ast.Ident]types.Object),
-	Implicits:  make(map[ast.Node]types.Object),
-	Scopes:     make(map[ast.Node]*types.Scope),
-	Selections: make(map[*ast.SelectorExpr]*types.Selection),
-}
 
 var packerTypes = map[string]ABIPacker{
 	"ValidatorSetSigMessage": &validatorsetsig.ValidatorSetSigMessage{},
@@ -81,9 +73,7 @@ func findAllImplementers(t *testing.T) []string {
 							if obj == nil {
 								continue
 							}
-							_, ok := obj.Type().Underlying().(*types.Struct)
-
-							if ok {
+							if _, ok := obj.Type().Underlying().(*types.Struct); ok {
 								typeName := typeSpec.Name.Name
 								obj := pkg.Types.Scope().Lookup(typeName)
 								if obj != nil {
@@ -103,23 +93,7 @@ func findAllImplementers(t *testing.T) []string {
 	return allImplementers
 }
 
-func findImplementersInScope(scope *types.Scope, iface *types.Interface) []*types.Struct {
-	foundStructs := []*types.Struct{}
-	for _, name := range scope.Names() {
-		obj := scope.Lookup(name)
-		if obj == nil {
-			continue
-		}
-		if typ, ok := obj.Type().Underlying().(*types.Struct); ok {
-			if types.Implements(types.NewPointer(typ), iface) {
-				foundStructs = append(foundStructs, typ)
-			}
-		}
-	}
-	return foundStructs
-}
-
-func TestFindImplementers(t *testing.T) {
+func TestExhaustivePacking(t *testing.T) {
 	implementers := findAllImplementers(t)
 	require.Len(t, implementers, 1)
 	for _, structName := range implementers {
