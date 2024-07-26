@@ -353,6 +353,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      * @notice Resubmits a validator end message to be sent to P-Chain to the Warp precompile.
      * Only necessary if the original message can't be delivered due to validator churn.
      */
+    // solhint-disable-next-line no-empty-blocks
     function resendEndValidatorMessage(bytes32 validationID) external {
         // TODO: Allow for these messages to be resent.
     }
