@@ -13,7 +13,7 @@ import {
 import {ReentrancyGuard} from "@openzeppelin/contracts@5.0.2/utils/ReentrancyGuard.sol";
 import {StakingMessages} from "./StakingMessages.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
-import {Context} from "@openzeppelin/contracts@4.8.1/utils/Context.sol";
+import {Context} from "@openzeppelin/contracts@5.0.2/utils/Context.sol";
 
 abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
     enum ValidatorStatus {
