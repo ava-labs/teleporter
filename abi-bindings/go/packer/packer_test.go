@@ -15,6 +15,7 @@ import (
 
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
+	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/registry/TeleporterRegistry"
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/go/packages"
@@ -31,6 +32,7 @@ var fs = token.NewFileSet()
 var packerTypes = map[string]ABIPacker{
 	"ValidatorSetSigMessage": &validatorsetsig.ValidatorSetSigMessage{},
 	"TeleporterMessage":      &teleportermessenger.TeleporterMessage{},
+	"ProtocolRegistryEntry":  &teleporterregistry.ProtocolRegistryEntry{},
 }
 
 func findAllImplementers(t *testing.T) []string {
@@ -97,7 +99,7 @@ func findAllImplementers(t *testing.T) []string {
 
 func TestExhaustivePacking(t *testing.T) {
 	implementers := findAllImplementers(t)
-	require.Len(t, implementers, 2)
+	require.Len(t, implementers, 3)
 	for _, structName := range implementers {
 
 		packerType, ok := packerTypes[structName]

@@ -33,6 +33,39 @@ func init() {
 	}
 }
 
+// ProtocolRegistryEntry is currently only packed together with the destinationAddress
+// in the TeleporterRegistryWarpPayload struct. We still implement the ABIPacker interface for exhaustiveness testing.
+
+func (p *ProtocolRegistryEntry) Pack() ([]byte, error) {
+	args := abi.Arguments{
+		{
+			Name: "protocolRegistryEntry",
+			Type: protocolRegistryEntryType,
+		},
+	}
+	return args.Pack(p)
+}
+
+func (p *ProtocolRegistryEntry) Unpack(b []byte) error {
+	args := abi.Arguments{
+		{
+			Name: "protocolRegistryEntry",
+			Type: protocolRegistryEntryType,
+		},
+	}
+	unpacked, err := args.Unpack(b)
+	fmt.Println("unpacked: ", unpacked)
+	if err != nil {
+		return fmt.Errorf("failed to unpack to Teleporter registry entry with err: %v", err)
+	}
+
+	err = args.Copy(&p, unpacked)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func PackTeleporterRegistryWarpPayload(entry ProtocolRegistryEntry, destinationAddress common.Address) ([]byte, error) {
 	args := abi.Arguments{
 		{
