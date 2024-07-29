@@ -66,22 +66,28 @@ $ forge coverage
 Compiler run successful!
 Analysing contracts...
 Running tests...
-| File                                        | % Lines           | % Statements      | % Branches        | % Funcs         |
-|---------------------------------------------|-------------------|-------------------|-------------------|-----------------|
-| src/TokenHome/ERC20TokenHome.sol              | 100.00% (16/16)   | 100.00% (19/19)   | 100.00% (4/4)     | 100.00% (6/6)   |
-| src/TokenHome/NativeTokenHome.sol             | 100.00% (14/14)   | 100.00% (16/16)   | 100.00% (2/2)     | 100.00% (6/6)   |
-| src/TokenHome/TokenHome.sol                   | 100.00% (135/135) | 100.00% (159/159) | 100.00% (84/84)   | 100.00% (15/15) |
-| src/TokenRemote/ERC20TokenRemote.sol          | 100.00% (27/27)   | 100.00% (31/31)   | 100.00% (8/8)     | 100.00% (8/8)   |
-| src/TokenRemote/NativeTokenRemote.sol         | 100.00% (46/46)   | 100.00% (57/57)   | 100.00% (12/12)   | 100.00% (13/13) |
-| src/TokenRemote/TokenRemote.sol               | 100.00% (76/76)   | 100.00% (94/94)   | 100.00% (52/52)   | 100.00% (14/14) |
-| src/WrappedNativeToken.sol                  | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)     | 100.00% (3/3)   |
-| src/mocks/ExampleERC20Decimals.sol          | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)     | 100.00% (1/1)   |
-| src/mocks/MockERC20SendAndCallReceiver.sol  | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (4/4)     | 100.00% (2/2)   |
-| src/mocks/MockNativeSendAndCallReceiver.sol | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (2/2)   |
-| src/utils/CallUtils.sol                     | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (6/6)     | 100.00% (2/2)   |
-| src/utils/SafeWrappedNativeTokenDeposit.sol | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (2/2)     | 100.00% (1/1)   |
-| src/utils/TokenScalingUtils.sol             | 100.00% (8/8)     | 100.00% (14/14)   | 100.00% (2/2)     | 100.00% (4/4)   |
-| Total                                       | 100.00% (351/351) | 100.00% (423/423) | 100.00% (180/180) | 100.00% (77/77) |
+| File                                             | % Lines           | % Statements      | % Branches      | % Funcs           |
+|--------------------------------------------------|-------------------|-------------------|-----------------|-------------------|
+| src/TokenHome/ERC20TokenHome.sol                 | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)   | 100.00% (1/1)     |
+| src/TokenHome/ERC20TokenHomeUpgradeable.sol      | 100.00% (27/27)   | 100.00% (33/33)   | 100.00% (6/6)   | 100.00% (11/11)   |
+| src/TokenHome/NativeTokenHome.sol                | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)   | 100.00% (1/1)     |
+| src/TokenHome/NativeTokenHomeUpgradeable.sol     | 100.00% (24/24)   | 100.00% (29/29)   | 100.00% (4/4)   | 100.00% (11/11)   |
+| src/TokenHome/TokenHome.sol                      | 100.00% (158/158) | 100.00% (198/198) | 100.00% (26/26) | 100.00% (22/22)   |
+| src/TokenRemote/ERC20TokenRemote.sol             | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)   | 100.00% (1/1)     |
+| src/TokenRemote/ERC20TokenRemoteUpgradeable.sol  | 100.00% (36/36)   | 100.00% (40/40)   | 100.00% (10/10) | 100.00% (12/12)   |
+| src/TokenRemote/NativeTokenRemote.sol            | 100.00% (1/1)     | 100.00% (1/1)     | 100.00% (0/0)   | 100.00% (1/1)     |
+| src/TokenRemote/NativeTokenRemoteUpgradeable.sol | 100.00% (60/60)   | 100.00% (74/74)   | 100.00% (10/10) | 100.00% (19/19)   |
+| src/TokenRemote/TokenRemote.sol                  | 100.00% (118/118) | 100.00% (155/155) | 100.00% (12/12) | 100.00% (24/24)   |
+| src/WrappedNativeToken.sol                       | 100.00% (6/6)     | 100.00% (6/6)     | 100.00% (0/0)   | 100.00% (4/4)     |
+| src/mocks/ExampleERC20Decimals.sol               | 100.00% (2/2)     | 100.00% (2/2)     | 100.00% (0/0)   | 100.00% (2/2)     |
+| src/mocks/MockERC20SendAndCallReceiver.sol       | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (0/0)   | 100.00% (2/2)     |
+| src/mocks/MockNativeSendAndCallReceiver.sol      | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (0/0)   | 100.00% (2/2)     |
+| src/utils/CallUtils.sol                          | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (2/2)   | 100.00% (2/2)     |
+| src/utils/SafeERC20TransferFrom.sol              | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (0/0)   | 100.00% (1/1)     |
+| src/utils/SafeWrappedNativeTokenDeposit.sol      | 100.00% (5/5)     | 100.00% (8/8)     | 100.00% (0/0)   | 100.00% (1/1)     |
+| src/utils/SendReentrancyGuard.sol                | 100.00% (8/8)     | 100.00% (10/10)   | 100.00% (0/0)   | 100.00% (4/4)     |
+| src/utils/TokenScalingUtils.sol                  | 100.00% (8/8)     | 100.00% (14/14)   | 100.00% (2/2)   | 100.00% (4/4)     |
+| Total                                            | 100.00% (478/478) | 100.00% (599/599) | 100.00% (72/72) | 100.00% (125/125) |
 ```
 
 ## E2E tests
