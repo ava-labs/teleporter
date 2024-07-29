@@ -30,7 +30,6 @@ var (
 )
 
 // ProtocolRegistryEntry is an auto generated low-level Go binding around an user-defined struct.
-
 type ProtocolRegistryEntry struct {
 	Version         *big.Int
 	ProtocolAddress common.Address
