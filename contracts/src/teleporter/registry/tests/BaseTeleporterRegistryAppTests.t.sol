@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {TeleporterRegistryAppUpgradeable} from "../TeleporterRegistryAppUpgradeable.sol";
 import {TeleporterRegistryApp} from "../TeleporterRegistryApp.sol";
