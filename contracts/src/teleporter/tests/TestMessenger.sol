@@ -54,7 +54,7 @@ contract TestMessenger is ReentrancyGuardUpgradeable, TeleporterRegistryOwnableA
 
     constructor(address teleporterRegistryAddress, address teleporterManager) initializer {
         __ReentrancyGuard_init();
-        __TeleporterRegistryOwnableAppUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+        __TeleporterRegistryOwnableApp_init(teleporterRegistryAddress, teleporterManager);
     }
 
     /**

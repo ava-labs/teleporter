@@ -14,7 +14,7 @@ import {UnitTestMockERC20} from "@mocks/UnitTestMockERC20.sol";
 
 contract ExampleRegistryAppUpgradeable is TeleporterRegistryAppUpgradeable {
     function initialize(address teleporterRegistryAddress) public initializer {
-        __TeleporterRegistryAppUpgradeable_init(teleporterRegistryAddress);
+        __TeleporterRegistryApp_init(teleporterRegistryAddress);
     }
 
     function setMinTeleporterVersion(uint256 version) public {
@@ -175,9 +175,7 @@ abstract contract BaseTeleporterRegistryAppTest is TeleporterRegistryTest {
         app_.unpauseTeleporterAddress(teleporterAddress_);
     }
 
-    function _formatErrorMessage(string memory errorMessage)
-        internal
-        pure
-        virtual
-        returns (bytes memory);
+    function _formatErrorMessage(bytes memory errorMessage) internal pure returns (bytes memory) {
+        return abi.encodePacked("TeleporterRegistryApp: ", errorMessage);
+    }
 }

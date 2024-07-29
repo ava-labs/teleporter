@@ -19,7 +19,7 @@ contract ExampleRegistryOwnableAppUpgradeable is TeleporterRegistryOwnableAppUpg
         address teleporterRegistryAddress,
         address initialOwner
     ) public initializer {
-        __TeleporterRegistryOwnableAppUpgradeable_init(teleporterRegistryAddress, initialOwner);
+        __TeleporterRegistryOwnableApp_init(teleporterRegistryAddress, initialOwner);
     }
 
     function setMinTeleporterVersion(uint256 version) public {

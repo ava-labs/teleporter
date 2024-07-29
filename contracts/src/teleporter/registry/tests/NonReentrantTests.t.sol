@@ -20,7 +20,7 @@ uint32 constant warpMessageIndex = 2;
 
 contract NonReentrantUpgradeableApp is TeleporterRegistryAppUpgradeable {
     function initialize(address teleporterRegistryAddress) public initializer {
-        __TeleporterRegistryAppUpgradeable_init(teleporterRegistryAddress);
+        __TeleporterRegistryApp_init(teleporterRegistryAddress);
     }
 
     function setMinTeleporterVersion(uint256 version) public {

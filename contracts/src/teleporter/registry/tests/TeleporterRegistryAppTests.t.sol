@@ -35,16 +35,6 @@ contract TeleporterRegistryAppTest is
         vm.expectRevert(_formatErrorMessage("zero teleporter registry address"));
         app = new ExampleRegistryApp(address(0));
     }
-
-    function _formatErrorMessage(string memory errorMessage)
-        internal
-        pure
-        virtual
-        override
-        returns (bytes memory)
-    {
-        return bytes(string.concat("TeleporterRegistryApp: ", errorMessage));
-    }
 }
 
 contract TeleporterRegistryAppUpgradeableTest is TeleporterRegistryAppTest {
@@ -63,19 +53,9 @@ contract TeleporterRegistryAppUpgradeableTest is TeleporterRegistryAppTest {
 
     function testStorageSlot() public {
         assertEq(
-            _erc7201StorageSlot("TeleporterRegistryAppUpgradeable"),
-            new ExampleRegistryAppUpgradeable().TELEPORTER_UPGRADEABLE_STORAGE_LOCATION()
+            _erc7201StorageSlot("TeleporterRegistryApp"),
+            new ExampleRegistryAppUpgradeable().TELEPORTER_REGISTRY_APP_STORAGE_LOCATION()
         );
-    }
-
-    function _formatErrorMessage(string memory errorMessage)
-        internal
-        pure
-        virtual
-        override
-        returns (bytes memory)
-    {
-        return bytes(string.concat("TeleporterRegistryAppUpgradeable: ", errorMessage));
     }
 
     function _erc7201StorageSlot(bytes memory storageName) private pure returns (bytes32) {

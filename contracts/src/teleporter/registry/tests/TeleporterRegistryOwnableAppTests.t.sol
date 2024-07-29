@@ -24,16 +24,6 @@ contract TeleporterRegistryOwnableAppTest is BaseTeleporterRegistryOwnableAppTes
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
         ownerApp = new ExampleRegistryOwnableApp(address(teleporterRegistry), address(0));
     }
-
-    function _formatErrorMessage(string memory errorMessage)
-        internal
-        pure
-        virtual
-        override
-        returns (bytes memory)
-    {
-        return bytes(string.concat("TeleporterRegistryApp: ", errorMessage));
-    }
 }
 
 contract TeleporterRegistryOwnableAppUpgradeableTest is BaseTeleporterRegistryOwnableAppTest {
@@ -51,15 +41,5 @@ contract TeleporterRegistryOwnableAppUpgradeableTest is BaseTeleporterRegistryOw
             new ExampleRegistryOwnableAppUpgradeable();
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
         upgradeableApp.initialize(address(teleporterRegistry), address(0));
-    }
-
-    function _formatErrorMessage(string memory errorMessage)
-        internal
-        pure
-        virtual
-        override
-        returns (bytes memory)
-    {
-        return bytes(string.concat("TeleporterRegistryAppUpgradeable: ", errorMessage));
     }
 }

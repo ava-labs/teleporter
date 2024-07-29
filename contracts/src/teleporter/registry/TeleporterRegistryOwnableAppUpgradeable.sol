@@ -20,16 +20,16 @@ abstract contract TeleporterRegistryOwnableAppUpgradeable is
     OwnableUpgradeable
 {
     // solhint-disable-next-line func-name-mixedcase
-    function __TeleporterRegistryOwnableAppUpgradeable_init(
+    function __TeleporterRegistryOwnableApp_init(
         address teleporterRegistryAddress,
         address initialOwner
     ) internal onlyInitializing {
-        __TeleporterRegistryAppUpgradeable_init(teleporterRegistryAddress);
+        __TeleporterRegistryApp_init(teleporterRegistryAddress);
         __Ownable_init(initialOwner);
     }
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks, func-name-mixedcase
-    function _TeleporterRegistryOwnableAppUpgradeable_init_unchained() internal onlyInitializing {}
+    function _TeleporterRegistryOwnableApp_init_unchained() internal onlyInitializing {}
 
     /**
      * @dev See {TeleporterRegistryAppUpgradeable-_checkTeleporterUpgradeAccess}
