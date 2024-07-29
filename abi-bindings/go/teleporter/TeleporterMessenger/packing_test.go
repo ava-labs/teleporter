@@ -37,13 +37,13 @@ func createTestTeleporterMessage(messageNonce *big.Int) TeleporterMessage {
 func TestPackUnpackTeleporterMessage(t *testing.T) {
 	message := createTestTeleporterMessage(big.NewInt(4))
 
-	b, err := PackTeleporterMessage(message)
+	b, err := message.Pack()
 	if err != nil {
 		t.Errorf("failed to pack teleporter message: %v", err)
 		t.FailNow()
 	}
-
-	unpacked, err := UnpackTeleporterMessage(b)
+	unpacked := TeleporterMessage{}
+	err = unpacked.Unpack(b)
 	if err != nil {
 		t.Errorf("failed to unpack teleporter message: %v", err)
 		t.FailNow()

@@ -1146,10 +1146,11 @@ func ParseTeleporterMessage(unsignedMessage avalancheWarp.UnsignedMessage) *tele
 	addressedPayload, err := payload.ParseAddressedCall(unsignedMessage.Payload)
 	Expect(err).Should(BeNil())
 
-	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(addressedPayload.Payload)
+	teleporterMessage := teleportermessenger.TeleporterMessage{}
+	err = teleporterMessage.Unpack(addressedPayload.Payload)
 	Expect(err).Should(BeNil())
 
-	return teleporterMessage
+	return &teleporterMessage
 }
 
 func GetChainConfigWithOffChainMessages(offChainMessages []avalancheWarp.UnsignedMessage) string {

@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
+	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/go/packages"
@@ -29,6 +30,7 @@ var fs = token.NewFileSet()
 
 var packerTypes = map[string]ABIPacker{
 	"ValidatorSetSigMessage": &validatorsetsig.ValidatorSetSigMessage{},
+	"TeleporterMessage":      &teleportermessenger.TeleporterMessage{},
 }
 
 func findAllImplementers(t *testing.T) []string {
@@ -95,7 +97,7 @@ func findAllImplementers(t *testing.T) []string {
 
 func TestExhaustivePacking(t *testing.T) {
 	implementers := findAllImplementers(t)
-	require.Len(t, implementers, 1)
+	require.Len(t, implementers, 2)
 	for _, structName := range implementers {
 
 		packerType, ok := packerTypes[structName]
@@ -122,44 +124,56 @@ func randomizeStruct(packerStruct interface{}) (interface{}, error) {
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 		fieldType := t.Field(i).Type
-		switch fieldType.Kind() {
-		// The list only includes types supported by abigen
-		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			field.SetInt(rand.Int63())
-		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			field.SetUint(rand.Uint64())
-		case reflect.Bool:
-			field.SetBool(rand.Intn(2) == 1)
-		case reflect.String:
-			field.SetString(randomString(10))
-		case reflect.Slice:
-			// TODO make this more robust by populating the slice with random values
-			field.Set(reflect.MakeSlice(fieldType, 10, 10))
-		case reflect.Struct:
-			randomizeStruct(field.Addr().Interface())
-		case reflect.Array:
-			elemType := fieldType.Elem()
-			// arrays other than byte arrays get converted to slices by abigen
-			if elemType.Kind() != reflect.Uint8 {
-				return nil, fmt.Errorf("Unsupported array type %s. Only byte arrays are supported.", elemType.Kind().String())
-			}
-			for j := 0; j < field.Len(); j++ {
-				field.Index(j).SetUint(uint64(rand.Intn(256)))
-			}
-
-		case reflect.Pointer:
-			if fieldType.Elem() == reflect.TypeOf(big.Int{}) {
-				newBigInt := big.NewInt(rand.Int63())
-				field.Set(reflect.ValueOf(newBigInt))
-			} else {
-				return nil, fmt.Errorf("Unsupported pointer type %s", fieldType.Elem().String())
-			}
-		default:
-			return nil, fmt.Errorf("Unsupported type %s", fieldType.Kind().String())
+		err := randomizeField(field, fieldType)
+		if err != nil {
+			return nil, err
 		}
 	}
-
 	return packerStruct, nil
+}
+
+func randomizeField(field reflect.Value, fieldType reflect.Type) error {
+	switch fieldType.Kind() {
+	// The list only includes types supported by abigen
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		field.SetInt(rand.Int63())
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		field.SetUint(rand.Uint64())
+	case reflect.Bool:
+		field.SetBool(rand.Intn(2) == 1)
+	case reflect.String:
+		field.SetString(randomString(rand.Intn(256)))
+	case reflect.Slice:
+		field.Set(reflect.MakeSlice(fieldType, 10, 10))
+		for i := 0; i < field.Len(); i++ {
+			err := randomizeField(field.Index(i), field.Index(i).Type())
+			if err != nil {
+				return fmt.Errorf("Error randomizing slice: %v", err)
+			}
+		}
+	case reflect.Struct:
+		randomizeStruct(field.Addr().Interface())
+	case reflect.Array:
+		elemType := fieldType.Elem()
+		// arrays other than byte arrays get converted to slices by abigen
+		if elemType.Kind() != reflect.Uint8 {
+			return fmt.Errorf("Unsupported array type %s. Only byte arrays are supported.", elemType.Kind().String())
+		}
+		for j := 0; j < field.Len(); j++ {
+			field.Index(j).SetUint(uint64(rand.Intn(256)))
+		}
+
+	case reflect.Pointer:
+		if fieldType.Elem() == reflect.TypeOf(big.Int{}) {
+			newBigInt := big.NewInt(rand.Int63())
+			field.Set(reflect.ValueOf(newBigInt))
+		} else {
+			return fmt.Errorf("Unsupported pointer type %s", fieldType.Elem().String())
+		}
+	default:
+		return fmt.Errorf("Unsupported type %s", fieldType.Kind().String())
+	}
+	return nil
 }
 
 // randomString generates a random string of the given length.
