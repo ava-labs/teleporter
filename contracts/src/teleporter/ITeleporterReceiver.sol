@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 /**
  * @dev Interface that cross-chain applications must implement to receive messages from Teleporter.
