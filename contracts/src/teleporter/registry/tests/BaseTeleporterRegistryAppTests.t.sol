@@ -92,15 +92,6 @@ abstract contract BaseTeleporterRegistryAppTest is TeleporterRegistryTest {
         TeleporterMessenger(teleporterAddress).initializeBlockchainID();
     }
 
-    // TODO
-    // function testInvalidRegistryAddress() public {
-    //     app = new ExampleRegistryAppUpgradeable();
-    //     vm.expectRevert(
-    //         _formatErrorMessage("zero teleporter registry address")
-    //     );
-    //     app.initialize(address(0));
-    // }
-
     function testOnlyAllowedTeleporter() public {
         assertEq(app.getMinTeleporterVersion(), 1);
 
