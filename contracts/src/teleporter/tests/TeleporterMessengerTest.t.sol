@@ -271,11 +271,11 @@ contract TeleporterMessengerTest is Test {
         return teleporterMessenger.messageNonce() + 1;
     }
 
-    function _formatTeleporterErrorMessage(string memory errorMessage)
+    function _formatTeleporterErrorMessage(bytes memory errorMessage)
         internal
         pure
         returns (bytes memory)
     {
-        return bytes(string.concat("TeleporterMessenger: ", errorMessage));
+        return abi.encodePacked("TeleporterMessenger: ", errorMessage);
     }
 }
