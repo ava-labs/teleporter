@@ -464,7 +464,7 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 
 	// consume some of the extraNodes
 	newValidatorNodes := n.extraNodes[0:count]
-	slices.Delete(n.extraNodes, 0, int(count))
+	defer slices.Delete(n.extraNodes, 0, int(count))
 
 	apiURI, err := n.tmpnet.GetURIForNodeID(subnet.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
