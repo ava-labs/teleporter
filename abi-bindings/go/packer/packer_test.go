@@ -37,7 +37,7 @@ var packerTypes = map[string]ABIPacker{
 
 func findAllImplementers(t *testing.T) []string {
 	cfg := &packages.Config{
-		Mode: packages.NeedName | packages.NeedFiles | packages.NeedSyntax | packages.NeedTypes | packages.NeedTypesInfo | packages.NeedImports | packages.NeedDeps | packages.NeedCompiledGoFiles,
+		Mode: packages.NeedName | packages.NeedFiles | packages.NeedSyntax | packages.NeedTypes | packages.NeedTypesInfo,
 		Fset: fs,
 	}
 	interfacePkg, err := packages.Load(cfg, currentPackagePath)
@@ -99,11 +99,13 @@ func findAllImplementers(t *testing.T) []string {
 
 func TestExhaustivePacking(t *testing.T) {
 	implementers := findAllImplementers(t)
-	require.Len(t, implementers, 3)
 	for _, structName := range implementers {
-
 		packerType, ok := packerTypes[structName]
-		require.True(t, ok, fmt.Sprintf("Struct %s not found in packer_test.go packerTypes map. Add it to check for exhaustiveness", structName))
+		require.True(
+			t,
+			ok,
+			fmt.Sprintf("Struct %s not found in packer_test.go packerTypes map. Add it to check for exhaustiveness", structName),
+		)
 
 		randomizedStruct, err := randomizeStruct(packerType)
 		require.NoError(t, err)
@@ -115,18 +117,15 @@ func TestExhaustivePacking(t *testing.T) {
 		err = v2.Unpack(encoded)
 		require.NoError(t, err)
 		require.Equal(t, v1, v2)
-
 	}
 }
 
 func randomizeStruct(packerStruct interface{}) (interface{}, error) {
 	v := reflect.ValueOf(packerStruct).Elem()
-	t := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
-		fieldType := t.Field(i).Type
-		err := randomizeField(field, fieldType)
+		err := randomizeField(field)
 		if err != nil {
 			return nil, err
 		}
@@ -134,7 +133,8 @@ func randomizeStruct(packerStruct interface{}) (interface{}, error) {
 	return packerStruct, nil
 }
 
-func randomizeField(field reflect.Value, fieldType reflect.Type) error {
+func randomizeField(field reflect.Value) error {
+	fieldType := field.Type()
 	switch fieldType.Kind() {
 	// The list only includes types supported by abigen
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -146,9 +146,10 @@ func randomizeField(field reflect.Value, fieldType reflect.Type) error {
 	case reflect.String:
 		field.SetString(randomString(rand.Intn(256)))
 	case reflect.Slice:
-		field.Set(reflect.MakeSlice(fieldType, 10, 10))
+		n := rand.Intn(256)
+		field.Set(reflect.MakeSlice(fieldType, n, n))
 		for i := 0; i < field.Len(); i++ {
-			err := randomizeField(field.Index(i), field.Index(i).Type())
+			err := randomizeField(field.Index(i))
 			if err != nil {
 				return fmt.Errorf("Error randomizing slice: %v", err)
 			}

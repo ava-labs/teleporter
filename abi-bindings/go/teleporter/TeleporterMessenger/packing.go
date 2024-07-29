@@ -59,9 +59,6 @@ func (m *TeleporterMessage) Unpack(b []byte) error {
 	if err != nil {
 		return fmt.Errorf("failed to unpack to teleporter message with err: %v", err)
 	}
-	type teleporterMessageArg struct {
-		TeleporterMessage TeleporterMessage `json:"teleporterMessage"`
-	}
 	err = args.Copy(&m, unpacked)
 	if err != nil {
 		return err

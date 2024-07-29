@@ -50,11 +50,7 @@ func (m *ValidatorSetSigMessage) Unpack(messageBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("failed to unpack to ValidatorSetSigMessage with err: %v", err)
 	}
-	type validatorSetSigWarpPayload struct {
-		ValidatorSetSigMessage *ValidatorSetSigMessage `json:"validatorSetSigMessage"`
-	}
-	payload := validatorSetSigWarpPayload{ValidatorSetSigMessage: m}
-	err = args.Copy(&payload, unpacked)
+	err = args.Copy(&m, unpacked)
 	return err
 }
 
