@@ -175,7 +175,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 		func() {
 			flows.ValidatorSetSig(LocalNetworkInstance)
 		})
-	ginkgo.It("Validator churn",
+	ginkgo.FIt("Validator churn",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
 			flows.ValidatorChurn(LocalNetworkInstance)

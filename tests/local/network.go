@@ -112,7 +112,7 @@ func NewLocalNetwork(
 	network := subnetEvmTestUtils.NewTmpnetNetwork(
 		name,
 		allNodes,
-		tmpnet.FlagsMap{},
+		tmpnet.FlagsMap{"log-display-level": "debug"},
 		subnets...,
 	)
 	Expect(network).ShouldNot(BeNil())
@@ -368,9 +368,17 @@ func (n *LocalNetwork) SetTeleporterContractAddress(newTeleporterAddress common.
 		)
 		Expect(err).Should(BeNil())
 		if subnetInfo.SubnetID == constants.PrimaryNetworkID {
-			n.primaryNetworkInfo.TeleporterMessenger = teleporterMessenger
+			if n.primaryNetworkInfo.TeleporterMessenger == nil {
+				n.primaryNetworkInfo.TeleporterMessenger = teleporterMessenger
+			} else {
+				*n.primaryNetworkInfo.TeleporterMessenger = *teleporterMessenger
+			}
 		} else {
-			n.subnetsInfo[subnetInfo.SubnetID].TeleporterMessenger = teleporterMessenger
+			if n.subnetsInfo[subnetInfo.SubnetID].TeleporterMessenger == nil {
+				n.subnetsInfo[subnetInfo.SubnetID].TeleporterMessenger = teleporterMessenger
+			} else {
+				*n.subnetsInfo[subnetInfo.SubnetID].TeleporterMessenger = *teleporterMessenger
+			}
 		}
 	}
 }
