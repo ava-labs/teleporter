@@ -66,6 +66,10 @@ abstract contract TokenHomeTest is TokenTransferrerTest {
         );
     }
 
+    function testGetTokenAddress() public {
+        assertEq(address(transferredToken), address(tokenHome.getTokenAddress()));
+    }
+
     function testAddCollateralRemoteNotRegistered() public {
         vm.expectRevert(_formatErrorMessage("remote not registered"));
         _addCollateral(DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID, DEFAULT_TOKEN_REMOTE_ADDRESS, 100);
