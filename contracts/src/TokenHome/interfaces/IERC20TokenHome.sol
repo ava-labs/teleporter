@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {IERC20TokenTransferrer} from "../../interfaces/IERC20TokenTransferrer.sol";
 import {ITokenHome} from "./ITokenHome.sol";

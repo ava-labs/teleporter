@@ -3,10 +3,11 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/registry/TeleporterOwnerUpgradeable.sol";
+import {TeleporterRegistryOwnableAppUpgradeable} from
+    "@teleporter/registry/TeleporterRegistryOwnableAppUpgradeable.sol";
 import {ITokenHome, RemoteTokenTransferrerSettings} from "./interfaces/ITokenHome.sol";
 import {
     SendTokensInput,
@@ -35,7 +36,11 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReentrancyGuard {
+abstract contract TokenHome is
+    ITokenHome,
+    TeleporterRegistryOwnableAppUpgradeable,
+    SendReentrancyGuard
+{
     // solhint-disable private-vars-leading-underscore
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
@@ -109,7 +114,7 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
         address tokenAddress_,
         uint8 tokenDecimals_
     ) internal virtual onlyInitializing {
-        __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+        __TeleporterRegistryOwnableApp_init(teleporterRegistryAddress, teleporterManager);
         __SendReentrancyGuard_init();
         __TokenHome_init_unchained(tokenAddress_, tokenDecimals_);
     }

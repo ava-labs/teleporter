@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {ITokenRemote, TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
 import {
@@ -18,7 +18,8 @@ import {
     RegisterRemoteMessage
 } from "../interfaces/ITokenTransferrer.sol";
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/registry/TeleporterOwnerUpgradeable.sol";
+import {TeleporterRegistryOwnableAppUpgradeable} from
+    "@teleporter/registry/TeleporterRegistryOwnableAppUpgradeable.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
@@ -31,7 +32,11 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendReentrancyGuard {
+abstract contract TokenRemote is
+    ITokenRemote,
+    TeleporterRegistryOwnableAppUpgradeable,
+    SendReentrancyGuard
+{
     // solhint-disable private-vars-leading-underscore
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
@@ -148,7 +153,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
         uint256 initialReserveImbalance_,
         uint8 tokenDecimals_
     ) internal onlyInitializing {
-        __TeleporterOwnerUpgradeable_init(
+        __TeleporterRegistryOwnableApp_init(
             settings.teleporterRegistryAddress, settings.teleporterManager
         );
         __SendReentrancyGuard_init();

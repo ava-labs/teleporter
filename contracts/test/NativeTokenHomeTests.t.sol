@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
@@ -62,7 +62,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
             address(0),
             address(this),
             address(wavax),
-            "TeleporterUpgradeable: zero teleporter registry address"
+            "TeleporterRegistryApp: zero teleporter registry address"
         );
     }
 

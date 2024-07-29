@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {ERC20TokenTransferrerTest} from "./ERC20TokenTransferrerTests.t.sol";
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
@@ -70,7 +70,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
             address(this),
             address(mockERC20),
             tokenHomeDecimals,
-            "TeleporterUpgradeable: zero teleporter registry address"
+            "TeleporterRegistryApp: zero teleporter registry address"
         );
     }
 

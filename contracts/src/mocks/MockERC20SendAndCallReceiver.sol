@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {IERC20SendAndCallReceiver} from "../interfaces/IERC20SendAndCallReceiver.sol";
 import {SafeERC20TransferFrom} from "../utils/SafeERC20TransferFrom.sol";
