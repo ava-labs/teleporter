@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.25;
 
-enum Initializable {
+enum ICTTInitializable {
     Allowed,
     Disallowed
 }

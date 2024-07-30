@@ -6,14 +6,14 @@
 pragma solidity 0.8.25;
 
 import {NativeTokenHomeUpgradeable} from "./NativeTokenHomeUpgradeable.sol";
-import {Initializable} from "../utils/Initializable.sol";
+import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
 
 contract NativeTokenHome is NativeTokenHomeUpgradeable {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
         address wrappedTokenAddress
-    ) NativeTokenHomeUpgradeable(Initializable.Allowed) {
+    ) NativeTokenHomeUpgradeable(ICTTInitializable.Allowed) {
         initialize(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress);
     }
 }

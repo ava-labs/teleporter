@@ -17,7 +17,7 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
-import {Initializable as Initialization} from "../src/utils/Initializable.sol";
+import {ICTTInitializable} from "../src/utils/ICTTInitializable.sol";
 import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
@@ -70,7 +70,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
     }
 
     function testDisableInitialization() public {
-        app = new ERC20TokenRemoteUpgradeable(Initialization.Disallowed);
+        app = new ERC20TokenRemoteUpgradeable(ICTTInitializable.Disallowed);
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         app.initialize(
             TokenRemoteSettings({
@@ -199,7 +199,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
         ERC20TokenRemoteUpgradeable instance =
-            new ERC20TokenRemoteUpgradeable(Initialization.Allowed);
+            new ERC20TokenRemoteUpgradeable(ICTTInitializable.Allowed);
         instance.initialize(
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -323,7 +323,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
         uint8 tokenDecimals_,
         bytes memory expectedErrorMessage
     ) private {
-        app = new ERC20TokenRemoteUpgradeable(Initialization.Allowed);
+        app = new ERC20TokenRemoteUpgradeable(ICTTInitializable.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(settings, tokenName, tokenSymbol, tokenDecimals_);
     }

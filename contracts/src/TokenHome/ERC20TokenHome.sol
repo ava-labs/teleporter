@@ -6,7 +6,7 @@
 pragma solidity 0.8.25;
 
 import {ERC20TokenHomeUpgradeable} from "./ERC20TokenHomeUpgradeable.sol";
-import {Initializable} from "../utils/Initializable.sol";
+import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
 
 contract ERC20TokenHome is ERC20TokenHomeUpgradeable {
     constructor(
@@ -14,7 +14,7 @@ contract ERC20TokenHome is ERC20TokenHomeUpgradeable {
         address teleporterManager,
         address tokenAddress,
         uint8 tokenDecimals
-    ) ERC20TokenHomeUpgradeable(Initializable.Allowed) {
+    ) ERC20TokenHomeUpgradeable(ICTTInitializable.Allowed) {
         initialize(teleporterRegistryAddress, teleporterManager, tokenAddress, tokenDecimals);
     }
 }

@@ -23,7 +23,7 @@ import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
-import {Initializable as Initialization} from "../src/utils/Initializable.sol";
+import {ICTTInitializable} from "../src/utils/ICTTInitializable.sol";
 import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
@@ -67,7 +67,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     }
 
     function testDisableInitialization() public {
-        app = new NativeTokenRemoteUpgradeable(Initialization.Disallowed);
+        app = new NativeTokenRemoteUpgradeable(ICTTInitializable.Disallowed);
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         app.initialize({
             settings: TokenRemoteSettings({
@@ -338,7 +338,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function testReportBurnFeesNoRewardSuccess() public {
         // Create a new TokenRemote instance with no rewards for reporting burned fees.
-        app = new NativeTokenRemoteUpgradeable(Initialization.Allowed);
+        app = new NativeTokenRemoteUpgradeable(ICTTInitializable.Allowed);
         app.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -394,7 +394,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
         NativeTokenRemoteUpgradeable instance =
-            new NativeTokenRemoteUpgradeable(Initialization.Allowed);
+            new NativeTokenRemoteUpgradeable(ICTTInitializable.Allowed);
         instance.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -538,7 +538,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         uint256 burnedFeesReportingRewardPercentage,
         bytes memory expectedErrorMessage
     ) private {
-        app = new NativeTokenRemoteUpgradeable(Initialization.Allowed);
+        app = new NativeTokenRemoteUpgradeable(ICTTInitializable.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(
             settings,

@@ -6,8 +6,8 @@
 pragma solidity 0.8.25;
 
 import {NativeTokenRemoteUpgradeable} from "./NativeTokenRemoteUpgradeable.sol";
-import {Initializable} from "../utils/Initializable.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
+import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
 
 contract NativeTokenRemote is NativeTokenRemoteUpgradeable {
     constructor(
@@ -15,7 +15,7 @@ contract NativeTokenRemote is NativeTokenRemoteUpgradeable {
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
         uint256 burnedFeesReportingRewardPercentage
-    ) NativeTokenRemoteUpgradeable(Initializable.Allowed) {
+    ) NativeTokenRemoteUpgradeable(ICTTInitializable.Allowed) {
         initialize(
             settings,
             nativeAssetSymbol,
