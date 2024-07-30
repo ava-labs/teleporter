@@ -44,7 +44,7 @@ func findAllImplementers(t *testing.T) []string {
 	require.NoError(t, err)
 
 	var iface *types.Interface
-	// find the interface in the currnet package
+	// find the interface in the current package
 	for _, pkg := range interfacePkg {
 		for _, obj := range pkg.Types.Scope().Names() {
 			if obj == interfaceName {
