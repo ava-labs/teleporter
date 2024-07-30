@@ -36,7 +36,7 @@ Validator exit is initiated with a call to `initializeEndValidation` on the Stak
 
 The `SetSubnetValidatorWeightMessage` is delivered to the P-Chain as the payload of a `SetValidatorWeightTx`. This results in another `SetSubnetValidatorWeightMessage` Warp message, this time constructed by the P-Chain.
 
-This `SetSubnetValidatorWeightMessage` is delivered to the Staking Manager contract with a call to `completeEndValidation` with `setWeightMessageType=true`, at which point staking rewards are disbursed and the validation is removed from the contract's state.
+This `SetSubnetValidatorWeightMessage` is delivered to the Staking Manager contract with a call to `completeEndValidation` with `setWeightMessageType=true`, at which point staking rewards are disbursed, stake is returned, and the validation is removed from the contract's state.
 
 #### Exit the Validator Set Directly on the P-Chain
 
