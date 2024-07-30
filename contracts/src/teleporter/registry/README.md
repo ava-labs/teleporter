@@ -33,7 +33,7 @@ In the `TeleporterRegistry` contract, the `latestVersion` state variable returns
   <img src="./upgrade-uml.png?raw=true" alt="Upgrade UML diagram"/>
 </div>
 
-[TeleporterRegistryApp](./TeleporterRegistryApp.sol) is an abstract contract that helps integrate the `TeleporterRegistry` into a dApp built on top of Teleporter. To support upgradeable contracts, there is also a corresponding `TeleporterRegistryAppUpgradeable` contract that is upgrade compatible. By inheriting from `TeleporterRegistryApp`, dapps get:
+[TeleporterRegistryApp](./TeleporterRegistryApp.sol) is an abstract contract that helps integrate the `TeleporterRegistry` into a dApp built on top of Teleporter. To support upgradeable contracts, there is also a corresponding `TeleporterRegistryAppUpgradeable` contract that is upgrade compatible. By inheriting from `TeleporterRegistryApp`, dApps get:
 
 - Ability to send Teleporter messages through the latest version of the Teleporter contract registered in the Teleporter registry. (The dApp can also override this to use a specific version of the Teleporter contract.)
 - `minTeleporterVersion` management that allows the dApp to specify the minimum Teleporter version that can send messages to the dApp.
@@ -99,7 +99,7 @@ Another example would be a dApp that has different roles and priveleges. `_check
 
 ### Sending with specific Teleporter version
 
-For sending messages with the Teleporter registry, dapps should use `TeleporterRegistryApp._getTeleporterMessenger`. This function by default extends `TeleporterRegistry.getLatestTeleporter`, using the latest version, and adds an extra check on whether the latest Teleporter address is paused. If the dApp wants to send a message through a specific Teleporter version, it can override `_getTeleporterMessenger()` to use the specific Teleporter version with `TeleporterRegistry.getTeleporterFromVersion`.
+For sending messages with the Teleporter registry, dApps should use `TeleporterRegistryApp._getTeleporterMessenger`. This function by default extends `TeleporterRegistry.getLatestTeleporter`, using the latest version, and adds an extra check on whether the latest Teleporter address is paused. If the dApp wants to send a message through a specific Teleporter version, it can override `_getTeleporterMessenger()` to use the specific Teleporter version with `TeleporterRegistry.getTeleporterFromVersion`.
 
 The `TeleporterRegistryApp._sendTeleporterMessage` function makes sending Teleporter messages easier. The function uses `_getTeleporterMessenger` to get the sending Teleporter version, pays for Teleporter fees from the dApp's balance, and sends the cross chain message.
 
@@ -197,7 +197,7 @@ To pause all Teleporter interactions, `TeleporterRegistryApp.pauseTeleporterAddr
 
 #### Unpausing Teleporter version interactions
 
-As with pausing, dapps can unpause Teleporter interactions by calling `TeleporterRegistryApp.unpauseTeleporterAddress`. This unpause function allows receiving Teleporter message from the unpaused Teleporter address, and also enables the sending of messages through the unpaused Teleporter address in `_getTeleporterMessenger()`. Unpausing is also only allowed by addresses with the dApp's upgrade access.
+As with pausing, dApps can unpause Teleporter interactions by calling `TeleporterRegistryApp.unpauseTeleporterAddress`. This unpause function allows receiving Teleporter message from the unpaused Teleporter address, and also enables the sending of messages through the unpaused Teleporter address in `_getTeleporterMessenger()`. Unpausing is also only allowed by addresses with the dApp's upgrade access.
 
 Note that receiving Teleporter messages is still governed by the `minTeleporterVersion` check, so even if a Teleporter address is unpaused, the dApp will not receive messages from the unpaused Teleporter address if the Teleporter version is less than `minTeleporterVersion`.
 

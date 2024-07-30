@@ -61,7 +61,7 @@ abstract contract TeleporterRegistryAppUpgradeable is
      * keccak256(abi.encode(uint256(keccak256("teleporter.storage.TeleporterRegistryApp")) - 1)) & ~bytes32(uint256(0xff));
      */
     bytes32 public constant TELEPORTER_REGISTRY_APP_STORAGE_LOCATION =
-        0x2a141db39aa10c95f68b87d187b82be26cf679a21fe482d47c0b39775a4a5200;
+        0xde77a4dc7391f6f8f2d9567915d687d3aee79e7a1fc7300392f2727e9a0f1d00;
 
     /**
      * @dev Emitted when `minTeleporterVersion` is updated.
