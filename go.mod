@@ -3,8 +3,8 @@ module github.com/ava-labs/avalanche-interchain-token-transfer
 go 1.21.12
 
 require (
-	github.com/ava-labs/avalanchego v1.11.10-0.20240718133512-d9ddf0a774e1
-	github.com/ava-labs/subnet-evm v0.6.8-status-removal.0.20240718135117-a3d13a0c9366
+	github.com/ava-labs/avalanchego v1.11.10
+	github.com/ava-labs/subnet-evm v0.6.8
 	github.com/ava-labs/teleporter v1.0.3
 	github.com/ethereum/go-ethereum v1.13.8
 	github.com/onsi/ginkgo/v2 v2.19.1
@@ -15,7 +15,7 @@ require (
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
-	github.com/ava-labs/coreth v0.13.6-rc.1.0.20240718130554-0110293d1f4b // indirect
+	github.com/ava-labs/coreth v0.13.7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
