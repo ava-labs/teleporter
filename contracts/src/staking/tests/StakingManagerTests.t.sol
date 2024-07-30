@@ -6,12 +6,8 @@
 pragma solidity 0.8.25;
 
 import {Test} from "forge-std/Test.sol";
-import {
-    StakingManager
-} from "../StakingManager.sol";
-import {
-    IStakingManager
-} from "../interfaces/IStakingManager.sol";
+import {StakingManager} from "../StakingManager.sol";
+import {IStakingManager} from "../interfaces/IStakingManager.sol";
 
 abstract contract StakingManagerTest is Test {
     IStakingManager public stakingManager;

@@ -8,13 +8,8 @@ pragma solidity 0.8.25;
 import {Test} from "forge-std/Test.sol";
 import {StakingManagerTest} from "./StakingManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
-import {
-    StakingManagerSettings,
-    InitialStakerInfo
-} from "../interfaces/IStakingManager.sol";
-import {
-    IRewardCalculator
-} from "../interfaces/IRewardCalculator.sol";
+import {StakingManagerSettings, InitialStakerInfo} from "../interfaces/IStakingManager.sol";
+import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 
 contract NativeTokenStakingManagerTest is StakingManagerTest {
     NativeTokenStakingManager public nativeTokenStakingManager;

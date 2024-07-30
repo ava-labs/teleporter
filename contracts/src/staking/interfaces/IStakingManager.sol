@@ -8,7 +8,6 @@ pragma solidity 0.8.25;
 import {StakingMessages} from "../StakingMessages.sol";
 import {IRewardCalculator} from "./IRewardCalculator.sol";
 
-
 struct InitialStakerInfo {
     StakingMessages.ValidationInfo validationInfo;
     address owner;

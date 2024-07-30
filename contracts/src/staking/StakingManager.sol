@@ -5,10 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {
-    IStakingManager,
-    StakingManagerSettings
-} from "./interfaces/IStakingManager.sol";
+import {IStakingManager, StakingManagerSettings} from "./interfaces/IStakingManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
