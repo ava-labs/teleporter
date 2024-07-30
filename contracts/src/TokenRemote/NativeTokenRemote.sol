@@ -14,13 +14,13 @@ contract NativeTokenRemote is NativeTokenRemoteUpgradeable {
         TokenRemoteSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
-        uint256 burnedFeesReportingRewardPercentage_
+        uint256 burnedFeesReportingRewardPercentage
     ) NativeTokenRemoteUpgradeable(Initializable.Allowed) {
         initialize(
             settings,
             nativeAssetSymbol,
             initialReserveImbalance,
-            burnedFeesReportingRewardPercentage_
+            burnedFeesReportingRewardPercentage
         );
     }
 }

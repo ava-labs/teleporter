@@ -1,4 +1,4 @@
-// (c) 2023, Ava Labs, Inc. All rights reserved.
+// (c) 2024, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
 // SPDX-License-Identifier: Ecosystem
@@ -142,20 +142,20 @@ contract NativeTokenRemoteUpgradeable is
      * @param settings Constructor settings for this token TokenRemote instance.
      * @param nativeAssetSymbol The symbol of the native asset.
      * @param initialReserveImbalance The initial reserve imbalance that must be collateralized before minting.
-     * @param burnedFeesReportingRewardPercentage_ The percentage of burned transaction fees
+     * @param burnedFeesReportingRewardPercentage The percentage of burned transaction fees
      * that will be rewarded to sender of the report.
      */
     function initialize(
         TokenRemoteSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
-        uint256 burnedFeesReportingRewardPercentage_
+        uint256 burnedFeesReportingRewardPercentage
     ) public initializer {
         __NativeTokenRemote_init(
             settings,
             nativeAssetSymbol,
             initialReserveImbalance,
-            burnedFeesReportingRewardPercentage_
+            burnedFeesReportingRewardPercentage
         );
     }
 
@@ -164,22 +164,22 @@ contract NativeTokenRemoteUpgradeable is
         TokenRemoteSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
-        uint256 burnedFeesReportingRewardPercentage_
+        uint256 burnedFeesReportingRewardPercentage
     ) internal onlyInitializing {
         require(initialReserveImbalance != 0, "NativeTokenRemote: zero initial reserve imbalance");
         __ERC20_init(nativeAssetSymbol, nativeAssetSymbol);
         __TokenRemote_init(settings, initialReserveImbalance, 18);
-        __NativeTokenRemote_init_unchained(burnedFeesReportingRewardPercentage_);
+        __NativeTokenRemote_init_unchained(burnedFeesReportingRewardPercentage);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __NativeTokenRemote_init_unchained(uint256 burnedFeesReportingRewardPercentage_)
+    function __NativeTokenRemote_init_unchained(uint256 burnedFeesReportingRewardPercentage)
         internal
         onlyInitializing
     {
-        require(burnedFeesReportingRewardPercentage_ < 100, "NativeTokenRemote: invalid percentage");
+        require(burnedFeesReportingRewardPercentage < 100, "NativeTokenRemote: invalid percentage");
         _getNativeTokenRemoteStorage()._burnedFeesReportingRewardPercentage =
-            burnedFeesReportingRewardPercentage_;
+            burnedFeesReportingRewardPercentage;
     }
     // solhint-enable ordering
 

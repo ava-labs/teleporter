@@ -144,27 +144,27 @@ abstract contract TokenRemote is
      * @notice Initializes this token TokenRemote instance.
      * @param settings The settings for the token TokenRemote instance.
      * @param initialReserveImbalance_ The initial reserve imbalance that must be collateralized before minting.
-     * @param tokenDecimals_ The number of decimal places in the denomination of the remote token.
+     * @param tokenDecimals The number of decimal places in the denomination of the remote token.
      */
     // solhint-disable ordering
     // solhint-disable-next-line func-name-mixedcase
     function __TokenRemote_init(
         TokenRemoteSettings memory settings,
         uint256 initialReserveImbalance_,
-        uint8 tokenDecimals_
+        uint8 tokenDecimals
     ) internal onlyInitializing {
         __TeleporterRegistryOwnableApp_init(
             settings.teleporterRegistryAddress, settings.teleporterManager
         );
         __SendReentrancyGuard_init();
-        __TokenRemote_init_unchained(settings, initialReserveImbalance_, tokenDecimals_);
+        __TokenRemote_init_unchained(settings, initialReserveImbalance_, tokenDecimals);
     }
 
     // solhint-disable-next-line func-name-mixedcase
     function __TokenRemote_init_unchained(
         TokenRemoteSettings memory settings,
         uint256 initialReserveImbalance_,
-        uint8 tokenDecimals_
+        uint8 tokenDecimals
     ) internal onlyInitializing {
         TokenRemoteStorage storage $ = _getTokenRemoteStorage();
         $._blockchainID =
@@ -183,7 +183,7 @@ abstract contract TokenRemote is
             "TokenRemote: token home decimals too high"
         );
         require(
-            tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            tokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TokenRemote: token decimals too high"
         );
         $._tokenHomeBlockchainID = settings.tokenHomeBlockchainID;
@@ -191,9 +191,9 @@ abstract contract TokenRemote is
         $._initialReserveImbalance = initialReserveImbalance_;
         $._isCollateralized = initialReserveImbalance_ == 0;
         $._homeTokenDecimals = settings.tokenHomeDecimals;
-        $._tokenDecimals = tokenDecimals_;
+        $._tokenDecimals = tokenDecimals;
         ($._tokenMultiplier, $._multiplyOnRemote) = TokenScalingUtils.deriveTokenMultiplierValues(
-            settings.tokenHomeDecimals, tokenDecimals_
+            settings.tokenHomeDecimals, tokenDecimals
         );
     }
     // solhint-enable ordering

@@ -14,8 +14,8 @@ contract ERC20TokenRemote is ERC20TokenRemoteUpgradeable {
         TokenRemoteSettings memory settings,
         string memory tokenName,
         string memory tokenSymbol,
-        uint8 tokenDecimals_
+        uint8 tokenDecimals
     ) ERC20TokenRemoteUpgradeable(Initializable.Allowed) {
-        initialize(settings, tokenName, tokenSymbol, tokenDecimals_);
+        initialize(settings, tokenName, tokenSymbol, tokenDecimals);
     }
 }

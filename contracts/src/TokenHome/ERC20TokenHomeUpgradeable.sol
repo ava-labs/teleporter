@@ -68,17 +68,17 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
-     * @param tokenAddress_ The ERC20 token contract address to be transferred by the home.
-     * @param tokenDecimals_ The number of decimals for the ERC20 token
+     * @param tokenAddress The ERC20 token contract address to be transferred by the home.
+     * @param tokenDecimals The number of decimals for the ERC20 token
      */
     function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address tokenAddress_,
-        uint8 tokenDecimals_
+        address tokenAddress,
+        uint8 tokenDecimals
     ) public initializer {
         __ERC20TokenHome_init(
-            teleporterRegistryAddress, teleporterManager, tokenAddress_, tokenDecimals_
+            teleporterRegistryAddress, teleporterManager, tokenAddress, tokenDecimals
         );
     }
 
@@ -86,18 +86,16 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
     function __ERC20TokenHome_init(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address tokenAddress_,
-        uint8 tokenDecimals_
+        address tokenAddress,
+        uint8 tokenDecimals
     ) internal onlyInitializing {
-        __TokenHome_init(
-            teleporterRegistryAddress, teleporterManager, tokenAddress_, tokenDecimals_
-        );
-        __ERC20TokenHome_init_unchained(tokenAddress_);
+        __TokenHome_init(teleporterRegistryAddress, teleporterManager, tokenAddress, tokenDecimals);
+        __ERC20TokenHome_init_unchained(tokenAddress);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __ERC20TokenHome_init_unchained(address tokenAddress_) internal onlyInitializing {
-        _getERC20TokenHomeStorage()._token = IERC20(tokenAddress_);
+    function __ERC20TokenHome_init_unchained(address tokenAddress) internal onlyInitializing {
+        _getERC20TokenHomeStorage()._token = IERC20(tokenAddress);
     }
     // solhint-enable ordering
 
