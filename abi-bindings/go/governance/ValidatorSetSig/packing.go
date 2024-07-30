@@ -50,8 +50,7 @@ func (m *ValidatorSetSigMessage) Unpack(messageBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("failed to unpack to ValidatorSetSigMessage with err: %v", err)
 	}
-	err = args.Copy(&m, unpacked)
-	return err
+	return args.Copy(&m, unpacked)
 }
 
 // PackExecuteCall packs the input to form a call to the executeCall function

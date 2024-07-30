@@ -59,11 +59,7 @@ func (m *TeleporterMessage) Unpack(b []byte) error {
 	if err != nil {
 		return fmt.Errorf("failed to unpack to teleporter message with err: %v", err)
 	}
-	err = args.Copy(&m, unpacked)
-	if err != nil {
-		return err
-	}
-	return nil
+	return args.Copy(&m, unpacked)
 }
 
 func PackSendCrossChainMessage(input TeleporterMessageInput) ([]byte, error) {

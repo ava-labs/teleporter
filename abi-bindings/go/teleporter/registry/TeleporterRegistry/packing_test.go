@@ -16,7 +16,6 @@ func TestPackUnpackProtocolRegistryEntry(t *testing.T) {
 		Version:         big.NewInt(1),
 		ProtocolAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 	}
-	//
 	e, err := entry.Pack()
 	require.NoError(t, err)
 

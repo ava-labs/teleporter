@@ -59,11 +59,7 @@ func (p *ProtocolRegistryEntry) Unpack(b []byte) error {
 		return fmt.Errorf("failed to unpack to Teleporter registry entry with err: %v", err)
 	}
 
-	err = args.Copy(&p, unpacked)
-	if err != nil {
-		return err
-	}
-	return nil
+	return args.Copy(&p, unpacked)
 }
 
 func PackTeleporterRegistryWarpPayload(entry ProtocolRegistryEntry, destinationAddress common.Address) ([]byte, error) {
