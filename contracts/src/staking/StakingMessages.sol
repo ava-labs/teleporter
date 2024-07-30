@@ -30,7 +30,7 @@ library StakingMessages {
     // Full test coverage should be provided, and the implementation should be optimized for gas efficiency.
 
     /**
-     * @notice Packs a SetSubnetValidatorWeightMessage message into a byte array.
+     * @notice Packs a RegisterSubnetValidatorMessage message into a byte array.
      * The message format specification is:
      * +-----------+----------+-----------+
      * |    typeID :   uint32 |   4 bytes |
