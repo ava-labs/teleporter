@@ -40,7 +40,7 @@ In the `TeleporterRegistry` contract, the `latestVersion` state variable returns
 - Access controlled utility to update the `minTeleporterVersion`
 - Access controlled utility to pause/unpause interaction with specific Teleporter addresses.
 
-To integrate `TeleporterRegistryApp` with a dApp pass in the Teleporter registry address inside the constructor. For upgradeable contracts `TeleporterRegistryAppUpgradeable` can be inherited from, and the derived contract's `initializer` function should call either `__TeleporterRegistryApp_init` or `__TeleporterRegistryApp_init_unchained` An example dApp looks like:
+To integrate `TeleporterRegistryApp` with a dApp, pass in the Teleporter registry address inside the constructor. For upgradeable contracts `TeleporterRegistryAppUpgradeable` can be inherited, and the derived contract's `initializer` function should call either `__TeleporterRegistryApp_init` or `__TeleporterRegistryApp_init_unchained` An example dApp looks like:
 
 ```solidity
 // An example dApp that integrates with the Teleporter registry
