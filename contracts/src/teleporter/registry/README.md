@@ -69,30 +69,30 @@ contract ExampleApp is
     }
 
     // Implements the access control checks for the dApp's interaction with Teleporter versions.
-    function _checkTeleporterUpgradeAccess() internal view virtual override {
+    function _checkTeleporterRegistryAppAccess() internal view virtual override {
         //implementation
     }
 
 }
 ```
 
-### Checking Teleporter upgrade access
+### Checking TeleporterRegistryApp access
 
-To prevent anyone from calling the dApp's `updateMinTeleporterVersion`, which would disallow messages from old Teleporter versions from being received, this function should be safeguarded with access controls. All contracts deriving from `TeleporterRegistryApp` will need to implement `TeleporterRegistryApp._checkTeleporterUpgradeAccess`. For example, [TeleporterRegistryOwnableApp](./TeleporterRegistryOwnableApp.sol) is an abstract contract that inherits `TeleporterRegistryApp`, and implements `_checkTeleporterUpgradeAccess` to check whether the caller is the owner. There is also a corresponding `TeleporterRegistryOwnableAppUpgradeable` contract that is upgrade compatible.
+To prevent anyone from calling the dApp's `updateMinTeleporterVersion`, which would disallow messages from old Teleporter versions from being received, this function should be safeguarded with access controls. All contracts deriving from `TeleporterRegistryApp` will need to implement `TeleporterRegistryApp._checkTeleporterRegistryAppAccess`. For example, [TeleporterRegistryOwnableApp](./TeleporterRegistryOwnableApp.sol) is an abstract contract that inherits `TeleporterRegistryApp`, and implements `_checkTeleporterRegistryAppAccess` to check whether the caller is the owner. There is also a corresponding `TeleporterRegistryOwnableAppUpgradeable` contract that is upgrade compatible.
 
 ```solidity
-    function _checkTeleporterUpgradeAccess() internal view virtual override {
+    function _checkTeleporterRegistryAppAccess() internal view virtual override {
         _checkOwner();
     }
 ```
 
-Another example would be a dApp that has different roles and priveleges. `_checkTeleporterUpgradeAccess` can be implemented to check whether the caller is a specific role.
+Another example would be a dApp that has different roles and priveleges. `_checkTeleporterRegistryAppAccess` can be implemented to check whether the caller is a specific role.
 
 ```solidity
-    function _checkTeleporterUpgradeAccess() internal view virtual override {
+    function _checkTeleporterRegistryAppAccess() internal view virtual override {
         require(
-            hasRole(TELEPORTER_UPGRADE_ROLE, _msgSender()),
-            "TeleporterRegistryApp: caller does not have upgrade access"
+            hasRole(TELEPORTER_REGISTRY_APP_ADMIN, _msgSender()),
+            "TeleporterRegistryApp: caller does not have access"
         );
     }
 ```
@@ -129,7 +129,7 @@ Using specific version:
 
 ### Receiving from specific Teleporter versions
 
-`TeleporterRegistryApp` also provides an initial implementation of [ITeleporterReceiver.receiveTeleporterMessage](../ITeleporterReceiver.sol) that ensures `_msgSender` is a `TeleporterMessenger` contract with a version greater than or equal to `minTeleporterVersion`. This supports the case where a dApp wants to upgrade to a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract.The dApp can override `_receiveTeleporterMessage` to implement its own logic for receiving messages from Teleporter contracts.
+`TeleporterRegistryApp` also provides an initial implementation of [ITeleporterReceiver.receiveTeleporterMessage](../ITeleporterReceiver.sol) that ensures `_msgSender` is a `TeleporterMessenger` contract with a version greater than or equal to `minTeleporterVersion`. This supports the case where a dApp wants to use a new version of the `TeleporterMessenger` contract, but still wants to be able to receive messages from the old Teleporter contract.The dApp can override `_receiveTeleporterMessage` to implement its own logic for receiving messages from Teleporter contracts.
 
 ## Managing a TeleporterRegistryApp dApp
 
@@ -155,7 +155,7 @@ The `TeleporterRegistryApp.updateMinTeleporterVersion` function updates the `min
 
 dApps that inherit from `TeleporterRegistryApp` can pause Teleporter interactions by calling `TeleporterRegistryApp.pauseTeleporterAddress`. This function prevents the dApp contract from interacting with the paused Teleporter address when sending or receiving Teleporter messages.
 
-`pauseTeleporterAddress` can only be called by addresses with the dApps upgrade access, checked through `TeleporterRegistryApp._checkTeleporterUpgradeAccess`.
+`pauseTeleporterAddress` can only be called by addresses that passes the dApp's `TeleporterRegistryApp._checkTeleporterRegistryAppAccess` check.
 
 The Teleporter address corresponding to a Teleporter version can be fetched from the registry with `TeleporterRegistry.getAddressFromVersion`
 
@@ -197,7 +197,7 @@ To pause all Teleporter interactions, `TeleporterRegistryApp.pauseTeleporterAddr
 
 #### Unpausing Teleporter version interactions
 
-As with pausing, dApps can unpause Teleporter interactions by calling `TeleporterRegistryApp.unpauseTeleporterAddress`. This unpause function allows receiving Teleporter message from the unpaused Teleporter address, and also enables the sending of messages through the unpaused Teleporter address in `_getTeleporterMessenger()`. Unpausing is also only allowed by addresses with the dApp's upgrade access.
+As with pausing, dApps can unpause Teleporter interactions by calling `TeleporterRegistryApp.unpauseTeleporterAddress`. This unpause function allows receiving Teleporter message from the unpaused Teleporter address, and also enables the sending of messages through the unpaused Teleporter address in `_getTeleporterMessenger()`. Unpausing is also only allowed by addresses passing the dApp's `_checkTeleporterRegistryAppAccess` check.
 
 Note that receiving Teleporter messages is still governed by the `minTeleporterVersion` check, so even if a Teleporter address is unpaused, the dApp will not receive messages from the unpaused Teleporter address if the Teleporter version is less than `minTeleporterVersion`.
 

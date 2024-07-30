@@ -34,8 +34,8 @@ contract ExampleRegistryOwnableAppUpgradeable is TeleporterRegistryOwnableAppUpg
         return _getTeleporterMessenger();
     }
 
-    function checkTeleporterUpgradeAccess() public view {
-        _checkTeleporterUpgradeAccess();
+    function checkTeleporterRegistryAppAccess() public view {
+        _checkTeleporterRegistryAppAccess();
     }
 
     function _receiveTeleporterMessage(
@@ -63,8 +63,8 @@ contract ExampleRegistryOwnableApp is TeleporterRegistryOwnableApp {
         return _getTeleporterMessenger();
     }
 
-    function checkTeleporterUpgradeAccess() public view {
-        _checkTeleporterUpgradeAccess();
+    function checkTeleporterRegistryAppAccess() public view {
+        _checkTeleporterRegistryAppAccess();
     }
 
     function _receiveTeleporterMessage(
@@ -214,11 +214,11 @@ abstract contract BaseTeleporterRegistryOwnableAppTest is BaseTeleporterRegistry
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector, MOCK_INVALID_OWNER_ADDRESS
             )
         );
-        ownerApp.checkTeleporterUpgradeAccess();
+        ownerApp.checkTeleporterRegistryAppAccess();
 
         // Check that call to check upgrade access succeeds for owners
         vm.prank(DEFAULT_OWNER_ADDRESS);
-        ownerApp.checkTeleporterUpgradeAccess();
+        ownerApp.checkTeleporterRegistryAppAccess();
     }
 
     function testInitalOwner() public {
@@ -230,7 +230,7 @@ abstract contract BaseTeleporterRegistryOwnableAppTest is BaseTeleporterRegistry
         // Check that the teleporterManager is set correctly
         assertEq(newOwnerApp.owner(), DEFAULT_OWNER_ADDRESS);
         vm.prank(DEFAULT_OWNER_ADDRESS);
-        newOwnerApp.checkTeleporterUpgradeAccess();
+        newOwnerApp.checkTeleporterRegistryAppAccess();
 
         // Check that address(this) as the caller is not by default owner
         assertFalse(newOwnerApp.owner() == address(this));
@@ -239,7 +239,7 @@ abstract contract BaseTeleporterRegistryOwnableAppTest is BaseTeleporterRegistry
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(this)
             )
         );
-        newOwnerApp.checkTeleporterUpgradeAccess();
+        newOwnerApp.checkTeleporterRegistryAppAccess();
     }
 
     function _updateMinTeleporterVersionSuccess(

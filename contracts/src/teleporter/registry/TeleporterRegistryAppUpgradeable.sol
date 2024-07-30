@@ -173,10 +173,10 @@ abstract contract TeleporterRegistryAppUpgradeable is
      *
      * To prevent anyone from being able to call this function, which would disallow messages
      * from old Teleporter versions from being received, this function should be safeguarded with access
-     * controls. This is done by overriding the implementation of {_checkTeleporterUpgradeAccess}.
+     * controls. This is done by overriding the implementation of {_checkTeleporterRegistryAppAccess}.
      */
     function updateMinTeleporterVersion(uint256 version) public virtual {
-        _checkTeleporterUpgradeAccess();
+        _checkTeleporterRegistryAppAccess();
         _setMinTeleporterVersion(version);
     }
 
@@ -194,7 +194,7 @@ abstract contract TeleporterRegistryAppUpgradeable is
      */
     function pauseTeleporterAddress(address teleporterAddress) public virtual {
         TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
-        _checkTeleporterUpgradeAccess();
+        _checkTeleporterRegistryAppAccess();
         require(teleporterAddress != address(0), "TeleporterRegistryApp: zero Teleporter address");
         require(
             !_isTeleporterAddressPaused($, teleporterAddress),
@@ -218,7 +218,7 @@ abstract contract TeleporterRegistryAppUpgradeable is
      */
     function unpauseTeleporterAddress(address teleporterAddress) public virtual {
         TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
-        _checkTeleporterUpgradeAccess();
+        _checkTeleporterRegistryAppAccess();
         require(teleporterAddress != address(0), "TeleporterRegistryApp: zero Teleporter address");
         require(
             _isTeleporterAddressPaused($, teleporterAddress),
@@ -278,7 +278,7 @@ abstract contract TeleporterRegistryAppUpgradeable is
      *
      * This function should be overridden by contracts that inherit from this contract.
      */
-    function _checkTeleporterUpgradeAccess() internal virtual;
+    function _checkTeleporterRegistryAppAccess() internal virtual;
 
     /**
      * @dev Sends a cross chain message using the TeleporterMessenger contract.

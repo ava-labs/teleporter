@@ -36,7 +36,7 @@ contract ExampleRegistryAppUpgradeable is TeleporterRegistryAppUpgradeable {
     ) internal override {}
 
     // solhint-disable-next-line no-empty-blocks
-    function _checkTeleporterUpgradeAccess() internal override {}
+    function _checkTeleporterRegistryAppAccess() internal override {}
 }
 
 contract ExampleRegistryApp is TeleporterRegistryApp {
@@ -63,7 +63,7 @@ contract ExampleRegistryApp is TeleporterRegistryApp {
     ) internal override {}
 
     // solhint-disable-next-line no-empty-blocks
-    function _checkTeleporterUpgradeAccess() internal virtual override {}
+    function _checkTeleporterRegistryAppAccess() internal virtual override {}
 }
 
 abstract contract BaseTeleporterRegistryAppTest is TeleporterRegistryTest {

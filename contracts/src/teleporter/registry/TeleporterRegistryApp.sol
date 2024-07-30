@@ -106,10 +106,10 @@ abstract contract TeleporterRegistryApp is Context, ITeleporterReceiver, Reentra
      *
      * To prevent anyone from being able to call this function, which would disallow messages
      * from old Teleporter versions from being received, this function should be safeguarded with access
-     * controls. This is done by overriding the implementation of {_checkTeleporterUpgradeAccess}.
+     * controls. This is done by overriding the implementation of {_checkTeleporterRegistryAppAccess}.
      */
     function updateMinTeleporterVersion(uint256 version) public virtual {
-        _checkTeleporterUpgradeAccess();
+        _checkTeleporterRegistryAppAccess();
         _setMinTeleporterVersion(version);
     }
 
@@ -126,7 +126,7 @@ abstract contract TeleporterRegistryApp is Context, ITeleporterReceiver, Reentra
      * - `teleporterAddress` is not already paused.
      */
     function pauseTeleporterAddress(address teleporterAddress) public virtual {
-        _checkTeleporterUpgradeAccess();
+        _checkTeleporterRegistryAppAccess();
         require(teleporterAddress != address(0), "TeleporterRegistryApp: zero Teleporter address");
         require(
             !isTeleporterAddressPaused(teleporterAddress),
@@ -149,7 +149,7 @@ abstract contract TeleporterRegistryApp is Context, ITeleporterReceiver, Reentra
      * - `teleporterAddress` is already paused.
      */
     function unpauseTeleporterAddress(address teleporterAddress) public virtual {
-        _checkTeleporterUpgradeAccess();
+        _checkTeleporterRegistryAppAccess();
         require(teleporterAddress != address(0), "TeleporterRegistryApp: zero Teleporter address");
         require(
             isTeleporterAddressPaused(teleporterAddress),
@@ -219,7 +219,7 @@ abstract contract TeleporterRegistryApp is Context, ITeleporterReceiver, Reentra
      *
      * This function should be overridden by contracts that inherit from this contract.
      */
-    function _checkTeleporterUpgradeAccess() internal virtual;
+    function _checkTeleporterRegistryAppAccess() internal virtual;
 
     /**
      * @dev Sends a cross chain message using the TeleporterMessenger contract.

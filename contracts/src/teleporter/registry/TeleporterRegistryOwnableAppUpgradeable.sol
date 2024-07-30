@@ -32,11 +32,11 @@ abstract contract TeleporterRegistryOwnableAppUpgradeable is
     function _TeleporterRegistryOwnableApp_init_unchained() internal onlyInitializing {}
 
     /**
-     * @dev See {TeleporterRegistryAppUpgradeable-_checkTeleporterUpgradeAccess}
+     * @dev See {TeleporterRegistryAppUpgradeable-_checkTeleporterRegistryAppAccess}
      *
      * Checks that the caller is the owner of the contract for upgrade access.
      */
-    function _checkTeleporterUpgradeAccess() internal view virtual override {
+    function _checkTeleporterRegistryAppAccess() internal view virtual override {
         _checkOwner();
     }
 }

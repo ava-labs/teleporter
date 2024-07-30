@@ -41,7 +41,7 @@ contract NonReentrantUpgradeableApp is TeleporterRegistryAppUpgradeable {
     }
 
     // solhint-disable-next-line no-empty-blocks
-    function _checkTeleporterUpgradeAccess() internal override {}
+    function _checkTeleporterRegistryAppAccess() internal override {}
 }
 
 // The flow for the tests below is as follows:

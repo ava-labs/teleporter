@@ -21,11 +21,11 @@ abstract contract TeleporterRegistryOwnableApp is TeleporterRegistryApp, Ownable
     ) TeleporterRegistryApp(teleporterRegistryAddress) Ownable(initialOwner) {}
 
     /**
-     * @dev See {TeleporterRegistryApp-_checkTeleporterUpgradeAccess}
+     * @dev See {TeleporterRegistryApp-_checkTeleporterRegistryAppAccess}
      *
      * Checks that the caller is the owner of the contract for upgrade access.
      */
-    function _checkTeleporterUpgradeAccess() internal view virtual override {
+    function _checkTeleporterRegistryAppAccess() internal view virtual override {
         _checkOwner();
     }
 }
