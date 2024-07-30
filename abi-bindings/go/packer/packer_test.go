@@ -70,25 +70,39 @@ func findAllImplementers(t *testing.T) []string {
 		for _, file := range pkg.Syntax {
 			// Inspect types in the package
 			for _, decl := range file.Decls {
-				if genDecl, ok := decl.(*ast.GenDecl); ok {
-					for _, spec := range genDecl.Specs {
-						if typeSpec, ok := spec.(*ast.TypeSpec); ok {
-							obj := pkg.Types.Scope().Lookup(typeSpec.Name.Name)
-							if obj == nil {
-								continue
-							}
-							if _, ok := obj.Type().Underlying().(*types.Struct); ok {
-								typeName := typeSpec.Name.Name
-								obj := pkg.Types.Scope().Lookup(typeName)
-								if obj != nil {
-									if named, ok := obj.Type().(*types.Named); ok {
-										if types.Implements(types.NewPointer(named), iface) {
-											allImplementers = append(allImplementers, named.Obj().Name())
-										}
-									}
-								}
-							}
-						}
+				genDecl, ok := decl.(*ast.GenDecl)
+				if !ok {
+					continue
+				}
+				for _, spec := range genDecl.Specs {
+					// We have a Type spec
+					typeSpec, ok := spec.(*ast.TypeSpec)
+					if !ok {
+						continue
+					}
+					// Find object matching the TypeSpec name in the package scope
+					obj := pkg.Types.Scope().Lookup(typeSpec.Name.Name)
+					if obj == nil {
+						continue
+					}
+					// Check if the typed object we have is a struct
+					_, ok = obj.Type().Underlying().(*types.Struct)
+					if !ok {
+						continue
+					}
+					// Lookup the object by name and cast it to types.Named
+					typeName := typeSpec.Name.Name
+					typeObj := pkg.Types.Scope().Lookup(typeName)
+					if typeObj == nil {
+						continue
+					}
+					named, ok := typeObj.Type().(*types.Named)
+					if !ok {
+						continue
+					}
+					// Finally check if the named struct we have implements the interface
+					if types.Implements(types.NewPointer(named), iface) {
+						allImplementers = append(allImplementers, named.Obj().Name())
 					}
 				}
 			}
