@@ -192,9 +192,8 @@ abstract contract TokenRemote is
         $._isCollateralized = initialReserveImbalance_ == 0;
         $._homeTokenDecimals = settings.tokenHomeDecimals;
         $._tokenDecimals = tokenDecimals;
-        ($._tokenMultiplier, $._multiplyOnRemote) = TokenScalingUtils.deriveTokenMultiplierValues(
-            settings.tokenHomeDecimals, tokenDecimals
-        );
+        ($._tokenMultiplier, $._multiplyOnRemote) =
+            TokenScalingUtils.deriveTokenMultiplierValues(settings.tokenHomeDecimals, tokenDecimals);
     }
     // solhint-enable ordering
 
