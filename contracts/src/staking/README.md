@@ -22,7 +22,7 @@ Once the Subnet has been recovered, the stake specified on the P-Chain must be l
 
 Validator registration is initiated with a call to `initializeValidatorRegistration` on the concrete Staking Manager contract. The Staking Manager contract constructs a [`RegisterSubnetValidatorMessage`](#registersubnetvalidatormessage) Warp message to be sent to the P-Chain. Each validator registration request includes all of the information needed to identify the validator and its stake weight, as well as an `expiry` timestamp before which the `RegisterSubnetValidatorMessage` must be delivered to the P-Chain.
 
-The `RegisterSubnetValidatorMessage` is delivered to the P-Chain as the payload of a `RegisterSubnetValidatorTx`. Please see the transaction [specification](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#step-2-issue-a-registersubnetvalidatortx-on-the-p-chain) for validity requirements. The successful `RegisterSubnetValidatorTx` results in a [`SubnetValidatorRegistrationMessage`](#subnetvalidatorregistrationmessage) Warp message indicating that the specified validation was successfully registered on the P-Chain.
+The `RegisterSubnetValidatorMessage` is delivered to the P-Chain as the Warp message payload of a `RegisterSubnetValidatorTx`. Please see the transaction [specification](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#step-2-issue-a-registersubnetvalidatortx-on-the-p-chain) for validity requirements. The successful `RegisterSubnetValidatorTx` results in a [`SubnetValidatorRegistrationMessage`](#subnetvalidatorregistrationmessage) Warp message indicating that the specified validation was successfully registered on the P-Chain.
 
 The `SubnetValidatorRegistrationMessage` is delivered to the Staking Manager contract via a call to `completeValidatorRegistration`. Staking rewards begin accruing at this time.
 
@@ -30,11 +30,9 @@ The `SubnetValidatorRegistrationMessage` is delivered to the Staking Manager con
 
 In the case of a missed expiry, the `RegisterSubnetValidatorTx` will result in a `SubnetValidatorRegistrationMessage` Warp message with the `valid` field set to `0`. This serves as proof that the corresponding validation has not started and may never start. The `SubnetValidatorRegistrationMessage` can be provided to the Staking Manager contract by calling `completeEndValidation` with `setWeightMessageType=false`.
 
-### Removing a Validator
+### Exiting the Validator Set
 
-As an optional first step, an uptime proof may be requested from the P-Chain, which will be used the calculate the staking rewards on the Subnet. The proof is embedded in a [`ValidationUptimeMessage`](#validationuptimemessage) Warp message.
-
-Validators exit is initiated with a call to `initializeEndValidation` on the Staking Manager contract. A `ValidationUptimeMessage` Warp message may optionally be provided, otherwise the validator's uptime will be set to`0`. Once `initializeEndValidation` staking rewards cease accruing. The Staking Manager contract constructs a [`SetSubnetValidatorWeightMessage`](#setsubnetvalidatorweightmessage) Warp message, setting the weight to `0`.
+Validator exit is initiated with a call to `initializeEndValidation` on the Staking Manager contract. A `ValidationUptimeMessage` Warp message may optionally be provided, otherwise the validator's uptime will be set to`0`. This proof may be requested from the P-Chain, which will provide it in a [`ValidationUptimeMessage`](#validationuptimemessage) Warp message. Once `initializeEndValidation` staking rewards cease accruing. The Staking Manager contract constructs a [`SetSubnetValidatorWeightMessage`](#setsubnetvalidatorweightmessage) Warp message, setting the weight to `0`.
 
 The `SetSubnetValidatorWeightMessage` is delivered to the P-Chain as the payload of a `SetValidatorWeightTx`. This results in another `SetSubnetValidatorWeightMessage` Warp message, this time constructed by the P-Chain.
 
