@@ -5,7 +5,10 @@
 
 pragma solidity 0.8.25;
 
-import {IStakingManager} from "./interfaces/IStakingManager.sol";
+import {
+    IStakingManager,
+    StakingManagerSettings
+} from "./interfaces/IStakingManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -75,22 +78,6 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
         assembly {
             $.slot := _NATIVE_TOKEN_STAKING_MANAGER_STORAGE_LOCATION
         }
-    }
-
-    struct InitialStakerInfo {
-        StakingMessages.ValidationInfo validationInfo;
-        address owner;
-    }
-
-    struct StakingManagerSettings {
-        bytes32 pChainBlockchainID;
-        bytes32 subnetID;
-        uint256 minimumStakeAmount;
-        uint256 maximumStakeAmount;
-        uint64 minimumStakeDuration;
-        uint8 maximumHourlyChurn;
-        InitialStakerInfo[] initialStakers;
-        IRewardCalculator rewardCalculator;
     }
 
     function initialize(StakingManagerSettings calldata settings) public {
