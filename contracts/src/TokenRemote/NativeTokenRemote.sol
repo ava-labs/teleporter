@@ -9,6 +9,11 @@ import {NativeTokenRemoteUpgradeable} from "./NativeTokenRemoteUpgradeable.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
 import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
 
+/**
+ * @title NativeTokenRemote
+ * @notice A non-upgradeable version of {NativeTokenRemoteUpgradeable} that calls the parent upgradeable contract's initialize function.
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ */
 contract NativeTokenRemote is NativeTokenRemoteUpgradeable {
     constructor(
         TokenRemoteSettings memory settings,

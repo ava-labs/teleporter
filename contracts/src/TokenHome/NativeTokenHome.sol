@@ -8,6 +8,11 @@ pragma solidity 0.8.25;
 import {NativeTokenHomeUpgradeable} from "./NativeTokenHomeUpgradeable.sol";
 import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
 
+/**
+ * @title NativeTokenHome
+ * @notice A non-upgradeable version of {NativeTokenHomeUpgradeable} that calls the parent upgradeable contract's initialize function.
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ */
 contract NativeTokenHome is NativeTokenHomeUpgradeable {
     constructor(
         address teleporterRegistryAddress,

@@ -9,6 +9,11 @@ import {ERC20TokenRemoteUpgradeable} from "./ERC20TokenRemoteUpgradeable.sol";
 import {TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
 import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
 
+/**
+ * @title ERC20TokenRemote
+ * @notice A non-upgradeable version of {ERC20TokenRemoteUpgradeable} that calls the parent upgradeable contract's initialize function.
+ * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
+ */
 contract ERC20TokenRemote is ERC20TokenRemoteUpgradeable {
     constructor(
         TokenRemoteSettings memory settings,
