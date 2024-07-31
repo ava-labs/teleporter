@@ -18,7 +18,7 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
 /**
- * @dev TeleporterUpgradeable provides upgrade utility for applications built on top
+ * @dev TeleporterRegistryAppUpgradeable provides upgrade utility for applications built on top
  * of the Teleporter protocol by integrating with the {TeleporterRegistry}.
  *
  * This contract is intended to be inherited by other contracts that wish to use the
@@ -27,7 +27,7 @@ import {Initializable} from
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
-abstract contract TeleporterUpgradeable is
+abstract contract TeleporterRegistryAppUpgradeable is
     Initializable,
     ContextUpgradeable,
     ITeleporterReceiver,
@@ -39,9 +39,9 @@ abstract contract TeleporterUpgradeable is
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
      * storage collisions between upgradeable contracts.
-     * @custom:storage-location erc7201:teleporter.storage.TeleporterUpgradeable
+     * @custom:storage-location erc7201:teleporter.storage.TeleporterRegistryApp
      */
-    struct TeleporterUpgradeableStorage {
+    struct TeleporterRegistryAppStorage {
         // The Teleporter registry contract manages different Teleporter contract versions.
         TeleporterRegistry _teleporterRegistry;
         /**
@@ -58,10 +58,10 @@ abstract contract TeleporterUpgradeable is
 
     /**
      * @dev Storage slot computed based off ERC-7201 formula
-     * keccak256(abi.encode(uint256(keccak256("teleporter.storage.TeleporterUpgradeable")) - 1)) & ~bytes32(uint256(0xff));
+     * keccak256(abi.encode(uint256(keccak256("teleporter.storage.TeleporterRegistryApp")) - 1)) & ~bytes32(uint256(0xff));
      */
-    bytes32 private constant _TELEPORTER_UPGRADEABLE_STORAGE_LOCATION =
-        0xc73953669262a2bc0a821c7b2e84a2e293b7a32ca3f8016446f20efff9161600;
+    bytes32 public constant TELEPORTER_REGISTRY_APP_STORAGE_LOCATION =
+        0xde77a4dc7391f6f8f2d9567915d687d3aee79e7a1fc7300392f2727e9a0f1d00;
 
     /**
      * @dev Emitted when `minTeleporterVersion` is updated.
@@ -80,43 +80,43 @@ abstract contract TeleporterUpgradeable is
      */
     event TeleporterAddressUnpaused(address indexed teleporterAddress);
 
-    function _getTeleporterUpgradeableStorage()
+    function _getTeleporterRegistryAppStorage()
         private
         pure
-        returns (TeleporterUpgradeableStorage storage $)
+        returns (TeleporterRegistryAppStorage storage $)
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _TELEPORTER_UPGRADEABLE_STORAGE_LOCATION
+            $.slot := TELEPORTER_REGISTRY_APP_STORAGE_LOCATION
         }
     }
 
     /**
-     * @dev Initializes the {TeleporterUpgradeable} contract by getting `teleporterRegistry`
+     * @dev Initializes the {TeleporterRegistryApp} contract by getting `teleporterRegistry`
      * instance and setting `_minTeleporterVersion`.
      */
     // solhint-disable ordering
     // solhint-disable-next-line func-name-mixedcase
-    function __TeleporterUpgradeable_init(address teleporterRegistryAddress)
+    function __TeleporterRegistryApp_init(address teleporterRegistryAddress)
         internal
         onlyInitializing
     {
         __ReentrancyGuard_init();
         __Context_init();
-        __TeleporterUpgradeable_init_unchained(teleporterRegistryAddress);
+        __TeleporterRegistryApp_init_unchained(teleporterRegistryAddress);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __TeleporterUpgradeable_init_unchained(address teleporterRegistryAddress)
+    function __TeleporterRegistryApp_init_unchained(address teleporterRegistryAddress)
         internal
         onlyInitializing
     {
         require(
             teleporterRegistryAddress != address(0),
-            "TeleporterUpgradeable: zero teleporter registry address"
+            "TeleporterRegistryApp: zero teleporter registry address"
         );
 
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
+        TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
         TeleporterRegistry registry = TeleporterRegistry(teleporterRegistryAddress);
         $._teleporterRegistry = registry;
         $._minTeleporterVersion = registry.latestVersion();
@@ -138,17 +138,17 @@ abstract contract TeleporterUpgradeable is
         address originSenderAddress,
         bytes calldata message
     ) external nonReentrant {
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
+        TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
         // Checks that `_msgSender()` matches a Teleporter version greater than or equal to `minTeleporterVersion`.
         require(
             $._teleporterRegistry.getVersionFromAddress(_msgSender()) >= $._minTeleporterVersion,
-            "TeleporterUpgradeable: invalid Teleporter sender"
+            "TeleporterRegistryApp: invalid Teleporter sender"
         );
 
         // Check against the paused Teleporter addresses.
         require(
             !_isTeleporterAddressPaused($, _msgSender()),
-            "TeleporterUpgradeable: Teleporter address paused"
+            "TeleporterRegistryApp: Teleporter address paused"
         );
 
         _receiveTeleporterMessage(sourceBlockchainID, originSenderAddress, message);
@@ -163,7 +163,7 @@ abstract contract TeleporterUpgradeable is
         virtual
         returns (bool)
     {
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
+        TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
         return _isTeleporterAddressPaused($, teleporterAddress);
     }
 
@@ -173,10 +173,10 @@ abstract contract TeleporterUpgradeable is
      *
      * To prevent anyone from being able to call this function, which would disallow messages
      * from old Teleporter versions from being received, this function should be safeguarded with access
-     * controls. This is done by overriding the implementation of {_checkTeleporterUpgradeAccess}.
+     * controls. This is done by overriding the implementation of {_checkTeleporterRegistryAppAccess}.
      */
     function updateMinTeleporterVersion(uint256 version) public virtual {
-        _checkTeleporterUpgradeAccess();
+        _checkTeleporterRegistryAppAccess();
         _setMinTeleporterVersion(version);
     }
 
@@ -193,12 +193,12 @@ abstract contract TeleporterUpgradeable is
      * - `teleporterAddress` is not already paused.
      */
     function pauseTeleporterAddress(address teleporterAddress) public virtual {
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
-        _checkTeleporterUpgradeAccess();
-        require(teleporterAddress != address(0), "TeleporterUpgradeable: zero Teleporter address");
+        TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
+        _checkTeleporterRegistryAppAccess();
+        require(teleporterAddress != address(0), "TeleporterRegistryApp: zero Teleporter address");
         require(
             !_isTeleporterAddressPaused($, teleporterAddress),
-            "TeleporterUpgradeable: address already paused"
+            "TeleporterRegistryApp: address already paused"
         );
         $._pausedTeleporterAddresses[teleporterAddress] = true;
         emit TeleporterAddressPaused(teleporterAddress);
@@ -217,12 +217,12 @@ abstract contract TeleporterUpgradeable is
      * - `teleporterAddress` is already paused.
      */
     function unpauseTeleporterAddress(address teleporterAddress) public virtual {
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
-        _checkTeleporterUpgradeAccess();
-        require(teleporterAddress != address(0), "TeleporterUpgradeable: zero Teleporter address");
+        TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
+        _checkTeleporterRegistryAppAccess();
+        require(teleporterAddress != address(0), "TeleporterRegistryApp: zero Teleporter address");
         require(
             _isTeleporterAddressPaused($, teleporterAddress),
-            "TeleporterUpgradeable: address not paused"
+            "TeleporterRegistryApp: address not paused"
         );
         $._pausedTeleporterAddresses[teleporterAddress] = false;
         emit TeleporterAddressUnpaused(teleporterAddress);
@@ -232,7 +232,7 @@ abstract contract TeleporterUpgradeable is
      * @dev Public getter for `_minTeleporterVersion`.
      */
     function getMinTeleporterVersion() public view returns (uint256) {
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
+        TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
         return $._minTeleporterVersion;
     }
 
@@ -246,16 +246,16 @@ abstract contract TeleporterUpgradeable is
      *
      */
     function _setMinTeleporterVersion(uint256 version) internal virtual {
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
+        TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
         uint256 latestTeleporterVersion = $._teleporterRegistry.latestVersion();
         uint256 oldMinTeleporterVersion = $._minTeleporterVersion;
 
         require(
-            version <= latestTeleporterVersion, "TeleporterUpgradeable: invalid Teleporter version"
+            version <= latestTeleporterVersion, "TeleporterRegistryApp: invalid Teleporter version"
         );
         require(
             version > oldMinTeleporterVersion,
-            "TeleporterUpgradeable: not greater than current minimum version"
+            "TeleporterRegistryApp: not greater than current minimum version"
         );
 
         $._minTeleporterVersion = version;
@@ -278,7 +278,7 @@ abstract contract TeleporterUpgradeable is
      *
      * This function should be overridden by contracts that inherit from this contract.
      */
-    function _checkTeleporterUpgradeAccess() internal virtual;
+    function _checkTeleporterRegistryAppAccess() internal virtual;
 
     /**
      * @dev Sends a cross chain message using the TeleporterMessenger contract.
@@ -299,7 +299,7 @@ abstract contract TeleporterUpgradeable is
         if (messageInput.feeInfo.amount > 0) {
             require(
                 messageInput.feeInfo.feeTokenAddress != address(0),
-                "TeleporterUpgradeable: zero fee token address"
+                "TeleporterRegistryApp: zero fee token address"
             );
             IERC20(messageInput.feeInfo.feeTokenAddress).safeIncreaseAllowance(
                 address(teleporterMessenger), messageInput.feeInfo.amount
@@ -316,18 +316,18 @@ abstract contract TeleporterUpgradeable is
      * return a Teleporter messenger of a specific version.
      */
     function _getTeleporterMessenger() internal view virtual returns (ITeleporterMessenger) {
-        TeleporterUpgradeableStorage storage $ = _getTeleporterUpgradeableStorage();
+        TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
         ITeleporterMessenger teleporter = $._teleporterRegistry.getLatestTeleporter();
         require(
             !_isTeleporterAddressPaused($, address(teleporter)),
-            "TeleporterUpgradeable: Teleporter sending paused"
+            "TeleporterRegistryApp: Teleporter sending paused"
         );
 
         return teleporter;
     }
 
     function _isTeleporterAddressPaused(
-        TeleporterUpgradeableStorage storage $,
+        TeleporterRegistryAppStorage storage $,
         address teleporterAddress
     ) internal view returns (bool) {
         return $._pausedTeleporterAddresses[teleporterAddress];
