@@ -49,7 +49,7 @@ go install github.com/ava-labs/subnet-evm/cmd/abigen@${SUBNET_EVM_VERSION}
 # Force recompile of all contracts to prevent against using previous
 # compilations that did not generate new ABI files.
 echo "Building Contracts"
-cd $TELEPORTER_PATH/contracts
+cd $TELEPORTER_PATH
 forge build --force --extra-output-files abi bin
 
 function convertToLower() {
@@ -67,12 +67,12 @@ if [[ -z "${CONTRACT_LIST}" ]]; then
     contract_names=($DEFAULT_CONTRACT_LIST)
 fi
 
-cd $TELEPORTER_PATH/contracts/src
+cd $TELEPORTER_PATH/contracts
 for contract_name in "${contract_names[@]}"
 do
     path=$(find . -name $contract_name.sol)
     dir=$(dirname $path)
-    abi_file=$TELEPORTER_PATH/contracts/out/$contract_name.sol/$contract_name.abi.json
+    abi_file=$TELEPORTER_PATH/out/$contract_name.sol/$contract_name.abi.json
     if ! [ -f $abi_file ]; then
         echo "Error: Contract $contract_name abi file not found"
         exit 1
@@ -83,7 +83,7 @@ do
     mkdir -p $gen_path
     $GOPATH/bin/abigen --abi $abi_file \
                        --pkg $(convertToLower $contract_name) \
-                       --bin $TELEPORTER_PATH/contracts/out/$contract_name.sol/$contract_name.bin \
+                       --bin $TELEPORTER_PATH/out/$contract_name.sol/$contract_name.bin \
                        --type $contract_name \
                        --out $gen_path/$contract_name.go
     echo "Done generating Go bindings for $contract_name."

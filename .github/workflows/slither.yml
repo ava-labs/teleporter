@@ -37,10 +37,9 @@ jobs:
       - name: Run Slither
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
-          cd contracts
           slither ./ --fail-none --sarif ./results.sarif
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: contracts/results.sarif
+          sarif_file: results.sarif

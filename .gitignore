@@ -43,4 +43,4 @@ server.log
 *.test
 
 # Forge documentation
-contracts/docs/
+docs/
