@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {Test} from "forge-std/Test.sol";
+import {Test} from "@forge-std/Test.sol";
 import {ReceiptQueue} from "../ReceiptQueue.sol";
 import {TeleporterMessageReceipt} from "../ITeleporterMessenger.sol";
 

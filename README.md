@@ -123,11 +123,11 @@ The user wallet set in `.env` must have native tokens for each of the Subnets us
 
 ## Upgradability
 
-The Teleporter contract is non-upgradeable and can not be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging. However, to allow for new features and potential bug fixes, new versions of the Teleporter contract can be deployed to different addresses. The [TeleporterRegistry](./contracts/src/teleporter/TeleporterRegistry.sol) is used to keep track of the deployed versions of Teleporter, and to provide a standard interface for dApps to interact with the different Teleporter versions.
+The Teleporter contract is non-upgradeable and can not be changed once it is deployed. This provides immutability to the contracts, and ensures that the contract's behavior at each address is unchanging. However, to allow for new features and potential bug fixes, new versions of the Teleporter contract can be deployed to different addresses. The [TeleporterRegistry](./contracts/teleporter/TeleporterRegistry.sol) is used to keep track of the deployed versions of Teleporter, and to provide a standard interface for dApps to interact with the different Teleporter versions.
 
 `TeleporterRegistry` **is not mandatory** for dApps built on top of Teleporter, but dApp's are recommended to leverage the registry to ensure they use the latest Teleporter version available. Another recommendation standard is to have a single canonical `TeleporterRegistry` for each Subnet chain, and unlike the Teleporter contract, the registry does not need to be deployed to the same address on every chain. This means the registry does not need a Nick's method deployment, and can be at different contract addresses on different chains.
 
-For more information on the registry and how to integrate with Teleporter dApps, see the [Upgradability doc](./contracts/src/teleporter/upgrades/README.md).
+For more information on the registry and how to integrate with Teleporter dApps, see the [Upgradability doc](./contracts/teleporter/registry/README.md).
 
 ## Deploy Teleporter to a Subnet
 
@@ -178,10 +178,8 @@ The auto-generated bindings should be written under the `abi-bindings/` director
 
 ## Docs
 
-- [Teleporter Protocol Overview](./contracts/src/teleporter/README.md)
-- [Cross Chain Applications](./contracts/src/CrossChainApplications/README.md)
-- [Getting Started](./contracts/src/CrossChainApplications/GETTING_STARTED.md)
-- [Teleporter Upgradability](./contracts/src/teleporter/upgrades/README.md)
+- [Teleporter Protocol Overview](./contracts/teleporter/README.md)
+- [Teleporter Registry and Upgrades](./contracts/teleporter/registry/README.md)
 - [Contract Deployment](./utils/contract-deployment/README.md)
 - [Teleporter CLI](./cmd/teleporter-cli/README.md)
 
