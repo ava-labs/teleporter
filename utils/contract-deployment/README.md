@@ -13,7 +13,7 @@ OR
 `go run utils/contract-deployment/contractDeploymentTools.go deriveContractAddress <DEPLOYER_ADDRESS> <NONCE>`
 
 For example:
-`go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json`
+`go run utils/contract-deployment/contractDeploymentTools.go constructKeylessTx out/TeleporterMessenger.sol/TeleporterMessenger.json`
 OR
 `go run utils/contract-deployment/contractDeploymentTools.go deriveContractAddress 0x38545c4b331D8BFb3bee94C62D77a6735b5eF8c0 1`
 

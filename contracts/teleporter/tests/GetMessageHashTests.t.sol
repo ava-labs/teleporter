@@ -41,10 +41,6 @@ contract GetMessageHashTest is TeleporterMessengerTest {
         assertEq(actualMessageHash, expectedMessageHash);
     }
 
-    function testMessageDoesNotExist() public {
-        assertEq(teleporterMessenger.getMessageHash(bytes32(uint256(42))), bytes32(0));
-    }
-
     function testMessageAlreadyReceived() public {
         // Submit a message
         uint256 expectedNonce = _getNextMessageNonce();
@@ -61,5 +57,9 @@ contract GetMessageHashTest is TeleporterMessengerTest {
 
         // Now the message hash should be cleared.
         assertEq(teleporterMessenger.getMessageHash(messageID), bytes32(0));
+    }
+
+    function testMessageDoesNotExist() public view {
+        assertEq(teleporterMessenger.getMessageHash(bytes32(uint256(42))), bytes32(0));
     }
 }

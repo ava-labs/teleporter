@@ -10,14 +10,6 @@ import {ITeleporterMessenger} from "@teleporter/ITeleporterMessenger.sol";
 import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
 abstract contract GetTeleporterMessengerTest is BaseTeleporterRegistryAppTest {
-    function testGetTeleporterMessengerBasic() public {
-        ITeleporterMessenger messenger = app.getTeleporterMessenger();
-        assertEq(
-            teleporterRegistry.getVersionFromAddress(address(messenger)),
-            teleporterRegistry.latestVersion()
-        );
-    }
-
     function testGetPausedTeleporterMessenger() public {
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
         vm.expectRevert(_formatErrorMessage("Teleporter sending paused"));
@@ -63,6 +55,14 @@ abstract contract GetTeleporterMessengerTest is BaseTeleporterRegistryAppTest {
         // Make sure we can still get the latest version of Teleporter for sending
         ITeleporterMessenger messenger = app.getTeleporterMessenger();
         assertEq(address(messenger), newTeleporterAddress);
+        assertEq(
+            teleporterRegistry.getVersionFromAddress(address(messenger)),
+            teleporterRegistry.latestVersion()
+        );
+    }
+
+    function testGetTeleporterMessengerBasic() public view {
+        ITeleporterMessenger messenger = app.getTeleporterMessenger();
         assertEq(
             teleporterRegistry.getVersionFromAddress(address(messenger)),
             teleporterRegistry.latestVersion()
