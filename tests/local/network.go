@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 	"slices"
+	"sort"
 	"time"
 
 	"github.com/ava-labs/avalanchego/api/info"
@@ -44,7 +45,7 @@ type LocalNetwork struct {
 	primaryNetworkInfo        *interfaces.SubnetTestInfo
 	subnetsInfo               map[ids.ID]*interfaces.SubnetTestInfo
 
-	extraNodes []*tmpnet.Node // to add as more subnet vaidators in the tests
+	extraNodes []*tmpnet.Node // to add as more subnet validators in the tests
 
 	globalFundedKey *ecdsa.PrivateKey
 
@@ -339,11 +340,15 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
 }
 
+// Returns all subnet info sorted in lexicographic order of SubnetName.
 func (n *LocalNetwork) GetSubnetsInfo() []interfaces.SubnetTestInfo {
 	subnetsInfo := make([]interfaces.SubnetTestInfo, 0, len(n.subnetsInfo))
 	for _, subnetInfo := range n.subnetsInfo {
 		subnetsInfo = append(subnetsInfo, *subnetInfo)
 	}
+	sort.Slice(subnetsInfo, func(i, j int) bool {
+		return subnetsInfo[i].SubnetName < subnetsInfo[j].SubnetName
+	})
 	return subnetsInfo
 }
 
@@ -438,7 +443,7 @@ func (n *LocalNetwork) setAllSubnetValues() {
 	for _, subnetInfo := range n.subnetsInfo {
 		subnet := n.tmpnet.GetSubnet(subnetInfo.SubnetName)
 		Expect(subnet).ShouldNot(BeNil())
-		n.setSubnetValues(n.tmpnet.GetSubnet(subnetInfo.SubnetName))
+		n.setSubnetValues(subnet)
 	}
 
 	n.setPrimaryNetworkValues()
@@ -537,6 +542,8 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 		err := tmpnet.WaitForHealthy(ctx, node)
 		Expect(err).Should(BeNil())
 	}
+
+	n.setAllSubnetValues()
 }
 
 func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
