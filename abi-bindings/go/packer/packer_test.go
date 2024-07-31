@@ -29,12 +29,17 @@ const currentPackagePath = "."
 
 var fs = token.NewFileSet()
 
+// These mapping of names to empty type instances is necessary to be able to bridge
+// between the name of the type obtained by the AST parsing in findAllImplementers
+// and the actual type that we can instantiate and populate using reflection.
 var packerTypes = map[string]ABIPacker{
 	"ValidatorSetSigMessage": &validatorsetsig.ValidatorSetSigMessage{},
 	"TeleporterMessage":      &teleportermessenger.TeleporterMessage{},
 	"ProtocolRegistryEntry":  &teleporterregistry.ProtocolRegistryEntry{},
 }
 
+// findAllImplementers returns names of all structs that implement the ABIPacker interface
+// in all packagees in the abi-bindings path.
 func findAllImplementers(t *testing.T) []string {
 	cfg := &packages.Config{
 		Mode: packages.NeedName | packages.NeedFiles | packages.NeedSyntax | packages.NeedTypes | packages.NeedTypesInfo,
@@ -111,10 +116,18 @@ func findAllImplementers(t *testing.T) []string {
 	return allImplementers
 }
 
+// This test checks for exhaustiveness of the ABIPacker interface implementations.
+// It searches for all implementations of the ABIPacker interface in all of the packages in the abi-bindings path
+// and then populates fields with random non-zero values. And then packs, unpacks and confirms that the output struct
+// is equal to the initial randomly generated one.
+// Note that the test itself doesn't rely on randomness. Any non-zero values will do.
 func TestExhaustivePacking(t *testing.T) {
 	implementers := findAllImplementers(t)
 	for _, structName := range implementers {
 		packerType, ok := packerTypes[structName]
+		// If below fails it means that the developer implementer ABIPacker interface but forgot to add it to the packerTypes map
+		// Without this check, we would only test structs that were added to the packerTypes map which the developer would be unlikely
+		// to remember to update without this check.
 		require.True(
 			t,
 			ok,
@@ -130,6 +143,9 @@ func TestExhaustivePacking(t *testing.T) {
 		v2 := reflect.New(reflect.TypeOf(v1).Elem()).Interface().(ABIPacker)
 		err = v2.Unpack(encoded)
 		require.NoError(t, err)
+		// v1 is a randomized struct instance and v2 is the one obtained by packing and unpacking v1
+		// If they are not equal it means that the packing method wasn't updated and some fields in v2
+		// are at their zero-value.
 		require.Equal(t, v1, v2)
 	}
 }
@@ -147,6 +163,8 @@ func randomizeStruct(packerStruct interface{}) (interface{}, error) {
 	return packerStruct, nil
 }
 
+// randomizeField populates fields of structs with random values.
+// It only supports types that are supported by abi-gen from Solidity types.
 func randomizeField(field reflect.Value) error {
 	fieldType := field.Type()
 	switch fieldType.Kind() {

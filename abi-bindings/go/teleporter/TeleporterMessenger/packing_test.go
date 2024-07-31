@@ -4,7 +4,6 @@
 package teleportermessenger
 
 import (
-	"bytes"
 	"math/big"
 	"testing"
 
@@ -32,33 +31,6 @@ func createTestTeleporterMessage(messageNonce *big.Int) TeleporterMessage {
 		Message: []byte{1, 2, 3, 4},
 	}
 	return m
-}
-
-func TestPackUnpackTeleporterMessage(t *testing.T) {
-	message := createTestTeleporterMessage(big.NewInt(4))
-
-	b, err := message.Pack()
-	if err != nil {
-		t.Errorf("failed to pack teleporter message: %v", err)
-		t.FailNow()
-	}
-	unpacked := TeleporterMessage{}
-	err = unpacked.Unpack(b)
-	if err != nil {
-		t.Errorf("failed to unpack teleporter message: %v", err)
-		t.FailNow()
-	}
-
-	for i := 0; i < len(message.AllowedRelayerAddresses); i++ {
-		require.Equal(t, unpacked.AllowedRelayerAddresses[i], message.AllowedRelayerAddresses[i])
-	}
-
-	for i := 0; i < len(message.Receipts); i++ {
-		require.Equal(t, message.Receipts[i].ReceivedMessageNonce, unpacked.Receipts[i].ReceivedMessageNonce)
-		require.Equal(t, message.Receipts[i].RelayerRewardAddress, unpacked.Receipts[i].RelayerRewardAddress)
-	}
-
-	require.True(t, bytes.Equal(message.Message, unpacked.Message))
 }
 
 func TestUnpackEvent(t *testing.T) {

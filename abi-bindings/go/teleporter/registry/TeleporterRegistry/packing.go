@@ -54,7 +54,6 @@ func (p *ProtocolRegistryEntry) Unpack(b []byte) error {
 		},
 	}
 	unpacked, err := args.Unpack(b)
-	fmt.Println("unpacked: ", unpacked)
 	if err != nil {
 		return fmt.Errorf("failed to unpack to Teleporter registry entry with err: %v", err)
 	}
