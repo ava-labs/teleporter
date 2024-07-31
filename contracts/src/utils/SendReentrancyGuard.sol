@@ -43,8 +43,8 @@ abstract contract SendReentrancyGuard is Initializable {
         }
     }
 
-    uint256 internal constant _NOT_ENTERED = 1;
-    uint256 internal constant _ENTERED = 2;
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
 
     // sendNonReentrant modifier makes sure there is not reentry between {_send} or {_sendAndCall} calls.
     modifier sendNonReentrant() {
