@@ -1,11 +1,12 @@
 [profile.default]
-src = 'src'
+src = 'contracts'
 out = 'out'
 libs = ['lib']
 solc_version = '0.8.25'
 evm_version = 'shanghai'
 test = 'tests'
 bytecode_hash = "none"
+auto_detect_remappings = false
 
 [fmt]
 line_length = 100

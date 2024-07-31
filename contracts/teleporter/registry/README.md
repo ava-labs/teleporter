@@ -1,4 +1,4 @@
-# Teleporter Contracts Upgradeability
+# Teleporter Contracts Upgradability
 
 ## Overview
 

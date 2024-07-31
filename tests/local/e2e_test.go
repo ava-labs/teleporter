@@ -15,12 +15,12 @@ import (
 )
 
 const (
-	teleporterByteCodeFile = "./contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
+	teleporterByteCodeFile = "./out/TeleporterMessenger.sol/TeleporterMessenger.json"
 
 	warpGenesisTemplateFile = "./tests/utils/warp-genesis-template.json"
 
 	teleporterMessengerLabel = "TeleporterMessenger"
-	upgradeabilityLabel      = "upgradeability"
+	upgradabilityLabel       = "upgradability"
 	utilsLabel               = "utils"
 	validatorSetSigLabel     = "ValidatorSetSig"
 )
@@ -144,12 +144,12 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 			flows.ResubmitAlteredMessage(LocalNetworkInstance)
 		})
 	ginkgo.It("Check upgrade access",
-		ginkgo.Label(upgradeabilityLabel),
+		ginkgo.Label(upgradabilityLabel),
 		func() {
 			flows.CheckUpgradeAccess(LocalNetworkInstance)
 		})
 	ginkgo.It("Pause and Unpause Teleporter",
-		ginkgo.Label(upgradeabilityLabel),
+		ginkgo.Label(upgradabilityLabel),
 		func() {
 			flows.PauseTeleporter(LocalNetworkInstance)
 		})
@@ -166,7 +166,7 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 			flows.RelayerModifiesMessage(LocalNetworkInstance)
 		})
 	ginkgo.It("Teleporter registry",
-		ginkgo.Label(upgradeabilityLabel),
+		ginkgo.Label(upgradabilityLabel),
 		func() {
 			flows.TeleporterRegistry(LocalNetworkInstance)
 		})
