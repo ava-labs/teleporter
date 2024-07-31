@@ -28,7 +28,6 @@ contract NativeTokenStakingManager is StakingManager, INativeTokenStakingManager
      * The signature field will be validated by the P-Chain. Implementations may choose to validate that the signature
      * field is well-formed but it is not required.
      */
-
     function initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,

@@ -38,11 +38,7 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
 
     function testInitializeValidatorRegistrationSuccess() public {
         _setUpInitializeValidatorRegistration(
-            DEFAULT_NODE_ID,
-            DEFAULT_SUBNET_ID,
-            1e6,
-            DEFAULT_EXPIRY,
-            DEFAULT_ED25519_SIGNATURE
+            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, 1e6, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
         );
     }
 
@@ -56,11 +52,7 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     // reference to the abstract type.
     function testResendRegisterValidatorMessage() public {
         bytes32 validationID = _setUpInitializeValidatorRegistration(
-            DEFAULT_NODE_ID,
-            DEFAULT_SUBNET_ID,
-            1e6,
-            DEFAULT_EXPIRY,
-            DEFAULT_ED25519_SIGNATURE
+            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, 1e6, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
         );
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
@@ -92,8 +84,8 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         uint64 weight,
         uint64 registrationExpiry,
         bytes memory signature
-    ) internal returns (bytes32 validationID){
-        (validationID, ) = StakingMessages.packValidationInfo(
+    ) internal returns (bytes32 validationID) {
+        (validationID,) = StakingMessages.packValidationInfo(
             StakingMessages.ValidationInfo({
                 nodeID: nodeID,
                 subnetID: subnetID,
@@ -103,8 +95,8 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
             })
         );
 
-        vm.warp(DEFAULT_EXPIRY-1);
-        
+        vm.warp(DEFAULT_EXPIRY - 1);
+
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encode(IWarpMessenger.sendWarpMessage.selector),
@@ -116,12 +108,12 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         //     abi.encodeCall(IWarpMessenger.sendWarpMessage, (abi.encode(expectedMessage)))
         // );
         vm.expectEmit(true, true, true, true, address(app));
-        emit ValidationPeriodCreated(validationID, DEFAULT_NODE_ID, bytes32(0), weight, DEFAULT_EXPIRY);
+        emit ValidationPeriodCreated(
+            validationID, DEFAULT_NODE_ID, bytes32(0), weight, DEFAULT_EXPIRY
+        );
 
         app.initializeValidatorRegistration{value: app.weightToValue(weight)}(
-            nodeID,
-            registrationExpiry,
-            signature
+            nodeID, registrationExpiry, signature
         );
     }
 }
