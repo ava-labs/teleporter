@@ -125,9 +125,9 @@ func TestExhaustivePacking(t *testing.T) {
 	implementers := findAllImplementers(t)
 	for _, structName := range implementers {
 		packerType, ok := packerTypes[structName]
-		// If below fails it means that the developer implementer ABIPacker interface but forgot to add it to the packerTypes map
-		// Without this check, we would only test structs that were added to the packerTypes map which the developer would be unlikely
-		// to remember to update without this check.
+		// If below fails it means that the developer implementer ABIPacker interface but forgot to add it
+		// to the packerTypes map. Without this check, we would only test structs that were added to the map
+		// which the developer would be unlikely to remember to update without this check.
 		require.True(
 			t,
 			ok,
