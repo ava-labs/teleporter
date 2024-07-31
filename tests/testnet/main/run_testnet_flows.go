@@ -45,8 +45,8 @@ func main() {
 	runFlow("SendSpecificReceipts", flows.SendSpecificReceipts, network)
 	log.Info("Finished Teleporter test flows")
 
-	// Run the upgradeability test flows
+	// Run the upgradability test flows
 	runFlow("CheckUpgradeAccess", flows.CheckUpgradeAccess, network)
 	runFlow("PauseTeleporter", flows.PauseTeleporter, network)
-	log.Info("Finished upgradeability test flows")
+	log.Info("Finished upgradability test flows")
 }
