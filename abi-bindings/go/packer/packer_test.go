@@ -32,6 +32,8 @@ var fs = token.NewFileSet()
 // These mapping of names to empty type instances is necessary to be able to bridge
 // between the name of the type obtained by the AST parsing in findAllImplementers
 // and the actual type that we can instantiate and populate using reflection.
+// If a new type is added that implements ABIPacker, but is not added to this list,
+// then the test will fail.
 var packerTypes = map[string]ABIPacker{
 	"ValidatorSetSigMessage": &validatorsetsig.ValidatorSetSigMessage{},
 	"TeleporterMessage":      &teleportermessenger.TeleporterMessage{},
