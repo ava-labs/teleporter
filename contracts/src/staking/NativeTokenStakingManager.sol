@@ -8,9 +8,15 @@ pragma solidity 0.8.25;
 import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {StakingManager} from "./StakingManager.sol";
+import {StakingManagerSettings} from "./interfaces/IStakingManager.sol";
 
 contract NativeTokenStakingManager is StakingManager, INativeTokenStakingManager {
     using Address for address payable;
+
+    constructor(StakingManagerSettings memory settings) {
+        StakingManager.initialize(settings);
+    }
+
     /**
      * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
      * @param nodeID The node ID of the validator being registered.

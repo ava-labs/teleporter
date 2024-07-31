@@ -77,7 +77,7 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
         }
     }
 
-    function initialize(StakingManagerSettings calldata settings) public {
+    function initialize(StakingManagerSettings memory settings) public {
         StakingManagerStorage storage $ = _getTokenHomeStorage();
         $._warpMessenger = IWarpMessenger(0x0200000000000000000000000000000000000005);
         $._pChainBlockchainID = settings.pChainBlockchainID;
@@ -112,9 +112,13 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      * @notice Modifier to ensure that the initial stake has been provided.
      */
     modifier onlyWhenInitialStakeProvided() {
-        StakingManagerStorage storage $ = _getTokenHomeStorage();
-        require($._remainingInitialStake > 0, "StakingManager: Initial stake not provided");
+        require(initialStakeProvided(), "StakingManager: Initial stake not provided");
         _;
+    }
+
+    function initialStakeProvided() public view returns (bool) {
+        StakingManagerStorage storage $ = _getTokenHomeStorage();
+        return $._remainingInitialStake == 0;
     }
 
     /**
@@ -408,6 +412,10 @@ abstract contract StakingManager is ReentrancyGuard, IStakingManager {
      */
     function _checkAndUpdateChurnTracker(uint64 amount) private {
         StakingManagerStorage storage $ = _getTokenHomeStorage();
+        if ($._maximumHourlyChurn == 0) {
+            return;
+        }
+
         ValidatorChrunPeriod storage churnTracker = $._churnTracker;
         uint256 currentTime = block.timestamp;
         if (currentTime - churnTracker.startedAt >= 1 hours) {
