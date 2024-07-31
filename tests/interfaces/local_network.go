@@ -27,7 +27,8 @@ type LocalNetwork interface {
 		deployerAddress common.Address,
 		contractAddress common.Address,
 		fundedKey *ecdsa.PrivateKey,
-		updateNetworkTeleporter bool)
+		updateNetworkTeleporter bool,
+	)
 	GetNetworkID() uint32
 	Dir() string
 }

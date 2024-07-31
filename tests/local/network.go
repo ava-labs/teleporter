@@ -90,7 +90,8 @@ func NewLocalNetwork(
 	Expect(err).Should(BeNil())
 	warpChainConfigPath := f.Name()
 
-	allNodes := extraNodes // to be appended w/ subnet validators
+	var allNodes []*tmpnet.Node
+	allNodes = append(allNodes, extraNodes...) // to be appended w/ subnet validators
 
 	var subnets []*tmpnet.Subnet
 	for _, subnetSpec := range subnetSpecs {
@@ -140,7 +141,7 @@ func NewLocalNetwork(
 		setupProposerVM(ctx, globalFundedKey, network, subnet.SubnetID)
 	}
 
-	res := &LocalNetwork{
+	localNetwork := &LocalNetwork{
 		primaryNetworkInfo:  &interfaces.SubnetTestInfo{},
 		subnetsInfo:         make(map[ids.ID]*interfaces.SubnetTestInfo),
 		extraNodes:          extraNodes,
@@ -149,10 +150,10 @@ func NewLocalNetwork(
 		warpChainConfigPath: warpChainConfigPath,
 	}
 	for _, subnet := range network.Subnets {
-		res.setSubnetValues(subnet)
+		localNetwork.setSubnetValues(subnet)
 	}
-	res.setPrimaryNetworkValues()
-	return res
+	localNetwork.setPrimaryNetworkValues()
+	return localNetwork
 }
 
 // Should be called after setSubnetValues for all subnets
@@ -331,7 +332,8 @@ func (n *LocalNetwork) DeployTeleporterRegistryContracts(
 
 		log.Info("Deployed TeleporterRegistry contract",
 			"subnet", subnetInfo.SubnetID.Hex(),
-			"address", teleporterRegistryAddress.Hex())
+			"address", teleporterRegistryAddress.Hex(),
+		)
 	}
 
 	log.Info("Deployed TeleporterRegistry contracts to all subnets")
@@ -464,7 +466,7 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 
 	// consume some of the extraNodes
 	newValidatorNodes := n.extraNodes[0:count]
-	defer slices.Delete(n.extraNodes, 0, int(count))
+	copy(n.extraNodes, n.extraNodes[count:])
 
 	apiURI, err := n.tmpnet.GetURIForNodeID(subnet.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
@@ -535,8 +537,6 @@ func (n *LocalNetwork) RestartNodes(ctx context.Context, nodeIDs []ids.NodeID) {
 		err := tmpnet.WaitForHealthy(ctx, node)
 		Expect(err).Should(BeNil())
 	}
-
-	n.setAllSubnetValues()
 }
 
 func (n *LocalNetwork) SetChainConfigs(chainConfigs map[string]string) {
