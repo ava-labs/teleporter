@@ -25,6 +25,9 @@ abstract contract SendReentrancyGuard is Initializable {
     struct SendReentrancyGuardStorage {
         uint256 _sendEntered;
     }
+
+    uint256 internal constant NOT_ENTERED = 1;
+    uint256 internal constant ENTERED = 2;
     // solhint-enable private-vars-leading-underscore
 
     // keccak256(abi.encode(uint256(keccak256("avalanche-ictt.storage.SendReentrancyGuard")) - 1)) & ~bytes32(uint256(0xff));
