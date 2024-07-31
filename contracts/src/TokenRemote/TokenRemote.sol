@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {ITokenRemote, TokenRemoteSettings} from "./interfaces/ITokenRemote.sol";
 import {
@@ -18,7 +18,8 @@ import {
     RegisterRemoteMessage
 } from "../interfaces/ITokenTransferrer.sol";
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/registry/TeleporterOwnerUpgradeable.sol";
+import {TeleporterRegistryOwnableAppUpgradeable} from
+    "@teleporter/registry/TeleporterRegistryOwnableAppUpgradeable.sol";
 import {IWarpMessenger} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {SendReentrancyGuard} from "../utils/SendReentrancyGuard.sol";
@@ -31,7 +32,11 @@ import {TokenScalingUtils} from "../utils/TokenScalingUtils.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendReentrancyGuard {
+abstract contract TokenRemote is
+    ITokenRemote,
+    TeleporterRegistryOwnableAppUpgradeable,
+    SendReentrancyGuard
+{
     // solhint-disable private-vars-leading-underscore
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
@@ -139,27 +144,27 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
      * @notice Initializes this token TokenRemote instance.
      * @param settings The settings for the token TokenRemote instance.
      * @param initialReserveImbalance_ The initial reserve imbalance that must be collateralized before minting.
-     * @param tokenDecimals_ The number of decimal places in the denomination of the remote token.
+     * @param tokenDecimals The number of decimal places in the denomination of the remote token.
      */
     // solhint-disable ordering
     // solhint-disable-next-line func-name-mixedcase
     function __TokenRemote_init(
         TokenRemoteSettings memory settings,
         uint256 initialReserveImbalance_,
-        uint8 tokenDecimals_
+        uint8 tokenDecimals
     ) internal onlyInitializing {
-        __TeleporterOwnerUpgradeable_init(
+        __TeleporterRegistryOwnableApp_init(
             settings.teleporterRegistryAddress, settings.teleporterManager
         );
         __SendReentrancyGuard_init();
-        __TokenRemote_init_unchained(settings, initialReserveImbalance_, tokenDecimals_);
+        __TokenRemote_init_unchained(settings, initialReserveImbalance_, tokenDecimals);
     }
 
     // solhint-disable-next-line func-name-mixedcase
     function __TokenRemote_init_unchained(
         TokenRemoteSettings memory settings,
         uint256 initialReserveImbalance_,
-        uint8 tokenDecimals_
+        uint8 tokenDecimals
     ) internal onlyInitializing {
         TokenRemoteStorage storage $ = _getTokenRemoteStorage();
         $._blockchainID =
@@ -178,7 +183,7 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
             "TokenRemote: token home decimals too high"
         );
         require(
-            tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            tokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TokenRemote: token decimals too high"
         );
         $._tokenHomeBlockchainID = settings.tokenHomeBlockchainID;
@@ -186,10 +191,9 @@ abstract contract TokenRemote is ITokenRemote, TeleporterOwnerUpgradeable, SendR
         $._initialReserveImbalance = initialReserveImbalance_;
         $._isCollateralized = initialReserveImbalance_ == 0;
         $._homeTokenDecimals = settings.tokenHomeDecimals;
-        $._tokenDecimals = tokenDecimals_;
-        ($._tokenMultiplier, $._multiplyOnRemote) = TokenScalingUtils.deriveTokenMultiplierValues(
-            settings.tokenHomeDecimals, tokenDecimals_
-        );
+        $._tokenDecimals = tokenDecimals;
+        ($._tokenMultiplier, $._multiplyOnRemote) =
+            TokenScalingUtils.deriveTokenMultiplierValues(settings.tokenHomeDecimals, tokenDecimals);
     }
     // solhint-enable ordering
 

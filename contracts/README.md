@@ -2,27 +2,31 @@
 
 The ERC20 and native token transferrers built on top of Teleporter are composed of interfaces and abstract contracts that make them extendable to new implementations in the future.
 
-### `ITokenTransferrer`
+## Upgradability
+
+The token transferrer contracts implement both upgradeable and non-upgradeable versions. The non-upgradeable versions are extensions of their respective upgradeable token transferrer contract, and has a `constructor` that calls the `initialize` function of the upgradeable version. The upgradeable contracts are ERC7201 compliant, and use namespace storage to store the state of the contract.
+
+## `ITokenTransferrer`
 
 Interface that defines the events token transfer contract implementations must emit. Also defines the message types and formats of messages between all implementations.
 
-### `IERC20TokenTransferrer` and `INativeTokenTransferrer`
+## `IERC20TokenTransferrer` and `INativeTokenTransferrer`
 
 Interfaces that define the external functions for interacting with token transfer contract implementations of each type. ERC20 and native token transferrer interfaces vary from each other in that the native token transferrer functions are `payable` and do not take an explicit amount parameter (it is implied by `msg.value`), while the ERC20 token transferrer functions are not `payable` and require the explicit amount parameter. Otherwise, they include the same functions.
 
-### `TokenHome`
+## `TokenHome`
 
 An abstract implementation of `ITokenTransferrer` for a token transfer contract on the "home" chain with the asset to be transferred. Each `TokenHome` instance supports transferring exactly one token type (ERC20 or native) on its chain to arbitrarily many "remote" instances on other chains. It handles locking tokens to be sent to `TokenRemote` instances, as well as receiving token transfer messages to either redeem tokens it holds as collateral (i.e. unlock), or route them to other `TokenRemote` instances (i.e. "multi-hop"). In the case of a multi-hop transfer, the `TokenHome` already has the collateral locked from when the tokens were originally transferred to the first `TokenRemote` instance, so it simply updates the accounting of the transferred balances to each respective `TokenRemote` instance. Remote contracts must first be registered with a `TokenHome` instance before the home contract will allow for sending tokens to them. This is to prevent tokens from being transferred to invalid remote addresses. Anyone is able to deploy and register remote contracts, which may have been modified from this repository. It is the responsibility of the users of the home contract to independently evaluate each remote for its security and correctness.
 
-### `ERC20TokenHome`
+## `ERC20TokenHome`
 
 A concrete implementation of `TokenHome` and `IERC20TokenTransferrer` that handles the locking and releasing of an ERC20 token.
 
-### `NativeTokenHome`
+## `NativeTokenHome`
 
 A concrete implementation of `TokenHome` and `INativeTokenTransferrer` that handles the locking and release of the native EVM asset.
 
-### `TokenRemote`
+## `TokenRemote`
 
 An abstract implementation of `ITokenTransferrer` for a token transfer contract on a "remote" chain that receives transferred assets from a specific `TokenHome` instance. Each `TokenRemote` instance has a single `TokenHome` instance that it receives token transfers from to mint tokens. It also handles sending messages (and correspondingly burning tokens) to route tokens back to other chains (either its `TokenHome`, or other `TokenRemote` instances). Once deployed, a `TokenRemote` instance must be registered with its specified `TokenHome` contract. This is done by calling `registerWithHome` on the remote contract, which will send a Teleporter message to the home contract with the information to register.
 
@@ -30,11 +34,11 @@ All messages sent by `TokenRemote` instances are sent to the specified `TokenHom
 
 TokenRemote contracts allow for scaling token amounts, which should be used when the remote asset has a higher or lower denomination than the home asset, such as allowing for a ERC20 home asset with a denomination of 6 to be used as the native EVM asset on a remote chain (with a denomination of 18).
 
-### `ERC20TokenRemote`
+## `ERC20TokenRemote`
 
 A concrete implementation of `TokenRemote`, `IERC20TokenTransferrer`, and `IERC20` that handles the minting and burning of an ERC20 asset. Note that the `ERC20TokenRemote` contract is an ERC20 implementation itself, which is why it takes the `tokenName`, `tokenSymbol`, and `tokenDecimals` in its constructor. All of the ERC20 interface implementations are inherited from the standard OpenZeppelin ERC20 implementation, and can be overriden in other implementations if desired.
 
-### `NativeTokenRemote`
+## `NativeTokenRemote`
 
 A concrete implementation of `TokenRemote`, `INativeTokenTransferrer`, and `IWrappedNativeToken` that handles the minting and burning of the native EVM asset on its chain using the native minter precompile. Deployments of this contract must be given the permission to mint native coins in the chain's configuration. Note that the `NativeTokenRemote` is also an implementation of `IWrappedNativeToken` itself, which is why the `nativeAssetSymbol` must be provided in its constructor. `NativeTokenRemote` instances always have a denomination of 18, which is the denomination of the native asset of EVM chains.
 
@@ -59,7 +63,7 @@ The `totalNativeAssetSupply` implementation of `NativeTokenRemote` takes into ac
 
 Note that the value returned by `totalNativeAssetSupply` is an upper bound on the circulating supply of the native asset on the chain using the `NativeTokenRemote` instance since tokens could be burned in other ways that it does not account for.
 
-# Teleporter Message Fees
+## Teleporter Message Fees
 
 Fees can be optionally added to Teleporter messages in order to incentivize relayers to deliver them, as documented [here](https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter#fees). The token transfer contracts in this repository allow for specifying any ERC20 token and amount to be used as the Teleporter message fee for single-hop transfers in either direction between `TokenHome` and `TokenRemote` instances. Fee amounts must be pre-approved to be spent by the token transfer contract before initiating a transfer.
 

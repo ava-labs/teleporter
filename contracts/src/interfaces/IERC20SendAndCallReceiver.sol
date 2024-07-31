@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 /**
  * @notice Interface for contracts that are called to receive token transfers.

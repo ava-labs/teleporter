@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	erc20tokenhome "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHome"
+	erc20tokenhomeupgradeable "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenHome/ERC20TokenHomeUpgradeable"
 	erc20tokenremote "github.com/ava-labs/avalanche-interchain-token-transfer/abi-bindings/go/TokenRemote/ERC20TokenRemote"
 	"github.com/ava-labs/avalanche-interchain-token-transfer/tests/utils"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
@@ -48,15 +49,37 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 	tokenDecimals, err := exampleERC20.Decimals(&bind.CallOpts{})
 	Expect(err).Should(BeNil())
 
-	// Deploy the ERC20TokenHome logic contract on primary network
-	erc20TokenHomeAddress, proxyAdmin, erc20TokenHome := utils.DeployERC20TokenHome(
-		ctx,
+	opts, err := bind.NewKeyedTransactorWithChainID(
 		fundedKey,
+		cChainInfo.EVMChainID,
+	)
+	Expect(err).Should(BeNil())
+	implAddress, tx, _, err := erc20tokenhomeupgradeable.DeployERC20TokenHomeUpgradeable(
+		opts,
+		cChainInfo.RPCClient,
+		uint8(1),
+	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
+
+	// Deploy a TransparentUpgradeableProxy contract on primary network for the ERC20TokenHome logic contract
+	erc20TokenHomeAddress, proxyAdmin, erc20TokenHome := utils.DeployTransparentUpgradeableProxy(
+		ctx,
 		cChainInfo,
+		fundedKey,
+		implAddress,
+		erc20tokenhome.NewERC20TokenHome,
+	)
+
+	tx, err = erc20TokenHome.Initialize(
+		opts,
+		cChainInfo.TeleporterRegistryAddress,
 		fundedAddress,
 		exampleERC20Address,
 		tokenDecimals,
 	)
+	Expect(err).Should(BeNil())
+	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
 
 	// Deploy the ERC20TokenRemote contract on Subnet A
 	erc20TokenRemoteAddress, erc20TokenRemote := utils.DeployERC20TokenRemote(
@@ -132,15 +155,10 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 	Expect(balance).Should(Equal(transferredAmount))
 
 	// Deploy a new ERC20TokenHome logic contract on primary network
-	opts, err := bind.NewKeyedTransactorWithChainID(
-		fundedKey,
-		cChainInfo.EVMChainID,
-	)
-	Expect(err).Should(BeNil())
-
-	newLogic, tx, _, err := erc20tokenhome.DeployERC20TokenHome(
+	newLogic, tx, _, err := erc20tokenhomeupgradeable.DeployERC20TokenHomeUpgradeable(
 		opts,
 		cChainInfo.RPCClient,
+		uint8(1),
 	)
 	Expect(err).Should(BeNil())
 	teleporterUtils.WaitForTransactionSuccess(ctx, cChainInfo, tx.Hash())
