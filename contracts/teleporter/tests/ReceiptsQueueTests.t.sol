@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
 import {ReceiptQueue} from "../ReceiptQueue.sol";
@@ -115,11 +115,11 @@ contract ReceiptQueueTest is Test {
         assertEq(result.relayerRewardAddress, address(0));
     }
 
-    function _formatReceiptQueueErrorMessage(string memory errorMessage)
+    function _formatReceiptQueueErrorMessage(bytes memory errorMessage)
         private
         pure
         returns (bytes memory)
     {
-        return bytes(string.concat("ReceiptQueue: ", errorMessage));
+        return abi.encodePacked("ReceiptQueue: ", errorMessage);
     }
 }

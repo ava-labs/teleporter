@@ -3,24 +3,39 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
-import {TeleporterOwnerUpgradeable} from "../TeleporterOwnerUpgradeable.sol";
-import {TeleporterUpgradeable} from "../TeleporterUpgradeable.sol";
-import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
+import {TeleporterRegistryOwnableAppUpgradeable} from
+    "../TeleporterRegistryOwnableAppUpgradeable.sol";
+import {TeleporterRegistryOwnableApp} from "../TeleporterRegistryOwnableApp.sol";
+import {TeleporterRegistryApp} from "../TeleporterRegistryApp.sol";
+import {BaseTeleporterRegistryAppTest} from "./BaseTeleporterRegistryAppTests.t.sol";
 import {OwnableUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
+import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
 
-contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
+contract ExampleRegistryOwnableAppUpgradeable is TeleporterRegistryOwnableAppUpgradeable {
     function initialize(
         address teleporterRegistryAddress,
-        address teleporterManager
+        address initialOwner
     ) public initializer {
-        __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+        __TeleporterRegistryOwnableApp_init(teleporterRegistryAddress, initialOwner);
     }
 
-    function checkTeleporterUpgradeAccess() external view {
-        _checkTeleporterUpgradeAccess();
+    function setMinTeleporterVersion(uint256 version) public {
+        _setMinTeleporterVersion(version);
+    }
+
+    function sendTeleporterMessage(TeleporterMessageInput calldata messageInput) public {
+        _sendTeleporterMessage(messageInput);
+    }
+
+    function getTeleporterMessenger() public view returns (ITeleporterMessenger) {
+        return _getTeleporterMessenger();
+    }
+
+    function checkTeleporterRegistryAppAccess() public view {
+        _checkTeleporterRegistryAppAccess();
     }
 
     function _receiveTeleporterMessage(
@@ -30,15 +45,42 @@ contract ExampleOwnerUpgradeableApp is TeleporterOwnerUpgradeable {
     ) internal override {}
 }
 
-contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
-    ExampleOwnerUpgradeableApp public ownerApp;
+contract ExampleRegistryOwnableApp is TeleporterRegistryOwnableApp {
+    constructor(
+        address teleporterRegistryAddress,
+        address initialOwner
+    ) TeleporterRegistryOwnableApp(teleporterRegistryAddress, initialOwner) {}
+
+    function setMinTeleporterVersion(uint256 version) public {
+        _setMinTeleporterVersion(version);
+    }
+
+    function sendTeleporterMessage(TeleporterMessageInput calldata messageInput) public {
+        _sendTeleporterMessage(messageInput);
+    }
+
+    function getTeleporterMessenger() public view returns (ITeleporterMessenger) {
+        return _getTeleporterMessenger();
+    }
+
+    function checkTeleporterRegistryAppAccess() public view {
+        _checkTeleporterRegistryAppAccess();
+    }
+
+    function _receiveTeleporterMessage(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        bytes memory message // solhint-disable-next-line no-empty-blocks
+    ) internal override {}
+}
+
+abstract contract BaseTeleporterRegistryOwnableAppTest is BaseTeleporterRegistryAppTest {
+    ExampleRegistryOwnableApp public ownerApp;
     address public constant MOCK_INVALID_OWNER_ADDRESS = 0xd54e3E251b9b0EEd3ed70A858e927bbC2659587d;
     address public constant DEFAULT_OWNER_ADDRESS = 0x1234512345123451234512345123451234512345;
 
     function setUp() public virtual override {
-        TeleporterUpgradeableTest.setUp();
-        ownerApp = new ExampleOwnerUpgradeableApp();
-        ownerApp.initialize(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
+        BaseTeleporterRegistryAppTest.setUp();
     }
 
     function testOwnerUpdateMinTeleporterVersion() public {
@@ -152,7 +194,7 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
 
         // Check that the Teleporter address is still paused
         vm.prank(teleporterAddress);
-        vm.expectRevert("TeleporterUpgradeable: Teleporter address paused");
+        vm.expectRevert(_formatErrorMessage("Teleporter address paused"));
         ownerApp.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Unpause the Teleporter address from owner account
@@ -172,22 +214,23 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector, MOCK_INVALID_OWNER_ADDRESS
             )
         );
-        ownerApp.checkTeleporterUpgradeAccess();
+        ownerApp.checkTeleporterRegistryAppAccess();
 
         // Check that call to check upgrade access succeeds for owners
         vm.prank(DEFAULT_OWNER_ADDRESS);
-        ownerApp.checkTeleporterUpgradeAccess();
+        ownerApp.checkTeleporterRegistryAppAccess();
     }
 
     function testInitalOwner() public {
         // Create a new Ownable app with a passed in teleporterManager
-        ExampleOwnerUpgradeableApp newOwnerApp = new ExampleOwnerUpgradeableApp();
+        ExampleRegistryOwnableAppUpgradeable newOwnerApp =
+            new ExampleRegistryOwnableAppUpgradeable();
         newOwnerApp.initialize(address(teleporterRegistry), DEFAULT_OWNER_ADDRESS);
 
         // Check that the teleporterManager is set correctly
         assertEq(newOwnerApp.owner(), DEFAULT_OWNER_ADDRESS);
         vm.prank(DEFAULT_OWNER_ADDRESS);
-        newOwnerApp.checkTeleporterUpgradeAccess();
+        newOwnerApp.checkTeleporterRegistryAppAccess();
 
         // Check that address(this) as the caller is not by default owner
         assertFalse(newOwnerApp.owner() == address(this));
@@ -196,11 +239,11 @@ contract TeleporterOwnerUpgradeableTest is TeleporterUpgradeableTest {
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(this)
             )
         );
-        newOwnerApp.checkTeleporterUpgradeAccess();
+        newOwnerApp.checkTeleporterRegistryAppAccess();
     }
 
     function _updateMinTeleporterVersionSuccess(
-        TeleporterUpgradeable app_,
+        TeleporterRegistryApp app_,
         uint256 newMinTeleporterVersion
     ) internal virtual override {
         vm.expectEmit(true, true, true, true, address(app_));

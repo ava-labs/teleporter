@@ -3,23 +3,19 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
-import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
+import {BaseTeleporterRegistryAppTest} from "./BaseTeleporterRegistryAppTests.t.sol";
 import {TeleporterMessenger} from "@teleporter/TeleporterMessenger.sol";
 
-contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
-    function setUp() public virtual override {
-        TeleporterUpgradeableTest.setUp();
-    }
-
+abstract contract PauseTeleporterAddressTest is BaseTeleporterRegistryAppTest {
     function testPauseTeleporterAddressBasic() public {
         // Check that the teleporterAddress is not paused initially
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
         // Check that teleporterAddress can not deliver messages once paused
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
+        vm.expectRevert(_formatErrorMessage("Teleporter address paused"));
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
@@ -27,11 +23,11 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
     function testAlreadyPausedTeleporterAddress() public {
         // Check that teleporterAddress can not deliver messages once paused
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
+        vm.expectRevert(_formatErrorMessage("Teleporter address paused"));
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
         // Check that teleporterAddress can not be paused again
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("address already paused"));
+        vm.expectRevert(_formatErrorMessage("address already paused"));
         app.pauseTeleporterAddress(teleporterAddress);
     }
 
@@ -48,14 +44,14 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
 
         // Check that teleporterAddress can not deliver messages once paused
         _pauseTeleporterAddressSuccess(app, teleporterAddress);
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
+        vm.expectRevert(_formatErrorMessage("Teleporter address paused"));
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
         // Check that after updating mininum Teleporter version, the address is still paused
         _updateMinTeleporterVersionSuccess(app, teleporterRegistry.latestVersion());
         vm.prank(teleporterAddress);
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
+        vm.expectRevert(_formatErrorMessage("Teleporter address paused"));
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
@@ -73,13 +69,13 @@ contract PauseTeleporterAddressTest is TeleporterUpgradeableTest {
 
         // Check that the new Teleporter address is paused
         vm.prank(newTeleporterAddress);
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("Teleporter address paused"));
+        vm.expectRevert(_formatErrorMessage("Teleporter address paused"));
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
     }
 
     function testPauseZeroAddress() public {
         // Check that a zero address can not be paused
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("zero Teleporter address"));
+        vm.expectRevert(_formatErrorMessage("zero Teleporter address"));
         app.pauseTeleporterAddress(address(0));
     }
 }

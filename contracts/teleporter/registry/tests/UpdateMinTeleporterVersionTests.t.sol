@@ -3,16 +3,12 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
-import {TeleporterUpgradeableTest} from "./TeleporterUpgradeableTests.t.sol";
+import {BaseTeleporterRegistryAppTest} from "./BaseTeleporterRegistryAppTests.t.sol";
 import {TeleporterMessenger, WarpMessage} from "@teleporter/TeleporterMessenger.sol";
 
-contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
-    function setUp() public virtual override {
-        TeleporterUpgradeableTest.setUp();
-    }
-
+abstract contract UpdateMinTeleporterVersionTest is BaseTeleporterRegistryAppTest {
     function testMessageDeliveryFromOutdatedVersion() public {
         // First check that calling with initial teleporter address works
         assertEq(app.getMinTeleporterVersion(), 1);
@@ -27,7 +23,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         assertEq(app.getMinTeleporterVersion(), 2);
 
         // Check that calling with the old teleporter address fails
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter sender"));
+        vm.expectRevert(_formatErrorMessage("invalid Teleporter sender"));
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
@@ -69,7 +65,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         assertEq(app.getMinTeleporterVersion(), skippedVersion);
 
         // Make sure that the old minimum Teleporter version can not deliver messages
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter sender"));
+        vm.expectRevert(_formatErrorMessage("invalid Teleporter sender"));
         vm.prank(teleporterAddress);
         app.receiveTeleporterMessage(DEFAULT_SOURCE_BLOCKCHAIN_ID, DEFAULT_ORIGIN_ADDRESS, "");
 
@@ -86,9 +82,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         assertEq(minTeleporterVersion, teleporterRegistry.latestVersion());
 
         // Try to update to current minimum version, should fail
-        vm.expectRevert(
-            _formatTeleporterUpgradeableErrorMessage("not greater than current minimum version")
-        );
+        vm.expectRevert(_formatErrorMessage("not greater than current minimum version"));
         app.updateMinTeleporterVersion(minTeleporterVersion);
 
         // Check that minimum version is still the same
@@ -105,7 +99,7 @@ contract UpdateMinTeleporterVersionTest is TeleporterUpgradeableTest {
         uint256 minTeleporterVersion = app.getMinTeleporterVersion();
 
         // Try to update to a version greater than the latest version, should fail
-        vm.expectRevert(_formatTeleporterUpgradeableErrorMessage("invalid Teleporter version"));
+        vm.expectRevert(_formatErrorMessage("invalid Teleporter version"));
         app.updateMinTeleporterVersion(latestVersion + 1);
 
         // Check that minimum version is still the same

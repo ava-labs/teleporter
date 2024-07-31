@@ -2,7 +2,8 @@
 src = 'contracts'
 out = 'out'
 libs = ['lib']
-solc_version = '0.8.23'
+solc_version = '0.8.25'
+evm_version = 'shanghai'
 test = 'tests'
 bytecode_hash = "none"
 

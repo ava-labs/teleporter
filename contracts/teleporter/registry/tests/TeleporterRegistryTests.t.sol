@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
 import {TeleporterRegistry, ProtocolRegistryEntry} from "../TeleporterRegistry.sol";
@@ -323,11 +323,11 @@ contract TeleporterRegistryTest is Test {
         });
     }
 
-    function _formatRegistryErrorMessage(string memory errorMessage)
+    function _formatRegistryErrorMessage(bytes memory errorMessage)
         internal
         pure
         returns (bytes memory)
     {
-        return bytes(string.concat("TeleporterRegistry: ", errorMessage));
+        return abi.encodePacked("TeleporterRegistry: ", errorMessage);
     }
 }
