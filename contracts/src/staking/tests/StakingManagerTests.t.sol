@@ -47,16 +47,6 @@ abstract contract StakingManagerTest is Test {
 
     function setUp() public virtual {}
 
-    function testResendRegisterValidatorMessage() public {}
-
-    function testCompleteValidatorRegistration() public {}
-
-    function testInitializeEndValidation() public {}
-
-    function testResendEndValidation() public {}
-
-    function testCompleteEndValidation() public {}
-
     function testValueToWeight() public {
         uint64 w1 = stakingManager.valueToWeight(1e12);
         uint64 w2 = stakingManager.valueToWeight(1e18);
