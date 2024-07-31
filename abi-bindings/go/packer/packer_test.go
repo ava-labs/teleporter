@@ -165,10 +165,10 @@ func randomizeStruct(packerStruct interface{}) (interface{}, error) {
 
 // randomizeField populates fields of structs with random values.
 // It only supports types that are supported by abi-gen from Solidity types.
+// The type conversion assumptions it makes are listed in `abi-bindings/README.md`
 func randomizeField(field reflect.Value) error {
 	fieldType := field.Type()
 	switch fieldType.Kind() {
-	// The list only includes types supported by abigen
 	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		field.SetInt(rand.Int63())
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
