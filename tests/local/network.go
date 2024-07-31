@@ -470,8 +470,9 @@ func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID,
 	)]
 
 	// consume some of the extraNodes
-	newValidatorNodes := n.extraNodes[0:count]
-	copy(n.extraNodes, n.extraNodes[count:])
+	var newValidatorNodes []*tmpnet.Node
+	copy(newValidatorNodes, n.extraNodes[0:count])
+	n.extraNodes = n.extraNodes[count:]
 
 	apiURI, err := n.tmpnet.GetURIForNodeID(subnet.ValidatorIDs[0])
 	Expect(err).Should(BeNil())
