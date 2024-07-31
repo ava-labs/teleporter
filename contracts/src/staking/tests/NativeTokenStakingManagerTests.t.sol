@@ -73,7 +73,9 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
 
     function testInitializeEndValidationWithUptimeProof() public {}
 
-    function testResendEndValidation() public {}
+    function testResendEndValidation() public {
+        // TODO: implement
+    }
 
     function testCompleteEndValidation() public {}
 
@@ -116,4 +118,6 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
             nodeID, registrationExpiry, signature
         );
     }
+
+    function _setUpCompleteValidatorRegistration() internal {}
 }
