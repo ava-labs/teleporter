@@ -47,7 +47,7 @@ abstract contract StakingManagerTest is Test {
 
     function setUp() public virtual {}
 
-    function testValueToWeight() public {
+    function testValueToWeight() public view {
         uint64 w1 = stakingManager.valueToWeight(1e12);
         uint64 w2 = stakingManager.valueToWeight(1e18);
         uint64 w3 = stakingManager.valueToWeight(1e27);
@@ -57,7 +57,7 @@ abstract contract StakingManagerTest is Test {
         assertEq(w3, 1e15);
     }
 
-    function testWeightToValue() public {
+    function testWeightToValue() public view {
         uint256 v1 = stakingManager.weightToValue(1);
         uint256 v2 = stakingManager.weightToValue(1e6);
         uint256 v3 = stakingManager.weightToValue(1e15);
