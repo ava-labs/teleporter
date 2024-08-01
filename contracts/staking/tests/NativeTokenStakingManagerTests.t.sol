@@ -75,14 +75,12 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         app.resendRegisterValidatorMessage(validationID);
     }
 
-    function testCompleteValidatorRegistration() public {        
+    function testCompleteValidatorRegistration() public {
         bytes32 validationID = _setUpInitializeValidatorRegistration(
             DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, 1e6, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
         );
-        bytes memory subnetValidatorRegistrationMessage = StakingMessages.packSubnetValidatorRegistrationMessage(
-            validationID,
-            true
-        );
+        bytes memory subnetValidatorRegistrationMessage =
+            StakingMessages.packSubnetValidatorRegistrationMessage(validationID, true);
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
@@ -96,10 +94,9 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
             )
         );
         vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
         );
-        
+
         vm.warp(1000);
         vm.expectEmit(true, true, true, true, address(app));
         emit ValidationPeriodRegistered(validationID, 1e6, 1000);
