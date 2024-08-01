@@ -1,0 +1,29 @@
+[profile.default]
+src = 'contracts'
+out = 'out'
+libs = ['lib']
+solc_version = '0.8.25'
+evm_version = 'shanghai'
+test = 'tests'
+bytecode_hash = "none"
+auto_detect_remappings = false
+
+[fmt]
+line_length = 100
+tab_width = 4
+bracket_spacing = false
+int_types = 'preserve'
+multiline_func_header = 'params_first'
+quote_style = 'double'
+number_underscores = 'thousands'
+override_spacing = true
+wrap_comments = false
+
+# Add the following to your VSCode settings to enable automatic formatting.
+# {
+#   "editor.formatOnSave": true,
+#   "[solidity]": {
+#     "editor.defaultFormatter": "JuanBlanco.solidity" 
+#   },
+#   "solidity.formatter": "forge",
+# }

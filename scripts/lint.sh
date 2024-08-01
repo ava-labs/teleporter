@@ -14,19 +14,19 @@ source $TELEPORTER_PATH/scripts/versions.sh
 function solFormat() {
     # format solidity contracts
     echo "Formatting Solidity contracts..."
-    forge fmt --root $TELEPORTER_PATH/contracts $TELEPORTER_PATH/contracts/src/**
+    forge fmt --root $TELEPORTER_PATH $TELEPORTER_PATH/contracts/**
 }
 
 function solFormatCheck() {
     # format solidity contracts
     echo "Checking formatting of Solidity contracts..."
-    forge fmt --check --root $TELEPORTER_PATH/contracts $TELEPORTER_PATH/contracts/src/**
+    forge fmt --check --root $TELEPORTER_PATH $TELEPORTER_PATH/contracts/**
 }
 
 function solLinter() {
     # lint solidity contracts
     echo "Linting Solidity contracts..."
-    cd $TELEPORTER_PATH/contracts/src
+    cd $TELEPORTER_PATH
     # "solhint **/*.sol" runs differently than "solhint '**/*.sol'", where the latter checks sol files
     # in subdirectories. The former only checks sol files in the current directory and directories one level down.
     solhint '**/*.sol' --config ./.solhint.json --ignore-path ./.solhintignore --max-warnings 0
