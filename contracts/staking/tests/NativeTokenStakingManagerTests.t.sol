@@ -5,7 +5,6 @@
 
 pragma solidity 0.8.25;
 
-import {Test} from "@forge-std/Test.sol";
 import {StakingManagerTest} from "./StakingManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
 import {StakingManagerSettings, InitialStakerInfo} from "../interfaces/IStakingManager.sol";
@@ -13,6 +12,8 @@ import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {IWarpMessenger, WarpMessage} from "../StakingManager.sol";
 import {StakingMessages} from "../StakingMessages.sol";
 
+// TODO: Remove this once all unit tests implemented
+// solhint-disable no-empty-blocks
 contract NativeTokenStakingManagerTest is StakingManagerTest {
     NativeTokenStakingManager public app;
 
@@ -31,9 +32,6 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
             })
         );
         stakingManager = app;
-
-        // Setup the test
-        StakingManagerTest.setUp();
     }
 
     function testInitializeValidatorRegistrationSuccess() public {
@@ -125,9 +123,8 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
             registrationTimestamp: 1000,
             completionTimestamp: 2000
         });
-        bytes memory setValidatorWeightPayload = StakingMessages.packSetSubnetValidatorWeightMessage(
-            validationID, 0, 0
-        );
+        bytes memory setValidatorWeightPayload =
+            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
         vm.mockCall(
             WARP_PRECOMPILE_ADDRESS,
             abi.encode(IWarpMessenger.sendWarpMessage.selector),
@@ -323,3 +320,5 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         app.initializeEndValidation(validationID, false, 0);
     }
 }
+// TODO: Remove this once all unit tests implemented
+// solhint-enable no-empty-blocks

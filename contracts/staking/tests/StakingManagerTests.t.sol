@@ -45,8 +45,6 @@ abstract contract StakingManagerTest is Test {
 
     event ValidationPeriodEnded(bytes32 indexed validationID);
 
-    function setUp() public virtual {}
-
     function testValueToWeight() public view {
         uint64 w1 = stakingManager.valueToWeight(1e12);
         uint64 w2 = stakingManager.valueToWeight(1e18);
