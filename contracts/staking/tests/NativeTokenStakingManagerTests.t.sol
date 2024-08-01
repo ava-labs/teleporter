@@ -10,7 +10,7 @@ import {StakingManagerTest} from "./StakingManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
 import {StakingManagerSettings, InitialStakerInfo} from "../interfaces/IStakingManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
-import {IWarpMessenger} from "../StakingManager.sol";
+import {IWarpMessenger, WarpMessage} from "../StakingManager.sol";
 import {StakingMessages} from "../StakingMessages.sol";
 
 contract NativeTokenStakingManagerTest is StakingManagerTest {
@@ -42,10 +42,18 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         );
     }
 
-    function testInitializeValidatorRegistrationExcessiveChurn() public {}
-    function testInitializeValidatorRegistrationInsufficientStake() public {}
-    function testInitializeValidatorRegistrationExcessiveStake() public {}
-    function testInitializeValidatorRegistrationInsufficientDuration() public {}
+    function testInitializeValidatorRegistrationExcessiveChurn() public {
+        // TODO: implement
+    }
+    function testInitializeValidatorRegistrationInsufficientStake() public {
+        // TODO: implement
+    }
+    function testInitializeValidatorRegistrationExcessiveStake() public {
+        // TODO: implement
+    }
+    function testInitializeValidatorRegistrationInsufficientDuration() public {
+        // TODO: implement
+    }
 
     // The following tests call functions that are  implemented in StakingManager, but access state that's
     // only set in NativeTokenStakingManager. Therefore we call them via the concrete type, rather than a
@@ -67,17 +75,57 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         app.resendRegisterValidatorMessage(validationID);
     }
 
-    function testCompleteValidatorRegistration() public {}
+    function testCompleteValidatorRegistration() public {        
+        bytes32 validationID = _setUpInitializeValidatorRegistration(
+            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, 1e6, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
+        );
+        bytes memory subnetValidatorRegistrationMessage = StakingMessages.packSubnetValidatorRegistrationMessage(
+            validationID,
+            true
+        );
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
+                    originSenderAddress: address(0),
+                    payload: subnetValidatorRegistrationMessage
+                }),
+                true
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+        
+        vm.warp(1000);
+        vm.expectEmit(true, true, true, true, address(app));
+        emit ValidationPeriodRegistered(validationID, 1e6, 1000);
 
-    function testInitializeEndValidation() public {}
+        app.completeValidatorRegistration(0);
+    }
 
-    function testInitializeEndValidationWithUptimeProof() public {}
+    function testInitializeEndValidation() public {
+        // TODO: implement
+    }
+
+    function testInitializeEndValidationWithUptimeProof() public {
+        // TODO: implement
+    }
 
     function testResendEndValidation() public {
         // TODO: implement
     }
 
-    function testCompleteEndValidation() public {}
+    function testCompleteEndValidation() public {
+        // TODO: implement
+    }
+
+    function testCompleteEndValidationSetWeightMessageType() public {
+        // TODO: implement
+    }
 
     // Helpers
     function _setUpInitializeValidatorRegistration(
