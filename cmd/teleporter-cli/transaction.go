@@ -96,7 +96,8 @@ func printWarpLogs(cmd *cobra.Command, log *types.Log) {
 	cmd.Println("Warp Payload:")
 	cmd.Println(string(warpPayloadJson))
 
-	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpPayload.Payload)
+	teleporterMessage := teleportermessenger.TeleporterMessage{}
+	err = teleporterMessage.Unpack(warpPayload.Payload)
 	cobra.CheckErr(err)
 
 	cmd.Println("Teleporter Message:")

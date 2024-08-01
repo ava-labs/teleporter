@@ -1096,7 +1096,7 @@ func CreateOffChainValidatorSetSigMessage(
 	message validatorsetsig.ValidatorSetSigMessage,
 ) *avalancheWarp.UnsignedMessage {
 	sourceAddress := []byte{}
-	payloadBytes, err := validatorsetsig.PackValidatorSetSigWarpPayload(message)
+	payloadBytes, err := message.Pack()
 	Expect(err).Should(BeNil())
 
 	addressedPayload, err := payload.NewAddressedCall(sourceAddress, payloadBytes)
@@ -1156,10 +1156,11 @@ func ParseTeleporterMessage(unsignedMessage avalancheWarp.UnsignedMessage) *tele
 	addressedPayload, err := payload.ParseAddressedCall(unsignedMessage.Payload)
 	Expect(err).Should(BeNil())
 
-	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(addressedPayload.Payload)
+	teleporterMessage := teleportermessenger.TeleporterMessage{}
+	err = teleporterMessage.Unpack(addressedPayload.Payload)
 	Expect(err).Should(BeNil())
 
-	return teleporterMessage
+	return &teleporterMessage
 }
 
 func GetChainConfigWithOffChainMessages(offChainMessages []avalancheWarp.UnsignedMessage) string {
