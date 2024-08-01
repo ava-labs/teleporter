@@ -77,11 +77,11 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
 
     function testCompleteValidatorRegistration() public {
         _setUpCompleteValidatorRegistration({
-            nodeID: DEFAULT_NODE_ID, 
-            subnetID: DEFAULT_SUBNET_ID, 
-            weight: 1e6, 
-            registrationExpiry: DEFAULT_EXPIRY, 
-            signature: DEFAULT_ED25519_SIGNATURE, 
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: 1e6,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
             registrationTimestamp: 1000
         });
     }
@@ -107,7 +107,7 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     }
 
     function testResendEndValidation() public {
-         bytes32 validationID = _setUpInitializeEndValidation({
+        bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
             weight: 1e6,
@@ -285,11 +285,11 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         uint64 completionTimestamp
     ) internal returns (bytes32 validationID) {
         validationID = _setUpCompleteValidatorRegistration({
-            nodeID: nodeID, 
-            subnetID: subnetID, 
-            weight: weight, 
-            registrationExpiry: registrationExpiry, 
-            signature: signature, 
+            nodeID: nodeID,
+            subnetID: subnetID,
+            weight: weight,
+            registrationExpiry: registrationExpiry,
+            signature: signature,
             registrationTimestamp: registrationTimestamp
         });
 
@@ -300,10 +300,8 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
             abi.encode(bytes32(0))
         );
         vm.expectEmit(true, true, true, true, address(app));
-        emit ValidatorRemovalInitialized(
-            validationID, bytes32(0), weight, completionTimestamp , 0
-        );
-        
+        emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp, 0);
+
         app.initializeEndValidation(validationID, false, 0);
     }
 }
