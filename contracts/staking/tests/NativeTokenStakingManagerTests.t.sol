@@ -130,11 +130,73 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     }
 
     function testCompleteEndValidation() public {
-        // TODO: implement
+        bytes32 validationID = _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: 1e6,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
+            registrationTimestamp: 1000,
+            completionTimestamp: 2000
+        });
+
+        bytes memory subnetValidatorRegistrationMessage =
+            StakingMessages.packSubnetValidatorRegistrationMessage(validationID, false);
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
+                    originSenderAddress: address(0),
+                    payload: subnetValidatorRegistrationMessage
+                }),
+                true
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+
+        vm.expectEmit(true, true, true, true, address(app));
+        emit ValidationPeriodEnded(validationID);
+
+        app.completeEndValidation(0, false);
     }
 
     function testCompleteEndValidationSetWeightMessageType() public {
-        // TODO: implement
+        bytes32 validationID = _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: 1e6,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
+            registrationTimestamp: 1000,
+            completionTimestamp: 2000
+        });
+
+        bytes memory setSubnetValidatorWeightMessage =
+            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
+                    originSenderAddress: address(0),
+                    payload: setSubnetValidatorWeightMessage
+                }),
+                true
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+
+        vm.expectEmit(true, true, true, true, address(app));
+        emit ValidationPeriodEnded(validationID);
+
+        app.completeEndValidation(0, true);
     }
 
     // Helpers
