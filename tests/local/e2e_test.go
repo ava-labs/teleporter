@@ -59,6 +59,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		2,
 	)
 
+	log.Info("Startied local network")
 	// Generate the Teleporter deployment values
 	// teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
 	// 	deploymentUtils.ConstructKeylessTransaction(
