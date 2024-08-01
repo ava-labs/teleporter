@@ -10,12 +10,21 @@ import {
     WarpMessage,
     IWarpMessenger
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts@5.0.2/utils/ReentrancyGuard.sol";
+import {ReentrancyGuardUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 import {StakingMessages} from "./StakingMessages.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
-import {Context} from "@openzeppelin/contracts@5.0.2/utils/Context.sol";
+import {ContextUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
-abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
+abstract contract StakingManager is
+    Initializable,
+    ContextUpgradeable,
+    ReentrancyGuardUpgradeable,
+    IStakingManager
+{
     enum ValidatorStatus {
         Unknown,
         PendingAdded,
@@ -46,7 +55,6 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.StakingManager
     struct StakingManagerStorage {
-        IWarpMessenger _warpMessenger;
         bytes32 _pChainBlockchainID;
         bytes32 _subnetID;
         uint256 _minimumStakeAmount;
@@ -94,9 +102,30 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         IRewardCalculator rewardCalculator;
     }
 
-    function initialize(StakingManagerSettings calldata settings) public {
+    /**
+     * @notice Warp precompile used for sending and receiving Warp messages.
+     */
+    IWarpMessenger public constant WARP_MESSENGER =
+        IWarpMessenger(0x0200000000000000000000000000000000000005);
+
+    function initialize(StakingManagerSettings calldata settings) public initializer {
+        __StakingManager_init(settings);
+    }
+
+    function __StakingManager_init(StakingManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
+        __ReentrancyGuard_init();
+        __Context_init();
+        __StakingManager_init_unchained(settings);
+    }
+
+    function __StakingManager_init_unchained(StakingManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
-        $._warpMessenger = IWarpMessenger(0x0200000000000000000000000000000000000005);
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
         $._minimumStakeAmount = settings.minimumStakeAmount;
@@ -208,7 +237,7 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         $._pendingRegisterValidationMessages[validationID] = registerSubnetValidatorMessage;
 
         // Submit the message to the Warp precompile.
-        bytes32 messageID = $._warpMessenger.sendWarpMessage(registerSubnetValidatorMessage);
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
 
         $._validationPeriods[validationID] = Validator({
             status: ValidatorStatus.PendingAdded,
@@ -239,7 +268,7 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         );
 
         // Submit the message to the Warp precompile.
-        $._warpMessenger.sendWarpMessage($._pendingRegisterValidationMessages[validationID]);
+        WARP_MESSENGER.sendWarpMessage($._pendingRegisterValidationMessages[validationID]);
     }
 
     /**
@@ -250,7 +279,7 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
     function completeValidatorRegistration(uint32 messageIndex) external {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
-            $._warpMessenger.getVerifiedWarpMessage(messageIndex);
+            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         require(valid, "StakingManager: Invalid warp message");
 
         require(
@@ -312,11 +341,11 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         uint64 uptimeSeconds;
         if (includeUptimeProof) {
             (WarpMessage memory warpMessage, bool valid) =
-                $._warpMessenger.getVerifiedWarpMessage(messageIndex);
+                WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
             require(valid, "StakingManager: Invalid warp message");
 
             require(
-                warpMessage.sourceChainID == $._warpMessenger.getBlockchainID(),
+                warpMessage.sourceChainID == WARP_MESSENGER.getBlockchainID(),
                 "StakingManager: Invalid source chain ID"
             );
             require(
@@ -341,7 +370,7 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         bytes memory setValidatorWeightPayload = StakingMessages.packSetSubnetValidatorWeightMessage(
             validationID, validator.messageNonce, 0
         );
-        bytes32 messageID = $._warpMessenger.sendWarpMessage(setValidatorWeightPayload);
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         // Emit the event to signal the start of the validator removal process.
         emit ValidatorRemovalInitialized(
@@ -366,7 +395,7 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         bytes memory setValidatorWeightPayload = StakingMessages.packSetSubnetValidatorWeightMessage(
             validationID, validator.messageNonce, 0
         );
-        $._warpMessenger.sendWarpMessage(setValidatorWeightPayload);
+        WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
     }
 
     /**
@@ -384,7 +413,7 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
 
         // Get the Warp message.
         (WarpMessage memory warpMessage, bool valid) =
-            $._warpMessenger.getVerifiedWarpMessage(messageIndex);
+            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         require(valid, "StakingManager: Invalid warp message");
 
         bytes32 validationID;
