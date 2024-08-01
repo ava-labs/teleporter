@@ -76,39 +76,45 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     }
 
     function testCompleteValidatorRegistration() public {
-        bytes32 validationID = _setUpInitializeValidatorRegistration(
-            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, 1e6, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
-        );
-        bytes memory subnetValidatorRegistrationMessage =
-            StakingMessages.packSubnetValidatorRegistrationMessage(validationID, true);
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
-            abi.encode(
-                WarpMessage({
-                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
-                    originSenderAddress: address(0),
-                    payload: subnetValidatorRegistrationMessage
-                }),
-                true
-            )
-        );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
-        );
-
-        vm.warp(1000);
-        vm.expectEmit(true, true, true, true, address(app));
-        emit ValidationPeriodRegistered(validationID, 1e6, 1000);
-
-        app.completeValidatorRegistration(0);
+        _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID, 
+            subnetID: DEFAULT_SUBNET_ID, 
+            weight: 1e6, 
+            registrationExpiry: DEFAULT_EXPIRY, 
+            signature: DEFAULT_ED25519_SIGNATURE, 
+            registrationTimestamp: 1000
+        });
     }
 
     function testInitializeEndValidation() public {
-        // TODO: implement
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID, 
+            subnetID: DEFAULT_SUBNET_ID, 
+            weight: 1e6, 
+            registrationExpiry: DEFAULT_EXPIRY, 
+            signature: DEFAULT_ED25519_SIGNATURE, 
+            registrationTimestamp: 1000
+        });
+
+        vm.warp(2000);
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
+        );
+        vm.expectEmit(true, true, true, true, address(app));
+        emit ValidatorRemovalInitialized(
+            validationID, bytes32(0), 1e6, 2000 , 0
+        );
+        
+        app.initializeEndValidation(validationID, false, 0);
     }
 
     function testInitializeEndValidationWithUptimeProof() public {
+        // TODO: implement
+    }
+
+    function testInitializeEndValidationExcessiveChurn() public {
         // TODO: implement
     }
 
@@ -164,5 +170,39 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         );
     }
 
-    function _setUpCompleteValidatorRegistration() internal {}
+    function _setUpCompleteValidatorRegistration(
+        bytes32 nodeID,
+        bytes32 subnetID,
+        uint64 weight,
+        uint64 registrationExpiry,
+        bytes memory signature,
+        uint64 registrationTimestamp
+    ) internal returns (bytes32 validationID) {
+        validationID = _setUpInitializeValidatorRegistration(
+            nodeID, subnetID, weight, registrationExpiry, signature
+        );
+        bytes memory subnetValidatorRegistrationMessage =
+            StakingMessages.packSubnetValidatorRegistrationMessage(validationID, true);
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
+                    originSenderAddress: address(0),
+                    payload: subnetValidatorRegistrationMessage
+                }),
+                true
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+
+        vm.warp(registrationTimestamp);
+        vm.expectEmit(true, true, true, true, address(app));
+        emit ValidationPeriodRegistered(validationID, weight, registrationTimestamp);
+
+        app.completeValidatorRegistration(0);
+    }
 }
