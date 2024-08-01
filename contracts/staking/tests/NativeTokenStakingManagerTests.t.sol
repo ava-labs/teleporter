@@ -87,27 +87,15 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     }
 
     function testInitializeEndValidation() public {
-        bytes32 validationID = _setUpCompleteValidatorRegistration({
-            nodeID: DEFAULT_NODE_ID, 
-            subnetID: DEFAULT_SUBNET_ID, 
-            weight: 1e6, 
-            registrationExpiry: DEFAULT_EXPIRY, 
-            signature: DEFAULT_ED25519_SIGNATURE, 
-            registrationTimestamp: 1000
+        _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: 1e6,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
+            registrationTimestamp: 1000,
+            completionTimestamp: 2000
         });
-
-        vm.warp(2000);
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
-        );
-        vm.expectEmit(true, true, true, true, address(app));
-        emit ValidatorRemovalInitialized(
-            validationID, bytes32(0), 1e6, 2000 , 0
-        );
-        
-        app.initializeEndValidation(validationID, false, 0);
     }
 
     function testInitializeEndValidationWithUptimeProof() public {
@@ -119,7 +107,26 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     }
 
     function testResendEndValidation() public {
-        // TODO: implement
+         bytes32 validationID = _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: 1e6,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
+            registrationTimestamp: 1000,
+            completionTimestamp: 2000
+        });
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
+        );
+        // TODO: construct the expected message in the same way as the contract
+        // vm.expectCall(
+        //     WARP_PRECOMPILE_ADDRESS,
+        //     abi.encodeCall(IWarpMessenger.sendWarpMessage, (abi.encode(expectedMessage)))
+        // );
+        app.resendEndValidatorMessage(validationID);
     }
 
     function testCompleteEndValidation() public {
@@ -204,5 +211,37 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         emit ValidationPeriodRegistered(validationID, weight, registrationTimestamp);
 
         app.completeValidatorRegistration(0);
+    }
+
+    function _setUpInitializeEndValidation(
+        bytes32 nodeID,
+        bytes32 subnetID,
+        uint64 weight,
+        uint64 registrationExpiry,
+        bytes memory signature,
+        uint64 registrationTimestamp,
+        uint64 completionTimestamp
+    ) internal returns (bytes32 validationID) {
+        validationID = _setUpCompleteValidatorRegistration({
+            nodeID: nodeID, 
+            subnetID: subnetID, 
+            weight: weight, 
+            registrationExpiry: registrationExpiry, 
+            signature: signature, 
+            registrationTimestamp: registrationTimestamp
+        });
+
+        vm.warp(completionTimestamp);
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(bytes32(0))
+        );
+        vm.expectEmit(true, true, true, true, address(app));
+        emit ValidatorRemovalInitialized(
+            validationID, bytes32(0), weight, completionTimestamp , 0
+        );
+        
+        app.initializeEndValidation(validationID, false, 0);
     }
 }
