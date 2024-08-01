@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/ava-labs/teleporter/tests/flows"
-	deploymentUtils "github.com/ava-labs/teleporter/utils/deployment-utils"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -60,23 +60,23 @@ var _ = ginkgo.BeforeSuite(func() {
 	)
 
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
-		deploymentUtils.ConstructKeylessTransaction(
-			teleporterByteCodeFile,
-			false,
-			deploymentUtils.GetDefaultContractCreationGasPrice(),
-		)
-	Expect(err).Should(BeNil())
+	// teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
+	// 	deploymentUtils.ConstructKeylessTransaction(
+	// 		teleporterByteCodeFile,
+	// 		false,
+	// 		deploymentUtils.GetDefaultContractCreationGasPrice(),
+	// 	)
+	// Expect(err).Should(BeNil())
 
+	// LocalNetworkInstance.DeployTeleporterContracts(
+	// 	teleporterDeployerTransaction,
+	// 	teleporterDeployerAddress,
+	// 	teleporterContractAddress,
+	// 	fundedKey,
+	// 	true,
+	// )
+	teleporterContractAddress := common.HexToAddress("0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf")
 	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
-	LocalNetworkInstance.DeployTeleporterContracts(
-		teleporterDeployerTransaction,
-		teleporterDeployerAddress,
-		teleporterContractAddress,
-		fundedKey,
-		true,
-	)
-
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
 	log.Info("Set up ginkgo before suite")
 
