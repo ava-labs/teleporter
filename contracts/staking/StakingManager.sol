@@ -413,6 +413,7 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         // Calculate the reward for the validator.
 
         // Emit event.
+        emit ValidationPeriodEnded(validationID);
     }
 
     /**
