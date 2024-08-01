@@ -27,7 +27,7 @@ contract NativeTokenStakingManager is StakingManager, INativeTokenStakingManager
         bytes32 nodeID,
         uint64 registrationExpiry,
         bytes memory signature
-    ) external payable onlyWhenInitialStakeProvided returns (bytes32) {
+    ) external payable returns (bytes32) {
         return _initializeValidatorRegistration(nodeID, msg.value, registrationExpiry, signature);
     }
 
