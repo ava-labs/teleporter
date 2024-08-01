@@ -4,6 +4,7 @@
 package local
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -15,8 +16,6 @@ import (
 )
 
 const (
-	teleporterByteCodeFile = "./out/TeleporterMessenger.sol/TeleporterMessenger.json"
-
 	warpGenesisTemplateFile = "./tests/utils/warp-genesis-template.json"
 
 	teleporterMessengerLabel = "TeleporterMessenger"
@@ -61,6 +60,14 @@ var _ = ginkgo.BeforeSuite(func() {
 	log.Info("Startied local network")
 
 	teleporterContractAddress := common.HexToAddress("0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf")
+
+	for _, subnet := range LocalNetworkInstance.GetAllSubnetsInfo() {
+		teleporterCode, err := subnet.RPCClient.CodeAt(context.Background(), teleporterContractAddress, nil)
+		Expect(err).Should(BeNil())
+		Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+	}
+
+	LocalNetworkInstance.SetTeleporterContractAddress(teleporterContractAddress)
 	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
 	log.Info("Set up ginkgo before suite")

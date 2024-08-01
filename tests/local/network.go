@@ -242,7 +242,7 @@ func (n *LocalNetwork) setSubnetValues(subnet *tmpnet.Subnet) {
 	n.subnetsInfo[subnetID].RPCClient = chainRPCClient
 	n.subnetsInfo[subnetID].EVMChainID = chainIDInt
 
-	// TeleporterMessenger is set in DeployTeleporterContracts
+	// TeleporterMessenger is set in SetTeleporterContractAddress
 	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
 }
 
