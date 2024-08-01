@@ -332,7 +332,6 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
             uptimeSeconds = uptime;
         }
         validator.uptimeSeconds = uptimeSeconds;
-        validator.messageNonce++;
 
         // Save the validator updates.
         // TODO: Optimize storage writes here (probably don't need to write the whole value).
