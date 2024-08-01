@@ -17,7 +17,7 @@ import {StakingMessages} from "../StakingMessages.sol";
 contract NativeTokenStakingManagerTest is StakingManagerTest {
     NativeTokenStakingManager public app;
 
-    function setUp() public override {
+    function setUp() public virtual {
         // Construct the object under test
         app = new NativeTokenStakingManager(
             StakingManagerSettings({
