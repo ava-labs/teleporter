@@ -74,9 +74,9 @@ abstract contract StakingManager is
 
     // solhint-enable private-vars-leading-underscore
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.StakingManager")) - 1)) & ~bytes32(uint256(0xff));
-    // TODO: Update to correct storage slot
+    // TODO: Unit test for storage slot
     bytes32 private constant _STAKING_MANAGER_STORAGE_LOCATION =
-        0x8568826440873e37a96cb0aab773b28d8154d963d2f0e41bd9b5c15f63625f91;
+        0xafe6c4731b852fc2be89a0896ae43d22d8b24989064d841b2a1586b4d39ab600;
 
     // solhint-disable ordering
     function _getStakingManagerStorage() private pure returns (StakingManagerStorage storage $) {
