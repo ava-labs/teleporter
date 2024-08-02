@@ -1,7 +1,7 @@
 {
   "extends": "solhint:recommended",
   "rules": {
-    "compiler-version": ["error", "0.8.23"],
+    "compiler-version": ["error", "0.8.25"],
     "no-unused-vars": "error",
     "func-visibility": [
       "error",

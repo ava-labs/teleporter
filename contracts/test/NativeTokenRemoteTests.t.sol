@@ -3,32 +3,35 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {TokenRemoteTest} from "./TokenRemoteTests.t.sol";
 import {NativeTokenTransferrerTest} from "./NativeTokenTransferrerTests.t.sol";
 import {INativeSendAndCallReceiver} from "../src/interfaces/INativeSendAndCallReceiver.sol";
 import {TokenRemote} from "../src/TokenRemote/TokenRemote.sol";
-import {
-    NativeTokenRemote,
-    TeleporterMessageInput,
-    TeleporterFeeInfo
-} from "../src/TokenRemote/NativeTokenRemote.sol";
+import {NativeTokenRemoteUpgradeable} from "../src/TokenRemote/NativeTokenRemoteUpgradeable.sol";
+import {NativeTokenRemote} from "../src/TokenRemote/NativeTokenRemote.sol";
 import {TokenRemoteSettings} from "../src/TokenRemote/interfaces/ITokenRemote.sol";
 import {INativeMinter} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/INativeMinter.sol";
-import {ITeleporterMessenger, TeleporterMessageInput} from "@teleporter/ITeleporterMessenger.sol";
+import {
+    ITeleporterMessenger,
+    TeleporterMessageInput,
+    TeleporterFeeInfo
+} from "@teleporter/ITeleporterMessenger.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
+import {ICTTInitializable} from "../src/utils/ICTTInitializable.sol";
+import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     using SafeERC20 for IERC20;
 
     address public constant TEST_ACCOUNT = 0xd4E96eF8eee8678dBFf4d535E033Ed1a4F7605b7;
     string public constant DEFAULT_SYMBOL = "XYZ";
-    NativeTokenRemote public app;
+    NativeTokenRemoteUpgradeable public app;
 
     event ReportBurnedTxFees(bytes32 indexed teleporterMessageID, uint256 feesBurned);
 
@@ -36,12 +39,48 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         TokenRemoteTest.setUp();
 
         tokenHomeDecimals = 6;
-        app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
+        app = NativeTokenRemoteUpgradeable(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
         nativeTokenTransferrer = app;
         tokenTransferrer = app;
         assertEq(app.totalNativeAssetSupply(), _DEFAULT_INITIAL_RESERVE_IMBALANCE);
         _collateralizeTokenTransferrer();
+    }
+
+    /**
+     * Initialization unit tests
+     */
+    function testNonUpgradeableInitialization() public {
+        app = new NativeTokenRemote({
+            settings: TokenRemoteSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
+                tokenHomeDecimals: tokenHomeDecimals
+            }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
+            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
+        });
+        assertEq(app.getBlockchainID(), DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID);
+    }
+
+    function testDisableInitialization() public {
+        app = new NativeTokenRemoteUpgradeable(ICTTInitializable.Disallowed);
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
+        app.initialize({
+            settings: TokenRemoteSettings({
+                teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
+                teleporterManager: address(this),
+                tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
+                tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
+                tokenHomeDecimals: tokenHomeDecimals
+            }),
+            nativeAssetSymbol: DEFAULT_SYMBOL,
+            initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
+            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
+        });
     }
 
     function testZeroInitialReserveImbalance() public {
@@ -55,7 +94,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: 0,
-            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE,
+            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE,
             expectedErrorMessage: "NativeTokenRemote: zero initial reserve imbalance"
         });
     }
@@ -71,7 +110,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: 100,
+            burnedFeesReportingRewardPercentage: 100,
             expectedErrorMessage: "NativeTokenRemote: invalid percentage"
         });
     }
@@ -87,7 +126,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE,
+            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE,
             expectedErrorMessage: _formatErrorMessage("zero token home blockchain ID")
         });
     }
@@ -103,14 +142,14 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE,
+            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE,
             expectedErrorMessage: _formatErrorMessage("cannot deploy to same blockchain as token home")
         });
     }
 
     function testSendBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
-        app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
+        app = NativeTokenRemoteUpgradeable(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
         nativeTokenTransferrer = app;
         tokenTransferrer = app;
@@ -125,7 +164,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function testSendAndCallBeforeCollateralized() public {
         // Need a new instance since the default set up pre-collateralizes the contract.
-        app = NativeTokenRemote(payable(address(_createNewRemoteInstance())));
+        app = NativeTokenRemoteUpgradeable(payable(address(_createNewRemoteInstance())));
         tokenRemote = app;
         nativeTokenTransferrer = app;
         tokenTransferrer = app;
@@ -299,7 +338,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
 
     function testReportBurnFeesNoRewardSuccess() public {
         // Create a new TokenRemote instance with no rewards for reporting burned fees.
-        app = new NativeTokenRemote();
+        app = new NativeTokenRemoteUpgradeable(ICTTInitializable.Allowed);
         app.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -310,7 +349,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: 0
+            burnedFeesReportingRewardPercentage: 0
         });
         tokenRemote = app;
         nativeTokenTransferrer = app;
@@ -354,7 +393,8 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
     }
 
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
-        NativeTokenRemote instance = new NativeTokenRemote();
+        NativeTokenRemoteUpgradeable instance =
+            new NativeTokenRemoteUpgradeable(ICTTInitializable.Allowed);
         instance.initialize({
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
@@ -365,7 +405,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             }),
             nativeAssetSymbol: DEFAULT_SYMBOL,
             initialReserveImbalance: _DEFAULT_INITIAL_RESERVE_IMBALANCE,
-            burnedFeesReportingRewardPercentage_: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
+            burnedFeesReportingRewardPercentage: _DEFAULT_BURN_FEE_REWARDS_PERCENTAGE
         });
         return instance;
     }
@@ -495,16 +535,16 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
         TokenRemoteSettings memory settings,
         string memory nativeAssetSymbol,
         uint256 initialReserveImbalance,
-        uint256 burnedFeesReportingRewardPercentage_,
+        uint256 burnedFeesReportingRewardPercentage,
         bytes memory expectedErrorMessage
     ) private {
-        app = new NativeTokenRemote();
+        app = new NativeTokenRemoteUpgradeable(ICTTInitializable.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(
             settings,
             nativeAssetSymbol,
             initialReserveImbalance,
-            burnedFeesReportingRewardPercentage_
+            burnedFeesReportingRewardPercentage
         );
     }
 }

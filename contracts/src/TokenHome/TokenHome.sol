@@ -3,10 +3,11 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
-import {TeleporterOwnerUpgradeable} from "@teleporter/registry/TeleporterOwnerUpgradeable.sol";
+import {TeleporterRegistryOwnableAppUpgradeable} from
+    "@teleporter/registry/TeleporterRegistryOwnableAppUpgradeable.sol";
 import {ITokenHome, RemoteTokenTransferrerSettings} from "./interfaces/ITokenHome.sol";
 import {
     SendTokensInput,
@@ -35,7 +36,11 @@ import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
  *
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
  */
-abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReentrancyGuard {
+abstract contract TokenHome is
+    ITokenHome,
+    TeleporterRegistryOwnableAppUpgradeable,
+    SendReentrancyGuard
+{
     // solhint-disable private-vars-leading-underscore
     /**
      * @dev Namespace storage slots following the ERC-7201 standard to prevent
@@ -99,36 +104,36 @@ abstract contract TokenHome is ITokenHome, TeleporterOwnerUpgradeable, SendReent
      * @param teleporterRegistryAddress The address of the TeleporterRegistry contract.
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
-     * @param tokenAddress_ The token contract address to be transferredd by the home instance.
-     * @param tokenDecimals_ The number of decimals for the token being transferred.
+     * @param tokenAddress The token contract address to be transferredd by the home instance.
+     * @param tokenDecimals The number of decimals for the token being transferred.
      */
     // solhint-disable-next-line func-name-mixedcase
     function __TokenHome_init(
         address teleporterRegistryAddress,
         address teleporterManager,
-        address tokenAddress_,
-        uint8 tokenDecimals_
+        address tokenAddress,
+        uint8 tokenDecimals
     ) internal virtual onlyInitializing {
-        __TeleporterOwnerUpgradeable_init(teleporterRegistryAddress, teleporterManager);
+        __TeleporterRegistryOwnableApp_init(teleporterRegistryAddress, teleporterManager);
         __SendReentrancyGuard_init();
-        __TokenHome_init_unchained(tokenAddress_, tokenDecimals_);
+        __TokenHome_init_unchained(tokenAddress, tokenDecimals);
     }
 
     // solhint-disable-next-line func-name-mixedcase
     function __TokenHome_init_unchained(
-        address tokenAddress_,
-        uint8 tokenDecimals_
+        address tokenAddress,
+        uint8 tokenDecimals
     ) internal onlyInitializing {
-        require(tokenAddress_ != address(0), "TokenHome: zero token address");
+        require(tokenAddress != address(0), "TokenHome: zero token address");
         require(
-            tokenDecimals_ <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
+            tokenDecimals <= TokenScalingUtils.MAX_TOKEN_DECIMALS,
             "TokenHome: token decimals too high"
         );
         TokenHomeStorage storage $ = _getTokenHomeStorage();
         $._blockchainID =
             IWarpMessenger(0x0200000000000000000000000000000000000005).getBlockchainID();
-        $._tokenAddress = tokenAddress_;
-        $._tokenDecimals = tokenDecimals_;
+        $._tokenAddress = tokenAddress;
+        $._tokenDecimals = tokenDecimals;
     }
     // solhint-enable ordering
 

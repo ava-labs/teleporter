@@ -3,12 +3,13 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {ERC20TokenTransferrerTest} from "./ERC20TokenTransferrerTests.t.sol";
 import {TokenHomeTest} from "./TokenHomeTests.t.sol";
 import {IERC20SendAndCallReceiver} from "../src/interfaces/IERC20SendAndCallReceiver.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
+import {ERC20TokenHomeUpgradeable} from "../src/TokenHome/ERC20TokenHomeUpgradeable.sol";
 import {ERC20TokenHome} from "../src/TokenHome/ERC20TokenHome.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
@@ -17,11 +18,13 @@ import {TeleporterMessageInput, TeleporterFeeInfo} from "@teleporter/ITeleporter
 import {TokenScalingUtils} from "../src/utils/TokenScalingUtils.sol";
 import {RemoteTokenTransferrerSettings} from "../src/TokenHome/interfaces/ITokenHome.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
+import {ICTTInitializable} from "../src/utils/ICTTInitializable.sol";
+import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 
 contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
     using SafeERC20 for IERC20;
 
-    ERC20TokenHome public app;
+    ERC20TokenHomeUpgradeable public app;
     IERC20 public mockERC20;
 
     function setUp() public override {
@@ -29,7 +32,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
 
         mockERC20 = new ExampleERC20();
         tokenHomeDecimals = 6;
-        app = new ERC20TokenHome();
+        app = new ERC20TokenHomeUpgradeable(ICTTInitializable.Allowed);
         app.initialize(
             MOCK_TELEPORTER_REGISTRY_ADDRESS,
             MOCK_TELEPORTER_MESSENGER_ADDRESS,
@@ -46,13 +49,28 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
     /**
      * Initialization unit tests
      */
+    function testNonUpgradeableInitialization() public {
+        app = new ERC20TokenHome(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(mockERC20), tokenHomeDecimals
+        );
+        assertEq(app.getBlockchainID(), DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID);
+    }
+
+    function testDisableInitialization() public {
+        app = new ERC20TokenHomeUpgradeable(ICTTInitializable.Disallowed);
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
+        app.initialize(
+            MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(mockERC20), tokenHomeDecimals
+        );
+    }
+
     function testZeroTeleporterRegistryAddress() public {
         _invalidInitialization(
             address(0),
             address(this),
             address(mockERC20),
             tokenHomeDecimals,
-            "TeleporterUpgradeable: zero teleporter registry address"
+            "TeleporterRegistryApp: zero teleporter registry address"
         );
     }
 
@@ -266,7 +284,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
         transferredToken.safeIncreaseAllowance(address(tokenTransferrer), amount);
 
         // Check that transferFrom is called to deposit the funds sent from the user to the token transferrer
-        // This is the case because for the {ERC20TokenHome) is not the fee token itself
+        // This is the case because for the {ERC20TokenHomeUpgradeable) is not the fee token itself
         vm.expectCall(
             address(transferredToken),
             abi.encodeCall(IERC20.transferFrom, (address(this), address(tokenTransferrer), amount))
@@ -282,7 +300,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
         uint8 tokenDecimals,
         bytes memory expectedErrorMessage
     ) private {
-        app = new ERC20TokenHome();
+        app = new ERC20TokenHomeUpgradeable(ICTTInitializable.Allowed);
         vm.expectRevert(expectedErrorMessage);
         app.initialize(
             teleporterRegistryAddress, teleporterManagerAddress, feeTokenAddress, tokenDecimals

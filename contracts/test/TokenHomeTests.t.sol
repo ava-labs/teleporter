@@ -3,7 +3,7 @@
 
 // SPDX-License-Identifier: Ecosystem
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.25;
 
 import {TokenTransferrerTest} from "./TokenTransferrerTests.t.sol";
 import {TokenHome, IWarpMessenger} from "../src/TokenHome/TokenHome.sol";
@@ -64,6 +64,10 @@ abstract contract TokenHomeTest is TokenTransferrerTest {
                 TeleporterRegistry(MOCK_TELEPORTER_REGISTRY_ADDRESS).latestVersion.selector
             )
         );
+    }
+
+    function testGetTokenAddress() public {
+        assertEq(address(transferredToken), address(tokenHome.getTokenAddress()));
     }
 
     function testAddCollateralRemoteNotRegistered() public {
