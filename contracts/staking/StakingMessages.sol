@@ -76,7 +76,7 @@ library StakingMessages {
 
         // Pack the subnetID
         for (uint256 i; i < 32; ++i) {
-            res[i + 6] = validationInfo.subnetID[i];
+            res[i + 6] = validationInfo.subnetID[i]; 
         }
         // Pack the nodeID
         for (uint256 i; i < 32; ++i) {
