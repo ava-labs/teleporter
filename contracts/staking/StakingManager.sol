@@ -112,6 +112,7 @@ abstract contract StakingManager is
         __StakingManager_init(settings);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __StakingManager_init(StakingManagerSettings calldata settings)
         internal
         onlyInitializing
@@ -121,6 +122,7 @@ abstract contract StakingManager is
         __StakingManager_init_unchained(settings);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __StakingManager_init_unchained(StakingManagerSettings calldata settings)
         internal
         onlyInitializing
