@@ -62,7 +62,6 @@ abstract contract StakingManager is
         uint64 _minimumStakeDuration;
         IRewardCalculator _rewardCalculator;
         uint8 _maximumHourlyChurn;
-        uint64 _remainingInitialStake;
         ValidatorChurnPeriod _churnTracker;
         // Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
@@ -86,11 +85,6 @@ abstract contract StakingManager is
         }
     }
 
-    struct InitialStakerInfo {
-        StakingMessages.ValidationInfo validationInfo;
-        address owner;
-    }
-
     struct StakingManagerSettings {
         bytes32 pChainBlockchainID;
         bytes32 subnetID;
@@ -98,7 +92,6 @@ abstract contract StakingManager is
         uint256 maximumStakeAmount;
         uint64 minimumStakeDuration;
         uint8 maximumHourlyChurn;
-        InitialStakerInfo[] initialStakers;
         IRewardCalculator rewardCalculator;
     }
 
@@ -134,48 +127,7 @@ abstract contract StakingManager is
         $._maximumStakeAmount = settings.maximumStakeAmount;
         $._minimumStakeDuration = settings.minimumStakeDuration;
         $._maximumHourlyChurn = settings.maximumHourlyChurn;
-        // Add each of the initial stakers as validators
-        uint64 initialStake;
-        for (uint256 i; i < settings.initialStakers.length; ++i) {
-            (bytes32 validationID,) =
-                StakingMessages.packValidationInfo(settings.initialStakers[i].validationInfo);
-            $._validationPeriods[validationID] = Validator({
-                status: ValidatorStatus.Active,
-                nodeID: settings.initialStakers[i].validationInfo.nodeID,
-                weight: settings.initialStakers[i].validationInfo.weight,
-                startedAt: uint64(block.timestamp),
-                endedAt: 0,
-                uptimeSeconds: 0,
-                owner: settings.initialStakers[i].owner,
-                rewarded: false,
-                messageNonce: 0
-            });
-            initialStake += settings.initialStakers[i].validationInfo.weight;
-        }
-        $._remainingInitialStake = initialStake;
         $._rewardCalculator = settings.rewardCalculator;
-    }
-
-    /**
-     * @notice Modifier to ensure that the initial stake has been provided.
-     */
-    modifier onlyWhenInitialStakeProvided() {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
-        require($._remainingInitialStake > 0, "StakingManager: Initial stake not provided");
-        _;
-    }
-
-    /**
-     * @notice Called to provide initial stake amount for original validators added prior to the contract's initialization.
-     */
-    function provideInitialStake() external payable {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
-        uint64 remainingInitialStake = $._remainingInitialStake;
-        require(
-            msg.value <= remainingInitialStake,
-            "StakingManager: Provided stake exceeds remaining initial stake"
-        );
-        $._remainingInitialStake = remainingInitialStake - uint64(msg.value);
     }
 
     /**
@@ -194,7 +146,7 @@ abstract contract StakingManager is
         uint256 value,
         uint64 registrationExpiry,
         bytes memory signature
-    ) internal nonReentrant onlyWhenInitialStakeProvided returns (bytes32) {
+    ) internal nonReentrant returns (bytes32) {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
 
         // Ensure the registration expiry is in a valid range.
@@ -321,7 +273,7 @@ abstract contract StakingManager is
         bytes32 validationID,
         bool includeUptimeProof,
         uint32 messageIndex
-    ) external onlyWhenInitialStakeProvided {
+    ) external {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
 
         // Ensure the validation period is active.
