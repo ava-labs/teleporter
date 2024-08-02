@@ -5,7 +5,11 @@
 
 pragma solidity 0.8.25;
 
-import {IStakingManager} from "./interfaces/IStakingManager.sol";
+import {
+    IStakingManager,
+    InitialStakerInfo,
+    StakingManagerSettings
+} from "./interfaces/IStakingManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -63,8 +67,8 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         // Maps the nodeID to the validationID for active validation periods.
         mapping(bytes32 => bytes32) _activeValidators;
     }
-
     // solhint-enable private-vars-leading-underscore
+
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.StakingManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Update to correct storage slot
     bytes32 private constant _STAKING_MANAGER_STORAGE_LOCATION =
@@ -76,22 +80,6 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         assembly {
             $.slot := _STAKING_MANAGER_STORAGE_LOCATION
         }
-    }
-
-    struct InitialStakerInfo {
-        StakingMessages.ValidationInfo validationInfo;
-        address owner;
-    }
-
-    struct StakingManagerSettings {
-        bytes32 pChainBlockchainID;
-        bytes32 subnetID;
-        uint256 minimumStakeAmount;
-        uint256 maximumStakeAmount;
-        uint64 minimumStakeDuration;
-        uint8 maximumHourlyChurn;
-        InitialStakerInfo[] initialStakers;
-        IRewardCalculator rewardCalculator;
     }
 
     function initialize(StakingManagerSettings calldata settings) public {
@@ -434,7 +422,7 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
      */
     function _checkAndUpdateChurnTracker(uint64 amount) private {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
-        ValidatorChurnPeriod storage churnTracker = $._churnTracker;
+        ValidatorChurnPeriod memory churnTracker = $._churnTracker;
         uint256 currentTime = block.timestamp;
         if (currentTime - churnTracker.startedAt >= 1 hours) {
             churnTracker.churnAmount = amount;
