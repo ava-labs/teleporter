@@ -23,10 +23,10 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
             StakingManagerSettings({
                 pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                 subnetID: DEFAULT_SUBNET_ID,
-                minimumStakeAmount: 20,
-                maximumStakeAmount: 1e10,
-                minimumStakeDuration: 24 hours,
-                maximumHourlyChurn: 0,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN,
                 initialStakers: new InitialStakerInfo[](0),
                 rewardCalculator: IRewardCalculator(address(0))
             })
@@ -36,7 +36,7 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
 
     function testInitializeValidatorRegistrationSuccess() public {
         _setUpInitializeValidatorRegistration(
-            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, 1e6, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
+            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, DEFAULT_WEIGHT, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
         );
     }
 
@@ -58,14 +58,14 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     // reference to the abstract type.
     function testResendRegisterValidatorMessage() public {
         bytes32 validationID = _setUpInitializeValidatorRegistration(
-            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, 1e6, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
+            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, DEFAULT_WEIGHT, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
         );
         (, bytes memory registerSubnetValidatorMessage) = StakingMessages
             .packRegisterSubnetValidatorMessage(
             StakingMessages.ValidationInfo({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
-                weight: 1e6,
+                weight: DEFAULT_WEIGHT,
                 registrationExpiry: DEFAULT_EXPIRY,
                 signature: DEFAULT_ED25519_SIGNATURE
             })
@@ -86,10 +86,10 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
     }
 
@@ -97,11 +97,11 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000,
-            completionTimestamp: 2000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
     }
 
@@ -117,11 +117,11 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000,
-            completionTimestamp: 2000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
         bytes memory setValidatorWeightPayload =
             StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
@@ -141,11 +141,11 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000,
-            completionTimestamp: 2000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
 
         bytes memory subnetValidatorRegistrationMessage =
@@ -176,11 +176,11 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000,
-            completionTimestamp: 2000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
 
         bytes memory setSubnetValidatorWeightMessage =
