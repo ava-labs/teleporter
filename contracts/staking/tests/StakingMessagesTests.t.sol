@@ -41,7 +41,7 @@ contract StakingMessagesTest is Test {
         assertEq(info.registrationExpiry, DEFAULT_EXPIRY);
         assertEq(info.signature, DEFAULT_ED25519_SIGNATURE);
 
-        (bytes32 recoveredID,) = StakingMessages.packValidationInfo(info);
+        (bytes32 recoveredID,) = StakingMessages.packRegisterSubnetValidatorMessage(info);
         assertEq(recoveredID, validationID);
     }
 
@@ -72,23 +72,5 @@ contract StakingMessagesTest is Test {
             StakingMessages.unpackValidationUptimeMessage(packed);
         assertEq(validationID, DEFAULT_VALIDATION_ID);
         assertEq(uptime, 100);
-    }
-
-    function testValidationInfo() public pure {
-        (, bytes memory packed) = StakingMessages.packValidationInfo(
-            StakingMessages.ValidationInfo({
-                subnetID: DEFAULT_SUBNET_ID,
-                nodeID: DEFAULT_NODE_ID,
-                weight: DEFAULT_WEIGHT,
-                registrationExpiry: DEFAULT_EXPIRY,
-                signature: DEFAULT_ED25519_SIGNATURE
-            })
-        );
-        StakingMessages.ValidationInfo memory info = StakingMessages.unpackValidationInfo(packed);
-        assertEq(info.subnetID, DEFAULT_SUBNET_ID);
-        assertEq(info.nodeID, DEFAULT_NODE_ID);
-        assertEq(info.weight, DEFAULT_WEIGHT);
-        assertEq(info.registrationExpiry, DEFAULT_EXPIRY);
-        assertEq(info.signature, DEFAULT_ED25519_SIGNATURE);
     }
 }

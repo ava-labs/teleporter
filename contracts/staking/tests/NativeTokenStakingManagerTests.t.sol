@@ -215,7 +215,7 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         uint64 registrationExpiry,
         bytes memory signature
     ) internal returns (bytes32 validationID) {
-        (validationID,) = StakingMessages.packValidationInfo(
+        (validationID,) = StakingMessages.packRegisterSubnetValidatorMessage(
             StakingMessages.ValidationInfo({
                 nodeID: nodeID,
                 subnetID: subnetID,

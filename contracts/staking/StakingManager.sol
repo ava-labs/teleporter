@@ -90,8 +90,9 @@ abstract contract StakingManager is Context, ReentrancyGuard, IStakingManager {
         // Add each of the initial stakers as validators
         uint64 initialStake;
         for (uint256 i; i < settings.initialStakers.length; ++i) {
-            (bytes32 validationID,) =
-                StakingMessages.packValidationInfo(settings.initialStakers[i].validationInfo);
+            (bytes32 validationID,) = StakingMessages.packRegisterSubnetValidatorMessage(
+                settings.initialStakers[i].validationInfo
+            );
             $._validationPeriods[validationID] = Validator({
                 status: ValidatorStatus.Active,
                 nodeID: settings.initialStakers[i].validationInfo.nodeID,
