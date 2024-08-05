@@ -92,4 +92,4 @@ As an example, to include `TeleporterMessenger` `v1.0.0` in the genesis file, in
 }
 ```
 
-The values above are taken from the `v1.0.0` release artifacts. The contract address, deployed bytecode, and deployer address are unique per major release. All of the other values should remain the same.
+The values above are taken from the `v1.0.0` [release artifacts](https://github.com/ava-labs/teleporter/releases/tag/v1.0.0). The contract address, deployed bytecode, and deployer address are unique per major release. All of the other values should remain the same.
