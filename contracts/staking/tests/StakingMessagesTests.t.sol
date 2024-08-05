@@ -13,13 +13,13 @@ contract StakingMessagesTest is Test {
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
-    uint64 public constant DEFAULT_EXPIRY = 1000;
     bytes public constant DEFAULT_ED25519_SIGNATURE = bytes(
         hex"12345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
-    uint64 public constant DEFAULT_WEIGHT = 1e6;
     bytes32 public constant DEFAULT_VALIDATION_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
+    uint64 public constant DEFAULT_WEIGHT = 1e6;
+    uint64 public constant DEFAULT_EXPIRY = 1000;
 
     function testRegisterSubnetValidatorMessage() public pure {
         (bytes32 validationID, bytes memory packed) = StakingMessages

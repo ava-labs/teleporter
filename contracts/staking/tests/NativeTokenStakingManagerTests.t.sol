@@ -11,6 +11,7 @@ import {StakingManagerSettings, InitialStakerInfo} from "../interfaces/IStakingM
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {IWarpMessenger, WarpMessage} from "../StakingManager.sol";
 import {StakingMessages} from "../StakingMessages.sol";
+import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 
 // TODO: Remove this once all unit tests implemented
 // solhint-disable no-empty-blocks
@@ -19,14 +20,15 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
 
     function setUp() public virtual {
         // Construct the object under test
-        app = new NativeTokenStakingManager(
+        app = new NativeTokenStakingManager(ICMInitializable.Allowed);
+        app.initialize(
             StakingManagerSettings({
                 pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                 subnetID: DEFAULT_SUBNET_ID,
-                minimumStakeAmount: 20,
-                maximumStakeAmount: 1e10,
-                minimumStakeDuration: 24 hours,
-                maximumHourlyChurn: 0,
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN,
                 initialStakers: new InitialStakerInfo[](0),
                 rewardCalculator: IRewardCalculator(address(0))
             })
@@ -36,7 +38,11 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
 
     function testInitializeValidatorRegistrationSuccess() public {
         _setUpInitializeValidatorRegistration(
-            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, 1e6, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
+            DEFAULT_NODE_ID,
+            DEFAULT_SUBNET_ID,
+            DEFAULT_WEIGHT,
+            DEFAULT_EXPIRY,
+            DEFAULT_ED25519_SIGNATURE
         );
     }
 
@@ -58,27 +64,23 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     // reference to the abstract type.
     function testResendRegisterValidatorMessage() public {
         bytes32 validationID = _setUpInitializeValidatorRegistration(
-            DEFAULT_NODE_ID, DEFAULT_SUBNET_ID, 1e6, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE
+            DEFAULT_NODE_ID,
+            DEFAULT_SUBNET_ID,
+            DEFAULT_WEIGHT,
+            DEFAULT_EXPIRY,
+            DEFAULT_ED25519_SIGNATURE
         );
         (, bytes memory registerSubnetValidatorMessage) = StakingMessages
             .packRegisterSubnetValidatorMessage(
             StakingMessages.ValidationInfo({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
-                weight: 1e6,
+                weight: DEFAULT_WEIGHT,
                 registrationExpiry: DEFAULT_EXPIRY,
                 signature: DEFAULT_ED25519_SIGNATURE
             })
         );
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
-        );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.sendWarpMessage, registerSubnetValidatorMessage)
-        );
+        _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
         app.resendRegisterValidatorMessage(validationID);
     }
 
@@ -86,10 +88,10 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
     }
 
@@ -97,11 +99,11 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000,
-            completionTimestamp: 2000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
     }
 
@@ -117,23 +119,15 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000,
-            completionTimestamp: 2000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
         bytes memory setValidatorWeightPayload =
             StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
-        );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.sendWarpMessage, setValidatorWeightPayload)
-        );
+        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         app.resendEndValidatorMessage(validationID);
     }
 
@@ -141,30 +135,17 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000,
-            completionTimestamp: 2000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
 
         bytes memory subnetValidatorRegistrationMessage =
             StakingMessages.packSubnetValidatorRegistrationMessage(validationID, false);
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
-            abi.encode(
-                WarpMessage({
-                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
-                    originSenderAddress: address(0),
-                    payload: subnetValidatorRegistrationMessage
-                }),
-                true
-            )
-        );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
-        );
+
+        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
 
         vm.expectEmit(true, true, true, true, address(app));
         emit ValidationPeriodEnded(validationID);
@@ -176,30 +157,17 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         bytes32 validationID = _setUpInitializeEndValidation({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
-            weight: 1e6,
+            weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
             signature: DEFAULT_ED25519_SIGNATURE,
-            registrationTimestamp: 1000,
-            completionTimestamp: 2000
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
 
         bytes memory setSubnetValidatorWeightMessage =
             StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
-            abi.encode(
-                WarpMessage({
-                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
-                    originSenderAddress: address(0),
-                    payload: setSubnetValidatorWeightMessage
-                }),
-                true
-            )
-        );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
-        );
+
+        _mockGetVerifiedWarpMessage(setSubnetValidatorWeightMessage, true);
 
         vm.expectEmit(true, true, true, true, address(app));
         emit ValidationPeriodEnded(validationID);
@@ -208,6 +176,35 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     }
 
     // Helpers
+    function _mockGetVerifiedWarpMessage(bytes memory expectedPayload, bool valid) internal {
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
+                    originSenderAddress: address(0),
+                    payload: expectedPayload
+                }),
+                valid
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+    }
+
+    function _mockSendWarpMessage(bytes memory payload, bytes32 expectedMessageID) internal {
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(expectedMessageID)
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.sendWarpMessage, payload)
+        );
+    }
+
     function _setUpInitializeValidatorRegistration(
         bytes32 nodeID,
         bytes32 subnetID,
@@ -235,15 +232,7 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
             })
         );
         vm.warp(DEFAULT_EXPIRY - 1);
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
-        );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeCall(IWarpMessenger.sendWarpMessage, registerSubnetValidatorMessage)
-        );
+        _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
         vm.expectEmit(true, true, true, true, address(app));
         emit ValidationPeriodCreated(
             validationID, DEFAULT_NODE_ID, bytes32(0), weight, DEFAULT_EXPIRY
@@ -267,21 +256,8 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         );
         bytes memory subnetValidatorRegistrationMessage =
             StakingMessages.packSubnetValidatorRegistrationMessage(validationID, true);
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
-            abi.encode(
-                WarpMessage({
-                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
-                    originSenderAddress: address(0),
-                    payload: subnetValidatorRegistrationMessage
-                }),
-                true
-            )
-        );
-        vm.expectCall(
-            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
-        );
+
+        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
 
         vm.warp(registrationTimestamp);
         vm.expectEmit(true, true, true, true, address(app));
@@ -309,11 +285,9 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
         });
 
         vm.warp(completionTimestamp);
-        vm.mockCall(
-            WARP_PRECOMPILE_ADDRESS,
-            abi.encode(IWarpMessenger.sendWarpMessage.selector),
-            abi.encode(bytes32(0))
-        );
+        bytes memory setValidatorWeightPayload =
+            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
+        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.expectEmit(true, true, true, true, address(app));
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp, 0);
 
