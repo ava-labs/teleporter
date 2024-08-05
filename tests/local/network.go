@@ -302,7 +302,14 @@ func (n *LocalNetwork) DeployTeleporterContractToCChain(
 	log.Info("Deploying Teleporter contract to C-Chain", "contractAddress", contractAddress.String())
 
 	ctx := context.Background()
-	n.deployTeleporterToChain(ctx, n.GetPrimaryNetworkInfo(), transactionBytes, deployerAddress, contractAddress, fundedKey)
+	n.deployTeleporterToChain(
+		ctx,
+		n.GetPrimaryNetworkInfo(),
+		transactionBytes,
+		deployerAddress,
+		contractAddress,
+		fundedKey,
+	)
 
 	log.Info("Deployed Teleporter contracts to C-Chain")
 }

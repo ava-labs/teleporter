@@ -85,6 +85,9 @@ func ConstructKeylessTransaction(
 
 	// Parse the raw bytecode to be included in the deployment transaction.
 	byteCode, err := hex.DecodeString(strings.TrimPrefix(byteCodeFile.ByteCode.Object, "0x"))
+	if err != nil {
+		return nil, "", common.Address{}, common.Address{}, err
+	}
 
 	// Construct the legacy transaction with pre-determined signature values.
 	contractCreationTx := types.NewTx(&types.LegacyTx{
