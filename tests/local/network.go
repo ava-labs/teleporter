@@ -261,33 +261,31 @@ func (n *LocalNetwork) deployTeleporterToChain(
 	fundedKey *ecdsa.PrivateKey,
 ) {
 	// Fund the deployer address
-	{
-		fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(11)) // 11 AVAX
-		fundDeployerTx := utils.CreateNativeTransferTransaction(
-			ctx, subnetInfo, fundedKey, deployerAddress, fundAmount,
-		)
-		utils.SendTransactionAndWaitForSuccess(ctx, subnetInfo, fundDeployerTx)
-	}
+	fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(11)) // 11 AVAX
+	fundDeployerTx := utils.CreateNativeTransferTransaction(
+		ctx, subnetInfo, fundedKey, deployerAddress, fundAmount,
+	)
+	utils.SendTransactionAndWaitForSuccess(ctx, subnetInfo, fundDeployerTx)
+
 	log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
 
 	// Deploy Teleporter contract
-	{
-		rpcClient, err := rpc.DialContext(
-			ctx,
-			utils.HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String()),
-		)
-		Expect(err).Should(BeNil())
-		defer rpcClient.Close()
+	rpcClient, err := rpc.DialContext(
+		ctx,
+		utils.HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String()),
+	)
+	Expect(err).Should(BeNil())
+	defer rpcClient.Close()
 
-		txHash := common.Hash{}
-		err = rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
-		Expect(err).Should(BeNil())
-		utils.WaitForTransactionSuccess(ctx, subnetInfo, txHash)
+	txHash := common.Hash{}
+	err = rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
+	Expect(err).Should(BeNil())
+	utils.WaitForTransactionSuccess(ctx, subnetInfo, txHash)
 
-		teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
-		Expect(err).Should(BeNil())
-		Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-	}
+	teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
+	Expect(err).Should(BeNil())
+	Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+
 	log.Info("Finished deploying Teleporter contract", "blockchainID", subnetInfo.BlockchainID.Hex())
 }
 
