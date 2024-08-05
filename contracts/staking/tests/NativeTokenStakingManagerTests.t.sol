@@ -13,7 +13,6 @@ import {IWarpMessenger, WarpMessage} from "../StakingManager.sol";
 import {StakingMessages} from "../StakingMessages.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 
-
 // TODO: Remove this once all unit tests implemented
 // solhint-disable no-empty-blocks
 contract NativeTokenStakingManagerTest is StakingManagerTest {
@@ -22,7 +21,8 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
     function setUp() public virtual {
         // Construct the object under test
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
-        app.initialize(StakingManagerSettings({
+        app.initialize(
+            StakingManagerSettings({
                 pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                 subnetID: DEFAULT_SUBNET_ID,
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
@@ -31,7 +31,8 @@ contract NativeTokenStakingManagerTest is StakingManagerTest {
                 maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN,
                 initialStakers: new InitialStakerInfo[](0),
                 rewardCalculator: IRewardCalculator(address(0))
-            }));
+            })
+        );
         stakingManager = app;
     }
 
