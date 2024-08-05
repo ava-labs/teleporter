@@ -71,7 +71,7 @@ Note that due to [EIP-150](https://eips.ethereum.org/EIPS/eip-150), the lesser o
 
 ## Teleporter Messenger Contract Deployment
 
-**Do not deploy the `TeleporterMessenger` contract using `forge create`**. The `TeleporterMessenger` contract must be deployed to the same contract address on every chain. To achieve this, the contract can be deployed using a static transaction that uses Nick's method as documented in [this guide](https://github.com/ava-labs/teleporter/blob/main/utils/contract-deployment/README.md), or, if creating a new Subnet, the contract can be pre-allocated with the proper address and state in the new chain's [genesis file](https://docs.avax.network/build/subnet/upgrade/customize-a-subnet#setting-the-genesis-allocation).
+**Do not deploy the `TeleporterMessenger` contract using `forge create`**. The `TeleporterMessenger` contract must be deployed to the same contract address on every chain. To achieve this, the contract can be deployed using a static transaction that uses Nick's method as documented in [this guide](https://github.com/ava-labs/teleporter/blob/main/utils/contract-deployment/README.md). Alternatively, if creating a new Subnet, the contract can be pre-allocated with the proper address and state in the new chain's [genesis file](https://docs.avax.network/build/subnet/upgrade/customize-a-subnet#setting-the-genesis-allocation).
 
 As an example, to include `TeleporterMessenger` `v1.0.0` in the genesis file, include the following values in the `alloc` settings, as documented at the link above.
 ```json
