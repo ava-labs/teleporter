@@ -68,9 +68,12 @@ const (
 )
 
 type SubnetSpec struct {
-	Name       string
-	EVMChainID uint64
-	NodeCount  int
+	Name                       string
+	EVMChainID                 uint64
+	TeleporterContractAddress  common.Address
+	TeleporterDeployedBytecode string
+	TeleporterDeployerAddress  common.Address
+	NodeCount                  int
 }
 
 func NewLocalNetwork(
@@ -104,6 +107,9 @@ func NewLocalNetwork(
 			utils.InstantiateGenesisTemplate(
 				warpGenesisTemplateFile,
 				subnetSpec.EVMChainID,
+				subnetSpec.TeleporterContractAddress,
+				subnetSpec.TeleporterDeployedBytecode,
+				subnetSpec.TeleporterDeployerAddress,
 			),
 			subnetEvmTestUtils.DefaultChainConfig,
 			nodes...,
@@ -197,7 +203,7 @@ func (n *LocalNetwork) setPrimaryNetworkValues() {
 	n.primaryNetworkInfo.RPCClient = chainRPCClient
 	n.primaryNetworkInfo.EVMChainID = chainIDInt
 
-	// TeleporterMessenger is set in DeployTeleporterContracts
+	// TeleporterMessenger is set in SetTeleporterContractAddress
 	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
 }
 
@@ -242,60 +248,81 @@ func (n *LocalNetwork) setSubnetValues(subnet *tmpnet.Subnet) {
 	n.subnetsInfo[subnetID].RPCClient = chainRPCClient
 	n.subnetsInfo[subnetID].EVMChainID = chainIDInt
 
-	// TeleporterMessenger is set in DeployTeleporterContracts
+	// TeleporterMessenger is set in SetTeleporterContractAddress
 	// TeleporterRegistryAddress is set in DeployTeleporterRegistryContracts
 }
 
-// DeployTeleporterContracts deploys the Teleporter contract to all subnets.
-// The caller is responsible for generating the deployment transaction information
-func (n *LocalNetwork) DeployTeleporterContracts(
+func (n *LocalNetwork) deployTeleporterToChain(
+	ctx context.Context,
+	subnetInfo interfaces.SubnetTestInfo,
 	transactionBytes []byte,
 	deployerAddress common.Address,
 	contractAddress common.Address,
 	fundedKey *ecdsa.PrivateKey,
-	updateNetworkTeleporter bool,
 ) {
-	log.Info("Deploying Teleporter contract to subnets", "contractAddress", contractAddress.String())
+	// Fund the deployer address
+	{
+		fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(11)) // 11 AVAX
+		fundDeployerTx := utils.CreateNativeTransferTransaction(
+			ctx, subnetInfo, fundedKey, deployerAddress, fundAmount,
+		)
+		utils.SendTransactionAndWaitForSuccess(ctx, subnetInfo, fundDeployerTx)
+	}
+	log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
+
+	// Deploy Teleporter contract
+	{
+		rpcClient, err := rpc.DialContext(
+			ctx,
+			utils.HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String()),
+		)
+		Expect(err).Should(BeNil())
+		defer rpcClient.Close()
+
+		txHash := common.Hash{}
+		err = rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
+		Expect(err).Should(BeNil())
+		utils.WaitForTransactionSuccess(ctx, subnetInfo, txHash)
+
+		teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
+		Expect(err).Should(BeNil())
+		Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
+	}
+	log.Info("Finished deploying Teleporter contract", "blockchainID", subnetInfo.BlockchainID.Hex())
+}
+
+// DeployTeleporterContractToCChain deploys the Teleporter contract to the C-Chain.
+// The caller is responsible for generating the deployment transaction information
+func (n *LocalNetwork) DeployTeleporterContractToCChain(
+	transactionBytes []byte,
+	deployerAddress common.Address,
+	contractAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+) {
+	log.Info("Deploying Teleporter contract to C-Chain", "contractAddress", contractAddress.String())
 
 	ctx := context.Background()
+	n.deployTeleporterToChain(ctx, n.GetPrimaryNetworkInfo(), transactionBytes, deployerAddress, contractAddress, fundedKey)
 
-	subnets := n.GetAllSubnetsInfo()
-	for _, subnetInfo := range subnets {
-		// Fund the deployer address
-		{
-			fundAmount := big.NewInt(0).Mul(big.NewInt(1e18), big.NewInt(11)) // 11 AVAX
-			fundDeployerTx := utils.CreateNativeTransferTransaction(
-				ctx, subnetInfo, fundedKey, deployerAddress, fundAmount,
-			)
-			utils.SendTransactionAndWaitForSuccess(ctx, subnetInfo, fundDeployerTx)
-		}
-		log.Info("Finished funding Teleporter deployer", "blockchainID", subnetInfo.BlockchainID.Hex())
+	log.Info("Deployed Teleporter contracts to C-Chain")
+}
 
-		// Deploy Teleporter contract
-		{
-			rpcClient, err := rpc.DialContext(
-				ctx,
-				utils.HttpToRPCURI(subnetInfo.NodeURIs[0], subnetInfo.BlockchainID.String()),
-			)
-			Expect(err).Should(BeNil())
-			defer rpcClient.Close()
+// DeployTeleporterContractToAllChains deploys the Teleporter contract to the C-Chain all subnets.
+// The caller is responsible for generating the deployment transaction information
+func (n *LocalNetwork) DeployTeleporterContractToAllChains(
+	transactionBytes []byte,
+	deployerAddress common.Address,
+	contractAddress common.Address,
+	fundedKey *ecdsa.PrivateKey,
+) {
+	log.Info("Deploying Teleporter contract to C-Chain and all subnets", "contractAddress", contractAddress.String())
 
-			txHash := common.Hash{}
-			err = rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", hexutil.Encode(transactionBytes))
-			Expect(err).Should(BeNil())
-			utils.WaitForTransactionSuccess(ctx, subnetInfo, txHash)
-
-			teleporterCode, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
-			Expect(err).Should(BeNil())
-			Expect(len(teleporterCode)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-		}
-		log.Info("Finished deploying Teleporter contract", "blockchainID", subnetInfo.BlockchainID.Hex())
+	ctx := context.Background()
+	for _, subnetInfo := range n.GetAllSubnetsInfo() {
+		n.deployTeleporterToChain(ctx, subnetInfo, transactionBytes, deployerAddress, contractAddress, fundedKey)
 	}
 
-	if updateNetworkTeleporter {
-		n.SetTeleporterContractAddress(contractAddress)
-	}
-	log.Info("Deployed Teleporter contracts to all subnets")
+	log.Info("Deployed Teleporter contracts to C-Chain and all subnets")
 }
 
 func (n *LocalNetwork) DeployTeleporterRegistryContracts(

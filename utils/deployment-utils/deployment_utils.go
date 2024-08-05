@@ -10,6 +10,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"strings"
 
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -43,33 +44,22 @@ type byteCodeObj struct {
 }
 
 type byteCodeFile struct {
-	ByteCode byteCodeObj `json:"bytecode"`
+	ByteCode         byteCodeObj `json:"bytecode"`
+	DeployedByteCode byteCodeObj `json:"deployedBytecode"`
 }
 
-func ExtractByteCode(byteCodeFileName string) ([]byte, error) {
+func extractByteCode(byteCodeFileName string) (byteCodeFile, error) {
 	log.Println("Using bytecode file at", byteCodeFileName)
 	byteCodeFileContents, err := os.ReadFile(byteCodeFileName)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to read bytecode file contents")
+		return byteCodeFile{}, errors.Wrap(err, "Failed to read bytecode file contents")
 	}
 	var byteCodeJSON byteCodeFile
 	err = json.Unmarshal(byteCodeFileContents, &byteCodeJSON)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to unmarshal bytecode file contents as JSON")
+		return byteCodeFile{}, errors.Wrap(err, "Failed to unmarshal bytecode file contents as JSON")
 	}
-	byteCodeString := byteCodeJSON.ByteCode.Object
-	if len(byteCodeString) < 2 {
-		return nil, errors.New("Invalid byte code length.")
-	}
-	// Strip off leading 0x if present
-	if byteCodeString[:2] == "0x" || byteCodeString[:2] == "0X" {
-		byteCodeString = byteCodeString[2:]
-	}
-	byteCode, err := hex.DecodeString(byteCodeString)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to decode bytecode string as hexadecimal.")
-	}
-	return byteCode, nil
+	return byteCodeJSON, nil
 }
 
 // Constructs a keyless transaction using Nick's method
@@ -79,19 +69,22 @@ func ConstructKeylessTransaction(
 	byteCodeFileName string,
 	writeFile bool,
 	contractCreationGasPrice *big.Int,
-) ([]byte, common.Address, common.Address, error) {
+) ([]byte, string, common.Address, common.Address, error) {
 	// Convert the R and S values (which must be the same) from hex.
 	rsValue, ok := new(big.Int).SetString(rsValueHex, 16)
 	if !ok {
-		return nil, common.Address{}, common.Address{}, errors.New(
+		return nil, "", common.Address{}, common.Address{}, errors.New(
 			"Failed to convert R and S value to big.Int.",
 		)
 	}
 
-	byteCode, err := ExtractByteCode(byteCodeFileName)
+	byteCodeFile, err := extractByteCode(byteCodeFileName)
 	if err != nil {
-		return nil, common.Address{}, common.Address{}, err
+		return nil, "", common.Address{}, common.Address{}, err
 	}
+
+	// Parse the raw bytecode to be included in the deployment transaction.
+	byteCode, err := hex.DecodeString(strings.TrimPrefix(byteCodeFile.ByteCode.Object, "0x"))
 
 	// Construct the legacy transaction with pre-determined signature values.
 	contractCreationTx := types.NewTx(&types.LegacyTx{
@@ -109,7 +102,7 @@ func ConstructKeylessTransaction(
 	// Recover the "sender" address of the transaction.
 	senderAddress, err := types.HomesteadSigner{}.Sender(contractCreationTx)
 	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(
+		return nil, "", common.Address{}, common.Address{}, errors.Wrap(
 			err,
 			"Failed to recover the sender address of transaction",
 		)
@@ -118,7 +111,7 @@ func ConstructKeylessTransaction(
 	// Serialize the raw transaction and sender address.
 	contractCreationTxBytes, err := contractCreationTx.MarshalBinary()
 	if err != nil {
-		return nil, common.Address{}, common.Address{}, errors.Wrap(
+		return nil, "", common.Address{}, common.Address{}, errors.Wrap(
 			err,
 			"Failed to serialize raw transaction",
 		)
@@ -142,7 +135,7 @@ func ConstructKeylessTransaction(
 			fs.ModePerm,
 		)
 		if err != nil {
-			return nil, common.Address{}, common.Address{}, errors.Wrap(
+			return nil, "", common.Address{}, common.Address{}, errors.Wrap(
 				err,
 				"Failed to write to contract creation tx file",
 			)
@@ -150,7 +143,7 @@ func ConstructKeylessTransaction(
 
 		err = os.WriteFile(contractCreationAddrFileName, []byte(senderAddressString), fs.ModePerm)
 		if err != nil {
-			return nil, common.Address{}, common.Address{}, errors.Wrap(
+			return nil, "", common.Address{}, common.Address{}, errors.Wrap(
 				err,
 				"Failed to write to deployer address file",
 			)
@@ -162,13 +155,13 @@ func ConstructKeylessTransaction(
 			fs.ModePerm,
 		)
 		if err != nil {
-			return nil, common.Address{}, common.Address{}, errors.Wrap(
+			return nil, "", common.Address{}, common.Address{}, errors.Wrap(
 				err,
 				"Failed to write to contract address",
 			)
 		}
 	}
-	return contractCreationTxBytes, senderAddress, contractAddress, nil
+	return contractCreationTxBytes, byteCodeFile.DeployedByteCode.Object, senderAddress, contractAddress, nil
 }
 
 func GetDefaultContractCreationGasPrice() *big.Int {
