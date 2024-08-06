@@ -312,7 +312,7 @@ func (n *LocalNetwork) DeployTeleporterContractToCChain(
 	log.Info("Deployed Teleporter contracts to C-Chain")
 }
 
-// DeployTeleporterContractToAllChains deploys the Teleporter contract to the C-Chain all subnets.
+// DeployTeleporterContractToAllChains deploys the Teleporter contract to the C-Chain and all subnets.
 // The caller is responsible for generating the deployment transaction information
 func (n *LocalNetwork) DeployTeleporterContractToAllChains(
 	transactionBytes []byte,
