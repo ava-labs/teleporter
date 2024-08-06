@@ -15,17 +15,14 @@ contract StakingMessagesTest is Test {
         uint256 endGas;
 
         startGas = gasleft();
-        bytes memory original = Original.packSetSubnetValidatorWeightMessage(
-            validationID,
-            nonce,
-            weight
-        );
+        bytes memory original =
+            Original.packSetSubnetValidatorWeightMessage(validationID, nonce, weight);
         endGas = gasleft();
         uint256 originalGas = startGas - endGas;
 
         startGas = gasleft();
-        bytes memory packed = StakingMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, weight);
+        bytes memory packed =
+            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, nonce, weight);
         endGas = gasleft();
         // Doing this after the original will actually penalise it because
         // memory expansion is quadratic, so the gas saving is higher than the
@@ -35,11 +32,8 @@ contract StakingMessagesTest is Test {
         assertEq(original, packed, "same data");
         assertGe(originalGas - gas, 19_500, "gas saving");
 
-        (
-            bytes32 gotValidationID,
-            uint64 gotNonce,
-            uint64 gotWeight
-        ) = StakingMessages.unpackSetSubnetValidatorWeightMessage(packed);
+        (bytes32 gotValidationID, uint64 gotNonce, uint64 gotWeight) =
+            StakingMessages.unpackSetSubnetValidatorWeightMessage(packed);
 
         assertEq(validationID, gotValidationID, "validation ID");
         assertEq(nonce, gotNonce, "nonce");
@@ -51,8 +45,8 @@ contract StakingMessagesTest is Test {
         uint64 nonce,
         uint64 weight
     ) public view {
-        bytes memory buffer = StakingMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, weight);
+        bytes memory buffer =
+            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, nonce, weight);
 
         uint256 startGas;
         uint256 endGas;
