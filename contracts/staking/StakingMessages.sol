@@ -234,7 +234,7 @@ library StakingMessages {
         uint64 weight
     ) internal pure returns (bytes memory) {
         return abi.encodePacked(
-            StakingMessages.SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID, validationID, nonce, weight
+            SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID, validationID, nonce, weight
         );
     }
 
@@ -250,14 +250,20 @@ library StakingMessages {
         pure
         returns (bytes32, uint64, uint64)
     {
+        /* solhint-disable no-inline-assembly */
         require(input.length == 52, "StakingMessages: Invalid message length");
+
+        // A `bytes memory` is stored as one word representing the length and
+        // then the buffer of said length. Using the variable name in assembly
+        // is equivalent to a pointer to the length, and `add(input, 0x20)`
+        // points to the first word of the buffer.
 
         uint32 typeID;
         assembly ("memory-safe") {
             typeID := shr(224, mload(add(input, 0x20)))
         }
         require(
-            typeID == StakingMessages.SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
+            typeID == SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
             "StakingMessages: Invalid message type"
         );
 
@@ -265,6 +271,10 @@ library StakingMessages {
         uint64 nonce;
         uint64 weight;
         assembly ("memory-safe") {
+            // Although we could achieve the entire unpacking with only two
+            // MLOADs, we'd have to stitch the `validationID` together and make
+            // everything less readable. It may even require _more_ gas because
+            // the MLOAD is so cheap.
             validationID := mload(add(input, 0x24))
             let rest := mload(add(input, 0x44)) // only the first 128 bits are valid
             nonce := shr(192, rest)
@@ -272,6 +282,7 @@ library StakingMessages {
         }
 
         return (validationID, nonce, weight);
+        /* solhint-enable no-inline-assembly */
     }
 
     /**

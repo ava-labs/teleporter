@@ -31,6 +31,7 @@ contract StakingMessagesTest is Test {
 
         assertEq(original, packed, "same data");
         assertGe(originalGas - gas, 19_500, "gas saving");
+        assertLe(gas, 250, "gas cost");
 
         (bytes32 gotValidationID, uint64 gotNonce, uint64 gotWeight) =
             StakingMessages.unpackSetSubnetValidatorWeightMessage(packed);
@@ -62,5 +63,6 @@ contract StakingMessagesTest is Test {
         uint256 originalGas = startGas - endGas;
 
         assertGe(originalGas - gas, 18_000, "gas saving");
+        assertLe(gas, 200, "gas cost");
     }
 }
