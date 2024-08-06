@@ -48,23 +48,18 @@ library StakingMessages {
      *                        | 148 bytes |
      *                        +-----------+
      */
-    function packRegisterSubnetValidatorMessage(
-        ValidationInfo memory valiationInfo
-    ) internal pure returns (bytes32, bytes memory) {
-        (
-            bytes32 validationID,
-            bytes memory serializedValidationInfo
-        ) = packValidationInfo(valiationInfo);
+    function packRegisterSubnetValidatorMessage(ValidationInfo memory valiationInfo)
+        internal
+        pure
+        returns (bytes32, bytes memory)
+    {
+        (bytes32 validationID, bytes memory serializedValidationInfo) =
+            packValidationInfo(valiationInfo);
 
         bytes memory res = new bytes(148);
         // Pack the message type
         for (uint256 i; i < 4; ++i) {
-            res[i] = bytes1(
-                uint8(
-                    SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID >>
-                        (8 * (3 - i))
-                )
-            );
+            res[i] = bytes1(uint8(SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID >> (8 * (3 - i))));
         }
         // Pack the validation info
         for (uint256 i; i < 144; ++i) {
@@ -89,9 +84,11 @@ library StakingMessages {
      * @return The validationID and whether or the validation period was registered
      * or is not a validator and never will be a validator to do the expiry time passing.
      */
-    function unpackSubnetValidatorRegistrationMessage(
-        bytes memory input
-    ) internal pure returns (bytes32, bool) {
+    function unpackSubnetValidatorRegistrationMessage(bytes memory input)
+        internal
+        pure
+        returns (bytes32, bool)
+    {
         require(input.length == 37, "StakingMessages: Invalid message length");
 
         // Unpack the type ID
@@ -107,9 +104,7 @@ library StakingMessages {
         // Unpack the validation ID.
         bytes32 validationID;
         for (uint256 i; i < 32; ++i) {
-            validationID |= bytes32(
-                uint256(uint8(input[i + 4])) << (8 * (31 - i))
-            );
+            validationID |= bytes32(uint256(uint8(input[i + 4])) << (8 * (31 - i)));
         }
 
         // Unpack the validity
@@ -138,42 +133,63 @@ library StakingMessages {
         uint64 nonce,
         uint64 weight
     ) internal pure returns (bytes memory) {
-        return
-            abi.encodePacked(
-                StakingMessages.SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
-                validationID,
-                nonce,
-                weight
-            );
+        bytes memory res = new bytes(52);
+        // Pack the type ID.
+        for (uint256 i; i < 4; ++i) {
+            res[i] = bytes1(uint8(SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID >> (8 * (3 - i))));
+        }
+        // Pack the validation ID.
+        for (uint256 i; i < 32; ++i) {
+            res[i + 4] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
+        }
+        // Pack the nonce.
+        for (uint256 i; i < 8; ++i) {
+            res[i + 36] = bytes1(uint8(nonce >> (8 * (7 - i))));
+        }
+        // Pack the weight.
+        for (uint256 i; i < 8; ++i) {
+            res[i + 44] = bytes1(uint8(weight >> (8 * (7 - i))));
+        }
+        return res;
     }
 
     /**
      * @notice Unpacks a byte array as a SetSubnetValidatorWeight message.
      * The message format specification is the same as the one used in above for packing.
      */
-    function unpackSetSubnetValidatorWeightMessage(
-        bytes memory input
-    ) internal pure returns (bytes32, uint64, uint64) {
+    function unpackSetSubnetValidatorWeightMessage(bytes memory input)
+        internal
+        pure
+        returns (bytes32, uint64, uint64)
+    {
         require(input.length == 52, "StakingMessages: Invalid message length");
 
+        // Unpack the type ID.
         uint32 typeID;
-        assembly ("memory-safe") {
-            typeID := shr(224, mload(add(input, 0x20)))
+        for (uint256 i; i < 4; ++i) {
+            typeID |= uint32(uint8(input[i])) << uint32((8 * (3 - i)));
         }
         require(
-            typeID ==
-                StakingMessages.SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
+            typeID == SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
             "StakingMessages: Invalid message type"
         );
 
+        // Unpack the validation ID.
         bytes32 validationID;
+        for (uint256 i; i < 32; ++i) {
+            validationID |= bytes32(uint256(uint8(input[i + 4])) << (8 * (31 - i)));
+        }
+
+        // Unpack the nonce.
         uint64 nonce;
+        for (uint256 i; i < 8; ++i) {
+            nonce |= uint64(uint8(input[i + 36])) << uint64((8 * (7 - i)));
+        }
+
+        // Unpack the weight.
         uint64 weight;
-        assembly ("memory-safe") {
-            validationID := mload(add(input, 0x24))
-            let rest := mload(add(input, 0x44)) // only the first 128 bits are valid
-            nonce := shr(192, rest)
-            weight := shr(192, shl(64, rest)) // shl(64, ) wipes the nonce
+        for (uint256 i; i < 8; ++i) {
+            weight |= uint64(uint8(input[i + 44])) << uint64((8 * (7 - i)));
         }
 
         return (validationID, nonce, weight);
@@ -192,9 +208,11 @@ library StakingMessages {
      *                           | 44 bytes |
      *                           +----------+
      */
-    function unpackValidationUptimeMessage(
-        bytes memory input
-    ) internal pure returns (bytes32, uint64) {
+    function unpackValidationUptimeMessage(bytes memory input)
+        internal
+        pure
+        returns (bytes32, uint64)
+    {
         require(input.length == 44, "StakingMessages: Invalid message length");
 
         // Unpack the type ID.
@@ -203,16 +221,13 @@ library StakingMessages {
             typeID |= uint32(uint8(input[i])) << uint32((8 * (3 - i)));
         }
         require(
-            typeID == VALIDATION_UPTIME_MESSAGE_TYPE_ID,
-            "StakingMessages: Invalid message type"
+            typeID == VALIDATION_UPTIME_MESSAGE_TYPE_ID, "StakingMessages: Invalid message type"
         );
 
         // Unpack the validation ID.
         bytes32 validationID;
         for (uint256 i; i < 32; ++i) {
-            validationID |= bytes32(
-                uint256(uint8(input[i + 4])) << (8 * (31 - i))
-            );
+            validationID |= bytes32(uint256(uint8(input[i + 4])) << (8 * (31 - i)));
         }
 
         // Unpack the uptime.
@@ -242,13 +257,12 @@ library StakingMessages {
      *                        | 144 bytes |
      *                        +-----------+
      */
-    function packValidationInfo(
-        ValidationInfo memory validationInfo
-    ) internal pure returns (bytes32, bytes memory) {
-        require(
-            validationInfo.signature.length == 64,
-            "StakingMessages: Invalid signature length"
-        );
+    function packValidationInfo(ValidationInfo memory validationInfo)
+        internal
+        pure
+        returns (bytes32, bytes memory)
+    {
+        require(validationInfo.signature.length == 64, "StakingMessages: Invalid signature length");
         bytes memory res = new bytes(144);
         // Pack the subnetID
         for (uint256 i; i < 32; ++i) {
@@ -260,17 +274,11 @@ library StakingMessages {
         }
         // Pack the weight
         for (uint256 i; i < 8; ++i) {
-            res[i + 64] = bytes1(
-                uint8(validationInfo.weight >> uint8((8 * (7 - i))))
-            );
+            res[i + 64] = bytes1(uint8(validationInfo.weight >> uint8((8 * (7 - i)))));
         }
         // Pack the registration expiry
         for (uint256 i; i < 8; ++i) {
-            res[i + 72] = bytes1(
-                uint8(
-                    validationInfo.registrationExpiry >> uint64((8 * (7 - i)))
-                )
-            );
+            res[i + 72] = bytes1(uint8(validationInfo.registrationExpiry >> uint64((8 * (7 - i)))));
         }
         // Pack the signature
         for (uint256 i; i < 64; ++i) {
