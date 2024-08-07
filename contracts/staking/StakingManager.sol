@@ -322,7 +322,7 @@ abstract contract StakingManager is
      * @notice Resubmits a validator end message to be sent to P-Chain to the Warp precompile.
      * Only necessary if the original message can't be delivered due to validator churn.
      */
-    // solhint-disable-next-line no-empty-blocks
+    // solhint-disable-next-line
     function resendEndValidatorMessage(bytes32 validationID) external {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
         Validator memory validator = $._validationPeriods[validationID];

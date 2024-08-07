@@ -18,18 +18,22 @@ contract NativeTokenStakingManager is Initializable, StakingManager, INativeToke
         _disableInitializers();
     }
 
+    // solhint-disable ordering
     function initialize(StakingManagerSettings calldata settings) external initializer {
         __NativeTokenStakingManager_init(settings);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __NativeTokenStakingManager_init(StakingManagerSettings calldata settings)
         internal
         onlyInitializing
     {
-        __StakingManager_init(settings, 12);
+        __StakingManager_init(settings);
     }
 
+    // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
     function __NativeTokenStakingManager_init_unchained() internal onlyInitializing {}
+    // solhint-enable ordering
 
     /**
      * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.

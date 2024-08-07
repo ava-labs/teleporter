@@ -53,6 +53,7 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
         __ERC20TokenStakingManager_init(settings, token);
     }
 
+    // solhint-disable func-name-mixedcase
     function __ERC20TokenStakingManager_init(
         StakingManagerSettings calldata settings,
         IERC20 token
@@ -61,6 +62,7 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
         __ERC20TokenStakingManager_init_unchained(token);
     }
 
+    // solhint-disable func-name-mixedcase
     function __ERC20TokenStakingManager_init_unchained(IERC20 token) internal onlyInitializing {
         ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
         require(address(token) != address(0), "ERC20TokenStakingManager: zero token address");
