@@ -16,7 +16,7 @@ contract ExampleRewardCalculator is IRewardCalculator {
      * @param rewardBasisPoints annual reward percentage in basis points (units of 0.1%).
      */
     function calculateReward(
-        uint64 stakeAmount,
+        uint256 stakeAmount,
         uint64 startTime,
         uint64 endTime,
         uint256, // initialSupply
