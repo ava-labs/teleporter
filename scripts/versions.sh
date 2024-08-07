@@ -29,9 +29,9 @@ extract_commit() {
 AWM_RELAYER_VERSION=${AWM_RELAYER_VERSION:-'v1.0.0'}
 
 # Don't export them as they're used in the context of other calls
-AVALANCHEGO_VERSION=${AVALANCHEGO_VERSION:-$(getDepVersion github.com/ava-labs/avalanchego)}
+AVALANCHEGO_VERSION=${AVALANCHEGO_VERSION:-a0f7e422bb8497186ebff434f12c4b957cec8d49}
 GINKGO_VERSION=${GINKGO_VERSION:-$(getDepVersion github.com/onsi/ginkgo/v2)}
-SUBNET_EVM_VERSION=${SUBNET_EVM_VERSION:-$(getDepVersion github.com/ava-labs/subnet-evm)}
+SUBNET_EVM_VERSION=${SUBNET_EVM_VERSION:-v0.6.8-acp-118-handlers}
 
 # Set golangci-lint version
 GOLANGCI_LINT_VERSION=${GOLANGCI_LINT_VERSION:-'v1.55'}
