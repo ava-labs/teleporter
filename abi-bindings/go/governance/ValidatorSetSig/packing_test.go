@@ -27,5 +27,4 @@ func TestPackUnpackValidatorSetSigMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, msg, unpackedMsg)
-
 }

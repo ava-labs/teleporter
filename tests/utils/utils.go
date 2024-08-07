@@ -70,7 +70,9 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	transactor *teleportermessenger.TeleporterMessenger,
 ) *types.Receipt {
 	opts, err := bind.NewKeyedTransactorWithChainID(
-		senderKey, source.EVMChainID)
+		senderKey,
+		source.EVMChainID,
+	)
 	Expect(err).Should(BeNil())
 
 	tx, err := transactor.AddFeeAmount(opts, messageID, feeContractAddress, amount)
@@ -85,7 +87,8 @@ func SendAddFeeAmountAndWaitForAcceptance(
 	log.Info("Send AddFeeAmount transaction on source chain",
 		"messageID", messageID,
 		"sourceChainID", source.BlockchainID,
-		"destinationBlockchainID", destination.BlockchainID)
+		"destinationBlockchainID", destination.BlockchainID,
+	)
 
 	return receipt
 }
@@ -900,7 +903,9 @@ func DeployTestMessenger(
 	subnet interfaces.SubnetTestInfo,
 ) (common.Address, *testmessenger.TestMessenger) {
 	opts, err := bind.NewKeyedTransactorWithChainID(
-		senderKey, subnet.EVMChainID)
+		senderKey,
+		subnet.EVMChainID,
+	)
 	Expect(err).Should(BeNil())
 	address, tx, exampleMessenger, err := testmessenger.DeployTestMessenger(
 		opts,
@@ -1004,7 +1009,8 @@ func SendExampleCrossChainMessageAndVerify(
 		// Check that message execution failed
 		messageExecutionFailedEvent, err := GetEventFromLogs(
 			receipt.Logs,
-			destination.TeleporterMessenger.ParseMessageExecutionFailed)
+			destination.TeleporterMessenger.ParseMessageExecutionFailed,
+		)
 		Expect(err).Should(BeNil())
 		Expect(messageExecutionFailedEvent.MessageID[:]).Should(Equal(teleporterMessageID[:]))
 	}
@@ -1036,7 +1042,8 @@ func InitOffChainMessageChainConfig(
 	})
 	log.Info("Adding off-chain message to Warp chain config",
 		"messageID", unsignedMessage.ID(),
-		"blockchainID", subnet.BlockchainID.String())
+		"blockchainID", subnet.BlockchainID.String(),
+	)
 
 	return unsignedMessage, GetChainConfigWithOffChainMessages([]avalancheWarp.UnsignedMessage{*unsignedMessage})
 }
@@ -1057,7 +1064,8 @@ func CreateOffChainRegistryMessage(
 	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
 		networkID,
 		subnet.BlockchainID,
-		addressedPayload.Bytes())
+		addressedPayload.Bytes(),
+	)
 	Expect(err).Should(BeNil())
 
 	return unsignedMessage
@@ -1097,7 +1105,8 @@ func CreateOffChainValidatorSetSigMessage(
 	unsignedMessage, err := avalancheWarp.NewUnsignedMessage(
 		networkID,
 		subnet.BlockchainID,
-		addressedPayload.Bytes())
+		addressedPayload.Bytes(),
+	)
 	Expect(err).Should(BeNil())
 
 	return unsignedMessage
@@ -1127,7 +1136,8 @@ func DeployNewTeleporterVersion(
 		teleporterDeployerAddress,
 		teleporterContractAddress,
 		fundedKey,
-		false)
+		false,
+	)
 	return teleporterContractAddress
 }
 
