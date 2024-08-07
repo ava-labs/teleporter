@@ -19,9 +19,9 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
 
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ERC20TokenStakingManager
-
     struct ERC20TokenStakingManagerStorage {
         IERC20 _token;
+        uint8 _tokenDecimals;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -48,11 +48,25 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
 
     function initialize(
         StakingManagerSettings calldata settings,
-        IERC20 token
+        IERC20 token,
+        uint8 tokenDecimals
     ) external initializer {
-        initialize(settings);
+        __ERC20TokenStakingManager_init(settings, token, tokenDecimals);
+    }
+
+    function __ERC20TokenStakingManager_init(
+        StakingManagerSettings calldata settings,
+        IERC20 token,
+        uint8 tokenDecimals
+    ) internal onlyInitializing {
+        __StakingManager_init(settings, tokenDecimals);
+        __ERC20TokenStakingManager_init_unchained(token);
+    }
+
+    function __ERC20TokenStakingManager_init_unchained(IERC20 token) internal onlyInitializing {
+        ERC20TokenStakingManagerStorage storage $ = _getERC20StakingManagerStorage();
         require(address(token) != address(0), "ERC20TokenStakingManager: zero token address");
-        _getERC20StakingManagerStorage()._token = token;
+        $._token = token;
     }
 
     function initializeValidatorRegistration(

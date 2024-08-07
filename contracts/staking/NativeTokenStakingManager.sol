@@ -7,7 +7,7 @@ pragma solidity 0.8.25;
 
 import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
-import {StakingManager} from "./StakingManager.sol";
+import {StakingManager, StakingManagerSettings} from "./StakingManager.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
@@ -17,6 +17,19 @@ contract NativeTokenStakingManager is Initializable, StakingManager, INativeToke
     constructor() {
         _disableInitializers();
     }
+
+    function initialize(StakingManagerSettings calldata settings) external initializer {
+        __NativeTokenStakingManager_init(settings);
+    }
+
+    function __NativeTokenStakingManager_init(StakingManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
+        __StakingManager_init(settings, 12);
+    }
+
+    function __NativeTokenStakingManager_init_unchained() internal onlyInitializing {}
 
     /**
      * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
