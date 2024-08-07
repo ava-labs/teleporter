@@ -394,6 +394,7 @@ abstract contract StakingManager is
         // Calculate the reward for the validator.
 
         // Emit event.
+        emit ValidationPeriodEnded(validationID);
     }
 
     /**
@@ -403,6 +404,10 @@ abstract contract StakingManager is
      */
     function _checkAndUpdateChurnTracker(uint64 amount) private {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
+        if ($._maximumHourlyChurn == 0) {
+            return;
+        }
+
         ValidatorChurnPeriod memory churnTracker = $._churnTracker;
         uint256 currentTime = block.timestamp;
         if (currentTime - churnTracker.startedAt >= 1 hours) {
