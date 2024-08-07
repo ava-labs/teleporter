@@ -3,12 +3,12 @@ module github.com/ava-labs/teleporter
 go 1.21.12
 
 require (
-	github.com/ava-labs/avalanchego v1.11.10
+	github.com/ava-labs/avalanchego v1.11.11-0.20240729205337-a0f7e422bb84
 	github.com/supranational/blst v0.3.11 // indirect
 )
 
 require (
-	github.com/ava-labs/subnet-evm v0.6.8
+	github.com/ava-labs/subnet-evm v0.6.8-acp-118-handlers
 	github.com/ethereum/go-ethereum v1.13.8
 	github.com/onsi/ginkgo/v2 v2.19.1
 	github.com/onsi/gomega v1.34.1
