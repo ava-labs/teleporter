@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {IStakingManager} from "./interfaces/IStakingManager.sol";
+import {IStakingManager, StakingManagerSettings} from "./interfaces/IStakingManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -83,16 +83,6 @@ abstract contract StakingManager is
         assembly {
             $.slot := _STAKING_MANAGER_STORAGE_LOCATION
         }
-    }
-
-    struct StakingManagerSettings {
-        bytes32 pChainBlockchainID;
-        bytes32 subnetID;
-        uint256 minimumStakeAmount;
-        uint256 maximumStakeAmount;
-        uint64 minimumStakeDuration;
-        uint8 maximumHourlyChurn;
-        IRewardCalculator rewardCalculator;
     }
 
     /**
@@ -408,6 +398,7 @@ abstract contract StakingManager is
         // Calculate the reward for the validator.
 
         // Emit event.
+        emit ValidationPeriodEnded(validationID);
     }
 
     /**
@@ -417,6 +408,10 @@ abstract contract StakingManager is
      */
     function _checkAndUpdateChurnTracker(uint64 amount) private {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
+        if ($._maximumHourlyChurn == 0) {
+            return;
+        }
+
         ValidatorChurnPeriod storage churnTracker = $._churnTracker;
         uint256 currentTime = block.timestamp;
         if (currentTime - churnTracker.startedAt >= 1 hours) {

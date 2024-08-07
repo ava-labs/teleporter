@@ -47,6 +47,9 @@ library StakingMessages {
      * +-----------+----------+-----------+
      *                        | 148 bytes |
      *                        +-----------+
+     *
+     * @param valiationInfo The information to pack into the message.
+     * @return The validationID and the packed message.
      */
     function packRegisterSubnetValidatorMessage(ValidationInfo memory valiationInfo)
         internal
@@ -70,7 +73,70 @@ library StakingMessages {
     }
 
     /**
-     * @notice Unpacks a byte array as a SubnetValidatorRegistrationMessage message.
+     * @notice Unpacks a byte array as a RegisterSubnetValidatorMessage message.
+     * The message format specification is the same as the one used in above for packing.
+     *
+     * @param input The byte array to unpack.
+     * @return the unpacked ValidationInfo.
+     */
+    function unpackRegisterSubnetValidatorMessage(bytes memory input)
+        internal
+        pure
+        returns (ValidationInfo memory)
+    {
+        require(input.length == 148, "StakingMessages: Invalid message length");
+
+        // Unpack the type ID
+        uint32 typeID;
+        for (uint256 i; i < 4; ++i) {
+            typeID |= uint32(uint8(input[i])) << uint32((8 * (3 - i)));
+        }
+        require(
+            typeID == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
+            "StakingMessages: Invalid message type"
+        );
+
+        // Unpack the subnet ID
+        bytes32 subnetID;
+        for (uint256 i; i < 32; ++i) {
+            subnetID |= bytes32(uint256(uint8(input[i + 4])) << (8 * (31 - i)));
+        }
+
+        // Unpack the node ID
+        bytes32 nodeID;
+        for (uint256 i; i < 32; ++i) {
+            nodeID |= bytes32(uint256(uint8(input[i + 36])) << (8 * (31 - i)));
+        }
+
+        // Unpack the weight
+        uint64 weight;
+        for (uint256 i; i < 8; ++i) {
+            weight |= uint64(uint8(input[i + 68])) << uint64((8 * (7 - i)));
+        }
+
+        // Unpack the expiry
+        uint64 expiry;
+        for (uint256 i; i < 8; ++i) {
+            expiry |= uint64(uint8(input[i + 76])) << uint64((8 * (7 - i)));
+        }
+
+        // Unpack the signature
+        bytes memory signature = new bytes(64);
+        for (uint256 i; i < 64; ++i) {
+            signature[i] = input[i + 84];
+        }
+
+        return ValidationInfo({
+            subnetID: subnetID,
+            nodeID: nodeID,
+            weight: weight,
+            registrationExpiry: expiry,
+            signature: signature
+        });
+    }
+
+    /**
+     * @notice Packs a SubnetValidatorRegistrationMessage into a byte array.
      * The message format specification is:
      * +--------------+----------+----------+
      * |       typeID :   uint32 |  4 bytes |
@@ -81,6 +147,35 @@ library StakingMessages {
      * +--------------+----------+----------+
      *                           | 37 bytes |
      *                           +----------+
+     *
+     * @param validationID The ID of the validation period.
+     * @param valid true if the validation period was registered, false if it was not and never will be.
+     * @return The packed message.
+     *
+     */
+    function packSubnetValidatorRegistrationMessage(
+        bytes32 validationID,
+        bool valid
+    ) internal pure returns (bytes memory) {
+        bytes memory res = new bytes(37);
+        // Pack the type ID.
+        for (uint256 i; i < 4; ++i) {
+            res[i] = bytes1(uint8(SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID >> (8 * (3 - i))));
+        }
+        // Pack the validation ID.
+        for (uint256 i; i < 32; ++i) {
+            res[i + 4] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
+        }
+        // Pack the validity.
+        res[36] = bytes1(valid ? 1 : 0);
+        return res;
+    }
+
+    /**
+     * @notice Unpacks a byte array as a SubnetValidatorRegistrationMessage message.
+     * The message format specification is the same as the one used in above for packing.
+     *
+     * @param input The byte array to unpack.
      * @return The validationID and whether or the validation period was registered
      * or is not a validator and never will be a validator to do the expiry time passing.
      */
@@ -127,6 +222,11 @@ library StakingMessages {
      * +--------------+----------+----------+
      *                           | 52 bytes |
      *                           +----------+
+     *
+     * @param validationID The ID of the validation period.
+     * @param nonce The nonce of the validation ID.
+     * @param weight The new weight of the validator.
+     * @return The packed message.
      */
     function packSetSubnetValidatorWeightMessage(
         bytes32 validationID,
@@ -156,6 +256,9 @@ library StakingMessages {
     /**
      * @notice Unpacks a byte array as a SetSubnetValidatorWeight message.
      * The message format specification is the same as the one used in above for packing.
+     *
+     * @param input The byte array to unpack.
+     * @return The validationID, nonce, and weight.
      */
     function unpackSetSubnetValidatorWeightMessage(bytes memory input)
         internal
@@ -196,7 +299,7 @@ library StakingMessages {
     }
 
     /**
-     * @notice Unpacks a byte array as a ValidationUptimeMessage.
+     * @notice Packs a ValidationUptimeMessage into a byte array.
      * The message format specification is:
      * +--------------+----------+----------+
      * |       typeID :   uint32 |  4 bytes |
@@ -207,6 +310,37 @@ library StakingMessages {
      * +--------------+----------+----------+
      *                           | 44 bytes |
      *                           +----------+
+     *
+     * @param validationID The ID of the validation period.
+     * @param uptime The uptime of the validator.
+     * @return The packed message.
+     */
+    function packValidationUptimeMessage(
+        bytes32 validationID,
+        uint64 uptime
+    ) internal pure returns (bytes memory) {
+        bytes memory res = new bytes(44);
+        // Pack the type ID.
+        for (uint256 i; i < 4; ++i) {
+            res[i] = bytes1(uint8(VALIDATION_UPTIME_MESSAGE_TYPE_ID >> (8 * (3 - i))));
+        }
+        // Pack the validation ID.
+        for (uint256 i; i < 32; ++i) {
+            res[i + 4] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
+        }
+        // Pack the uptime.
+        for (uint256 i; i < 8; ++i) {
+            res[i + 36] = bytes1(uint8(uptime >> (8 * (7 - i))));
+        }
+        return res;
+    }
+
+    /**
+     * @notice Unpacks a byte array as a ValidationUptimeMessage.
+     * The message format specification is the same as the one used in above for packing.
+     *
+     * @param input The byte array to unpack.
+     * @return The validationID and uptime.
      */
     function unpackValidationUptimeMessage(bytes memory input)
         internal
@@ -256,6 +390,9 @@ library StakingMessages {
      * +-----------+----------+-----------+
      *                        | 144 bytes |
      *                        +-----------+
+     *
+     * @param validationInfo The information to pack.
+     * @return The validationID and the packed data.
      */
     function packValidationInfo(ValidationInfo memory validationInfo)
         internal
@@ -285,5 +422,58 @@ library StakingMessages {
             res[i + 80] = validationInfo.signature[i];
         }
         return (sha256(res), res);
+    }
+
+    /**
+     * @notice Unpacks a byte array as a ValidationInfo.
+     * The message format specification is the same as the one used in above for packing.
+     *
+     * @param input The byte array to unpack.
+     * @return The unpacked ValidationInfo.
+     */
+    function unpackValidationInfo(bytes memory input)
+        internal
+        pure
+        returns (ValidationInfo memory)
+    {
+        require(input.length == 144, "StakingMessages: Invalid message length");
+
+        // Unpack the subnetID
+        bytes32 subnetID;
+        for (uint256 i; i < 32; ++i) {
+            subnetID |= bytes32(uint256(uint8(input[i])) << (8 * (31 - i)));
+        }
+
+        // Unpack the nodeID
+        bytes32 nodeID;
+        for (uint256 i; i < 32; ++i) {
+            nodeID |= bytes32(uint256(uint8(input[i + 32])) << (8 * (31 - i)));
+        }
+
+        // Unpack the weight
+        uint64 weight;
+        for (uint256 i; i < 8; ++i) {
+            weight |= uint64(uint8(input[i + 64])) << uint64((8 * (7 - i)));
+        }
+
+        // Unpack the registration expiry
+        uint64 expiry;
+        for (uint256 i; i < 8; ++i) {
+            expiry |= uint64(uint8(input[i + 72])) << uint64((8 * (7 - i)));
+        }
+
+        // Unpack the signature
+        bytes memory signature = new bytes(64);
+        for (uint256 i; i < 64; ++i) {
+            signature[i] = input[i + 80];
+        }
+
+        return ValidationInfo({
+            subnetID: subnetID,
+            nodeID: nodeID,
+            weight: weight,
+            registrationExpiry: expiry,
+            signature: signature
+        });
     }
 }
