@@ -1,6 +1,6 @@
 module github.com/ava-labs/avalanche-interchain-token-transfer
 
-go 1.21.12
+go 1.21.13
 
 require (
 	github.com/ava-labs/avalanchego v1.11.10
