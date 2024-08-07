@@ -48,18 +48,16 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
 
     function initialize(
         StakingManagerSettings calldata settings,
-        IERC20 token,
-        uint8 tokenDecimals
+        IERC20 token
     ) external initializer {
-        __ERC20TokenStakingManager_init(settings, token, tokenDecimals);
+        __ERC20TokenStakingManager_init(settings, token);
     }
 
     function __ERC20TokenStakingManager_init(
         StakingManagerSettings calldata settings,
-        IERC20 token,
-        uint8 tokenDecimals
+        IERC20 token
     ) internal onlyInitializing {
-        __StakingManager_init(settings, tokenDecimals);
+        __StakingManager_init(settings);
         __ERC20TokenStakingManager_init_unchained(token);
     }
 

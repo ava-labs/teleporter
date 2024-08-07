@@ -63,7 +63,6 @@ abstract contract StakingManager is
         IRewardCalculator _rewardCalculator;
         uint8 _maximumHourlyChurn;
         ValidatorChurnPeriod _churnTracker;
-        uint8 _tokenDecimals;
         // Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
         // Maps the validationID to the validator information.
@@ -93,20 +92,20 @@ abstract contract StakingManager is
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     // solhint-disable-next-line func-name-mixedcase
-    function __StakingManager_init(
-        StakingManagerSettings calldata settings,
-        uint8 tokenDecimals
-    ) internal onlyInitializing {
+    function __StakingManager_init(StakingManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
         __ReentrancyGuard_init();
         __Context_init();
-        __StakingManager_init_unchained(settings, tokenDecimals);
+        __StakingManager_init_unchained(settings);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __StakingManager_init_unchained(
-        StakingManagerSettings calldata settings,
-        uint8 tokenDecimals
-    ) internal onlyInitializing {
+    function __StakingManager_init_unchained(StakingManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
@@ -115,7 +114,6 @@ abstract contract StakingManager is
         $._minimumStakeDuration = settings.minimumStakeDuration;
         $._maximumHourlyChurn = settings.maximumHourlyChurn;
         $._rewardCalculator = settings.rewardCalculator;
-        $._tokenDecimals = tokenDecimals;
     }
 
     /**
@@ -157,7 +155,7 @@ abstract contract StakingManager is
         uint256 lockedValue = _lock(value);
 
         // Ensure the stake churn doesn't exceed the maximum churn rate.
-        uint64 weight = _valueToWeight($, lockedValue);
+        uint64 weight = valueToWeightt(lockedValue);
         _checkAndUpdateChurnTracker(weight);
 
         // Ensure the weight is within the valid range.
@@ -422,20 +420,14 @@ abstract contract StakingManager is
         $._churnTracker = churnTracker;
     }
 
+    function valueToWeightt(uint256 value) public pure returns (uint64) {
+        return uint64(value / 1e12);
+    }
+
+    function weightToValuee(uint64 weight) public pure returns (uint256) {
+        return uint256(weight) * 1e12;
+    }
+
     function _lock(uint256 value) internal virtual returns (uint256);
     function _unlock(uint256 value, address to) internal virtual;
-
-    function _valueToWeight(
-        StakingManagerStorage storage $,
-        uint256 value
-    ) private view returns (uint64) {
-        return uint64(value / (10 ** $._tokenDecimals));
-    }
-
-    function _weightToValue(
-        StakingManagerStorage storage $,
-        uint64 weight
-    ) private view returns (uint256) {
-        return uint256(weight) * (10 ** $._tokenDecimals);
-    }
 }
