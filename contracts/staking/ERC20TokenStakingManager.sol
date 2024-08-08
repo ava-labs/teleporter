@@ -12,6 +12,7 @@ import {Initializable} from
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 
 contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenStakingManager {
     using SafeERC20 for IERC20;
@@ -42,8 +43,10 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
         }
     }
 
-    constructor() {
-        _disableInitializers();
+    constructor(ICMInitializable init) {
+        if (init == ICMInitializable.Disallowed) {
+            _disableInitializers();
+        }
     }
 
     function initialize(

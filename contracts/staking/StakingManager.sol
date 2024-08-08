@@ -155,7 +155,7 @@ abstract contract StakingManager is
         uint256 lockedValue = _lock(value);
 
         // Ensure the stake churn doesn't exceed the maximum churn rate.
-        uint64 weight = valueToWeightt(lockedValue);
+        uint64 weight = valueToWeight(lockedValue);
         _checkAndUpdateChurnTracker(weight);
 
         // Ensure the weight is within the valid range.
@@ -425,11 +425,11 @@ abstract contract StakingManager is
         $._churnTracker = churnTracker;
     }
 
-    function valueToWeightt(uint256 value) public pure returns (uint64) {
+    function valueToWeight(uint256 value) public pure returns (uint64) {
         return uint64(value / 1e12);
     }
 
-    function weightToValuee(uint64 weight) public pure returns (uint256) {
+    function weightToValue(uint64 weight) public pure returns (uint256) {
         return uint256(weight) * 1e12;
     }
 

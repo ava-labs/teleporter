@@ -48,7 +48,7 @@ library StakingMessages {
      *                        | 148 bytes |
      *                        +-----------+
      *
-     * @param valiationInfo The information to pack into the message.
+     * @param validationInfo The information to pack into the message.
      * @return The validationID and the packed message.
      */
     function packRegisterSubnetValidatorMessage(ValidationInfo memory validationInfo)
