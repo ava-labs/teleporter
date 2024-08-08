@@ -9,8 +9,6 @@ import {StakingManagerTest} from "./StakingManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
 import {StakingManagerSettings} from "../interfaces/IStakingManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
-import {IWarpMessenger, WarpMessage} from "../StakingManager.sol";
-import {StakingMessages} from "../StakingMessages.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 
 // TODO: Remove this once all unit tests implemented

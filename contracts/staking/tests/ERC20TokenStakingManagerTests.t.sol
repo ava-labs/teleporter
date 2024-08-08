@@ -9,8 +9,6 @@ import {StakingManagerTest} from "./StakingManagerTests.t.sol";
 import {ERC20TokenStakingManager} from "../ERC20TokenStakingManager.sol";
 import {StakingManagerSettings} from "../interfaces/IStakingManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
-import {IWarpMessenger, WarpMessage} from "../StakingManager.sol";
-import {StakingMessages} from "../StakingMessages.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 import {ExampleERC20} from "@mocks/ExampleERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";

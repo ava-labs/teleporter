@@ -36,7 +36,6 @@ contract NativeTokenStakingManager is Initializable, StakingManager, INativeToke
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
     function __NativeTokenStakingManager_init_unchained() internal onlyInitializing {}
-    // solhint-enable ordering
 
     /**
      * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
@@ -56,6 +55,7 @@ contract NativeTokenStakingManager is Initializable, StakingManager, INativeToke
     ) external payable returns (bytes32) {
         return _initializeValidatorRegistration(nodeID, msg.value, registrationExpiry, signature);
     }
+    // solhint-enable ordering
 
     function _lock(uint256 value) internal virtual override returns (uint256) {
         return value;

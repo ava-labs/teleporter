@@ -10,6 +10,8 @@ import {StakingManager} from "../StakingManager.sol";
 import {StakingMessages} from "../StakingMessages.sol";
 import {IWarpMessenger, WarpMessage} from "../StakingManager.sol";
 
+// TODO: Remove this once all unit tests implemented
+// solhint-disable no-empty-blocks
 abstract contract StakingManagerTest is Test {
     bytes32 public constant P_CHAIN_BLOCKCHAIN_ID =
         bytes32(hex"0000000000000000000000000000000000000000000000000000000000000000");
@@ -346,3 +348,4 @@ abstract contract StakingManagerTest is Test {
 
     function _beforeSend(uint256 value) internal virtual;
 }
+// solhint-enable no-empty-blocks
