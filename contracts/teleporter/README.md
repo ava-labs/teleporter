@@ -28,7 +28,7 @@ The `ITeleporterReceiver` interface provides a single method. All contracts that
 ## Data Flow
 
 <div align="center">
-  <img src="../../../resources/TeleporterDataFlowDiagram.png?raw=true"/>
+  <img src="../../resources/TeleporterDataFlowDiagram.png?raw=true"/>
 </div>
 
 ## Properties
@@ -65,7 +65,7 @@ Teleporter messages are delivered by calling the `receiveTeleporterMessage` func
 
 ## Teleporter Contract Deployment
 
-The `TeleporterMessenger` contract must be deployed to the same contract address on every chain. This is acheived using Nick's keyless transaction method as described [here](../../../utils/contract-deployment/README.md). As a result, Warp messages sent from the resulting contract address are ensured to have the same payload format as defined by the contract itself.
+The `TeleporterMessenger` contract must be deployed to the same contract address on every chain. This is acheived using Nick's keyless transaction method as described [here](../../utils/contract-deployment/README.md). As a result, Warp messages sent from the resulting contract address are ensured to have the same payload format as defined by the contract itself.
 
 ## Message Delivery and Execution
 
