@@ -4,6 +4,8 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.25;
 
+import {Unpack} from "./Unpack.sol";
+
 library StakingMessages {
     // The information that uniquely identifies a subnet validation period.
     // The SHA-256 hash of the concatenation of these field is the validationID.
@@ -51,25 +53,16 @@ library StakingMessages {
      * @param valiationInfo The information to pack into the message.
      * @return The validationID and the packed message.
      */
-    function packRegisterSubnetValidatorMessage(ValidationInfo memory valiationInfo)
+    function packRegisterSubnetValidatorMessage(ValidationInfo memory validationInfo)
         internal
         pure
         returns (bytes32, bytes memory)
     {
-        (bytes32 validationID, bytes memory serializedValidationInfo) =
-            packValidationInfo(valiationInfo);
-
-        bytes memory res = new bytes(148);
-        // Pack the message type
-        for (uint256 i; i < 4; ++i) {
-            res[i] = bytes1(uint8(SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID >> (8 * (3 - i))));
-        }
-        // Pack the validation info
-        for (uint256 i; i < 144; ++i) {
-            res[i + 4] = serializedValidationInfo[i];
-        }
-
-        return (validationID, res);
+        (bytes32 validationID, bytes memory serialized) = packAndHashValidationInfo(validationInfo);
+        return (
+            validationID,
+            abi.encodePacked(SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID, serialized)
+        );
     }
 
     /**
@@ -184,28 +177,12 @@ library StakingMessages {
         pure
         returns (bytes32, bool)
     {
-        require(input.length == 37, "StakingMessages: Invalid message length");
-
-        // Unpack the type ID
-        uint32 typeID;
-        for (uint256 i; i < 4; ++i) {
-            typeID |= uint32(uint8(input[i])) << uint32((8 * (3 - i)));
-        }
+        (bytes4 typeID, bytes32 validationID, bytes1 valid) = Unpack.unpack_4_32_1(input);
         require(
-            typeID == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
+            uint32(typeID) == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
             "StakingMessages: Invalid message type"
         );
-
-        // Unpack the validation ID.
-        bytes32 validationID;
-        for (uint256 i; i < 32; ++i) {
-            validationID |= bytes32(uint256(uint8(input[i + 4])) << (8 * (31 - i)));
-        }
-
-        // Unpack the validity
-        bool valid = input[36] != 0;
-
-        return (validationID, valid);
+        return (validationID, uint8(valid) != 0);
     }
 
     /**
@@ -250,39 +227,13 @@ library StakingMessages {
         pure
         returns (bytes32, uint64, uint64)
     {
-        /* solhint-disable no-inline-assembly */
-        require(input.length == 52, "StakingMessages: Invalid message length");
-
-        // A `bytes memory` is stored as one word representing the length and
-        // then the buffer of said length. Using the variable name in assembly
-        // is equivalent to a pointer to the length, and `add(input, 0x20)`
-        // points to the first word of the buffer.
-
-        uint32 typeID;
-        assembly ("memory-safe") {
-            typeID := shr(224, mload(add(input, 0x20)))
-        }
+        (bytes4 typeID, bytes32 validationID, bytes8 nonce, bytes8 weight) =
+            Unpack.unpack_4_32_8_8(input);
         require(
-            typeID == SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
+            uint32(typeID) == SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
             "StakingMessages: Invalid message type"
         );
-
-        bytes32 validationID;
-        uint64 nonce;
-        uint64 weight;
-        assembly ("memory-safe") {
-            // Although we could achieve the entire unpacking with only two
-            // MLOADs, we'd have to stitch the `validationID` together and make
-            // everything less readable. It may even require _more_ gas because
-            // the MLOAD is so cheap.
-            validationID := mload(add(input, 0x24))
-            let rest := mload(add(input, 0x44)) // only the first 128 bits are valid
-            nonce := shr(192, rest)
-            weight := shr(192, shl(64, rest)) // shl(64, ) wipes the nonce
-        }
-
-        return (validationID, nonce, weight);
-        /* solhint-enable no-inline-assembly */
+        return (validationID, uint64(nonce), uint64(weight));
     }
 
     /**
@@ -334,30 +285,12 @@ library StakingMessages {
         pure
         returns (bytes32, uint64)
     {
-        require(input.length == 44, "StakingMessages: Invalid message length");
-
-        // Unpack the type ID.
-        uint32 typeID;
-        for (uint256 i; i < 4; ++i) {
-            typeID |= uint32(uint8(input[i])) << uint32((8 * (3 - i)));
-        }
+        (bytes4 typeID, bytes32 validationID, bytes8 uptime) = Unpack.unpack_4_32_8(input);
         require(
-            typeID == VALIDATION_UPTIME_MESSAGE_TYPE_ID, "StakingMessages: Invalid message type"
+            uint32(typeID) == VALIDATION_UPTIME_MESSAGE_TYPE_ID,
+            "StakingMessages: Invalid message type"
         );
-
-        // Unpack the validation ID.
-        bytes32 validationID;
-        for (uint256 i; i < 32; ++i) {
-            validationID |= bytes32(uint256(uint8(input[i + 4])) << (8 * (31 - i)));
-        }
-
-        // Unpack the uptime.
-        uint64 uptime;
-        for (uint256 i; i < 8; ++i) {
-            uptime |= uint64(uint8(input[i + 36])) << uint64((8 * (7 - i)));
-        }
-
-        return (validationID, uptime);
+        return (validationID, uint64(uptime));
     }
 
     /**
@@ -381,33 +314,20 @@ library StakingMessages {
      * @param validationInfo The information to pack.
      * @return The validationID and the packed data.
      */
-    function packValidationInfo(ValidationInfo memory validationInfo)
+    function packValidationInfo(ValidationInfo memory info) internal pure returns (bytes memory) {
+        require(info.signature.length == 64, "StakingMessages: Invalid signature length");
+        return abi.encodePacked(
+            info.subnetID, info.nodeID, info.weight, info.registrationExpiry, info.signature
+        );
+    }
+
+    /// @dev Equivalent to returning `packValidationInfo(info)` and the SHA256 hash thereof.
+    function packAndHashValidationInfo(ValidationInfo memory info)
         internal
         pure
         returns (bytes32, bytes memory)
     {
-        require(validationInfo.signature.length == 64, "StakingMessages: Invalid signature length");
-        bytes memory res = new bytes(144);
-        // Pack the subnetID
-        for (uint256 i; i < 32; ++i) {
-            res[i] = validationInfo.subnetID[i];
-        }
-        // Pack the nodeID
-        for (uint256 i; i < 32; ++i) {
-            res[i + 32] = validationInfo.nodeID[i];
-        }
-        // Pack the weight
-        for (uint256 i; i < 8; ++i) {
-            res[i + 64] = bytes1(uint8(validationInfo.weight >> uint8((8 * (7 - i)))));
-        }
-        // Pack the registration expiry
-        for (uint256 i; i < 8; ++i) {
-            res[i + 72] = bytes1(uint8(validationInfo.registrationExpiry >> uint64((8 * (7 - i)))));
-        }
-        // Pack the signature
-        for (uint256 i; i < 64; ++i) {
-            res[i + 80] = validationInfo.signature[i];
-        }
+        bytes memory res = packValidationInfo(info);
         return (sha256(res), res);
     }
 

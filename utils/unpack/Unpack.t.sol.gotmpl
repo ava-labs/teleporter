@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^{{if false}}0.8.25{{else}}0.8.0{{end}};
+
+// GENERATED CODE - Do not edit
+
+import {Test} from "@forge-std/Test.sol";
+import {console} from "@forge-std/console.sol";
+import {Unpack} from "{{.RelPathFromTestToImpl}}";
+
+/* solhint-disable func-name-mixedcase */
+
+contract UnpackTest is Test {
+    {{- range .Unpackers}}
+    
+    function testUnpack_{{.FuncNameSuffix}}({{.Returns}}) external pure {
+        bytes memory packed = abi.encodePacked({{.EncodePackedArgs}});
+        console.logBytes(packed);
+
+        ({{.TestVars}}) = Unpack.unpack_{{.FuncNameSuffix}}(packed);
+        {{- range $i, $v := .Vars}}
+        assertEq(v{{$i}}, got{{$i}}, "output[{{$i}}] {{.Type}}");
+        {{- end}}
+    }
+    {{- end}}
+}

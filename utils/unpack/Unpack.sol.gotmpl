@@ -1,0 +1,69 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^{{if false}}0.8.25{{else}}0.8.0{{end}};
+
+// GENERATED CODE - Do not edit
+
+/* solhint-disable no-inline-assembly */
+/* solhint-disable func-name-mixedcase */
+
+library Unpack {
+    /// @dev Thrown if the input buffer to an unpack function is of the wrong length.
+    error IncorrectInputLength(uint256 expected, uint256 actual);
+
+    /// @dev Thrown if the input buffer to an unpack function with dynamically sized output is too short.
+    error InsufficientInputLength(uint256 min, uint256 actual);
+    {{- range .Unpackers}}
+
+    /**
+     * @notice Inverts `abi.encodePacked()` for the specific return types.
+     * @dev The originally packed inputs MUST be of the same types as those returned by this function, in the precise
+     * order, otherwise the output is undefined.
+     {{- if .HasDynamic}}
+        {{- if .UseMCopy}}
+    * @dev The returned `bytes memory` is freshly allocated, resulting in a memory expansion.
+        {{- else}}
+    * @dev This function takes ownership of and corrupts the `input` parameter to avoid memory expansion for the
+    * returned `bytes memory`. The returned array is owned by the caller.
+        {{- end}}
+     {{- end}}
+     * @param input Buffer returned by `abi.encodePacked()`
+     */
+    function unpack_{{.FuncNameSuffix}}(bytes memory input) internal pure returns ({{.Returns}}) {
+        {{- $unpacker := .}}
+        {{- if .HasDynamic}}
+        if (input.length < {{.MinLength}}) {
+            revert InsufficientInputLength({{.MinLength}}, input.length);
+        }
+        {{- else}}
+        if (input.length != {{.BytesUntilDynamic}}) {
+            revert IncorrectInputLength(input.length, {{.Bytes}});
+        }
+        {{- end}}
+
+        assembly ("memory-safe") {
+        {{- range $i, $v := .Vars}}
+            {{- if .Dynamic}}
+            let length := mload(input)
+            let dynLength := sub(length, {{$unpacker.MinLength}})
+                {{- if $unpacker.UseMCopy}}
+            v{{$i}} := mload(0x40)
+            mstore(0x40, add(v{{$i}}, add(0x20, dynLength)))
+            mstore(v{{$i}}, dynLength)
+            mcopy(add(v{{$i}}, 0x20), add(input, {{.OffsetHex}}), dynLength)
+                {{- else}}
+            v{{$i}} := add(input, {{.Offset}})
+            mstore(v{{$i}}, dynLength)
+                {{- end}}
+            let end := add(input, add(length, 0x20))
+            {{- else}}
+                {{- if .Front}}
+            v{{$i}} := mload(add(input, {{.OffsetHex}}))
+                {{- else}}
+            v{{$i}} := mload(sub(end, {{.OffsetHex}}))
+                {{- end}}
+            {{- end}}
+        {{- end}}
+        }
+    }
+    {{- end}}
+}

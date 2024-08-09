@@ -63,6 +63,6 @@ contract StakingMessagesTest is Test {
         uint256 originalGas = startGas - endGas;
 
         assertGe(originalGas - gas, 18_000, "gas saving");
-        assertLe(gas, 200, "gas cost");
+        assertLe(gas, 350, "gas cost");
     }
 }
