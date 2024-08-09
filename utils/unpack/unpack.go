@@ -124,7 +124,6 @@ func newUnpacker(bytes ...uint) (*unpacker, error) {
 
 		case u.HasDynamic:
 			v.end = back
-
 		}
 		v.Len = b
 	}

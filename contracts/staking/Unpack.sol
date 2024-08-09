@@ -1,12 +1,13 @@
 // (c) 2024, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.0; // solhint-disable-line compiler-version
 
 // GENERATED CODE - Do not edit
 
-/* solhint-disable no-inline-assembly */
-/* solhint-disable func-name-mixedcase */
+// solhint-disable no-inline-assembly
+// Mixed-case can't apply to numbers and an underscore is the most natural separator
+// solhint-disable func-name-mixedcase
 
 library Unpack {
     /// @dev Thrown if the input buffer to an unpack function is of the wrong length.
