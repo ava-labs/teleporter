@@ -52,7 +52,7 @@ func Generate(impl, test io.Writer, relPathFromTestToImpl string, bytes ...[]uin
 		us[i] = u
 	}
 
-	data := tmplData{
+	data := &tmplData{
 		RelPathFromTestToImpl: relPathFromTestToImpl,
 		Unpackers:             us,
 	}
