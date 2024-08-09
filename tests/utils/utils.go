@@ -28,7 +28,6 @@ import (
 	"github.com/ava-labs/avalanchego/utils/constants"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
-	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/eth/tracers"
@@ -810,37 +809,6 @@ func TraceTransaction(ctx context.Context, rpcClient ethclient.Client, txHash co
 	return string(jsonStr)
 }
 
-func DeployContract(
-	ctx context.Context,
-	byteCodeFileName string,
-	deployerPK *ecdsa.PrivateKey,
-	subnetInfo interfaces.SubnetTestInfo,
-	abi *abi.ABI,
-	constructorArgs ...interface{},
-) {
-	// Deploy an example ERC20 contract to be used as the source token
-	byteCode, err := deploymentUtils.ExtractByteCode(byteCodeFileName)
-	Expect(err).Should(BeNil())
-	Expect(len(byteCode) > 0).Should(BeTrue())
-	transactor, err := bind.NewKeyedTransactorWithChainID(deployerPK, subnetInfo.EVMChainID)
-	Expect(err).Should(BeNil())
-	contractAddress, tx, _, err := bind.DeployContract(
-		transactor,
-		*abi,
-		byteCode,
-		subnetInfo.RPCClient,
-		constructorArgs...,
-	)
-	Expect(err).Should(BeNil())
-
-	// Wait for transaction, then check code was deployed
-	WaitForTransactionSuccess(ctx, subnetInfo, tx.Hash())
-
-	code, err := subnetInfo.RPCClient.CodeAt(ctx, contractAddress, nil)
-	Expect(err).Should(BeNil())
-	Expect(len(code)).Should(BeNumerically(">", 2)) // 0x is an EOA, contract returns the bytecode
-}
-
 func ExpectBigEqual(v1 *big.Int, v2 *big.Int) {
 	// Compare strings, so gomega will print the numbers if they differ
 	Expect(v1.String()).Should(Equal(v2.String()))
@@ -1122,6 +1090,7 @@ func DeployNewTeleporterVersion(
 ) common.Address {
 	contractCreationGasPrice := (&big.Int{}).Add(deploymentUtils.GetDefaultContractCreationGasPrice(), big.NewInt(1))
 	teleporterDeployerTransaction,
+		_,
 		teleporterDeployerAddress,
 		teleporterContractAddress,
 		err := deploymentUtils.ConstructKeylessTransaction(
@@ -1131,12 +1100,11 @@ func DeployNewTeleporterVersion(
 	)
 	Expect(err).Should(BeNil())
 
-	network.DeployTeleporterContracts(
+	network.DeployTeleporterContractToAllChains(
 		teleporterDeployerTransaction,
 		teleporterDeployerAddress,
 		teleporterContractAddress,
 		fundedKey,
-		false,
 	)
 	return teleporterContractAddress
 }
@@ -1196,6 +1164,9 @@ func GetChainConfigWithOffChainMessages(offChainMessages []avalancheWarp.Unsigne
 func InstantiateGenesisTemplate(
 	templateFileName string,
 	chainID uint64,
+	teleporterContractAddress common.Address,
+	teleporterDeployedBytecode string,
+	teleporterDeployerAddress common.Address,
 ) string {
 	substitutions := []struct {
 		Target string
@@ -1205,14 +1176,27 @@ func InstantiateGenesisTemplate(
 			"<EVM_CHAIN_ID>",
 			strconv.FormatUint(chainID, 10),
 		},
+		{
+			"<TELEPORTER_MESSENGER_CONTRACT_ADDRESS>",
+			teleporterContractAddress.Hex(),
+		},
+		{
+			"<TELEPORTER_MESSENGER_DEPLOYED_BYTECODE>",
+			teleporterDeployedBytecode,
+		},
+		{
+			"<TELEPORTER_MESSENGER_DEPLOYER_ADDRESS>",
+			teleporterDeployerAddress.Hex(),
+		},
 	}
 
 	templateFileBytes, err := os.ReadFile(templateFileName)
 	Expect(err).Should(BeNil())
 
 	subnetGenesisFile, err := os.CreateTemp(os.TempDir(), "")
-	defer subnetGenesisFile.Close()
 	Expect(err).Should(BeNil())
+
+	defer subnetGenesisFile.Close()
 
 	var replaced string = string(templateFileBytes[:])
 	for _, s := range substitutions {

@@ -22,12 +22,17 @@ type LocalNetwork interface {
 	GetAllNodeIDs() []ids.NodeID
 	SetChainConfigs(chainConfigs map[string]string)
 	RestartNodes(ctx context.Context, nodeIDs []ids.NodeID)
-	DeployTeleporterContracts(
+	DeployTeleporterContractToCChain(
 		transactionBytes []byte,
 		deployerAddress common.Address,
 		contractAddress common.Address,
 		fundedKey *ecdsa.PrivateKey,
-		updateNetworkTeleporter bool,
+	)
+	DeployTeleporterContractToAllChains(
+		transactionBytes []byte,
+		deployerAddress common.Address,
+		contractAddress common.Address,
+		fundedKey *ecdsa.PrivateKey,
 	)
 	GetNetworkID() uint32
 	Dir() string
