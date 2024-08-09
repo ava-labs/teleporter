@@ -22,6 +22,7 @@ func main() {
 	implPath := pflag.String("out", "./Unpack.sol", "Output path to which the Solidity implementations are written")
 	testPath := pflag.String("test_out", "./Unpack.t.sol", "Output path to which the Solidity tests are written")
 	bytes := new(bytesFlag)
+	//nolint:lll
 	pflag.Var(bytes, "byte_sizes", "Semicolon-delimited list of groups of comma-delimited byte sizes. Use 0 for (at most one) dynamically sized byte array per group.")
 
 	pflag.Parse()
