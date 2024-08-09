@@ -1,16 +1,5 @@
 # Teleporter Protocol
 
-- [Teleporter Protocol](#teleporter-protocol)
-  - [Overview](#overview)
-  - [Data Flow](#data-flow)
-  - [Properties](#properties)
-  - [Fees](#fees)
-    - [Message Receipts and Fee Redemption](#message-receipts-and-fee-redemption)
-  - [Required Interface](#required-interface)
-  - [Message Delivery and Execution](#message-delivery-and-execution)
-  - [Resending a Message](#resending-a-message)
-  - [Teleporter Messenger Contract Deployment](#teleporter-messenger-contract-deployment)
-
 ## Overview
 
 Teleporter is a messaging protocol built on top of [Avalanche Warp Messaging (AWM)](https://docs.avax.network/learn/avalanche/awm) that provides a developer-friendly interface for sending and receiving cross-chain messages from within the EVM.
