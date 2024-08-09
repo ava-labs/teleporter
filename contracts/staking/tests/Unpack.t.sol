@@ -1,6 +1,7 @@
 // (c) 2024, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 // SPDX-License-Identifier: UNLICENSED
+// slither-disable-next-line solc-version
 pragma solidity ^0.8.0; // solhint-disable-line compiler-version
 
 // GENERATED CODE - Do not edit

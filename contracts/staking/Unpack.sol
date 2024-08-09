@@ -1,11 +1,13 @@
 // (c) 2024, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 // SPDX-License-Identifier: UNLICENSED
+// slither-disable-next-line solc-version
 pragma solidity ^0.8.0; // solhint-disable-line compiler-version
 
 // GENERATED CODE - Do not edit
 
 // solhint-disable no-inline-assembly
+// slither-disable-start assembly
 // Mixed-case can't apply to numbers and an underscore is the most natural separator
 // solhint-disable func-name-mixedcase
 
@@ -24,6 +26,7 @@ library Unpack {
      * returned `bytes memory`. The returned array is owned by the caller.
      * @param input Buffer returned by `abi.encodePacked()`
      */
+    // slither-disable-next-line naming-convention
     function unpack_4_32_32_8_8_Dyn_Destructive(bytes memory input)
         internal
         pure
@@ -52,6 +55,7 @@ library Unpack {
      * order, otherwise the output is undefined.
      * @param input Buffer returned by `abi.encodePacked()`
      */
+    // slither-disable-next-line naming-convention
     function unpack_4_32_1(bytes memory input)
         internal
         pure
@@ -74,6 +78,7 @@ library Unpack {
      * order, otherwise the output is undefined.
      * @param input Buffer returned by `abi.encodePacked()`
      */
+    // slither-disable-next-line naming-convention
     function unpack_4_32_8_8(bytes memory input)
         internal
         pure
@@ -97,6 +102,7 @@ library Unpack {
      * order, otherwise the output is undefined.
      * @param input Buffer returned by `abi.encodePacked()`
      */
+    // slither-disable-next-line naming-convention
     function unpack_4_32_8(bytes memory input)
         internal
         pure
@@ -121,6 +127,7 @@ library Unpack {
      * returned `bytes memory`. The returned array is owned by the caller.
      * @param input Buffer returned by `abi.encodePacked()`
      */
+    // slither-disable-next-line naming-convention
     function unpack_32_32_8_8_Dyn_Destructive(bytes memory input)
         internal
         pure
