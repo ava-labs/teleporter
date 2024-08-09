@@ -150,6 +150,8 @@ To ensure that Teleporter can be deployed to the same address on every EVM based
 
 `deploy_teleporter.sh` will send the necessary native tokens to the deployer address if it is provided with a private key for an account with sufficient funds. Alternatively, the deployer address can be funded externally. The deployer address for each version can be found by looking up the appropriate version at https://github.com/ava-labs/teleporter/releases and downloading `TeleporterMessenger_Deployer_Address_<VERSION>.txt`.
 
+Alternatively for new Subnets, the `TeleporterMessenger` contract can be directly included in the genesis file as documented [here](./contracts/teleporter/README.md#teleporter-messenger-contract-deployment).
+
 ## Deploy TeleporterRegistry to a Subnet
 
 There should only be one canonical `TeleporterRegistry` deployed for each chain, but if one does not exist, it is recommended to deploy the registry so Teleporter dApps can always use the most recent Teleporter version available. The registry does not need to be deployed to the same address on every chain, and therefore does not need a Nick's method transaction. To deploy, run the following command from the root of the repository:
