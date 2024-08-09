@@ -70,8 +70,8 @@ abstract contract StakingManager is
         // Maps the nodeID to the validationID for active validation periods.
         mapping(bytes32 => bytes32) _activeValidators;
     }
-
     // solhint-enable private-vars-leading-underscore
+
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.StakingManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Unit test for storage slot
     bytes32 private constant _STAKING_MANAGER_STORAGE_LOCATION =
@@ -90,10 +90,6 @@ abstract contract StakingManager is
      */
     IWarpMessenger public constant WARP_MESSENGER =
         IWarpMessenger(0x0200000000000000000000000000000000000005);
-
-    function initialize(StakingManagerSettings calldata settings) public initializer {
-        __StakingManager_init(settings);
-    }
 
     // solhint-disable-next-line func-name-mixedcase
     function __StakingManager_init(StakingManagerSettings calldata settings)
@@ -326,7 +322,7 @@ abstract contract StakingManager is
      * @notice Resubmits a validator end message to be sent to P-Chain to the Warp precompile.
      * Only necessary if the original message can't be delivered due to validator churn.
      */
-    // solhint-disable-next-line no-empty-blocks
+    // solhint-disable-next-line
     function resendEndValidatorMessage(bytes32 validationID) external {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
         Validator memory validator = $._validationPeriods[validationID];
@@ -412,7 +408,7 @@ abstract contract StakingManager is
             return;
         }
 
-        ValidatorChurnPeriod storage churnTracker = $._churnTracker;
+        ValidatorChurnPeriod memory churnTracker = $._churnTracker;
         uint256 currentTime = block.timestamp;
         if (currentTime - churnTracker.startedAt >= 1 hours) {
             churnTracker.churnAmount = amount;
