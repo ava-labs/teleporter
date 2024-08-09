@@ -38,36 +38,28 @@ func init() {
 	}
 }
 
-func PackTeleporterMessage(message TeleporterMessage) ([]byte, error) {
+func (m *TeleporterMessage) Pack() ([]byte, error) {
 	args := abi.Arguments{
 		{
 			Name: "teleporterMessage",
 			Type: teleporterMessageType,
 		},
 	}
-	return args.Pack(message)
+	return args.Pack(m)
 }
 
-func UnpackTeleporterMessage(messageBytes []byte) (*TeleporterMessage, error) {
+func (m *TeleporterMessage) Unpack(b []byte) error {
 	args := abi.Arguments{
 		{
 			Name: "teleporterMessage",
 			Type: teleporterMessageType,
 		},
 	}
-	unpacked, err := args.Unpack(messageBytes)
+	unpacked, err := args.Unpack(b)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unpack to teleporter message with err: %v", err)
+		return fmt.Errorf("failed to unpack to teleporter message with err: %v", err)
 	}
-	type teleporterMessageArg struct {
-		TeleporterMessage TeleporterMessage `json:"teleporterMessage"`
-	}
-	var teleporterMessage teleporterMessageArg
-	err = args.Copy(&teleporterMessage, unpacked)
-	if err != nil {
-		return nil, err
-	}
-	return &teleporterMessage.TeleporterMessage, nil
+	return args.Copy(&m, unpacked)
 }
 
 func PackSendCrossChainMessage(input TeleporterMessageInput) ([]byte, error) {

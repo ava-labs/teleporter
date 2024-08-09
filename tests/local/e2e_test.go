@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	teleporterByteCodeFile = "./out/TeleporterMessenger.sol/TeleporterMessenger.json"
-
+	teleporterByteCodeFile  = "./out/TeleporterMessenger.sol/TeleporterMessenger.json"
 	warpGenesisTemplateFile = "./tests/utils/warp-genesis-template.json"
 
 	teleporterMessengerLabel = "TeleporterMessenger"
@@ -40,27 +39,8 @@ func TestE2E(t *testing.T) {
 
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
-	// Create the local network instance
-	LocalNetworkInstance = NewLocalNetwork(
-		"teleporter-test-local-network",
-		warpGenesisTemplateFile,
-		[]SubnetSpec{
-			{
-				Name:       "A",
-				EVMChainID: 12345,
-				NodeCount:  2,
-			},
-			{
-				Name:       "B",
-				EVMChainID: 54321,
-				NodeCount:  2,
-			},
-		},
-		2,
-	)
-
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployerAddress, teleporterContractAddress, err :=
+	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress, teleporterContractAddress, err :=
 		deploymentUtils.ConstructKeylessTransaction(
 			teleporterByteCodeFile,
 			false,
@@ -68,23 +48,52 @@ var _ = ginkgo.BeforeSuite(func() {
 		)
 	Expect(err).Should(BeNil())
 
+	// Create the local network instance
+	LocalNetworkInstance = NewLocalNetwork(
+		"teleporter-test-local-network",
+		warpGenesisTemplateFile,
+		[]SubnetSpec{
+			{
+				Name:                       "A",
+				EVMChainID:                 12345,
+				TeleporterContractAddress:  teleporterContractAddress,
+				TeleporterDeployedBytecode: teleporterDeployedBytecode,
+				TeleporterDeployerAddress:  teleporterDeployerAddress,
+				NodeCount:                  2,
+			},
+			{
+				Name:                       "B",
+				EVMChainID:                 54321,
+				TeleporterContractAddress:  teleporterContractAddress,
+				TeleporterDeployedBytecode: teleporterDeployedBytecode,
+				TeleporterDeployerAddress:  teleporterDeployerAddress,
+				NodeCount:                  2,
+			},
+		},
+		2,
+	)
+	log.Info("Started local network")
+
+	// Only need to deploy Teleporter on the C-Chain since it is included in the genesis of the subnet chains.
 	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
-	LocalNetworkInstance.DeployTeleporterContracts(
+	LocalNetworkInstance.DeployTeleporterContractToCChain(
 		teleporterDeployerTransaction,
 		teleporterDeployerAddress,
 		teleporterContractAddress,
 		fundedKey,
-		true,
 	)
+	LocalNetworkInstance.SetTeleporterContractAddress(teleporterContractAddress)
 
+	// Deploy the Teleporter registry contracts to all subnets and the C-Chain.
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
-	log.Info("Set up ginkgo before suite")
 
 	ginkgo.AddReportEntry(
 		"network directory with node logs & configs; useful in the case of failures",
 		LocalNetworkInstance.tmpnet.Dir,
 		ginkgo.ReportEntryVisibilityFailureOrVerbose,
 	)
+
+	log.Info("Set up ginkgo before suite")
 })
 
 var _ = ginkgo.AfterSuite(func() {
