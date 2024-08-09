@@ -5,6 +5,25 @@
 
 pragma solidity 0.8.25;
 
+import {StakingMessages} from "../StakingMessages.sol";
+import {IRewardCalculator} from "./IRewardCalculator.sol";
+
+struct InitialStakerInfo {
+    StakingMessages.ValidationInfo validationInfo;
+    address owner;
+}
+
+struct StakingManagerSettings {
+    bytes32 pChainBlockchainID;
+    bytes32 subnetID;
+    uint256 minimumStakeAmount;
+    uint256 maximumStakeAmount;
+    uint64 minimumStakeDuration;
+    uint8 maximumHourlyChurn;
+    InitialStakerInfo[] initialStakers;
+    IRewardCalculator rewardCalculator;
+}
+
 interface IStakingManager {
     /**
      * @notice Emitted when a new validation period is created by stake being locked in the manager contract.

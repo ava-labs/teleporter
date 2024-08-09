@@ -10,12 +10,15 @@ import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {StakingManager} from "./StakingManager.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
+import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 
 contract NativeTokenStakingManager is Initializable, StakingManager, INativeTokenStakingManager {
     using Address for address payable;
 
-    constructor() {
-        _disableInitializers();
+    constructor(ICMInitializable init) {
+        if (init == ICMInitializable.Disallowed) {
+            _disableInitializers();
+        }
     }
 
     /**
