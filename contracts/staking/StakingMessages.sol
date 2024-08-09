@@ -77,53 +77,26 @@ library StakingMessages {
         pure
         returns (ValidationInfo memory)
     {
-        require(input.length == 148, "StakingMessages: Invalid message length");
+        (
+            bytes4 typeID,
+            bytes32 subnetID,
+            bytes32 nodeID,
+            bytes8 weight,
+            bytes8 expiry,
+            bytes memory signature
+        ) = Unpack.unpack_4_32_32_8_8_Dyn_Destructive(input);
 
-        // Unpack the type ID
-        uint32 typeID;
-        for (uint256 i; i < 4; ++i) {
-            typeID |= uint32(uint8(input[i])) << uint32((8 * (3 - i)));
-        }
         require(
             uint32(typeID) == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
             "StakingMessages: Invalid message type"
         );
-
-        // Unpack the subnet ID
-        bytes32 subnetID;
-        for (uint256 i; i < 32; ++i) {
-            subnetID |= bytes32(uint256(uint8(input[i + 4])) << (8 * (31 - i)));
-        }
-
-        // Unpack the node ID
-        bytes32 nodeID;
-        for (uint256 i; i < 32; ++i) {
-            nodeID |= bytes32(uint256(uint8(input[i + 36])) << (8 * (31 - i)));
-        }
-
-        // Unpack the weight
-        uint64 weight;
-        for (uint256 i; i < 8; ++i) {
-            weight |= uint64(uint8(input[i + 68])) << uint64((8 * (7 - i)));
-        }
-
-        // Unpack the expiry
-        uint64 expiry;
-        for (uint256 i; i < 8; ++i) {
-            expiry |= uint64(uint8(input[i + 76])) << uint64((8 * (7 - i)));
-        }
-
-        // Unpack the signature
-        bytes memory signature = new bytes(64);
-        for (uint256 i; i < 64; ++i) {
-            signature[i] = input[i + 84];
-        }
+        require(signature.length == 64, "StakingMessages: Invalid unpacked signature length");
 
         return ValidationInfo({
             subnetID: subnetID,
             nodeID: nodeID,
-            weight: weight,
-            registrationExpiry: expiry,
+            weight: uint64(weight),
+            registrationExpiry: uint64(expiry),
             signature: signature
         });
     }
@@ -150,18 +123,7 @@ library StakingMessages {
         bytes32 validationID,
         bool valid
     ) internal pure returns (bytes memory) {
-        bytes memory res = new bytes(37);
-        // Pack the type ID.
-        for (uint256 i; i < 4; ++i) {
-            res[i] = bytes1(uint8(SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID >> (8 * (3 - i))));
-        }
-        // Pack the validation ID.
-        for (uint256 i; i < 32; ++i) {
-            res[i + 4] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
-        }
-        // Pack the validity.
-        res[36] = bytes1(valid ? 1 : 0);
-        return res;
+        return abi.encodePacked(SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID, validationID, valid);
     }
 
     /**
@@ -257,20 +219,7 @@ library StakingMessages {
         bytes32 validationID,
         uint64 uptime
     ) internal pure returns (bytes memory) {
-        bytes memory res = new bytes(44);
-        // Pack the type ID.
-        for (uint256 i; i < 4; ++i) {
-            res[i] = bytes1(uint8(VALIDATION_UPTIME_MESSAGE_TYPE_ID >> (8 * (3 - i))));
-        }
-        // Pack the validation ID.
-        for (uint256 i; i < 32; ++i) {
-            res[i + 4] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
-        }
-        // Pack the uptime.
-        for (uint256 i; i < 8; ++i) {
-            res[i + 36] = bytes1(uint8(uptime >> (8 * (7 - i))));
-        }
-        return res;
+        return abi.encodePacked(VALIDATION_UPTIME_MESSAGE_TYPE_ID, validationID, uptime);
     }
 
     /**
@@ -343,43 +292,15 @@ library StakingMessages {
         pure
         returns (ValidationInfo memory)
     {
-        require(input.length == 144, "StakingMessages: Invalid message length");
-
-        // Unpack the subnetID
-        bytes32 subnetID;
-        for (uint256 i; i < 32; ++i) {
-            subnetID |= bytes32(uint256(uint8(input[i])) << (8 * (31 - i)));
-        }
-
-        // Unpack the nodeID
-        bytes32 nodeID;
-        for (uint256 i; i < 32; ++i) {
-            nodeID |= bytes32(uint256(uint8(input[i + 32])) << (8 * (31 - i)));
-        }
-
-        // Unpack the weight
-        uint64 weight;
-        for (uint256 i; i < 8; ++i) {
-            weight |= uint64(uint8(input[i + 64])) << uint64((8 * (7 - i)));
-        }
-
-        // Unpack the registration expiry
-        uint64 expiry;
-        for (uint256 i; i < 8; ++i) {
-            expiry |= uint64(uint8(input[i + 72])) << uint64((8 * (7 - i)));
-        }
-
-        // Unpack the signature
-        bytes memory signature = new bytes(64);
-        for (uint256 i; i < 64; ++i) {
-            signature[i] = input[i + 80];
-        }
+        (bytes32 subnetID, bytes32 nodeID, bytes8 weight, bytes8 expiry, bytes memory signature) =
+            Unpack.unpack_32_32_8_8_Dyn_Destructive(input);
+        require(signature.length == 64, "StakingMessages: Invalid unpacked signature length");
 
         return ValidationInfo({
             subnetID: subnetID,
             nodeID: nodeID,
-            weight: weight,
-            registrationExpiry: expiry,
+            weight: uint64(weight),
+            registrationExpiry: uint64(expiry),
             signature: signature
         });
     }
