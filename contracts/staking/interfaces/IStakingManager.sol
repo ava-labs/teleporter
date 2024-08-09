@@ -5,13 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {StakingMessages} from "../StakingMessages.sol";
 import {IRewardCalculator} from "./IRewardCalculator.sol";
-
-struct InitialStakerInfo {
-    StakingMessages.ValidationInfo validationInfo;
-    address owner;
-}
 
 struct StakingManagerSettings {
     bytes32 pChainBlockchainID;
@@ -20,7 +14,6 @@ struct StakingManagerSettings {
     uint256 maximumStakeAmount;
     uint64 minimumStakeDuration;
     uint8 maximumHourlyChurn;
-    InitialStakerInfo[] initialStakers;
     IRewardCalculator rewardCalculator;
 }
 
