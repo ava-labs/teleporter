@@ -12,6 +12,6 @@ interface IRewardCalculator {
         uint64 endTime,
         uint256 initialSupply,
         uint256 endSupply,
-        uint256 rewardBasisPoints
-    ) external returns (uint256);
+        uint64 rewardBasisPoints
+    ) external pure returns (uint256);
 }
