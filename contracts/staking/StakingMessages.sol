@@ -50,7 +50,7 @@ library StakingMessages {
      *                        | 148 bytes |
      *                        +-----------+
      *
-     * @param valiationInfo The information to pack into the message.
+     * @param validationInfo The information to pack into the message.
      * @return The validationID and the packed message.
      */
     function packRegisterSubnetValidatorMessage(ValidationInfo memory validationInfo)
@@ -85,7 +85,7 @@ library StakingMessages {
             typeID |= uint32(uint8(input[i])) << uint32((8 * (3 - i)));
         }
         require(
-            typeID == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
+            uint32(typeID) == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
             "StakingMessages: Invalid message type"
         );
 
@@ -311,7 +311,7 @@ library StakingMessages {
      *                        | 144 bytes |
      *                        +-----------+
      *
-     * @param validationInfo The information to pack.
+     * @param info The information to pack.
      * @return The validationID and the packed data.
      */
     function packValidationInfo(ValidationInfo memory info) internal pure returns (bytes memory) {
