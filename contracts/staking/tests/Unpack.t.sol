@@ -1,15 +1,17 @@
 // (c) 2024, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.0; // solhint-disable-line compiler-version
 
 // GENERATED CODE - Do not edit
+
+// Console logging is useful for debug information in _tests_.
+// solhint-disable no-console
+// solhint-disable func-name-mixedcase
 
 import {Test} from "@forge-std/Test.sol";
 import {console} from "@forge-std/console.sol";
 import {Unpack} from "../Unpack.sol";
-
-/* solhint-disable func-name-mixedcase */
 
 contract UnpackTest is Test {
     function testUnpack_4_32_32_8_8_Dyn_Destructive(
