@@ -23,11 +23,11 @@ contract ExampleRewardCalculatorTest is Test {
     function testRewardCalculation() public view {
         // solhint-disable-next-line func-named-parameters
         uint256 output = exampleRewardCalculator.calculateReward(
-            DEFAULT_STAKE_AMOUNT, 
-            DEFAULT_START_TIME, 
-            DEFAULT_END_TIME, 
-            0, 
-            0, 
+            DEFAULT_STAKE_AMOUNT,
+            DEFAULT_START_TIME,
+            DEFAULT_END_TIME,
+            0,
+            0,
             DEFAULT_REWARD_BASIS_POINTS
         );
         assertEq(output, 42e9);
