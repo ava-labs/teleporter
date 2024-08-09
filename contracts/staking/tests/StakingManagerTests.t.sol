@@ -7,7 +7,11 @@ pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
 import {StakingManager} from "../StakingManager.sol";
+import {StakingMessages} from "../StakingMessages.sol";
+import {IWarpMessenger, WarpMessage} from "../StakingManager.sol";
 
+// TODO: Remove this once all unit tests implemented
+// solhint-disable no-empty-blocks
 abstract contract StakingManagerTest is Test {
     bytes32 public constant P_CHAIN_BLOCKCHAIN_ID =
         bytes32(hex"0000000000000000000000000000000000000000000000000000000000000000");
@@ -53,6 +57,148 @@ abstract contract StakingManagerTest is Test {
 
     event ValidationPeriodEnded(bytes32 indexed validationID);
 
+    function testInitializeValidatorRegistrationSuccess() public {
+        _setUpInitializeValidatorRegistration(
+            DEFAULT_NODE_ID,
+            DEFAULT_SUBNET_ID,
+            DEFAULT_WEIGHT,
+            DEFAULT_EXPIRY,
+            DEFAULT_ED25519_SIGNATURE
+        );
+    }
+
+    function testInitializeValidatorRegistrationExcessiveChurn() public {
+        // TODO: implement
+    }
+
+    function testInitializeValidatorRegistrationInsufficientStake() public {
+        // TODO: implement
+    }
+
+    function testInitializeValidatorRegistrationExcessiveStake() public {
+        // TODO: implement
+    }
+
+    function testInitializeValidatorRegistrationInsufficientDuration() public {
+        // TODO: implement
+    }
+
+    // The following tests call functions that are  implemented in StakingManager, but access state that's
+    // only set in NativeTokenStakingManager. Therefore we call them via the concrete type, rather than a
+    // reference to the abstract type.
+    function testResendRegisterValidatorMessage() public {
+        bytes32 validationID = _setUpInitializeValidatorRegistration(
+            DEFAULT_NODE_ID,
+            DEFAULT_SUBNET_ID,
+            DEFAULT_WEIGHT,
+            DEFAULT_EXPIRY,
+            DEFAULT_ED25519_SIGNATURE
+        );
+        (, bytes memory registerSubnetValidatorMessage) = StakingMessages
+            .packRegisterSubnetValidatorMessage(
+            StakingMessages.ValidationInfo({
+                subnetID: DEFAULT_SUBNET_ID,
+                nodeID: DEFAULT_NODE_ID,
+                weight: DEFAULT_WEIGHT,
+                registrationExpiry: DEFAULT_EXPIRY,
+                signature: DEFAULT_ED25519_SIGNATURE
+            })
+        );
+        _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
+        stakingManager.resendRegisterValidatorMessage(validationID);
+    }
+
+    function testCompleteValidatorRegistration() public {
+        _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
+    }
+
+    function testInitializeEndValidation() public {
+        _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+        });
+    }
+
+    function testInitializeEndValidationWithUptimeProof() public {
+        // TODO: implement
+    }
+
+    function testInitializeEndValidationExcessiveChurn() public {
+        // TODO: implement
+    }
+
+    function testResendEndValidation() public {
+        bytes32 validationID = _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+        });
+        bytes memory setValidatorWeightPayload =
+            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
+        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
+        stakingManager.resendEndValidatorMessage(validationID);
+    }
+
+    function testCompleteEndValidation() public {
+        bytes32 validationID = _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+        });
+
+        bytes memory subnetValidatorRegistrationMessage =
+            StakingMessages.packSubnetValidatorRegistrationMessage(validationID, false);
+
+        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+
+        vm.expectEmit(true, true, true, true, address(stakingManager));
+        emit ValidationPeriodEnded(validationID);
+
+        stakingManager.completeEndValidation(0, false);
+    }
+
+    function testCompleteEndValidationSetWeightMessageType() public {
+        bytes32 validationID = _setUpInitializeEndValidation({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            signature: DEFAULT_ED25519_SIGNATURE,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
+            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
+        });
+
+        bytes memory setSubnetValidatorWeightMessage =
+            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+
+        _mockGetVerifiedWarpMessage(setSubnetValidatorWeightMessage, true);
+
+        vm.expectEmit(true, true, true, true, address(stakingManager));
+        emit ValidationPeriodEnded(validationID);
+
+        stakingManager.completeEndValidation(0, true);
+    }
+
     function testValueToWeight() public view {
         uint64 w1 = stakingManager.valueToWeight(1e12);
         uint64 w2 = stakingManager.valueToWeight(1e18);
@@ -72,4 +218,134 @@ abstract contract StakingManagerTest is Test {
         assertEq(v2, 1e18);
         assertEq(v3, 1e27);
     }
+
+    function _setUpInitializeValidatorRegistration(
+        bytes32 nodeID,
+        bytes32 subnetID,
+        uint64 weight,
+        uint64 registrationExpiry,
+        bytes memory signature
+    ) internal returns (bytes32 validationID) {
+        (validationID,) = StakingMessages.packValidationInfo(
+            StakingMessages.ValidationInfo({
+                nodeID: nodeID,
+                subnetID: subnetID,
+                weight: weight,
+                registrationExpiry: registrationExpiry,
+                signature: signature
+            })
+        );
+        (, bytes memory registerSubnetValidatorMessage) = StakingMessages
+            .packRegisterSubnetValidatorMessage(
+            StakingMessages.ValidationInfo({
+                subnetID: subnetID,
+                nodeID: nodeID,
+                weight: weight,
+                registrationExpiry: registrationExpiry,
+                signature: signature
+            })
+        );
+        vm.warp(DEFAULT_EXPIRY - 1);
+        _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
+
+        _beforeSend(stakingManager.weightToValue(weight));
+        vm.expectEmit(true, true, true, true, address(stakingManager));
+        emit ValidationPeriodCreated(
+            validationID, DEFAULT_NODE_ID, bytes32(0), weight, DEFAULT_EXPIRY
+        );
+
+        _initializeValidatorRegistration(
+            nodeID, registrationExpiry, signature, stakingManager.weightToValue(weight)
+        );
+    }
+
+    function _setUpCompleteValidatorRegistration(
+        bytes32 nodeID,
+        bytes32 subnetID,
+        uint64 weight,
+        uint64 registrationExpiry,
+        bytes memory signature,
+        uint64 registrationTimestamp
+    ) internal returns (bytes32 validationID) {
+        validationID = _setUpInitializeValidatorRegistration(
+            nodeID, subnetID, weight, registrationExpiry, signature
+        );
+        bytes memory subnetValidatorRegistrationMessage =
+            StakingMessages.packSubnetValidatorRegistrationMessage(validationID, true);
+
+        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+
+        vm.warp(registrationTimestamp);
+        vm.expectEmit(true, true, true, true, address(stakingManager));
+        emit ValidationPeriodRegistered(validationID, weight, registrationTimestamp);
+
+        stakingManager.completeValidatorRegistration(0);
+    }
+
+    function _setUpInitializeEndValidation(
+        bytes32 nodeID,
+        bytes32 subnetID,
+        uint64 weight,
+        uint64 registrationExpiry,
+        bytes memory signature,
+        uint64 registrationTimestamp,
+        uint64 completionTimestamp
+    ) internal returns (bytes32 validationID) {
+        validationID = _setUpCompleteValidatorRegistration({
+            nodeID: nodeID,
+            subnetID: subnetID,
+            weight: weight,
+            registrationExpiry: registrationExpiry,
+            signature: signature,
+            registrationTimestamp: registrationTimestamp
+        });
+
+        vm.warp(completionTimestamp);
+        bytes memory setValidatorWeightPayload =
+            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
+        _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
+        vm.expectEmit(true, true, true, true, address(stakingManager));
+        emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp, 0);
+
+        stakingManager.initializeEndValidation(validationID, false, 0);
+    }
+
+    function _mockSendWarpMessage(bytes memory payload, bytes32 expectedMessageID) internal {
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encode(IWarpMessenger.sendWarpMessage.selector),
+            abi.encode(expectedMessageID)
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.sendWarpMessage, payload)
+        );
+    }
+
+    function _mockGetVerifiedWarpMessage(bytes memory expectedPayload, bool valid) internal {
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: P_CHAIN_BLOCKCHAIN_ID,
+                    originSenderAddress: address(0),
+                    payload: expectedPayload
+                }),
+                valid
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+    }
+
+    function _initializeValidatorRegistration(
+        bytes32 nodeID,
+        uint64 registrationExpiry,
+        bytes memory signature,
+        uint256 stakeAmount
+    ) internal virtual returns (bytes32);
+
+    function _beforeSend(uint256 value) internal virtual;
 }
+// solhint-enable no-empty-blocks
