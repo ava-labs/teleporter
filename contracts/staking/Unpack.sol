@@ -40,7 +40,6 @@ library Unpack {
             let dynLength := sub(length, 84)
             v5 := add(input, 84)
             mstore(v5, dynLength)
-            let end := add(input, add(length, 0x20))
         }
     }
 
@@ -137,7 +136,6 @@ library Unpack {
             let dynLength := sub(length, 80)
             v4 := add(input, 80)
             mstore(v4, dynLength)
-            let end := add(input, add(length, 0x20))
         }
     }
 }

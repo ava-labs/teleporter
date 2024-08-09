@@ -54,7 +54,9 @@ library Unpack {
             v{{$i}} := add(input, {{.Offset}})
             mstore(v{{$i}}, dynLength)
                 {{- end}}
+                {{- if not ($unpacker.IsLastVar $i)}}
             let end := add(input, add(length, 0x20))
+                {{- end}}
             {{- else}}
                 {{- if .Front}}
             v{{$i}} := mload(add(input, {{.OffsetHex}}))

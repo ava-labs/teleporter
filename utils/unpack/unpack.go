@@ -222,6 +222,10 @@ func (u *unpacker) FuncNameSuffix() string {
 	return fmt.Sprintf("%s_Destructive", base)
 }
 
+func (u *unpacker) IsLastVar(i int) bool {
+	return i >= len(u.Vars)-1
+}
+
 // varPrefix is the prefix of all numerically identified variables in the
 // generated code; i.e. for prefix v, the variables are v0, v1, v2...
 const varPrefix = "v"
