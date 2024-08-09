@@ -60,10 +60,10 @@ github.com/ava-labs/avalanchego v1.11.11-0.20240807214427-376688b4912b h1:RVamx4
 github.com/ava-labs/avalanchego v1.11.11-0.20240807214427-376688b4912b/go.mod h1:Sq26Wg2Yz0k0EzueGMamRzw4apv6wmNi7vPjxX4nNSk=
 github.com/ava-labs/coreth v0.13.8-0.20240807212152-f7acfafec094 h1:e7TvIKDGzsMsKU3Y4HreRcK7f16EcEPUO04UwSCFtng=
 github.com/ava-labs/coreth v0.13.8-0.20240807212152-f7acfafec094/go.mod h1:Ouul9dJouniUIJVX1gDqx8CrHyGvmwZkK28mrgKb/4I=
-github.com/ava-labs/subnet-evm v0.6.8-acp-118-handlers h1:2UVHP9TDh3eS/CuD/XzMy2+3ruu/U2ZUny1eqn4bNB4=
-github.com/ava-labs/subnet-evm v0.6.8-acp-118-handlers/go.mod h1:BryiYmD6HWmugkSUpDdj/KyMi7ou5pJzPRNPMbMgpbA=
 github.com/ava-labs/subnet-evm v0.6.9-0.20240806212213-c2da67db92f8 h1:7G7ABONT72tBC/FSTfKj2sNcqTCo47GKqGeYCtMI0hM=
 github.com/ava-labs/subnet-evm v0.6.9-0.20240806212213-c2da67db92f8/go.mod h1:n5jDyKtXZsHxbb5xPOUwhVaKbMCU/oTNTnBjn8Nfau0=
+github.com/ava-labs/subnet-evm v0.6.9-0.20240809021034-3ceec5c96a5f h1:moqjaNZ1RSXL2/yYUXvwSEpIWjmXcWxTORMBHWuwrtE=
+github.com/ava-labs/subnet-evm v0.6.9-0.20240809021034-3ceec5c96a5f/go.mod h1:DM/HccJ8PghYk7fA3Cq76OOoVprOtyITICkjwuzEPfg=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
