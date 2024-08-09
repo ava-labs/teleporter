@@ -18,12 +18,14 @@ import (
 	"github.com/ava-labs/teleporter/utils/unpack"
 )
 
+const dynFlagSentinel = "dyn"
+
 func main() {
 	implPath := pflag.String("out", "./Unpack.sol", "Output path to which the Solidity implementations are written")
 	testPath := pflag.String("test_out", "./Unpack.t.sol", "Output path to which the Solidity tests are written")
 	bytes := new(bytesFlag)
-	//nolint:lll
-	pflag.Var(bytes, "byte_sizes", "Semicolon-delimited list of groups of comma-delimited byte sizes. Use 0 for (at most one) dynamically sized byte array per group.")
+	bytesMsg := fmt.Sprintf("Semicolon-delimited list of groups of comma-delimited byte sizes. Use literal %q for (at most one) dynamically sized byte array per group.", dynFlagSentinel) //nolint:lll
+	pflag.Var(bytes, "byte_sizes", bytesMsg)
 
 	pflag.Parse()
 
@@ -62,8 +64,8 @@ type bytesFlag struct {
 var _ pflag.Value = (*bytesFlag)(nil)
 
 // Set splits `s` by semicolons then splits each result by commas, parsing all
-// resulting values as uints. It trims whitespace. If a parsed value is 0 it is
-// replaced with unpack.Dynamic.
+// resulting values as uints. It trims whitespace. If a value is "dyn" it
+// is replaced with unpack.Dynamic.
 func (f *bytesFlag) Set(s string) error {
 	groups := strings.Split(s, ";")
 	var val [][]uint
@@ -71,12 +73,13 @@ func (f *bytesFlag) Set(s string) error {
 	for _, g := range groups {
 		var bytes []uint
 		for _, bStr := range strings.Split(g, ",") {
+			if strings.ToLower(bStr) == dynFlagSentinel {
+				bytes = append(bytes, unpack.Dynamic)
+				continue
+			}
 			b, err := strconv.ParseUint(strings.TrimSpace(bStr), 10, 32)
 			if err != nil {
 				return err
-			}
-			if b == 0 {
-				b = unpack.Dynamic
 			}
 			bytes = append(bytes, uint(b))
 		}
@@ -93,10 +96,13 @@ func (f *bytesFlag) String() string {
 	for _, grp := range f.val {
 		var vs []string
 		for _, v := range grp {
+			var vStr string
 			if v == unpack.Dynamic {
-				v = 0
+				vStr = dynFlagSentinel
+			} else {
+				vStr = fmt.Sprintf("%d", v)
 			}
-			vs = append(vs, fmt.Sprintf("%d", v))
+			vs = append(vs, vStr)
 		}
 		parts = append(parts, strings.Join(vs, ","))
 	}
