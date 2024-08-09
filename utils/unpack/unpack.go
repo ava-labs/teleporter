@@ -1,3 +1,6 @@
+// (c) 2024, Ava Labs, Inc. All rights reserved.
+// See the file LICENSE for licensing terms.
+//
 // Package unpack generates Solidity code to invert `abi.encodePacked()` for
 // known, unambiguous output sizes.
 package unpack
