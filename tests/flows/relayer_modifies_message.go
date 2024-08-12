@@ -142,13 +142,14 @@ func alterTeleporterMessage(signedMessage *avalancheWarp.Message) {
 	warpMsgPayload, err := warpPayload.ParseAddressedCall(signedMessage.UnsignedMessage.Payload)
 	Expect(err).Should(BeNil())
 
-	teleporterMessage, err := teleportermessenger.UnpackTeleporterMessage(warpMsgPayload.Payload)
+	teleporterMessage := teleportermessenger.TeleporterMessage{}
+	err = teleporterMessage.Unpack(warpMsgPayload.Payload)
 	Expect(err).Should(BeNil())
 	// Alter the message
 	teleporterMessage.Message[0] = ^teleporterMessage.Message[0]
 
 	// Pack the teleporter message
-	teleporterMessageBytes, err := teleportermessenger.PackTeleporterMessage(*teleporterMessage)
+	teleporterMessageBytes, err := teleporterMessage.Pack()
 	Expect(err).Should(BeNil())
 
 	payload, err := warpPayload.NewAddressedCall(warpMsgPayload.SourceAddress, teleporterMessageBytes)

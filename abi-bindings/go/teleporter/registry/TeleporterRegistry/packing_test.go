@@ -16,10 +16,21 @@ func TestPackUnpackProtocolRegistryEntry(t *testing.T) {
 		Version:         big.NewInt(1),
 		ProtocolAddress: common.HexToAddress("0x0123456789abcdef0123456789abcdef01234567"),
 	}
+	e, err := entry.Pack()
+	require.NoError(t, err)
+
+	d := ProtocolRegistryEntry{}
+	err = d.Unpack(e)
+	require.NoError(t, err)
+	require.Equal(t, entry, d)
+
 	destinationAddress := common.HexToAddress("0x0123456789abcdef0123456789abcdef01234568")
 
 	b, err := PackTeleporterRegistryWarpPayload(entry, destinationAddress)
 	require.NoError(t, err)
+
+	// Confirm that packing of the TeleporterRegistryWarpPayload is prefixed with the ProtocolRegistryEntry packed bytes.
+	require.Equal(t, e, b[:len(e)])
 
 	unpackedEntry, unpackedDestinationAddress, err := UnpackTeleporterRegistryWarpPayload(b)
 	require.NoError(t, err)
