@@ -50,7 +50,6 @@ contract PoAStakingManager is IPoAStakingManager, StakingManager, OwnableUpgrade
         return _initializeValidatorRegistration(nodeID, stakeAmount, registrationExpiry, signature);
     }
 
-    // Must be guarded with reentrancy guard for safe transfer from
     function _lock(uint256 value) internal virtual override returns (uint256) {
         return value;
     }

@@ -10,6 +10,8 @@ import {PoAStakingManager} from "../PoAStakingManager.sol";
 import {ICMInitializable} from "@utilities/ICMInitializable.sol";
 import {StakingManagerSettings} from "../interfaces/IStakingManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
+import {OwnableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
 contract PoAStakingManagerTest is StakingManagerTest {
     PoAStakingManager public app;
@@ -31,6 +33,18 @@ contract PoAStakingManagerTest is StakingManagerTest {
             address(this)
         );
         stakingManager = app;
+    }
+
+    function testInvalidOwnerRegistration() public {
+        vm.prank(vm.addr(1));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, vm.addr(1)
+            )
+        );
+        _initializeValidatorRegistration(
+            DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE, DEFAULT_WEIGHT
+        );
     }
 
     function _initializeValidatorRegistration(
