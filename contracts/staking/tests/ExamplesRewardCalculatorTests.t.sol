@@ -17,7 +17,7 @@ contract ExampleRewardCalculatorTest is Test {
     uint64 public constant DEFAULT_REWARD_BASIS_POINTS = 42;
 
     function setUp() public {
-        exampleRewardCalculator = new ExampleRewardCalculator();
+        exampleRewardCalculator = new ExampleRewardCalculator(DEFAULT_REWARD_BASIS_POINTS);
     }
 
     function testRewardCalculation() public view {
@@ -27,8 +27,7 @@ contract ExampleRewardCalculatorTest is Test {
             DEFAULT_START_TIME,
             DEFAULT_END_TIME,
             0,
-            0,
-            DEFAULT_REWARD_BASIS_POINTS
+            0
         );
         assertEq(output, 42e9);
     }
