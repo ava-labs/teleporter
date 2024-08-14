@@ -16,15 +16,20 @@ library StakingMessages {
     }
 
     // Subnets send a RegisterSubnetValidator message to the P-Chain to register a validator.
-    // The P-Chain responds with a RegisterSubnetValidator message indicating whether the registration was successful
-    // for the given validation ID.
-    uint32 internal constant SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID = 1;
+    uint32 internal constant REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID = 0;
+    
     // Subnets can send a SetSubnetValidatorWeight message to the P-Chain to update a validator's weight.
     // The P-Chain responds with a SetSubnetValidatorWeight message acknowledging the weight update.
-    uint32 internal constant SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID = 2;
+    uint32 internal constant SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID = 1;
+
+    // The P-Chain responds with a RegisterSubnetValidator message indicating whether the registration was successful
+    // for the given validation ID.
+    uint32 internal constant SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID = 2;
+    
+    uint32 internal constant SET_SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID = 3;
     // The Subnet will self-sign a ValidationUptimeMessage to be provided when a validator is initiating
     // the end of their validation period.
-    uint32 internal constant VALIDATION_UPTIME_MESSAGE_TYPE_ID = 3;
+    uint32 internal constant VALIDATION_UPTIME_MESSAGE_TYPE_ID = 4;
 
     // TODO: The implemenation of these packing and unpacking functions is neither tested or optimzied at all.
     // Full test coverage should be provided, and the implementation should be optimized for gas efficiency.
@@ -62,7 +67,7 @@ library StakingMessages {
         bytes memory res = new bytes(148);
         // Pack the message type
         for (uint256 i; i < 4; ++i) {
-            res[i] = bytes1(uint8(SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID >> (8 * (3 - i))));
+            res[i] = bytes1(uint8(REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID >> (8 * (3 - i))));
         }
         // Pack the validation info
         for (uint256 i; i < 144; ++i) {
@@ -92,7 +97,7 @@ library StakingMessages {
             typeID |= uint32(uint8(input[i])) << uint32((8 * (3 - i)));
         }
         require(
-            typeID == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
+            typeID == REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID,
             "StakingMessages: Invalid message type"
         );
 
@@ -184,12 +189,19 @@ library StakingMessages {
         pure
         returns (bytes32, bool)
     {
-        require(input.length == 37, "StakingMessages: Invalid message length");
+        require(input.length == 39, "StakingMessages: Invalid message length");
+        // Unpack the codec ID
+        uint16 codecID;
+        for (uint256 i; i < 2; ++i) {
+            codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
+        }
+        require(codecID == 0, "StakingMessages: Invalid codec ID");
+
 
         // Unpack the type ID
         uint32 typeID;
         for (uint256 i; i < 4; ++i) {
-            typeID |= uint32(uint8(input[i])) << uint32((8 * (3 - i)));
+            typeID |= uint32(uint8(input[i + 2])) << uint32((8 * (3 - i)));
         }
         require(
             typeID == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
@@ -199,11 +211,11 @@ library StakingMessages {
         // Unpack the validation ID.
         bytes32 validationID;
         for (uint256 i; i < 32; ++i) {
-            validationID |= bytes32(uint256(uint8(input[i + 4])) << (8 * (31 - i)));
+            validationID |= bytes32(uint256(uint8(input[i + 6])) << (8 * (31 - i)));
         }
 
         // Unpack the validity
-        bool valid = input[36] != 0;
+        bool valid = input[38] != 0;
 
         return (validationID, valid);
     }

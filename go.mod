@@ -3,13 +3,13 @@ module github.com/ava-labs/teleporter
 go 1.21.13
 
 require (
-	github.com/ava-labs/avalanchego v1.11.11-0.20240807224540-c7cf573a95ff
+	github.com/ava-labs/avalanchego v1.11.11-0.20240814151516-07f156340710
 	github.com/supranational/blst v0.3.11 // indirect
 )
 
 require (
-	github.com/ava-labs/awm-relayer v1.4.0-rc.2.0.20240812210713-0fc39ab2d471
-	github.com/ava-labs/subnet-evm v0.6.9-0.20240809021034-3ceec5c96a5f
+	github.com/ava-labs/awm-relayer v1.4.0-rc.2.0.20240814153151-7bd24a51ddbe
+	github.com/ava-labs/subnet-evm v0.6.9-0.20240813192818-4d5aebb6decc
 	github.com/ethereum/go-ethereum v1.13.8
 	github.com/onsi/ginkgo/v2 v2.20.0
 	github.com/onsi/gomega v1.34.1
@@ -25,7 +25,7 @@ require (
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
-	github.com/ava-labs/coreth v0.13.8-0.20240807212152-f7acfafec094 // indirect
+	github.com/ava-labs/coreth v0.13.8-fix-genesis-upgrade // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect

@@ -18,6 +18,7 @@ import (
 
 	validatorsetsig "github.com/ava-labs/teleporter/abi-bindings/go/governance/ValidatorSetSig"
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
+	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/NativeTokenStakingManager"
 	teleportermessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/TeleporterMessenger"
 	teleporterregistry "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/registry/TeleporterRegistry"
 	testmessenger "github.com/ava-labs/teleporter/abi-bindings/go/teleporter/tests/TestMessenger"
@@ -908,6 +909,26 @@ func DeployValidatorSetSig(
 	WaitForTransactionSuccess(ctx, contractSubnet, tx.Hash())
 
 	return address, validatorSetSig
+}
+
+func DeployNativeTokenStakingManager(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+) (common.Address, *nativetokenstakingmanager.NativeTokenStakingManager) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, stakingManager, err := nativetokenstakingmanager.DeployNativeTokenStakingManager(
+		opts,
+		subnet.RPCClient,
+		0, // ICMInitializable.Allowed
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	return address, stakingManager
 }
 
 func GetTwoSubnets(network interfaces.Network) (

@@ -134,6 +134,18 @@ abstract contract StakingManager is
         bytes memory signature
     ) internal nonReentrant returns (bytes32) {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
+        require(
+            value == 1e18,
+            "canary"
+        );
+        require(
+            $._minimumStakeAmount == 1e6,
+            "canary2"
+        );
+        require(
+            $._maximumStakeAmount==10e6,
+            "canary3"
+        );
 
         // Ensure the registration expiry is in a valid range.
         require(
@@ -156,7 +168,7 @@ abstract contract StakingManager is
 
         // Ensure the stake churn doesn't exceed the maximum churn rate.
         uint64 weight = valueToWeight(lockedValue);
-        _checkAndUpdateChurnTracker(weight);
+        // _checkAndUpdateChurnTracker(weight);
 
         // Ensure the weight is within the valid range.
         require(
