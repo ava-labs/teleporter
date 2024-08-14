@@ -13,8 +13,8 @@ contract StakingMessagesTest is Test {
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
-    bytes public constant DEFAULT_ED25519_SIGNATURE = bytes(
-        hex"12345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
+    bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
+        hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
     bytes32 public constant DEFAULT_VALIDATION_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
@@ -29,7 +29,7 @@ contract StakingMessagesTest is Test {
                 nodeID: DEFAULT_NODE_ID,
                 weight: DEFAULT_WEIGHT,
                 registrationExpiry: DEFAULT_EXPIRY,
-                signature: DEFAULT_ED25519_SIGNATURE
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
             })
         );
 
@@ -39,7 +39,7 @@ contract StakingMessagesTest is Test {
         assertEq(info.nodeID, DEFAULT_NODE_ID);
         assertEq(info.weight, DEFAULT_WEIGHT);
         assertEq(info.registrationExpiry, DEFAULT_EXPIRY);
-        assertEq(info.signature, DEFAULT_ED25519_SIGNATURE);
+        assertEq(info.blsPublicKey, DEFAULT_BLS_PUBLIC_KEY);
 
         (bytes32 recoveredID,) = StakingMessages.packRegisterSubnetValidatorMessage(info);
         assertEq(recoveredID, validationID);

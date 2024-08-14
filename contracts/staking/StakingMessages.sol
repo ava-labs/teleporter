@@ -7,13 +7,13 @@ pragma solidity 0.8.25;
 library StakingMessages {
     // The information that uniquely identifies a subnet validation period.
     // The validationID is the SHA-256 hash of the concatenation of the CODEC_ID,
-    // SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID, and the concatenated ValidationInfo fields.
+    // REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID, and the concatenated ValidationInfo fields.
     struct ValidationInfo {
         bytes32 subnetID;
         bytes32 nodeID;
         uint64 weight;
         uint64 registrationExpiry;
-        bytes signature;
+        bytes blsPublicKey;
     }
 
     // The P-Chain uses a hardcoded codecID of 0 for all messages.
@@ -44,23 +44,23 @@ library StakingMessages {
     /**
      * @notice Packs a RegisterSubnetValidatorMessage message into a byte array.
      * The message format specification is:
-     * +-----------+----------+-----------+
-     * |   codecID :   uint16 |   2 bytes |
-     * +-----------+----------+-----------+
-     * |    typeID :   uint32 |   4 bytes |
-     * +-----------+----------+-----------+
-     * |  subnetID : [32]byte |  32 bytes |
-     * +-----------+----------+-----------+
-     * |    nodeID : [32]byte |  32 bytes |
-     * +-----------+----------+-----------+
-     * |    weight :   uint64 |   8 bytes |
-     * +-----------+----------+-----------+
-     * |    expiry :   uint64 |   8 bytes |
-     * +-----------+----------+-----------+
-     * | signature : [64]byte |  64 bytes |
-     * +-----------+----------+-----------+
-     *                        | 150 bytes |
-     *                        +-----------+
+     * +--------------+----------+-----------+
+     * |      codecID :   uint16 |   2 bytes |
+     * +--------------+----------+-----------+
+     * |       typeID :   uint32 |   4 bytes |
+     * +--------------+----------+-----------+
+     * |     subnetID : [32]byte |  32 bytes |
+     * +--------------+----------+-----------+
+     * |       nodeID : [32]byte |  32 bytes |
+     * +--------------+----------+-----------+
+     * |       weight :   uint64 |   8 bytes |
+     * +--------------+----------+-----------+
+     * | blsPublicKey : [48]byte |  48 bytes |
+     * +--------------+----------+-----------+
+     * |       expiry :   uint64 |   8 bytes |
+     * +--------------+----------+-----------+
+     *                           | 134 bytes |
+     *                           +-----------+
      *
      * @param validationInfo The information to pack into the message.
      * @return The validationID and the packed message.
@@ -70,8 +70,8 @@ library StakingMessages {
         pure
         returns (bytes32, bytes memory)
     {
-        require(validationInfo.signature.length == 64, "StakingMessages: Invalid signature length");
-        bytes memory res = new bytes(150);
+        require(validationInfo.blsPublicKey.length == 48, "StakingMessages: Invalid signature length");
+        bytes memory res = new bytes(134);
         // Pack the codec ID
         for (uint256 i; i < 2; ++i) {
             res[i] = bytes1(uint8(CODEC_ID >> uint8((8 * (1 - i)))));
@@ -79,7 +79,7 @@ library StakingMessages {
         // Pack the type ID
         for (uint256 i; i < 4; ++i) {
             res[i + 2] =
-                bytes1(uint8(SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID >> uint8((8 * (3 - i)))));
+                bytes1(uint8(REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID >> uint8((8 * (3 - i)))));
         }
 
         // Pack the subnetID
@@ -94,13 +94,13 @@ library StakingMessages {
         for (uint256 i; i < 8; ++i) {
             res[i + 70] = bytes1(uint8(validationInfo.weight >> uint8((8 * (7 - i)))));
         }
+        // Pack the blsPublicKey
+        for (uint256 i; i < 48; ++i) {
+            res[i + 78] = validationInfo.blsPublicKey[i];
+        }
         // Pack the registration expiry
         for (uint256 i; i < 8; ++i) {
-            res[i + 78] = bytes1(uint8(validationInfo.registrationExpiry >> uint64((8 * (7 - i)))));
-        }
-        // Pack the signature
-        for (uint256 i; i < 64; ++i) {
-            res[i + 86] = validationInfo.signature[i];
+            res[i + 126] = bytes1(uint8(validationInfo.registrationExpiry >> uint64((8 * (7 - i)))));
         }
         return (sha256(res), res);
     }
@@ -117,7 +117,7 @@ library StakingMessages {
         pure
         returns (ValidationInfo memory)
     {
-        require(input.length == 150, "StakingMessages: Invalid message length");
+        require(input.length == 134, "StakingMessages: Invalid message length");
 
         // Unpack the codec ID
         uint16 codecID;
@@ -154,24 +154,25 @@ library StakingMessages {
             weight |= uint64(uint8(input[i + 70])) << uint64((8 * (7 - i)));
         }
 
+        // Unpack the blsPublicKey
+        bytes memory blsPublicKey = new bytes(48);
+        for (uint256 i; i < 48; ++i) {
+            blsPublicKey[i] = input[i + 78];
+        }
+
         // Unpack the registration expiry
         uint64 expiry;
         for (uint256 i; i < 8; ++i) {
-            expiry |= uint64(uint8(input[i + 78])) << uint64((8 * (7 - i)));
+            expiry |= uint64(uint8(input[i + 126])) << uint64((8 * (7 - i)));
         }
 
-        // Unpack the signature
-        bytes memory signature = new bytes(64);
-        for (uint256 i; i < 64; ++i) {
-            signature[i] = input[i + 86];
-        }
 
         return ValidationInfo({
             subnetID: subnetID,
             nodeID: nodeID,
             weight: weight,
             registrationExpiry: expiry,
-            signature: signature
+            blsPublicKey: blsPublicKey
         });
     }
 

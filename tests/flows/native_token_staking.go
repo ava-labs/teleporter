@@ -114,12 +114,12 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 
 	opts.Value = big.NewInt(0).SetUint64(1e18)
 	nodeID := ids.GenerateTestID()
-	signature := [64]byte{}
+	blsPublicKey := [48]byte{}
 	tx, err = stakingManager.InitializeValidatorRegistration(
 		opts,
 		nodeID,
 		uint64(time.Now().Add(24*time.Hour).Unix()),
-		signature[:],
+		blsPublicKey[:],
 	)
 	Expect(err).Should(BeNil())
 	receipt := utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
@@ -136,16 +136,20 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	log.Info("Constructed signed RegisterSubnetValidator message", "message", signedWarpMessage)
 	// Validate the Warp message, (this will be done on the P-Chain in the future)
-	// msg, err := warpPayload.ParseAddressedCall(signedWarpMessage.UnsignedMessage.Payload)
-	// Expect(err).Should(BeNil())
-	// // Check that the addressed call payload is a registered Warp message type
-	// var registerValidatorPayload warpMessages.RegisterSubnetValidator
-	// ver, err := warpMessages.Codec.Unmarshal(msg.Payload, &registerValidatorPayload)
-	// Expect(err).Should(BeNil())
-	// Expect(ver).Should(Equal(uint16(warpMessages.CodecVersion)))
-	// Expect(registerValidatorPayload.NodeID).Should(Equal(nodeID))
-	// Expect(registerValidatorPayload.Weight).Should(Equal(1e18))
-	// Expect(registerValidatorPayload.SubnetID).Should(Equal(subnetAInfo.SubnetID))
+	msg, err := warpPayload.ParseAddressedCall(signedWarpMessage.UnsignedMessage.Payload)
+	Expect(err).Should(BeNil())
+	// Check that the addressed call payload is a registered Warp message type
+	var payloadInterface warpMessages.Payload
+	ver, err := warpMessages.Codec.Unmarshal(msg.Payload, &payloadInterface)
+	Expect(err).Should(BeNil())
+	registerValidatorPayload, ok := payloadInterface.(*warpMessages.RegisterSubnetValidator)
+	Expect(ok).Should(BeTrue())
+
+	Expect(ver).Should(Equal(uint16(warpMessages.CodecVersion)))
+	Expect(registerValidatorPayload.NodeID).Should(Equal(nodeID))
+	Expect(registerValidatorPayload.Weight).Should(Equal(uint64(1e6)))
+	Expect(registerValidatorPayload.SubnetID).Should(Equal(subnetAInfo.SubnetID))
+	Expect(registerValidatorPayload.BlsPubKey[:]).Should(Equal(blsPublicKey[:]))
 
 	// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 	// Query P-Chain validators for the Warp message
