@@ -10,19 +10,22 @@ import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 contract ExampleRewardCalculator is IRewardCalculator {
     uint256 public constant SECONDS_IN_YEAR = 31536000;
 
+    uint64 public immutable rewardBasisPoints;
+
+    constructor(uint64 rewardBasisPoints_) {
+        rewardBasisPoints = rewardBasisPoints_;
+    }
+
     /**
      * @notice A linear, non-compounding reward calculation that rewards a set percentage of tokens per year.
-     *
-     * @param rewardBasisPoints annual reward percentage in basis points (units of 0.1%).
      */
     function calculateReward(
         uint256 stakeAmount,
         uint64 startTime,
         uint64 endTime,
         uint256, // initialSupply
-        uint256, // endSupply
-        uint64 rewardBasisPoints
-    ) external pure returns (uint256) {
+        uint256  // endSupply
+    ) external view returns (uint256) {
         return stakeAmount * rewardBasisPoints * (endTime - startTime) / SECONDS_IN_YEAR / 1000;
     }
 }
