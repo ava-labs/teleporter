@@ -57,5 +57,6 @@ contract PoAStakingManagerTest is StakingManagerTest {
             app.initializeValidatorRegistration(stakeAmount, nodeID, registrationExpiry, signature);
     }
 
+    // solhint-disable-next-line no-empty-blocks
     function _beforeSend(uint256 value) internal virtual override {}
 }
