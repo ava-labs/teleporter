@@ -110,7 +110,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
 			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
 			MinimumStakeDuration: uint64(24 * time.Hour),
-			MaximumHourlyChurn:   1,
+			MaximumHourlyChurn:   0,
 			RewardCalculator:     common.Address{},
 		},
 	)
