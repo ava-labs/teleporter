@@ -21,7 +21,7 @@ library StakingMessages {
 
     // Subnets send a RegisterSubnetValidator message to the P-Chain to register a validator.
     uint32 internal constant REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID = 0;
-    
+
     // Subnets can send a SetSubnetValidatorWeight message to the P-Chain to update a validator's weight.
     // The P-Chain responds with a SetSubnetValidatorWeight message acknowledging the weight update.
     uint32 internal constant SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID = 1;
@@ -29,7 +29,7 @@ library StakingMessages {
     // The P-Chain responds with a RegisterSubnetValidator message indicating whether the registration was successful
     // for the given validation ID.
     uint32 internal constant SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID = 2;
-    
+
     // The P-Chain responds with a SetSubnetValidatorWeight message indicating whether the weight update was successful
     // for the given validation ID.
     uint32 internal constant SET_SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID = 3;
@@ -70,7 +70,9 @@ library StakingMessages {
         pure
         returns (bytes32, bytes memory)
     {
-        require(validationInfo.blsPublicKey.length == 48, "StakingMessages: Invalid signature length");
+        require(
+            validationInfo.blsPublicKey.length == 48, "StakingMessages: Invalid signature length"
+        );
         bytes memory res = new bytes(134);
         // Pack the codec ID
         for (uint256 i; i < 2; ++i) {
@@ -165,7 +167,6 @@ library StakingMessages {
         for (uint256 i; i < 8; ++i) {
             expiry |= uint64(uint8(input[i + 126])) << uint64((8 * (7 - i)));
         }
-
 
         return ValidationInfo({
             subnetID: subnetID,
