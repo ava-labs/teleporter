@@ -6,19 +6,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ava-labs/avalanchego/api/info"
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/message"
-	"github.com/ava-labs/avalanchego/utils/constants"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/set"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	warpMessages "github.com/ava-labs/avalanchego/vms/platformvm/warp/messages"
 	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
-	relayerConfig "github.com/ava-labs/awm-relayer/config"
-	"github.com/ava-labs/awm-relayer/peers"
-	"github.com/ava-labs/awm-relayer/signature-aggregator/aggregator"
-	sigAggConfig "github.com/ava-labs/awm-relayer/signature-aggregator/config"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
@@ -29,7 +20,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Registers a native token staking validator on a subnet. The steps are as follows:
@@ -50,72 +40,23 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := utils.GetTwoSubnets(network)
 	_, fundedKey := network.GetFundedAccountInfo()
+	pChainInfo := utils.GetPChainInfo(cChainInfo)
 
-	// Construct the P-Chain info
-	pChainBlockchainID, err := info.NewClient(cChainInfo.NodeURIs[0]).GetBlockchainID(context.Background(), "P")
-	Expect(err).Should(BeNil())
-	pChainInfo := interfaces.SubnetTestInfo{
-		BlockchainID: pChainBlockchainID,
-		SubnetID:     ids.Empty,
-	}
-
-	// Create the signature aggregator
-	logger := logging.NoLog{}
-	cfg := sigAggConfig.Config{
-		PChainAPI: &relayerConfig.APIConfig{
-			BaseURL: cChainInfo.NodeURIs[0],
+	signatureAggregator := utils.NewSignatureAggregator(
+		cChainInfo.NodeURIs[0],
+		[]ids.ID{
+			subnetAInfo.SubnetID,
+			ids.Empty, // Primary network subnet ID
 		},
-		InfoAPI: &relayerConfig.APIConfig{
-			BaseURL: cChainInfo.NodeURIs[0],
-		},
-	}
-	trackedSubnets := set.NewSet[ids.ID](2)
-	trackedSubnets.Add(subnetAInfo.BlockchainID)
-	trackedSubnets.Add(ids.Empty) // Primary network subnet ID
-	appRequestNetwork, err := peers.NewNetwork(
-		logging.Debug,
-		prometheus.DefaultRegisterer,
-		trackedSubnets,
-		&cfg,
 	)
-	Expect(err).Should(BeNil())
-
-	messageCreator, err := message.NewCreator(
-		logger,
-		prometheus.DefaultRegisterer,
-		constants.DefaultNetworkCompressionType,
-		constants.DefaultNetworkMaximumInboundTimeout,
-	)
-	Expect(err).Should(BeNil())
-	signatureAggregator := aggregator.NewSignatureAggregator(
-		appRequestNetwork,
-		logger,
-		messageCreator,
-	)
-	signatureAggregator.GetSubnetID(subnetAInfo.BlockchainID)
 
 	// Deploy the staking manager contract
-	stakingManagerContractAddress, stakingManager := utils.DeployNativeTokenStakingManager(
+	stakingManagerContractAddress, stakingManager := utils.DeployAndInitializeNativeTokenStakingManager(
 		context.Background(),
 		fundedKey,
 		subnetAInfo,
+		pChainInfo,
 	)
-	opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
-	Expect(err).Should(BeNil())
-	tx, err := stakingManager.Initialize(
-		opts,
-		nativetokenstakingmanager.StakingManagerSettings{
-			PChainBlockchainID:   pChainInfo.BlockchainID,
-			SubnetID:             subnetAInfo.SubnetID,
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			MaximumHourlyChurn:   0,
-			RewardCalculator:     common.Address{},
-		},
-	)
-	Expect(err).Should(BeNil())
-	utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
 
 	//
 	// Register a validator
@@ -123,10 +64,12 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	var validationID ids.ID // To be used in the delisting step
 	{
 		// Iniatiate validator registration
+		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
+		Expect(err).Should(BeNil())
 		opts.Value = big.NewInt(0).SetUint64(1e18)
 		nodeID := ids.GenerateTestID()
 		blsPublicKey := [48]byte{}
-		tx, err = stakingManager.InitializeValidatorRegistration(
+		tx, err := stakingManager.InitializeValidatorRegistration(
 			opts,
 			nodeID,
 			uint64(time.Now().Add(24*time.Hour).Unix()),
@@ -216,9 +159,9 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	// Delist the validator
 	//
 	{
-		opts, err = bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
+		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
 		Expect(err).Should(BeNil())
-		tx, err = stakingManager.InitializeEndValidation(
+		tx, err := stakingManager.InitializeEndValidation(
 			opts,
 			validationID,
 			false,
