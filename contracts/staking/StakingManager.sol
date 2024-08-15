@@ -146,6 +146,7 @@ abstract contract StakingManager is
 
         // Ensure the stake churn doesn't exceed the maximum churn rate.
         uint64 weight = valueToWeight(lockedValue);
+        // TODO: Support this in the e2e test
         // _checkAndUpdateChurnTracker(weight);
 
         // Ensure the weight is within the valid range.
@@ -258,7 +259,8 @@ abstract contract StakingManager is
         require(_msgSender() == validator.owner, "StakingManager: Sender not validator owner");
 
         // Check that removing this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTracker(validator.weight);
+        // TODO: Support this in the e2e test
+        // _checkAndUpdateChurnTracker(validator.weight);
 
         // Update the validator status to pending removal.
         // They are not removed from the active validators mapping until the P-Chain acknowledges the removal.

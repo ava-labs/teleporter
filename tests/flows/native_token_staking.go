@@ -199,4 +199,96 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 	Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+
+	//
+	// Delist the validator
+	//
+	{
+		opts, err = bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
+		Expect(err).Should(BeNil())
+		tx, err = stakingManager.InitializeEndValidation(
+			opts,
+			validationID,
+			false,
+			0,
+		)
+		Expect(err).Should(BeNil())
+		receipt = utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
+		validatorRemovalEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseValidatorRemovalInitialized,
+		)
+		Expect(err).Should(BeNil())
+		Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
+		Expect(validatorRemovalEvent.StakeAmount.Uint64()).Should(Equal(uint64(1e6)))
+
+		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
+		// (Sending to the P-Chain will be skipped for now)
+		signedWarpMessage = network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
+		Expect(err).Should(BeNil())
+		log.Info("Constructed signed SetSubnetValidatorWeightMessage message", "message", signedWarpMessage)
+		// Validate the Warp message, (this will be done on the P-Chain in the future)
+		msg, err = warpPayload.ParseAddressedCall(signedWarpMessage.UnsignedMessage.Payload)
+		Expect(err).Should(BeNil())
+		// Check that the addressed call payload is a registered Warp message type
+		var payloadInterface warpMessages.Payload
+		ver, err := warpMessages.Codec.Unmarshal(msg.Payload, &payloadInterface)
+		Expect(err).Should(BeNil())
+		registerValidatorPayload, ok := payloadInterface.(*warpMessages.SetSubnetValidatorWeight)
+		Expect(ok).Should(BeTrue())
+
+		Expect(ver).Should(Equal(uint16(warpMessages.CodecVersion)))
+		Expect(registerValidatorPayload.ValidationID).Should(Equal(validationID))
+		Expect(registerValidatorPayload.Weight).Should(Equal(uint64(0)))
+		Expect(registerValidatorPayload.Nonce).Should(Equal(uint64(0)))
+
+		// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
+		// Query P-Chain validators for the Warp message
+		registrationPayload, err := warpMessages.NewSubnetValidatorRegistration(validationID, false)
+		Expect(err).Should(BeNil())
+		registrationAddressedCall, err := warpPayload.NewAddressedCall(common.Address{}.Bytes(), registrationPayload.Bytes())
+		Expect(err).Should(BeNil())
+		registrationUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(network.GetNetworkID(), pChainInfo.BlockchainID, registrationAddressedCall.Bytes())
+		Expect(err).Should(BeNil())
+		log.Info("Constructed unsigned SubnetValidatorRegistration message", "message", hex.EncodeToString(registrationUnsignedMessage.Bytes()))
+
+		registrationSignedMessage, err := signatureAggregator.CreateSignedMessage(
+			registrationUnsignedMessage,
+			nil,
+			subnetAInfo.SubnetID,
+			67,
+		)
+		Expect(err).Should(BeNil())
+		log.Info("Constructed signed SubnetValidatorRegistration message", "message", registrationSignedMessage)
+
+		// Deliver the Warp message to the subnet
+		abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
+		Expect(err).Should(BeNil())
+		callData, err := abi.Pack("completeEndValidation", uint32(0), false)
+		Expect(err).Should(BeNil())
+		gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(context.Background(), subnetAInfo, utils.PrivateKeyToAddress(fundedKey))
+		registrationTx := predicateutils.NewPredicateTx(
+			subnetAInfo.EVMChainID,
+			nonce,
+			&stakingManagerContractAddress,
+			2_000_000,
+			gasFeeCap,
+			gasTipCap,
+			big.NewInt(0),
+			callData,
+			types.AccessList{},
+			warp.ContractAddress,
+			registrationSignedMessage.Bytes(),
+		)
+		signedRegistrationTx := utils.SignTransaction(registrationTx, fundedKey, subnetAInfo.EVMChainID)
+		receipt = utils.SendTransactionAndWaitForSuccess(context.Background(), subnetAInfo, signedRegistrationTx)
+
+		// Check that the validator is registered in the staking contract
+		registrationEvent, err := utils.GetEventFromLogs(
+			receipt.Logs,
+			stakingManager.ParseValidationPeriodEnded,
+		)
+		Expect(err).Should(BeNil())
+		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
+	}
 }
