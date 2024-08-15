@@ -2,23 +2,14 @@ package flows
 
 import (
 	"context"
-	"encoding/hex"
-	"math/big"
-	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
-	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
+	"github.com/ava-labs/avalanchego/utils/crypto/bls"
 	warpMessages "github.com/ava-labs/avalanchego/vms/platformvm/warp/messages"
 	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
-	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
-	predicateutils "github.com/ava-labs/subnet-evm/predicate"
-	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/NativeTokenStakingManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
 	. "github.com/onsi/gomega"
 )
 
@@ -62,33 +53,26 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	// Register a validator
 	//
 	var validationID ids.ID // To be used in the delisting step
+	stakeAmount := uint64(1e18)
+	weight := uint64(1e6) // stakeAmount / 1e12
 	{
 		// Iniatiate validator registration
-		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
-		Expect(err).Should(BeNil())
-		opts.Value = big.NewInt(0).SetUint64(1e18)
 		nodeID := ids.GenerateTestID()
-		blsPublicKey := [48]byte{}
-		tx, err := stakingManager.InitializeValidatorRegistration(
-			opts,
+		blsPublicKey := [bls.PublicKeyLen]byte{}
+		var receipt *types.Receipt
+		receipt, validationID = utils.CallNativeInitializeValidatorRegistration(
+			fundedKey,
+			subnetAInfo,
+			stakeAmount,
 			nodeID,
-			uint64(time.Now().Add(24*time.Hour).Unix()),
-			blsPublicKey[:],
+			blsPublicKey,
+			stakingManager,
 		)
-		Expect(err).Should(BeNil())
-		receipt := utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
-		registrationInitiatedEvent, err := utils.GetEventFromLogs(
-			receipt.Logs,
-			stakingManager.ParseValidationPeriodCreated,
-		)
-		Expect(err).Should(BeNil())
-		validationID = ids.ID(registrationInitiatedEvent.ValidationID)
 
 		// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
 		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
-		Expect(err).Should(BeNil())
-		log.Info("Constructed signed RegisterSubnetValidator message", "message", signedWarpMessage)
+
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
 		msg, err := warpPayload.ParseAddressedCall(signedWarpMessage.UnsignedMessage.Payload)
 		Expect(err).Should(BeNil())
@@ -101,51 +85,27 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 
 		Expect(ver).Should(Equal(uint16(warpMessages.CodecVersion)))
 		Expect(registerValidatorPayload.NodeID).Should(Equal(nodeID))
-		Expect(registerValidatorPayload.Weight).Should(Equal(uint64(1e6)))
+		Expect(registerValidatorPayload.Weight).Should(Equal(uint64(weight)))
 		Expect(registerValidatorPayload.SubnetID).Should(Equal(subnetAInfo.SubnetID))
 		Expect(registerValidatorPayload.BlsPubKey[:]).Should(Equal(blsPublicKey[:]))
 
 		// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
-		// Query P-Chain validators for the Warp message
-		registrationPayload, err := warpMessages.NewSubnetValidatorRegistration(validationID, true)
-		Expect(err).Should(BeNil())
-		registrationAddressedCall, err := warpPayload.NewAddressedCall(common.Address{}.Bytes(), registrationPayload.Bytes())
-		Expect(err).Should(BeNil())
-		registrationUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(network.GetNetworkID(), pChainInfo.BlockchainID, registrationAddressedCall.Bytes())
-		Expect(err).Should(BeNil())
-		log.Info("Constructed unsigned SubnetValidatorRegistration message", "message", hex.EncodeToString(registrationUnsignedMessage.Bytes()))
-
-		registrationSignedMessage, err := signatureAggregator.CreateSignedMessage(
-			registrationUnsignedMessage,
-			nil,
-			subnetAInfo.SubnetID,
-			67,
+		registrationSignedMessage := utils.ConstructSubnetValidatorRegistrationMessage(
+			validationID,
+			true,
+			subnetAInfo,
+			pChainInfo,
+			network,
+			signatureAggregator,
 		)
-		Expect(err).Should(BeNil())
-		log.Info("Constructed signed SubnetValidatorRegistration message", "message", registrationSignedMessage)
 
 		// Deliver the Warp message to the subnet
-		abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
-		Expect(err).Should(BeNil())
-		callData, err := abi.Pack("completeValidatorRegistration", uint32(0))
-		Expect(err).Should(BeNil())
-		gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(context.Background(), subnetAInfo, utils.PrivateKeyToAddress(fundedKey))
-		registrationTx := predicateutils.NewPredicateTx(
-			subnetAInfo.EVMChainID,
-			nonce,
-			&stakingManagerContractAddress,
-			2_000_000,
-			gasFeeCap,
-			gasTipCap,
-			big.NewInt(0),
-			callData,
-			types.AccessList{},
-			warp.ContractAddress,
-			registrationSignedMessage.Bytes(),
+		receipt = utils.CallCompleteValidatorRegistration(
+			fundedKey,
+			subnetAInfo,
+			stakingManagerContractAddress,
+			registrationSignedMessage,
 		)
-		signedRegistrationTx := utils.SignTransaction(registrationTx, fundedKey, subnetAInfo.EVMChainID)
-		receipt = utils.SendTransactionAndWaitForSuccess(context.Background(), subnetAInfo, signedRegistrationTx)
-
 		// Check that the validator is registered in the staking contract
 		registrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
@@ -159,29 +119,24 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	// Delist the validator
 	//
 	{
-		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
-		Expect(err).Should(BeNil())
-		tx, err := stakingManager.InitializeEndValidation(
-			opts,
+		receipt := utils.CallInitializeEndValidation(
+			fundedKey,
+			subnetAInfo,
+			stakingManager,
 			validationID,
-			false,
-			0,
 		)
-		Expect(err).Should(BeNil())
-		receipt := utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
 		validatorRemovalEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
 			stakingManager.ParseValidatorRemovalInitialized,
 		)
 		Expect(err).Should(BeNil())
 		Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-		Expect(validatorRemovalEvent.StakeAmount.Uint64()).Should(Equal(uint64(1e6)))
+		Expect(validatorRemovalEvent.StakeAmount.Uint64()).Should(Equal(uint64(weight)))
 
 		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
 		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
 		Expect(err).Should(BeNil())
-		log.Info("Constructed signed SetSubnetValidatorWeightMessage message", "message", signedWarpMessage)
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
 		msg, err := warpPayload.ParseAddressedCall(signedWarpMessage.UnsignedMessage.Payload)
 		Expect(err).Should(BeNil())
@@ -198,45 +153,22 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		Expect(registerValidatorPayload.Nonce).Should(Equal(uint64(0)))
 
 		// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
-		// Query P-Chain validators for the Warp message
-		registrationPayload, err := warpMessages.NewSubnetValidatorRegistration(validationID, false)
-		Expect(err).Should(BeNil())
-		registrationAddressedCall, err := warpPayload.NewAddressedCall(common.Address{}.Bytes(), registrationPayload.Bytes())
-		Expect(err).Should(BeNil())
-		registrationUnsignedMessage, err := avalancheWarp.NewUnsignedMessage(network.GetNetworkID(), pChainInfo.BlockchainID, registrationAddressedCall.Bytes())
-		Expect(err).Should(BeNil())
-		log.Info("Constructed unsigned SubnetValidatorRegistration message", "message", hex.EncodeToString(registrationUnsignedMessage.Bytes()))
-
-		registrationSignedMessage, err := signatureAggregator.CreateSignedMessage(
-			registrationUnsignedMessage,
-			nil,
-			subnetAInfo.SubnetID,
-			67,
+		registrationSignedMessage := utils.ConstructSubnetValidatorRegistrationMessage(
+			validationID,
+			false,
+			subnetAInfo,
+			pChainInfo,
+			network,
+			signatureAggregator,
 		)
-		Expect(err).Should(BeNil())
-		log.Info("Constructed signed SubnetValidatorRegistration message", "message", registrationSignedMessage)
 
 		// Deliver the Warp message to the subnet
-		abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
-		Expect(err).Should(BeNil())
-		callData, err := abi.Pack("completeEndValidation", uint32(0), false)
-		Expect(err).Should(BeNil())
-		gasFeeCap, gasTipCap, nonce := utils.CalculateTxParams(context.Background(), subnetAInfo, utils.PrivateKeyToAddress(fundedKey))
-		registrationTx := predicateutils.NewPredicateTx(
-			subnetAInfo.EVMChainID,
-			nonce,
-			&stakingManagerContractAddress,
-			2_000_000,
-			gasFeeCap,
-			gasTipCap,
-			big.NewInt(0),
-			callData,
-			types.AccessList{},
-			warp.ContractAddress,
-			registrationSignedMessage.Bytes(),
+		receipt = utils.CallCompleteEndValidation(
+			fundedKey,
+			subnetAInfo,
+			stakingManagerContractAddress,
+			registrationSignedMessage,
 		)
-		signedRegistrationTx := utils.SignTransaction(registrationTx, fundedKey, subnetAInfo.EVMChainID)
-		receipt = utils.SendTransactionAndWaitForSuccess(context.Background(), subnetAInfo, signedRegistrationTx)
 
 		// Check that the validator is registered in the staking contract
 		registrationEvent, err := utils.GetEventFromLogs(
