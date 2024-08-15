@@ -78,7 +78,8 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
         uint64 registrationExpiry,
         bytes memory blsPublicKey
     ) external override returns (bytes32 validationID) {
-        return _initializeValidatorRegistration(nodeID, stakeAmount, registrationExpiry, blsPublicKey);
+        return
+            _initializeValidatorRegistration(nodeID, stakeAmount, registrationExpiry, blsPublicKey);
     }
 
     // Must be guarded with reentrancy guard for safe transfer from

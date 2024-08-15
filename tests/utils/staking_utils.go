@@ -182,7 +182,6 @@ func CallERC20InitializeValidatorRegistration(
 	blsPublicKey [bls.PublicKeyLen]byte,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
 ) (*types.Receipt, ids.ID) {
-
 	ERC20Approve(
 		context.Background(),
 		token,
