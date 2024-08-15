@@ -103,11 +103,6 @@ var _ = ginkgo.AfterSuite(func() {
 
 var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 	// Teleporter tests
-	ginkgo.It("Native token staking manager",
-		ginkgo.Label(stakingManagerLabel),
-		func() {
-			flows.NativeTokenStakingManager(LocalNetworkInstance)
-		})
 	ginkgo.It("Send a message from Subnet A to Subnet B, and one from B to A",
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
@@ -194,6 +189,16 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
 			flows.ValidatorChurn(LocalNetworkInstance)
+		})
+	ginkgo.It("Native token staking manager",
+		ginkgo.Label(stakingManagerLabel),
+		func() {
+			flows.NativeTokenStakingManager(LocalNetworkInstance)
+		})
+	ginkgo.It("ERC20 token staking manager",
+		ginkgo.Label(stakingManagerLabel),
+		func() {
+			flows.ERC20TokenStakingManager(LocalNetworkInstance)
 		})
 	// Since the validator churn test modifies the network topology, we put it last for now.
 	// It should not affect the other tests, but we get some errors if we run it before the other tests.

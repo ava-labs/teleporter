@@ -540,9 +540,10 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 	}
 	trackedSubnets := set.NewSet[ids.ID](len(subnets))
 	trackedSubnets.Add(subnets...)
+	registry := prometheus.NewRegistry()
 	appRequestNetwork, err := peers.NewNetwork(
 		logging.Debug,
-		prometheus.DefaultRegisterer,
+		registry,
 		trackedSubnets,
 		&cfg,
 	)
@@ -550,7 +551,7 @@ func NewSignatureAggregator(apiUri string, subnets []ids.ID) *aggregator.Signatu
 
 	messageCreator, err := message.NewCreator(
 		logger,
-		prometheus.DefaultRegisterer,
+		registry,
 		constants.DefaultNetworkCompressionType,
 		constants.DefaultNetworkMaximumInboundTimeout,
 	)
