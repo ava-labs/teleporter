@@ -8,7 +8,7 @@ pragma solidity 0.8.25;
 import {Test} from "@forge-std/Test.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
 
-contract StakingMessagesTest is Test {
+contract ValidatorMessagesTest is Test {
     bytes32 public constant DEFAULT_SUBNET_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
@@ -33,7 +33,7 @@ contract StakingMessagesTest is Test {
             })
         );
 
-        StakingMessages.ValidationInfo memory info =
+        ValidatorMessages.ValidationInfo memory info =
             ValidatorMessages.unpackRegisterSubnetValidatorMessage(packed);
         assertEq(info.subnetID, DEFAULT_SUBNET_ID);
         assertEq(info.nodeID, DEFAULT_NODE_ID);
@@ -84,7 +84,7 @@ contract StakingMessagesTest is Test {
                 signature: DEFAULT_ED25519_SIGNATURE
             })
         );
-        StakingMessages.ValidationInfo memory info = ValidatorMessages.unpackValidationInfo(packed);
+        ValidatorMessages.ValidationInfo memory info = ValidatorMessages.unpackValidationInfo(packed);
         assertEq(info.subnetID, DEFAULT_SUBNET_ID);
         assertEq(info.nodeID, DEFAULT_NODE_ID);
         assertEq(info.weight, DEFAULT_WEIGHT);
