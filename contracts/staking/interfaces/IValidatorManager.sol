@@ -38,12 +38,7 @@ struct ValidatorChurnPeriod {
 struct ValidatorManagerSettings {
     bytes32 pChainBlockchainID;
     bytes32 subnetID;
-    // TODO move staking parametesr outside of settings to constructor of PoS
-    uint256 minimumStakeAmount;
-    uint256 maximumStakeAmount;
-    uint64 minimumStakeDuration;
     uint8 maximumHourlyChurn;
-    IRewardCalculator rewardCalculator;
 }
 
 interface IValidatorManager {

@@ -6,9 +6,12 @@
 pragma solidity 0.8.25;
 
 import {Test} from "@forge-std/Test.sol";
-import {StakingManager} from "../StakingManager.sol";
-import {StakingMessages} from "../StakingMessages.sol";
-import {IWarpMessenger, WarpMessage} from "../StakingManager.sol";
+import {StakingManager} from "../ValidatorManager.sol";
+import {ValidatorMessages} from "../ValidatorMessages.sol";
+import {
+    WarpMessage,
+    IWarpMessenger
+} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 
 // TODO: Remove this once all unit tests implemented
 // solhint-disable no-empty-blocks
@@ -94,9 +97,9 @@ abstract contract StakingManagerTest is Test {
             DEFAULT_EXPIRY,
             DEFAULT_ED25519_SIGNATURE
         );
-        (, bytes memory registerSubnetValidatorMessage) = StakingMessages
+        (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            StakingMessages.ValidationInfo({
+            ValidatorMessages.ValidationInfo({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
                 weight: DEFAULT_WEIGHT,
@@ -150,7 +153,7 @@ abstract contract StakingManagerTest is Test {
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
         bytes memory setValidatorWeightPayload =
-            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         stakingManager.resendEndValidatorMessage(validationID);
     }
@@ -167,7 +170,7 @@ abstract contract StakingManagerTest is Test {
         });
 
         bytes memory subnetValidatorRegistrationMessage =
-            StakingMessages.packSubnetValidatorRegistrationMessage(validationID, false);
+            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
 
         _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
 
@@ -189,7 +192,7 @@ abstract contract StakingManagerTest is Test {
         });
 
         bytes memory setSubnetValidatorWeightMessage =
-            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
 
         _mockGetVerifiedWarpMessage(setSubnetValidatorWeightMessage, true);
 
@@ -226,8 +229,8 @@ abstract contract StakingManagerTest is Test {
         uint64 registrationExpiry,
         bytes memory signature
     ) internal returns (bytes32 validationID) {
-        (validationID,) = StakingMessages.packValidationInfo(
-            StakingMessages.ValidationInfo({
+        (validationID,) = ValidatorMessages.packValidationInfo(
+            ValidatorMessages.ValidationInfo({
                 nodeID: nodeID,
                 subnetID: subnetID,
                 weight: weight,
@@ -235,9 +238,9 @@ abstract contract StakingManagerTest is Test {
                 signature: signature
             })
         );
-        (, bytes memory registerSubnetValidatorMessage) = StakingMessages
+        (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            StakingMessages.ValidationInfo({
+            ValidatorMessages.ValidationInfo({
                 subnetID: subnetID,
                 nodeID: nodeID,
                 weight: weight,
@@ -271,7 +274,7 @@ abstract contract StakingManagerTest is Test {
             nodeID, subnetID, weight, registrationExpiry, signature
         );
         bytes memory subnetValidatorRegistrationMessage =
-            StakingMessages.packSubnetValidatorRegistrationMessage(validationID, true);
+            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, true);
 
         _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
 
@@ -302,7 +305,7 @@ abstract contract StakingManagerTest is Test {
 
         vm.warp(completionTimestamp);
         bytes memory setValidatorWeightPayload =
-            StakingMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
+            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.expectEmit(true, true, true, true, address(stakingManager));
         emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp, 0);

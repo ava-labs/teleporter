@@ -7,12 +7,18 @@ pragma solidity 0.8.25;
 
 import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
-import {StakingManager, StakingManagerSettings} from "./StakingManager.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
+import {PoSValidatorManager} from "./PoSValidatorManager.sol";
+import {ValidatorManagerSettings} from "./interfaces/IValidatorManager.sol";
+import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 
-contract NativeTokenStakingManager is Initializable, StakingManager, INativeTokenStakingManager {
+contract NativeTokenStakingManager is
+    Initializable,
+    PoSValidatorManager,
+    INativeTokenStakingManager
+{
     using Address for address payable;
 
     constructor(ICMInitializable init) {
@@ -22,16 +28,29 @@ contract NativeTokenStakingManager is Initializable, StakingManager, INativeToke
     }
 
     // solhint-disable ordering
-    function initialize(StakingManagerSettings calldata settings) external initializer {
-        __NativeTokenStakingManager_init(settings);
+    function initialize(
+        ValidatorManagerSettings calldata settings,
+        uint256 minimumStakeAmount,
+        uint256 maximumStakeAmount,
+        uint64 minimumStakeDuration,
+        IRewardCalculator rewardCalculator
+    ) external initializer {
+        __NativeTokenStakingManager_init(
+            settings, minimumStakeAmount, maximumStakeAmount, minimumStakeDuration, rewardCalculator
+        );
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __NativeTokenStakingManager_init(StakingManagerSettings calldata settings)
-        internal
-        onlyInitializing
-    {
-        __StakingManager_init(settings);
+    function __NativeTokenStakingManager_init(
+        ValidatorManagerSettings calldata settings,
+        uint256 minimumStakeAmount,
+        uint256 maximumStakeAmount,
+        uint64 minimumStakeDuration,
+        IRewardCalculator rewardCalculator
+    ) internal onlyInitializing {
+        __POS_Validator_Manager_init(
+            settings, minimumStakeAmount, maximumStakeAmount, minimumStakeDuration, rewardCalculator
+        );
     }
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
@@ -53,10 +72,11 @@ contract NativeTokenStakingManager is Initializable, StakingManager, INativeToke
         uint64 registrationExpiry,
         bytes memory signature
     ) external payable returns (bytes32) {
-        return _initializeValidatorRegistration(nodeID, msg.value, registrationExpiry, signature);
+        uint64 weight = _processStake(msg.value);
+        return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, signature);
     }
-    // solhint-enable ordering
 
+    // solhint-enable ordering
     function _lock(uint256 value) internal virtual override returns (uint256) {
         return value;
     }

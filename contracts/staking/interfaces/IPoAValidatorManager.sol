@@ -14,7 +14,7 @@ interface IPoAValidatorManager is IValidatorManager {
      * @param registrationExpiry The time at which the reigistration is no longer valid on the P-Chain.
      */
     function initializeValidatorRegistration(
-        uint256 weight,
+        uint64 weight,
         bytes32 nodeID,
         uint64 registrationExpiry,
         bytes memory signature

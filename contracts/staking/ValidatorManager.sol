@@ -18,7 +18,7 @@ import {
 } from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
-import {StakingMessages} from "./StakingMessages.sol";
+import {ValidatorMessages} from "./ValidatorMessages.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
@@ -26,21 +26,17 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
 // TODO: rename validatormanager
-abstract contract StakingManager is
+abstract contract ValidatorManager is
     Initializable,
     ContextUpgradeable,
     ReentrancyGuardUpgradeable,
     IValidatorManager
 {
     // solhint-disable private-vars-leading-underscore
-    /// @custom:storage-location erc7201:avalanche-icm.storage.StakingManager
-    struct StakingManagerStorage {
+    /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
+    struct ValidatorManagerStorage {
         bytes32 _pChainBlockchainID;
         bytes32 _subnetID;
-        uint256 _minimumStakeAmount;
-        uint256 _maximumStakeAmount;
-        uint64 _minimumStakeDuration;
-        IRewardCalculator _rewardCalculator;
         uint8 _maximumHourlyChurn;
         ValidatorChurnPeriod _churnTracker;
         // Maps the validationID to the registration message such that the message can be re-sent if needed.
@@ -52,16 +48,20 @@ abstract contract StakingManager is
     }
     // solhint-enable private-vars-leading-underscore
 
-    // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.StakingManager")) - 1)) & ~bytes32(uint256(0xff));
-    // TODO: Unit test for storage slot
-    bytes32 private constant _STAKING_MANAGER_STORAGE_LOCATION =
+    // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ValidatorManager")) - 1)) & ~bytes32(uint256(0xff));
+    // TODO: Unit test for storage slot and update slot
+    bytes32 private constant _VALIDATOR_MANAGER_STORAGE_LOCATION =
         0xafe6c4731b852fc2be89a0896ae43d22d8b24989064d841b2a1586b4d39ab600;
 
     // solhint-disable ordering
-    function _getStakingManagerStorage() private pure returns (StakingManagerStorage storage $) {
+    function _getValidatorManagerStorage()
+        private
+        pure
+        returns (ValidatorManagerStorage storage $)
+    {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := _STAKING_MANAGER_STORAGE_LOCATION
+            $.slot := _VALIDATOR_MANAGER_STORAGE_LOCATION
         }
     }
 
@@ -72,28 +72,24 @@ abstract contract StakingManager is
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     // solhint-disable-next-line func-name-mixedcase
-    function __StakingManager_init(ValidatorManagerSettings calldata settings)
+    function __ValidatorManager_init(ValidatorManagerSettings calldata settings)
         internal
         onlyInitializing
     {
         __ReentrancyGuard_init();
         __Context_init();
-        __StakingManager_init_unchained(settings);
+        __ValidatorManager_init_unchained(settings);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __StakingManager_init_unchained(ValidatorManagerSettings calldata settings)
+    function __ValidatorManager_init_unchained(ValidatorManagerSettings calldata settings)
         internal
         onlyInitializing
     {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
-        $._minimumStakeAmount = settings.minimumStakeAmount;
-        $._maximumStakeAmount = settings.maximumStakeAmount;
-        $._minimumStakeDuration = settings.minimumStakeDuration;
         $._maximumHourlyChurn = settings.maximumHourlyChurn;
-        $._rewardCalculator = settings.rewardCalculator;
     }
 
     /**
@@ -109,44 +105,35 @@ abstract contract StakingManager is
      */
     function _initializeValidatorRegistration(
         bytes32 nodeID,
-        uint256 value,
+        uint64 weight,
         uint64 registrationExpiry,
         bytes memory signature
     ) internal nonReentrant returns (bytes32) {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Ensure the registration expiry is in a valid range.
         require(
             registrationExpiry > block.timestamp && block.timestamp + 2 days > registrationExpiry,
-            "StakingManager: Invalid registration expiry"
+            "ValidatorManager: Invalid registration expiry"
         );
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
-        require(nodeID != bytes32(0), "StakingManager: Invalid node ID");
-        require($._activeValidators[nodeID] == bytes32(0), "StakingManager: Node ID already active");
+        require(nodeID != bytes32(0), "ValidatorManager: Invalid node ID");
+        require(
+            $._activeValidators[nodeID] == bytes32(0), "ValidatorManager: Node ID already active"
+        );
 
         // Ensure the signature is the proper length. The EVM does not provide an Ed25519 precompile to
         // validate the signature, but the P-Chain will validate the signature. If the signature is invalid,
         // the P-Chain will reject the registration, and the stake can be returned to the staker after the registration
         // expiry has passed.
-        require(signature.length == 64, "StakingManager: Invalid signature length");
+        require(signature.length == 64, "ValidatorManager: Invalid signature length");
 
-        // Lock the stake in the contract.
-        uint256 lockedValue = _lock(value);
-
-        // Ensure the stake churn doesn't exceed the maximum churn rate.
-        uint64 weight = valueToWeight(lockedValue);
         _checkAndUpdateChurnTracker(weight);
 
-        // Ensure the weight is within the valid range.
-        require(
-            weight >= $._minimumStakeAmount && weight <= $._maximumStakeAmount,
-            "StakingManager: Invalid stake amount"
-        );
-
-        (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = StakingMessages
+        (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            StakingMessages.ValidationInfo({
+            ValidatorMessages.ValidationInfo({
                 subnetID: $._subnetID,
                 nodeID: nodeID,
                 weight: weight,
@@ -180,11 +167,11 @@ abstract contract StakingManager is
      * Only necessary if the original message can't be delivered due to validator churn.
      */
     function resendRegisterValidatorMessage(bytes32 validationID) external {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
                 && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
-            "StakingManager: Invalid validation ID"
+            "ValidatorManager: Invalid validation ID"
         );
 
         // Submit the message to the Warp precompile.
@@ -197,27 +184,27 @@ abstract contract StakingManager is
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
     function completeValidatorRegistration(uint32 messageIndex) external {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "StakingManager: Invalid warp message");
+        require(valid, "ValidatorManager: Invalid warp message");
 
         require(
             warpMessage.sourceChainID == $._pChainBlockchainID,
-            "StakingManager: Invalid source chain ID"
+            "ValidatorManager: Invalid source chain ID"
         );
         require(
             warpMessage.originSenderAddress == address(0),
-            "StakingManager: Invalid origin sender address"
+            "ValidatorManager: Invalid origin sender address"
         );
 
         (bytes32 validationID, bool validRegistration) =
-            StakingMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
-        require(validRegistration, "StakingManager: Registration not valid");
+            ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
+        require(validRegistration, "ValidatorManager: Registration not valid");
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
                 && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
-            "StakingManager: Invalid validation ID"
+            "ValidatorManager: Invalid validation ID"
         );
 
         delete $._pendingRegisterValidationMessages[validationID];
@@ -239,12 +226,14 @@ abstract contract StakingManager is
         bytes32 validationID,
         uint64 uptimeSeconds
     ) internal virtual {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Ensure the validation period is active.
         Validator memory validator = $._validationPeriods[validationID];
-        require(validator.status == ValidatorStatus.Active, "StakingManager: Validator not active");
-        require(_msgSender() == validator.owner, "StakingManager: Sender not validator owner");
+        require(
+            validator.status == ValidatorStatus.Active, "ValidatorManager: Validator not active"
+        );
+        require(_msgSender() == validator.owner, "ValidatorManager: Sender not validator owner");
 
         // Check that removing this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(validator.weight);
@@ -263,9 +252,8 @@ abstract contract StakingManager is
         $._validationPeriods[validationID] = validator;
 
         // Submit the message to the Warp precompile.
-        bytes memory setValidatorWeightPayload = StakingMessages.packSetSubnetValidatorWeightMessage(
-            validationID, validator.messageNonce, 0
-        );
+        bytes memory setValidatorWeightPayload = ValidatorMessages
+            .packSetSubnetValidatorWeightMessage(validationID, validator.messageNonce, 0);
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         // Emit the event to signal the start of the validator removal process.
@@ -280,17 +268,16 @@ abstract contract StakingManager is
      */
     // solhint-disable-next-line
     function resendEndValidatorMessage(bytes32 validationID) external {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         Validator memory validator = $._validationPeriods[validationID];
 
         require(
             validator.status == ValidatorStatus.PendingRemoved,
-            "StakingManager: Validator not pending removal"
+            "ValidatorManager: Validator not pending removal"
         );
 
-        bytes memory setValidatorWeightPayload = StakingMessages.packSetSubnetValidatorWeightMessage(
-            validationID, validator.messageNonce, 0
-        );
+        bytes memory setValidatorWeightPayload = ValidatorMessages
+            .packSetSubnetValidatorWeightMessage(validationID, validator.messageNonce, 0);
         WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
     }
 
@@ -305,31 +292,31 @@ abstract contract StakingManager is
      * a validation period.
      */
     function completeEndValidation(uint32 messageIndex, bool setWeightMessageType) external {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Get the Warp message.
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "StakingManager: Invalid warp message");
+        require(valid, "ValidatorManager: Invalid warp message");
 
         bytes32 validationID;
         if (setWeightMessageType) {
             uint64 weight;
             (validationID,, weight) =
-                StakingMessages.unpackSetSubnetValidatorWeightMessage(warpMessage.payload);
-            require(weight == 0, "StakingManager: Weight must be 0");
+                ValidatorMessages.unpackSetSubnetValidatorWeightMessage(warpMessage.payload);
+            require(weight == 0, "ValidatorManager: Weight must be 0");
         } else {
             bool validRegistration;
             (validationID, validRegistration) =
-                StakingMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
-            require(!validRegistration, "StakingManager: Registration still valid");
+                ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
+            require(!validRegistration, "ValidatorManager: Registration still valid");
         }
 
         // Note: The validation status is not necessarily PendingRemoved here. It could be PendingAdded if the
         // registration was never successfully registered on the P-Chain, or it could be Active if the validator
         // removed themselves directly on the P-Chain without going through the contract.
         Validator memory validator = $._validationPeriods[validationID];
-        require(_msgSender() == validator.owner, "StakingManager: Sender not validator owner");
+        require(_msgSender() == validator.owner, "ValidatorManager: Sender not validator owner");
 
         ValidatorStatus endStatus;
         if (
@@ -359,7 +346,7 @@ abstract contract StakingManager is
      * the function will update the churn tracker with the new amount.
      */
     function _checkAndUpdateChurnTracker(uint64 amount) private {
-        StakingManagerStorage storage $ = _getStakingManagerStorage();
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         if ($._maximumHourlyChurn == 0) {
             return;
         }
@@ -376,19 +363,8 @@ abstract contract StakingManager is
         uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialStake);
         require(
             churnPercentage <= $._maximumHourlyChurn,
-            "StakingManager: Maximum hourly churn rate exceeded"
+            "ValidatorManager: Maximum hourly churn rate exceeded"
         );
         $._churnTracker = churnTracker;
     }
-
-    function valueToWeight(uint256 value) public pure returns (uint64) {
-        return uint64(value / 1e12);
-    }
-
-    function weightToValue(uint64 weight) public pure returns (uint256) {
-        return uint256(weight) * 1e12;
-    }
-
-    function _lock(uint256 value) internal virtual returns (uint256);
-    function _unlock(uint256 value, address to) internal virtual;
 }

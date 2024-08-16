@@ -7,7 +7,7 @@ pragma solidity 0.8.25;
 
 import {IValidatorManager} from "./IValidatorManager.sol";
 
-interface IPoSValidatorManager is IStakingManager {
+interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Begins the process of ending an active validation period. The validation period must have been previously
      * started by a successful call to {completeValidatorRegistration} with the given validationID.
