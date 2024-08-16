@@ -5,9 +5,6 @@
 
 pragma solidity 0.8.25;
 
-// TODO: remove reward calculator from settings
-import {IRewardCalculator} from "./IRewardCalculator.sol";
-
 enum ValidatorStatus {
     Unknown,
     PendingAdded,

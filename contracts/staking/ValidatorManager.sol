@@ -25,7 +25,6 @@ import {ContextUpgradeable} from
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
-// TODO: rename validatormanager
 abstract contract ValidatorManager is
     Initializable,
     ContextUpgradeable,
