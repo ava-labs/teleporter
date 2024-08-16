@@ -23,12 +23,12 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
             ValidatorManagerSettings({
                 pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                 subnetID: DEFAULT_SUBNET_ID,
-                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
-                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
-                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN,
-                rewardCalculator: IRewardCalculator(address(0))
-            })
+                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+            }),
+            DEFAULT_MINIMUM_STAKE,
+            DEFAULT_MAXIMUM_STAKE,
+            DEFAULT_MINIMUM_STAKE_DURATION,
+            IRewardCalculator(address(0))
         );
         validatorManager = app;
         posValidatorManager = app;
@@ -46,7 +46,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         );
     }
 
-    function _beforeSend(uint256 value) internal override {
+    function _beforeSend(uint64 weight) internal override {
         // Native tokens no need pre approve
     }
 }
