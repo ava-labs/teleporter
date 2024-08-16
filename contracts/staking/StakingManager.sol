@@ -5,7 +5,13 @@
 
 pragma solidity 0.8.25;
 
-import {IStakingManager, StakingManagerSettings} from "./interfaces/IStakingManager.sol";
+import {
+    IValidatorManager,
+    ValidatorManagerSettings,
+    ValidatorStatus,
+    Validator,
+    ValidatorChurnPeriod
+} from "./interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -19,39 +25,13 @@ import {ContextUpgradeable} from
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 
+// TODO: rename validatormanager
 abstract contract StakingManager is
     Initializable,
     ContextUpgradeable,
     ReentrancyGuardUpgradeable,
-    IStakingManager
+    IValidatorManager
 {
-    enum ValidatorStatus {
-        Unknown,
-        PendingAdded,
-        Active,
-        PendingRemoved,
-        Completed,
-        Invalidated
-    }
-
-    struct Validator {
-        ValidatorStatus status;
-        bytes32 nodeID;
-        uint64 weight;
-        uint64 startedAt;
-        uint64 endedAt;
-        uint64 uptimeSeconds;
-        address owner;
-        bool rewarded;
-        uint64 messageNonce;
-    }
-
-    struct ValidatorChurnPeriod {
-        uint256 startedAt;
-        uint64 initialStake;
-        uint64 churnAmount;
-    }
-
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.StakingManager
     struct StakingManagerStorage {
@@ -92,7 +72,7 @@ abstract contract StakingManager is
         IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     // solhint-disable-next-line func-name-mixedcase
-    function __StakingManager_init(StakingManagerSettings calldata settings)
+    function __StakingManager_init(ValidatorManagerSettings calldata settings)
         internal
         onlyInitializing
     {
@@ -102,7 +82,7 @@ abstract contract StakingManager is
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __StakingManager_init_unchained(StakingManagerSettings calldata settings)
+    function __StakingManager_init_unchained(ValidatorManagerSettings calldata settings)
         internal
         onlyInitializing
     {
@@ -255,11 +235,10 @@ abstract contract StakingManager is
      * Any rewards for this validation period will stop accruing when this function is called.
      * @param validationID The ID of the validation being ended.
      */
-    function initializeEndValidation(
+    function _initializeEndValidation(
         bytes32 validationID,
-        bool includeUptimeProof,
-        uint32 messageIndex
-    ) external {
+        uint64 uptimeSeconds
+    ) internal virtual {
         StakingManagerStorage storage $ = _getStakingManagerStorage();
 
         // Ensure the validation period is active.
@@ -277,29 +256,6 @@ abstract contract StakingManager is
         // Set the end time of the validation period, since it is no longer known to be an active validator
         // on the P-Chain.
         validator.endedAt = uint64(block.timestamp);
-
-        uint64 uptimeSeconds;
-        if (includeUptimeProof) {
-            (WarpMessage memory warpMessage, bool valid) =
-                WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-            require(valid, "StakingManager: Invalid warp message");
-
-            require(
-                warpMessage.sourceChainID == WARP_MESSENGER.getBlockchainID(),
-                "StakingManager: Invalid source chain ID"
-            );
-            require(
-                warpMessage.originSenderAddress == address(0),
-                "StakingManager: Invalid origin sender address"
-            );
-
-            (bytes32 uptimeValidationID, uint64 uptime) =
-                StakingMessages.unpackValidationUptimeMessage(warpMessage.payload);
-            require(
-                validationID == uptimeValidationID, "StakingManager: Invalid uptime validation ID"
-            );
-            uptimeSeconds = uptime;
-        }
         validator.uptimeSeconds = uptimeSeconds;
 
         // Save the validator updates.

@@ -5,9 +5,9 @@
 
 pragma solidity 0.8.25;
 
-import {IStakingManager} from "./IStakingManager.sol";
+import {IPoSValidatorManager} from "./IPoSValidatorManager.sol";
 
-interface INativeTokenStakingManager is IStakingManager {
+interface INativeTokenStakingManager is IPoSValidatorManager {
     /**
      * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
      * @param nodeID The node ID of the validator being registered.
