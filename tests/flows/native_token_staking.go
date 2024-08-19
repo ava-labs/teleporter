@@ -170,7 +170,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 			registrationSignedMessage,
 		)
 
-		// Check that the validator is registered in the staking contract
+		// Check that the validator is has been delisted from the staking contract
 		registrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
 			stakingManager.ParseValidationPeriodEnded,
