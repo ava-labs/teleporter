@@ -8,7 +8,6 @@ pragma solidity 0.8.25;
 import {IPoSValidatorManager} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorManagerSettings} from "./interfaces/IValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
-import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
 import {ValidatorMessages} from "./ValidatorMessages.sol";
@@ -42,6 +41,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         }
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __POS_Validator_Manager_init(
         ValidatorManagerSettings calldata settings,
         uint256 minimumStakeAmount,
@@ -55,6 +55,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         );
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __POS_Validator_Manager_init_unchained(
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,

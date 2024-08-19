@@ -63,14 +63,14 @@ contract ERC20TokenStakingManager is
         IRewardCalculator rewardCalculator,
         IERC20 token
     ) external initializer {
-        __ERC20TokenStakingManager_init(
-            settings,
-            minimumStakeAmount,
-            maximumStakeAmount,
-            minimumStakeDuration,
-            rewardCalculator,
-            token
-        );
+        __ERC20TokenStakingManager_init({
+            settings: settings,
+            minimumStakeAmount: minimumStakeAmount,
+            maximumStakeAmount: maximumStakeAmount,
+            minimumStakeDuration: minimumStakeDuration,
+            rewardCalculator: rewardCalculator,
+            token: token
+        });
     }
 
     // solhint-disable func-name-mixedcase
@@ -83,11 +83,7 @@ contract ERC20TokenStakingManager is
         IERC20 token
     ) internal onlyInitializing {
         __POS_Validator_Manager_init(
-            settings,
-            minimumStakeAmount,
-            maximumStakeAmount,
-            minimumStakeDuration,
-            rewardCalculator
+            settings, minimumStakeAmount, maximumStakeAmount, minimumStakeDuration, rewardCalculator
         );
         __ERC20TokenStakingManager_init_unchained(token);
     }

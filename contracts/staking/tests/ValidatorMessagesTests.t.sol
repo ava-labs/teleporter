@@ -84,7 +84,8 @@ contract ValidatorMessagesTest is Test {
                 signature: DEFAULT_ED25519_SIGNATURE
             })
         );
-        ValidatorMessages.ValidationInfo memory info = ValidatorMessages.unpackValidationInfo(packed);
+        ValidatorMessages.ValidationInfo memory info =
+            ValidatorMessages.unpackValidationInfo(packed);
         assertEq(info.subnetID, DEFAULT_SUBNET_ID);
         assertEq(info.nodeID, DEFAULT_NODE_ID);
         assertEq(info.weight, DEFAULT_WEIGHT);

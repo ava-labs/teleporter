@@ -7,11 +7,6 @@ pragma solidity 0.8.25;
 
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {PoSValidatorManager} from "../PoSValidatorManager.sol";
-import {ICMInitializable} from "@utilities/ICMInitializable.sol";
-import {ValidatorManagerSettings} from "../interfaces/IValidatorManager.sol";
-import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
-import {OwnableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable@5.0.2/access/OwnableUpgradeable.sol";
 
 abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     PoSValidatorManager public posValidatorManager;

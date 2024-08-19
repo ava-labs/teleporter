@@ -19,7 +19,6 @@ import {
 import {ReentrancyGuardUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ReentrancyGuardUpgradeable.sol";
 import {ValidatorMessages} from "./ValidatorMessages.sol";
-import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 import {ContextUpgradeable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/utils/ContextUpgradeable.sol";
 import {Initializable} from

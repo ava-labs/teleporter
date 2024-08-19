@@ -26,18 +26,18 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         // Construct the object under test
         app = new ERC20TokenStakingManager(ICMInitializable.Allowed);
         token = new ExampleERC20();
-        app.initialize(
-            ValidatorManagerSettings({
+        app.initialize({
+            settings: ValidatorManagerSettings({
                 pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
                 subnetID: DEFAULT_SUBNET_ID,
                 maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
             }),
-            DEFAULT_MINIMUM_STAKE,
-            DEFAULT_MAXIMUM_STAKE,
-            DEFAULT_MINIMUM_STAKE_DURATION,
-            IRewardCalculator(address(0)),
-            token
-        );
+            minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+            maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+            minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+            rewardCalculator: IRewardCalculator(address(0)),
+            token: token
+        });
         validatorManager = app;
         posValidatorManager = app;
     }
