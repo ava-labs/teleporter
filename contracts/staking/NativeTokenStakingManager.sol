@@ -73,6 +73,7 @@ contract NativeTokenStakingManager is
         bytes memory signature
     ) external payable returns (bytes32) {
         uint64 weight = _processStake(msg.value);
+
         return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, signature);
     }
 

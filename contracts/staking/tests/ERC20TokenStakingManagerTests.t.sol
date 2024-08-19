@@ -46,10 +46,11 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
         bytes32 nodeID,
         uint64 registrationExpiry,
         bytes memory signature,
-        uint256 stakeAmount
+        uint64 weight
     ) internal virtual override returns (bytes32) {
-        return
-            app.initializeValidatorRegistration(stakeAmount, nodeID, registrationExpiry, signature);
+        return app.initializeValidatorRegistration(
+            app.weightToValue(weight), nodeID, registrationExpiry, signature
+        );
     }
 
     function _beforeSend(uint64 weight) internal override {

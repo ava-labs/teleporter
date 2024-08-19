@@ -324,7 +324,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes32 nodeID,
         uint64 registrationExpiry,
         bytes memory signature,
-        uint256 stakeAmount
+        uint64 weight
     ) internal virtual returns (bytes32);
 
     function _initializeEndValidation(bytes32 validationID) internal virtual;

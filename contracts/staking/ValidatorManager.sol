@@ -50,7 +50,7 @@ abstract contract ValidatorManager is
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ValidatorManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Unit test for storage slot and update slot
     bytes32 private constant _VALIDATOR_MANAGER_STORAGE_LOCATION =
-        0xafe6c4731b852fc2be89a0896ae43d22d8b24989064d841b2a1586b4d39ab600;
+        0xe92546d698950ddd38910d2e15ed1d923cd0a7b3dde9e2a6a3f380565559cb00;
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()

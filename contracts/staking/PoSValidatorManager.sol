@@ -28,7 +28,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.PoSValidatorManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Unit test for storage slot and update slot
     bytes32 private constant _POS_VALIDATOR_MANAGER_STORAGE_LOCATION =
-        0xafe6c4731b852fc2be89a0896ae43d22d8b24989064d841b2a1586b4d39ab600;
+        0x4317713f7ecbdddd4bc99e95d903adedaa883b2e7c2551610bd13e2c7e473d00;
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -106,6 +106,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Ensure the stake churn doesn't exceed the maximum churn rate.
         uint64 weight = valueToWeight(lockedValue);
         // Ensure the weight is within the valid range.
+
         require(
             weight >= $._minimumStakeAmount && weight <= $._maximumStakeAmount,
             "PoSValidatorManager: Invalid stake amount"

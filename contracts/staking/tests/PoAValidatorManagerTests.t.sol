@@ -47,11 +47,9 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
         bytes32 nodeID,
         uint64 registrationExpiry,
         bytes memory signature,
-        uint256 value
+        uint64 weight
     ) internal virtual override returns (bytes32) {
-        return app.initializeValidatorRegistration(
-            uint64(value), nodeID, registrationExpiry, signature
-        );
+        return app.initializeValidatorRegistration(weight, nodeID, registrationExpiry, signature);
     }
 
     function _initializeEndValidation(bytes32 validationID) internal virtual override {
