@@ -91,7 +91,7 @@ abstract contract ValidatorManager is
     }
 
     /**
-     * @notice Begins the validator registration process. Locks the provided native asset in the contract as the stake.
+     * @notice Begins the validator registration process, and sets the initial weight for the validator.
      * @param nodeID The node ID of the validator being registered.
      * @param registrationExpiry The time at which the reigistration is no longer valid on the P-Chain.
      * @param signature The raw bytes of the Ed25519 signature over the concatenated bytes of
@@ -343,6 +343,7 @@ abstract contract ValidatorManager is
      * rate for the past hour. If the churn rate is exceeded, the function will revert. If the churn rate is not exceeded,
      * the function will update the churn tracker with the new amount.
      */
+    // TODO: right now implementation has reference to stake, evaluate for PoA.
     function _checkAndUpdateChurnTracker(uint64 amount) private {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         if ($._maximumHourlyChurn == 0) {
