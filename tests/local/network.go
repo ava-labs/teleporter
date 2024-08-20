@@ -50,21 +50,12 @@ type LocalNetwork struct {
 	globalFundedKey *ecdsa.PrivateKey
 
 	// Internal vars only used to set up the local network
-	tmpnet              *tmpnet.Network
-	warpChainConfigPath string
+	tmpnet *tmpnet.Network
 }
 
 const (
-	fundedKeyStr           = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
-	warpEnabledChainConfig = `{
-		"warp-api-enabled": true, 
-		"eth-apis":["eth","eth-filter","net","admin","web3",
-					"internal-eth","internal-blockchain","internal-transaction",
-					"internal-debug","internal-account","internal-personal",
-					"debug","debug-tracer","debug-file-tracer","debug-handler"]
-	}`
-
-	timeout = 60 * time.Second
+	fundedKeyStr = "56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"
+	timeout      = 60 * time.Second
 )
 
 type SubnetSpec struct {
@@ -88,12 +79,6 @@ func NewLocalNetwork(
 	// Create extra nodes to be used to add more validators later
 	extraNodes := subnetEvmTestUtils.NewTmpnetNodes(extraNodeCount)
 
-	f, err := os.CreateTemp(os.TempDir(), "config.json")
-	Expect(err).Should(BeNil())
-	_, err = f.Write([]byte(warpEnabledChainConfig))
-	Expect(err).Should(BeNil())
-	warpChainConfigPath := f.Name()
-
 	var allNodes []*tmpnet.Node
 	allNodes = append(allNodes, extraNodes...) // to be appended w/ subnet validators
 
@@ -111,7 +96,7 @@ func NewLocalNetwork(
 				subnetSpec.TeleporterDeployedBytecode,
 				subnetSpec.TeleporterDeployerAddress,
 			),
-			subnetEvmTestUtils.DefaultChainConfig,
+			utils.WarpEnabledChainConfig,
 			nodes...,
 		)
 		subnets = append(subnets, subnet)
@@ -149,12 +134,11 @@ func NewLocalNetwork(
 	}
 
 	localNetwork := &LocalNetwork{
-		primaryNetworkInfo:  &interfaces.SubnetTestInfo{},
-		subnetsInfo:         make(map[ids.ID]*interfaces.SubnetTestInfo),
-		extraNodes:          extraNodes,
-		globalFundedKey:     globalFundedKey,
-		tmpnet:              network,
-		warpChainConfigPath: warpChainConfigPath,
+		primaryNetworkInfo: &interfaces.SubnetTestInfo{},
+		subnetsInfo:        make(map[ids.ID]*interfaces.SubnetTestInfo),
+		extraNodes:         extraNodes,
+		globalFundedKey:    globalFundedKey,
+		tmpnet:             network,
 	}
 	for _, subnet := range network.Subnets {
 		localNetwork.setSubnetValues(subnet)
@@ -486,7 +470,6 @@ func (n *LocalNetwork) TearDownNetwork() {
 	Expect(n).ShouldNot(BeNil())
 	Expect(n.tmpnet).ShouldNot(BeNil())
 	Expect(n.tmpnet.Stop(context.Background())).Should(BeNil())
-	Expect(os.Remove(n.warpChainConfigPath)).Should(BeNil())
 }
 
 func (n *LocalNetwork) AddSubnetValidators(ctx context.Context, subnetID ids.ID, count uint) {

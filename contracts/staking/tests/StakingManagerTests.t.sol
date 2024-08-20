@@ -19,8 +19,8 @@ abstract contract StakingManagerTest is Test {
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
-    bytes public constant DEFAULT_ED25519_SIGNATURE = bytes(
-        hex"12345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
+    bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
+        hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
@@ -63,7 +63,7 @@ abstract contract StakingManagerTest is Test {
             DEFAULT_SUBNET_ID,
             DEFAULT_WEIGHT,
             DEFAULT_EXPIRY,
-            DEFAULT_ED25519_SIGNATURE
+            DEFAULT_BLS_PUBLIC_KEY
         );
     }
 
@@ -92,7 +92,7 @@ abstract contract StakingManagerTest is Test {
             DEFAULT_SUBNET_ID,
             DEFAULT_WEIGHT,
             DEFAULT_EXPIRY,
-            DEFAULT_ED25519_SIGNATURE
+            DEFAULT_BLS_PUBLIC_KEY
         );
         (, bytes memory registerSubnetValidatorMessage) = StakingMessages
             .packRegisterSubnetValidatorMessage(
@@ -101,7 +101,7 @@ abstract contract StakingManagerTest is Test {
                 nodeID: DEFAULT_NODE_ID,
                 weight: DEFAULT_WEIGHT,
                 registrationExpiry: DEFAULT_EXPIRY,
-                signature: DEFAULT_ED25519_SIGNATURE
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY
             })
         );
         _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
@@ -114,7 +114,7 @@ abstract contract StakingManagerTest is Test {
             subnetID: DEFAULT_SUBNET_ID,
             weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
-            signature: DEFAULT_ED25519_SIGNATURE,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
     }
@@ -125,7 +125,7 @@ abstract contract StakingManagerTest is Test {
             subnetID: DEFAULT_SUBNET_ID,
             weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
-            signature: DEFAULT_ED25519_SIGNATURE,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
@@ -145,7 +145,7 @@ abstract contract StakingManagerTest is Test {
             subnetID: DEFAULT_SUBNET_ID,
             weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
-            signature: DEFAULT_ED25519_SIGNATURE,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
@@ -161,7 +161,7 @@ abstract contract StakingManagerTest is Test {
             subnetID: DEFAULT_SUBNET_ID,
             weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
-            signature: DEFAULT_ED25519_SIGNATURE,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
@@ -183,7 +183,7 @@ abstract contract StakingManagerTest is Test {
             subnetID: DEFAULT_SUBNET_ID,
             weight: DEFAULT_WEIGHT,
             registrationExpiry: DEFAULT_EXPIRY,
-            signature: DEFAULT_ED25519_SIGNATURE,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
@@ -224,15 +224,15 @@ abstract contract StakingManagerTest is Test {
         bytes32 subnetID,
         uint64 weight,
         uint64 registrationExpiry,
-        bytes memory signature
+        bytes memory blsPublicKey
     ) internal returns (bytes32 validationID) {
-        (validationID,) = StakingMessages.packValidationInfo(
+        (validationID,) = StakingMessages.packRegisterSubnetValidatorMessage(
             StakingMessages.ValidationInfo({
                 nodeID: nodeID,
                 subnetID: subnetID,
                 weight: weight,
                 registrationExpiry: registrationExpiry,
-                signature: signature
+                blsPublicKey: blsPublicKey
             })
         );
         (, bytes memory registerSubnetValidatorMessage) = StakingMessages
@@ -242,7 +242,7 @@ abstract contract StakingManagerTest is Test {
                 nodeID: nodeID,
                 weight: weight,
                 registrationExpiry: registrationExpiry,
-                signature: signature
+                blsPublicKey: blsPublicKey
             })
         );
         vm.warp(DEFAULT_EXPIRY - 1);
@@ -255,7 +255,7 @@ abstract contract StakingManagerTest is Test {
         );
 
         _initializeValidatorRegistration(
-            nodeID, registrationExpiry, signature, stakingManager.weightToValue(weight)
+            nodeID, registrationExpiry, blsPublicKey, stakingManager.weightToValue(weight)
         );
     }
 
@@ -264,11 +264,11 @@ abstract contract StakingManagerTest is Test {
         bytes32 subnetID,
         uint64 weight,
         uint64 registrationExpiry,
-        bytes memory signature,
+        bytes memory blsPublicKey,
         uint64 registrationTimestamp
     ) internal returns (bytes32 validationID) {
         validationID = _setUpInitializeValidatorRegistration(
-            nodeID, subnetID, weight, registrationExpiry, signature
+            nodeID, subnetID, weight, registrationExpiry, blsPublicKey
         );
         bytes memory subnetValidatorRegistrationMessage =
             StakingMessages.packSubnetValidatorRegistrationMessage(validationID, true);
@@ -287,7 +287,7 @@ abstract contract StakingManagerTest is Test {
         bytes32 subnetID,
         uint64 weight,
         uint64 registrationExpiry,
-        bytes memory signature,
+        bytes memory blsPublicKey,
         uint64 registrationTimestamp,
         uint64 completionTimestamp
     ) internal returns (bytes32 validationID) {
@@ -296,7 +296,7 @@ abstract contract StakingManagerTest is Test {
             subnetID: subnetID,
             weight: weight,
             registrationExpiry: registrationExpiry,
-            signature: signature,
+            blsPublicKey: blsPublicKey,
             registrationTimestamp: registrationTimestamp
         });
 
@@ -342,7 +342,7 @@ abstract contract StakingManagerTest is Test {
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
-        bytes memory signature,
+        bytes memory blsPublicKey,
         uint256 stakeAmount
     ) internal virtual returns (bytes32);
 
