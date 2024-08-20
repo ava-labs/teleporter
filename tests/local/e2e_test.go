@@ -44,27 +44,8 @@ func TestE2E(t *testing.T) {
 
 // Define the Teleporter before and after suite functions.
 var _ = ginkgo.BeforeSuite(func() {
-	// Create the local network instance
-	LocalNetworkInstance = local.NewLocalNetwork(
-		"interchain-token-transfer-test",
-		warpGenesisTemplateFile,
-		[]local.SubnetSpec{
-			{
-				Name:       "A",
-				EVMChainID: 12345,
-				NodeCount:  1,
-			},
-			{
-				Name:       "B",
-				EVMChainID: 54321,
-				NodeCount:  1,
-			},
-		},
-		0,
-	)
-
 	// Generate the Teleporter deployment values
-	teleporterDeployerTransaction, teleporterDeployerAddress,
+	teleporterDeployerTransaction, teleporterDeployedBytecode, teleporterDeployerAddress,
 		teleporterContractAddress, err := deploymentUtils.ConstructKeylessTransaction(
 		teleporterByteCodeFile,
 		false,
@@ -72,14 +53,39 @@ var _ = ginkgo.BeforeSuite(func() {
 	)
 	Expect(err).Should(BeNil())
 
+	// Create the local network instance
+	LocalNetworkInstance = local.NewLocalNetwork(
+		"interchain-token-transfer-test",
+		warpGenesisTemplateFile,
+		[]local.SubnetSpec{
+			{
+				Name:                       "A",
+				EVMChainID:                 12345,
+				TeleporterContractAddress:  teleporterContractAddress,
+				TeleporterDeployedBytecode: teleporterDeployedBytecode,
+				TeleporterDeployerAddress:  teleporterDeployerAddress,
+				NodeCount:                  1,
+			},
+			{
+				Name:                       "B",
+				EVMChainID:                 54321,
+				TeleporterContractAddress:  teleporterContractAddress,
+				TeleporterDeployedBytecode: teleporterDeployedBytecode,
+				TeleporterDeployerAddress:  teleporterDeployerAddress,
+				NodeCount:                  1,
+			},
+		},
+		0,
+	)
+
 	_, fundedKey := LocalNetworkInstance.GetFundedAccountInfo()
-	LocalNetworkInstance.DeployTeleporterContracts(
+	LocalNetworkInstance.DeployTeleporterContractToCChain(
 		teleporterDeployerTransaction,
 		teleporterDeployerAddress,
 		teleporterContractAddress,
 		fundedKey,
-		true,
 	)
+	LocalNetworkInstance.SetTeleporterContractAddress(teleporterContractAddress)
 
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
 	log.Info("Set up ginkgo before suite")
@@ -89,6 +95,8 @@ var _ = ginkgo.BeforeSuite(func() {
 		LocalNetworkInstance.Dir(),
 		ginkgo.ReportEntryVisibilityFailureOrVerbose,
 	)
+
+	log.Info("Set up ginkgo before suite")
 })
 
 var _ = ginkgo.AfterSuite(func() {
