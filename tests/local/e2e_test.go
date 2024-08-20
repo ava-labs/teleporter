@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	teleporterByteCodeFile  = "./contracts/lib/teleporter/contracts/out/TeleporterMessenger.sol/TeleporterMessenger.json"
+	teleporterByteCodeFile  = "./contracts/lib/teleporter/out/TeleporterMessenger.sol/TeleporterMessenger.json"
 	warpGenesisTemplateFile = "./tests/utils/warp-genesis-template.json"
 
 	erc20TokenHomeLabel    = "ERC20TokenHome"
