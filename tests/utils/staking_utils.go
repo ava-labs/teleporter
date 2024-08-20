@@ -144,7 +144,7 @@ func DeployAndInitializeERC20TokenStakingManager(
 // Function call utils
 //
 
-func CallNativeInitializeValidatorRegistration(
+func InitializeNativeValidatorRegistration(
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakeAmount uint64,
@@ -172,7 +172,7 @@ func CallNativeInitializeValidatorRegistration(
 	return receipt, ids.ID(registrationInitiatedEvent.ValidationID)
 }
 
-func CallERC20InitializeValidatorRegistration(
+func InitializeERC20ValidatorRegistration(
 	senderKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakeAmount uint64,
@@ -211,7 +211,7 @@ func CallERC20InitializeValidatorRegistration(
 	return receipt, ids.ID(registrationInitiatedEvent.ValidationID)
 }
 
-func CallNativeCompleteValidatorRegistration(
+func CompleteNativeValidatorRegistration(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
@@ -228,7 +228,7 @@ func CallNativeCompleteValidatorRegistration(
 	)
 }
 
-func CallERC20CompleteValidatorRegistration(
+func CompleteERC20ValidatorRegistration(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
@@ -272,7 +272,7 @@ func completeValidatorRegistration(
 	return SendTransactionAndWaitForSuccess(context.Background(), subnet, signedRegistrationTx)
 }
 
-func CallNativeInitializeEndValidation(
+func InitializeEndNativeValidation(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *nativetokenstakingmanager.NativeTokenStakingManager,
@@ -290,7 +290,7 @@ func CallNativeInitializeEndValidation(
 	return WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
 }
 
-func CallERC20InitializeEndValidation(
+func InitializeEndERC20Validation(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManager *erc20tokenstakingmanager.ERC20TokenStakingManager,
@@ -308,7 +308,7 @@ func CallERC20InitializeEndValidation(
 	return WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
 }
 
-func CallNativeCompleteEndValidation(
+func CompleteEndNativeValidation(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,
@@ -325,7 +325,7 @@ func CallNativeCompleteEndValidation(
 	)
 }
 
-func CallERC20CompleteEndValidation(
+func CompleteEndERC20Validation(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
 	stakingManagerContractAddress common.Address,

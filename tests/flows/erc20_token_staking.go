@@ -60,7 +60,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		nodeID := ids.GenerateTestID()
 		blsPublicKey := [bls.PublicKeyLen]byte{}
 		var receipt *types.Receipt
-		receipt, validationID = utils.CallERC20InitializeValidatorRegistration(
+		receipt, validationID = utils.InitializeERC20ValidatorRegistration(
 			fundedKey,
 			subnetAInfo,
 			stakeAmount,
@@ -102,7 +102,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CallERC20CompleteValidatorRegistration(
+		receipt = utils.CompleteERC20ValidatorRegistration(
 			fundedKey,
 			subnetAInfo,
 			stakingManagerAddress,
@@ -121,7 +121,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	// Delist the validator
 	//
 	{
-		receipt := utils.CallERC20InitializeEndValidation(
+		receipt := utils.InitializeEndERC20Validation(
 			fundedKey,
 			subnetAInfo,
 			stakingManager,
@@ -165,7 +165,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CallERC20CompleteEndValidation(
+		receipt = utils.CompleteEndERC20Validation(
 			fundedKey,
 			subnetAInfo,
 			stakingManagerAddress,

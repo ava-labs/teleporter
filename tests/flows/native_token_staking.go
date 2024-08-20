@@ -60,7 +60,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		nodeID := ids.GenerateTestID()
 		blsPublicKey := [bls.PublicKeyLen]byte{}
 		var receipt *types.Receipt
-		receipt, validationID = utils.CallNativeInitializeValidatorRegistration(
+		receipt, validationID = utils.InitializeNativeValidatorRegistration(
 			fundedKey,
 			subnetAInfo,
 			stakeAmount,
@@ -100,7 +100,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CallNativeCompleteValidatorRegistration(
+		receipt = utils.CompleteNativeValidatorRegistration(
 			fundedKey,
 			subnetAInfo,
 			stakingManagerContractAddress,
@@ -119,7 +119,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	// Delist the validator
 	//
 	{
-		receipt := utils.CallNativeInitializeEndValidation(
+		receipt := utils.InitializeEndNativeValidation(
 			fundedKey,
 			subnetAInfo,
 			stakingManager,
@@ -163,7 +163,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CallNativeCompleteEndValidation(
+		receipt = utils.CompleteEndNativeValidation(
 			fundedKey,
 			subnetAInfo,
 			stakingManagerContractAddress,
