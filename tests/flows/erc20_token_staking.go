@@ -14,7 +14,7 @@ import (
 )
 
 // Registers a erc20 token staking validator on a subnet. The steps are as follows:
-// - Deploy the ERCTokenStakingManager
+// - Deploy the ERC20TokenStakingManager
 // - Initiate validator registration
 // - Deliver the Warp message to the P-Chain (not implemented)
 // - Aggregate P-Chain signatures on the response Warp message
