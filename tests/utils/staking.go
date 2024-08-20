@@ -401,3 +401,53 @@ func ConstructSubnetValidatorRegistrationMessage(
 	Expect(err).Should(BeNil())
 	return registrationSignedMessage
 }
+
+//
+// Warp message validiation utils
+// These will be replaced by the actual implementation on the P-Chain in the future
+//
+
+func ValidateRegisterSubnetValidatorMessage(
+	signedWarpMessage *avalancheWarp.Message,
+	nodeID ids.ID,
+	weight uint64,
+	subnetID ids.ID,
+	blsPublicKey [bls.PublicKeyLen]byte,
+) {
+	// Validate the Warp message, (this will be done on the P-Chain in the future)
+	msg, err := warpPayload.ParseAddressedCall(signedWarpMessage.UnsignedMessage.Payload)
+	Expect(err).Should(BeNil())
+	// Check that the addressed call payload is a registered Warp message type
+	var payloadInterface warpMessages.Payload
+	ver, err := warpMessages.Codec.Unmarshal(msg.Payload, &payloadInterface)
+	Expect(err).Should(BeNil())
+	registerValidatorPayload, ok := payloadInterface.(*warpMessages.RegisterSubnetValidator)
+	Expect(ok).Should(BeTrue())
+
+	Expect(ver).Should(Equal(uint16(warpMessages.CodecVersion)))
+	Expect(registerValidatorPayload.NodeID).Should(Equal(nodeID))
+	Expect(registerValidatorPayload.Weight).Should(Equal(weight))
+	Expect(registerValidatorPayload.SubnetID).Should(Equal(subnetID))
+	Expect(registerValidatorPayload.BlsPubKey[:]).Should(Equal(blsPublicKey[:]))
+}
+
+func ValidateSetSubnetValidatorWeightMessage(
+	signedWarpMessage *avalancheWarp.Message,
+	validationID ids.ID,
+	weight uint64,
+	nonce uint64,
+) {
+	msg, err := warpPayload.ParseAddressedCall(signedWarpMessage.UnsignedMessage.Payload)
+	Expect(err).Should(BeNil())
+	// Check that the addressed call payload is a registered Warp message type
+	var payloadInterface warpMessages.Payload
+	ver, err := warpMessages.Codec.Unmarshal(msg.Payload, &payloadInterface)
+	Expect(err).Should(BeNil())
+	registerValidatorPayload, ok := payloadInterface.(*warpMessages.SetSubnetValidatorWeight)
+	Expect(ok).Should(BeTrue())
+
+	Expect(ver).Should(Equal(uint16(warpMessages.CodecVersion)))
+	Expect(registerValidatorPayload.ValidationID).Should(Equal(validationID))
+	Expect(registerValidatorPayload.Weight).Should(Equal(weight))
+	Expect(registerValidatorPayload.Nonce).Should(Equal(nonce))
+}

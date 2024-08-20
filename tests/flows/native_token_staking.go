@@ -6,8 +6,6 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
-	warpMessages "github.com/ava-labs/avalanchego/vms/platformvm/warp/messages"
-	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
 	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/teleporter/tests/interfaces"
@@ -83,20 +81,13 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
 
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
-		msg, err := warpPayload.ParseAddressedCall(signedWarpMessage.UnsignedMessage.Payload)
-		Expect(err).Should(BeNil())
-		// Check that the addressed call payload is a registered Warp message type
-		var payloadInterface warpMessages.Payload
-		ver, err := warpMessages.Codec.Unmarshal(msg.Payload, &payloadInterface)
-		Expect(err).Should(BeNil())
-		registerValidatorPayload, ok := payloadInterface.(*warpMessages.RegisterSubnetValidator)
-		Expect(ok).Should(BeTrue())
-
-		Expect(ver).Should(Equal(uint16(warpMessages.CodecVersion)))
-		Expect(registerValidatorPayload.NodeID).Should(Equal(nodeID))
-		Expect(registerValidatorPayload.Weight).Should(Equal(weight))
-		Expect(registerValidatorPayload.SubnetID).Should(Equal(subnetAInfo.SubnetID))
-		Expect(registerValidatorPayload.BlsPubKey[:]).Should(Equal(blsPublicKey[:]))
+		utils.ValidateRegisterSubnetValidatorMessage(
+			signedWarpMessage,
+			nodeID,
+			weight,
+			subnetAInfo.SubnetID,
+			blsPublicKey,
+		)
 
 		// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 		registrationSignedMessage := utils.ConstructSubnetValidatorRegistrationMessage(
@@ -146,20 +137,9 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		// (Sending to the P-Chain will be skipped for now)
 		signedWarpMessage := network.ConstructSignedWarpMessage(context.Background(), receipt, subnetAInfo, pChainInfo)
 		Expect(err).Should(BeNil())
-		// Validate the Warp message, (this will be done on the P-Chain in the future)
-		msg, err := warpPayload.ParseAddressedCall(signedWarpMessage.UnsignedMessage.Payload)
-		Expect(err).Should(BeNil())
-		// Check that the addressed call payload is a registered Warp message type
-		var payloadInterface warpMessages.Payload
-		ver, err := warpMessages.Codec.Unmarshal(msg.Payload, &payloadInterface)
-		Expect(err).Should(BeNil())
-		registerValidatorPayload, ok := payloadInterface.(*warpMessages.SetSubnetValidatorWeight)
-		Expect(ok).Should(BeTrue())
 
-		Expect(ver).Should(Equal(uint16(warpMessages.CodecVersion)))
-		Expect(registerValidatorPayload.ValidationID).Should(Equal(validationID))
-		Expect(registerValidatorPayload.Weight).Should(Equal(uint64(0)))
-		Expect(registerValidatorPayload.Nonce).Should(Equal(uint64(0)))
+		// Validate the Warp message, (this will be done on the P-Chain in the future)
+		utils.ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, 0)
 
 		// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 		registrationSignedMessage := utils.ConstructSubnetValidatorRegistrationMessage(
