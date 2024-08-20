@@ -2,11 +2,13 @@ package flows
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
 	warpMessages "github.com/ava-labs/avalanchego/vms/platformvm/warp/messages"
 	warpPayload "github.com/ava-labs/avalanchego/vms/platformvm/warp/payload"
+	"github.com/ava-labs/subnet-evm/accounts/abi/bind"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
@@ -54,7 +56,11 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	//
 	var validationID ids.ID // To be used in the delisting step
 	stakeAmount := uint64(1e18)
-	weight := uint64(1e6) // stakeAmount / 1e12
+	weight, err := stakingManager.ValueToWeight(
+		&bind.CallOpts{},
+		big.NewInt(int64(stakeAmount)),
+	)
+	Expect(err).Should(BeNil())
 	{
 		// Iniatiate validator registration
 		nodeID := ids.GenerateTestID()
