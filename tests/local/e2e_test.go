@@ -22,6 +22,7 @@ const (
 	upgradabilityLabel       = "upgradability"
 	utilsLabel               = "utils"
 	validatorSetSigLabel     = "ValidatorSetSig"
+	stakingManagerLabel      = "StakingManager"
 )
 
 var (
@@ -188,6 +189,16 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 		ginkgo.Label(teleporterMessengerLabel),
 		func() {
 			flows.ValidatorChurn(LocalNetworkInstance)
+		})
+	ginkgo.It("Native token staking manager",
+		ginkgo.Label(stakingManagerLabel),
+		func() {
+			flows.NativeTokenStakingManager(LocalNetworkInstance)
+		})
+	ginkgo.It("ERC20 token staking manager",
+		ginkgo.Label(stakingManagerLabel),
+		func() {
+			flows.ERC20TokenStakingManager(LocalNetworkInstance)
 		})
 	// Since the validator churn test modifies the network topology, we put it last for now.
 	// It should not affect the other tests, but we get some errors if we run it before the other tests.

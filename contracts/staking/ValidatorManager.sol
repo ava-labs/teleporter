@@ -94,18 +94,13 @@ abstract contract ValidatorManager is
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
      * @param nodeID The node ID of the validator being registered.
      * @param registrationExpiry The time at which the reigistration is no longer valid on the P-Chain.
-     * @param signature The raw bytes of the Ed25519 signature over the concatenated bytes of
-     * [subnetID]+[nodeID]+[blsPublicKey]+[weight]+[balance]+[expiry]. This signature must correspond to the Ed25519
-     * public key that is used for the nodeID. This approach prevents NodeIDs from being unwillingly added to Subnets.
-     * balance is the minimum initial $nAVAX balance that must be attached to the validator serialized as a uint64.
-     * The signature field will be validated by the P-Chain. Implementations may choose to validate that the signature
-     * field is well-formed but it is not required.
+     * @param blsPublicKey The BLS public key of the validator.
      */
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 weight,
         uint64 registrationExpiry,
-        bytes memory signature
+        bytes memory blsPublicKey
     ) internal nonReentrant returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
@@ -120,12 +115,7 @@ abstract contract ValidatorManager is
         require(
             $._activeValidators[nodeID] == bytes32(0), "ValidatorManager: Node ID already active"
         );
-
-        // Ensure the signature is the proper length. The EVM does not provide an Ed25519 precompile to
-        // validate the signature, but the P-Chain will validate the signature. If the signature is invalid,
-        // the P-Chain will reject the registration, and the stake can be returned to the staker after the registration
-        // expiry has passed.
-        require(signature.length == 64, "ValidatorManager: Invalid signature length");
+        require(blsPublicKey.length == 48, "ValidatorManager: Invalid blsPublicKey length");
 
         _checkAndUpdateChurnTracker(weight);
 
@@ -135,8 +125,8 @@ abstract contract ValidatorManager is
                 subnetID: $._subnetID,
                 nodeID: nodeID,
                 weight: weight,
-                registrationExpiry: registrationExpiry,
-                signature: signature
+                blsPublicKey: blsPublicKey,
+                registrationExpiry: registrationExpiry
             })
         );
         $._pendingRegisterValidationMessages[validationID] = registerSubnetValidatorMessage;
