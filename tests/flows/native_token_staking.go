@@ -15,19 +15,22 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// Registers a native token staking validator on a subnet. The steps are as follows:
-// - Deploy the NativeTokenStakingManager
-// - Initiate validator registration
-// - Deliver the Warp message to the P-Chain (not implemented)
-// - Aggregate P-Chain signatures on the response Warp message
-// - Deliver the Warp message to the subnet
-// - Verify that the validator is registered in the staking contract
-// Delists the validator from the subnet. The steps are as follows:
-// - Initiate validator delisting
-// - Deliver the Warp message to the P-Chain (not implemented)
-// - Aggregate P-Chain signatures on the response Warp message
-// - Deliver the Warp message to the subnet
-// - Verify that the validator is delisted from the staking contract
+/*
+ * Registers a native token staking validator on a subnet. The steps are as follows:
+ * - Deploy the NativeTokenStakingManager
+ * - Initiate validator registration
+ * - Deliver the Warp message to the P-Chain (not implemented)
+ * - Aggregate P-Chain signatures on the response Warp message
+ * - Deliver the Warp message to the subnet
+ * - Verify that the validator is registered in the staking contract
+ *
+ * Delists the validator from the subnet. The steps are as follows:
+ * - Initiate validator delisting
+ * - Deliver the Warp message to the P-Chain (not implemented)
+ * - Aggregate P-Chain signatures on the response Warp message
+ * - Deliver the Warp message to the subnet
+ * - Verify that the validator is delisted from the staking contract
+ */
 func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
