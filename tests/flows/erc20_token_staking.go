@@ -56,7 +56,7 @@ func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	stakeAmount := uint64(1e18)
 	weight := uint64(1e6) // stakeAmount / 1e12
 	{
-		// Iniatiate validator registration
+		// Initiate validator registration
 		nodeID := ids.GenerateTestID()
 		blsPublicKey := [bls.PublicKeyLen]byte{}
 		var receipt *types.Receipt
