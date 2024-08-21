@@ -85,10 +85,9 @@ var _ = ginkgo.BeforeSuite(func() {
 		teleporterContractAddress,
 		fundedKey,
 	)
-	LocalNetworkInstance.SetTeleporterContractAddress(teleporterContractAddress)
 
+	LocalNetworkInstance.SetTeleporterContractAddress(teleporterContractAddress)
 	LocalNetworkInstance.DeployTeleporterRegistryContracts(teleporterContractAddress, fundedKey)
-	log.Info("Set up ginkgo before suite")
 
 	ginkgo.AddReportEntry(
 		"network directory with node logs & configs; useful in the case of failures",
@@ -96,7 +95,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		ginkgo.ReportEntryVisibilityFailureOrVerbose,
 	)
 
-	log.Info("Set up ginkgo before suite")
+	log.Info("Finished ginkgo before suite set up")
 })
 
 var _ = ginkgo.AfterSuite(func() {
