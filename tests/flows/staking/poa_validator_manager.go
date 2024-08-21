@@ -189,7 +189,7 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 
 		// Deliver the Warp message to the subnet
 		receipt = utils.CompleteEndPoAValidation(
-			fundedKey,
+			ownerKey,
 			subnetAInfo,
 			validatorManagerAddress,
 			registrationSignedMessage,
