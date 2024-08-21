@@ -146,8 +146,17 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 	// Delist the validator
 	//
 	{
+		// Try with invalid validator owner
+		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
+		Expect(err).Should(BeNil())
+		_, err = validatorManager.InitializeEndValidation(
+			opts,
+			validationID,
+		)
+
+		Expect(err).ShouldNot(BeNil())
 		receipt := utils.InitializeEndPoAValidation(
-			fundedKey,
+			ownerKey,
 			subnetAInfo,
 			validatorManager,
 			validationID,
