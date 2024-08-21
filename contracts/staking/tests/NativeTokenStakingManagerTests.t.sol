@@ -8,6 +8,7 @@ pragma solidity 0.8.25;
 import {PoSValidatorManagerTest} from "./PoSValidatorManagerTests.t.sol";
 import {NativeTokenStakingManager} from "../NativeTokenStakingManager.sol";
 import {ValidatorManagerSettings} from "../interfaces/IValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "../interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "../interfaces/IRewardCalculator.sol";
 import {ICMInitializable} from "../../utilities/ICMInitializable.sol";
 
@@ -20,15 +21,17 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         // Construct the object under test
         app = new NativeTokenStakingManager(ICMInitializable.Allowed);
         app.initialize(
-            ValidatorManagerSettings({
-                pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
-                subnetID: DEFAULT_SUBNET_ID,
-                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
-            }),
-            DEFAULT_MINIMUM_STAKE,
-            DEFAULT_MAXIMUM_STAKE,
-            DEFAULT_MINIMUM_STAKE_DURATION,
-            IRewardCalculator(address(0))
+            PoSValidatorManagerSettings({
+                baseSettings: ValidatorManagerSettings({
+                    pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
+                    subnetID: DEFAULT_SUBNET_ID,
+                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                }),
+                minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
+                maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                rewardCalculator: IRewardCalculator(address(0))
+            })
         );
         validatorManager = app;
         posValidatorManager = app;

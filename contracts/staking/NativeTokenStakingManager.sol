@@ -11,7 +11,7 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
-import {ValidatorManagerSettings} from "./interfaces/IValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 
 contract NativeTokenStakingManager is
@@ -28,29 +28,16 @@ contract NativeTokenStakingManager is
     }
 
     // solhint-disable ordering
-    function initialize(
-        ValidatorManagerSettings calldata settings,
-        uint256 minimumStakeAmount,
-        uint256 maximumStakeAmount,
-        uint64 minimumStakeDuration,
-        IRewardCalculator rewardCalculator
-    ) external initializer {
-        __NativeTokenStakingManager_init(
-            settings, minimumStakeAmount, maximumStakeAmount, minimumStakeDuration, rewardCalculator
-        );
+    function initialize(PoSValidatorManagerSettings calldata settings) external initializer {
+        __NativeTokenStakingManager_init(settings);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __NativeTokenStakingManager_init(
-        ValidatorManagerSettings calldata settings,
-        uint256 minimumStakeAmount,
-        uint256 maximumStakeAmount,
-        uint64 minimumStakeDuration,
-        IRewardCalculator rewardCalculator
-    ) internal onlyInitializing {
-        __POS_Validator_Manager_init(
-            settings, minimumStakeAmount, maximumStakeAmount, minimumStakeDuration, rewardCalculator
-        );
+    function __NativeTokenStakingManager_init(PoSValidatorManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
+        __POS_Validator_Manager_init(settings);
     }
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks

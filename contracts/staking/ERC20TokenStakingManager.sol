@@ -13,7 +13,7 @@ import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
-import {ValidatorManagerSettings} from "./interfaces/IValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 
 contract ERC20TokenStakingManager is
@@ -56,35 +56,18 @@ contract ERC20TokenStakingManager is
     }
 
     function initialize(
-        ValidatorManagerSettings calldata settings,
-        uint256 minimumStakeAmount,
-        uint256 maximumStakeAmount,
-        uint64 minimumStakeDuration,
-        IRewardCalculator rewardCalculator,
+        PoSValidatorManagerSettings calldata settings,
         IERC20 token
     ) external initializer {
-        __ERC20TokenStakingManager_init({
-            settings: settings,
-            minimumStakeAmount: minimumStakeAmount,
-            maximumStakeAmount: maximumStakeAmount,
-            minimumStakeDuration: minimumStakeDuration,
-            rewardCalculator: rewardCalculator,
-            token: token
-        });
+        __ERC20TokenStakingManager_init(settings, token);
     }
 
     // solhint-disable func-name-mixedcase
     function __ERC20TokenStakingManager_init(
-        ValidatorManagerSettings calldata settings,
-        uint256 minimumStakeAmount,
-        uint256 maximumStakeAmount,
-        uint64 minimumStakeDuration,
-        IRewardCalculator rewardCalculator,
+        PoSValidatorManagerSettings calldata settings,
         IERC20 token
     ) internal onlyInitializing {
-        __POS_Validator_Manager_init(
-            settings, minimumStakeAmount, maximumStakeAmount, minimumStakeDuration, rewardCalculator
-        );
+        __POS_Validator_Manager_init(settings);
         __ERC20TokenStakingManager_init_unchained(token);
     }
 

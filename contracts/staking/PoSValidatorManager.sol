@@ -6,7 +6,7 @@
 pragma solidity 0.8.25;
 
 import {IPoSValidatorManager} from "./interfaces/IPoSValidatorManager.sol";
-import {ValidatorManagerSettings} from "./interfaces/IValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
 import {WarpMessage} from
     "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
@@ -42,16 +42,16 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __POS_Validator_Manager_init(
-        ValidatorManagerSettings calldata settings,
-        uint256 minimumStakeAmount,
-        uint256 maximumStakeAmount,
-        uint64 minimumStakeDuration,
-        IRewardCalculator rewardCalculator
-    ) internal onlyInitializing {
-        __ValidatorManager_init(settings);
+    function __POS_Validator_Manager_init(PoSValidatorManagerSettings calldata settings)
+        internal
+        onlyInitializing
+    {
+        __ValidatorManager_init(settings.baseSettings);
         __POS_Validator_Manager_init_unchained(
-            minimumStakeAmount, maximumStakeAmount, minimumStakeDuration, rewardCalculator
+            settings.minimumStakeAmount,
+            settings.maximumStakeAmount,
+            settings.minimumStakeDuration,
+            settings.rewardCalculator
         );
     }
 

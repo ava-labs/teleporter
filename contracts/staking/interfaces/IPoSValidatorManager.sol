@@ -5,7 +5,16 @@
 
 pragma solidity 0.8.25;
 
-import {IValidatorManager} from "./IValidatorManager.sol";
+import {IValidatorManager, ValidatorManagerSettings} from "./IValidatorManager.sol";
+import {IRewardCalculator} from "./IRewardCalculator.sol";
+
+struct PoSValidatorManagerSettings {
+    ValidatorManagerSettings baseSettings;
+    uint256 minimumStakeAmount;
+    uint256 maximumStakeAmount;
+    uint64 minimumStakeDuration;
+    IRewardCalculator rewardCalculator;
+}
 
 interface IPoSValidatorManager is IValidatorManager {
     /**
