@@ -137,13 +137,11 @@ abstract contract ValidatorManager is
         $._validationPeriods[validationID] = Validator({
             status: ValidatorStatus.PendingAdded,
             nodeID: nodeID,
+            owner: _msgSender(),
+            messageNonce: 0,
             weight: weight,
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
-            endedAt: 0,
-            uptimeSeconds: 0,
-            owner: _msgSender(),
-            rewarded: false,
-            messageNonce: 0
+            endedAt: 0
         });
         emit ValidationPeriodCreated(validationID, nodeID, messageID, weight, registrationExpiry);
 
@@ -210,10 +208,7 @@ abstract contract ValidatorManager is
      * Any rewards for this validation period will stop accruing when this function is called.
      * @param validationID The ID of the validation being ended.
      */
-    function _initializeEndValidation(
-        bytes32 validationID,
-        uint64 uptimeSeconds
-    ) internal virtual {
+    function _initializeEndValidation(bytes32 validationID) internal virtual {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Ensure the validation period is active.
@@ -233,7 +228,6 @@ abstract contract ValidatorManager is
         // Set the end time of the validation period, since it is no longer known to be an active validator
         // on the P-Chain.
         validator.endedAt = uint64(block.timestamp);
-        validator.uptimeSeconds = uptimeSeconds;
 
         // Save the validator updates.
         // TODO: Optimize storage writes here (probably don't need to write the whole value).
@@ -245,9 +239,7 @@ abstract contract ValidatorManager is
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         // Emit the event to signal the start of the validator removal process.
-        emit ValidatorRemovalInitialized(
-            validationID, messageID, validator.weight, block.timestamp, uptimeSeconds
-        );
+        emit ValidatorRemovalInitialized(validationID, messageID, validator.weight, block.timestamp);
     }
 
     /**

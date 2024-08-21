@@ -54,8 +54,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes32 indexed validationID,
         bytes32 indexed setWeightMessageID,
         uint256 stakeAmount,
-        uint256 endTime,
-        uint64 uptime
+        uint256 endTime
     );
 
     event ValidationPeriodEnded(bytes32 indexed validationID);
@@ -286,7 +285,7 @@ abstract contract ValidatorManagerTest is Test {
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp, 0);
+        emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
 
         _initializeEndValidation(validationID);
     }

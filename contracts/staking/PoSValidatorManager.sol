@@ -21,6 +21,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _maximumStakeAmount;
         uint64 _minimumStakeDuration;
         IRewardCalculator _rewardCalculator;
+        mapping(bytes32 validationID => uint64) _uptimes;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -74,8 +75,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
-        uint64 uptimeSeconds;
         if (includeUptimeProof) {
+            PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
             (WarpMessage memory warpMessage, bool valid) =
                 WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
             require(valid, "StakingManager: Invalid warp message");
@@ -94,9 +95,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             require(
                 validationID == uptimeValidationID, "StakingManager: Invalid uptime validation ID"
             );
-            uptimeSeconds = uptime;
+
+            $._uptimes[validationID] = uptime;
         }
-        _initializeEndValidation(validationID, uptimeSeconds);
+
+        _initializeEndValidation(validationID);
     }
 
     function _processStake(uint256 stakeAmount) internal virtual returns (uint64) {
