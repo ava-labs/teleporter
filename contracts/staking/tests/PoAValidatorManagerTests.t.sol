@@ -38,7 +38,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
             )
         );
         _initializeValidatorRegistration(
-            DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_ED25519_SIGNATURE, DEFAULT_WEIGHT
+            DEFAULT_NODE_ID, DEFAULT_EXPIRY, DEFAULT_BLS_PUBLIC_KEY, DEFAULT_WEIGHT
         );
     }
 
