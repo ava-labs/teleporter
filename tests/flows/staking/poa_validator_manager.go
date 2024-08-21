@@ -16,24 +16,24 @@ import (
 )
 
 /*
-* Register a PoA validator manager on a L1. The steps are as follows:
-* - Generate random address to be the owner address
-* - Fund native assets to the owner address
-* - Deploy the PoAValidatorManager contract
-* - Attempt to initiate with non owner and check that it fails
-* - Initiate validator registration
-* - Deliver the Warp message to the P-Chain (not implemented)
-* - Aggregate P-Chain signatures on the response Warp message
-* - Deliver the Warp message to the L1
-* - Verify that the validator is registered in the validator manager contract
-
-* Delists the validator from the L1. The steps are as follows:
-* - Attempt to initiate with non owner and check that it fails
-* - Initiate validator delisting
-* - Deliver the Warp message to the P-Chain (not implemented)
-* - Aggregate P-Chain signatures on the response Warp message
-* - Deliver the Warp message to the L1
-* - Verify that the validator is delisted from the validator manager contract
+ * Register a PoA validator manager on a L1. The steps are as follows:
+ * - Generate random address to be the owner address
+ * - Fund native assets to the owner address
+ * - Deploy the PoAValidatorManager contract
+ * - Attempt to initiate with non owner and check that it fails
+ * - Initiate validator registration
+ * - Deliver the Warp message to the P-Chain (not implemented)
+ * - Aggregate P-Chain signatures on the response Warp message
+ * - Deliver the Warp message to the L1
+ * - Verify that the validator is registered in the validator manager contract
+ *
+ * Delists the validator from the L1. The steps are as follows:
+ * - Attempt to initiate with non owner and check that it fails
+ * - Initiate validator delisting
+ * - Deliver the Warp message to the P-Chain (not implemented)
+ * - Aggregate P-Chain signatures on the response Warp message
+ * - Deliver the Warp message to the L1
+ * - Verify that the validator is delisted from the validator manager contract
  */
 func PoAValidatorManager(network interfaces.LocalNetwork) {
 	cChainInfo := network.GetPrimaryNetworkInfo()
