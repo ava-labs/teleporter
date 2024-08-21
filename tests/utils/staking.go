@@ -65,13 +65,15 @@ func DeployAndInitializeNativeTokenStakingManager(
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.Initialize(
 		opts,
-		nativetokenstakingmanager.StakingManagerSettings{
-			PChainBlockchainID:   pChainInfo.BlockchainID,
-			SubnetID:             subnet.SubnetID,
+		nativetokenstakingmanager.PoSValidatorManagerSettings{
+			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
+				PChainBlockchainID: pChainInfo.BlockchainID,
+				SubnetID:           subnet.SubnetID,
+				MaximumHourlyChurn: 0,
+			},
 			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
 			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
 			MinimumStakeDuration: uint64(24 * time.Hour),
-			MaximumHourlyChurn:   0,
 			RewardCalculator:     common.Address{},
 		},
 	)
@@ -123,13 +125,15 @@ func DeployAndInitializeERC20TokenStakingManager(
 	Expect(err).Should(BeNil())
 	tx, err := stakingManager.Initialize(
 		opts,
-		erc20tokenstakingmanager.StakingManagerSettings{
-			PChainBlockchainID:   pChainInfo.BlockchainID,
-			SubnetID:             subnet.SubnetID,
+		erc20tokenstakingmanager.PoSValidatorManagerSettings{
+			BaseSettings: erc20tokenstakingmanager.ValidatorManagerSettings{
+				PChainBlockchainID: pChainInfo.BlockchainID,
+				SubnetID:           subnet.SubnetID,
+				MaximumHourlyChurn: 0,
+			},
 			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
 			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
 			MinimumStakeDuration: uint64(24 * time.Hour),
-			MaximumHourlyChurn:   0,
 			RewardCalculator:     common.Address{},
 		},
 		erc20Address,

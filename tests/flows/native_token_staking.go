@@ -131,7 +131,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		)
 		Expect(err).Should(BeNil())
 		Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
-		Expect(validatorRemovalEvent.StakeAmount.Uint64()).Should(Equal(weight))
+		Expect(validatorRemovalEvent.Weight.Uint64()).Should(Equal(weight))
 
 		// Gather subnet-evm Warp signatures for the SetSubnetValidatorWeightMessage & relay to the P-Chain
 		// (Sending to the P-Chain will be skipped for now)
