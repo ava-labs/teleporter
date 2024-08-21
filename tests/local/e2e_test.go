@@ -25,7 +25,7 @@ const (
 	upgradabilityLabel       = "upgradability"
 	utilsLabel               = "utils"
 	validatorSetSigLabel     = "ValidatorSetSig"
-	stakingManagerLabel      = "ValidatorManager"
+	validatorManagerLabel    = "ValidatorManager"
 )
 
 var (
@@ -198,17 +198,17 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 
 	// Staking tests
 	ginkgo.It("Native token staking manager",
-		ginkgo.Label(stakingManagerLabel),
+		ginkgo.Label(validatorManagerLabel),
 		func() {
 			staking.NativeTokenStakingManager(LocalNetworkInstance)
 		})
 	ginkgo.It("ERC20 token staking manager",
-		ginkgo.Label(stakingManagerLabel),
+		ginkgo.Label(validatorManagerLabel),
 		func() {
 			staking.ERC20TokenStakingManager(LocalNetworkInstance)
 		})
 	ginkgo.It("PoA validator manager",
-		ginkgo.Label(stakingManagerLabel),
+		ginkgo.Label(validatorManagerLabel),
 		func() {
 			staking.PoAValidatorManager(LocalNetworkInstance)
 		})
