@@ -22,7 +22,7 @@ import {
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/mocks/ExampleERC20.sol";
 import {ICTTInitializable} from "../src/utils/ICTTInitializable.sol";
 import {Initializable} from "@openzeppelin/contracts@5.0.2/proxy/utils/Initializable.sol";
 

@@ -14,7 +14,7 @@ import {ERC20TokenRemoteUpgradeable} from "../src/TokenRemote/ERC20TokenRemoteUp
 import {ERC20TokenRemote} from "../src/TokenRemote/ERC20TokenRemote.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
-import {ExampleERC20} from "../lib/teleporter/contracts/src/mocks/ExampleERC20.sol";
+import {ExampleERC20} from "../lib/teleporter/contracts/mocks/ExampleERC20.sol";
 import {SendTokensInput} from "../src/interfaces/ITokenTransferrer.sol";
 import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 import {ICTTInitializable} from "../src/utils/ICTTInitializable.sol";
