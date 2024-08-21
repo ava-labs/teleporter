@@ -38,7 +38,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
+          go-version-file: "go.mod"
 
       - name: Run Go unit tests
         run: |
@@ -57,7 +57,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
+          go-version-file: "go.mod"
 
       - name: Install Foundry
         run: ./scripts/install_foundry.sh
@@ -67,7 +67,7 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.foundry/bin
           export PATH="$PATH:$GOPATH/bin"
-          ./scripts/local/e2e_test.sh
+          ./scripts/e2e_test.sh
 
       - name: Upload tmpnet network dir
         uses: actions/upload-artifact@v4

@@ -38,11 +38,11 @@ cd $cwd
 # to install the ginkgo binary (required for test build and run)
 go install -v github.com/onsi/ginkgo/v2/ginkgo@${GINKGO_VERSION}
 
-ginkgo build ./tests/local/
+ginkgo build ./tests/
 
 # Run the tests
 echo "Running e2e tests $RUN_E2E"
-RUN_E2E=true ./tests/local/local.test \
+RUN_E2E=true ./tests/e2e.test \
   --ginkgo.vv \
   --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \
   --ginkgo.focus=${GINKGO_FOCUS:-""} \
