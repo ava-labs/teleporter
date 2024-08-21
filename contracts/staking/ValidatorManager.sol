@@ -121,7 +121,7 @@ abstract contract ValidatorManager is
 
         (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationInfo({
+            ValidatorMessages.ValidationPeriod({
                 subnetID: $._subnetID,
                 nodeID: nodeID,
                 weight: weight,

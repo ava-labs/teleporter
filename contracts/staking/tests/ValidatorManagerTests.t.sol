@@ -99,7 +99,7 @@ abstract contract ValidatorManagerTest is Test {
         );
         (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationInfo({
+            ValidatorMessages.ValidationPeriod({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
                 weight: DEFAULT_WEIGHT,
@@ -210,7 +210,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes memory blsPublicKey
     ) internal returns (bytes32 validationID) {
         (validationID,) = ValidatorMessages.packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationInfo({
+            ValidatorMessages.ValidationPeriod({
                 nodeID: nodeID,
                 subnetID: subnetID,
                 weight: weight,
@@ -220,7 +220,7 @@ abstract contract ValidatorManagerTest is Test {
         );
         (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationInfo({
+            ValidatorMessages.ValidationPeriod({
                 subnetID: subnetID,
                 nodeID: nodeID,
                 weight: weight,
