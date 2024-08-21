@@ -153,8 +153,8 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 			opts,
 			validationID,
 		)
-
 		Expect(err).ShouldNot(BeNil())
+		
 		receipt := utils.InitializeEndPoAValidation(
 			ownerKey,
 			subnetAInfo,
