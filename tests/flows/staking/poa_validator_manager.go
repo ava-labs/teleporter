@@ -54,7 +54,7 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 	Expect(err).Should(BeNil())
 	ownerAddress := crypto.PubkeyToAddress(ownerKey.PublicKey)
 
-	// Transfer native assets to the non owner account
+	// Transfer native assets to the owner account
 	ctx := context.Background()
 	fundAmount := big.NewInt(1e18) // 1avax
 	utils.SendNativeTransfer(
