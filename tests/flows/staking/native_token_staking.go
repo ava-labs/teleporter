@@ -1,9 +1,8 @@
-package flows
+package staking
 
 import (
 	"context"
 	"math/big"
-	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/bls"
@@ -11,31 +10,27 @@ import (
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/utils"
-	"github.com/ethereum/go-ethereum/crypto"
 	. "github.com/onsi/gomega"
 )
 
 /*
-* Register a PoA validator manager on a L1. The steps are as follows:
-* - Generate random address to be the owner address
-* - Fund native assets to the owner address
-* - Deploy the PoAValidatorManager contract
-* - Attempt to initiate with non owner and check that it fails
-* - Initiate validator registration
-* - Deliver the Warp message to the P-Chain (not implemented)
-* - Aggregate P-Chain signatures on the response Warp message
-* - Deliver the Warp message to the L1
-* - Verify that the validator is registered in the validator manager contract
-
-* Delists the validator from the L1. The steps are as follows:
-* - Attempt to initiate with non owner and check that it fails
-* - Initiate validator delisting
-* - Deliver the Warp message to the P-Chain (not implemented)
-* - Aggregate P-Chain signatures on the response Warp message
-* - Deliver the Warp message to the L1
-* - Verify that the validator is delisted from the validator manager contract
+ * Registers a native token staking validator on a subnet. The steps are as follows:
+ * - Deploy the NativeTokenStakingManager
+ * - Initiate validator registration
+ * - Deliver the Warp message to the P-Chain (not implemented)
+ * - Aggregate P-Chain signatures on the response Warp message
+ * - Deliver the Warp message to the subnet
+ * - Verify that the validator is registered in the staking contract
+ *
+ * Delists the validator from the subnet. The steps are as follows:
+ * - Initiate validator delisting
+ * - Deliver the Warp message to the P-Chain (not implemented)
+ * - Aggregate P-Chain signatures on the response Warp message
+ * - Deliver the Warp message to the subnet
+ * - Verify that the validator is delisted from the staking contract
  */
-func PoAValidatorManager(network interfaces.LocalNetwork) {
+func NativeTokenStakingManager(network interfaces.LocalNetwork) {
+	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := utils.GetTwoSubnets(network)
 	_, fundedKey := network.GetFundedAccountInfo()
@@ -49,58 +44,36 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		},
 	)
 
-	// Generate random address to be the owner address
-	ownerKey, err := crypto.GenerateKey()
-	Expect(err).Should(BeNil())
-	ownerAddress := crypto.PubkeyToAddress(ownerKey.PublicKey)
-
-	// Transfer native assets to the non owner account
-	ctx := context.Background()
-	fundAmount := big.NewInt(1e18) // 1avax
-	utils.SendNativeTransfer(
-		ctx,
-		subnetAInfo,
-		fundedKey,
-		ownerAddress,
-		fundAmount,
-	)
-
-	validatorManagerAddress, validatorManager := utils.DeployAndInitializePoAValidatorManager(
-		ctx,
+	// Deploy the staking manager contract
+	stakingManagerContractAddress, stakingManager := utils.DeployAndInitializeNativeTokenStakingManager(
+		context.Background(),
 		fundedKey,
 		subnetAInfo,
 		pChainInfo,
-		ownerAddress,
 	)
 
+	//
+	// Register a validator
+	//
 	var validationID ids.ID // To be used in the delisting step
-	nodeID := ids.GenerateTestID()
-	blsPublicKey := [bls.PublicKeyLen]byte{}
-	weight := uint64(1)
-
+	stakeAmount := uint64(1e18)
+	weight, err := stakingManager.ValueToWeight(
+		&bind.CallOpts{},
+		big.NewInt(int64(stakeAmount)),
+	)
+	Expect(err).Should(BeNil())
 	{
-		// Try to call with invalid owner
-		opts, err := bind.NewKeyedTransactorWithChainID(fundedKey, subnetAInfo.EVMChainID)
-		Expect(err).Should(BeNil())
-
-		_, err = validatorManager.InitializeValidatorRegistration(
-			opts,
-			weight,
-			nodeID,
-			uint64(time.Now().Add(24*time.Hour).Unix()),
-			blsPublicKey[:],
-		)
-		Expect(err).ShouldNot(BeNil())
-
-		// Initiate validator registration
+		// Iniatiate validator registration
+		nodeID := ids.GenerateTestID()
+		blsPublicKey := [bls.PublicKeyLen]byte{}
 		var receipt *types.Receipt
-		receipt, validationID = utils.InitializePoAValidatorRegistration(
-			ownerKey,
+		receipt, validationID = utils.InitializeNativeValidatorRegistration(
+			fundedKey,
 			subnetAInfo,
-			weight,
+			stakeAmount,
 			nodeID,
 			blsPublicKey,
-			validatorManager,
+			stakingManager,
 		)
 
 		// Gather subnet-evm Warp signatures for the RegisterSubnetValidatorMessage & relay to the P-Chain
@@ -127,16 +100,16 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompletePoAValidatorRegistration(
+		receipt = utils.CompleteNativeValidatorRegistration(
 			fundedKey,
 			subnetAInfo,
-			validatorManagerAddress,
+			stakingManagerContractAddress,
 			registrationSignedMessage,
 		)
 		// Check that the validator is registered in the staking contract
 		registrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			validatorManager.ParseValidationPeriodRegistered,
+			stakingManager.ParseValidationPeriodRegistered,
 		)
 		Expect(err).Should(BeNil())
 		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
@@ -146,15 +119,15 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 	// Delist the validator
 	//
 	{
-		receipt := utils.InitializeEndPoAValidation(
+		receipt := utils.InitializeEndNativeValidation(
 			fundedKey,
 			subnetAInfo,
-			validatorManager,
+			stakingManager,
 			validationID,
 		)
 		validatorRemovalEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			validatorManager.ParseValidatorRemovalInitialized,
+			stakingManager.ParseValidatorRemovalInitialized,
 		)
 		Expect(err).Should(BeNil())
 		Expect(validatorRemovalEvent.ValidationID[:]).Should(Equal(validationID[:]))
@@ -179,17 +152,17 @@ func PoAValidatorManager(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteEndPoAValidation(
+		receipt = utils.CompleteEndNativeValidation(
 			fundedKey,
 			subnetAInfo,
-			validatorManagerAddress,
+			stakingManagerContractAddress,
 			registrationSignedMessage,
 		)
 
 		// Check that the validator is has been delisted from the staking contract
 		registrationEvent, err := utils.GetEventFromLogs(
 			receipt.Logs,
-			validatorManager.ParseValidationPeriodEnded,
+			stakingManager.ParseValidationPeriodEnded,
 		)
 		Expect(err).Should(BeNil())
 		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))

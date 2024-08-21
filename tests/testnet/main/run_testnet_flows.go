@@ -3,7 +3,9 @@ package main
 import (
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/ava-labs/teleporter/tests/flows"
+	"github.com/ava-labs/teleporter/tests/flows/teleporter"
+	"github.com/ava-labs/teleporter/tests/flows/teleporter/registry"
+
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ava-labs/teleporter/tests/testnet"
 	"github.com/onsi/gomega"
@@ -34,19 +36,19 @@ func main() {
 	//   - UnallowedRelayer
 	//   - ValidatorSetChrun
 	//   - TeleporterRegistry
-	runFlow("AddFeeAmount", flows.AddFeeAmount, network)
-	runFlow("BasicSendRecevie", flows.BasicSendReceive, network)
-	runFlow("DeliverToNonExistentContract", flows.DeliverToNonExistentContract, network)
-	runFlow("DeliverToWrongChain", flows.DeliverToWrongChain, network)
-	runFlow("InsufficientGas", flows.InsufficientGas, network)
-	runFlow("RelayMessageTwice", flows.RelayMessageTwice, network)
-	runFlow("ResubmitAlteredMessage", flows.ResubmitAlteredMessage, network)
-	runFlow("RetrySuccessfulExecution", flows.RetrySuccessfulExecution, network)
-	runFlow("SendSpecificReceipts", flows.SendSpecificReceipts, network)
+	runFlow("AddFeeAmount", teleporter.AddFeeAmount, network)
+	runFlow("BasicSendRecevie", teleporter.BasicSendReceive, network)
+	runFlow("DeliverToNonExistentContract", teleporter.DeliverToNonExistentContract, network)
+	runFlow("DeliverToWrongChain", teleporter.DeliverToWrongChain, network)
+	runFlow("InsufficientGas", teleporter.InsufficientGas, network)
+	runFlow("RelayMessageTwice", teleporter.RelayMessageTwice, network)
+	runFlow("ResubmitAlteredMessage", teleporter.ResubmitAlteredMessage, network)
+	runFlow("RetrySuccessfulExecution", teleporter.RetrySuccessfulExecution, network)
+	runFlow("SendSpecificReceipts", teleporter.SendSpecificReceipts, network)
 	log.Info("Finished Teleporter test flows")
 
 	// Run the upgradability test flows
-	runFlow("CheckUpgradeAccess", flows.CheckUpgradeAccess, network)
-	runFlow("PauseTeleporter", flows.PauseTeleporter, network)
+	runFlow("CheckUpgradeAccess", registry.CheckUpgradeAccess, network)
+	runFlow("PauseTeleporter", registry.PauseTeleporter, network)
 	log.Info("Finished upgradability test flows")
 }
