@@ -42,7 +42,7 @@ ginkgo build ./tests/
 
 # Run the tests
 echo "Running e2e tests $RUN_E2E"
-RUN_E2E=true ./tests/e2e.test \
+RUN_E2E=true ./tests/tests.test \
   --ginkgo.vv \
   --ginkgo.label-filter=${GINKGO_LABEL_FILTER:-""} \
   --ginkgo.focus=${GINKGO_FOCUS:-""} \
