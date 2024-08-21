@@ -12,7 +12,6 @@ import {Initializable} from
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
-import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 
 contract NativeTokenStakingManager is
     Initializable,

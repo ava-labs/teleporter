@@ -26,9 +26,6 @@ contract ExampleRewardCalculator is IRewardCalculator {
         uint256, // initialSupply
         uint256 // endSupply
     ) external view returns (uint256) {
-        return
-            (stakeAmount * rewardBasisPoints * (endTime - startTime)) /
-            SECONDS_IN_YEAR /
-            1000;
+        return (stakeAmount * rewardBasisPoints * (endTime - startTime)) / SECONDS_IN_YEAR / 1000;
     }
 }

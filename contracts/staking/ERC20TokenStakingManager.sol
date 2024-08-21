@@ -14,7 +14,6 @@ import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
 import {PoSValidatorManager} from "./PoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
-import {IRewardCalculator} from "./interfaces/IRewardCalculator.sol";
 
 contract ERC20TokenStakingManager is
     Initializable,
