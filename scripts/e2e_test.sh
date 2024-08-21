@@ -6,7 +6,7 @@ set -e
 
 TELEPORTER_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
-  cd ../.. && pwd
+  cd ../ && pwd
 )
 
 source "$TELEPORTER_PATH"/scripts/constants.sh
