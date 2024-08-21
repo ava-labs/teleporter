@@ -6,15 +6,20 @@
 pragma solidity 0.8.25;
 
 import {IERC20TokenStakingManager} from "./interfaces/IERC20TokenStakingManager.sol";
-import {StakingManager, StakingManagerSettings} from "./StakingManager.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {IERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
 import {SafeERC20TransferFrom} from "@utilities/SafeERC20TransferFrom.sol";
 import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
+import {PoSValidatorManager} from "./PoSValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 
-contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenStakingManager {
+contract ERC20TokenStakingManager is
+    Initializable,
+    PoSValidatorManager,
+    IERC20TokenStakingManager
+{
     using SafeERC20 for IERC20;
     using SafeERC20TransferFrom for IERC20;
 
@@ -29,7 +34,7 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
     // keccak256(abi.encode(uint256(keccak256("avalanche-icm.storage.ERC20TokenStakingManager")) - 1)) & ~bytes32(uint256(0xff));
     // TODO: Update to correct storage slot
     bytes32 private constant _ERC20_STAKING_MANAGER_STORAGE_LOCATION =
-        0x8568826440873e37a96cb0aab773b28d8154d963d2f0e41bd9b5c15f63625f91;
+        0x6e5bdfcce15e53c3406ea67bfce37dcd26f5152d5492824e43fd5e3c8ac5ab00;
 
     // solhint-disable ordering
     function _getERC20StakingManagerStorage()
@@ -50,7 +55,7 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
     }
 
     function initialize(
-        StakingManagerSettings calldata settings,
+        PoSValidatorManagerSettings calldata settings,
         IERC20 token
     ) external initializer {
         __ERC20TokenStakingManager_init(settings, token);
@@ -58,10 +63,10 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
 
     // solhint-disable func-name-mixedcase
     function __ERC20TokenStakingManager_init(
-        StakingManagerSettings calldata settings,
+        PoSValidatorManagerSettings calldata settings,
         IERC20 token
     ) internal onlyInitializing {
-        __StakingManager_init(settings);
+        __POS_Validator_Manager_init(settings);
         __ERC20TokenStakingManager_init_unchained(token);
     }
 
@@ -78,8 +83,8 @@ contract ERC20TokenStakingManager is Initializable, StakingManager, IERC20TokenS
         uint64 registrationExpiry,
         bytes memory blsPublicKey
     ) external override returns (bytes32 validationID) {
-        return
-            _initializeValidatorRegistration(nodeID, stakeAmount, registrationExpiry, blsPublicKey);
+        uint64 weight = _processStake(stakeAmount);
+        return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
     }
 
     // Must be guarded with reentrancy guard for safe transfer from

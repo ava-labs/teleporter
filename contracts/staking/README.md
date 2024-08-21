@@ -1,4 +1,4 @@
-## Staking Manager Contract
+# Staking Manager Contract
 
 `StakingManager.sol` defines the staking contract used to manage subnet-only validators, as defined in [ACP-77](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets)
 
@@ -7,6 +7,7 @@ _Disclaimer:_ The contracts in this directory are still under active development
 ## Usage
 
 The common case for adding or removing a validator from a Subnet's validator set follows these general steps:
+
 1. Inform the Staking Manager contract of the change. The Staking Manager contract will construct a Warp message attesting to the change in the validator set.
 2. Deliver the Warp message containing the validator set change to the P-Chain. The P-Chain will construct a Warp message acknowledging the change to the validator set.
 3. Deliver the Warp message containing the P-Chain acknowledgement back to the Staking Manager contract on the Subnet. The Staking Manager contract finalizes the validator set change.
@@ -16,7 +17,6 @@ The common case for adding or removing a validator from a Subnet's validator set
 If the Subnet has no validators registered on the P-Chain, then it will not be able to sign a Warp message to add a validator (step 1 above). In this case, Subnet recovery must be performed on the P-Chain, which allows an initial validator set to be specified. For each validator specified in the initial validator set, a signature over a [`SubnetValidatorRegistrationMessage`](#subnetvalidatorregistrationmessage) must be requested from the P-Chain attesting to its inclusion.
 
 Once the Subnet has been recovered, the stake specified on the P-Chain must be locked in the Staking Contract before any further validator set changes may be made. This is done via the `provideInitialStake` method, and guarded by the `onlyWhenInitialStakeProvided` modifier.
-
 
 ### Registering a Validator
 
@@ -51,6 +51,7 @@ Description: Used to register a Subnet validator on the P-Chain
 Signed by: Subnet
 
 Specification:
+
 ```
 +-----------+----------+-----------+
 |    typeID :   uint32 |   4 bytes |
@@ -67,7 +68,7 @@ Specification:
 +-----------+----------+-----------+
                        | 148 bytes |
                        +-----------+
-     
+
 ```
 
 ### `SubnetValidatorRegistrationMessage`
@@ -77,6 +78,7 @@ Description: Used to confirm Subnet validator registration on the P-Chain
 Signed by: P-Chain
 
 Specification:
+
 ```
 +--------------+----------+----------+
 |       typeID :   uint32 |  4 bytes |
@@ -96,6 +98,7 @@ Description: Used to provide validator uptime to the Subnet to calculate staking
 Signed by: P-Chain
 
 Specification:
+
 ```
 +--------------+----------+----------+
 |       typeID :   uint32 |  4 bytes |
@@ -115,6 +118,7 @@ Description: Used to set a validator's stake weight on another chain
 Signed by: Subnet, P-Chain
 
 Specification:
+
 ```
 +-----------+----------+-----------+
 |    typeID :   uint32 |   4 bytes |
@@ -130,5 +134,15 @@ Specification:
 | signature : [64]byte |  64 bytes |
 +-----------+----------+-----------+
                        | 148 bytes |
-                       +-----------+  
+                       +-----------+
 ```
+
+## Types of Staking Managers
+
+### Proof of Authority
+
+The Proof of Authority (PoA) staking manager is ownable, and only allows the owner to modify changes to the validator set of the Subnet. Validators are given a weight by the owner, but do not accrue staking rewards.
+
+### Proof of Stake
+
+The Proof of Stake (PoS) staking manager allows any validator to register and exit the Subnet validator set. Validators are given a weight based on the amount of stake they provide, and accrue staking rewards based on their uptime. The staking rewards can be either native or erc20 tokens.

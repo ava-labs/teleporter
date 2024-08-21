@@ -1,23 +1,44 @@
-// (c) 2023, Ava Labs, Inc. All rights reserved.
+// (c) 2024, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
 // SPDX-License-Identifier: Ecosystem
 
 pragma solidity 0.8.25;
 
-import {IRewardCalculator} from "./IRewardCalculator.sol";
-
-struct StakingManagerSettings {
-    bytes32 pChainBlockchainID;
-    bytes32 subnetID;
-    uint256 minimumStakeAmount;
-    uint256 maximumStakeAmount;
-    uint64 minimumStakeDuration;
-    uint8 maximumHourlyChurn;
-    IRewardCalculator rewardCalculator;
+enum ValidatorStatus {
+    Unknown,
+    PendingAdded,
+    Active,
+    PendingRemoved,
+    Completed,
+    Invalidated
 }
 
-interface IStakingManager {
+struct Validator {
+    ValidatorStatus status;
+    bytes32 nodeID;
+    uint64 weight;
+    uint64 startedAt;
+    uint64 endedAt;
+    uint64 uptimeSeconds;
+    address owner;
+    bool rewarded;
+    uint64 messageNonce;
+}
+
+struct ValidatorChurnPeriod {
+    uint256 startedAt;
+    uint64 initialStake;
+    uint64 churnAmount;
+}
+
+struct ValidatorManagerSettings {
+    bytes32 pChainBlockchainID;
+    bytes32 subnetID;
+    uint8 maximumHourlyChurn;
+}
+
+interface IValidatorManager {
     /**
      * @notice Emitted when a new validation period is created by stake being locked in the manager contract.
      * Note that this event does not mean that the validation period has been successfully registered on the P-Chain,
@@ -37,7 +58,7 @@ interface IStakingManager {
      * on the P-Chain. Rewards for this validation period will begin accruing when this event is emitted.
      */
     event ValidationPeriodRegistered(
-        bytes32 indexed validationID, uint256 stakeAmount, uint256 timestamp
+        bytes32 indexed validationID, uint256 weight, uint256 timestamp
     );
 
     /**
@@ -48,7 +69,7 @@ interface IStakingManager {
     event ValidatorRemovalInitialized(
         bytes32 indexed validationID,
         bytes32 indexed setWeightMessageID,
-        uint256 stakeAmount,
+        uint256 weight,
         uint256 endTime,
         uint64 uptime
     );
@@ -72,22 +93,6 @@ interface IStakingManager {
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      */
     function completeValidatorRegistration(uint32 messageIndex) external;
-
-    /**
-     * @notice Begins the process of ending an active validation period. The validation period must have been previously
-     * started by a successful call to {completeValidatorRegistration} with the given validationID.
-     * Any rewards for this validation period will stop accruing when this function is called.
-     * @param validationID The ID of the validation being ended.
-     * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
-     * If no uptime proof is provided, the validation uptime will be assumed to be 0.
-     * @param messageIndex If {includeUptimeProof} is true, the index of the Warp message to be received providing the
-     * uptime proof.
-     */
-    function initializeEndValidation(
-        bytes32 validationID,
-        bool includeUptimeProof,
-        uint32 messageIndex
-    ) external;
 
     /**
      * @notice Resubmits a validator end message to be sent to P-Chain to the Warp precompile.

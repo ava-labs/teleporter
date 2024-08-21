@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Ecosystem
 pragma solidity 0.8.25;
 
-library StakingMessages {
+library ValidatorMessages {
     // The information that uniquely identifies a subnet validation period.
     // The validationID is the SHA-256 hash of the concatenation of the CODEC_ID,
     // REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID, and the concatenated ValidationInfo fields.
@@ -119,14 +119,14 @@ library StakingMessages {
         pure
         returns (ValidationInfo memory)
     {
-        require(input.length == 134, "StakingMessages: Invalid message length");
+        require(input.length == 134, "ValidatorMessages: Invalid message length");
 
         // Unpack the codec ID
         uint16 codecID;
         for (uint256 i; i < 2; ++i) {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
-        require(codecID == CODEC_ID, "StakingMessages: Invalid codec ID");
+        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
 
         // Unpack the type ID
         uint32 typeID;
@@ -135,7 +135,7 @@ library StakingMessages {
         }
         require(
             typeID == REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID,
-            "StakingMessages: Invalid message type"
+            "ValidatorMessages: Invalid message type"
         );
 
         // Unpack the subnetID
@@ -233,13 +233,13 @@ library StakingMessages {
         pure
         returns (bytes32, bool)
     {
-        require(input.length == 39, "StakingMessages: Invalid message length");
+        require(input.length == 39, "ValidatorMessages: Invalid message length");
         // Unpack the codec ID
         uint16 codecID;
         for (uint256 i; i < 2; ++i) {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
-        require(codecID == CODEC_ID, "StakingMessages: Invalid codec ID");
+        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
 
         // Unpack the type ID
         uint32 typeID;
@@ -248,7 +248,7 @@ library StakingMessages {
         }
         require(
             typeID == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
-            "StakingMessages: Invalid message type"
+            "ValidatorMessages: Invalid message type"
         );
 
         // Unpack the validation ID.
@@ -326,14 +326,14 @@ library StakingMessages {
         pure
         returns (bytes32, uint64, uint64)
     {
-        require(input.length == 54, "StakingMessages: Invalid message length");
+        require(input.length == 54, "ValidatorMessages: Invalid message length");
 
         // Unpack the codec ID.
         uint16 codecID;
         for (uint256 i; i < 2; ++i) {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
-        require(codecID == CODEC_ID, "StakingMessages: Invalid codec ID");
+        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
 
         // Unpack the type ID.
         uint32 typeID;
@@ -342,7 +342,7 @@ library StakingMessages {
         }
         require(
             typeID == SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
-            "StakingMessages: Invalid message type"
+            "ValidatorMessages: Invalid message type"
         );
 
         // Unpack the validation ID.
@@ -422,14 +422,14 @@ library StakingMessages {
         pure
         returns (bytes32, uint64)
     {
-        require(input.length == 46, "StakingMessages: Invalid message length");
+        require(input.length == 46, "ValidatorMessages: Invalid message length");
 
         // Unpack the codec ID.
         uint16 codecID;
         for (uint256 i; i < 2; ++i) {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
-        require(codecID == CODEC_ID, "StakingMessages: Invalid codec ID");
+        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
 
         // Unpack the type ID.
         uint32 typeID;
@@ -437,7 +437,7 @@ library StakingMessages {
             typeID |= uint32(uint8(input[i + 2])) << uint32((8 * (3 - i)));
         }
         require(
-            typeID == VALIDATION_UPTIME_MESSAGE_TYPE_ID, "StakingMessages: Invalid message type"
+            typeID == VALIDATION_UPTIME_MESSAGE_TYPE_ID, "ValidatorMessages: Invalid message type"
         );
 
         // Unpack the validation ID.

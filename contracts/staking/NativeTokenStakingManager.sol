@@ -7,12 +7,17 @@ pragma solidity 0.8.25;
 
 import {INativeTokenStakingManager} from "./interfaces/INativeTokenStakingManager.sol";
 import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
-import {StakingManager, StakingManagerSettings} from "./StakingManager.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable@5.0.2/proxy/utils/Initializable.sol";
 import {ICMInitializable} from "../utilities/ICMInitializable.sol";
+import {PoSValidatorManager} from "./PoSValidatorManager.sol";
+import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 
-contract NativeTokenStakingManager is Initializable, StakingManager, INativeTokenStakingManager {
+contract NativeTokenStakingManager is
+    Initializable,
+    PoSValidatorManager,
+    INativeTokenStakingManager
+{
     using Address for address payable;
 
     constructor(ICMInitializable init) {
@@ -22,16 +27,16 @@ contract NativeTokenStakingManager is Initializable, StakingManager, INativeToke
     }
 
     // solhint-disable ordering
-    function initialize(StakingManagerSettings calldata settings) external initializer {
+    function initialize(PoSValidatorManagerSettings calldata settings) external initializer {
         __NativeTokenStakingManager_init(settings);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __NativeTokenStakingManager_init(StakingManagerSettings calldata settings)
+    function __NativeTokenStakingManager_init(PoSValidatorManagerSettings calldata settings)
         internal
         onlyInitializing
     {
-        __StakingManager_init(settings);
+        __POS_Validator_Manager_init(settings);
     }
 
     // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
@@ -53,10 +58,12 @@ contract NativeTokenStakingManager is Initializable, StakingManager, INativeToke
         uint64 registrationExpiry,
         bytes memory signature
     ) external payable returns (bytes32) {
-        return _initializeValidatorRegistration(nodeID, msg.value, registrationExpiry, signature);
-    }
-    // solhint-enable ordering
+        uint64 weight = _processStake(msg.value);
 
+        return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, signature);
+    }
+
+    // solhint-enable ordering
     function _lock(uint256 value) internal virtual override returns (uint256) {
         return value;
     }
