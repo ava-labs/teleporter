@@ -33,15 +33,17 @@ abstract contract ValidatorManager is
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
     struct ValidatorManagerStorage {
+        /// @notice The blockchainID of the P-Chain.
         bytes32 _pChainBlockchainID;
+        /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
         uint8 _maximumHourlyChurn;
         ValidatorChurnPeriod _churnTracker;
-        // Maps the validationID to the registration message such that the message can be re-sent if needed.
+        /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
-        // Maps the validationID to the validator information.
+        /// @notice Maps the validationID to the validator information.
         mapping(bytes32 => Validator) _validationPeriods;
-        // Maps the nodeID to the validationID for active validation periods.
+        /// @notice Maps the nodeID to the validationID for active validation periods.
         mapping(bytes32 => bytes32) _activeValidators;
     }
     // solhint-enable private-vars-leading-underscore

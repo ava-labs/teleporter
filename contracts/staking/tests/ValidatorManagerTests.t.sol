@@ -25,6 +25,8 @@ abstract contract ValidatorManagerTest is Test {
     bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
         hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
+    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
+        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
@@ -131,10 +133,6 @@ abstract contract ValidatorManagerTest is Test {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
-    }
-
-    function testInitializeEndValidationWithUptimeProof() public {
-        // TODO: implement
     }
 
     function testInitializeEndValidationExcessiveChurn() public {
@@ -316,6 +314,17 @@ abstract contract ValidatorManagerTest is Test {
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+    }
+
+    function _mockGetBlockchainID() internal {
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
+            abi.encode(DEFAULT_SOURCE_BLOCKCHAIN_ID)
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
         );
     }
 

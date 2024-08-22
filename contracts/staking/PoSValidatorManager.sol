@@ -79,24 +79,26 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
             (WarpMessage memory warpMessage, bool valid) =
                 WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-            require(valid, "StakingManager: Invalid warp message");
+            require(valid, "PoSValidatorManager: invalid warp message");
 
             require(
                 warpMessage.sourceChainID == WARP_MESSENGER.getBlockchainID(),
-                "StakingManager: Invalid source chain ID"
+                "PoSValidatorManager: invalid source chain ID"
             );
             require(
                 warpMessage.originSenderAddress == address(0),
-                "StakingManager: Invalid origin sender address"
+                "PoSValidatorManager: invalid origin sender address"
             );
 
             (bytes32 uptimeValidationID, uint64 uptime) =
                 ValidatorMessages.unpackValidationUptimeMessage(warpMessage.payload);
             require(
-                validationID == uptimeValidationID, "StakingManager: Invalid uptime validation ID"
+                validationID == uptimeValidationID,
+                "PoSValidatorManager: invalid uptime validation ID"
             );
 
             $._uptimes[validationID] = uptime;
+            emit ValidationUptimeUpdated(validationID, uptime);
         }
 
         _initializeEndValidation(validationID);

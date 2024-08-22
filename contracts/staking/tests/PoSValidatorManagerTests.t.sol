@@ -7,8 +7,17 @@ pragma solidity 0.8.25;
 
 import {ValidatorManagerTest} from "./ValidatorManagerTests.t.sol";
 import {PoSValidatorManager} from "../PoSValidatorManager.sol";
+import {
+    WarpMessage,
+    IWarpMessenger
+} from "@avalabs/subnet-evm-contracts@1.2.0/contracts/interfaces/IWarpMessenger.sol";
+import {ValidatorMessages} from "../ValidatorMessages.sol";
 
 abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
+    event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
+
+    uint64 public constant DEFAULT_UPTIME = uint64(100);
+
     PoSValidatorManager public posValidatorManager;
 
     function testValueToWeight() public view {
@@ -31,7 +40,137 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         assertEq(v3, 1e27);
     }
 
+    function testInitializeEndValidationWithUptimeProof() public {
+        // TODO: implement
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
+
+        _mockGetBlockchainID();
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+                    originSenderAddress: address(0),
+                    payload: ValidatorMessages.packValidationUptimeMessage(validationID, DEFAULT_UPTIME)
+                }),
+                true
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+
+        vm.expectEmit(true, true, true, true, address(posValidatorManager));
+        emit ValidationUptimeUpdated(validationID, DEFAULT_UPTIME);
+        posValidatorManager.initializeEndValidation(validationID, true, 0);
+    }
+
+    function testInvalidUptimeWarpMessage() public {
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
+
+        _mockGetVerifiedWarpMessage(new bytes(0), false);
+        vm.expectRevert(_formatErrorMessage("invalid warp message"));
+        posValidatorManager.initializeEndValidation(validationID, true, 0);
+    }
+
+    function testInvalidUptimeChainID() public {
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
+
+        _mockGetVerifiedWarpMessage(new bytes(0), true);
+        _mockGetBlockchainID();
+        vm.expectRevert(_formatErrorMessage("invalid source chain ID"));
+        posValidatorManager.initializeEndValidation(validationID, true, 0);
+    }
+
+    function testInvalidUptimeSenderAddress() public {
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
+
+        _mockGetBlockchainID();
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+                    originSenderAddress: address(this),
+                    payload: new bytes(0)
+                }),
+                true
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+
+        vm.expectRevert(_formatErrorMessage("invalid origin sender address"));
+        posValidatorManager.initializeEndValidation(validationID, true, 0);
+    }
+
+    function testInvalidUptimeValidationID() public {
+        bytes32 validationID = _setUpCompleteValidatorRegistration({
+            nodeID: DEFAULT_NODE_ID,
+            subnetID: DEFAULT_SUBNET_ID,
+            weight: DEFAULT_WEIGHT,
+            registrationExpiry: DEFAULT_EXPIRY,
+            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
+        });
+
+        _mockGetBlockchainID();
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(
+                WarpMessage({
+                    sourceChainID: DEFAULT_SOURCE_BLOCKCHAIN_ID,
+                    originSenderAddress: address(0),
+                    payload: ValidatorMessages.packValidationUptimeMessage(bytes32(0), 0)
+                }),
+                true
+            )
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+
+        vm.expectRevert(_formatErrorMessage("invalid uptime validation ID"));
+        posValidatorManager.initializeEndValidation(validationID, true, 0);
+    }
+
     function _initializeEndValidation(bytes32 validationID) internal virtual override {
         return posValidatorManager.initializeEndValidation(validationID, false, 0);
+    }
+
+    function _formatErrorMessage(bytes memory errorMessage) internal pure returns (bytes memory) {
+        return abi.encodePacked("PoSValidatorManager: ", errorMessage);
     }
 }
