@@ -1,5 +1,5 @@
 package flows
 
 const (
-	errTxReverted = "execution reverted"
+	ErrTxReverted = "execution reverted"
 )

@@ -1,4 +1,4 @@
-package flows
+package staking
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 )
 
 /*
- * Registers a native token staking validator on a subnet. The steps are as follows:
- * - Deploy the NativeTokenStakingManager
+ * Registers a erc20 token staking validator on a subnet. The steps are as follows:
+ * - Deploy the ERCTokenStakingManager
  * - Initiate validator registration
  * - Deliver the Warp message to the P-Chain (not implemented)
  * - Aggregate P-Chain signatures on the response Warp message
@@ -29,7 +29,7 @@ import (
  * - Deliver the Warp message to the subnet
  * - Verify that the validator is delisted from the staking contract
  */
-func NativeTokenStakingManager(network interfaces.LocalNetwork) {
+func ERC20TokenStakingManager(network interfaces.LocalNetwork) {
 	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := utils.GetTwoSubnets(network)
@@ -45,7 +45,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	)
 
 	// Deploy the staking manager contract
-	stakingManagerContractAddress, stakingManager := utils.DeployAndInitializeNativeTokenStakingManager(
+	stakingManagerAddress, stakingManager, _, erc20 := utils.DeployAndInitializeERC20TokenStakingManager(
 		context.Background(),
 		fundedKey,
 		subnetAInfo,
@@ -63,14 +63,16 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 	{
-		// Iniatiate validator registration
+		// Initiate validator registration
 		nodeID := ids.GenerateTestID()
 		blsPublicKey := [bls.PublicKeyLen]byte{}
 		var receipt *types.Receipt
-		receipt, validationID = utils.InitializeNativeValidatorRegistration(
+		receipt, validationID = utils.InitializeERC20ValidatorRegistration(
 			fundedKey,
 			subnetAInfo,
 			stakeAmount,
+			erc20,
+			stakingManagerAddress,
 			nodeID,
 			blsPublicKey,
 			stakingManager,
@@ -100,10 +102,10 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteNativeValidatorRegistration(
+		receipt = utils.CompleteERC20ValidatorRegistration(
 			fundedKey,
 			subnetAInfo,
-			stakingManagerContractAddress,
+			stakingManagerAddress,
 			registrationSignedMessage,
 		)
 		// Check that the validator is registered in the staking contract
@@ -119,7 +121,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	// Delist the validator
 	//
 	{
-		receipt := utils.InitializeEndNativeValidation(
+		receipt := utils.InitializeEndERC20Validation(
 			fundedKey,
 			subnetAInfo,
 			stakingManager,
@@ -152,10 +154,10 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteEndNativeValidation(
+		receipt = utils.CompleteEndERC20Validation(
 			fundedKey,
 			subnetAInfo,
-			stakingManagerContractAddress,
+			stakingManagerAddress,
 			registrationSignedMessage,
 		)
 

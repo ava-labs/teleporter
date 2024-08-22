@@ -20,6 +20,7 @@ import (
 	exampleerc20 "github.com/ava-labs/teleporter/abi-bindings/go/mocks/ExampleERC20"
 	erc20tokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/ERC20TokenStakingManager"
 	nativetokenstakingmanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/NativeTokenStakingManager"
+	poavalidatormanager "github.com/ava-labs/teleporter/abi-bindings/go/staking/PoAValidatorManager"
 	"github.com/ava-labs/teleporter/tests/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -144,6 +145,55 @@ func DeployAndInitializeERC20TokenStakingManager(
 	return stakingManagerContractAddress, stakingManager, erc20Address, erc20
 }
 
+func DeployPoAValidatorManager(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+) (common.Address, *poavalidatormanager.PoAValidatorManager) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	address, tx, validatorManager, err := poavalidatormanager.DeployPoAValidatorManager(
+		opts,
+		subnet.RPCClient,
+		0, // ICMInitializable.Allowed
+	)
+	Expect(err).Should(BeNil())
+
+	// Wait for the transaction to be mined
+	WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+
+	return address, validatorManager
+}
+
+func DeployAndInitializePoAValidatorManager(
+	ctx context.Context,
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	pChainInfo interfaces.SubnetTestInfo,
+	ownerAddress common.Address,
+) (common.Address, *poavalidatormanager.PoAValidatorManager) {
+	validatorManagerAddress, validatorManager := DeployPoAValidatorManager(
+		ctx,
+		senderKey,
+		subnet,
+	)
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := validatorManager.Initialize(
+		opts,
+		poavalidatormanager.ValidatorManagerSettings{
+			PChainBlockchainID: pChainInfo.BlockchainID,
+			SubnetID:           subnet.SubnetID,
+			MaximumHourlyChurn: 0,
+		},
+		ownerAddress,
+	)
+	Expect(err).Should(BeNil())
+	WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
+
+	return validatorManagerAddress, validatorManager
+}
+
 //
 // Function call utils
 //
@@ -215,6 +265,34 @@ func InitializeERC20ValidatorRegistration(
 	return receipt, ids.ID(registrationInitiatedEvent.ValidationID)
 }
 
+func InitializePoAValidatorRegistration(
+	senderKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	weight uint64,
+	nodeID ids.ID,
+	blsPublicKey [bls.PublicKeyLen]byte,
+	validatorManager *poavalidatormanager.PoAValidatorManager,
+) (*types.Receipt, ids.ID) {
+	opts, err := bind.NewKeyedTransactorWithChainID(senderKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+
+	tx, err := validatorManager.InitializeValidatorRegistration(
+		opts,
+		weight,
+		nodeID,
+		uint64(time.Now().Add(24*time.Hour).Unix()),
+		blsPublicKey[:],
+	)
+	Expect(err).Should(BeNil())
+	receipt := WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
+	registrationInitiatedEvent, err := GetEventFromLogs(
+		receipt.Logs,
+		validatorManager.ParseValidationPeriodCreated,
+	)
+	Expect(err).Should(BeNil())
+	return receipt, ids.ID(registrationInitiatedEvent.ValidationID)
+}
+
 func CompleteNativeValidatorRegistration(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
@@ -245,6 +323,23 @@ func CompleteERC20ValidatorRegistration(
 		sendingKey,
 		subnet,
 		stakingManagerContractAddress,
+		registrationSignedMessage,
+	)
+}
+
+func CompletePoAValidatorRegistration(
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	validatorManagerAddress common.Address,
+	registrationSignedMessage *avalancheWarp.Message,
+) *types.Receipt {
+	abi, err := poavalidatormanager.PoAValidatorManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	return completeValidatorRegistration(
+		abi,
+		sendingKey,
+		subnet,
+		validatorManagerAddress,
 		registrationSignedMessage,
 	)
 }
@@ -312,6 +407,22 @@ func InitializeEndERC20Validation(
 	return WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
 }
 
+func InitializeEndPoAValidation(
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	validatorManager *poavalidatormanager.PoAValidatorManager,
+	validationID ids.ID,
+) *types.Receipt {
+	opts, err := bind.NewKeyedTransactorWithChainID(sendingKey, subnet.EVMChainID)
+	Expect(err).Should(BeNil())
+	tx, err := validatorManager.InitializeEndValidation(
+		opts,
+		validationID,
+	)
+	Expect(err).Should(BeNil())
+	return WaitForTransactionSuccess(context.Background(), subnet, tx.Hash())
+}
+
 func CompleteEndNativeValidation(
 	sendingKey *ecdsa.PrivateKey,
 	subnet interfaces.SubnetTestInfo,
@@ -342,6 +453,23 @@ func CompleteEndERC20Validation(
 		sendingKey,
 		subnet,
 		stakingManagerContractAddress,
+		registrationSignedMessage,
+	)
+}
+
+func CompleteEndPoAValidation(
+	sendingKey *ecdsa.PrivateKey,
+	subnet interfaces.SubnetTestInfo,
+	validatorManagerAddress common.Address,
+	registrationSignedMessage *avalancheWarp.Message,
+) *types.Receipt {
+	abi, err := poavalidatormanager.PoAValidatorManagerMetaData.GetAbi()
+	Expect(err).Should(BeNil())
+	return callCompleteEndValidation(
+		abi,
+		sendingKey,
+		subnet,
+		validatorManagerAddress,
 		registrationSignedMessage,
 	)
 }
