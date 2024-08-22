@@ -265,8 +265,8 @@ abstract contract ValidatorManager is
 
     /**
      * @notice Completes the process of ending a validation period by receiving an acknowledgement from the P-Chain
-     * that the validation ID is not active and will never be active in the future. Returns the the stake associated
-     * with the validation. Note that this function can be used for successful validation periods that have been explicitly
+     * that the validation ID is not active and will never be active in the future.
+     *  Note that this function can be used for successful validation periods that have been explicitly
      * ended by calling {initializeEndValidation} or for validation periods that never began on the P-Chain due to the
      * {registrationExpiry} being reached.
      * @param setWeightMessageType Whether or not the message type is a SetValidatorWeight message, or a
