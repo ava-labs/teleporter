@@ -177,29 +177,7 @@ abstract contract ValidatorManagerTest is Test {
         vm.expectEmit(true, true, true, true, address(validatorManager));
         emit ValidationPeriodEnded(validationID);
 
-        validatorManager.completeEndValidation(0, false);
-    }
-
-    function testCompleteEndValidationSetWeightMessageType() public {
-        bytes32 validationID = _setUpInitializeEndValidation({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
-        });
-
-        bytes memory setSubnetValidatorWeightMessage =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
-
-        _mockGetVerifiedWarpMessage(setSubnetValidatorWeightMessage, true);
-
-        vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodEnded(validationID);
-
-        validatorManager.completeEndValidation(0, true);
+        validatorManager.completeEndValidation(0);
     }
 
     function _setUpInitializeValidatorRegistration(

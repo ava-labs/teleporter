@@ -275,11 +275,8 @@ abstract contract ValidatorManager is
      * with the validation. Note that this function can be used for successful validation periods that have been explicitly
      * ended by calling {initializeEndValidation} or for validation periods that never began on the P-Chain due to the
      * {registrationExpiry} being reached.
-     * @param setWeightMessageType Whether or not the message type is a SetValidatorWeight message, or a
-     * SubnetValidatorRegistration message (with valid set to false). Both message types are valid for ending
-     * a validation period.
      */
-    function completeEndValidation(uint32 messageIndex, bool setWeightMessageType) external {
+    function completeEndValidation(uint32 messageIndex) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Get the Warp message.
@@ -287,37 +284,27 @@ abstract contract ValidatorManager is
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         require(valid, "ValidatorManager: Invalid warp message");
 
-        bytes32 validationID;
-        if (setWeightMessageType) {
-            uint64 weight;
-            (validationID,, weight) =
-                ValidatorMessages.unpackSetSubnetValidatorWeightMessage(warpMessage.payload);
-            require(weight == 0, "ValidatorManager: Weight must be 0");
-        } else {
-            bool validRegistration;
-            (validationID, validRegistration) =
-                ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
-            require(!validRegistration, "ValidatorManager: Registration still valid");
-        }
+        (bytes32 validationID, bool validRegistration) =
+            ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
+        require(!validRegistration, "ValidatorManager: Registration still valid");
+        
 
-        // Note: The validation status is not necessarily PendingRemoved here. It could be PendingAdded if the
-        // registration was never successfully registered on the P-Chain, or it could be Active if the validator
-        // removed themselves directly on the P-Chain without going through the contract.
-        Validator memory validator = $._validationPeriods[validationID];
-        require(_msgSender() == validator.owner, "ValidatorManager: Sender not validator owner");
-
+        // The validation status is PendingRemoved if validator removal was initiated with a call to initiateEndValidation.
+        // The validation status is PendingAdded if the validator was never registered on the P-Chain.
+        // All other statuses are unexpected, but we defensively allow them to specify the validation period as invalidated,
+        // as long as a valid SubnetValidatorRegistration message from the P-Chain is received.
+        Validator memory validator = $._validationPeriods[validationID];    
         ValidatorStatus endStatus;
-        if (
-            validator.status == ValidatorStatus.PendingRemoved
-                || validator.status == ValidatorStatus.Active
-        ) {
-            // Remove the validator from the active validators mapping.
-            delete $._activeValidators[validator.nodeID];
+        if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;
         } else {
             endStatus = ValidatorStatus.Invalidated;
         }
+        // Remove the validator from the active validators mapping.
+        delete $._activeValidators[validator.nodeID];
 
+        // Update the validator status.
+        validator.status = endStatus;
         $._validationPeriods[validationID] = validator;
 
         // Unlock the stake.
