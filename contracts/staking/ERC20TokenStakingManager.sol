@@ -57,7 +57,7 @@ contract ERC20TokenStakingManager is
     function initialize(
         PoSValidatorManagerSettings calldata settings,
         IERC20 token
-    ) external initializer {
+    ) external reinitializer(2) {
         __ERC20TokenStakingManager_init(settings, token);
     }
 
