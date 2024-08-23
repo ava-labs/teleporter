@@ -74,6 +74,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         uint64 uptimeSeconds;
         if (includeUptimeProof) {
             (WarpMessage memory warpMessage, bool valid) =
@@ -81,7 +82,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             require(valid, "StakingManager: Invalid warp message");
 
             require(
-                warpMessage.sourceChainID == WARP_MESSENGER.getBlockchainID(),
+                warpMessage.sourceChainID == $._pChainBlockchainID,
                 "StakingManager: Invalid source chain ID"
             );
             require(

@@ -53,7 +53,7 @@ abstract contract ValidatorManager is
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
-        private
+        internal
         pure
         returns (ValidatorManagerStorage storage $)
     {
@@ -283,6 +283,14 @@ abstract contract ValidatorManager is
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         require(valid, "ValidatorManager: Invalid warp message");
+        require(
+            warpMessage.sourceChainID == $._pChainBlockchainID,
+            "ValidatorManager: Invalid source chain ID"
+        );
+        require(
+            warpMessage.originSenderAddress == address(0),
+            "ValidatorManager: Invalid origin sender address"
+        );
 
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
