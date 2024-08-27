@@ -153,8 +153,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             "ValidatorManager: Delegator already registered"
         );
 
-        uint64 nonce = _getAndIncrementNonce(validationID);
-        bytes memory setValidatorWeightPayload = ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, nonce, weight);
+        _checkAndUpdateChurnTracker(weight);
+
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), weight);
 
         $._pendingRegisterDelegatorMessages[validationID][delegator] = setValidatorWeightPayload;
 
@@ -229,14 +230,13 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         Validator memory validator = _getValidator(validationID);
 
         require(validator.weight >= delegator.weight, "PoSValidatorManager: Invalid weight");
-        uint64 weight = validator.weight - delegator.weight;
-        validator.weight = weight;
+        validator.weight = validator.weight - delegator.weight;
         _setValidator(validationID, validator);
 
         bytes memory setValidatorWeightPayload = ValidatorMessages.packSetSubnetValidatorWeightMessage(
             validationID,
             _getAndIncrementNonce(validationID),
-            weight
+            validator.weight
         );
 
         $._pendingEndDelegatorMessages[validationID][_msgSender()] = setValidatorWeightPayload;

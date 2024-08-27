@@ -41,6 +41,8 @@ abstract contract ValidatorManager is
         ValidatorChurnPeriod _churnTracker;
         /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
+        /// @notice Maps the validationID to the end validation message such that the message can be re-sent if needed.
+        mapping(bytes32 => bytes) _pendingEndValidationMessages;
         /// @notice Maps the validationID to the validator information.
         mapping(bytes32 => Validator) _validationPeriods;
         /// @notice Maps the nodeID to the validationID for active validation periods.
@@ -135,12 +137,13 @@ abstract contract ValidatorManager is
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
-
+        uint64 nonce = _getAndIncrementNonce(validationID);
+        require(nonce == 0, "ValidatorManager: Nonce must be 0");
         $._validationPeriods[validationID] = Validator({
             status: ValidatorStatus.PendingAdded,
             nodeID: nodeID,
             owner: _msgSender(),
-            messageNonce: 0,
+            messageNonce: nonce,
             weight: weight,
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0
@@ -173,21 +176,10 @@ abstract contract ValidatorManager is
      */
     function completeValidatorRegistration(uint32 messageIndex) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        (WarpMessage memory warpMessage, bool valid) =
-            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "ValidatorManager: Invalid warp message");
-
-        require(
-            warpMessage.sourceChainID == $._pChainBlockchainID,
-            "ValidatorManager: Invalid source chain ID"
-        );
-        require(
-            warpMessage.originSenderAddress == address(0),
-            "ValidatorManager: Invalid origin sender address"
-        );
-
+        WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
+        
         require(validRegistration, "ValidatorManager: Registration not valid");
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
@@ -237,7 +229,9 @@ abstract contract ValidatorManager is
 
         // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, validator.messageNonce, 0);
+            .packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), 0);
+        $._pendingEndValidationMessages[validationID] = setValidatorWeightPayload;
+
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         // Emit the event to signal the start of the validator removal process.
@@ -254,7 +248,8 @@ abstract contract ValidatorManager is
         Validator memory validator = $._validationPeriods[validationID];
 
         require(
-            validator.status == ValidatorStatus.PendingRemoved,
+            $._pendingEndValidationMessages[validationID].length > 0
+                && validator.status == ValidatorStatus.PendingRemoved,
             "ValidatorManager: Validator not pending removal"
         );
 
@@ -328,7 +323,7 @@ abstract contract ValidatorManager is
      * the function will update the churn tracker with the new amount.
      */
     // TODO: right now implementation has reference to stake, evaluate for PoA.
-    function _checkAndUpdateChurnTracker(uint64 amount) private {
+    function _checkAndUpdateChurnTracker(uint64 amount) internal {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         if ($._maximumHourlyChurn == 0) {
             return;
