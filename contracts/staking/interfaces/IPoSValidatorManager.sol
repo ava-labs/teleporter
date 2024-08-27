@@ -31,7 +31,7 @@ interface IPoSValidatorManager is IValidatorManager {
      */
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
-     event DelegatorAdded(
+    event DelegatorAdded(
         bytes32 indexed validationID,
         bytes32 indexed setWeightMessageID,
         address indexed delegator,
