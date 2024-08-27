@@ -7,8 +7,8 @@ pragma solidity 0.8.25;
 library ValidatorMessages {
     // The information that uniquely identifies a subnet validation period.
     // The validationID is the SHA-256 hash of the concatenation of the CODEC_ID,
-    // REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID, and the concatenated ValidationInfo fields.
-    struct ValidationInfo {
+    // REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID, and the concatenated ValidationPeriod fields.
+    struct ValidationPeriod {
         bytes32 subnetID;
         bytes32 nodeID;
         uint64 weight;
@@ -62,16 +62,16 @@ library ValidatorMessages {
      *                           | 134 bytes |
      *                           +-----------+
      *
-     * @param validationInfo The information to pack into the message.
+     * @param validationPeriod The information to pack into the message.
      * @return The validationID and the packed message.
      */
-    function packRegisterSubnetValidatorMessage(ValidationInfo memory validationInfo)
+    function packRegisterSubnetValidatorMessage(ValidationPeriod memory validationPeriod)
         internal
         pure
         returns (bytes32, bytes memory)
     {
         require(
-            validationInfo.blsPublicKey.length == 48, "StakingMessages: Invalid signature length"
+            validationPeriod.blsPublicKey.length == 48, "StakingMessages: Invalid signature length"
         );
         bytes memory res = new bytes(134);
         // Pack the codec ID
@@ -86,23 +86,24 @@ library ValidatorMessages {
 
         // Pack the subnetID
         for (uint256 i; i < 32; ++i) {
-            res[i + 6] = validationInfo.subnetID[i];
+            res[i + 6] = validationPeriod.subnetID[i];
         }
         // Pack the nodeID
         for (uint256 i; i < 32; ++i) {
-            res[i + 38] = validationInfo.nodeID[i];
+            res[i + 38] = validationPeriod.nodeID[i];
         }
         // Pack the weight
         for (uint256 i; i < 8; ++i) {
-            res[i + 70] = bytes1(uint8(validationInfo.weight >> uint8((8 * (7 - i)))));
+            res[i + 70] = bytes1(uint8(validationPeriod.weight >> uint8((8 * (7 - i)))));
         }
         // Pack the blsPublicKey
         for (uint256 i; i < 48; ++i) {
-            res[i + 78] = validationInfo.blsPublicKey[i];
+            res[i + 78] = validationPeriod.blsPublicKey[i];
         }
         // Pack the registration expiry
         for (uint256 i; i < 8; ++i) {
-            res[i + 126] = bytes1(uint8(validationInfo.registrationExpiry >> uint64((8 * (7 - i)))));
+            res[i + 126] =
+                bytes1(uint8(validationPeriod.registrationExpiry >> uint64((8 * (7 - i)))));
         }
         return (sha256(res), res);
     }
@@ -112,12 +113,12 @@ library ValidatorMessages {
      * The message format specification is the same as the one used in above for packing.
      *
      * @param input The byte array to unpack.
-     * @return the unpacked ValidationInfo.
+     * @return the unpacked ValidationPeriod.
      */
     function unpackRegisterSubnetValidatorMessage(bytes memory input)
         internal
         pure
-        returns (ValidationInfo memory)
+        returns (ValidationPeriod memory)
     {
         require(input.length == 134, "ValidatorMessages: Invalid message length");
 
@@ -168,7 +169,7 @@ library ValidatorMessages {
             expiry |= uint64(uint8(input[i + 126])) << uint64((8 * (7 - i)));
         }
 
-        return ValidationInfo({
+        return ValidationPeriod({
             subnetID: subnetID,
             nodeID: nodeID,
             weight: weight,
@@ -187,7 +188,7 @@ library ValidatorMessages {
      * +--------------+----------+----------+
      * | validationID : [32]byte | 32 bytes |
      * +--------------+----------+----------+
-     * |        valid :     bool +  1 byte  |
+     * |        valid :     bool |  1 byte  |
      * +--------------+----------+----------+
      *                           | 39 bytes |
      *                           +----------+

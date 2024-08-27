@@ -25,6 +25,8 @@ abstract contract ValidatorManagerTest is Test {
     bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
         hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
+    bytes32 public constant DEFAULT_SOURCE_BLOCKCHAIN_ID =
+        bytes32(hex"abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd");
     address public constant WARP_PRECOMPILE_ADDRESS = 0x0200000000000000000000000000000000000005;
 
     uint64 public constant DEFAULT_WEIGHT = 1e6;
@@ -54,8 +56,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes32 indexed validationID,
         bytes32 indexed setWeightMessageID,
         uint256 stakeAmount,
-        uint256 endTime,
-        uint64 uptime
+        uint256 endTime
     );
 
     event ValidationPeriodEnded(bytes32 indexed validationID);
@@ -99,7 +100,7 @@ abstract contract ValidatorManagerTest is Test {
         );
         (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationInfo({
+            ValidatorMessages.ValidationPeriod({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
                 weight: DEFAULT_WEIGHT,
@@ -132,10 +133,6 @@ abstract contract ValidatorManagerTest is Test {
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
             completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
         });
-    }
-
-    function testInitializeEndValidationWithUptimeProof() public {
-        // TODO: implement
     }
 
     function testInitializeEndValidationExcessiveChurn() public {
@@ -210,7 +207,7 @@ abstract contract ValidatorManagerTest is Test {
         bytes memory blsPublicKey
     ) internal returns (bytes32 validationID) {
         (validationID,) = ValidatorMessages.packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationInfo({
+            ValidatorMessages.ValidationPeriod({
                 nodeID: nodeID,
                 subnetID: subnetID,
                 weight: weight,
@@ -220,7 +217,7 @@ abstract contract ValidatorManagerTest is Test {
         );
         (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationInfo({
+            ValidatorMessages.ValidationPeriod({
                 subnetID: subnetID,
                 nodeID: nodeID,
                 weight: weight,
@@ -286,7 +283,7 @@ abstract contract ValidatorManagerTest is Test {
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 0, 0);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp, 0);
+        emit ValidatorRemovalInitialized(validationID, bytes32(0), weight, completionTimestamp);
 
         _initializeEndValidation(validationID);
     }
@@ -317,6 +314,17 @@ abstract contract ValidatorManagerTest is Test {
         );
         vm.expectCall(
             WARP_PRECOMPILE_ADDRESS, abi.encodeCall(IWarpMessenger.getVerifiedWarpMessage, 0)
+        );
+    }
+
+    function _mockGetBlockchainID() internal {
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector),
+            abi.encode(DEFAULT_SOURCE_BLOCKCHAIN_ID)
+        );
+        vm.expectCall(
+            WARP_PRECOMPILE_ADDRESS, abi.encodeWithSelector(IWarpMessenger.getBlockchainID.selector)
         );
     }
 

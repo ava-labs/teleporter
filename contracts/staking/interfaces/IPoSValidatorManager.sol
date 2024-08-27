@@ -18,6 +18,13 @@ struct PoSValidatorManagerSettings {
 
 interface IPoSValidatorManager is IValidatorManager {
     /**
+     * @notice Event emitted when a validator's uptime is updated.
+     * @param validationID The ID of the validation period
+     * @param uptime The new uptime of the validator
+     */
+    event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
+
+    /**
      * @notice Begins the process of ending an active validation period. The validation period must have been previously
      * started by a successful call to {completeValidatorRegistration} with the given validationID.
      * Any rewards for this validation period will stop accruing when this function is called.

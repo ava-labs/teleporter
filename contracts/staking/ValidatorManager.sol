@@ -33,15 +33,17 @@ abstract contract ValidatorManager is
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.ValidatorManager
     struct ValidatorManagerStorage {
+        /// @notice The blockchainID of the P-Chain.
         bytes32 _pChainBlockchainID;
+        /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
         uint8 _maximumHourlyChurn;
         ValidatorChurnPeriod _churnTracker;
-        // Maps the validationID to the registration message such that the message can be re-sent if needed.
+        /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
-        // Maps the validationID to the validator information.
+        /// @notice Maps the validationID to the validator information.
         mapping(bytes32 => Validator) _validationPeriods;
-        // Maps the nodeID to the validationID for active validation periods.
+        /// @notice Maps the nodeID to the validationID for active validation periods.
         mapping(bytes32 => bytes32) _activeValidators;
     }
     // solhint-enable private-vars-leading-underscore
@@ -121,7 +123,7 @@ abstract contract ValidatorManager is
 
         (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationInfo({
+            ValidatorMessages.ValidationPeriod({
                 subnetID: $._subnetID,
                 nodeID: nodeID,
                 weight: weight,
@@ -137,13 +139,11 @@ abstract contract ValidatorManager is
         $._validationPeriods[validationID] = Validator({
             status: ValidatorStatus.PendingAdded,
             nodeID: nodeID,
+            owner: _msgSender(),
+            messageNonce: 0,
             weight: weight,
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
-            endedAt: 0,
-            uptimeSeconds: 0,
-            owner: _msgSender(),
-            rewarded: false,
-            messageNonce: 0
+            endedAt: 0
         });
         emit ValidationPeriodCreated(validationID, nodeID, messageID, weight, registrationExpiry);
 
@@ -215,10 +215,7 @@ abstract contract ValidatorManager is
      * Any rewards for this validation period will stop accruing when this function is called.
      * @param validationID The ID of the validation being ended.
      */
-    function _initializeEndValidation(
-        bytes32 validationID,
-        uint64 uptimeSeconds
-    ) internal virtual {
+    function _initializeEndValidation(bytes32 validationID) internal virtual {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
 
         // Ensure the validation period is active.
@@ -238,7 +235,6 @@ abstract contract ValidatorManager is
         // Set the end time of the validation period, since it is no longer known to be an active validator
         // on the P-Chain.
         validator.endedAt = uint64(block.timestamp);
-        validator.uptimeSeconds = uptimeSeconds;
 
         // Save the validator updates.
         // TODO: Optimize storage writes here (probably don't need to write the whole value).
@@ -250,9 +246,7 @@ abstract contract ValidatorManager is
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         // Emit the event to signal the start of the validator removal process.
-        emit ValidatorRemovalInitialized(
-            validationID, messageID, validator.weight, block.timestamp, uptimeSeconds
-        );
+        emit ValidatorRemovalInitialized(validationID, messageID, validator.weight, block.timestamp);
     }
 
     /**
@@ -276,8 +270,8 @@ abstract contract ValidatorManager is
 
     /**
      * @notice Completes the process of ending a validation period by receiving an acknowledgement from the P-Chain
-     * that the validation ID is not active and will never be active in the future. Returns the the stake associated
-     * with the validation. Note that this function can be used for successful validation periods that have been explicitly
+     * that the validation ID is not active and will never be active in the future.
+     *  Note that this function can be used for successful validation periods that have been explicitly
      * ended by calling {initializeEndValidation} or for validation periods that never began on the P-Chain due to the
      * {registrationExpiry} being reached.
      * @param setWeightMessageType Whether or not the message type is a SetValidatorWeight message, or a
