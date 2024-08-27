@@ -155,12 +155,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         _checkAndUpdateChurnTracker(weight);
 
-        bytes memory setValidatorWeightPayload = ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), weight);
+        bytes memory setValidatorWeightPayload = ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, _getAndIncrementNonce(validationID), validator.weight + weight);
 
         $._pendingRegisterDelegatorMessages[validationID][delegator] = setValidatorWeightPayload;
 
         // Submit the message to the Warp precompile.
-        WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
+        bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         $._delegatorStakes[validationID][delegator] = Delegator({
             weight: weight,
@@ -169,7 +169,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             status: ValidatorStatus.PendingAdded
         });
 
-        emit DelegatorRegistered(validationID, delegator, weight, block.timestamp);
+        emit DelegatorAdded(validationID, messageID, delegator, weight, block.timestamp);
     }
 
     function resendDelegatorRegistration(bytes32 validationID, address delegator) external {
@@ -211,7 +211,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         $._delegatorStakes[validationID][delegator].status = ValidatorStatus.Active;
         _setValidator(validationID, validator);
 
-        emit DelegatorRegistered(validationID, delegator, weight, block.timestamp);
+        emit DelegatorRegistered(validationID, delegator, $._delegatorStakes[validationID][delegator].weight, block.timestamp);
     }
 
     function initializeEndDelegation(bytes32 validationID) external {
