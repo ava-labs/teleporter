@@ -70,7 +70,7 @@ func DeployAndInitializeNativeTokenStakingManager(
 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
 				PChainBlockchainID: pChainInfo.BlockchainID,
 				SubnetID:           subnet.SubnetID,
-				MaximumHourlyChurn: 0,
+				MaximumHourlyChurn: 10,
 			},
 			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
 			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
@@ -130,7 +130,7 @@ func DeployAndInitializeERC20TokenStakingManager(
 			BaseSettings: erc20tokenstakingmanager.ValidatorManagerSettings{
 				PChainBlockchainID: pChainInfo.BlockchainID,
 				SubnetID:           subnet.SubnetID,
-				MaximumHourlyChurn: 0,
+				MaximumHourlyChurn: 10,
 			},
 			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
 			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),

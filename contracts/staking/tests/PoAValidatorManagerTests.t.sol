@@ -22,8 +22,7 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
         app.initialize(
             ValidatorManagerSettings({
                 pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
-                subnetID: DEFAULT_SUBNET_ID,
-                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                subnetID: DEFAULT_SUBNET_ID
             }),
             address(this)
         );

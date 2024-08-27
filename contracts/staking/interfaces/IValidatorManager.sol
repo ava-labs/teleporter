@@ -24,16 +24,9 @@ struct Validator {
     uint64 endedAt;
 }
 
-struct ValidatorChurnPeriod {
-    uint256 startedAt;
-    uint64 initialStake;
-    uint64 churnAmount;
-}
-
 struct ValidatorManagerSettings {
     bytes32 pChainBlockchainID;
     bytes32 subnetID;
-    uint8 maximumHourlyChurn;
 }
 
 interface IValidatorManager {

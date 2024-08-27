@@ -12,8 +12,16 @@ struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
     uint256 minimumStakeAmount;
     uint256 maximumStakeAmount;
+    uint256 churnTrackerStartTime;
     uint64 minimumStakeDuration;
+    uint8 maximumHourlyChurn;
     IRewardCalculator rewardCalculator;
+}
+
+struct ValidatorChurnPeriod {
+    uint256 startedAt;
+    uint64 initialWeight;
+    uint64 churnAmount;
 }
 
 interface IPoSValidatorManager is IValidatorManager {

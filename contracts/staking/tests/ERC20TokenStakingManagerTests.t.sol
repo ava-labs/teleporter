@@ -31,12 +31,13 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
             PoSValidatorManagerSettings({
                 baseSettings: ValidatorManagerSettings({
                     pChainBlockchainID: P_CHAIN_BLOCKCHAIN_ID,
-                    subnetID: DEFAULT_SUBNET_ID,
-                    maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN
+                    subnetID: DEFAULT_SUBNET_ID
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                churnTrackerStartTime: 0,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN,
                 rewardCalculator: IRewardCalculator(address(0))
             }),
             token

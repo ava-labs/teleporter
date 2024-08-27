@@ -9,8 +9,7 @@ import {
     IValidatorManager,
     ValidatorManagerSettings,
     ValidatorStatus,
-    Validator,
-    ValidatorChurnPeriod
+    Validator
 } from "./interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
@@ -37,8 +36,6 @@ abstract contract ValidatorManager is
         bytes32 _pChainBlockchainID;
         /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
-        uint8 _maximumHourlyChurn;
-        ValidatorChurnPeriod _churnTracker;
         /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;
         /// @notice Maps the validationID to the validator information.
@@ -55,7 +52,7 @@ abstract contract ValidatorManager is
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
-        private
+        internal
         pure
         returns (ValidatorManagerStorage storage $)
     {
@@ -89,7 +86,6 @@ abstract contract ValidatorManager is
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         $._pChainBlockchainID = settings.pChainBlockchainID;
         $._subnetID = settings.subnetID;
-        $._maximumHourlyChurn = settings.maximumHourlyChurn;
     }
 
     /**
@@ -118,8 +114,6 @@ abstract contract ValidatorManager is
             $._activeValidators[nodeID] == bytes32(0), "ValidatorManager: Node ID already active"
         );
         require(blsPublicKey.length == 48, "ValidatorManager: Invalid blsPublicKey length");
-
-        _checkAndUpdateChurnTracker(weight);
 
         (bytes32 validationID, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
@@ -220,9 +214,6 @@ abstract contract ValidatorManager is
         );
         require(_msgSender() == validator.owner, "ValidatorManager: Sender not validator owner");
 
-        // Check that removing this validator would not exceed the maximum churn rate.
-        _checkAndUpdateChurnTracker(validator.weight);
-
         // Update the validator status to pending removal.
         // They are not removed from the active validators mapping until the P-Chain acknowledges the removal.
         validator.status = ValidatorStatus.PendingRemoved;
@@ -320,34 +311,5 @@ abstract contract ValidatorManager is
 
         // Emit event.
         emit ValidationPeriodEnded(validationID);
-    }
-
-    /**
-     * @notice Helper function to check if the stake amount to be added or removed would exceed the maximum stake churn
-     * rate for the past hour. If the churn rate is exceeded, the function will revert. If the churn rate is not exceeded,
-     * the function will update the churn tracker with the new amount.
-     */
-    // TODO: right now implementation has reference to stake, evaluate for PoA.
-    function _checkAndUpdateChurnTracker(uint64 amount) private {
-        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        if ($._maximumHourlyChurn == 0) {
-            return;
-        }
-
-        ValidatorChurnPeriod memory churnTracker = $._churnTracker;
-        uint256 currentTime = block.timestamp;
-        if (currentTime - churnTracker.startedAt >= 1 hours) {
-            churnTracker.churnAmount = amount;
-            churnTracker.startedAt = currentTime;
-        } else {
-            churnTracker.churnAmount += amount;
-        }
-
-        uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialStake);
-        require(
-            churnPercentage <= $._maximumHourlyChurn,
-            "ValidatorManager: Maximum hourly churn rate exceeded"
-        );
-        $._churnTracker = churnTracker;
     }
 }

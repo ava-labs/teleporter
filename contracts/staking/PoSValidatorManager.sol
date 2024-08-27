@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {IPoSValidatorManager} from "./interfaces/IPoSValidatorManager.sol";
+import {IPoSValidatorManager, ValidatorChurnPeriod} from "./interfaces/IPoSValidatorManager.sol";
 import {PoSValidatorManagerSettings} from "./interfaces/IPoSValidatorManager.sol";
 import {ValidatorManager} from "./ValidatorManager.sol";
 import {WarpMessage} from
@@ -19,7 +19,11 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     struct PoSValidatorManagerStorage {
         uint256 _minimumStakeAmount;
         uint256 _maximumStakeAmount;
+        uint256 _totalWeight;
+        uint256 _churnTrackerStartTime;
         uint64 _minimumStakeDuration;
+        uint8 _maximumHourlyChurn;
+        ValidatorChurnPeriod _churnTracker;
         IRewardCalculator _rewardCalculator;
         mapping(bytes32 validationID => uint64) _validatorUptimes;
     }
@@ -48,25 +52,31 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         onlyInitializing
     {
         __ValidatorManager_init(settings.baseSettings);
-        __POS_Validator_Manager_init_unchained(
-            settings.minimumStakeAmount,
-            settings.maximumStakeAmount,
-            settings.minimumStakeDuration,
-            settings.rewardCalculator
-        );
+        __POS_Validator_Manager_init_unchained({
+            minimumStakeAmount: settings.minimumStakeAmount,
+            maximumStakeAmount: settings.maximumStakeAmount,
+            churnTrackerStartTime: settings.churnTrackerStartTime,
+            minimumStakeDuration: settings.minimumStakeDuration,
+            maximumHourlyChurn: settings.maximumHourlyChurn,
+            rewardCalculator: settings.rewardCalculator
+        });
     }
 
     // solhint-disable-next-line func-name-mixedcase
     function __POS_Validator_Manager_init_unchained(
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,
+        uint256 churnTrackerStartTime,
         uint64 minimumStakeDuration,
+        uint8 maximumHourlyChurn,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage s = _getPoSValidatorManagerStorage();
         s._minimumStakeAmount = minimumStakeAmount;
         s._maximumStakeAmount = maximumStakeAmount;
+        s._churnTrackerStartTime = churnTrackerStartTime;
         s._minimumStakeDuration = minimumStakeDuration;
+        s._maximumHourlyChurn = maximumHourlyChurn;
         s._rewardCalculator = rewardCalculator;
     }
 
@@ -75,8 +85,15 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
+        ValidatorManagerStorage storage s = _getValidatorManagerStorage();
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        uint64 weight = s._validationPeriods[validationID].weight;
+        _checkAndUpdateChurnTracker(weight);
+        // Update weight after checking the churn tracker.
+        $._totalWeight -= weight;
+
         if (includeUptimeProof) {
-            PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
             (WarpMessage memory warpMessage, bool valid) =
                 WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
             require(valid, "PoSValidatorManager: invalid warp message");
@@ -117,6 +134,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             weight >= $._minimumStakeAmount && weight <= $._maximumStakeAmount,
             "PoSValidatorManager: Invalid stake amount"
         );
+
+        // Check that adding this validator would not exceed the maximum churn rate.
+        _checkAndUpdateChurnTracker(weight);
+        // Update weight after checking the churn tracker.
+        $._totalWeight += weight;
+
         return weight;
     }
 
@@ -130,4 +153,36 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     function _lock(uint256 value) internal virtual returns (uint256);
     function _unlock(uint256 value, address to) internal virtual;
+
+    /**
+     * @notice Helper function to check if the stake amount to be added or removed would exceed the maximum stake churn
+     * rate for the past hour. If the churn rate is exceeded, the function will revert. If the churn rate is not exceeded,
+     * the function will update the churn tracker with the new amount.
+     */
+    function _checkAndUpdateChurnTracker(uint64 amount) private {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        if ($._maximumHourlyChurn == 0) {
+            return;
+        }
+
+        uint256 currentTime = block.timestamp;
+        if ($._churnTrackerStartTime >= currentTime) {
+            return;
+        }
+
+        ValidatorChurnPeriod memory churnTracker = $._churnTracker;
+        if (currentTime - churnTracker.startedAt >= 1 hours) {
+            churnTracker.churnAmount = amount;
+            churnTracker.startedAt = currentTime;
+        } else {
+            churnTracker.churnAmount += amount;
+        }
+
+        uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialWeight);
+        require(
+            churnPercentage <= $._maximumHourlyChurn,
+            "ValidatorManager: Maximum hourly churn rate exceeded"
+        );
+        $._churnTracker = churnTracker;
+    }
 }
