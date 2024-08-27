@@ -350,4 +350,38 @@ abstract contract ValidatorManager is
         );
         $._churnTracker = churnTracker;
     }
+
+    function _getAndIncrementNonce(bytes32 validationID) internal returns (uint64) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        uint64 currentNonce = $._validationPeriods[validationID].messageNonce;
+        uint64 nonce=currentNonce + 1;
+        $._validationPeriods[validationID].messageNonce = nonce;
+        return currentNonce;
+    }
+
+    function _getPChainWarpMessage(uint32 messageIndex) internal view returns (WarpMessage memory) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        (WarpMessage memory warpMessage, bool valid) =
+            WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
+        require(valid, "ValidatorManager: Invalid warp message");
+        require(
+            warpMessage.sourceChainID == $._pChainBlockchainID,
+            "ValidatorManager: Invalid source chain ID"
+        );
+        require(
+            warpMessage.originSenderAddress == address(0),
+            "ValidatorManager: Invalid origin sender address"
+        );
+        return warpMessage;
+    }
+
+    function _getValidator(bytes32 validationID) internal view returns (Validator memory) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        return $._validationPeriods[validationID];
+    }
+
+    function _setValidator(bytes32 validationID, Validator memory validator) internal {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        $._validationPeriods[validationID] = validator;
+    }
 }

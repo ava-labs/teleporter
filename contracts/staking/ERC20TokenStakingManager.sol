@@ -82,9 +82,15 @@ contract ERC20TokenStakingManager is
         bytes32 nodeID,
         uint64 registrationExpiry,
         bytes memory blsPublicKey
-    ) external override returns (bytes32 validationID) {
+    ) external returns (bytes32 validationID) {
         uint64 weight = _processStake(stakeAmount);
         return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
+    }
+
+    function initializeDelegatorRegistration(bytes32 validationID, uint256 stakeAmount) external {
+        uint64 weight = _processStake(stakeAmount);
+
+        return _initializeDelegatorRegistration(validationID, _msgSender(), weight);
     }
 
     // Must be guarded with reentrancy guard for safe transfer from

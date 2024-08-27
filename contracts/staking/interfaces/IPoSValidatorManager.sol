@@ -5,7 +5,7 @@
 
 pragma solidity 0.8.25;
 
-import {IValidatorManager, ValidatorManagerSettings} from "./IValidatorManager.sol";
+import {IValidatorManager, ValidatorStatus, ValidatorManagerSettings} from "./IValidatorManager.sol";
 import {IRewardCalculator} from "./IRewardCalculator.sol";
 
 struct PoSValidatorManagerSettings {
@@ -16,6 +16,13 @@ struct PoSValidatorManagerSettings {
     IRewardCalculator rewardCalculator;
 }
 
+struct Delegator {
+    uint64 weight;
+    uint64 startedAt;
+    uint64 endedAt;
+    ValidatorStatus status;
+}
+
 interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Event emitted when a validator's uptime is updated.
@@ -23,6 +30,33 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param uptime The new uptime of the validator
      */
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
+
+     event DelegatorAdded(
+        bytes32 indexed validationID,
+        bytes32 indexed setWeightMessageID,
+        address indexed delegator,
+        uint256 weight,
+        uint256 startTime
+    );
+
+    event DelegatorRegistered(
+        bytes32 indexed validationID,
+        address indexed delegator,
+        uint256 weight,
+        uint256 startTime
+    );
+
+    event DelegatorRemovalInitialized(
+        bytes32 indexed validationID,
+        bytes32 indexed setWeightMessageID,
+        address indexed delegator,
+        uint256 endTime
+    );
+
+    event DelegationEnded(
+        bytes32 indexed validationID,
+        address indexed delegator
+    );
 
     /**
      * @notice Begins the process of ending an active validation period. The validation period must have been previously
@@ -39,4 +73,14 @@ interface IPoSValidatorManager is IValidatorManager {
         bool includeUptimeProof,
         uint32 messageIndex
     ) external;
+
+    function resendDelegatorRegistration(bytes32 validationID, address delegator) external;
+
+    function completeDelegatorRegistration(uint32 messageIndex, address delegator) external;
+
+    function initializeEndDelegation(bytes32 validationID) external;
+
+    function resendEndDelegation(bytes32 validationID, address delegator) external;
+
+    function completeEndDelegation(uint32 messageIndex, address delegator) external;
 }

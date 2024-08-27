@@ -58,6 +58,12 @@ contract NativeTokenStakingManager is
         return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
     }
 
+    function initializeDelegatorRegistration(bytes32 validationID) external payable {
+        uint64 weight = _processStake(msg.value);
+
+        return _initializeDelegatorRegistration(validationID, _msgSender(), weight);
+    }
+
     // solhint-enable ordering
     function _lock(uint256 value) internal virtual override returns (uint256) {
         return value;

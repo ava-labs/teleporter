@@ -19,4 +19,8 @@ interface INativeTokenStakingManager is IPoSValidatorManager {
         uint64 registrationExpiry,
         bytes memory blsPublicKey
     ) external payable returns (bytes32 validationID);
+
+    function initializeDelegatorRegistration(
+        bytes32 validationID
+    ) external payable;
 }

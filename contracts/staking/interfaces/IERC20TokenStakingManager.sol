@@ -20,4 +20,9 @@ interface IERC20TokenStakingManager is IPoSValidatorManager {
         uint64 registrationExpiry,
         bytes memory blsPublicKey
     ) external returns (bytes32 validationID);
+
+    function initializeDelegatorRegistration(
+        bytes32 validationID,
+        uint256 stakeAmount
+    ) external;
 }
