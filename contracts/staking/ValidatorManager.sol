@@ -295,13 +295,12 @@ abstract contract ValidatorManager is
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
         require(!validRegistration, "ValidatorManager: Registration still valid");
-        
 
         // The validation status is PendingRemoved if validator removal was initiated with a call to initiateEndValidation.
         // The validation status is PendingAdded if the validator was never registered on the P-Chain.
         // All other statuses are unexpected, but we defensively allow them to specify the validation period as invalidated,
         // as long as a valid SubnetValidatorRegistration message from the P-Chain is received.
-        Validator memory validator = $._validationPeriods[validationID];    
+        Validator memory validator = $._validationPeriods[validationID];
         ValidatorStatus endStatus;
         if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;
