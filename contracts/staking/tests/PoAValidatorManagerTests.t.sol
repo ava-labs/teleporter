@@ -56,5 +56,5 @@ contract PoAValidatorManagerTest is ValidatorManagerTest {
     }
 
     // solhint-disable-next-line no-empty-blocks
-    function _beforeSend(uint64 weight) internal virtual override {}
+    function _beforeSend(uint64 weight, address spender) internal virtual override {}
 }
