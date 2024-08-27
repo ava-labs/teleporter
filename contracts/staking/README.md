@@ -44,7 +44,7 @@ ACP-77 also provides a method for validators to exit a Subnet's validator set wi
 
 Description: Issued by the Validator Manager contract in order to register a Subnet validator
 
-Signed by: Subnet validators
+Signed by: Subnet
 
 Specification:
 
