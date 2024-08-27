@@ -137,17 +137,17 @@ abstract contract ValidatorManager is
 
         // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(registerSubnetValidatorMessage);
-        uint64 nonce = _getAndIncrementNonce(validationID);
-        require(nonce == 0, "ValidatorManager: Nonce must be 0");
         $._validationPeriods[validationID] = Validator({
             status: ValidatorStatus.PendingAdded,
             nodeID: nodeID,
             owner: _msgSender(),
-            messageNonce: nonce,
+            messageNonce: 0,
             weight: weight,
             startedAt: 0, // The validation period only starts once the registration is acknowledged.
             endedAt: 0
         });
+        // Increment the nonce for the next usage.
+        _getAndIncrementNonce(validationID);
         emit ValidationPeriodCreated(validationID, nodeID, messageID, weight, registrationExpiry);
 
         return validationID;
@@ -253,9 +253,7 @@ abstract contract ValidatorManager is
             "ValidatorManager: Validator not pending removal"
         );
 
-        bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, validator.messageNonce, 0);
-        WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
+        WARP_MESSENGER.sendWarpMessage($._pendingEndValidationMessages[validationID]);
     }
 
     /**
@@ -349,8 +347,7 @@ abstract contract ValidatorManager is
     function _getAndIncrementNonce(bytes32 validationID) internal returns (uint64) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         uint64 currentNonce = $._validationPeriods[validationID].messageNonce;
-        uint64 nonce=currentNonce + 1;
-        $._validationPeriods[validationID].messageNonce = nonce;
+        $._validationPeriods[validationID].messageNonce++;
         return currentNonce;
     }
 
