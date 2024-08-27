@@ -208,6 +208,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             validator.messageNonce >= nonce,
             "PoSValidatorManager: Invalid nonce"
         );
+        validator.weight = weight;
         $._delegatorStakes[validationID][delegator].status = ValidatorStatus.Active;
         _setValidator(validationID, validator);
 
@@ -228,15 +229,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         $._delegatorStakes[validationID][_msgSender()] = delegator;
 
         Validator memory validator = _getValidator(validationID);
-
         require(validator.weight >= delegator.weight, "PoSValidatorManager: Invalid weight");
-        validator.weight = validator.weight - delegator.weight;
-        _setValidator(validationID, validator);
 
         bytes memory setValidatorWeightPayload = ValidatorMessages.packSetSubnetValidatorWeightMessage(
             validationID,
             _getAndIncrementNonce(validationID),
-            validator.weight
+            validator.weight - delegator.weight
         );
 
         $._pendingEndDelegatorMessages[validationID][_msgSender()] = setValidatorWeightPayload;
@@ -272,7 +270,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         Validator memory validator = _getValidator(validationID);
         require(
-            validator.weight == weight,
+            validator.weight - $._delegatorStakes[validationID][delegator].weight == weight,
             "PoSValidatorManager: Invalid weight"
         );
         require (
@@ -280,6 +278,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             "PoSValidatorManager: Invalid nonce"
         );
         $._delegatorStakes[validationID][delegator].status = ValidatorStatus.Completed;
+        validator.weight = weight;
+        _setValidator(validationID, validator);
 
         emit DelegationEnded(validationID, delegator);
     }
