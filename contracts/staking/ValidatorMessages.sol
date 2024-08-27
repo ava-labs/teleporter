@@ -30,9 +30,9 @@ library ValidatorMessages {
     // for the given validation ID.
     uint32 internal constant SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID = 2;
 
-    // The P-Chain responds with a SetSubnetValidatorWeight message indicating whether the weight update was successful
+    // The P-Chain responds with a SubnetValidatorWeightUpdateMessage message indicating whether the weight update was successful
     // for the given validation ID.
-    uint32 internal constant SET_SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID = 3;
+    uint32 internal constant SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID = 3;
 
     // The Subnet will self-sign a ValidationUptimeMessage to be provided when a validator is initiating
     // the end of their validation period.
@@ -343,6 +343,99 @@ library ValidatorMessages {
         }
         require(
             typeID == SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
+            "ValidatorMessages: Invalid message type"
+        );
+
+        // Unpack the validation ID.
+        bytes32 validationID;
+        for (uint256 i; i < 32; ++i) {
+            validationID |= bytes32(uint256(uint8(input[i + 6])) << (8 * (31 - i)));
+        }
+
+        // Unpack the nonce.
+        uint64 nonce;
+        for (uint256 i; i < 8; ++i) {
+            nonce |= uint64(uint8(input[i + 38])) << uint64((8 * (7 - i)));
+        }
+
+        // Unpack the weight.
+        uint64 weight;
+        for (uint256 i; i < 8; ++i) {
+            weight |= uint64(uint8(input[i + 46])) << uint64((8 * (7 - i)));
+        }
+
+        return (validationID, nonce, weight);
+    }
+
+    /**
+     * @notice Packs a SubnetValidatorWeightUpdateMessage into a byte array.
+     * The message format specification is:
+     * +--------------+----------+----------+
+     * |      codecID :   uint16 |  2 bytes |
+     * +--------------+----------+----------+
+     * |       typeID :   uint32 |  4 bytes |
+     * +--------------+----------+----------+
+     * | validationID : [32]byte | 32 bytes |
+     * +--------------+----------+----------+
+     * |        nonce :   uint64 |  8 bytes |
+     * +--------------+----------+----------+
+     * |       weight :   uint64 |  8 bytes |
+     * +--------------+----------+----------+
+     *                           | 54 bytes |
+     *                           +----------+  
+     */
+    function packSubnetValidatorWeightUpdateMessage(bytes32 validationID, uint64 nonce, uint64 weight) internal pure returns (bytes memory) {
+        bytes memory res = new bytes(54);
+        // Pack the codec ID.
+        for (uint256 i; i < 2; ++i) {
+            res[i] = bytes1(uint8(CODEC_ID >> (8 * (1 - i))));
+        }
+        // Pack the type ID.
+        for (uint256 i; i < 4; ++i) {
+            res[i + 2] = bytes1(uint8(SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID >> (8 * (3 - i))));
+        }
+        // Pack the validation ID.
+        for (uint256 i; i < 32; ++i) {
+            res[i + 6] = bytes1(uint8(uint256(validationID >> (8 * (31 - i)))));
+        }
+        // Pack the nonce.
+        for (uint256 i; i < 8; ++i) {
+            res[i + 38] = bytes1(uint8(nonce >> (8 * (7 - i))));
+        }
+        // Pack the weight.
+        for (uint256 i; i < 8; ++i) {
+            res[i + 46] = bytes1(uint8(weight >> (8 * (7 - i))));
+        }
+        return res;
+    } 
+
+    /**
+     * @notice Unpacks a byte array as a SubnetValidatorWeightUpdateMessag.
+     * The message format specification is the same as the one used in above for packing.
+     *
+     * @param input The byte array to unpack.
+     * @return The validationID, weight, and nonce.
+     */
+    function unpackSubnetValidatorWeightUpdateMessage(bytes memory input)
+        internal
+        pure
+        returns (bytes32, uint64, uint64) {
+        require(input.length == 54, "ValidatorMessages: Invalid message length");
+
+        // Unpack the codec ID.
+        uint16 codecID;
+        for (uint256 i; i < 2; ++i) {
+            codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
+        }
+        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
+
+        // Unpack the type ID.
+        uint32 typeID;
+        for (uint256 i; i < 4; ++i) {
+            typeID |= uint32(uint8(input[i + 2])) << uint32((8 * (3 - i)));
+        }
+        require(
+            typeID == SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID,
             "ValidatorMessages: Invalid message type"
         );
 
