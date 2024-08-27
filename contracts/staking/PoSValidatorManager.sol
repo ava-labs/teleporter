@@ -21,7 +21,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _maximumStakeAmount;
         uint64 _minimumStakeDuration;
         IRewardCalculator _rewardCalculator;
-        mapping(bytes32 validationID => uint64) _uptimes;
+        mapping(bytes32 validationID => uint64) _validatorUptimes;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -97,7 +97,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
                 "PoSValidatorManager: invalid uptime validation ID"
             );
 
-            $._uptimes[validationID] = uptime;
+            $._validatorUptimes[validationID] = uptime;
             emit ValidationUptimeUpdated(validationID, uptime);
         }
 
