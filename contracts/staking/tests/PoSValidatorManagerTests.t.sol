@@ -21,7 +21,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
     function testInitializeEndValidationWithUptimeProof() public {
-        // TODO: implement
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
