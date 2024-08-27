@@ -17,13 +17,11 @@ enum ValidatorStatus {
 struct Validator {
     ValidatorStatus status;
     bytes32 nodeID;
+    address owner;
+    uint64 messageNonce;
     uint64 weight;
     uint64 startedAt;
     uint64 endedAt;
-    uint64 uptimeSeconds;
-    address owner;
-    bool rewarded;
-    uint64 messageNonce;
 }
 
 struct ValidatorChurnPeriod {
@@ -70,8 +68,7 @@ interface IValidatorManager {
         bytes32 indexed validationID,
         bytes32 indexed setWeightMessageID,
         uint256 weight,
-        uint256 endTime,
-        uint64 uptime
+        uint256 endTime
     );
 
     /**

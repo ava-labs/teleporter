@@ -24,7 +24,7 @@ contract ValidatorMessagesTest is Test {
     function testRegisterSubnetValidatorMessage() public pure {
         (bytes32 validationID, bytes memory packed) = ValidatorMessages
             .packRegisterSubnetValidatorMessage(
-            ValidatorMessages.ValidationInfo({
+            ValidatorMessages.ValidationPeriod({
                 subnetID: DEFAULT_SUBNET_ID,
                 nodeID: DEFAULT_NODE_ID,
                 weight: DEFAULT_WEIGHT,
@@ -33,7 +33,7 @@ contract ValidatorMessagesTest is Test {
             })
         );
 
-        ValidatorMessages.ValidationInfo memory info =
+        ValidatorMessages.ValidationPeriod memory info =
             ValidatorMessages.unpackRegisterSubnetValidatorMessage(packed);
         assertEq(info.subnetID, DEFAULT_SUBNET_ID);
         assertEq(info.nodeID, DEFAULT_NODE_ID);
