@@ -18,14 +18,21 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     // solhint-disable private-vars-leading-underscore
     /// @custom:storage-location erc7201:avalanche-icm.storage.PoSValidatorManager
     struct PoSValidatorManagerStorage {
+        /// @notice The minimum amount of stake required to be a validator.
         uint256 _minimumStakeAmount;
+        /// @notice The maximum amount of stake allowed to be a validator.
         uint256 _maximumStakeAmount;
+        /// @notice The minimum amount of time a validator must be staked for.
         uint64 _minimumStakeDuration;
+        /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
+        /// @notice Maps the validationID to the uptime of the validator.
         mapping(bytes32 validationID => uint64) _uptimes;
         /// @notice Maps the validationID to a mapping of delegator address to delegator information.
         mapping(bytes32 => mapping(address => Delegator)) _delegatorStakes;
+        /// @notice Maps the validationID to a mapping of delegator address to pending register delegator messages.
         mapping(bytes32 => mapping(address => bytes)) _pendingRegisterDelegatorMessages;
+        /// @notice Maps the validationID to a mapping of delegator address to pending end delegator messages.
         mapping(bytes32 => mapping(address => bytes)) _pendingEndDelegatorMessages;
     }
     // solhint-enable private-vars-leading-underscore
@@ -157,16 +164,15 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         _checkAndUpdateChurnTracker(weight);
 
+        // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSetSubnetValidatorWeightMessage(
             validationID, _getAndIncrementNonce(validationID), validator.weight + weight
         );
-
         $._pendingRegisterDelegatorMessages[validationID][delegator] = setValidatorWeightPayload;
-
-        // Submit the message to the Warp precompile.
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
+        // Store the delegator information
         $._delegatorStakes[validationID][delegator] = Delegator({
             weight: weight,
             startedAt: uint64(block.timestamp),
@@ -191,18 +197,19 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     function completeDelegatorRegistration(uint32 messageIndex, address delegator) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        // Unpack the Warp message
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, uint64 nonce, uint64 weight) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
-
         require(
             $._pendingRegisterDelegatorMessages[validationID][delegator].length > 0
                 && $._delegatorStakes[validationID][delegator].status == ValidatorStatus.PendingAdded,
             "PoSValidatorManager: Delegator registration not pending"
         );
-
         delete $._pendingRegisterDelegatorMessages[validationID][delegator];
 
+        // Update the validator weight and delegator status
         Validator memory validator = _getValidator(validationID);
         require(
             $._delegatorStakes[validationID][delegator].weight + validator.weight == weight,
@@ -217,6 +224,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             validationID,
             delegator,
             $._delegatorStakes[validationID][delegator].weight,
+            weight,
             block.timestamp
         );
     }
@@ -237,13 +245,12 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         Validator memory validator = _getValidator(validationID);
         require(validator.weight >= delegator.weight, "PoSValidatorManager: Invalid weight");
 
+        // Submit the message to the Warp precompile.
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSetSubnetValidatorWeightMessage(
             validationID, _getAndIncrementNonce(validationID), validator.weight - delegator.weight
         );
-
         $._pendingEndDelegatorMessages[validationID][_msgSender()] = setValidatorWeightPayload;
-
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         emit DelegatorRemovalInitialized(validationID, messageID, _msgSender(), block.timestamp);
@@ -261,18 +268,19 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
     function completeEndDelegation(uint32 messageIndex, address delegator) external {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+
+        // Unpack the Warp message
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, uint64 nonce, uint64 weight) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
-
         require(
             $._pendingEndDelegatorMessages[validationID][delegator].length > 0
                 && $._delegatorStakes[validationID][delegator].status == ValidatorStatus.PendingRemoved,
             "PoSValidatorManager: Delegator removal not pending"
         );
-
         delete $._pendingEndDelegatorMessages[validationID][delegator];
 
+        // Update the validator weight and delegator status
         Validator memory validator = _getValidator(validationID);
         require(
             validator.weight - $._delegatorStakes[validationID][delegator].weight == weight,
@@ -283,6 +291,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         validator.weight = weight;
         _setValidator(validationID, validator);
 
-        emit DelegationEnded(validationID, delegator);
+        emit DelegationEnded(validationID, delegator, weight);
     }
 }

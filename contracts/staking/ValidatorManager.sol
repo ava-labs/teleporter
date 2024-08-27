@@ -37,7 +37,9 @@ abstract contract ValidatorManager is
         bytes32 _pChainBlockchainID;
         /// @notice The subnetID associated with this validator manager.
         bytes32 _subnetID;
+        /// @notice The maximum churn rate allowed per hour.
         uint8 _maximumHourlyChurn;
+        /// @notice The churn tracker used to track the amount of stake added or removed in the past hour.
         ValidatorChurnPeriod _churnTracker;
         /// @notice Maps the validationID to the registration message such that the message can be re-sent if needed.
         mapping(bytes32 => bytes) _pendingRegisterValidationMessages;

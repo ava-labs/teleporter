@@ -54,10 +54,13 @@ contract NativeTokenStakingManager is
         bytes memory blsPublicKey
     ) external payable returns (bytes32) {
         uint64 weight = _processStake(msg.value);
-
         return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
     }
 
+    /**
+     * @notice Begins the delegator registration process. Locks the provided native asset in the contract as the delegated stake.
+     * @param validationID The ID of the validation period being delegated to.
+     */
     function initializeDelegatorRegistration(bytes32 validationID) external payable {
         uint64 weight = _processStake(msg.value);
 
