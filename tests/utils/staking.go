@@ -481,7 +481,7 @@ func callCompleteEndValidation(
 	stakingManagerContractAddress common.Address,
 	registrationSignedMessage *avalancheWarp.Message,
 ) *types.Receipt {
-	callData, err := abi.Pack("completeEndValidation", uint32(0), false)
+	callData, err := abi.Pack("completeEndValidation", uint32(0))
 	Expect(err).Should(BeNil())
 	gasFeeCap, gasTipCap, nonce := CalculateTxParams(context.Background(), subnet, PrivateKeyToAddress(sendingKey))
 	registrationTx := predicateutils.NewPredicateTx(
