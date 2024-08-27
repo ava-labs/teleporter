@@ -21,6 +21,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _maximumStakeAmount;
         uint64 _minimumStakeDuration;
         IRewardCalculator _rewardCalculator;
+        mapping(bytes32 validationID => uint64) _validatorUptimes;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -74,30 +75,33 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         bool includeUptimeProof,
         uint32 messageIndex
     ) external {
-        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        uint64 uptimeSeconds;
         if (includeUptimeProof) {
+            PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
             (WarpMessage memory warpMessage, bool valid) =
                 WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-            require(valid, "StakingManager: Invalid warp message");
+            require(valid, "PoSValidatorManager: invalid warp message");
 
             require(
-                warpMessage.sourceChainID == $._pChainBlockchainID,
-                "StakingManager: Invalid source chain ID"
+                warpMessage.sourceChainID == WARP_MESSENGER.getBlockchainID(),
+                "PoSValidatorManager: invalid source chain ID"
             );
             require(
                 warpMessage.originSenderAddress == address(0),
-                "StakingManager: Invalid origin sender address"
+                "PoSValidatorManager: invalid origin sender address"
             );
 
             (bytes32 uptimeValidationID, uint64 uptime) =
                 ValidatorMessages.unpackValidationUptimeMessage(warpMessage.payload);
             require(
-                validationID == uptimeValidationID, "StakingManager: Invalid uptime validation ID"
+                validationID == uptimeValidationID,
+                "PoSValidatorManager: invalid uptime validation ID"
             );
-            uptimeSeconds = uptime;
+
+            $._validatorUptimes[validationID] = uptime;
+            emit ValidationUptimeUpdated(validationID, uptime);
         }
-        _initializeEndValidation(validationID, uptimeSeconds);
+
+        _initializeEndValidation(validationID);
     }
 
     function _processStake(uint256 stakeAmount) internal virtual returns (uint64) {
