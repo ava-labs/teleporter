@@ -63,9 +63,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     ) internal virtual override {
         uint256 value = app.weightToValue(weight);
         vm.startPrank(delegator);
-        app.initializeDelegatorRegistration(
-            validationID, value
-        );
+        app.initializeDelegatorRegistration(validationID, value);
         vm.stopPrank();
     }
 

@@ -382,9 +382,13 @@ library ValidatorMessages {
      * |       weight :   uint64 |  8 bytes |
      * +--------------+----------+----------+
      *                           | 54 bytes |
-     *                           +----------+  
+     *                           +----------+
      */
-    function packSubnetValidatorWeightUpdateMessage(bytes32 validationID, uint64 nonce, uint64 weight) internal pure returns (bytes memory) {
+    function packSubnetValidatorWeightUpdateMessage(
+        bytes32 validationID,
+        uint64 nonce,
+        uint64 weight
+    ) internal pure returns (bytes memory) {
         bytes memory res = new bytes(54);
         // Pack the codec ID.
         for (uint256 i; i < 2; ++i) {
@@ -392,7 +396,8 @@ library ValidatorMessages {
         }
         // Pack the type ID.
         for (uint256 i; i < 4; ++i) {
-            res[i + 2] = bytes1(uint8(SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID >> (8 * (3 - i))));
+            res[i + 2] =
+                bytes1(uint8(SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID >> (8 * (3 - i))));
         }
         // Pack the validation ID.
         for (uint256 i; i < 32; ++i) {
@@ -407,7 +412,7 @@ library ValidatorMessages {
             res[i + 46] = bytes1(uint8(weight >> (8 * (7 - i))));
         }
         return res;
-    } 
+    }
 
     /**
      * @notice Unpacks a byte array as a SubnetValidatorWeightUpdateMessag.
@@ -419,7 +424,8 @@ library ValidatorMessages {
     function unpackSubnetValidatorWeightUpdateMessage(bytes memory input)
         internal
         pure
-        returns (bytes32, uint64, uint64) {
+        returns (bytes32, uint64, uint64)
+    {
         require(input.length == 54, "ValidatorMessages: Invalid message length");
 
         // Unpack the codec ID.

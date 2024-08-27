@@ -179,7 +179,7 @@ abstract contract ValidatorManager is
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
-        
+
         require(validRegistration, "ValidatorManager: Registration not valid");
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
@@ -351,7 +351,11 @@ abstract contract ValidatorManager is
         return currentNonce;
     }
 
-    function _getPChainWarpMessage(uint32 messageIndex) internal view returns (WarpMessage memory) {
+    function _getPChainWarpMessage(uint32 messageIndex)
+        internal
+        view
+        returns (WarpMessage memory)
+    {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
