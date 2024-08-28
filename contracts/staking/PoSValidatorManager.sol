@@ -120,8 +120,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         // Lock the stake in the contract.
         uint256 lockedValue = _lock(stakeAmount);
-
-        // Ensure the stake churn doesn't exceed the maximum churn rate.
         uint64 weight = valueToWeight(lockedValue);
 
         // Ensure the weight is within the valid range.

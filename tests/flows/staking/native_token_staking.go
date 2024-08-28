@@ -56,10 +56,10 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 	// Register a validator
 	//
 	var validationID ids.ID // To be used in the delisting step
-	stakeAmount := uint64(1e18)
+	stakeAmount := big.NewInt(1e18)
 	weight, err := stakingManager.ValueToWeight(
 		&bind.CallOpts{},
-		big.NewInt(int64(stakeAmount)),
+		stakeAmount,
 	)
 	Expect(err).Should(BeNil())
 	{
@@ -139,7 +139,7 @@ func NativeTokenStakingManager(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 
 		// Validate the Warp message, (this will be done on the P-Chain in the future)
-		utils.ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, 0)
+		utils.ValidateSetSubnetValidatorWeightMessage(signedWarpMessage, validationID, 0, 1)
 
 		// Construct a SubnetValidatorRegistrationMessage Warp message from the P-Chain
 		registrationSignedMessage := utils.ConstructSubnetValidatorRegistrationMessage(
