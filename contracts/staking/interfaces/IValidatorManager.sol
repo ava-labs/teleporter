@@ -76,7 +76,7 @@ interface IValidatorManager {
      * This is done by calling {completeEndValidation}, which provides proof from the P-Chain that the
      * validation period is not active and will never be active in the future.
      */
-    event ValidationPeriodEnded(bytes32 indexed validationID);
+    event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
 
     /**
      * @notice Resubmits a validator registration message to be sent to P-Chain to the Warp precompile.

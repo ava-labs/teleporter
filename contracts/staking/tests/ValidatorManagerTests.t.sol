@@ -8,6 +8,7 @@ pragma solidity 0.8.25;
 import {Test} from "@forge-std/Test.sol";
 import {ValidatorManager} from "../ValidatorManager.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
+import {ValidatorStatus} from "../interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -59,7 +60,7 @@ abstract contract ValidatorManagerTest is Test {
         uint256 endTime
     );
 
-    event ValidationPeriodEnded(bytes32 indexed validationID);
+    event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
 
     function testInitializeValidatorRegistrationSuccess() public {
         _setUpInitializeValidatorRegistration(
@@ -172,7 +173,26 @@ abstract contract ValidatorManagerTest is Test {
         _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodEnded(validationID);
+        emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
+
+        validatorManager.completeEndValidation(0);
+    }
+
+    function testCompleteInvalidatedValidation() public {
+        bytes32 validationID = _setUpInitializeValidatorRegistration(
+            DEFAULT_NODE_ID,
+            DEFAULT_SUBNET_ID,
+            DEFAULT_WEIGHT,
+            DEFAULT_EXPIRY,
+            DEFAULT_BLS_PUBLIC_KEY
+        );
+         bytes memory subnetValidatorRegistrationMessage =
+            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
+
+        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
+
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidationPeriodEnded(validationID, ValidatorStatus.Invalidated);
 
         validatorManager.completeEndValidation(0);
     }
