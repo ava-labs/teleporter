@@ -103,8 +103,9 @@ contract ERC20TokenStakingManager is
         bytes32 validationID,
         uint256 delegationAmount
     ) external {
-        uint64 weight = _processStake(delegationAmount);
-        return _initializeDelegatorRegistration(validationID, _msgSender(), weight);
+        return _initializeDelegatorRegistration(
+            validationID, _msgSender(), valueToWeight(_lock(delegationAmount))
+        );
     }
 
     // Must be guarded with reentrancy guard for safe transfer from
