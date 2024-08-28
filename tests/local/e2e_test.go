@@ -216,6 +216,10 @@ var _ = ginkgo.Describe("[Teleporter integration tests]", func() {
 		ginkgo.Label(validatorManagerLabel),
 		func() {
 			staking.ERC20Delegation(LocalNetworkInstance)
-		},
-	)
+		})
+	ginkgo.It("Native token delegation",
+		ginkgo.Label(validatorManagerLabel),
+		func() {
+			staking.NativeDelegation(LocalNetworkInstance)
+		})
 })

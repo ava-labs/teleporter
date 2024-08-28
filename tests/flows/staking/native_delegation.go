@@ -14,8 +14,8 @@ import (
 )
 
 /*
- * Registers a delegator with an ERC20 token staking validator on a subnet. The steps are as follows:
- * - Deploy the ERCTokenStakingManager
+ * Registers a delegator with a native token staking validator on a subnet. The steps are as follows:
+ * - Deploy the NativeTokenStakingManager
  * - Register a validator
  * - Register a delegator
  * - Deleist the delegator
@@ -24,7 +24,7 @@ import (
  * - Delegator rewards
  * - Implicit delegation end at validation end
  */
-func ERC20Delegation(network interfaces.LocalNetwork) {
+func NativeDelegation(network interfaces.LocalNetwork) {
 	// Get the subnets info
 	cChainInfo := network.GetPrimaryNetworkInfo()
 	subnetAInfo, _ := utils.GetTwoSubnets(network)
@@ -40,7 +40,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 	)
 
 	// Deploy the staking manager contract
-	stakingManagerAddress, stakingManager, _, erc20 := utils.DeployAndInitializeERC20TokenStakingManager(
+	stakingManagerAddress, stakingManager := utils.DeployAndInitializeNativeTokenStakingManager(
 		context.Background(),
 		fundedKey,
 		subnetAInfo,
@@ -58,16 +58,14 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 	)
 	Expect(err).Should(BeNil())
 	{
-		// Initiate validator registration
+		// Iniatiate validator registration
 		nodeID := ids.GenerateTestID()
 		blsPublicKey := [bls.PublicKeyLen]byte{}
 		var receipt *types.Receipt
-		receipt, validationID = utils.InitializeERC20ValidatorRegistration(
+		receipt, validationID = utils.InitializeNativeValidatorRegistration(
 			fundedKey,
 			subnetAInfo,
 			validatorStake,
-			erc20,
-			stakingManagerAddress,
 			nodeID,
 			blsPublicKey,
 			stakingManager,
@@ -97,7 +95,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteERC20ValidatorRegistration(
+		receipt = utils.CompleteNativeValidatorRegistration(
 			fundedKey,
 			subnetAInfo,
 			stakingManagerAddress,
@@ -111,7 +109,6 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		Expect(err).Should(BeNil())
 		Expect(registrationEvent.ValidationID[:]).Should(Equal(validationID[:]))
 	}
-
 	//
 	// Register a delegator
 	//
@@ -126,12 +123,11 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 
 		nonce := uint64(1)
 
-		receipt := utils.InitializeERC20DelegatorRegistration(
+		receipt := utils.InitializeNativeDelegatorRegistration(
 			fundedKey,
 			subnetAInfo,
 			validationID,
 			delegatorStake,
-			erc20,
 			stakingManagerAddress,
 			stakingManager,
 		)
@@ -160,7 +156,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteERC20DelegatorRegistration(
+		receipt = utils.CompleteNativeDelegatorRegistration(
 			fundedKey,
 			fundedAddress,
 			subnetAInfo,
@@ -181,7 +177,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 	//
 	{
 		nonce := uint64(2)
-		receipt := utils.InitializeEndERC20Delegation(
+		receipt := utils.InitializeEndNativeDelegation(
 			fundedKey,
 			subnetAInfo,
 			stakingManager,
@@ -215,7 +211,7 @@ func ERC20Delegation(network interfaces.LocalNetwork) {
 		)
 
 		// Deliver the Warp message to the subnet
-		receipt = utils.CompleteEndERC20Delegation(
+		receipt = utils.CompleteEndNativeDelegation(
 			fundedKey,
 			fundedAddress,
 			subnetAInfo,
