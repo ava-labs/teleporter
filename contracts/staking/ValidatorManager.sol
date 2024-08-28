@@ -109,15 +109,15 @@ abstract contract ValidatorManager is
         // Ensure the registration expiry is in a valid range.
         require(
             registrationExpiry > block.timestamp && block.timestamp + 2 days > registrationExpiry,
-            "ValidatorManager: Invalid registration expiry"
+            "ValidatorManager: invalid registration expiry"
         );
 
         // Ensure the nodeID is not the zero address, and is not already an active validator.
-        require(nodeID != bytes32(0), "ValidatorManager: Invalid node ID");
+        require(nodeID != bytes32(0), "ValidatorManager: invalid node ID");
         require(
-            $._activeValidators[nodeID] == bytes32(0), "ValidatorManager: Node ID already active"
+            $._activeValidators[nodeID] == bytes32(0), "ValidatorManager: node ID already active"
         );
-        require(blsPublicKey.length == 48, "ValidatorManager: Invalid blsPublicKey length");
+        require(blsPublicKey.length == 48, "ValidatorManager: invalid blsPublicKey length");
 
         _checkAndUpdateChurnTracker(weight);
 
@@ -159,7 +159,7 @@ abstract contract ValidatorManager is
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
                 && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
-            "ValidatorManager: Invalid validation ID"
+            "ValidatorManager: invalid validation ID"
         );
 
         // Submit the message to the Warp precompile.
@@ -175,24 +175,24 @@ abstract contract ValidatorManager is
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "ValidatorManager: Invalid warp message");
+        require(valid, "ValidatorManager: invalid warp message");
 
         require(
             warpMessage.sourceChainID == $._pChainBlockchainID,
-            "ValidatorManager: Invalid source chain ID"
+            "ValidatorManager: invalid source chain ID"
         );
         require(
             warpMessage.originSenderAddress == address(0),
-            "ValidatorManager: Invalid origin sender address"
+            "ValidatorManager: invalid origin sender address"
         );
 
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
-        require(validRegistration, "ValidatorManager: Registration not valid");
+        require(validRegistration, "ValidatorManager: registration not valid");
         require(
             $._pendingRegisterValidationMessages[validationID].length > 0
                 && $._validationPeriods[validationID].status == ValidatorStatus.PendingAdded,
-            "ValidatorManager: Invalid validation ID"
+            "ValidatorManager: invalid validation ID"
         );
 
         delete $._pendingRegisterValidationMessages[validationID];
@@ -216,9 +216,9 @@ abstract contract ValidatorManager is
         // Ensure the validation period is active.
         Validator memory validator = $._validationPeriods[validationID];
         require(
-            validator.status == ValidatorStatus.Active, "ValidatorManager: Validator not active"
+            validator.status == ValidatorStatus.Active, "ValidatorManager: validator not active"
         );
-        require(_msgSender() == validator.owner, "ValidatorManager: Sender not validator owner");
+        require(_msgSender() == validator.owner, "ValidatorManager: sender not validator owner");
 
         // Check that removing this validator would not exceed the maximum churn rate.
         _checkAndUpdateChurnTracker(validator.weight);
@@ -255,7 +255,7 @@ abstract contract ValidatorManager is
 
         require(
             validator.status == ValidatorStatus.PendingRemoved,
-            "ValidatorManager: Validator not pending removal"
+            "ValidatorManager: validator not pending removal"
         );
 
         bytes memory setValidatorWeightPayload = ValidatorMessages
@@ -276,19 +276,19 @@ abstract contract ValidatorManager is
         // Get the Warp message.
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "ValidatorManager: Invalid warp message");
+        require(valid, "ValidatorManager: invalid warp message");
         require(
             warpMessage.sourceChainID == $._pChainBlockchainID,
-            "ValidatorManager: Invalid source chain ID"
+            "ValidatorManager: invalid source chain ID"
         );
         require(
             warpMessage.originSenderAddress == address(0),
-            "ValidatorManager: Invalid origin sender address"
+            "ValidatorManager: invalid origin sender address"
         );
 
         (bytes32 validationID, bool validRegistration) =
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
-        require(!validRegistration, "ValidatorManager: Registration still valid");
+        require(!validRegistration, "ValidatorManager: registration still valid");
 
         
         Validator memory validator = $._validationPeriods[validationID];
@@ -298,7 +298,7 @@ abstract contract ValidatorManager is
         // The validation status is PendingAdded if the validator was never registered on the P-Chain.
         require(validator.status == ValidatorStatus.PendingRemoved ||
             validator.status == ValidatorStatus.PendingAdded,
-            "ValidatorManager: Invalid validator status");
+            "ValidatorManager: invalid validator status");
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;
@@ -344,7 +344,7 @@ abstract contract ValidatorManager is
         uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialStake);
         require(
             churnPercentage <= $._maximumHourlyChurn,
-            "ValidatorManager: Maximum hourly churn rate exceeded"
+            "ValidatorManager: maximum hourly churn rate exceeded"
         );
         $._churnTracker = churnTracker;
     }
