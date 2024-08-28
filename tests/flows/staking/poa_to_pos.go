@@ -161,7 +161,7 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
 
 	// Check that previous validator is still active
-	validationID, err := posValidatorManager.GetActiveValidator(&bind.CallOpts{}, poaNodeID)
+	validationID, err := posValidatorManager.ActiveValidators(&bind.CallOpts{}, poaNodeID)
 	Expect(err).Should(BeNil())
 	Expect(validationID[:]).Should(Equal(poaValidationID[:]))
 

@@ -204,7 +204,7 @@ abstract contract ValidatorManager is
         );
     }
 
-    function getActiveValidator(bytes32 nodeID) external view returns (bytes32) {
+    function activeValidators(bytes32 nodeID) public view returns (bytes32) {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         return $._activeValidators[nodeID];
     }
