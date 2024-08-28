@@ -290,15 +290,16 @@ abstract contract ValidatorManager is
             ValidatorMessages.unpackSubnetValidatorRegistrationMessage(warpMessage.payload);
         require(!validRegistration, "ValidatorManager: registration still valid");
 
-        
         Validator memory validator = $._validationPeriods[validationID];
         ValidatorStatus endStatus;
 
-        // The validation status is PendingRemoved if validator removal was initiated with a call to initiateEndValidation.
+        // The validation status is PendingRemoved if validator removal was initiated with a call to {initiateEndValidation}.
         // The validation status is PendingAdded if the validator was never registered on the P-Chain.
-        require(validator.status == ValidatorStatus.PendingRemoved ||
-            validator.status == ValidatorStatus.PendingAdded,
-            "ValidatorManager: invalid validator status");
+        require(
+            validator.status == ValidatorStatus.PendingRemoved
+                || validator.status == ValidatorStatus.PendingAdded,
+            "ValidatorManager: invalid validator status"
+        );
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;

@@ -186,7 +186,7 @@ abstract contract ValidatorManagerTest is Test {
             DEFAULT_EXPIRY,
             DEFAULT_BLS_PUBLIC_KEY
         );
-         bytes memory subnetValidatorRegistrationMessage =
+        bytes memory subnetValidatorRegistrationMessage =
             ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
 
         _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
