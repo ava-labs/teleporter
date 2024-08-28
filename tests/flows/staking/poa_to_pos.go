@@ -101,8 +101,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
 
 	// Register a validator
-	weight := uint64(1)
-	poaValidatorNodeID := ids.GenerateTestID()
+	poaWeight := uint64(1)
+	poaNodeID := ids.GenerateTestID()
 	blsPublicKey := [bls.PublicKeyLen]byte{}
 	poaValidationID := utils.InitializeAndCompletePoAValidatorRegistration(
 		network,
@@ -113,8 +113,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		pChainInfo,
 		poaValidatorManager,
 		proxyAddress,
-		weight,
-		poaValidatorNodeID,
+		poaWeight,
+		poaNodeID,
 		blsPublicKey,
 	)
 
@@ -161,20 +161,20 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 	utils.WaitForTransactionSuccess(context.Background(), subnetAInfo, tx.Hash())
 
 	// Check that previous validator is still active
-	validationID, err := posValidatorManager.GetActiveValidator(&bind.CallOpts{}, poaValidatorNodeID)
+	validationID, err := posValidatorManager.GetActiveValidator(&bind.CallOpts{}, poaNodeID)
 	Expect(err).Should(BeNil())
 	Expect(validationID[:]).Should(Equal(poaValidationID[:]))
 
 	// Register a PoS validator
-	posValidatorNodeID := ids.GenerateTestID()
+	posNodeID := ids.GenerateTestID()
 	stakeAmount := uint64(1e18)
-	weight, err = posValidatorManager.ValueToWeight(
+	posWeight, err := posValidatorManager.ValueToWeight(
 		&bind.CallOpts{},
 		big.NewInt(int64(stakeAmount)),
 	)
 	Expect(err).Should(BeNil())
 
-	utils.InitializeAndCompleteNativeValidatorRegistration(
+	posValidationID := utils.InitializeAndCompleteNativeValidatorRegistration(
 		network,
 		signatureAggregator,
 		fundedKey,
@@ -182,8 +182,8 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		pChainInfo,
 		posValidatorManager,
 		proxyAddress,
-		weight,
-		posValidatorNodeID,
+		posWeight,
+		posNodeID,
 		blsPublicKey,
 		stakeAmount,
 	)
@@ -196,4 +196,30 @@ func PoAMigrationToPoS(network interfaces.LocalNetwork) {
 		0,
 	)
 	Expect(err).ShouldNot(BeNil())
+
+	// Delist the previous PoA validator properly
+	utils.InitializeAndCompleteEndNativeValidation(
+		network,
+		signatureAggregator,
+		ownerKey,
+		subnetAInfo,
+		pChainInfo,
+		posValidatorManager,
+		proxyAddress,
+		poaValidationID,
+		poaWeight,
+	)
+
+	// Delist the PoS validator
+	utils.InitializeAndCompleteEndNativeValidation(
+		network,
+		signatureAggregator,
+		fundedKey,
+		subnetAInfo,
+		pChainInfo,
+		posValidatorManager,
+		proxyAddress,
+		posValidationID,
+		posWeight,
+	)
 }
