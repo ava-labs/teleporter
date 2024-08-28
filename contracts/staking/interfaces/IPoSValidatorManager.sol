@@ -6,9 +6,17 @@
 pragma solidity 0.8.25;
 
 import {
-    IValidatorManager, ValidatorStatus, ValidatorManagerSettings
+    IValidatorManager, ValidatorManagerSettings
 } from "./IValidatorManager.sol";
 import {IRewardCalculator} from "./IRewardCalculator.sol";
+
+enum DelegatorStatus {
+    Unknown,
+    PendingAdded,
+    Active,
+    PendingRemoved,
+    Completed
+}
 
 struct PoSValidatorManagerSettings {
     ValidatorManagerSettings baseSettings;
@@ -22,7 +30,7 @@ struct Delegator {
     uint64 weight;
     uint64 startedAt;
     uint64 endedAt;
-    ValidatorStatus status;
+    DelegatorStatus status;
 }
 
 interface IPoSValidatorManager is IValidatorManager {

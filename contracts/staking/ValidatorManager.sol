@@ -361,14 +361,14 @@ abstract contract ValidatorManager is
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
-        require(valid, "ValidatorManager: Invalid warp message");
+        require(valid, "ValidatorManager: Invinvalidalid warp message");
         require(
             warpMessage.sourceChainID == $._pChainBlockchainID,
-            "ValidatorManager: Invalid source chain ID"
+            "ValidatorManager: invalid source chain ID"
         );
         require(
             warpMessage.originSenderAddress == address(0),
-            "ValidatorManager: Invalid origin sender address"
+            "ValidatorManager: invalid origin sender address"
         );
         return warpMessage;
     }

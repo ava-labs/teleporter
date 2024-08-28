@@ -62,9 +62,7 @@ contract NativeTokenStakingManager is
      * @param validationID The ID of the validation period being delegated to.
      */
     function initializeDelegatorRegistration(bytes32 validationID) external payable {
-        return _initializeDelegatorRegistration(
-            validationID, _msgSender(), valueToWeight(_lock(msg.value))
-        );
+        return _initializeDelegatorRegistration(validationID, _msgSender(), msg.value);
     }
 
     // solhint-enable ordering

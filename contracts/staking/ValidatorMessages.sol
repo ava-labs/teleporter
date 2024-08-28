@@ -426,14 +426,14 @@ library ValidatorMessages {
         pure
         returns (bytes32, uint64, uint64)
     {
-        require(input.length == 54, "ValidatorMessages: Invalid message length");
+        require(input.length == 54, "ValidatorMessages: invalid message length");
 
         // Unpack the codec ID.
         uint16 codecID;
         for (uint256 i; i < 2; ++i) {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
-        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
+        require(codecID == CODEC_ID, "ValidatorMessages: invalid codec ID");
 
         // Unpack the type ID.
         uint32 typeID;
@@ -442,7 +442,7 @@ library ValidatorMessages {
         }
         require(
             typeID == SUBNET_VALIDATOR_WEIGHT_UPDATE_MESSAGE_TYPE_ID,
-            "ValidatorMessages: Invalid message type"
+            "ValidatorMessages: invalid message type"
         );
 
         // Unpack the validation ID.
