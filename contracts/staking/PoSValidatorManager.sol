@@ -211,10 +211,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Update the validator weight and delegator status
         Validator memory validator = _getValidator(validationID);
-        require(
-            $._delegatorStakes[validationID][delegator].weight + validator.weight == weight,
-            "PoSValidatorManager: Invalid weight"
-        );
         require(validator.messageNonce >= nonce, "PoSValidatorManager: Invalid nonce");
         validator.weight = weight;
         $._delegatorStakes[validationID][delegator].status = ValidatorStatus.Active;
@@ -282,10 +278,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Update the validator weight and delegator status
         Validator memory validator = _getValidator(validationID);
-        require(
-            validator.weight - $._delegatorStakes[validationID][delegator].weight == weight,
-            "PoSValidatorManager: Invalid weight"
-        );
         require(validator.messageNonce >= nonce, "PoSValidatorManager: Invalid nonce");
         $._delegatorStakes[validationID][delegator].status = ValidatorStatus.Completed;
         validator.weight = weight;
