@@ -34,6 +34,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         mapping(bytes32 => mapping(address => bytes)) _pendingRegisterDelegatorMessages;
         /// @notice Maps the validationID to a mapping of delegator address to pending end delegator messages.
         mapping(bytes32 => mapping(address => bytes)) _pendingEndDelegatorMessages;
+        /// @notice Maps the validationID to the uptime of the validator.
+        mapping(bytes32 validationID => uint64) _validatorUptimes;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -109,7 +111,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
                 "PoSValidatorManager: invalid uptime validation ID"
             );
 
-            $._uptimes[validationID] = uptime;
+            $._validatorUptimes[validationID] = uptime;
             emit ValidationUptimeUpdated(validationID, uptime);
         }
 

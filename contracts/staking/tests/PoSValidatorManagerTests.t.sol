@@ -54,7 +54,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     );
 
     function testInitializeEndValidationWithUptimeProof() public {
-        // TODO: implement
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,
             subnetID: DEFAULT_SUBNET_ID,
