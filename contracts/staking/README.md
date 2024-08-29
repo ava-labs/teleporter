@@ -34,7 +34,7 @@ Validator exit is initiated with a call to `initializeEndValidation` on the Vali
 
 The `SetSubnetValidatorWeightMessage` is delivered to the P-Chain as the payload of a [`SetSubnetValidatorWeightTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#setsubnetvalidatorweighttx). The P-Chain acknowledges validator exit by signing either a `SetSubnetValidatorWeightMessage` with the `weight=0`, or a `SubnetValidatorRegistrationMessage` with `valid=0`. `completeEndValidation` is then called on the Validator Manager contract, with `setWeightMessageType` set according to the Warp message type being delivered. The validation is removed from the contract's state, and for PoS Validator Managers, staking rewards are disbursed and stake is returned.
 
-#### Exit the Validator Set Directly on the P-Chain
+#### Disable a Validator Directly on the P-Chain
 
 ACP-77 also provides a method to disable a validator without interacting with the Subnet directly. The P-Chain transaction [`DisableValidatorTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#disablevalidatortx) disables the validator on the P-Chain. The disabled validator's weight will still count towards the Subnet's total weight. Disabled Subnet Validators can re-activate at any time by increasing their balance with an `IncreaseBalanceTx`.
 
