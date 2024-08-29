@@ -10,7 +10,7 @@ require (
 require (
 	github.com/ava-labs/subnet-evm v0.6.8
 	github.com/ethereum/go-ethereum v1.13.8
-	github.com/onsi/ginkgo/v2 v2.20.1
+	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.1
