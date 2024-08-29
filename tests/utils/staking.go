@@ -70,12 +70,14 @@ func DeployAndInitializeNativeTokenStakingManager(
 			BaseSettings: nativetokenstakingmanager.ValidatorManagerSettings{
 				PChainBlockchainID: pChainInfo.BlockchainID,
 				SubnetID:           subnet.SubnetID,
-				MaximumHourlyChurn: 10,
 			},
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     common.Address{},
+			ChurnTrackerStartTime:  big.NewInt(0),
+			ChurnPeriodSeconds:     uint64(0),
+			MaximumChurnPercentage: uint8(0),
+			MinimumStakeAmount:     big.NewInt(0).SetUint64(1e6),
+			MaximumStakeAmount:     big.NewInt(0).SetUint64(10e6),
+			MinimumStakeDuration:   uint64(24 * time.Hour.Seconds()),
+			RewardCalculator:       common.Address{},
 		},
 	)
 	Expect(err).Should(BeNil())
@@ -130,12 +132,14 @@ func DeployAndInitializeERC20TokenStakingManager(
 			BaseSettings: erc20tokenstakingmanager.ValidatorManagerSettings{
 				PChainBlockchainID: pChainInfo.BlockchainID,
 				SubnetID:           subnet.SubnetID,
-				MaximumHourlyChurn: 10,
 			},
-			MinimumStakeAmount:   big.NewInt(0).SetUint64(1e6),
-			MaximumStakeAmount:   big.NewInt(0).SetUint64(10e6),
-			MinimumStakeDuration: uint64(24 * time.Hour),
-			RewardCalculator:     common.Address{},
+			ChurnTrackerStartTime:  big.NewInt(0),
+			ChurnPeriodSeconds:     uint64(0),
+			MaximumChurnPercentage: uint8(0),
+			MinimumStakeAmount:     big.NewInt(0).SetUint64(1e6),
+			MaximumStakeAmount:     big.NewInt(0).SetUint64(10e6),
+			MinimumStakeDuration:   uint64(24 * time.Hour.Seconds()),
+			RewardCalculator:       common.Address{},
 		},
 		erc20Address,
 	)
@@ -184,7 +188,6 @@ func DeployAndInitializePoAValidatorManager(
 		poavalidatormanager.ValidatorManagerSettings{
 			PChainBlockchainID: pChainInfo.BlockchainID,
 			SubnetID:           subnet.SubnetID,
-			MaximumHourlyChurn: 0,
 		},
 		ownerAddress,
 	)

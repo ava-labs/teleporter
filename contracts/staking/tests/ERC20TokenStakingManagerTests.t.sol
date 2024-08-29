@@ -36,8 +36,9 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 churnTrackerStartTime: 0,
+                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN,
+                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
                 rewardCalculator: IRewardCalculator(address(0))
             }),
             token

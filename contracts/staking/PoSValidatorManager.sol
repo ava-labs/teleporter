@@ -21,8 +21,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _maximumStakeAmount;
         uint256 _totalWeight;
         uint256 _churnTrackerStartTime;
+        uint64 _churnPeriodSeconds;
         uint64 _minimumStakeDuration;
-        uint8 _maximumHourlyChurn;
+        uint8 _maximumChurnPercentage;
         ValidatorChurnPeriod _churnTracker;
         IRewardCalculator _rewardCalculator;
         mapping(bytes32 validationID => uint64) _validatorUptimes;
@@ -56,8 +57,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             minimumStakeAmount: settings.minimumStakeAmount,
             maximumStakeAmount: settings.maximumStakeAmount,
             churnTrackerStartTime: settings.churnTrackerStartTime,
+            churnPeriodSeconds: settings.churnPeriodSeconds,
             minimumStakeDuration: settings.minimumStakeDuration,
-            maximumHourlyChurn: settings.maximumHourlyChurn,
+            maximumChurnPercentage: settings.maximumChurnPercentage,
             rewardCalculator: settings.rewardCalculator
         });
     }
@@ -67,16 +69,18 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,
         uint256 churnTrackerStartTime,
+        uint64 churnPeriodSeconds,
         uint64 minimumStakeDuration,
-        uint8 maximumHourlyChurn,
+        uint8 maximumChurnPercentage,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
         PoSValidatorManagerStorage storage s = _getPoSValidatorManagerStorage();
         s._minimumStakeAmount = minimumStakeAmount;
         s._maximumStakeAmount = maximumStakeAmount;
         s._churnTrackerStartTime = churnTrackerStartTime;
+        s._churnPeriodSeconds = churnPeriodSeconds;
         s._minimumStakeDuration = minimumStakeDuration;
-        s._maximumHourlyChurn = maximumHourlyChurn;
+        s._maximumChurnPercentage = maximumChurnPercentage;
         s._rewardCalculator = rewardCalculator;
     }
 
@@ -161,7 +165,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
      */
     function _checkAndUpdateChurnTracker(uint64 amount) private {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
-        if ($._maximumHourlyChurn == 0) {
+        if ($._maximumChurnPercentage == 0) {
             return;
         }
 
@@ -171,7 +175,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         }
 
         ValidatorChurnPeriod memory churnTracker = $._churnTracker;
-        if (currentTime - churnTracker.startedAt >= 1 hours) {
+        if (currentTime - churnTracker.startedAt >= $._churnPeriodSeconds) {
             churnTracker.churnAmount = amount;
             churnTracker.startedAt = currentTime;
         } else {
@@ -180,7 +184,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         uint8 churnPercentage = uint8((churnTracker.churnAmount * 100) / churnTracker.initialWeight);
         require(
-            churnPercentage <= $._maximumHourlyChurn,
+            churnPercentage <= $._maximumChurnPercentage,
             "ValidatorManager: Maximum hourly churn rate exceeded"
         );
         $._churnTracker = churnTracker;

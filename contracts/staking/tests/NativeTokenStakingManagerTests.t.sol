@@ -28,9 +28,10 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 }),
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
+                churnPeriodSeconds: DEFAULT_CHURN_PERIOD,
                 churnTrackerStartTime: 0,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
-                maximumHourlyChurn: DEFAULT_MAXIMUM_HOURLY_CHURN,
+                maximumChurnPercentage: DEFAULT_MAXIMUM_CHURN_PERCENTAGE,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
