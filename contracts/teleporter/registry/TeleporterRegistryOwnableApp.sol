@@ -27,7 +27,8 @@ abstract contract TeleporterRegistryOwnableApp is TeleporterRegistryApp, Ownable
     /**
      * @dev See {TeleporterRegistryApp-_checkTeleporterRegistryAppAccess}
      *
-     * Checks that the caller is the owner of the contract for upgrade access.
+     * Checks that the caller is the owner of the contract for updating {minTeleporterVersion},
+     * and pausing/unpausing specific Teleporter version interactions.
      */
     function _checkTeleporterRegistryAppAccess() internal view virtual override {
         _checkOwner();
