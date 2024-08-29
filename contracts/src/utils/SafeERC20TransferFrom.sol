@@ -11,7 +11,7 @@ import {SafeERC20} from "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC
 /**
  * @dev Provides a wrapper used for calling an ERC20 transferFrom method to receive tokens to a contract
  * from a specified sender. Differs from the "SafeERC20TransferFrom" implementation found here
- * https://github.com/ava-labs/teleporter/blob/main/contracts/Teleporter/SafeERC20TransferFrom.sol in that
+ * https://github.com/ava-labs/teleporter/blob/main/contracts/utilities/SafeERC20TransferFrom.sol in that
  * it supports passing arbitrary sender address values, allowing its use in ERC-2771 compliant meta-transactions.
  *
  * Checks the balance of the contract using the library before and after the call to safeTransferFrom, and

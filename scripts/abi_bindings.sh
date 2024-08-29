@@ -88,9 +88,9 @@ generate_bindings "${contract_names[@]}"
 
 contract_names=($PROXY_LIST)
 cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts
-forge build --skip test --force --extra-output-files abi bin --contracts lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
+forge build --skip test --force --extra-output-files abi bin --contracts lib/openzeppelin-contracts/contracts/proxy/transparent
 
-cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/lib/teleporter/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
+cd $AVALANCHE_INTERCHAIN_TOKEN_TRANSFER_PATH/contracts/lib/openzeppelin-contracts/contracts/proxy/transparent
 generate_bindings "${contract_names[@]}"
 
 exit 0
