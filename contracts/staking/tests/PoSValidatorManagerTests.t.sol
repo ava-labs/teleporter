@@ -52,9 +52,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     );
 
     event DelegationEnded(
-        bytes32 indexed validationID,
-        address indexed delegator,
-        uint64 indexed nonce
+        bytes32 indexed validationID, address indexed delegator, uint64 indexed nonce
     );
 
     function testInitializeEndValidationWithUptimeProof() public {
@@ -195,9 +193,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validationID,
             DEFAULT_DELEGATOR_ADDRESS,
             DEFAULT_DELEGATOR_WEIGHT,
+            DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
             DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
-            1,
-            DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP
+            1
         );
     }
 
@@ -214,9 +212,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validationID,
             DEFAULT_DELEGATOR_ADDRESS,
             DEFAULT_DELEGATOR_WEIGHT,
+            DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
             DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
-            1,
-            DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP
+            1
         );
         bytes memory setValidatorWeightPayload = ValidatorMessages
             .packSetSubnetValidatorWeightMessage(
@@ -235,14 +233,20 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        _setUpCompleteDelegatorRegistration(
+        _setUpInitializeDelegatorRegistration(
             validationID,
             DEFAULT_DELEGATOR_ADDRESS,
             DEFAULT_DELEGATOR_WEIGHT,
-            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
-            1,
             DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP
+            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            1
+        );
+        _setUpCompleteDelegatorRegistration(
+            validationID,
+            DEFAULT_DELEGATOR_ADDRESS,
+            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            1
         );
     }
 
@@ -255,21 +259,27 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        _setUpCompleteDelegatorRegistration(
+        _setUpInitializeDelegatorRegistration(
             validationID,
             DEFAULT_DELEGATOR_ADDRESS,
             DEFAULT_DELEGATOR_WEIGHT,
-            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
-            1,
             DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP
+            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            1
+        );
+        _setUpCompleteDelegatorRegistration(
+            validationID,
+            DEFAULT_DELEGATOR_ADDRESS,
+            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            1
         );
         _setUpInitializeEndDelegation(
             validationID,
             DEFAULT_DELEGATOR_ADDRESS,
+            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             DEFAULT_WEIGHT,
-            2,
-            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP
+            2
         );
     }
 
@@ -282,21 +292,27 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        _setUpCompleteDelegatorRegistration(
+        _setUpInitializeDelegatorRegistration(
             validationID,
             DEFAULT_DELEGATOR_ADDRESS,
             DEFAULT_DELEGATOR_WEIGHT,
-            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
-            1,
             DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP
+            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            1
+        );
+        _setUpCompleteDelegatorRegistration(
+            validationID,
+            DEFAULT_DELEGATOR_ADDRESS,
+            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            1
         );
         _setUpInitializeEndDelegation(
             validationID,
             DEFAULT_DELEGATOR_ADDRESS,
+            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             DEFAULT_WEIGHT,
-            2,
-            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP
+            2
         );
         bytes memory setValidatorWeightPayload =
             ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 2, DEFAULT_WEIGHT);
@@ -313,21 +329,27 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
             registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
         });
-        _setUpCompleteDelegatorRegistration(
+        _setUpInitializeDelegatorRegistration(
             validationID,
             DEFAULT_DELEGATOR_ADDRESS,
             DEFAULT_DELEGATOR_WEIGHT,
-            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
-            1,
             DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP
+            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            1
+        );
+        _setUpCompleteDelegatorRegistration(
+            validationID,
+            DEFAULT_DELEGATOR_ADDRESS,
+            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            DEFAULT_DELEGATOR_WEIGHT + DEFAULT_WEIGHT,
+            1
         );
         _setUpInitializeEndDelegation(
             validationID,
             DEFAULT_DELEGATOR_ADDRESS,
+            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             DEFAULT_WEIGHT,
-            2,
-            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP
+            2
         );
 
         bytes memory weightUpdateMessage = ValidatorMessages.packSubnetValidatorWeightUpdateMessage(
@@ -338,7 +360,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegationEnded(validationID, DEFAULT_DELEGATOR_ADDRESS, 2);
         posValidatorManager.completeEndDelegation(0, DEFAULT_DELEGATOR_ADDRESS);
-        require(posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT, "PoSValidatorManagerTest: invalid weight");
+        require(
+            posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT,
+            "PoSValidatorManagerTest: invalid weight"
+        );
     }
 
     function testCompleteEndMultipleDelegations() public {}
@@ -360,39 +385,51 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         });
 
         // Register two delegators
-        _setUpCompleteDelegatorRegistration(
+        _setUpInitializeDelegatorRegistration(
             validationID,
             delegator1,
             weight1,
-            DEFAULT_WEIGHT + weight1,
-            1,
             DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP
+            DEFAULT_WEIGHT + weight1,
+            1
+        );
+        _setUpCompleteDelegatorRegistration(
+            validationID,
+            delegator1,
+            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
+            DEFAULT_WEIGHT + weight1,
+            1
+        );
+        _setUpInitializeDelegatorRegistration(
+            validationID,
+            delegator2,
+            weight2,
+            DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP + 1,
+            DEFAULT_WEIGHT + weight1 + weight2,
+            2
         );
         _setUpCompleteDelegatorRegistration(
             validationID,
             delegator2,
-            weight2,
+            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + 1,
             DEFAULT_WEIGHT + weight1 + weight2,
-            2,
-            DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP + 1,
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + 1
+            2
         );
 
         // Delist them in the opposite order,
         _setUpInitializeEndDelegation(
             validationID,
             delegator2,
+            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
             DEFAULT_WEIGHT + weight1,
-            3,
-            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP
+            3
         );
         _setUpInitializeEndDelegation(
             validationID,
             delegator1,
+            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP + 1,
             DEFAULT_WEIGHT,
-            4,
-            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP + 1
+            4
         );
 
         // Receive the weight update message for the second delegator first
@@ -405,7 +442,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegationEnded(validationID, delegator2, 4);
         posValidatorManager.completeEndDelegation(0, delegator2);
-        require(posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT, "PoSValidatorManagerTest: invalid weight");
+        require(
+            posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT,
+            "PoSValidatorManagerTest: invalid weight"
+        );
 
         // Receive the weight update message for the first delegator.
         // The specified weight should still include the second delegator's weight,
@@ -418,7 +458,10 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegationEnded(validationID, delegator1, 3);
         posValidatorManager.completeEndDelegation(0, delegator1);
-        require(posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT, "PoSValidatorManagerTest: invalid weight");
+        require(
+            posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT,
+            "PoSValidatorManagerTest: invalid weight"
+        );
     }
 
     function testValueToWeight() public view {
@@ -451,16 +494,20 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         uint64 weight
     ) internal virtual;
 
+    //
+    // Delegation setup utilities
+    //
+
     function _setUpInitializeDelegatorRegistration(
         bytes32 validationID,
         address delegator,
         uint64 weight,
-        uint64 newValidatorWeight,
-        uint64 nonce,
-        uint64 registrationTimestamp
+        uint64 registrationTimestamp,
+        uint64 expectedValidatorWeight,
+        uint64 expectedNonce
     ) internal returns (bytes32) {
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, newValidatorWeight);
+            .packSetSubnetValidatorWeightMessage(validationID, expectedNonce, expectedValidatorWeight);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
         vm.warp(registrationTimestamp);
 
@@ -472,8 +519,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             setWeightMessageID: bytes32(0),
             delegator: delegator,
             delegatorWeight: weight,
-            validatorWeight: newValidatorWeight,
-            nonce: nonce
+            validatorWeight: expectedValidatorWeight,
+            nonce: expectedNonce
         });
 
         _initializeDelegatorRegistration(validationID, delegator, weight);
@@ -483,18 +530,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function _setUpCompleteDelegatorRegistration(
         bytes32 validationID,
         address delegator,
-        uint64 weight,
-        uint64 newValidatorWeight,
-        uint64 nonce,
-        uint64 initRegistrationTimestamp,
-        uint64 completeRegistrationTimestamp
+        uint64 completeRegistrationTimestamp,
+        uint64 expectedValidatorWeight,
+        uint64 expectedNonce
     ) internal returns (bytes32) {
-        // TODONOW: decouple this
-        _setUpInitializeDelegatorRegistration(
-            validationID, delegator, weight, newValidatorWeight, nonce, initRegistrationTimestamp
-        );
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSubnetValidatorWeightUpdateMessage(validationID, nonce, newValidatorWeight);
+            .packSubnetValidatorWeightUpdateMessage(validationID, expectedNonce, expectedValidatorWeight);
         _mockGetVerifiedWarpMessage(setValidatorWeightPayload, true);
 
         vm.warp(completeRegistrationTimestamp);
@@ -502,7 +543,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         emit DelegatorRegistered({
             validationID: validationID,
             delegator: delegator,
-            nonce: nonce,
+            nonce: expectedNonce,
             startTime: completeRegistrationTimestamp
         });
         posValidatorManager.completeDelegatorRegistration(0, delegator);
@@ -512,18 +553,13 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     function _setUpInitializeEndDelegation(
         bytes32 validationID,
         address delegator,
-        uint64 newValidatorWeight,
-        uint64 nonce,
-        uint64 endDelegationTimestamp
+        uint64 endDelegationTimestamp,
+        uint64 expectedValidatorWeight,
+        uint64 expectedNonce
     ) internal returns (bytes32) {
-        require(nonce > 0, "PoSValidatorManagerTest: invalid nonce");
-        // _setUpCompleteDelegatorRegistration(
-        //     validationID, delegator, delegatorWeight, nonce-1, initRegistrationTimestamp, completeRegistrationTimestamp
-        // );
-
         vm.warp(endDelegationTimestamp);
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(validationID, nonce, newValidatorWeight);
+            .packSetSubnetValidatorWeightMessage(validationID, expectedNonce, expectedValidatorWeight);
         _mockSendWarpMessage(setValidatorWeightPayload, bytes32(0));
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
@@ -531,8 +567,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             validationID: validationID,
             setWeightMessageID: bytes32(0),
             delegator: delegator,
-            validatorWeight: newValidatorWeight,
-            nonce: nonce,
+            validatorWeight: expectedValidatorWeight,
+            nonce: expectedNonce,
             endTime: endDelegationTimestamp
         });
         vm.prank(delegator);
