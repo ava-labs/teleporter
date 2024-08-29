@@ -93,6 +93,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 		TargetContractAddress:  exampleERC20ContractAddressA,
 		TargetBlockchainID:     subnetA.BlockchainID,
 		Nonce:                  big.NewInt(0),
+		Value:                  big.NewInt(0),
 		Payload:                callData,
 	}
 
@@ -105,6 +106,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 		TargetContractAddress:  exampleERC20ContractAddressA,
 		TargetBlockchainID:     subnetA.BlockchainID,
 		Nonce:                  big.NewInt(1),
+		Value:                  big.NewInt(0),
 		Payload:                callData2,
 	}
 
@@ -114,6 +116,7 @@ func ValidatorSetSig(network interfaces.LocalNetwork) {
 		TargetContractAddress:  exampleERC20ContractAddressB,
 		TargetBlockchainID:     subnetB.BlockchainID,
 		Nonce:                  big.NewInt(0),
+		Value:                  big.NewInt(0),
 		Payload:                callData,
 	}
 
