@@ -36,7 +36,7 @@ The `SetSubnetValidatorWeightMessage` is delivered to the P-Chain as the payload
 
 #### Exit the Validator Set Directly on the P-Chain
 
-ACP-77 also provides a method for validators to exit a Subnet's validator set without interacting with the Subnet directly. The P-Chain transaction [`DisableValidatorTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#disablevalidatortx) removes the validator from the Subnet validator set tracked on the P-Chain. The P-Chain will sign a `SetSubnetValidatorWeightMessage` or a `SubnetValidatorRegistrationMessage`, which may then be provided to the Validator Manager contract via a call to `completeEndValidation`, as described above. Note however that without the uptime proof provided in the initial call to `initializeEndValidation`, the Validator Manager will not credit any staking rewards to the validator.
+ACP-77 also provides a method to disable a validator without interacting with the Subnet directly. The P-Chain transaction [`DisableValidatorTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#disablevalidatortx) disables the validator on the P-Chain. The disabled validator's weight will still count towards the Subnet's total weight. Disabled Subnet Validators can re-activate at any time by increasing their balance with an `IncreaseBalanceTx`.
 
 ## Warp Message Format Reference
 
