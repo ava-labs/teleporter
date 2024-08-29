@@ -20,6 +20,28 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
 
+    function testRegisterManyValidators() public {
+        for (uint i = 1; i <= 1; i++) {
+            bytes32 nodeID = sha256(new bytes(i));
+            // _setUpCompleteValidatorRegistration({
+            //     nodeID: DEFAULT_NODE_ID,
+            //     subnetID: DEFAULT_SUBNET_ID,
+            //     weight: DEFAULT_WEIGHT,
+            //     registrationExpiry: uint64(DEFAULT_EXPIRY * i),
+            //     blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+            //     registrationTimestamp: uint64(DEFAULT_REGISTRATION_TIMESTAMP * i)
+            // });
+            _setUpCompleteValidatorRegistration({
+                nodeID: DEFAULT_NODE_ID2,
+                subnetID: DEFAULT_SUBNET_ID,
+                weight: DEFAULT_WEIGHT,
+                registrationExpiry: uint64(DEFAULT_EXPIRY * i),
+                blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
+                registrationTimestamp: uint64(DEFAULT_REGISTRATION_TIMESTAMP * i)
+            });
+        }
+    }
+
     function testInitializeEndValidationWithUptimeProof() public {
         bytes32 validationID = _setUpCompleteValidatorRegistration({
             nodeID: DEFAULT_NODE_ID,

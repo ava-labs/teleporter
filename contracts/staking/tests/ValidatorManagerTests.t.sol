@@ -22,6 +22,8 @@ abstract contract ValidatorManagerTest is Test {
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
     bytes32 public constant DEFAULT_NODE_ID =
         bytes32(hex"1234567812345678123456781234567812345678123456781234567812345678");
+    bytes32 public constant DEFAULT_NODE_ID2 =
+        bytes32(hex"2234567812345678123456781234567812345678123456781234567812345678");
     bytes public constant DEFAULT_BLS_PUBLIC_KEY = bytes(
         hex"123456781234567812345678123456781234567812345678123456781234567812345678123456781234567812345678"
     );
@@ -198,6 +200,44 @@ abstract contract ValidatorManagerTest is Test {
         emit ValidationPeriodEnded(validationID);
 
         validatorManager.completeEndValidation(0, true);
+    }
+
+    function _setUpInitializeValidatorChurn(
+        bytes32 nodeID,
+        bytes32 subnetID,
+        uint64 weight,
+        uint64 registrationExpiry,
+        bytes memory blsPublicKey
+    ) internal returns (bytes32 validationID) {
+        (validationID,) = ValidatorMessages.packRegisterSubnetValidatorMessage(
+            ValidatorMessages.ValidationPeriod({
+                nodeID: nodeID,
+                subnetID: subnetID,
+                weight: weight,
+                registrationExpiry: registrationExpiry,
+                blsPublicKey: blsPublicKey
+            })
+        );
+        (, bytes memory registerSubnetValidatorMessage) = ValidatorMessages
+            .packRegisterSubnetValidatorMessage(
+            ValidatorMessages.ValidationPeriod({
+                subnetID: subnetID,
+                nodeID: nodeID,
+                weight: weight,
+                registrationExpiry: registrationExpiry,
+                blsPublicKey: blsPublicKey
+            })
+        );
+        vm.warp(DEFAULT_EXPIRY - 1);
+        _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
+
+        _beforeSend(weight);
+        vm.expectEmit(true, true, true, true, address(validatorManager));
+        emit ValidationPeriodCreated(
+            validationID, DEFAULT_NODE_ID, bytes32(0), weight, DEFAULT_EXPIRY
+        );
+
+        _initializeValidatorRegistration(nodeID, registrationExpiry, blsPublicKey, weight);
     }
 
     function _setUpInitializeValidatorRegistration(
