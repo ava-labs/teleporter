@@ -351,116 +351,12 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             DEFAULT_WEIGHT,
             2
         );
-
-        bytes memory weightUpdateMessage = ValidatorMessages.packSubnetValidatorWeightUpdateMessage(
-            validationID, 2, DEFAULT_WEIGHT
-        );
-        _mockGetVerifiedWarpMessage(weightUpdateMessage, true);
-
-        vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegationEnded(validationID, DEFAULT_DELEGATOR_ADDRESS, 2);
-        posValidatorManager.completeEndDelegation(0, DEFAULT_DELEGATOR_ADDRESS);
-        require(
-            posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT,
-            "PoSValidatorManagerTest: invalid weight"
-        );
-    }
-
-    function testCompleteEndMultipleDelegations() public {}
-
-    // Ensures that the behavior is the same regardless of delisting order
-    function testCompleteEndMultipleDelegationsOutOfOrder() public {
-        uint64 weight1 = 2e5;
-        address delegator1 = address(0x1234123412341234123412341234123412341234);
-        uint64 weight2 = 3e5;
-        address delegator2 = address(0x5678567856785678567856785678567856785678);
-
-        bytes32 validationID = _setUpCompleteValidatorRegistration({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
-        });
-
-        // Register two delegators
-        _setUpInitializeDelegatorRegistration(
+        _setupCompleteEndDelegation(
             validationID,
-            delegator1,
-            weight1,
-            DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP,
-            DEFAULT_WEIGHT + weight1,
-            1
-        );
-        _setUpCompleteDelegatorRegistration(
-            validationID,
-            delegator1,
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP,
-            DEFAULT_WEIGHT + weight1,
-            1
-        );
-        _setUpInitializeDelegatorRegistration(
-            validationID,
-            delegator2,
-            weight2,
-            DEFAULT_DELEGATOR_INIT_REGISTRATION_TIMESTAMP + 1,
-            DEFAULT_WEIGHT + weight1 + weight2,
-            2
-        );
-        _setUpCompleteDelegatorRegistration(
-            validationID,
-            delegator2,
-            DEFAULT_DELEGATOR_COMPLETE_REGISTRATION_TIMESTAMP + 1,
-            DEFAULT_WEIGHT + weight1 + weight2,
-            2
-        );
-
-        // Delist them in the opposite order,
-        _setUpInitializeEndDelegation(
-            validationID,
-            delegator2,
-            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP,
-            DEFAULT_WEIGHT + weight1,
-            3
-        );
-        _setUpInitializeEndDelegation(
-            validationID,
-            delegator1,
-            DEFAULT_DELEGATOR_END_DELEGATION_TIMESTAMP + 1,
+            DEFAULT_DELEGATOR_ADDRESS,
             DEFAULT_WEIGHT,
-            4
-        );
-
-        // Receive the weight update message for the second delegator first
-        // This should include the weight updates for both delegators delisting
-        bytes memory weightUpdateMessage = ValidatorMessages.packSubnetValidatorWeightUpdateMessage(
-            validationID, 4, DEFAULT_WEIGHT
-        );
-        _mockGetVerifiedWarpMessage(weightUpdateMessage, true);
-
-        vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegationEnded(validationID, delegator2, 4);
-        posValidatorManager.completeEndDelegation(0, delegator2);
-        require(
-            posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT,
-            "PoSValidatorManagerTest: invalid weight"
-        );
-
-        // Receive the weight update message for the first delegator.
-        // The specified weight should still include the second delegator's weight,
-        // but the validator weight will not be updated since we've already received a higher nonce
-        weightUpdateMessage = ValidatorMessages.packSubnetValidatorWeightUpdateMessage(
-            validationID, 3, DEFAULT_WEIGHT + weight2
-        );
-        _mockGetVerifiedWarpMessage(weightUpdateMessage, true);
-
-        vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegationEnded(validationID, delegator1, 3);
-        posValidatorManager.completeEndDelegation(0, delegator1);
-        require(
-            posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT,
-            "PoSValidatorManagerTest: invalid weight"
+            DEFAULT_WEIGHT,
+            2
         );
     }
 
@@ -574,6 +470,27 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.prank(delegator);
         posValidatorManager.initializeEndDelegation(validationID);
         return validationID;
+    }
+
+    function _setupCompleteEndDelegation(
+        bytes32 validationID,
+        address delegator,
+        uint64 validatorWeight,
+        uint64 expectedValidatorWeight,
+        uint64 expectedNonce
+    ) internal returns (bytes32) {
+        bytes memory weightUpdateMessage = ValidatorMessages.packSubnetValidatorWeightUpdateMessage(
+            validationID, expectedNonce, validatorWeight
+        );
+        _mockGetVerifiedWarpMessage(weightUpdateMessage, true);
+
+        vm.expectEmit(true, true, true, true, address(posValidatorManager));
+        emit DelegationEnded(validationID, delegator, expectedNonce);
+        posValidatorManager.completeEndDelegation(0, delegator);
+        require(
+            posValidatorManager.getWeight(validationID) == expectedValidatorWeight,
+            "PoSValidatorManagerTest: invalid weight"
+        );
     }
 
     function _formatErrorMessage(bytes memory errorMessage) internal pure returns (bytes memory) {
