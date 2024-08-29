@@ -20,7 +20,7 @@ import {Address} from "@openzeppelin/contracts@5.0.2/utils/Address.sol";
 import {ICTTInitializable} from "../utils/ICTTInitializable.sol";
 
 /**
- * @title NativeTokenHome
+ * @title NativeTokenHomeUpgradeable
  * @notice An {INativeTokenHome} implementation that locks the native token of this chain to be transferred to
  * TokenRemote instances on other chains.
  * @custom:security-contact https://github.com/ava-labs/avalanche-interchain-token-transfer/blob/main/SECURITY.md
@@ -68,7 +68,7 @@ contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
      * @notice Initializes this token TokenHome instance to send native tokens to TokenRemote instances on other chains.
      * Always uses a {tokenDecimals} value of 18 since it is the denomination of the native token of EVM instances.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
-     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/src/Teleporter/upgrades
+     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/Teleporter/upgrades
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param wrappedTokenAddress The wrapped native token contract address of the native asset
