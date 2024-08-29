@@ -65,7 +65,7 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
     /**
      * @notice Initializes the token TokenHome instance to send ERC20 tokens to TokenRemote instances on other chains.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
-     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/Teleporter/upgrades
+     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/teleporter/registry
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param tokenAddress The ERC20 token contract address to be transferred by the home.

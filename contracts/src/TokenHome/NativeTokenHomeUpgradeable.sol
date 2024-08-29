@@ -68,7 +68,7 @@ contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
      * @notice Initializes this token TokenHome instance to send native tokens to TokenRemote instances on other chains.
      * Always uses a {tokenDecimals} value of 18 since it is the denomination of the native token of EVM instances.
      * @param teleporterRegistryAddress The current blockchain ID's Teleporter registry
-     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/Teleporter/upgrades
+     * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/teleporter/registry
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
      * @param wrappedTokenAddress The wrapped native token contract address of the native asset
