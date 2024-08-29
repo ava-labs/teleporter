@@ -318,6 +318,13 @@ abstract contract ValidatorManager is
     }
 
     /**
+     * @notice Returns the validator's weight. This weight is not guaranteed to be known by the P-Chain
+     */
+    function getWeight(bytes32 validationID) external view returns (uint64) {
+        return _getValidator(validationID).weight;
+    }
+
+    /**
      * @notice Helper function to check if the stake amount to be added or removed would exceed the maximum stake churn
      * rate for the past hour. If the churn rate is exceeded, the function will revert. If the churn rate is not exceeded,
      * the function will update the churn tracker with the new amount.

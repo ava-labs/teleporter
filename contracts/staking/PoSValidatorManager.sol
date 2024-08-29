@@ -169,23 +169,33 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         _checkAndUpdateChurnTracker(weight);
 
+        // Update the validator weight
+        validator.weight += weight;
+        _setValidator(validationID, validator);
+
         // Submit the message to the Warp precompile.
+        uint64 nonce = _getAndIncrementNonce(validationID);
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(
-            validationID, _getAndIncrementNonce(validationID), validator.weight + weight
-        );
+            .packSetSubnetValidatorWeightMessage(validationID, nonce, validator.weight);
         $._pendingRegisterDelegatorMessages[validationID][delegator] = setValidatorWeightPayload;
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
         // Store the delegator information
         $._delegatorStakes[validationID][delegator] = Delegator({
             weight: weight,
-            startedAt: uint64(block.timestamp),
+            startedAt: 0,
             endedAt: 0,
             status: DelegatorStatus.PendingAdded
         });
 
-        emit DelegatorAdded(validationID, messageID, delegator, weight, block.timestamp);
+        emit DelegatorAdded({
+            validationID: validationID,
+            setWeightMessageID: messageID,
+            delegator: delegator,
+            delegatorWeight: weight,
+            validatorWeight: validator.weight,
+            nonce: nonce
+        });
     }
 
     function resendDelegatorRegistration(bytes32 validationID, address delegator) external {
@@ -208,17 +218,18 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         // Update the validator weight and delegator status
         Validator memory validator = _getValidator(validationID);
         require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
-        validator.weight = weight;
-        $._delegatorStakes[validationID][delegator].status = DelegatorStatus.Active;
-        _setValidator(validationID, validator);
 
-        emit DelegatorRegistered(
-            validationID,
-            delegator,
-            $._delegatorStakes[validationID][delegator].weight,
-            weight,
-            block.timestamp
-        );
+        $._delegatorStakes[validationID][delegator].status = DelegatorStatus.Active;
+        $._delegatorStakes[validationID][delegator].startedAt = uint64(block.timestamp);
+
+        emit DelegatorRegistered({
+            validationID: validationID,
+            delegator: delegator,
+            delegatorWeight: $._delegatorStakes[validationID][delegator].weight,
+            validatorWeight: weight,
+            nonce: nonce,
+            startTime: block.timestamp
+        });
     }
 
     function initializeEndDelegation(bytes32 validationID) external {
@@ -236,16 +247,24 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         Validator memory validator = _getValidator(validationID);
         require(validator.weight > delegator.weight, "PoSValidatorManager: Invalid weight");
+        validator.weight -= delegator.weight;
+        _setValidator(validationID, validator);
 
         // Submit the message to the Warp precompile.
+        uint64 nonce = _getAndIncrementNonce(validationID);
         bytes memory setValidatorWeightPayload = ValidatorMessages
-            .packSetSubnetValidatorWeightMessage(
-            validationID, _getAndIncrementNonce(validationID), validator.weight - delegator.weight
-        );
+            .packSetSubnetValidatorWeightMessage(validationID, nonce, validator.weight);
         $._pendingEndDelegatorMessages[validationID][_msgSender()] = setValidatorWeightPayload;
         bytes32 messageID = WARP_MESSENGER.sendWarpMessage(setValidatorWeightPayload);
 
-        emit DelegatorRemovalInitialized(validationID, messageID, _msgSender(), block.timestamp);
+        emit DelegatorRemovalInitialized({
+            validationID: validationID,
+            setWeightMessageID: messageID,
+            delegator: _msgSender(),
+            validatorWeight: validator.weight,
+            nonce: nonce,
+            endTime: block.timestamp
+        });
     }
 
     function resendEndDelegation(bytes32 validationID, address delegator) external {
@@ -268,10 +287,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         Validator memory validator = _getValidator(validationID);
         require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
         $._delegatorStakes[validationID][delegator].status = DelegatorStatus.Completed;
-        validator.weight = weight;
-        _setValidator(validationID, validator);
 
-        emit DelegationEnded(validationID, delegator, weight);
+        emit DelegationEnded(validationID, delegator, weight, nonce);
     }
 
     function _checkPendingEndDelegatorMessage(
