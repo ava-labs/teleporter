@@ -484,10 +484,8 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
         emit DelegationEnded(validationID, delegator, expectedNonce);
         posValidatorManager.completeEndDelegation(0, delegator);
-        require(
-            posValidatorManager.getWeight(validationID) == expectedValidatorWeight,
-            "PoSValidatorManagerTest: invalid weight"
-        );
+        assertEq(posValidatorManager.getWeight(validationID), expectedValidatorWeight);
+        return validationID;
     }
 
     function _formatErrorMessage(bytes memory errorMessage) internal pure returns (bytes memory) {
