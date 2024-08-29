@@ -210,7 +210,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Unpack the Warp message
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-        (bytes32 validationID, uint64 nonce, uint64 weight) =
+        (bytes32 validationID, uint64 nonce,) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
         _checkPendingRegisterDelegatorMessages(validationID, delegator);
         delete $._pendingRegisterDelegatorMessages[validationID][delegator];
@@ -225,8 +225,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         emit DelegatorRegistered({
             validationID: validationID,
             delegator: delegator,
-            delegatorWeight: $._delegatorStakes[validationID][delegator].weight,
-            validatorWeight: weight,
             nonce: nonce,
             startTime: block.timestamp
         });
@@ -278,7 +276,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Unpack the Warp message
         WarpMessage memory warpMessage = _getPChainWarpMessage(messageIndex);
-        (bytes32 validationID, uint64 nonce, uint64 weight) =
+        (bytes32 validationID, uint64 nonce,) =
             ValidatorMessages.unpackSubnetValidatorWeightUpdateMessage(warpMessage.payload);
         _checkPendingEndDelegatorMessage(validationID, delegator);
         delete $._pendingEndDelegatorMessages[validationID][delegator];
@@ -288,7 +286,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(validator.messageNonce >= nonce, "PoSValidatorManager: invalid nonce");
         $._delegatorStakes[validationID][delegator].status = DelegatorStatus.Completed;
 
-        emit DelegationEnded(validationID, delegator, weight, nonce);
+        emit DelegationEnded(validationID, delegator, nonce);
     }
 
     function _checkPendingEndDelegatorMessage(

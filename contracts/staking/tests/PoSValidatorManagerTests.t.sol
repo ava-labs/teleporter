@@ -38,9 +38,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     event DelegatorRegistered(
         bytes32 indexed validationID,
         address indexed delegator,
-        uint64 delegatorWeight,
-        uint64 validatorWeight,
-        uint64 nonce,
+        uint64 indexed nonce,
         uint256 startTime
     );
 
@@ -56,8 +54,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
     event DelegationEnded(
         bytes32 indexed validationID,
         address indexed delegator,
-        uint64 indexed validatorWeight,
-        uint64 nonce
+        uint64 indexed nonce
     );
 
     function testInitializeEndValidationWithUptimeProof() public {
@@ -339,8 +336,9 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetVerifiedWarpMessage(weightUpdateMessage, true);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegationEnded(validationID, DEFAULT_DELEGATOR_ADDRESS, DEFAULT_WEIGHT, 2);
+        emit DelegationEnded(validationID, DEFAULT_DELEGATOR_ADDRESS, 2);
         posValidatorManager.completeEndDelegation(0, DEFAULT_DELEGATOR_ADDRESS);
+        require(posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT, "PoSValidatorManagerTest: invalid weight");
     }
 
     function testCompleteEndMultipleDelegations() public {}
@@ -405,7 +403,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetVerifiedWarpMessage(weightUpdateMessage, true);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegationEnded(validationID, delegator2, DEFAULT_WEIGHT, 4);
+        emit DelegationEnded(validationID, delegator2, 4);
         posValidatorManager.completeEndDelegation(0, delegator2);
         require(posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT, "PoSValidatorManagerTest: invalid weight");
 
@@ -418,7 +416,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         _mockGetVerifiedWarpMessage(weightUpdateMessage, true);
 
         vm.expectEmit(true, true, true, true, address(posValidatorManager));
-        emit DelegationEnded(validationID, delegator1, DEFAULT_WEIGHT + weight2, 3);
+        emit DelegationEnded(validationID, delegator1, 3);
         posValidatorManager.completeEndDelegation(0, delegator1);
         require(posValidatorManager.getWeight(validationID) == DEFAULT_WEIGHT, "PoSValidatorManagerTest: invalid weight");
     }
@@ -504,8 +502,6 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
         emit DelegatorRegistered({
             validationID: validationID,
             delegator: delegator,
-            delegatorWeight: weight,
-            validatorWeight: newValidatorWeight,
             nonce: nonce,
             startTime: completeRegistrationTimestamp
         });

@@ -60,17 +60,13 @@ interface IPoSValidatorManager is IValidatorManager {
      * @notice Event emitted when a delegator registration is completed
      * @param validationID The ID of the validation period
      * @param delegator The address of the delegator
-     * @param delegatorWeight The weight of the delegator
-     * @param validatorWeight The updated weight of the validator, as returned by the P-Chain
      * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
      * @param startTime The time at which the registration was completed
      */
     event DelegatorRegistered(
         bytes32 indexed validationID,
         address indexed delegator,
-        uint64 delegatorWeight,
-        uint64 validatorWeight,
-        uint64 nonce,
+        uint64 indexed nonce,
         uint256 startTime
     );
 
@@ -96,14 +92,12 @@ interface IPoSValidatorManager is IValidatorManager {
      * @notice Event emitted when delegator removal is completed
      * @param validationID The ID of the validation period
      * @param delegator The address of the delegator
-     * @param validatorWeight The updated weight of the validator, as returned by the P-Chain
      * @param nonce The message nonce used to update the validator weight, as returned by the P-Chain
      */
     event DelegationEnded(
         bytes32 indexed validationID,
         address indexed delegator,
-        uint64 indexed validatorWeight,
-        uint64 nonce
+        uint64 indexed nonce
     );
 
     /**
