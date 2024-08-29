@@ -38,7 +38,7 @@ The `SetSubnetValidatorWeightMessage` is delivered to the P-Chain as the payload
 
 ACP-77 also provides a method to disable a validator without interacting with the Subnet directly. The P-Chain transaction [`DisableValidatorTx`](https://github.com/avalanche-foundation/ACPs/tree/main/ACPs/77-reinventing-subnets#disablevalidatortx) disables the validator on the P-Chain. The disabled validator's weight will still count towards the Subnet's total weight. 
 
-Disabled Subnet Validators can re-activate at any time by increasing their balance with an `IncreaseBalanceTx`. A disabled validator can only be totally removed from the validator set by a call to `initializeEndValidation`.
+Disabled Subnet Validators can re-activate at any time by increasing their balance with an `IncreaseBalanceTx`. Anyone can call `IncreaseBalanceTx` for any validator on the P-Chain. A disabled validator can only be totally removed from the validator set by a call to `initializeEndValidation`.
 
 ## Warp Message Format Reference
 
