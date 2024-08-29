@@ -22,9 +22,10 @@ abstract contract TeleporterRegistryOwnableAppUpgradeable is
     // solhint-disable-next-line func-name-mixedcase
     function __TeleporterRegistryOwnableApp_init(
         address teleporterRegistryAddress,
-        address initialOwner
+        address initialOwner,
+        uint256 minTeleporterVersion
     ) internal onlyInitializing {
-        __TeleporterRegistryApp_init(teleporterRegistryAddress);
+        __TeleporterRegistryApp_init(teleporterRegistryAddress, minTeleporterVersion);
         __Ownable_init(initialOwner);
     }
 

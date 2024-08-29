@@ -17,8 +17,12 @@ import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 abstract contract TeleporterRegistryOwnableApp is TeleporterRegistryApp, Ownable {
     constructor(
         address teleporterRegistryAddress,
-        address initialOwner
-    ) TeleporterRegistryApp(teleporterRegistryAddress) Ownable(initialOwner) {}
+        address initialOwner,
+        uint256 minTeleporterVersion
+    )
+        TeleporterRegistryApp(teleporterRegistryAddress, minTeleporterVersion)
+        Ownable(initialOwner)
+    {}
 
     /**
      * @dev See {TeleporterRegistryApp-_checkTeleporterRegistryAppAccess}
