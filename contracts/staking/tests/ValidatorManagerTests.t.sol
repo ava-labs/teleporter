@@ -8,6 +8,7 @@ pragma solidity 0.8.25;
 import {Test} from "@forge-std/Test.sol";
 import {ValidatorManager} from "../ValidatorManager.sol";
 import {ValidatorMessages} from "../ValidatorMessages.sol";
+import {ValidatorStatus} from "../interfaces/IValidatorManager.sol";
 import {
     WarpMessage,
     IWarpMessenger
@@ -59,7 +60,7 @@ abstract contract ValidatorManagerTest is Test {
         uint256 endTime
     );
 
-    event ValidationPeriodEnded(bytes32 indexed validationID);
+    event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
 
     function testInitializeValidatorRegistrationSuccess() public {
         _setUpInitializeValidatorRegistration(
@@ -172,31 +173,28 @@ abstract contract ValidatorManagerTest is Test {
         _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodEnded(validationID);
+        emit ValidationPeriodEnded(validationID, ValidatorStatus.Completed);
 
-        validatorManager.completeEndValidation(0, false);
+        validatorManager.completeEndValidation(0);
     }
 
-    function testCompleteEndValidationSetWeightMessageType() public {
-        bytes32 validationID = _setUpInitializeEndValidation({
-            nodeID: DEFAULT_NODE_ID,
-            subnetID: DEFAULT_SUBNET_ID,
-            weight: DEFAULT_WEIGHT,
-            registrationExpiry: DEFAULT_EXPIRY,
-            blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-            registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP,
-            completionTimestamp: DEFAULT_COMPLETION_TIMESTAMP
-        });
+    function testCompleteInvalidatedValidation() public {
+        bytes32 validationID = _setUpInitializeValidatorRegistration(
+            DEFAULT_NODE_ID,
+            DEFAULT_SUBNET_ID,
+            DEFAULT_WEIGHT,
+            DEFAULT_EXPIRY,
+            DEFAULT_BLS_PUBLIC_KEY
+        );
+        bytes memory subnetValidatorRegistrationMessage =
+            ValidatorMessages.packSubnetValidatorRegistrationMessage(validationID, false);
 
-        bytes memory setSubnetValidatorWeightMessage =
-            ValidatorMessages.packSetSubnetValidatorWeightMessage(validationID, 1, 0);
-
-        _mockGetVerifiedWarpMessage(setSubnetValidatorWeightMessage, true);
+        _mockGetVerifiedWarpMessage(subnetValidatorRegistrationMessage, true);
 
         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodEnded(validationID);
+        emit ValidationPeriodEnded(validationID, ValidatorStatus.Invalidated);
 
-        validatorManager.completeEndValidation(0, true);
+        validatorManager.completeEndValidation(0);
     }
 
     function _setUpInitializeValidatorRegistration(
