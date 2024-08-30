@@ -59,7 +59,7 @@ abstract contract ValidatorManager is
 
     // solhint-disable ordering
     function _getValidatorManagerStorage()
-        internal
+        private
         pure
         returns (ValidatorManagerStorage storage $)
     {
