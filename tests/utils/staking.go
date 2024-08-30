@@ -435,7 +435,7 @@ func CompleteEndNativeValidation(
 ) *types.Receipt {
 	abi, err := nativetokenstakingmanager.NativeTokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeEndValidation", uint32(0), false)
+	callData, err := abi.Pack("completeEndValidation", uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		callData,
@@ -454,7 +454,7 @@ func CompleteEndERC20Validation(
 ) *types.Receipt {
 	abi, err := erc20tokenstakingmanager.ERC20TokenStakingManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeEndValidation", uint32(0), false)
+	callData, err := abi.Pack("completeEndValidation", uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		callData,
@@ -473,7 +473,7 @@ func CompleteEndPoAValidation(
 ) *types.Receipt {
 	abi, err := poavalidatormanager.PoAValidatorManagerMetaData.GetAbi()
 	Expect(err).Should(BeNil())
-	callData, err := abi.Pack("completeEndValidation", uint32(0), false)
+	callData, err := abi.Pack("completeEndValidation", uint32(0))
 	Expect(err).Should(BeNil())
 	return CallWarpReceiver(
 		callData,
