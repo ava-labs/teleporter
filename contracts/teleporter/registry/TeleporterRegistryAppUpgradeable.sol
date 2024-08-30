@@ -130,7 +130,7 @@ abstract contract TeleporterRegistryAppUpgradeable is
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}
-     * `nonReentrant` is a reentrancy guard that protects again multiple versions of the
+     * `nonReentrant` is a reentrancy guard that protects against multiple versions of the
      * TeleporterMessengerContract delivering a message in the same call. Any internal calls
      * will not be able to call functions also marked with `nonReentrant`.
      *
