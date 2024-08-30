@@ -10,7 +10,8 @@ import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 
 /**
  * @dev Contract that inherits {TeleporterRegistryApp} and allows
- * only owners of the contract to update the minimum Teleporter version.
+ * only owners of the contract to update the minimum Teleporter version or
+ * pause and unpause specific Teleporter versions.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
