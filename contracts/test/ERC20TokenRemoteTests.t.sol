@@ -58,6 +58,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -76,6 +77,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -91,6 +93,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: address(0),
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -98,7 +101,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
             tokenDecimals,
-            "TeleporterRegistryApp: zero teleporter registry address"
+            "TeleporterRegistryApp: zero Teleporter registry address"
         );
     }
 
@@ -107,6 +110,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(0),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -123,6 +127,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: bytes32(0),
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -139,6 +144,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -155,6 +161,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: address(0),
                 tokenHomeDecimals: 18
@@ -164,11 +171,6 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             18,
             _formatErrorMessage("zero token home address")
         );
-    }
-
-    function testDecimals() public {
-        uint8 res = app.decimals();
-        assertEq(tokenDecimals, res);
     }
 
     function testSendWithSeparateFeeAsset() public {
@@ -197,6 +199,11 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
         _send(input, amount);
     }
 
+    function testDecimals() public view {
+        uint8 res = app.decimals();
+        assertEq(tokenDecimals, res);
+    }
+
     function _createNewRemoteInstance() internal override returns (TokenRemote) {
         ERC20TokenRemoteUpgradeable instance =
             new ERC20TokenRemoteUpgradeable(ICTTInitializable.Allowed);
@@ -204,6 +211,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals

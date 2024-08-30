@@ -34,7 +34,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
         wavax = new WrappedNativeToken("AVAX");
         app = new NativeTokenHomeUpgradeable(ICTTInitializable.Allowed);
         app.initialize(
-            MOCK_TELEPORTER_REGISTRY_ADDRESS, MOCK_TELEPORTER_MESSENGER_ADDRESS, address(wavax)
+            MOCK_TELEPORTER_REGISTRY_ADDRESS, MOCK_TELEPORTER_MESSENGER_ADDRESS, 1, address(wavax)
         );
         tokenHome = app;
         nativeTokenTransferrer = app;
@@ -47,14 +47,14 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
      * Initialization unit tests
      */
     function testNonUpgradeableInitialization() public {
-        app = new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(wavax));
+        app = new NativeTokenHome(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), 1, address(wavax));
         assertEq(app.getBlockchainID(), DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID);
     }
 
     function testDisableInitialization() public {
         app = new NativeTokenHomeUpgradeable(ICTTInitializable.Disallowed);
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
-        app.initialize(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), address(wavax));
+        app.initialize(MOCK_TELEPORTER_REGISTRY_ADDRESS, address(this), 1, address(wavax));
     }
 
     function testZeroTeleporterRegistryAddress() public {
@@ -62,7 +62,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
             address(0),
             address(this),
             address(wavax),
-            "TeleporterRegistryApp: zero teleporter registry address"
+            "TeleporterRegistryApp: zero Teleporter registry address"
         );
     }
 
@@ -173,6 +173,6 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
     ) private {
         app = new NativeTokenHomeUpgradeable(ICTTInitializable.Allowed);
         vm.expectRevert(expectedErrorMessage);
-        app.initialize(teleporterRegistryAddress, teleporterManagerAddress, wrappedTokenAddress);
+        app.initialize(teleporterRegistryAddress, teleporterManagerAddress, 1, wrappedTokenAddress);
     }
 }

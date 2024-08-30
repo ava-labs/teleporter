@@ -55,6 +55,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -73,6 +74,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -88,6 +90,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -104,6 +107,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -120,6 +124,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: bytes32(0),
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -136,6 +141,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_REMOTE_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -343,6 +349,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals
@@ -399,6 +406,7 @@ contract NativeTokenRemoteTest is NativeTokenTransferrerTest, TokenRemoteTest {
             settings: TokenRemoteSettings({
                 teleporterRegistryAddress: MOCK_TELEPORTER_REGISTRY_ADDRESS,
                 teleporterManager: address(this),
+                minTeleporterVersion: 1,
                 tokenHomeBlockchainID: DEFAULT_TOKEN_HOME_BLOCKCHAIN_ID,
                 tokenHomeAddress: DEFAULT_TOKEN_HOME_ADDRESS,
                 tokenHomeDecimals: tokenHomeDecimals

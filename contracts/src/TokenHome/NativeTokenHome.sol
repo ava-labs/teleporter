@@ -17,8 +17,11 @@ contract NativeTokenHome is NativeTokenHomeUpgradeable {
     constructor(
         address teleporterRegistryAddress,
         address teleporterManager,
+        uint256 minTeleporterVersion,
         address wrappedTokenAddress
     ) NativeTokenHomeUpgradeable(ICTTInitializable.Allowed) {
-        initialize(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress);
+        initialize(
+            teleporterRegistryAddress, teleporterManager, minTeleporterVersion, wrappedTokenAddress
+        );
     }
 }

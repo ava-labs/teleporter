@@ -401,15 +401,6 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
         );
     }
 
-    function testCalculateNumWords() public {
-        assertEq(tokenRemote.calculateNumWords(0), 0);
-        assertEq(tokenRemote.calculateNumWords(1), 1);
-        assertEq(tokenRemote.calculateNumWords(32), 1);
-        assertEq(tokenRemote.calculateNumWords(33), 2);
-        assertEq(tokenRemote.calculateNumWords(64), 2);
-        assertEq(tokenRemote.calculateNumWords(65), 3);
-    }
-
     function testRegisterWithHomeSuccess() public {
         // Create a new instance that has not yet received any messages.
         tokenRemote = _createNewRemoteInstance();
@@ -474,6 +465,15 @@ abstract contract TokenRemoteTest is TokenTransferrerTest {
 
         vm.expectRevert(_formatErrorMessage("already registered"));
         tokenRemote.registerWithHome(TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}));
+    }
+
+    function testCalculateNumWords() public view {
+        assertEq(tokenRemote.calculateNumWords(0), 0);
+        assertEq(tokenRemote.calculateNumWords(1), 1);
+        assertEq(tokenRemote.calculateNumWords(32), 1);
+        assertEq(tokenRemote.calculateNumWords(33), 2);
+        assertEq(tokenRemote.calculateNumWords(64), 2);
+        assertEq(tokenRemote.calculateNumWords(65), 3);
     }
 
     function _sendMultiHopSendSuccess(

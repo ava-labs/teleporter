@@ -71,24 +71,35 @@ contract NativeTokenHomeUpgradeable is INativeTokenHome, TokenHome {
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/teleporter/registry
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
+     * @param minTeleporterVersion Minimum Teleporter version supported by this contract.
      * @param wrappedTokenAddress The wrapped native token contract address of the native asset
      * to be transferred to TokenRemote instances.
      */
     function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
+        uint256 minTeleporterVersion,
         address wrappedTokenAddress
     ) public initializer {
-        __NativeTokenHome_init(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress);
+        __NativeTokenHome_init(
+            teleporterRegistryAddress, teleporterManager, minTeleporterVersion, wrappedTokenAddress
+        );
     }
 
     // solhint-disable-next-line func-name-mixedcase
     function __NativeTokenHome_init(
         address teleporterRegistryAddress,
         address teleporterManager,
+        uint256 minTeleporterVersion,
         address wrappedTokenAddress
     ) internal onlyInitializing {
-        __TokenHome_init(teleporterRegistryAddress, teleporterManager, wrappedTokenAddress, 18);
+        __TokenHome_init(
+            teleporterRegistryAddress,
+            teleporterManager,
+            minTeleporterVersion,
+            wrappedTokenAddress,
+            18
+        );
         __NativeTokenHome_init_unchained(wrappedTokenAddress);
     }
 

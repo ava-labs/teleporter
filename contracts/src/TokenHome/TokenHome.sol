@@ -104,6 +104,7 @@ abstract contract TokenHome is
      * @param teleporterRegistryAddress The address of the TeleporterRegistry contract.
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
+     * @param minTeleporterVersion Minimum Teleporter version supported by this contract.
      * @param tokenAddress The token contract address to be transferredd by the home instance.
      * @param tokenDecimals The number of decimals for the token being transferred.
      */
@@ -111,10 +112,13 @@ abstract contract TokenHome is
     function __TokenHome_init(
         address teleporterRegistryAddress,
         address teleporterManager,
+        uint256 minTeleporterVersion,
         address tokenAddress,
         uint8 tokenDecimals
     ) internal virtual onlyInitializing {
-        __TeleporterRegistryOwnableApp_init(teleporterRegistryAddress, teleporterManager);
+        __TeleporterRegistryOwnableApp_init(
+            teleporterRegistryAddress, teleporterManager, minTeleporterVersion
+        );
         __SendReentrancyGuard_init();
         __TokenHome_init_unchained(tokenAddress, tokenDecimals);
     }

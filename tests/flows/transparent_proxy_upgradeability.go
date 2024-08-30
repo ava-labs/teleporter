@@ -75,6 +75,7 @@ func TransparentUpgradeableProxy(network interfaces.Network) {
 		opts,
 		cChainInfo.TeleporterRegistryAddress,
 		fundedAddress,
+		big.NewInt(1),
 		exampleERC20Address,
 		tokenDecimals,
 	)
