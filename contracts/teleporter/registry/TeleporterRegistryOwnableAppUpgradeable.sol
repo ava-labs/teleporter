@@ -11,7 +11,8 @@ import {OwnableUpgradeable} from
 
 /**
  * @dev Contract that inherits {TeleporterRegistryAppUpgradeable} and allows
- * only owners of the contract to update the minimum Teleporter version.
+ * only owners of the contract to update the minimum Teleporter version or
+ * pause and unpause specific Teleporter versions.
  *
  * @custom:security-contact https://github.com/ava-labs/teleporter/blob/main/SECURITY.md
  */
