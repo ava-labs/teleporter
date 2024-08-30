@@ -17,13 +17,18 @@ import {Ownable} from "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
 abstract contract TeleporterRegistryOwnableApp is TeleporterRegistryApp, Ownable {
     constructor(
         address teleporterRegistryAddress,
-        address initialOwner
-    ) TeleporterRegistryApp(teleporterRegistryAddress) Ownable(initialOwner) {}
+        address initialOwner,
+        uint256 minTeleporterVersion
+    )
+        TeleporterRegistryApp(teleporterRegistryAddress, minTeleporterVersion)
+        Ownable(initialOwner)
+    {}
 
     /**
      * @dev See {TeleporterRegistryApp-_checkTeleporterRegistryAppAccess}
      *
-     * Checks that the caller is the owner of the contract for upgrade access.
+     * Checks that the caller is the owner of the contract for updating {minTeleporterVersion},
+     * and pausing/unpausing specific Teleporter version interactions.
      */
     function _checkTeleporterRegistryAppAccess() internal view virtual override {
         _checkOwner();

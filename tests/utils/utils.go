@@ -875,11 +875,14 @@ func DeployTestMessenger(
 		subnet.EVMChainID,
 	)
 	Expect(err).Should(BeNil())
+	minTeleporterVersion, err := subnet.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
 	address, tx, exampleMessenger, err := testmessenger.DeployTestMessenger(
 		opts,
 		subnet.RPCClient,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
+		minTeleporterVersion,
 	)
 	Expect(err).Should(BeNil())
 

@@ -52,8 +52,9 @@ contract ExampleApp is
     // Constructor passes in the Teleporter registry address
     // to the TeleporterRegistryApp contract.
     constructor(
-        address teleporterRegistryAddress
-    ) TeleporterRegistryApp(teleporterRegistryAddress) {
+        address teleporterRegistryAddress,
+        uint256 minTeleporterVersion
+    ) TeleporterRegistryApp(teleporterRegistryAddress, minTeleporterVersion) {
         currentBlockchainID = IWarpMessenger(WARP_PRECOMPILE_ADDRESS)
             .getBlockchainID();
     }
