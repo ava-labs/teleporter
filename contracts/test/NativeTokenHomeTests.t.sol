@@ -62,7 +62,7 @@ contract NativeTokenHomeTest is NativeTokenTransferrerTest, TokenHomeTest {
             address(0),
             address(this),
             address(wavax),
-            "TeleporterRegistryApp: zero teleporter registry address"
+            "TeleporterRegistryApp: zero Teleporter registry address"
         );
     }
 

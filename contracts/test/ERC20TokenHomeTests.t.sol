@@ -71,7 +71,7 @@ contract ERC20TokenHomeTest is ERC20TokenTransferrerTest, TokenHomeTest {
             address(this),
             address(mockERC20),
             tokenHomeDecimals,
-            "TeleporterRegistryApp: zero teleporter registry address"
+            "TeleporterRegistryApp: zero Teleporter registry address"
         );
     }
 

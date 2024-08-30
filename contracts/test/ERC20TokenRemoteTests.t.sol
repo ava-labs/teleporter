@@ -101,7 +101,7 @@ contract ERC20TokenRemoteTest is ERC20TokenTransferrerTest, TokenRemoteTest {
             MOCK_TOKEN_NAME,
             MOCK_TOKEN_SYMBOL,
             tokenDecimals,
-            "TeleporterRegistryApp: zero teleporter registry address"
+            "TeleporterRegistryApp: zero Teleporter registry address"
         );
     }
 
