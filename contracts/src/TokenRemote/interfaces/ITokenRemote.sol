@@ -14,6 +14,7 @@ import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
  * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/teleporter/registry.
  * @param teleporterManager Address that manages this contract's integration with the
  * Teleporter registry and Teleporter versions.
+ * @param minTeleporterVersion Minimum Teleporter version supported by this contract.
  * @param tokenHomeBlockchainID The blockchain ID of the associated TokenHome instance.
  * @param tokenHomeAddress The address of the associated token home contract.
  * @param tokenHomeDecimals The number of decimal places used by the token home's token.
@@ -21,6 +22,7 @@ import {TeleporterFeeInfo} from "@teleporter/ITeleporterMessenger.sol";
 struct TokenRemoteSettings {
     address teleporterRegistryAddress;
     address teleporterManager;
+    uint256 minTeleporterVersion;
     bytes32 tokenHomeBlockchainID;
     address tokenHomeAddress;
     uint8 tokenHomeDecimals;

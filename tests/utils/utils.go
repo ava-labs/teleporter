@@ -90,6 +90,7 @@ func DeployERC20TokenHome(
 		subnet.RPCClient,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
+		GetLatestTeleporterVersion(subnet),
 		tokenAddress,
 		tokenHomeDecimals,
 	)
@@ -201,6 +202,7 @@ func DeployNativeTokenHome(
 		subnet.RPCClient,
 		subnet.TeleporterRegistryAddress,
 		teleporterManager,
+		GetLatestTeleporterVersion(subnet),
 		tokenAddress,
 	)
 	Expect(err).Should(BeNil())
@@ -1113,4 +1115,10 @@ func ERC20Approve(
 	log.Info("Approved ERC20", "spender", spender.Hex(), "txHash", tx.Hash().Hex())
 
 	teleporterUtils.WaitForTransactionSuccess(ctx, subnet, tx.Hash())
+}
+
+func GetLatestTeleporterVersion(subnet interfaces.SubnetTestInfo) *big.Int {
+	version, err := subnet.TeleporterRegistry.LatestVersion(&bind.CallOpts{})
+	Expect(err).Should(BeNil())
+	return version
 }

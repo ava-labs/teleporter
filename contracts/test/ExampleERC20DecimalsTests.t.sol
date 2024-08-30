@@ -16,7 +16,7 @@ contract ExampleERC20DecimalsTest is Test {
         exampleERC20 = new ExampleERC20Decimals(MOCK_DECIMALS);
     }
 
-    function testDecimals() public {
+    function testDecimals() public view {
         assertEq(exampleERC20.decimals(), MOCK_DECIMALS);
     }
 }

@@ -68,17 +68,23 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
      * address. See here for details: https://github.com/ava-labs/teleporter/tree/main/contracts/teleporter/registry
      * @param teleporterManager Address that manages this contract's integration with the
      * Teleporter registry and Teleporter versions.
+     * @param minTeleporterVersion Minimum Teleporter version supported by this contract.
      * @param tokenAddress The ERC20 token contract address to be transferred by the home.
      * @param tokenDecimals The number of decimals for the ERC20 token
      */
     function initialize(
         address teleporterRegistryAddress,
         address teleporterManager,
+        uint256 minTeleporterVersion,
         address tokenAddress,
         uint8 tokenDecimals
     ) public initializer {
         __ERC20TokenHome_init(
-            teleporterRegistryAddress, teleporterManager, tokenAddress, tokenDecimals
+            teleporterRegistryAddress,
+            teleporterManager,
+            minTeleporterVersion,
+            tokenAddress,
+            tokenDecimals
         );
     }
 
@@ -86,10 +92,17 @@ contract ERC20TokenHomeUpgradeable is IERC20TokenHome, TokenHome {
     function __ERC20TokenHome_init(
         address teleporterRegistryAddress,
         address teleporterManager,
+        uint256 minTeleporterVersion,
         address tokenAddress,
         uint8 tokenDecimals
     ) internal onlyInitializing {
-        __TokenHome_init(teleporterRegistryAddress, teleporterManager, tokenAddress, tokenDecimals);
+        __TokenHome_init(
+            teleporterRegistryAddress,
+            teleporterManager,
+            minTeleporterVersion,
+            tokenAddress,
+            tokenDecimals
+        );
         __ERC20TokenHome_init_unchained(tokenAddress);
     }
 

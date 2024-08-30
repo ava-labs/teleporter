@@ -154,7 +154,9 @@ abstract contract TokenRemote is
         uint8 tokenDecimals
     ) internal onlyInitializing {
         __TeleporterRegistryOwnableApp_init(
-            settings.teleporterRegistryAddress, settings.teleporterManager
+            settings.teleporterRegistryAddress,
+            settings.teleporterManager,
+            settings.minTeleporterVersion
         );
         __SendReentrancyGuard_init();
         __TokenRemote_init_unchained(settings, initialReserveImbalance_, tokenDecimals);
