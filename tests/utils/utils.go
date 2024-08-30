@@ -123,6 +123,7 @@ func DeployERC20TokenRemote(
 		erc20tokenremote.TokenRemoteSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
+			MinTeleporterVersion:      GetLatestTeleporterVersion(subnet),
 			TokenHomeBlockchainID:     tokenHomeBlockchainID,
 			TokenHomeAddress:          tokenHomeAddress,
 			TokenHomeDecimals:         tokenHomeDecimals,
@@ -168,6 +169,7 @@ func DeployNativeTokenRemote(
 		nativetokenremote.TokenRemoteSettings{
 			TeleporterRegistryAddress: subnet.TeleporterRegistryAddress,
 			TeleporterManager:         teleporterManager,
+			MinTeleporterVersion:      GetLatestTeleporterVersion(subnet),
 			TokenHomeBlockchainID:     tokenHomeBlockchainID,
 			TokenHomeAddress:          tokenHomeAddress,
 			TokenHomeDecimals:         tokenHomeDecimals,
