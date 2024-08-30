@@ -71,7 +71,7 @@ library ValidatorMessages {
         returns (bytes32, bytes memory)
     {
         require(
-            validationPeriod.blsPublicKey.length == 48, "StakingMessages: Invalid signature length"
+            validationPeriod.blsPublicKey.length == 48, "StakingMessages: invalid signature length"
         );
         bytes memory res = new bytes(134);
         // Pack the codec ID
@@ -120,14 +120,14 @@ library ValidatorMessages {
         pure
         returns (ValidationPeriod memory)
     {
-        require(input.length == 134, "ValidatorMessages: Invalid message length");
+        require(input.length == 134, "ValidatorMessages: invalid message length");
 
         // Unpack the codec ID
         uint16 codecID;
         for (uint256 i; i < 2; ++i) {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
-        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
+        require(codecID == CODEC_ID, "ValidatorMessages: invalid codec ID");
 
         // Unpack the type ID
         uint32 typeID;
@@ -136,7 +136,7 @@ library ValidatorMessages {
         }
         require(
             typeID == REGISTER_SUBNET_VALIDATOR_MESSAGE_TYPE_ID,
-            "ValidatorMessages: Invalid message type"
+            "ValidatorMessages: invalid message type"
         );
 
         // Unpack the subnetID
@@ -234,13 +234,13 @@ library ValidatorMessages {
         pure
         returns (bytes32, bool)
     {
-        require(input.length == 39, "ValidatorMessages: Invalid message length");
+        require(input.length == 39, "ValidatorMessages: invalid message length");
         // Unpack the codec ID
         uint16 codecID;
         for (uint256 i; i < 2; ++i) {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
-        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
+        require(codecID == CODEC_ID, "ValidatorMessages: invalid codec ID");
 
         // Unpack the type ID
         uint32 typeID;
@@ -249,7 +249,7 @@ library ValidatorMessages {
         }
         require(
             typeID == SUBNET_VALIDATOR_REGISTRATION_MESSAGE_TYPE_ID,
-            "ValidatorMessages: Invalid message type"
+            "ValidatorMessages: invalid message type"
         );
 
         // Unpack the validation ID.
@@ -327,14 +327,14 @@ library ValidatorMessages {
         pure
         returns (bytes32, uint64, uint64)
     {
-        require(input.length == 54, "ValidatorMessages: Invalid message length");
+        require(input.length == 54, "ValidatorMessages: invalid message length");
 
         // Unpack the codec ID.
         uint16 codecID;
         for (uint256 i; i < 2; ++i) {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
-        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
+        require(codecID == CODEC_ID, "ValidatorMessages: invalid codec ID");
 
         // Unpack the type ID.
         uint32 typeID;
@@ -343,7 +343,7 @@ library ValidatorMessages {
         }
         require(
             typeID == SET_SUBNET_VALIDATOR_WEIGHT_MESSAGE_TYPE_ID,
-            "ValidatorMessages: Invalid message type"
+            "ValidatorMessages: invalid message type"
         );
 
         // Unpack the validation ID.
@@ -522,14 +522,14 @@ library ValidatorMessages {
         pure
         returns (bytes32, uint64)
     {
-        require(input.length == 46, "ValidatorMessages: Invalid message length");
+        require(input.length == 46, "ValidatorMessages: invalid message length");
 
         // Unpack the codec ID.
         uint16 codecID;
         for (uint256 i; i < 2; ++i) {
             codecID |= uint16(uint8(input[i])) << uint16((8 * (1 - i)));
         }
-        require(codecID == CODEC_ID, "ValidatorMessages: Invalid codec ID");
+        require(codecID == CODEC_ID, "ValidatorMessages: invalid codec ID");
 
         // Unpack the type ID.
         uint32 typeID;
@@ -537,7 +537,7 @@ library ValidatorMessages {
             typeID |= uint32(uint8(input[i + 2])) << uint32((8 * (3 - i)));
         }
         require(
-            typeID == VALIDATION_UPTIME_MESSAGE_TYPE_ID, "ValidatorMessages: Invalid message type"
+            typeID == VALIDATION_UPTIME_MESSAGE_TYPE_ID, "ValidatorMessages: invalid message type"
         );
 
         // Unpack the validation ID.
