@@ -187,6 +187,62 @@ contract ValidatorSetSigTest is Test {
         validatorSetSig.executeCall(0);
     }
 
+    function testInvalidValue() public {
+        WarpMessage memory warpMessage = _getValidWarpMessage();
+        ValidatorSetSigMessage memory validatorSetSigMessage = _getValidValidatorSetSigMessage();
+
+        validatorSetSigMessage.value = 2;
+        warpMessage.payload = abi.encode(validatorSetSigMessage);
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(0)),
+            abi.encode(warpMessage, true)
+        );
+        // confirm that the current balance of both target address and the ValidatorSetSig contract is 0
+        assertEq(_DEFAULT_TARGET_ADDRESS.balance, 0);
+        assertEq(address(validatorSetSig).balance, 0);
+
+        // This should fail since the value in the message is 1 and the value in the call doesn't supply any native token
+        // nor is any available.
+        vm.expectRevert("ValidatorSetSig: call failed");
+        validatorSetSig.executeCall(0);
+
+        // This time the value in the message is 2 and the value in the call is 1, so it should revert
+        // since it's insufficient for the call
+        vm.expectRevert("ValidatorSetSig: call failed");
+        validatorSetSig.executeCall{value: 1}(0);
+
+        // Fund the ValidatorSetSig contract with one native token
+        address sender = address(0x1234);
+        vm.deal(sender, 3);
+        // Set the next msg.sender to be the sender address
+        vm.prank(sender);
+        (bool success,) = payable(validatorSetSig).call{value: 1}("");
+        assertTrue(success);
+        assertEq(address(validatorSetSig).balance, 1);
+
+        // This time it should succeed since message requires value to be 2 and the call supplies 1 directly
+        // and the remaining 1 from the contract balance
+        validatorSetSig.executeCall{value: 1}(0);
+        assertEq(_DEFAULT_TARGET_ADDRESS.balance, 2);
+        assertEq(address(validatorSetSig).balance, 0);
+
+        // Update nonce to 1 and value to 3
+        validatorSetSigMessage.nonce = 1;
+        validatorSetSigMessage.value = 3;
+        warpMessage.payload = abi.encode(validatorSetSigMessage);
+        vm.mockCall(
+            WARP_PRECOMPILE_ADDRESS,
+            abi.encodeWithSelector(IWarpMessenger.getVerifiedWarpMessage.selector, uint32(1)),
+            abi.encode(warpMessage, true)
+        );
+
+        // This time supply more (4) than required (3) and it should succeed and leave 1 in the contract
+        validatorSetSig.executeCall{value: 4}(1);
+        assertEq(_DEFAULT_TARGET_ADDRESS.balance, 5);
+        assertEq(address(validatorSetSig).balance, 1);
+    }
+
     // Uses the validatorSetSig contract to call the mockERC20 contract
     // and verifies that the balance got updated correctly
     function testSuccess() public {
@@ -225,6 +281,7 @@ contract ValidatorSetSigTest is Test {
             validatorSetSigAddress: address(validatorSetSig),
             targetContractAddress: _DEFAULT_TARGET_ADDRESS,
             nonce: 0,
+            value: 0,
             payload: ""
         });
     }

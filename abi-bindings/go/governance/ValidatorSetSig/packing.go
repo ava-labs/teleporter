@@ -22,6 +22,7 @@ func init() {
 		{Name: "validatorSetSigAddress", Type: "address"},
 		{Name: "targetContractAddress", Type: "address"},
 		{Name: "nonce", Type: "uint256"},
+		{Name: "value", Type: "uint256"},
 		{Name: "payload", Type: "bytes"},
 	})
 	if err != nil {
