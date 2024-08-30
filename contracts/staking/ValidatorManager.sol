@@ -247,11 +247,10 @@ abstract contract ValidatorManager is
     // solhint-disable-next-line
     function resendEndValidatorMessage(bytes32 validationID) external {
         ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
-        Validator memory validator = $._validationPeriods[validationID];
 
         require(
             $._pendingEndValidationMessages[validationID].length > 0
-                && validator.status == ValidatorStatus.PendingRemoved,
+                && $._validationPeriods[validationID].status == ValidatorStatus.PendingRemoved,
             "ValidatorManager: Validator not pending removal"
         );
 
@@ -288,6 +287,7 @@ abstract contract ValidatorManager is
 
         if (validator.status == ValidatorStatus.PendingRemoved) {
             endStatus = ValidatorStatus.Completed;
+            delete $._pendingEndValidationMessages[validationID];
         } else {
             endStatus = ValidatorStatus.Invalidated;
         }
