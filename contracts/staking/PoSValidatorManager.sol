@@ -136,7 +136,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         require(
             weight >= $._minimumStakeAmount && weight <= $._maximumStakeAmount,
-            "PoSValidatorManager: Invalid stake amount"
+            "PoSValidatorManager: invalid stake amount"
         );
 
         // Check that adding this validator would not exceed the maximum churn rate.

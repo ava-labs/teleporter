@@ -69,7 +69,7 @@ interface IValidatorManager {
      * This is done by calling {completeEndValidation}, which provides proof from the P-Chain that the
      * validation period is not active and will never be active in the future.
      */
-    event ValidationPeriodEnded(bytes32 indexed validationID);
+    event ValidationPeriodEnded(bytes32 indexed validationID, ValidatorStatus indexed status);
 
     /**
      * @notice Resubmits a validator registration message to be sent to P-Chain to the Warp precompile.
@@ -98,9 +98,6 @@ interface IValidatorManager {
      * {registrationExpiry} being reached.
      * @param messageIndex The index of the Warp message to be received providing the proof the validation is not active
      * and never will be active on the P-Chain.
-     * @param setWeightMessageType Whether or not the message type is a SetValidatorWeight message, or a
-     * SubnetValidatorRegistration message (with valid set to false). Both message types are valid for ending
-     * a validation period.
      */
-    function completeEndValidation(uint32 messageIndex, bool setWeightMessageType) external;
+    function completeEndValidation(uint32 messageIndex) external;
 }
