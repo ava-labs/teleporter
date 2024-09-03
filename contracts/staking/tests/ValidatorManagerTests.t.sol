@@ -38,6 +38,7 @@ abstract contract ValidatorManagerTest is Test {
     uint64 public constant DEFAULT_EXPIRY = 1000;
     uint64 public constant DEFAULT_REGISTRATION_TIMESTAMP = 1000;
     uint64 public constant DEFAULT_COMPLETION_TIMESTAMP = 2000;
+    uint256 public constant DEFAULT_MINIMUM_DELEGATION_FEE_RATE = 100; // 1%
 
     ValidatorManager public validatorManager;
 
@@ -232,7 +233,9 @@ abstract contract ValidatorManagerTest is Test {
             validationID, DEFAULT_NODE_ID, bytes32(0), weight, DEFAULT_EXPIRY
         );
 
-        _initializeValidatorRegistration(nodeID, registrationExpiry, blsPublicKey, weight);
+        _initializeValidatorRegistration(
+            nodeID, registrationExpiry, DEFAULT_MINIMUM_DELEGATION_FEE_RATE, blsPublicKey, weight
+        );
     }
 
     function _setUpCompleteValidatorRegistration(
@@ -329,6 +332,7 @@ abstract contract ValidatorManagerTest is Test {
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
+        uint256 delegationFeeRate,
         bytes memory blsPublicKey,
         uint64 weight
     ) internal virtual returns (bytes32);

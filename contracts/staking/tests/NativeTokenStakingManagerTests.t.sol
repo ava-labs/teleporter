@@ -30,6 +30,7 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFeeRate: DEFAULT_MINIMUM_DELEGATION_FEE_RATE,
                 rewardCalculator: IRewardCalculator(address(0))
             })
         );
@@ -37,15 +38,26 @@ contract NativeTokenStakingManagerTest is PoSValidatorManagerTest {
         posValidatorManager = app;
     }
 
+    function testInvalidDelegationFeeRate() public {
+        _initializeValidatorRegistration(
+            DEFAULT_NODE_ID,
+            DEFAULT_EXPIRY,
+            DEFAULT_MINIMUM_DELEGATION_FEE_RATE + 1,
+            DEFAULT_BLS_PUBLIC_KEY,
+            DEFAULT_WEIGHT
+        );
+    }
+
     // Helpers
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
+        uint256 delegationFeeRate,
         bytes memory signature,
         uint64 weight
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration{value: app.weightToValue(weight)}(
-            nodeID, registrationExpiry, signature
+            nodeID, registrationExpiry, delegationFeeRate, signature
         );
     }
 

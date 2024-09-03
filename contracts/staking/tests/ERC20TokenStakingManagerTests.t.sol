@@ -37,6 +37,7 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
                 minimumStakeAmount: DEFAULT_MINIMUM_STAKE,
                 maximumStakeAmount: DEFAULT_MAXIMUM_STAKE,
                 minimumStakeDuration: DEFAULT_MINIMUM_STAKE_DURATION,
+                minimumDelegationFeeRate: DEFAULT_MINIMUM_DELEGATION_FEE_RATE,
                 rewardCalculator: IRewardCalculator(address(0))
             }),
             token
@@ -48,11 +49,12 @@ contract ERC20TokenStakingManagerTest is PoSValidatorManagerTest {
     function _initializeValidatorRegistration(
         bytes32 nodeID,
         uint64 registrationExpiry,
+        uint256 delegationFeeRate,
         bytes memory signature,
         uint64 weight
     ) internal virtual override returns (bytes32) {
         return app.initializeValidatorRegistration(
-            app.weightToValue(weight), nodeID, registrationExpiry, signature
+            app.weightToValue(weight), nodeID, registrationExpiry, delegationFeeRate, signature
         );
     }
 
