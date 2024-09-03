@@ -26,6 +26,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 _maximumStakeAmount;
         /// @notice The minimum amount of time a validator must be staked for.
         uint64 _minimumStakeDuration;
+        /// @notice The minimum fee rate in basis points charged to the delegators by the validator.
+        uint256 _minimumDelegationFeeRate;
         /// @notice The reward calculator for this validator manager.
         IRewardCalculator _rewardCalculator;
         /// @notice Maps the validationID to the uptime of the validator.
@@ -40,6 +42,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             _pendingEndDelegatorMessages;
         /// @notice Maps the validationID to the uptime of the validator.
         mapping(bytes32 validationID => uint64) _validatorUptimes;
+        /// @notice Maps the validationID to the delegation fee rate.
+        mapping(bytes32 validationID => uint256) _validatorDelegationFeeRates;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -47,6 +51,9 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     // TODO: Unit test for storage slot and update slot
     bytes32 private constant _POS_VALIDATOR_MANAGER_STORAGE_LOCATION =
         0x4317713f7ecbdddd4bc99e95d903adedaa883b2e7c2551610bd13e2c7e473d00;
+
+    // The maximum delegation fee rate in basis points. This is 99.99%
+    uint256 private constant _MAXIMUM_DELEGATION_FEE_RATE = 1e4 - 1;
 
     // solhint-disable ordering
     function _getPoSValidatorManagerStorage()
@@ -70,6 +77,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             settings.minimumStakeAmount,
             settings.maximumStakeAmount,
             settings.minimumStakeDuration,
+            settings.minimumDelegationFeeRate,
             settings.rewardCalculator
         );
     }
@@ -79,13 +87,19 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint256 minimumStakeAmount,
         uint256 maximumStakeAmount,
         uint64 minimumStakeDuration,
+        uint256 minimumDelegationFeeRate,
         IRewardCalculator rewardCalculator
     ) internal onlyInitializing {
+        require(
+            minimumDelegationFeeRate > 0 && minimumDelegationFeeRate < _MAXIMUM_DELEGATION_FEE_RATE,
+            "PoSValidatorManager: invalid delegation fee rate"
+        );
         PoSValidatorManagerStorage storage s = _getPoSValidatorManagerStorage();
         s._minimumStakeAmount = minimumStakeAmount;
         s._maximumStakeAmount = maximumStakeAmount;
         s._minimumStakeDuration = minimumStakeDuration;
         s._rewardCalculator = rewardCalculator;
+        s._minimumDelegationFeeRate = minimumDelegationFeeRate;
     }
 
     function initializeEndValidation(
@@ -120,6 +134,16 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         }
 
         _initializeEndValidation(validationID);
+    }
+
+    function _setDelegationFeeRate(bytes32 validationID, uint256 feeRate) internal {
+        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+        require(
+            feeRate >= $._minimumDelegationFeeRate && feeRate <= _MAXIMUM_DELEGATION_FEE_RATE,
+            "PoSValidatorManager: invalid delegation fee rate"
+        );
+        $._validatorDelegationFeeRates[validationID] = feeRate;
+        emit DelegationFeeRateSet(validationID, feeRate);
     }
 
     function _processStake(uint256 stakeAmount) internal virtual returns (uint64) {

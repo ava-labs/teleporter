@@ -82,16 +82,21 @@ contract ERC20TokenStakingManager is
      * @param stakeAmount The amount to be staked.
      * @param nodeID The node ID of the validator being registered.
      * @param registrationExpiry The time at which the registration is no longer valid on the P-Chain.
+     * @param delegationFeeRate The fee charged to delegators by the validator.
      * @param blsPublicKey The BLS public key of the validator.
      */
     function initializeValidatorRegistration(
         uint256 stakeAmount,
         bytes32 nodeID,
         uint64 registrationExpiry,
+        uint256 delegationFeeRate,
         bytes memory blsPublicKey
     ) external returns (bytes32 validationID) {
         uint64 weight = _processStake(stakeAmount);
-        return _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
+        validationID =
+            _initializeValidatorRegistration(nodeID, weight, registrationExpiry, blsPublicKey);
+        _setDelegationFeeRate(validationID, delegationFeeRate);
+        return validationID;
     }
 
     /**

@@ -21,6 +21,7 @@ struct PoSValidatorManagerSettings {
     uint256 minimumStakeAmount;
     uint256 maximumStakeAmount;
     uint64 minimumStakeDuration;
+    uint256 minimumDelegationFeeRate;
     IRewardCalculator rewardCalculator;
 }
 
@@ -38,6 +39,13 @@ interface IPoSValidatorManager is IValidatorManager {
      * @param uptime The new uptime of the validator
      */
     event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
+
+    /**
+     * @notice Event emitted when a validator's delegation fee is set. This is only emitted at the start of a validation
+     * @param validationID The ID of the validation period
+     * @param delegationFeeRate Fee rate in basis points charged by this validator its delegators.
+     */
+    event DelegationFeeRateSet(bytes32 indexed validationID, uint256 delegationFeeRate);
 
     /**
      * @notice Event emitted when a delegator registration is initiated
