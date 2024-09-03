@@ -683,7 +683,7 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
             endTime: endDelegationTimestamp
         });
         vm.prank(delegator);
-        posValidatorManager.initializeEndDelegation(validationID);
+        posValidatorManager.initializeEndDelegation(validationID, false, 0);
         return validationID;
     }
 

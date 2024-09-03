@@ -30,6 +30,7 @@ struct Delegator {
     uint64 endedAt;
     uint64 startingNonce;
     uint64 endingNonce;
+    uint64 validatorUptime;
     DelegatorStatus status;
 }
 
@@ -139,8 +140,16 @@ interface IPoSValidatorManager is IValidatorManager {
      * @notice Begins the process of removing a delegator from a validation period. The delegator must have been previously
      * registered with the given validationID.
      * @param validationID The ID of the validation period being removed.
+     * @param includeUptimeProof Whether or not an uptime proof is provided for the validation period.
+     * If no uptime proof is provided, the validation uptime for the delegation period will be assumed to be 0.
+     * @param messageIndex If {includeUptimeProof} is true, the index of the Warp message to be received providing the
+     * uptime proof.
      */
-    function initializeEndDelegation(bytes32 validationID) external;
+    function initializeEndDelegation(
+        bytes32 validationID,
+        bool includeUptimeProof,
+        uint32 messageIndex
+    ) external;
 
     /**
      * @notice Resubmits a delegator end message to be sent to the P-Chain.
