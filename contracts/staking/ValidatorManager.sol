@@ -308,6 +308,7 @@ abstract contract ValidatorManager is
 
     /**
      * @notice Returns the validator's weight. This weight is not guaranteed to be known by the P-Chain
+     * @return The weight of the validator. If the validation ID does not exist, the weight will be 0.
      */
     function getWeight(bytes32 validationID) external view returns (uint64) {
         return _getValidator(validationID).weight;
