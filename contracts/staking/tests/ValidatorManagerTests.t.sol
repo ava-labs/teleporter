@@ -226,14 +226,12 @@ abstract contract ValidatorManagerTest is Test {
                 blsPublicKey: blsPublicKey
             })
         );
-        vm.warp(DEFAULT_EXPIRY - 1);
+        vm.warp(registrationExpiry - 1);
         _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
 
         _beforeSend(weight);
         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodCreated(
-            validationID, DEFAULT_NODE_ID, bytes32(0), weight, DEFAULT_EXPIRY
-        );
+        emit ValidationPeriodCreated(validationID, nodeID, bytes32(0), weight, registrationExpiry);
 
         _initializeValidatorRegistration(nodeID, registrationExpiry, blsPublicKey, weight);
     }
@@ -264,14 +262,12 @@ abstract contract ValidatorManagerTest is Test {
                 blsPublicKey: blsPublicKey
             })
         );
-        vm.warp(DEFAULT_EXPIRY - 1);
+        vm.warp(registrationExpiry - 1);
         _mockSendWarpMessage(registerSubnetValidatorMessage, bytes32(0));
 
         _beforeSend(weight);
         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodCreated(
-            validationID, DEFAULT_NODE_ID, bytes32(0), weight, DEFAULT_EXPIRY
-        );
+        emit ValidationPeriodCreated(validationID, nodeID, bytes32(0), weight, registrationExpiry);
 
         _initializeValidatorRegistration(nodeID, registrationExpiry, blsPublicKey, weight);
     }
