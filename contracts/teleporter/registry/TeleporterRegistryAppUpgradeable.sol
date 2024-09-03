@@ -94,38 +94,43 @@ abstract contract TeleporterRegistryAppUpgradeable is
     /**
      * @dev Initializes the {TeleporterRegistryApp} contract by getting `teleporterRegistry`
      * instance and setting `_minTeleporterVersion`.
+     * @param teleporterRegistryAddress The address of the Teleporter registry contract.
+     * The Teleporter registry contract should be deployed, and have at least one Teleporter version.
+     * @param minTeleporterVersion The minimum Teleporter version allowed for delivering messages.
+     * The minimum version should be less than or equal to the latest Teleporter version, and greater than 0.
      */
     // solhint-disable ordering
     // solhint-disable-next-line func-name-mixedcase
-    function __TeleporterRegistryApp_init(address teleporterRegistryAddress)
-        internal
-        onlyInitializing
-    {
+    function __TeleporterRegistryApp_init(
+        address teleporterRegistryAddress,
+        uint256 minTeleporterVersion
+    ) internal onlyInitializing {
         __ReentrancyGuard_init();
         __Context_init();
-        __TeleporterRegistryApp_init_unchained(teleporterRegistryAddress);
+        __TeleporterRegistryApp_init_unchained(teleporterRegistryAddress, minTeleporterVersion);
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __TeleporterRegistryApp_init_unchained(address teleporterRegistryAddress)
-        internal
-        onlyInitializing
-    {
+    function __TeleporterRegistryApp_init_unchained(
+        address teleporterRegistryAddress,
+        uint256 minTeleporterVersion
+    ) internal onlyInitializing {
         require(
             teleporterRegistryAddress != address(0),
-            "TeleporterRegistryApp: zero teleporter registry address"
+            "TeleporterRegistryApp: zero Teleporter registry address"
         );
 
         TeleporterRegistryAppStorage storage $ = _getTeleporterRegistryAppStorage();
         TeleporterRegistry registry = TeleporterRegistry(teleporterRegistryAddress);
+        require(registry.latestVersion() > 0, "TeleporterRegistryApp: invalid Teleporter registry");
         $._teleporterRegistry = registry;
-        $._minTeleporterVersion = registry.latestVersion();
+        _setMinTeleporterVersion(minTeleporterVersion);
     }
     // solhint-enable ordering
 
     /**
      * @dev See {ITeleporterReceiver-receiveTeleporterMessage}
-     * `nonReentrant` is a reentrancy guard that protects again multiple versions of the
+     * `nonReentrant` is a reentrancy guard that protects against multiple versions of the
      * TeleporterMessengerContract delivering a message in the same call. Any internal calls
      * will not be able to call functions also marked with `nonReentrant`.
      *
