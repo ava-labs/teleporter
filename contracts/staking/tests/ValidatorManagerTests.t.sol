@@ -228,9 +228,7 @@ abstract contract ValidatorManagerTest is Test {
 
         _beforeSend(weight);
         vm.expectEmit(true, true, true, true, address(validatorManager));
-        emit ValidationPeriodCreated(
-            validationID, nodeID, bytes32(0), weight, registrationExpiry
-        );
+        emit ValidationPeriodCreated(validationID, nodeID, bytes32(0), weight, registrationExpiry);
 
         _initializeValidatorRegistration(nodeID, registrationExpiry, blsPublicKey, weight);
     }
