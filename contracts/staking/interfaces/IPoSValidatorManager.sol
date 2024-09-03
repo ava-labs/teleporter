@@ -28,6 +28,8 @@ struct Delegator {
     uint64 weight;
     uint64 startedAt;
     uint64 endedAt;
+    uint64 startingNonce;
+    uint64 endingNonce;
     DelegatorStatus status;
 }
 
@@ -125,6 +127,8 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Completes the delegator registration process by returning an acknowledgement of the registration of a
      * validationID from the P-Chain. After this function is called, the validator's weight is updated in the contract state.
+     * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize registration of the
+     * delegator is valid, as long as that nonce has been sent by the contract.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegator The address of the delegator being registered.
      */
@@ -148,6 +152,8 @@ interface IPoSValidatorManager is IValidatorManager {
     /**
      * @notice Completes the process of ending a delegation by receiving an acknowledgement from the P-Chain.
      * After this function is called, the validator's weight is updated in the contract state.
+     * Any P-Chain acknowledgement with a nonce greater than or equal to the nonce used to initialize the end of the
+     * delegator's delegation is valid, as long as that nonce has been sent by the contract.
      * @param messageIndex The index of the Warp message to be received providing the acknowledgement.
      * @param delegator The address of the delegator being removed.
      */
