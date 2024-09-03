@@ -99,7 +99,7 @@ abstract contract ValidatorManager is
     /**
      * @notice Begins the validator registration process, and sets the initial weight for the validator.
      * @param nodeID The node ID of the validator being registered.
-     * @param registrationExpiry The time at which the reigistration is no longer valid on the P-Chain.
+     * @param registrationExpiry The Unix timestamp after which the reigistration is no longer valid on the P-Chain.
      * @param blsPublicKey The BLS public key of the validator.
      */
     function _initializeValidatorRegistration(
