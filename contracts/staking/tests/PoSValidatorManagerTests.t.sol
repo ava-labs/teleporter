@@ -22,14 +22,13 @@ abstract contract PoSValidatorManagerTest is ValidatorManagerTest {
 
     function testRegisterManyValidators() public {
         for (uint64 i = 1; i <= 10; i++) {
-            bytes32 nodeID = sha256(new bytes(i));
             _setUpCompleteValidatorRegistration({
-                nodeID: nodeID,
+                nodeID: sha256(new bytes(i)),
                 subnetID: DEFAULT_SUBNET_ID,
                 weight: DEFAULT_WEIGHT,
-                registrationExpiry: uint64(DEFAULT_EXPIRY * i),
+                registrationExpiry: DEFAULT_EXPIRY,
                 blsPublicKey: DEFAULT_BLS_PUBLIC_KEY,
-                registrationTimestamp: uint64(DEFAULT_REGISTRATION_TIMESTAMP * i)
+                registrationTimestamp: DEFAULT_REGISTRATION_TIMESTAMP
             });
         }
     }
