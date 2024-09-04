@@ -97,8 +97,7 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         _initializeEndValidation(validationID);
     }
 
-    function _getUptime(bytes32 validationID, uint32 messageIndex) internal returns (uint64) {
-        PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
+    function _getUptime(bytes32 validationID, uint32 messageIndex) internal view returns (uint64) {
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
         require(valid, "PoSValidatorManager: invalid warp message");
