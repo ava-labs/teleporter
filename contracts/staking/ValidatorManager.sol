@@ -204,6 +204,11 @@ abstract contract ValidatorManager is
         );
     }
 
+    function activeValidators(bytes32 nodeID) public view returns (bytes32) {
+        ValidatorManagerStorage storage $ = _getValidatorManagerStorage();
+        return $._activeValidators[nodeID];
+    }
+
     /**
      * @notice Begins the process of ending an active validation period. The validation period must have been previously
      * started by a successful call to {completeValidatorRegistration} with the given validationID.

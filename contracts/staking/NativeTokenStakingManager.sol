@@ -26,8 +26,13 @@ contract NativeTokenStakingManager is
         }
     }
 
+    /**
+     * @notice Initialize the ERC20 token staking manager
+     * @dev Uses reinitializer(2) on the PoS staking contracts to make sure after migration from PoA, the PoS contracts can reinitialize with its needed values.
+     * @param settings Initial settings for the PoS validator manager
+     */
     // solhint-disable ordering
-    function initialize(PoSValidatorManagerSettings calldata settings) external initializer {
+    function initialize(PoSValidatorManagerSettings calldata settings) external reinitializer(2) {
         __NativeTokenStakingManager_init(settings);
     }
 
