@@ -298,9 +298,7 @@ abstract contract ValidatorManager is
         validator.status = endStatus;
         $._validationPeriods[validationID] = validator;
 
-        // Unlock the stake.
-
-        // Calculate the reward for the validator.
+        // TODO: Unlock the stake.
 
         // Emit event.
         emit ValidationPeriodEnded(validationID, validator.status);

@@ -36,8 +36,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         /// @notice Maps the validationID to a mapping of delegator address to pending end delegator messages.
         mapping(bytes32 validationID => mapping(address delegator => bytes))
             _pendingEndDelegatorMessages;
-        /// @notice Maps the validationID to the uptime of the validator.
-        mapping(bytes32 validationID => uint64) _validatorUptimes;
     }
     // solhint-enable private-vars-leading-underscore
 
@@ -92,12 +90,14 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         uint32 messageIndex
     ) external {
         if (includeUptimeProof) {
-            _updateUptime(validationID, messageIndex);
+            _getUptime(validationID, messageIndex);
         }
+        // TODO: Calculate the reward for the validator, but do not unlock it
+
         _initializeEndValidation(validationID);
     }
 
-    function _updateUptime(bytes32 validationID, uint32 messageIndex) internal returns (uint64) {
+    function _getUptime(bytes32 validationID, uint32 messageIndex) internal returns (uint64) {
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
         (WarpMessage memory warpMessage, bool valid) =
             WARP_MESSENGER.getVerifiedWarpMessage(messageIndex);
@@ -117,9 +117,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         require(
             validationID == uptimeValidationID, "PoSValidatorManager: invalid uptime validation ID"
         );
-
-        $._validatorUptimes[validationID] = uptime;
-        emit ValidationUptimeUpdated(validationID, uptime);
 
         return uptime;
     }
@@ -189,7 +186,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
             endedAt: 0,
             startingNonce: nonce,
             endingNonce: 0,
-            validatorUptime: 0,
             status: DelegatorStatus.PendingAdded
         });
 
@@ -253,8 +249,10 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
     ) external {
         uint64 uptime;
         if (includeUptimeProof) {
-            uptime = _updateUptime(validationID, messageIndex);
+            uptime = _getUptime(validationID, messageIndex);
         }
+
+        // TODO: Calculate the delegator's reward, but do not unlock it
 
         PoSValidatorManagerStorage storage $ = _getPoSValidatorManagerStorage();
 
@@ -267,7 +265,6 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
         delegator.status = DelegatorStatus.PendingRemoved;
         delegator.endedAt = uint64(block.timestamp);
         delegator.endingNonce = nonce;
-        delegator.validatorUptime = uptime;
 
         $._delegatorStakes[validationID][_msgSender()] = delegator;
 
@@ -324,6 +321,8 @@ abstract contract PoSValidatorManager is IPoSValidatorManager, ValidatorManager 
 
         // Update the delegator status
         $._delegatorStakes[validationID][delegator].status = DelegatorStatus.Completed;
+
+        // TODO: Unlock the delegator's stake and their reward
 
         emit DelegationEnded(validationID, delegator, nonce);
     }

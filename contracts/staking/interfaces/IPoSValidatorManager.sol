@@ -30,18 +30,10 @@ struct Delegator {
     uint64 endedAt;
     uint64 startingNonce;
     uint64 endingNonce;
-    uint64 validatorUptime;
     DelegatorStatus status;
 }
 
 interface IPoSValidatorManager is IValidatorManager {
-    /**
-     * @notice Event emitted when a validator's uptime is updated.
-     * @param validationID The ID of the validation period
-     * @param uptime The new uptime of the validator
-     */
-    event ValidationUptimeUpdated(bytes32 indexed validationID, uint64 uptime);
-
     /**
      * @notice Event emitted when a delegator registration is initiated
      * @param validationID The ID of the validation period
